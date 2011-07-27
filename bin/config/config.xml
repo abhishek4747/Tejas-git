@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--/*****************************************************************************
+				BhartiSim Simulator
+*************************************************************************************
+
+   Copyright 2010 Indian Institute of Technology, Delhi
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+******************************************************************************
+	Contributors:  Moksh Upadhyay, Abhishek Sagar
+*****************************************************************************/-->
+
+<Configuration>
+
+	<!--Simulation Parameters-->
+	<Simulation>
+		<PinTool>/home/prathmesh/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/prathmesh/Eclipse_Projects/BhartiSim/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
+		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
+		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
+		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
+	</Simulation>
+
+	<!--System Parameters-->
+	<System>
+		<NoOfCores>16</NoOfCores>
+		<MainMemoryLatency>5</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
+		<CacheBusLatency>1</CacheBusLatency>				<!--Latency of the BUS used for broadcasting messages for cache coherence-->
+
+		<!--Core Parameters-->
+		<Core>
+			<ROBSize>256</ROBSize>				<!--Maximum number of entries in the ROB-->
+
+			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
+			<LSQLatency>2</LSQLatency>			<!--In clock cycles-->
+			<LSQAccessPorts>2</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
+			<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
+
+			<TLBSize>256</TLBSize>				<!--Maximum number of entries in the TLB-->
+			<TLBLatency>2</TLBLatency>			<!--In clock cycles-->
+			<TLBAccessPorts>2</TLBAccessPorts>		<!--Number of access ports in the TLB-->
+	
+			<IntALUNum>5</IntALUNum>			<!--Number of Integer ALUs-->
+			<IntMulNum>5</IntMulNum>			<!--Number of Integer Multipliers-->
+			<IntDivNum>5</IntDivNum>			<!--Number of Integer Dividers-->
+	
+			<FloatALUNum>5</FloatALUNum>			<!--Number of Floating Point ALUs-->
+			<FloatMulNum>5</FloatMulNum>			<!--Number of Floating Point Multipliers-->
+			<FloatDivNum>5</FloatDivNum>			<!--Number of Floating Point Dividers-->
+	
+			<NumPhyIntReg>5</NumPhyIntReg>			<!--Number of physical Integer registers-->
+			<NumPhyFloatReg>5</NumPhyFloatReg>		<!--Number of physical Floating point registers-->
+			
+			<!--Specify only the L1 (immediately next to the core) cache of the core here-->
+			<L1Cache type = "Type1" nextLevel = "L2"/>
+			<!--L2Cache type = "Type2"/-->
+			<!--L3Cache type = "Type3"/-->
+		</Core>
+
+		<!--Specify the caches other the L1 caches after this-->
+		<Cache name = "L2" type = "Type2" nextLevel = ""/>
+
+		<CoherenceEnforcingCache>L2</CoherenceEnforcingCache>	<!--NAME of the cache whose immediate upper caches are coherent-->
+	</System>
+
+	<!--Give all the library elements here-->
+	<Library>
+		<Type1>
+			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+			<BlockSize>32</BlockSize>			<!--In bytes-->
+			<Associativity>2</Associativity>
+			<Size>64</Size>					<!--In KBs-->
+			<Latency>3</Latency>				<!--In clock cycles-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+		</Type1>
+		<Type2>
+			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+			<BlockSize>128</BlockSize>			<!--In bytes-->
+			<Associativity>4</Associativity>
+			<Size>8192</Size>				<!--In KBs-->
+			<Latency>4</Latency>				<!--In clock cycles-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+		</Type2>
+		<Type3>
+			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+			<BlockSize>256</BlockSize>			<!--In bytes-->
+			<Associativity>8</Associativity>
+			<Size>16384</Size>				<!--In KBs-->
+			<Latency>5</Latency>				<!--In clock cycles-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+		</Type3>
+	</Library>
+</Configuration>

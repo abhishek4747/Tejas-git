@@ -1,0 +1,278 @@
+/*****************************************************************************
+				BhartiSim Simulator
+------------------------------------------------------------------------------------------------------------
+
+   Copyright [2010] [Indian Institute of Technology, Delhi]
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+------------------------------------------------------------------------------------------------------------
+
+	Contributors:  Moksh Upadhyay, Abhishek Sagar
+*****************************************************************************/
+package config;
+
+import generic.MultiPortingType;
+
+import java.io.File;
+import java.util.Hashtable;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.*;
+
+public class XMLParser 
+{
+	private static Document doc;
+
+	public static void parse() 
+	{ 
+		try 
+		{
+			File file = new File("src/simulator/config/config.xml");
+			DocumentBuilderFactory DBFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder DBuilder = DBFactory.newDocumentBuilder();
+			doc = DBuilder.parse(file);
+			doc.getDocumentElement().normalize();
+			//System.out.println("Root element : " + doc.getDocumentElement().getNodeName());
+			
+			setSimulationParameters();
+			
+			setSystemParameters();
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+ 	}
+	
+	// For an ith core specified, mark the ith field of this long as 1. 
+	private static long parseMapper (String s) 
+	{
+		long ret = 0;
+		String delims = "[,]+";
+		String[] tokens = s.split(delims);
+		for (int i=0; i<tokens.length; i++) 
+		{
+			String delimsin = "[-]+";
+			String[] tokensin = tokens[i].split(delimsin);
+			if (tokensin.length == 1) 
+			{
+				ret = ret | (1 << Integer.parseInt(tokensin[0]));
+			}
+			else if (tokensin.length == 2) 
+			{
+				int start = Integer.parseInt(tokensin[0]);
+				int end = Integer.parseInt(tokensin[1]);
+				for (int j=start; j<=end; j++) 
+				{
+					ret = ret | (1 << j);
+				}
+			}
+			else 
+			{
+				System.out.println("Physical Core mapping not correct in config.xml");
+				System.exit(0);
+			}
+		}
+		return ret;
+	}
+	
+	private static void setSimulationParameters()
+	{
+		NodeList nodeLst = doc.getElementsByTagName("Simulation");
+		Node simulationNode = nodeLst.item(0);
+		Element simulationElmnt = (Element) simulationNode;
+		SimulationConfig.PinTool = getImmediateString("PinTool", simulationElmnt);
+		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
+		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
+		
+		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
+		if (tempVal == 0)
+			SimulationConfig.IndexAddrModeEnable = false;
+		else
+			SimulationConfig.IndexAddrModeEnable = true;
+		
+		SimulationConfig.MapEmuCores = parseMapper(getImmediateString("EmuCores", simulationElmnt));
+		SimulationConfig.MapJavaCores = parseMapper(getImmediateString("JavaCores", simulationElmnt));
+		
+		//System.out.println(SimulationConfig.NumTempIntReg + ", " + SimulationConfig.IndexAddrModeEnable);
+	}
+	
+	private static void setSystemParameters()
+	{
+		SystemConfig.declaredCaches = new Hashtable<String, CacheConfig>(); //Declare the hash table for declared caches
+		
+		NodeList nodeLst = doc.getElementsByTagName("System");
+		Node systemNode = nodeLst.item(0);
+		Element systemElmnt = (Element) systemNode;
+		
+		//Read number of cores and define the array of core configurations
+		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
+		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
+		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
+		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
+		
+		SystemConfig.coherenceEnforcingCache = getImmediateString("CoherenceEnforcingCache", systemElmnt);
+		
+		//Set core parameters
+		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			SystemConfig.core[i] = new CoreConfig();
+			CoreConfig core = SystemConfig.core[i]; //To be locally used for assignments
+		
+			Element coreElmnt = (Element) coreLst.item(0);;
+			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
+			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", coreElmnt));
+			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", coreElmnt));
+			core.LSQAccessPorts = Integer.parseInt(getImmediateString("LSQAccessPorts", coreElmnt));
+			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", coreElmnt));
+			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
+			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
+			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
+			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", coreElmnt));
+			core.IntMulNum = Integer.parseInt(getImmediateString("IntMulNum", coreElmnt));
+			core.IntDivNum = Integer.parseInt(getImmediateString("IntDivNum", coreElmnt));
+			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", coreElmnt));
+			core.FloatMulNum = Integer.parseInt(getImmediateString("FloatMulNum", coreElmnt));
+			core.FloatDivNum = Integer.parseInt(getImmediateString("FloatDivNum", coreElmnt));
+			core.NumPhyIntReg = Integer.parseInt(getImmediateString("NumPhyIntReg", coreElmnt));
+			core.NumPhyFloatReg = Integer.parseInt(getImmediateString("NumPhyFloatReg", coreElmnt));
+		
+			//Code for L1 cache configurations for each core
+			NodeList l1CacheList = coreElmnt.getElementsByTagName("L1Cache");
+			Element l1Elmnt = (Element) l1CacheList.item(0);
+			String cacheType = l1Elmnt.getAttribute("type");
+			Element typeElmnt = searchLibraryForItem(cacheType);
+			setCacheProperties(typeElmnt, core.l1Cache);
+			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
+			
+			//Code for L1 cache configurations for each core
+			//NodeList l2CacheList = coreElmnt.getElementsByTagName("L2Cache");
+			//Element l2Elmnt = (Element) l2CacheList.item(0);
+			//cacheType = l2Elmnt.getAttribute("type");
+			//typeElmnt = searchLibraryForItem(cacheType);
+			//setCacheProperties(typeElmnt, core.l2Cache);
+			//core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
+			
+			//Code for L1 cache configurations for each core
+			//NodeList l3CacheList = coreElmnt.getElementsByTagName("L3Cache");
+			//Element l3Elmnt = (Element) l3CacheList.item(0);
+			//cacheType = l3Elmnt.getAttribute("type");
+			//typeElmnt = searchLibraryForItem(cacheType);
+			//setCacheProperties(typeElmnt, core.l3Cache);
+			//core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
+		}
+		
+		//Code for remaining Cache configurations
+		NodeList cacheLst = systemElmnt.getElementsByTagName("Cache");
+		for (int i = 0; i < cacheLst.getLength(); i++)
+		{
+			Element cacheElmnt = (Element) cacheLst.item(i);
+			String cacheName = cacheElmnt.getAttribute("name");
+			if (!(SystemConfig.declaredCaches.containsKey(cacheName)))	//If the identically named cache is not already present
+			{
+				CacheConfig newCacheConfigEntry = new CacheConfig();
+				String cacheType = cacheElmnt.getAttribute("type");
+				Element cacheTypeElmnt = searchLibraryForItem(cacheType);
+				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);
+				newCacheConfigEntry.nextLevel = cacheElmnt.getAttribute("nextLevel");
+				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
+			}
+		}
+		
+		//System.out.println(SystemConfig.NoOfCores + ", " + SystemConfig.core[0].ROBSize);
+	}
+	
+	private static void setCacheProperties(Element CacheType, CacheConfig cache)
+	{
+		String tempStr = getImmediateString("WriteMode", CacheType);
+		if (tempStr.equalsIgnoreCase("WB"))
+			cache.writeMode = CacheConfig.writeModes.WRITE_BACK;
+		else if (tempStr.equalsIgnoreCase("WT"))
+			cache.writeMode = CacheConfig.writeModes.WRITE_THROUGH;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid Write Mode (please enter WB for write-back or WT for write-through)");
+			System.exit(1);
+		}
+		
+		//System.out.println(cache.writeMode);
+		
+		cache.blockSize = Integer.parseInt(getImmediateString("BlockSize", CacheType));
+		cache.assoc = Integer.parseInt(getImmediateString("Associativity", CacheType));
+		cache.size = Integer.parseInt(getImmediateString("Size", CacheType));
+		cache.latency = Integer.parseInt(getImmediateString("Latency", CacheType));
+		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
+		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
+		
+		tempStr = getImmediateString("LastLevel", CacheType);
+		if (tempStr.equalsIgnoreCase("Y"))
+			cache.isLastLevel = true;
+		else if (tempStr.equalsIgnoreCase("N"))
+			cache.isLastLevel = false;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid value of 'isLastLevel' (please enter 'Y' for yes or 'N' for no)");
+			System.exit(1);
+		}
+	}
+	
+	private static Element searchLibraryForItem(String tagName)	//Searches the <Library> section for a given tag name and returns it in Element form
+	{															// Used mainly for cache types
+		NodeList nodeLst = doc.getElementsByTagName("Library");
+		Element libraryElmnt = (Element) nodeLst.item(0);
+		NodeList libItemLst = libraryElmnt.getElementsByTagName(tagName);
+		
+		if (libItemLst.item(0) == null) //Item not found
+		{
+			System.err.println("XML Configuration error : Item type \"" + tagName + "\" not found in library section in the configuration file!!");
+			System.exit(1);
+		}
+		
+		if (libItemLst.item(1) != null) //Item found more than once
+		{
+			System.err.println("XML Configuration error : More than one definitions of item type \"" + tagName + "\" found in library section in the configuration file!!");
+			System.exit(1);
+		}
+		
+		Element resultElmnt = (Element) libItemLst.item(0);
+		return resultElmnt;
+	}
+	
+	private static String getImmediateString(String tagName, Element parent) // Get the immediate string value of a particular tag name under a particular parent tag
+	{
+		NodeList nodeLst = parent.getElementsByTagName(tagName);
+		if (nodeLst.item(0) == null)
+		{
+			System.err.println("XML Configuration error : Item \"" + tagName + "\" not found inside the \"" + parent.getTagName() + "\" tag in the configuration file!!");
+			System.exit(1);
+		}
+	    Element NodeElmnt = (Element) nodeLst.item(0);
+	    NodeList resultNode = NodeElmnt.getChildNodes();
+	    return ((Node) resultNode.item(0)).getNodeValue();
+	}
+	
+	private static MultiPortingType setMultiPortingType(String inputStr)
+	{
+		MultiPortingType result = null;
+		if (inputStr.equalsIgnoreCase("G"))
+			result = MultiPortingType.GENUINE;
+		else if (inputStr.equalsIgnoreCase("B"))
+			result = MultiPortingType.BANKED;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid Multiporting type specified");
+			System.exit(1);
+		}
+		return result;
+	}
+}
