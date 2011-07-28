@@ -36,7 +36,7 @@ public class TLBEvent extends Event
 							long _addr, 
 							long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		addr = _addr;
 		containingMemSys = _containingMemSys;
@@ -50,7 +50,7 @@ public class TLBEvent extends Event
 							long _addr, 
 							long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		addingEntry = true;
 		pageID = _pageID;

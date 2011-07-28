@@ -30,7 +30,7 @@ public class LSQAddEvent extends Event
 	
 	public LSQAddEvent(CoreMemorySystem _containingMemSys, boolean _isLoad, long _addr, long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		isLoad = _isLoad;
 		addr = _addr;

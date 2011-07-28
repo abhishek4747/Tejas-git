@@ -52,7 +52,7 @@ public class MainMemAccessEvent extends Event
 							Stack<CacheFillStackEntry> _cacheFillStack, 
 							long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		AccessSource = MainMemAccessSource.CacheGeneral;
 		threadID = _threadID;
@@ -69,7 +69,7 @@ public class MainMemAccessEvent extends Event
 							int _lsqIndex, 
 							long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		AccessSource = MainMemAccessSource.TLB;
 		containingMemSys = _containingMemSys;
@@ -86,7 +86,7 @@ public class MainMemAccessEvent extends Event
 								MESI _stateToSet,
 								long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 
 		AccessSource = MainMemAccessSource.CoherentCache;
 		threadID = _threadID;

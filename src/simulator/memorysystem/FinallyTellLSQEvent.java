@@ -31,7 +31,7 @@ public class FinallyTellLSQEvent extends Event
 								LSQEntry _lsqEntry,
 								long eventTime)
 	{
-		super (eventTime, 2);
+		super (eventTime, 2, 0);
 		
 		threadID = _threadID;
 		lsqEntry = _lsqEntry;

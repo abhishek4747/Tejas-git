@@ -42,7 +42,7 @@ public class FillCacheStackEvent extends Event
 								MESI _stateToSet,
 								long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		threadID = _threadID;
 		lsqEntry = _lsqEntry;
@@ -55,7 +55,7 @@ public class FillCacheStackEvent extends Event
 								MESI _stateToSet,
 								long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 
 		belowCoherentLevel = true;
 		threadID = _threadID;

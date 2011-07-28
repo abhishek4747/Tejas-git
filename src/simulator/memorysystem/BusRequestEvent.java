@@ -44,7 +44,7 @@ public class BusRequestEvent extends Event
 							LSQEntry _lsqEntry,
 							long eventTime)
 	{
-		super(eventTime, 3);
+		super(eventTime, 3, 0);
 		
 		requestingThreadID =_requestingThreadID;
 		requestType = _requestType;

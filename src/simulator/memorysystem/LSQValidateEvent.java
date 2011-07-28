@@ -31,7 +31,7 @@ public class LSQValidateEvent extends Event
 	
 	public LSQValidateEvent(CoreMemorySystem _containingMemSys, int _lsqIndex, long _addr, long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		lsqIndex = _lsqIndex;
 		addr = _addr;

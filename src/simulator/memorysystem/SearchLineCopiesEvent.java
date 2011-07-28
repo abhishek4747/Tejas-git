@@ -40,7 +40,7 @@ public class SearchLineCopiesEvent extends Event
 								Cache _sourceCache,
 								long eventTime)
 	{
-		super(eventTime, 4);
+		super(eventTime, 4, 0);
 		
 		targetCache = _targetCache;
 		address = _address;

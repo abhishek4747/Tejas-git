@@ -10,7 +10,7 @@ public class BorrowSharedEvent extends Event
 	
 	public BorrowSharedEvent(Cache _destination, long _addr, long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		destination = _destination;
 		addr = _addr;

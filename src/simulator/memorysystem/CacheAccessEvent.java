@@ -47,7 +47,7 @@ public class CacheAccessEvent extends Event
 							Stack<CacheFillStackEntry> _cacheFillStack, //The stack of all the caches in the way to here (so that their corresponding missed blocks can be filled)
 							long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 		
 		threadID = _threadID;
 		lsqEntry = _lsqEntry;
@@ -64,7 +64,7 @@ public class CacheAccessEvent extends Event
 							Stack<CacheFillStackEntry> _cacheFillStack, //The stack of all the caches in the way to here (so that their corresponding missed blocks can be filled)
 							long eventTime)
 	{
-		super(eventTime, 2);
+		super(eventTime, 2, 0);
 
 		isBelowBus = true;
 		threadID = _threadID;
