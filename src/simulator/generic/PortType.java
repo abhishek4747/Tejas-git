@@ -3,5 +3,6 @@ package generic;
 public enum PortType 
 {
 	FirstComeFirstServe,
-	PriorityBased
+	PriorityBased,
+	FullyPipelined
 }

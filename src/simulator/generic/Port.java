@@ -51,6 +51,13 @@ public abstract class Port
 			return 	nextFreeSlot;
 		}
 		
+		else if(portType == PortType.FullyPipelined)
+		{
+			//tell everybody to come in the next time slot.
+			//we will service them all in the next slot.
+			return (currentTime + 1);
+		}
+		
 		else
 		{
 			misc.Error.showErrorAndExit("Invalid port type !!");

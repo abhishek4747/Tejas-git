@@ -15,4 +15,22 @@ public class NewEventQueue
 	{
 		priorityQueue.add(newEvent);
 	}
+	
+	public void processEvents()
+	{
+		NewEvent newEvent;
+		long eventTime;
+		long currentClockTime = 0; //FIXME :  the current clock time to be accessed from somewhere
+		
+		while(!priorityQueue.isEmpty())
+		{
+			eventTime = priorityQueue.peek().getEventTime();
+			if (eventTime <= currentClockTime)
+			{
+				newEvent = priorityQueue.poll();
+				newEvent.getSimulationElement().
+					processRequest(newEvent.getSimulationRequest());
+			}
+		}
+	}
 }
