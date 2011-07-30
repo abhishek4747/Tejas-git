@@ -29,11 +29,24 @@ public abstract class Port
 	//returns the next available slot.
 	Time_t nextSlot()
 	{
+		//In case of unlimited ports, always return NOW
+		if(noOfPorts==-1 && occupancy==-1)
+		{
+			return globalClock;
+		}
+		
 		return nextSlot(occupancy);
 	}
 	
 	Time_t nextSlot(Time_t occupancyRequired)
 	{
+		//In case of unlimited ports, always return NOW
+		if(noOfPorts==-1 && occupancy==-1)
+		{
+			return globalClock;
+		}
+		
+		
 		Time_t availableSlot;
 		int availablePort;
 				
@@ -62,7 +75,7 @@ public abstract class Port
 		
 		//we reached here since there was no port available.
 		//so, now the availablePort must be booked in advance.
-		portBusyUntil[availablePort] + = occupancyRequired;
+		portBusyUntil[availablePort] += occupancyRequired;
 	
 		//return the available slot.
 		return availableSlot;
@@ -71,6 +84,13 @@ public abstract class Port
 	//returns the next available slot for booking the port for n slots
 	Time_t occupySlots(int noOfSlots)
 	{
+		//In case of unlimited ports, always return NOW
+		if(noOfPorts==-1 && occupancy==-1)
+		{
+			return globalClock;
+		}
+		
+		
 		//This nextSlot  function is called for n times so that we will have a 
 		//optimal allocation of ports.
 		Time_t firstFlot = nextSlot();
@@ -84,6 +104,13 @@ public abstract class Port
 	//returns the next slot without booking anything
 	Time_t calculateNextSlot()
 	{
+		//In case of unlimited ports, always return NOW
+		if(noOfPorts==-1 && occupancy==-1)
+		{
+			return globalClock;
+		}
+		
+		
 		Time_t availableSlot;
 		
 		availableSlot = portBusyUntil[0];
@@ -106,6 +133,13 @@ public abstract class Port
 	//locks the port for n cycles
 	void lockForNCycles(Time_t noOfCycles)
 	{
+		//In case of unlimited ports, always return NOW
+		if(noOfPorts==-1 && occupancy==-1)
+		{
+			return;
+		}
+
+		
 		Time_t nextAvailableSlot = calculateNextSlot();
 		Time_t lockTillSlot = nextAvailableSlot + noOfCycles;
 		for(int i = 0; i < noOfPorts; i++)
