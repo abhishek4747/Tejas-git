@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlElementDecl.GLOBAL;
 
 public abstract class Port 
 {
-	private int noOfUnits;
+	private int noOfPorts;
 	
 	//occupancy defines the number of clockCycles it takes for one completion 
 	//of a single transfer on the port.
@@ -27,7 +27,7 @@ public abstract class Port
 	}
 	
 	//returns the next available slot.
-	Time_t nextSlot()
+	Time_t getNextSlot()
 	{
 		//In case of unlimited ports, always return NOW
 		if(noOfPorts==-1 && occupancy==-1)
@@ -38,7 +38,7 @@ public abstract class Port
 		return nextSlot(occupancy);
 	}
 	
-	Time_t nextSlot(Time_t occupancyRequired)
+	Time_t getNextSlot(Time_t occupancyRequired)
 	{
 		//In case of unlimited ports, always return NOW
 		if(noOfPorts==-1 && occupancy==-1)
