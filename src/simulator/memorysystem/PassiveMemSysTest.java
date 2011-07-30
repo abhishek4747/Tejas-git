@@ -196,7 +196,7 @@ public class PassiveMemSysTest
 	@Test
 	public void testCoreSpecificMemSystem()
 	{
-		initializeRun("trace.out");
+		initializeRun("jitter_pintrace.out");
 
 		long starttime, stoptime;
 		double elapsed;
