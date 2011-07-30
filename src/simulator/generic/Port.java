@@ -1,67 +1,119 @@
 package generic;
 
+import javax.xml.bind.annotation.XmlElementDecl.GLOBAL;
+
 
 public abstract class Port 
 {
-	private int noOfPorts;
-	private long latency;
-	private PortType portType;
-	private int portBusyUntil[];
+	private int noOfUnits;
 	
-	//FIXME: multi-porting type can be easily done away by having a combination of 
-	//controller and different banks
-	//private MultiPortingType multiPortingType;
+	//occupancy defines the number of clockCycles it takes for one completion 
+	//of a single transfer on the port.
+	private Time_t occupancy;
+	private Time_t portBusyUntil[];
 	
-		
-	public Port(int noOfPorts, long latency, PortType portType) 
+	
+	public Port(int noOfPorts, int occupancy)
 	{
+		//initialize no. of ports and the occupancy.
 		this.noOfPorts = noOfPorts;
-		this.latency = latency;
-		this.portType = portType;
+		this.occupancy = occupancy;
 		
-		//Generate new array
-		this.portBusyUntil = new int[noOfPorts];
-	}
-
-	//return the next free slot
-	long getNextSlot(long currentTime)
-	{
-		if(portType == PortType.PriorityBased)
+		//initialize each port as being just used.
+		for(int i=0; i<noOfPorts; i++)
 		{
-			//tell everybody to come in the next time slot.
-			//once they come, we will start sorting them.
-			return (currentTime + 1);
+			this.portBusyUntil[i] = globalClock;
 		}
+	}
+	
+	//returns the next available slot.
+	Time_t nextSlot()
+	{
+		return nextSlot(occupancy);
+	}
+	
+	Time_t nextSlot(Time_t occupancyRequired)
+	{
+		Time_t availableSlot;
+		int availablePort;
+				
+		availableSlot = portBusyUntil[0];
+		availablePort = 0;
 		
-		else if(portType == PortType.FirstComeFirstServe)
+		for(int i=0; i<noOfPorts; i++)
 		{
-			//check for the port that is going to be free first.
-			//return this value as the expectedSlot of service.
-			int nextFreeSlot;
-			
-			nextFreeSlot = portBusyUntil[0];
-			for(int i=0; i<noOfPorts; i++)
+			if(portBusyUntil[i] < globalClock)
 			{
-				if(portBusyUntil[i] < nextFreeSlot)
-				{
-					nextFreeSlot = portBusyUntil[i];
-				}
+				//this means that port[i] is free.
+				//Grab this port and make it busy until occupancyRequired cycles
+				portBusyUntil[i] = globalClock + occupancyRequired;
+
+				//return saying that u can have the port now itself.
+				return (globalClock);
 			}
 			
-			return 	nextFreeSlot;
+			else if(portBusyUntil[i] < availableSlot)
+			{
+				availablePort = i;
+				availableSlot = portBusyUntil[i];
+			}
 		}
 		
-		else if(portType == PortType.FullyPipelined)
+		
+		//we reached here since there was no port available.
+		//so, now the availablePort must be booked in advance.
+		portBusyUntil[availablePort] + = occupancyRequired;
+	
+		//return the available slot.
+		return availableSlot;
+	}
+	
+	//returns the next available slot for booking the port for n slots
+	Time_t occupySlots(int noOfSlots)
+	{
+		//This nextSlot  function is called for n times so that we will have a 
+		//optimal allocation of ports.
+		Time_t firstFlot = nextSlot();
+		
+		for(int i=0; i<(nOfSlots-1); i++)
 		{
-			//tell everybody to come in the next time slot.
-			//we will service them all in the next slot.
-			return (currentTime + 1);
+			nextSlot();
+		}
+	}
+	
+	//returns the next slot without booking anything
+	Time_t calculateNextSlot()
+	{
+		Time_t availableSlot;
+		
+		availableSlot = portBusyUntil[0];
+		for(i=0; i<noOfPorts; i++)
+		{
+			if(portBusyUntil[i] < availableSlot)
+				availableSlot = portBusyUntil[i];
 		}
 		
+		if(availableSlot < globalClock)
+		{
+			return globalClock;
+		}
 		else
 		{
-			misc.Error.showErrorAndExit("Invalid port type !!");
-			return -1;
+			return availableSlot;
+		}
+	}
+	
+	//locks the port for n cycles
+	void lockForNCycles(Time_t noOfCycles)
+	{
+		Time_t nextAvailableSlot = calculateNextSlot();
+		Time_t lockTillSlot = nextAvailableSlot + noOfCycles;
+		for(int i = 0; i < noOfPorts; i++)
+		{
+			if( portBusyUntil[i] < lockTillSlot )
+			{
+				portBusyUntil[i] = lockTillSlot;
+			}
 		}
 	}
 }
