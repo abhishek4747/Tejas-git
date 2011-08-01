@@ -1,15 +1,19 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.SimulationElement;
+import generic.Time_t;
+
 import java.util.LinkedList;
 
-public class InstructionWindow {
+public class InstructionWindow extends SimulationElement {
 	
 	Core core;
 	LinkedList<IWEntry> IW;
 	
 	public InstructionWindow(Core core)
 	{
+		super(-1, new Time_t(-1), new Time_t(-1));
 		this.core = core;
 		IW = new LinkedList<IWEntry>();
 	}

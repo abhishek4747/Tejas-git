@@ -1,7 +1,6 @@
 package pipeline.outoforder;
 
 import generic.Core;
-import generic.EventQueue;
 
 /**
  * execution engine comprises of : decode logic, ROB, instruction window, register files,
@@ -14,6 +13,7 @@ public class ExecutionEngine {
 	
 	//components of the execution engine
 	private DecodeLogic decoder;
+
 	private ReorderBuffer reorderBuffer;
 	private InstructionWindow instructionWindow;
 	private RegisterFile integerRegisterFile;
@@ -24,13 +24,12 @@ public class ExecutionEngine {
 	private FunctionalUnitSet functionalUnitSet;
 	
 	//flags
-	private boolean toStallDecode;				//if physical register cannot be
+	private boolean toStallDecode1;				//if physical register cannot be
 												//allocated to the dest of an instruction,
 												//all subsequent processing must stall
+	private boolean toStallDecode2;				//if branch mis-predicted
 	private boolean isExecutionComplete;		//TRUE indicates end of simulation
 	private boolean isDecodePipeEmpty;
-	
-	private EventQueue eventQ;
 	
 	public ExecutionEngine(Core containingCore)
 	{
@@ -44,38 +43,37 @@ public class ExecutionEngine {
 		floatingPointRegisterFile = new RegisterFile(core.getFloatingPointRegisterFileSize());
 		floatingPointRenameTable = new RenameTable(core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile);
 		machineSpecificRegisterFile = new RegisterFile(core.getNMachineSpecificRegisters());
-		eventQ = core.getEventQueue();
 		
 		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),
 													core.getAllLatencies());
 		
-		toStallDecode = false;
+		toStallDecode1 = false;
+		toStallDecode2 = false;
 		isExecutionComplete = false;
 		isDecodePipeEmpty = false;
 	}
 	
-	public void boot()
+	/*public void work()
 	{
-		while(!isExecutionComplete)
+		if(!isExecutionComplete && !toStallDecode2)
 		{
-			core.incrementClock();
-			
 			//commit instruction at head of ROB
 			getReorderBuffer().performCommits();
 			
-			//process events that are scheduled for the current clock cycle
-			eventQ.processEvents();
-			
-			if(!isDecodePipeEmpty && !toStallDecode)
+			if(!isDecodePipeEmpty && !toStallDecode1)
 			{
 				//read decode pipe to add more instructions to ROB
 				decoder.scheduleDecodeCompletion();
 			}
 		}
-	}
+	}*/
 
 	public Core getCore() {
 		return core;
+	}
+	
+	public DecodeLogic getDecoder() {
+		return decoder;
 	}
 
 	public RegisterFile getFloatingPointRegisterFile() {
@@ -122,13 +120,22 @@ public class ExecutionEngine {
 		return reorderBuffer;
 	}
 
-	public boolean isStallDecode() {
-		return toStallDecode;
+	public boolean isStallDecode1() {
+		return toStallDecode1;
 	}
 
-	public void setStallDecode(boolean stallDecode) {
-		this.toStallDecode = stallDecode;
+	public void setStallDecode1(boolean stallDecode) {
+		this.toStallDecode1 = stallDecode;
 	}
+	
+	public boolean isStallDecode2() {
+		return toStallDecode2;
+	}
+
+	public void setStallDecode2(boolean toStallDecode2) {
+		this.toStallDecode2 = toStallDecode2;
+	}
+
 
 	public InstructionWindow getInstructionWindow() {
 		return instructionWindow;

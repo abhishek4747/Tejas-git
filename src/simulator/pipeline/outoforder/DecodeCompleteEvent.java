@@ -1,12 +1,14 @@
 package pipeline.outoforder;
 
 import emulatorinterface.translator.x86.objparser.ObjParser;
-import generic.Event;
+import generic.GlobalClock;
+import generic.NewEvent;
 import generic.Core;
 import generic.Instruction;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
+import generic.RequestType;
 
 /**
  * scheduled at the end of decode time
@@ -16,19 +18,24 @@ import generic.OperationType;
  * note - decode complete event represents decode-width number of instructions
  */
 
-public class DecodeCompleteEvent extends Event {
+public class DecodeCompleteEvent extends NewEvent {
 	
 	Core core;
 	
 	public DecodeCompleteEvent(Core core, long eventTime)
 	{
-		super(eventTime, 1, 0);
+		super(eventTime,
+				null,
+				null,
+				0,
+				RequestType.DECODE_COMPLETE);
 		this.core = core;
 	}
 
 	@Override
-	public void handleEvent() {
+	public NewEvent handleEvent() {
 		readDecodePipe();
+		return null;
 	}
 	
 	public void readDecodePipe()
@@ -39,9 +46,10 @@ public class DecodeCompleteEvent extends Event {
 			if(core.getExecEngine().getReorderBuffer().isFull() == false
 					//&& if head of instructionList is a load/store and LSQ is not full TODO
 					&& core.getExecEngine().getInstructionWindow().isFull() == false
-					&& core.getExecEngine().isStallDecode() == false)
+					&& core.getExecEngine().isStallDecode1() == false)
 			{
-				newInstruction = ObjParser.instructionList.pollFirst();
+				newInstruction = core.getDynamicInstructionBuffer()
+									.getNextDynamicInstruction(core.getThreadID());
 				if(newInstruction != null)
 				{
 					makeROBEntries(newInstruction);
@@ -128,7 +136,7 @@ public class DecodeCompleteEvent extends Event {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							core.getClock() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()
 							));
 		}		
 		else
@@ -158,7 +166,7 @@ public class DecodeCompleteEvent extends Event {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							core.getClock() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()
 							));
 		}
 		
@@ -174,7 +182,7 @@ public class DecodeCompleteEvent extends Event {
 							regReadyTime
 							));
 			//stall decode because physical register for destination was not allocated
-			core.getExecEngine().setStallDecode(true);
+			core.getExecEngine().setStallDecode1(true);
 		}
 	}
 	
@@ -203,7 +211,7 @@ public class DecodeCompleteEvent extends Event {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							core.getClock() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()
 							));
 		}
 		else
@@ -215,10 +223,10 @@ public class DecodeCompleteEvent extends Event {
 							reorderBufferEntry,
 							tempRN,
 							core,
-							core.getClock()+1
+							GlobalClock.getCurrentTime()+1
 							));
 			//stall decode because physical register for destination was not allocated
-			core.getExecEngine().setStallDecode(true);
+			core.getExecEngine().setStallDecode1(true);
 		}
 	}
 }

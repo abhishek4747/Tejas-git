@@ -1,7 +1,9 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.GlobalClock;
 import generic.Instruction;
+import generic.NewEvent;
 import generic.OperationType;
 import generic.ExecutionCompleteEvent;
 
@@ -37,12 +39,12 @@ public class IWEntry {
 	//				2) schedule ExecutionCompleteEvent
 	//		else
 	//			schedule an FUAvailableEvent
-	public void issueInstruction()
+	public NewEvent issueInstruction()
 	{
 		if(associatedROBEntry.getIssued() == true)
 		{
 			System.out.println("already issued!");
-			return;
+			return null;
 		}
 		
 		if(isOperand1Available && isOperand2Available)
@@ -52,35 +54,37 @@ public class IWEntry {
 					instruction.getOperationType() == OperationType.xchg)
 			{
 				//no FU required
-				issueMovXchg();
+				return issueMovXchg();
 			}
 			
 			else
 			{
-				issueOthers();
+				return issueOthers();
 			}
 		}
+		return null;
 	}
 	
-	void issueMovXchg()
+	NewEvent issueMovXchg()
 	{
 		//no FU required
 		
 		associatedROBEntry.setIssued(true);
-		associatedROBEntry.setReadyAtTime(core.getClock() + 1);
-		
-		core.getEventQueue().addEvent(
-					new ExecutionCompleteEvent(
-							this.getAssociatedROBEntry(),
-							associatedROBEntry.getFUInstance(),
-							core,
-							core.getClock() + 1 ) );
+		associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + 1);
 		
 		//remove IW entry
 		core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+		
+		return (new ExecutionCompleteEvent(
+							this.getAssociatedROBEntry(),
+							associatedROBEntry.getFUInstance(),
+							core,
+							GlobalClock.getCurrentTime() + 1 ) );
+		
+		
 	}
 	
-	void issueOthers()
+	NewEvent issueOthers()
 	{
 		long FURequest = 0;	//will be <= 0 if an FU was obtained
 		//will be > 0 otherwise, indicating how long before
@@ -88,38 +92,39 @@ public class IWEntry {
 
 		FURequest = core.getExecEngine().getFunctionalUnitSet().requestFU(
 		OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()),
-		core.getClock());
+		GlobalClock.getCurrentTime());
 		
 		if(FURequest <= 0)
 		{
 			associatedROBEntry.setIssued(true);
 			associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
-			associatedROBEntry.setReadyAtTime(core.getClock() + core.getLatency(
+			associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
 			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
 			
-			core.getEventQueue().addEvent(
+			//remove IW entry
+			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+			
+			return (
 				new ExecutionCompleteEvent(
 						this.getAssociatedROBEntry(),
 						associatedROBEntry.getFUInstance(),
 						core,
-						core.getClock() + core.getLatency(
+						GlobalClock.getCurrentTime() + core.getLatency(
 								OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal())
 						) );
-			
-			//remove IW entry
-			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
 		}
 		
 		else
 		{
-			core.getEventQueue().addEvent(
+			
+			associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
+			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
+			
+			return(
 			new FunctionalUnitAvailableEvent(
 					this.core,
 					this.getAssociatedROBEntry(),
 					FURequest ) );
-			
-			associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
-			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
 		}
 	}
 

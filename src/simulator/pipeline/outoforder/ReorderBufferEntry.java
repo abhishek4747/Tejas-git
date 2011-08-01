@@ -1,6 +1,7 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.GlobalClock;
 import generic.Instruction;
 
 public class ReorderBufferEntry {
@@ -25,7 +26,7 @@ public class ReorderBufferEntry {
 		isIssued = false;
 		FUInstance = -1;
 		isExecuted = false;
-		readyAtTime = core.getClock();
+		readyAtTime = GlobalClock.getCurrentTime();
 		associatedIWEntry = null;
 	}
 	

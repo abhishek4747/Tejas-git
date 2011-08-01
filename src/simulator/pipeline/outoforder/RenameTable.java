@@ -1,8 +1,11 @@
 package pipeline.outoforder;
 
+import generic.SimulationElement;
+import generic.Time_t;
+
 import java.util.LinkedList;
 
-public class RenameTable {
+public class RenameTable extends SimulationElement{
 	
 	int nArchRegisters;
 	int nPhyRegisters;
@@ -21,6 +24,7 @@ public class RenameTable {
 	
 	public RenameTable(int nArchRegisters, int nPhyRegisters, RegisterFile associatedRegisterFile)
 	{
+		super(-1, new Time_t(-1), new Time_t(-1));
 		this.nArchRegisters = nArchRegisters;
 		this.nPhyRegisters = nPhyRegisters;
 		this.associatedRegisterFile = associatedRegisterFile;

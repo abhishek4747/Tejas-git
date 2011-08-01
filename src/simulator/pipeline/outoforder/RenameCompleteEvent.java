@@ -1,9 +1,11 @@
 package pipeline.outoforder;
 
-import generic.Event;
+import generic.GlobalClock;
+import generic.NewEvent;
 import generic.Core;
 import generic.OperandType;
 import generic.OperationType;
+import generic.RequestType;
 
 /**
  * handling of the event :
@@ -11,7 +13,7 @@ import generic.OperationType;
  * find out if operands are available
  * attempt to issue the instruction		
  */
-public class RenameCompleteEvent extends Event {
+public class RenameCompleteEvent extends NewEvent {
 	
 	ReorderBufferEntry reorderBufferEntry;
 	Core core;
@@ -20,15 +22,17 @@ public class RenameCompleteEvent extends Event {
 			long eventTime)
 	{
 		super(eventTime,
-				3,
+				null,
+				null,
 				core.getExecEngine().getReorderBuffer()
-					.getROB().indexOf(reorderBufferEntry) );
+					.getROB().indexOf(reorderBufferEntry),
+				RequestType.RENAME_COMPLETE);
 		this.reorderBufferEntry = reorderBufferEntry;
 		this.core = core;
 	}
 
 	@Override
-	public void handleEvent() {
+	public NewEvent handleEvent() {
 		
 		//add to Instruction Window
 		IWEntry newIWEntry = core.getExecEngine().getInstructionWindow().addToWindow(
@@ -36,12 +40,11 @@ public class RenameCompleteEvent extends Event {
 		
 		if(newIWEntry == null)
 		{
-			handleIWFull();			
-			return;
+			return handleIWFull();
 		}
 		
-		long operandReadyTime = core.getClock();
-		long bothOperandsReadyTime = core.getClock();
+		long operandReadyTime = GlobalClock.getCurrentTime();
+		long bothOperandsReadyTime = GlobalClock.getCurrentTime();
 		
 		//operand 1
 		operandReadyTime = checkOperand1Availability(newIWEntry);
@@ -71,20 +74,20 @@ public class RenameCompleteEvent extends Event {
 		setTimeOfCompletion(bothOperandsReadyTime);
 		
 		//attempt to issue the instruction
-		reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
+		return reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
 
 	}
 
-	void handleIWFull()
+	NewEvent handleIWFull()
 	{
 		System.out.println("IW full");
 		
 		//schedule new rename complete event
-		core.getEventQueue().addEvent(
+		return (
 				new RenameCompleteEvent(
 					core,
 					reorderBufferEntry,
-					core.getClock() + 1
+					GlobalClock.getCurrentTime() + 1
 				));
 	}
 	
@@ -97,7 +100,7 @@ public class RenameCompleteEvent extends Event {
 				tempOpndType != OperandType.machineSpecificRegister)
 		{
 			newIWEntry.setOperand1Available(true);
-			return core.getClock();
+			return GlobalClock.getCurrentTime();
 		}
 		else
 		{
@@ -121,7 +124,7 @@ public class RenameCompleteEvent extends Event {
 							newIWEntry.setOperand2Available(true);							
 						}
 					}
-					return core.getClock();
+					return GlobalClock.getCurrentTime();
 				}
 				else
 				{
@@ -155,7 +158,7 @@ public class RenameCompleteEvent extends Event {
 							newIWEntry.setOperand2Available(true);							
 						}
 					}
-					return core.getClock();
+					return GlobalClock.getCurrentTime();
 				}
 				else
 				{
@@ -175,7 +178,7 @@ public class RenameCompleteEvent extends Event {
 				tempOpndType != OperandType.machineSpecificRegister)
 		{
 			newIWEntry.setOperand2Available(true);
-			return core.getClock();
+			return GlobalClock.getCurrentTime();
 		}
 		else
 		{
@@ -193,7 +196,7 @@ public class RenameCompleteEvent extends Event {
 						tempRF.setValueValid(false, tempOpndPhyReg);
 						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg);
 					}
-					return core.getClock();
+					return GlobalClock.getCurrentTime();
 				}
 				else
 				{
@@ -221,7 +224,7 @@ public class RenameCompleteEvent extends Event {
 						tempRN.setValueValid(false, tempOpndPhyReg);
 						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg);
 					}
-					return core.getClock();
+					return GlobalClock.getCurrentTime();
 				}
 				else
 				{

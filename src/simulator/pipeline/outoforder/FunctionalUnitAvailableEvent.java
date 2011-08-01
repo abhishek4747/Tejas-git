@@ -1,7 +1,8 @@
 package pipeline.outoforder;
 
 import generic.Core;
-import generic.Event;
+import generic.NewEvent;
+import generic.RequestType;
 
 /**
  * this event is scheduled at the clock_time at which an FU becomes available
@@ -12,7 +13,7 @@ import generic.Event;
  * call issueInstruction()
  */
 
-public class FunctionalUnitAvailableEvent extends Event {
+public class FunctionalUnitAvailableEvent extends NewEvent {
 	
 	Core core;
 	ReorderBufferEntry reorderBufferEntry;
@@ -21,18 +22,20 @@ public class FunctionalUnitAvailableEvent extends Event {
 			long eventTime )
 	{
 		super(eventTime,
-				4,
+				null,
+				null,
 				core.getExecEngine().getReorderBuffer()
-					.getROB().indexOf(reorderBufferEntry) );
+					.getROB().indexOf(reorderBufferEntry),
+				RequestType.FUNC_UNIT_AVAILABLE	);
 		
 		this.core = core;
 		this.reorderBufferEntry = reorderBufferEntry;
 	}
 
 	@Override
-	public void handleEvent() {
+	public NewEvent handleEvent() {
 
-		reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
+		return reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
 		
 	}
 

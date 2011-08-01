@@ -1,12 +1,15 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperandType;
+import generic.SimulationElement;
+import generic.Time_t;
 
 import java.util.LinkedList;
 
-public class ReorderBuffer {
+public class ReorderBuffer extends SimulationElement{
 	
 	private Core core;
 	
@@ -15,6 +18,7 @@ public class ReorderBuffer {
 
 	public ReorderBuffer(Core _core)
 	{
+		super(-1, new Time_t(-1), new Time_t(-1));
 		ROB = new LinkedList<ReorderBufferEntry>();
 		core = _core;
 		MaxROBSize = core.getReorderBufferSize();
@@ -166,7 +170,13 @@ public class ReorderBuffer {
 		//roll back rename tables
 		rollBackRenameTables();
 		
-		core.setClock(core.getClock() + core.getBranchMispredictionPenalty());
+		//impose branch misprediction penalty
+		core.getExecEngine().setStallDecode2(true);
+		core.getEventQueue().addEvent(
+				new MispredictionPenaltyCompleteEvent(
+						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty(),
+						core)
+				);
 	}
 	
 	public void rollBackRenameTables()

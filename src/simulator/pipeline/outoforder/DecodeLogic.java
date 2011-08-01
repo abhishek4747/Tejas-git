@@ -1,19 +1,23 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.GlobalClock;
+import generic.SimulationElement;
+import generic.Time_t;
 
 /**
  * schedule the completion of decode of instructions that are read from the fetch buffer
  * in the current clock cycle
  */
 
-public class DecodeLogic {
+public class DecodeLogic extends SimulationElement {
 
 	//the containing core
 	private Core core;
 	
 	public DecodeLogic(Core containingCore)
 	{
+		super(-1, new Time_t(-1), new Time_t(-1));
 		core = containingCore;
 	}
 	
@@ -24,7 +28,7 @@ public class DecodeLogic {
 		core.getEventQueue().addEvent(
 				new DecodeCompleteEvent(
 						core,
-						core.getClock() + core.getDecodeTime()
+						GlobalClock.getCurrentTime() + core.getDecodeTime()
 						));
 	}
 }

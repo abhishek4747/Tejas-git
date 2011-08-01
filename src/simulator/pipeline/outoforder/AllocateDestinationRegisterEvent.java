@@ -1,9 +1,11 @@
 package pipeline.outoforder;
 
-import generic.Event;
+import generic.GlobalClock;
+import generic.NewEvent;
 import generic.Core;
 import generic.Operand;
 import generic.OperandType;
+import generic.RequestType;
 
 /**
  *handling of the event :
@@ -14,7 +16,7 @@ import generic.OperandType;
  *		schedule new AllocateDestinationRegisterEvent at time current_clock+1
  */
 
-public class AllocateDestinationRegisterEvent extends Event {
+public class AllocateDestinationRegisterEvent extends NewEvent {
 	
 	RenameTable renameTable;
 	ReorderBufferEntry reorderBufferEntry;
@@ -26,9 +28,11 @@ public class AllocateDestinationRegisterEvent extends Event {
 										long eventTime)
 	{
 		super(eventTime,
-				2,
-				core.getExecEngine().getReorderBuffer()
-				.getROB().indexOf(reorderBufferEntry));
+				null,
+				null,
+				(long) core.getExecEngine().getReorderBuffer()
+				.getROB().indexOf(reorderBufferEntry),
+				RequestType.ALLOC_DEST_REG);
 		
 		this.reorderBufferEntry = reorderBufferEntry;
 		this.renameTable = renameTable;
@@ -36,24 +40,24 @@ public class AllocateDestinationRegisterEvent extends Event {
 	}
 
 	//@Override
-	public void handleEvent() {
+	public NewEvent handleEvent() {
 		
 		OperandType tempOpndType = reorderBufferEntry.getInstruction().
 									getDestinationOperand().getOperandType();		
 		
 		if(tempOpndType == OperandType.machineSpecificRegister)
 		{
-			handleMSR();			
+			return handleMSR();			
 		}
 		
 		else
 		{
 			//destination is an integer register or a floating point register
-			handleIntFloat();
+			return handleIntFloat();
 		}
 	}
 	
-	void handleMSR()
+	NewEvent handleMSR()
 	{
 		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
@@ -63,33 +67,33 @@ public class AllocateDestinationRegisterEvent extends Event {
 		{
 			reorderBufferEntry.setPhysicalDestinationRegister((int) tempOpnd.getValue());
 			
-			core.getEventQueue().addEvent(
-					new RenameCompleteEvent(
+			core.getExecEngine().setStallDecode1(false);
+			
+			return	(new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							core.getClock() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()
 							));
 			
-			core.getExecEngine().setStallDecode(false);
+			
 		}
 		
 		else
 		{
 			long newEventTime = tempRF.getProducerROBEntry((int)tempOpnd.getValue()).getReadyAtTime();
 			
-			core.getEventQueue().addEvent(
-					new AllocateDestinationRegisterEvent(
+			core.getExecEngine().setStallDecode1(true);
+			
+			return (new AllocateDestinationRegisterEvent(
 							reorderBufferEntry,
 							null,
 							core,
 							newEventTime
 							));
-			
-			core.getExecEngine().setStallDecode(true);
 		}
 	}
 	
-	void handleIntFloat()
+	NewEvent handleIntFloat()
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 		int r = renameTable.allocatePhysicalRegister((int) tempOpnd.getValue());
@@ -98,23 +102,23 @@ public class AllocateDestinationRegisterEvent extends Event {
 		{
 			reorderBufferEntry.setPhysicalDestinationRegister(r);
 			renameTable.setProducerROBEntry(reorderBufferEntry, r);
-			core.getEventQueue().addEvent(
-					new RenameCompleteEvent(
+			core.getExecEngine().setStallDecode1(false);
+			
+			return (new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							core.getClock() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()
 							));
-			core.getExecEngine().setStallDecode(false);
 		}
 		else
 		{
-			core.getEventQueue().addEvent(new AllocateDestinationRegisterEvent(
+			core.getExecEngine().setStallDecode1(true);
+			return (new AllocateDestinationRegisterEvent(
 									reorderBufferEntry,
 									renameTable,
 									core,
 									getEventTime()+1
 									));
-			core.getExecEngine().setStallDecode(true);
 		}
 	}
 }

@@ -1,6 +1,9 @@
 package pipeline.outoforder;
 
-public class RegisterFile {
+import generic.SimulationElement;
+import generic.Time_t;
+
+public class RegisterFile extends SimulationElement{
 	
 	private int registerFileSize;
 	private Object[] value;
@@ -9,6 +12,7 @@ public class RegisterFile {
 	
 	public RegisterFile(int _registerFileSize)
 	{
+		super(-1, new Time_t(-1), new Time_t(-1));
 		registerFileSize = _registerFileSize;
 		value = new Object[registerFileSize];
 		valueValid = new boolean[registerFileSize];
