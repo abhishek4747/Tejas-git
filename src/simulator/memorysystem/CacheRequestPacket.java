@@ -26,7 +26,7 @@ public class CacheRequestPacket
 {
 		private int threadID;
 		private double time;
-		private MemoryAccessType memRequestType;
+		private RequestType memRequestType;
 		private long memoryReqAddr;
 		
 		private boolean writeThrough = false; //For testing purposes (for cache)
@@ -63,11 +63,11 @@ public class CacheRequestPacket
 			this.time = time;
 		}
 
-		public MemoryAccessType getType() {
+		public RequestType getType() {
 			return memRequestType;
 		}
 
-		public void setType(MemoryAccessType type) {
+		public void setType(RequestType type) {
 			this.memRequestType = type;
 		}
 

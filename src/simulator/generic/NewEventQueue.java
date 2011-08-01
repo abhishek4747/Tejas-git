@@ -28,7 +28,7 @@ public class NewEventQueue
 			if (eventTime <= currentClockTime)
 			{
 				newEvent = priorityQueue.poll();
-				newEvent.getSimulationElement().
+				newEvent.getProcessingElement().
 					processRequest(newEvent.getSimulationRequest());
 			}
 		}

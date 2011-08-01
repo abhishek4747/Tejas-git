@@ -3,23 +3,25 @@ package generic;
 import javax.xml.bind.annotation.XmlElementDecl.GLOBAL;
 
 
-public abstract class Port 
+public class Port 
 {
 	private int noOfPorts;
-	
+
 	//occupancy defines the number of clockCycles it takes for one completion 
 	//of a single transfer on the port.
 	private Time_t occupancy;
 	private Time_t portBusyUntil[];
 	
+	//FIXME: need a separate arrangement for globalClock.
+	private Time_t globalClock;
 	
-	public Port(int noOfPorts, int occupancy)
+	public Port(int noOfPorts, Time_t occupancy)
 	{
 		//initialize no. of ports and the occupancy.
 		this.noOfPorts = noOfPorts;
 		this.occupancy = occupancy;
-		
-		//initialize each port as being just used.
+				
+		//Initialize each port's busy field.
 		for(int i=0; i<noOfPorts; i++)
 		{
 			this.portBusyUntil[i] = globalClock;
@@ -29,19 +31,13 @@ public abstract class Port
 	//returns the next available slot.
 	Time_t getNextSlot()
 	{
-		//In case of unlimited ports, always return NOW
-		if(noOfPorts==-1 && occupancy==-1)
-		{
-			return globalClock;
-		}
-		
-		return nextSlot(occupancy);
+		return getNextSlot(occupancy);
 	}
 	
 	Time_t getNextSlot(Time_t occupancyRequired)
 	{
-		//In case of unlimited ports, always return NOW
-		if(noOfPorts==-1 && occupancy==-1)
+		//In case of unlimited or a priorityBased port, tell everyBody to come now
+		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
 		{
 			return globalClock;
 		}
@@ -84,8 +80,8 @@ public abstract class Port
 	//returns the next available slot for booking the port for n slots
 	Time_t occupySlots(int noOfSlots)
 	{
-		//In case of unlimited ports, always return NOW
-		if(noOfPorts==-1 && occupancy==-1)
+		//In case of unlimited or a priorityBased port, tell everyBody to come now
+		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
 		{
 			return globalClock;
 		}
@@ -104,8 +100,8 @@ public abstract class Port
 	//returns the next slot without booking anything
 	Time_t calculateNextSlot()
 	{
-		//In case of unlimited ports, always return NOW
-		if(noOfPorts==-1 && occupancy==-1)
+		//In case of unlimited or a priorityBased port, tell everyBody to come now
+		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
 		{
 			return globalClock;
 		}
@@ -133,8 +129,8 @@ public abstract class Port
 	//locks the port for n cycles
 	void lockForNCycles(Time_t noOfCycles)
 	{
-		//In case of unlimited ports, always return NOW
-		if(noOfPorts==-1 && occupancy==-1)
+		//In case of unlimited or a priorityBased port, tell everyBody to come now
+		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
 		{
 			return;
 		}

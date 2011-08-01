@@ -24,5 +24,9 @@ public enum RequestType {
 	LSQ_REQUEST,
 	TLB_REQUEST,
 	CACHE_REQUEST,
-	BUS_REQUEST
+	BUS_REQUEST,
+	
+	//FIXME:
+	READ,
+	WRITE,
 }

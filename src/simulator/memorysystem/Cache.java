@@ -29,7 +29,7 @@ import memorysystem.CacheLine.MESI;
 import misc.Util;
 import generic.*;
 
-public class Cache extends SimElement
+public class Cache extends SimulationElement
 {
 		/* cache parameters */
 		CoreMemorySystem containingMemSys;

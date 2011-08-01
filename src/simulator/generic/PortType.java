@@ -4,5 +4,5 @@ public enum PortType
 {
 	FirstComeFirstServe,
 	PriorityBased,
-	FullyPipelined
+	Unlimited
 }
