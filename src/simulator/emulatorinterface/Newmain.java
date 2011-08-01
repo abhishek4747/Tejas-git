@@ -1,5 +1,7 @@
 package emulatorinterface;
 
+import pipeline.outoforder.PerformCommitsEvent;
+import pipeline.outoforder.PerformDecodeEvent;
 import misc.Error;
 import config.SimulationConfig;
 import config.XMLParser;
@@ -7,7 +9,10 @@ import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import generic.Core;
+import generic.GlobalClock;
 import generic.InstructionTable;
+import generic.NewEventQueue;
 
 public class Newmain {
 	
@@ -44,6 +49,36 @@ public class Newmain {
 		// returns the number of instructions. and waits on a semaphore for
 		// finishing of reader threads
 		long icount = ipcBase.doExpectedWaitForSelf();
+		
+		
+		/*
+		 
+		//different core components may work at different frequencies
+		GlobalClock.systemTimingSetUp();
+		
+		//commence pipeline
+		NewEventQueue eventQ = new NewEventQueue();
+		
+		//TODO currently simulating single core
+		//number of cores to be read from configuration file
+		Core core = new Core(dynamicInstructionBuffer, 0);
+		//set up initial events in the queue
+		eventQ.addEvent(new PerformDecodeEvent(0, core));
+		eventQ.addEvent(new PerformCommitsEvent(0, core));
+		
+		while(core.getExecEngine().isExecutionComplete() == false)
+		{
+			eventQ.processEvents();
+			
+			GlobalClock.incrementClock();
+		}
+		
+		System.out.println();
+		System.out.println("the finish line!!");
+		System.out.println(GlobalClock.getCurrentTime() + " cycles");
+
+
+		*/
 
 		// Call these functions at last
 		ipcBase.doWaitForPIN(process);
