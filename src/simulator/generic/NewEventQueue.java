@@ -36,7 +36,7 @@ public class NewEventQueue
 				
 				//If the event could not be handled, add it to the queue.
 				modifiedEvent = newEvent.handleEvent();
-				if(modifiedEvent==null)
+				if(modifiedEvent!=null)
 				{
 					priorityQueue.add(modifiedEvent);
 				}
