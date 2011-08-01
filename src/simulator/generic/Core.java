@@ -1,5 +1,6 @@
 package generic;
 
+import emulatorinterface.DynamicInstructionBuffer;
 import pipeline.outoforder.ExecutionEngine;
 
 /**
@@ -8,11 +9,11 @@ import pipeline.outoforder.ExecutionEngine;
  * all core parameters are defined here
  */
 
-public class Core {
+public class Core extends SimulationElement{
 	
-	long clock;
+	//long clock;
 	ExecutionEngine execEngine;
-	EventQueue eventQueue;
+	NewEventQueue eventQueue;
 	
 	//core parameters
 	private int decodeWidth;
@@ -29,12 +30,19 @@ public class Core {
 	private int[] nUnits;
 	private int[] latencies;
 	
-	public Core()
+	private DynamicInstructionBuffer dynamicInstructionBuffer;
+	private int threadID;
+
+	public Core(DynamicInstructionBuffer dynamicInstructionBuffer,
+					int threadID)
 	{
-		clock = 0;
+		super(-1, new Time_t(-1), new Time_t(-1));
+		//clock = 0;
 		initializeCoreParameters();
-		eventQueue = new EventQueue(this);
+		//eventQueue = new EventQueue(this);
 		execEngine = new ExecutionEngine(this);
+		this.dynamicInstructionBuffer = dynamicInstructionBuffer;
+		this.threadID = threadID;
 	}
 	
 	private void initializeCoreParameters()
@@ -75,16 +83,12 @@ public class Core {
 		latencies[FunctionalUnitType.memory.ordinal()+2] = 100;
 	}
 	
-	public void boot()
+	/*public void work()
 	{
-		execEngine.boot();
-		
-		System.out.println();
-		System.out.println("the finish line!!");
-		System.out.println(getClock() + " cycles");
-	}
+		execEngine.work();
+	}*/
 
-	public long getClock() {
+	/*public long getClock() {
 		return clock;
 	}
 
@@ -95,10 +99,14 @@ public class Core {
 	public void incrementClock()
 	{
 		this.clock++;
-	}
+	}*/
 
-	public EventQueue getEventQueue() {
+	public NewEventQueue getEventQueue() {
 		return eventQueue;
+	}
+	
+	public void setEventQueue(NewEventQueue _eventQueue) {
+		eventQueue = _eventQueue;
 	}
 
 	public ExecutionEngine getExecEngine() {
@@ -207,6 +215,14 @@ public class Core {
 
 	public void setIWSize(int size) {
 		IWSize = size;
+	}
+	
+	public int getThreadID() {
+		return threadID;
+	}
+
+	public DynamicInstructionBuffer getDynamicInstructionBuffer() {
+		return dynamicInstructionBuffer;
 	}
 
 }

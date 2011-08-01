@@ -23,7 +23,7 @@ public class NewEventQueue
 		long eventTime;
 		
 		//FIXME :  the current clock time to be accessed from somewhere
-		Time_t currentClockTime;
+		long currentClockTime = GlobalClock.currentTime;
 		
 		while(!priorityQueue.isEmpty())
 		{
