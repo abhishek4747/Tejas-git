@@ -1,6 +1,5 @@
 package generic;
 
-import javax.xml.bind.annotation.XmlElementDecl.GLOBAL;
 
 
 public class Port 
@@ -21,10 +20,13 @@ public class Port
 		this.noOfPorts = noOfPorts;
 		this.occupancy = occupancy;
 				
-		//Initialize each port's busy field.
-		for(int i=0; i<noOfPorts; i++)
+		//If the port is an unlimited port, no need for setting timeBusyUntil field.
+		if(!(noOfPorts==-1 && occupancy.equals(-1)))
 		{
-			this.portBusyUntil[i] = globalClock;
+			for(int i=0; i<noOfPorts; i++)
+			{
+				this.portBusyUntil[i] = globalClock;
+			}
 		}
 	}
 	
@@ -36,13 +38,12 @@ public class Port
 	
 	Time_t getNextSlot(Time_t occupancyRequired)
 	{
-		//In case of unlimited or a priorityBased port, tell everyBody to come now
-		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
+		//In case of unlimited port, tell everyBody to come now
+		if(noOfPorts==-1 && occupancy.equals(-1))
 		{
 			return globalClock;
 		}
-		
-		
+			
 		Time_t availableSlot;
 		int availablePort;
 				
@@ -51,37 +52,32 @@ public class Port
 		
 		for(int i=0; i<noOfPorts; i++)
 		{
-			if(portBusyUntil[i] < globalClock)
+			if(portBusyUntil[i].lessThan(globalClock))
 			{
-				//this means that port[i] is free.
-				//Grab this port and make it busy until occupancyRequired cycles
-				portBusyUntil[i] = globalClock + occupancyRequired;
-
 				//return saying that u can have the port now itself.
 				return (globalClock);
 			}
 			
-			else if(portBusyUntil[i] < availableSlot)
+			else if(portBusyUntil[i].lessThan(availableSlot))
 			{
 				availablePort = i;
 				availableSlot = portBusyUntil[i];
 			}
 		}
 		
-		
-		//we reached here since there was no port available.
-		//so, now the availablePort must be booked in advance.
-		portBusyUntil[availablePort] += occupancyRequired;
-	
 		//return the available slot.
 		return availableSlot;
 	}
 	
+	
+	
+	/*
 	//returns the next available slot for booking the port for n slots
 	Time_t occupySlots(int noOfSlots)
 	{
 		//In case of unlimited or a priorityBased port, tell everyBody to come now
-		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
+		//In case of unlimited port, tell everyBody to come now
+		if(noOfPorts==-1 && occupancy.equals(-1))
 		{
 			return globalClock;
 		}
@@ -89,19 +85,19 @@ public class Port
 		
 		//This nextSlot  function is called for n times so that we will have a 
 		//optimal allocation of ports.
-		Time_t firstFlot = nextSlot();
+		Time_t firstFlot = getNextSlot();
 		
-		for(int i=0; i<(nOfSlots-1); i++)
+		for(int i=0; i<(noOfPorts-1); i++)
 		{
-			nextSlot();
+			getNextSlot();
 		}
 	}
 	
 	//returns the next slot without booking anything
 	Time_t calculateNextSlot()
 	{
-		//In case of unlimited or a priorityBased port, tell everyBody to come now
-		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
+		//In case of unlimited port, tell everyBody to come now
+		if(noOfPorts==-1 && occupancy==-1)
 		{
 			return globalClock;
 		}
@@ -129,12 +125,12 @@ public class Port
 	//locks the port for n cycles
 	void lockForNCycles(Time_t noOfCycles)
 	{
-		//In case of unlimited or a priorityBased port, tell everyBody to come now
-		if(portType==PortType.Unlimited || portType==PortType.PriorityBased)
+		//In case of unlimited port, tell everyBody to come now
+		if(noOfPorts==-1 && occupancy==-1)
 		{
 			return;
 		}
-
+		
 		
 		Time_t nextAvailableSlot = calculateNextSlot();
 		Time_t lockTillSlot = nextAvailableSlot + noOfCycles;
@@ -146,4 +142,5 @@ public class Port
 			}
 		}
 	}
+	*/
 }

@@ -1,11 +1,29 @@
 package generic;
 
-public class Time_t 
+public class Time_t
 {
-	//FIXME: lots of things are gonna come here.
+	private long time;
 	
-	public Time_t operator(Time_t a, Time_t b)
+	//FIXME: lots of things are gonna come here.
+	public Time_t(long time)
 	{
-		return null;
+		this.time=time;
+	}
+	
+	public boolean equals(Time_t time)
+	{
+		return(this.time == time.time);
+	}
+	
+
+	public boolean lessThan(Time_t time)
+	{
+		return(this.time < time.time);
+	}
+	
+
+	public boolean greaterThan(Time_t time)
+	{
+		return(this.time > time.time);
 	}
 }
