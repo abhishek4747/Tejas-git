@@ -33,66 +33,58 @@ public class Port
 	//returns the next available slot.
 	Time_t getNextSlot()
 	{
-		return getNextSlot(occupancy);
-	}
-	
-	Time_t getNextSlot(Time_t occupancyRequired)
-	{
-		//In case of unlimited port, tell everyBody to come now
-		if(noOfPorts==-1 && occupancy.equals(-1))
+		if(this.noOfPorts==-1 && this.occupancy.equals(-1))
 		{
+			//In case of unlimited ports, return now.
 			return globalClock;
 		}
-			
-		Time_t availableSlot;
-		int availablePort;
-				
-		availableSlot = portBusyUntil[0];
-		availablePort = 0;
-		
-		for(int i=0; i<noOfPorts; i++)
+		else
 		{
-			if(portBusyUntil[i].lessThan(globalClock))
+			//else return the most recent available slot.
+			Time_t availableSlot = portBusyUntil[0];
+			for(int i=0; i<noOfPorts; i++)
 			{
-				//return saying that u can have the port now itself.
-				return (globalClock);
+				if(portBusyUntil[i].lessThan(availableSlot))
+				{
+					availableSlot = portBusyUntil[i];
+				}
 			}
 			
-			else if(portBusyUntil[i].lessThan(availableSlot))
+			if(availableSlot.lessThan(globalClock))
 			{
-				availablePort = i;
-				availableSlot = portBusyUntil[i];
+				availableSlot = globalClock;
 			}
+			
+			return availableSlot;
 		}
-		
-		//return the available slot.
-		return availableSlot;
 	}
 	
-	
+	//returns if any port is available for next n slots.
+	boolean occupySlots(int noOfSlots)
+	{
+		if(noOfPorts==-1 && occupancy.equals(-1))
+		{
+			//In case of unlimited port, anybody can occupy the port for n slots.
+			return true;
+		}
+		else
+		{
+			for(int i=0; i<noOfPorts; i++)
+			{
+				if(portBusyUntil[i].lessThan(globalClock))
+				{
+					portBusyUntil[i].add(noOfSlots);
+					return true;
+				}
+			}
+			
+			//If we reach here, that means nothing was available.
+			//Just return false.
+			return false;
+		}
+	}
 	
 	/*
-	//returns the next available slot for booking the port for n slots
-	Time_t occupySlots(int noOfSlots)
-	{
-		//In case of unlimited or a priorityBased port, tell everyBody to come now
-		//In case of unlimited port, tell everyBody to come now
-		if(noOfPorts==-1 && occupancy.equals(-1))
-		{
-			return globalClock;
-		}
-		
-		
-		//This nextSlot  function is called for n times so that we will have a 
-		//optimal allocation of ports.
-		Time_t firstFlot = getNextSlot();
-		
-		for(int i=0; i<(noOfPorts-1); i++)
-		{
-			getNextSlot();
-		}
-	}
-	
 	//returns the next slot without booking anything
 	Time_t calculateNextSlot()
 	{

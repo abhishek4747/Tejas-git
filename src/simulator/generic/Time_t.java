@@ -26,4 +26,9 @@ public class Time_t
 	{
 		return(this.time > time.time);
 	}
+
+	public void add(int noOfSlots) 
+	{
+		this.time += noOfSlots;		
+	}
 }

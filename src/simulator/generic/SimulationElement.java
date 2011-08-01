@@ -10,12 +10,17 @@ public abstract class SimulationElement
 	
 	public SimulationElement(int noOfPorts, Time_t occupancy, Time_t latency)
 	{
-		port = new Port(noOfPorts, occupancy);
+		this.port = new Port(noOfPorts, occupancy);
 		this.latency = latency;
 	}
 	
 	public Time_t getLatency() 
 	{
-		return latency;
+		return this.latency;
+	}
+	
+	public Port getPort()
+	{
+		return this.port;
 	}
 }

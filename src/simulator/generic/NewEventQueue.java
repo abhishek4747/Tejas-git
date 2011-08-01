@@ -21,19 +21,29 @@ public class NewEventQueue
 		NewEvent newEvent;
 		NewEvent modifiedEvent;
 		long eventTime;
-		long currentClockTime = 0; //FIXME :  the current clock time to be accessed from somewhere
+		
+		//FIXME :  the current clock time to be accessed from somewhere
+		Time_t currentClockTime;
 		
 		while(!priorityQueue.isEmpty())
 		{
+			//get the eventTime of the event on the head of the queue.
 			eventTime = priorityQueue.peek().getEventTime();
 			if (eventTime <= currentClockTime)
 			{
+				//remove the event at the head of the queue.
 				newEvent = priorityQueue.remove();
+				
+				//If the event could not be handled, add it to the queue.
 				modifiedEvent = newEvent.handleEvent();
 				if(modifiedEvent==null)
 				{
 					priorityQueue.add(modifiedEvent);
 				}
+			}
+			else
+			{
+				break;
 			}
 		}
 	}
