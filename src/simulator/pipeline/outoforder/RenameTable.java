@@ -24,7 +24,7 @@ public class RenameTable extends SimulationElement{
 	
 	public RenameTable(int nArchRegisters, int nPhyRegisters, RegisterFile associatedRegisterFile)
 	{
-		super(-1, new Time_t(-1), new Time_t(-1));
+		super(1, new Time_t(-1), new Time_t(-1));
 		this.nArchRegisters = nArchRegisters;
 		this.nPhyRegisters = nPhyRegisters;
 		this.associatedRegisterFile = associatedRegisterFile;

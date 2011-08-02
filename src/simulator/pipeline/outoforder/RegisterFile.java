@@ -12,7 +12,7 @@ public class RegisterFile extends SimulationElement{
 	
 	public RegisterFile(int _registerFileSize)
 	{
-		super(-1, new Time_t(-1), new Time_t(-1));
+		super(1, new Time_t(-1), new Time_t(-1));
 		registerFileSize = _registerFileSize;
 		value = new Object[registerFileSize];
 		valueValid = new boolean[registerFileSize];
