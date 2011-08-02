@@ -52,7 +52,7 @@ public class Newmain {
 		Process process = createPINinterface(ipcBase, executableFile,
 				dynamicInstructionBuffer);
 		
-		initCores(ipcBase);
+		initCores(eventQ, ipcBase);
 		
 		//while(core.getExecEngine().isExecutionComplete() == false)
 		while(eventQ.isEmpty() == false)
@@ -133,9 +133,9 @@ public class Newmain {
 	//TODO read a config file
 	//create specified number of cores
 	//map threads to cores
-	static void initCores(IPCBase ipcBase)
+	static void initCores(NewEventQueue eventQ, IPCBase ipcBase)
 	{
-		Core core = new Core(ipcBase.getReaderThreads()[0].getInputToPipeline(), 0);
+		Core core = new Core(eventQ, ipcBase.getReaderThreads()[0].getInputToPipeline(), 0);
 		core.boot();
 	}
 }
