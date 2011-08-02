@@ -41,32 +41,21 @@ public class Newmain {
 		// configure the emulator
 		configureEmulator();
 
-		// create PIN interface
-		IPCBase ipcBase = new SharedMem(instructionTable);
-		Process process = createPINinterface(ipcBase, executableFile,
-				dynamicInstructionBuffer);
-
-		// returns the number of instructions. and waits on a semaphore for
-		// finishing of reader threads
-		long icount = ipcBase.doExpectedWaitForSelf();
-		
-		
-		/*
-		 
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp();
 		
 		//commence pipeline
 		NewEventQueue eventQ = new NewEventQueue();
 		
-		//TODO currently simulating single core
-		//number of cores to be read from configuration file
-		Core core = new Core(dynamicInstructionBuffer, 0);
-		//set up initial events in the queue
-		eventQ.addEvent(new PerformDecodeEvent(0, core));
-		eventQ.addEvent(new PerformCommitsEvent(0, core));
+		// create PIN interface
+		IPCBase ipcBase = new SharedMem(instructionTable);
+		Process process = createPINinterface(ipcBase, executableFile,
+				dynamicInstructionBuffer);
 		
-		while(core.getExecEngine().isExecutionComplete() == false)
+		initCores(ipcBase);
+		
+		//while(core.getExecEngine().isExecutionComplete() == false)
+		while(eventQ.isEmpty() == false)
 		{
 			eventQ.processEvents();
 			
@@ -76,6 +65,20 @@ public class Newmain {
 		System.out.println();
 		System.out.println("the finish line!!");
 		System.out.println(GlobalClock.getCurrentTime() + " cycles");
+
+		// returns the number of instructions. and waits on a semaphore for
+		// finishing of reader threads
+		long icount = ipcBase.doExpectedWaitForSelf();
+		
+		
+		/*
+		 
+		//TODO currently simulating single core
+		//number of cores to be read from configuration file
+		Core core = new Core(dynamicInstructionBuffer, 0);
+		//set up initial events in the queue
+		eventQ.addEvent(new PerformDecodeEvent(0, core));
+		eventQ.addEvent(new PerformCommitsEvent(0, core));
 
 
 		*/
@@ -125,5 +128,14 @@ public class Newmain {
 		if (arguments.length != 1) {
 			Error.showErrorAndExit("\n\tIllegal number of arguments !!");
 		}
+	}
+	
+	//TODO read a config file
+	//create specified number of cores
+	//map threads to cores
+	static void initCores(IPCBase ipcBase)
+	{
+		Core core = new Core(ipcBase.getReaderThreads()[0].getInputToPipeline(), 0);
+		core.boot();
 	}
 }

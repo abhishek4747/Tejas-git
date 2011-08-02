@@ -14,6 +14,7 @@ import java.util.concurrent.Semaphore;
 import config.SimulationConfig;
 import emulatorinterface.communication.*;
 import emulatorinterface.*;
+import generic.Core;
 import generic.InstructionTable;
 
 
@@ -158,7 +159,7 @@ public class SharedMem extends  IPCBase
 	
 	// the reader threads. Each thread reads from EMUTHREADS
 	RunnableThread [] readerThreads = new RunnableThread[MAXNUMTHREADS];
-	
+
 	// state management for reader threads
 	static boolean[] termination=new boolean[MAXNUMTHREADS];
 	static boolean[] started=new boolean[MAXNUMTHREADS];
@@ -169,5 +170,9 @@ public class SharedMem extends  IPCBase
 	
 	// number of instructions read by each of the threads
 	static long[] numInstructions = new long[MAXNUMTHREADS];
+	
+	public RunnableThread[] getReaderThreads() {
+		return readerThreads;
+	}
 
 }

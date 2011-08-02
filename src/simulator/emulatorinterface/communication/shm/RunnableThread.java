@@ -8,7 +8,6 @@ import java.util.Vector;
 
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
-import emulatorinterface.Newmain;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.InstructionList;
@@ -17,7 +16,7 @@ import generic.InstructionList;
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
  */
-class RunnableThread implements Runnable {
+public class RunnableThread implements Runnable {
 
 	Thread runner;
 	int tid;
@@ -32,6 +31,7 @@ class RunnableThread implements Runnable {
 	boolean[] emuThreadStartStatus = new boolean[EMUTHREADS];
 
 	DynamicInstructionBuffer passPackets;
+	InstructionList inputToPipeline;
 
 	public RunnableThread() {
 	}
@@ -44,6 +44,7 @@ class RunnableThread implements Runnable {
 			emuThreadStartStatus[i] = false;
 			overstatus[i] = false;
 		}
+		inputToPipeline = new InstructionList();
 		runner = new Thread(this, threadName);
 		//System.out.println(runner.getName());
 		runner.start(); //Start the thread.
@@ -154,7 +155,7 @@ class RunnableThread implements Runnable {
 						}
 						*/
 						
-						
+						inputToPipeline.appendInstruction(fusedInstructions);
 						
 						pold = pnew;
 						vectorPacket.clear();
@@ -275,5 +276,9 @@ class RunnableThread implements Runnable {
 		 return new DynamicInstruction(ip, tidEmu, taken,
 				branchTargetAddress, memReadAddr, memWriteAddr, srcRegs,
 				dstRegs);
+	}
+
+	public InstructionList getInputToPipeline() {
+		return inputToPipeline;
 	}
 }

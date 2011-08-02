@@ -47,4 +47,9 @@ public class NewEventQueue
 			}
 		}
 	}
+	
+	public boolean isEmpty()
+	{
+		return priorityQueue.isEmpty();
+	}
 }

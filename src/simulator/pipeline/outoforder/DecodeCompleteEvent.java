@@ -1,6 +1,5 @@
 package pipeline.outoforder;
 
-import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
@@ -48,8 +47,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					&& core.getExecEngine().getInstructionWindow().isFull() == false
 					&& core.getExecEngine().isStallDecode1() == false)
 			{
-				newInstruction = core.getDynamicInstructionBuffer()
-									.getNextDynamicInstruction(core.getThreadID());
+				newInstruction = core.getIncomingInstructions().getNextInstruction();
 				if(newInstruction != null)
 				{
 					makeROBEntries(newInstruction);

@@ -1,7 +1,8 @@
 package generic;
 
-import emulatorinterface.DynamicInstructionBuffer;
 import pipeline.outoforder.ExecutionEngine;
+import pipeline.outoforder.PerformCommitsEvent;
+import pipeline.outoforder.PerformDecodeEvent;
 
 /**
  * represents a single core
@@ -30,19 +31,21 @@ public class Core extends SimulationElement{
 	private int[] nUnits;
 	private int[] latencies;
 	
-	private DynamicInstructionBuffer dynamicInstructionBuffer;
+	private InstructionList incomingInstructions;
 	private int threadID;
 
-	public Core(DynamicInstructionBuffer dynamicInstructionBuffer,
+	public Core(InstructionList incomingInstructions,
 					int threadID)
 	{
 		super(-1, new Time_t(-1), new Time_t(-1));
 		//clock = 0;
-		initializeCoreParameters();
+		
 		//eventQueue = new EventQueue(this);
 		execEngine = new ExecutionEngine(this);
-		this.dynamicInstructionBuffer = dynamicInstructionBuffer;
+		this.incomingInstructions = incomingInstructions;
 		this.threadID = threadID;
+		
+		initializeCoreParameters();
 	}
 	
 	private void initializeCoreParameters()
@@ -81,6 +84,13 @@ public class Core extends SimulationElement{
 		latencies[FunctionalUnitType.memory.ordinal()] = 2;
 		latencies[FunctionalUnitType.memory.ordinal()+1] = 20;
 		latencies[FunctionalUnitType.memory.ordinal()+2] = 100;
+	}
+	
+	public void boot()
+	{
+		//set up initial events in the queue
+		eventQueue.addEvent(new PerformDecodeEvent(0, this));
+		eventQueue.addEvent(new PerformCommitsEvent(0, this));
 	}
 	
 	/*public void work()
@@ -221,8 +231,8 @@ public class Core extends SimulationElement{
 		return threadID;
 	}
 
-	public DynamicInstructionBuffer getDynamicInstructionBuffer() {
-		return dynamicInstructionBuffer;
+	public InstructionList getIncomingInstructions() {
+		return incomingInstructions;
 	}
 
 }
