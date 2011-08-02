@@ -139,8 +139,8 @@ class RunnableThread implements Runnable {
 						
 						
 						//TODO This instructionList must be provided to raj's code
-						//InstructionList fusedInstructions;
-						//fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
+						InstructionList fusedInstructions;
+						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
 						/*
 						System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 											
