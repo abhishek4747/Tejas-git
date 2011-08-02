@@ -1,7 +1,5 @@
 package generic;
 
-
-
 public class Port 
 {
 	private int noOfPorts;
@@ -19,11 +17,13 @@ public class Port
 		//initialize no. of ports and the occupancy.
 		this.noOfPorts = noOfPorts;
 		this.occupancy = occupancy;
+		
+		portBusyUntil = new Time_t[noOfPorts];
 				
 		//If the port is an unlimited port, no need for setting timeBusyUntil field.
 		if(!(noOfPorts==-1 && occupancy.equals(-1)))
 		{
-			for(int i=0; i<noOfPorts; i++)
+			for(int i=0; i < noOfPorts; i++)
 			{
 				this.portBusyUntil[i] = globalClock;
 			}
