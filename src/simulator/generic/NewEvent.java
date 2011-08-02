@@ -30,7 +30,8 @@ public abstract class NewEvent
 		this.processingElement = processingElement;
 		this.tieBreaker = tieBreaker;
 		
-		this.priority = calculatePriority(requestType);
+		//this.priority = calculatePriority(requestType);
+		this.priority = requestType.ordinal();
 	}
 
 	//Converts request-type to priority.

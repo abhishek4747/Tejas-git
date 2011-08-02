@@ -5,15 +5,10 @@ public class GlobalClock {
 	static long currentTime;
 	static int stepSize;
 	
-	public GlobalClock()
+	public static void systemTimingSetUp()
 	{
 		currentTime = 0;
 		stepSize = 1;
-	}
-	
-	public static void systemTimingSetUp()
-	{
-		
 	}
 
 	public static long getCurrentTime() {

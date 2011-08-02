@@ -31,21 +31,23 @@ public class Core extends SimulationElement{
 	private int[] nUnits;
 	private int[] latencies;
 	
+	//TODO should be an array of InstructionLists and an array of threadIDs
 	private InstructionList incomingInstructions;
 	private int threadID;
 
-	public Core(InstructionList incomingInstructions,
+	public Core(NewEventQueue eventQueue, InstructionList incomingInstructions,
 					int threadID)
 	{
-		super(-1, new Time_t(-1), new Time_t(-1));
+		super(1, new Time_t(-1), new Time_t(-1));
 		//clock = 0;
 		
+		initializeCoreParameters();
+		
 		//eventQueue = new EventQueue(this);
+		this.eventQueue = eventQueue;
 		execEngine = new ExecutionEngine(this);
 		this.incomingInstructions = incomingInstructions;
 		this.threadID = threadID;
-		
-		initializeCoreParameters();
 	}
 	
 	private void initializeCoreParameters()
