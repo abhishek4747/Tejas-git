@@ -8,7 +8,7 @@ public class NewEventQueue
 		
 	public NewEventQueue() 
 	{
-		priorityQueue = new PriorityQueue<NewEvent>(0, new NewEventComparator());
+		priorityQueue = new PriorityQueue<NewEvent>(1, new NewEventComparator());
 	}
 	
 	public void addEvent(NewEvent newEvent)
