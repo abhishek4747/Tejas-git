@@ -13,8 +13,6 @@ public class Leave implements InstructionHandler
 	{
 		InstructionList microOps = new InstructionList();
 		
-		Error : case basis
-		
 		if(operand1==null && operand2==null && operand3==null)
 		{
 			Operand stackPointer = Registers.getStackPointer();

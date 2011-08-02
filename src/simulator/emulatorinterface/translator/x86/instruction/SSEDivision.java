@@ -34,8 +34,6 @@ public class SSEDivision implements InstructionHandler
 		InstructionList microOps;
 		microOps = new InstructionList();
 		
-		Error : case basis
-		
 		if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand() &&
 				operand3==null)
 		{

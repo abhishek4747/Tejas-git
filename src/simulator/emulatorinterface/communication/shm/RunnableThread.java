@@ -137,11 +137,13 @@ class RunnableThread implements Runnable {
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
 						DynamicInstruction dynamicInstruction = configurePackets(vectorPacket, tid, tid_emu);
 						
-						//TODO This instructionList must be provided to raj's code
-						InstructionList fusedInstructions;
-						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
-						System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 						
+						//TODO This instructionList must be provided to raj's code
+						//InstructionList fusedInstructions;
+						//fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
+						/*
+						System.out.print("\n\nFused Instructions ..." + fusedInstructions);
+											
 						if(fusedInstructions != null)
 						{
 							Newmain.handled++;
@@ -150,6 +152,9 @@ class RunnableThread implements Runnable {
 						{
 							Newmain.notHandled++;
 						}
+						*/
+						
+						
 						
 						pold = pnew;
 						vectorPacket.clear();
@@ -211,7 +216,11 @@ class RunnableThread implements Runnable {
 			dataRead+=tot_cons[i];
 		}
 		long timeTaken = System.currentTimeMillis() - start;
-		System.out.println("Thread"+tid+" Bytes-"+dataRead*20+" instructions-"+SharedMem.numInstructions[tid]+" time-"+timeTaken+" MBPS-"+(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+(double)SharedMem.numInstructions[tid]/(double)timeTaken);
+		System.out.println("\nThread"+tid+" Bytes-"+dataRead*20+" instructions-"
+				+SharedMem.numInstructions[tid]+" time-"+timeTaken+" MBPS-"+
+				(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+
+				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");
+		
 		SharedMem.free.release();
 	}
 

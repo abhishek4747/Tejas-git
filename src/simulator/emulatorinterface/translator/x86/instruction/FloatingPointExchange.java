@@ -34,8 +34,6 @@ public class FloatingPointExchange implements InstructionHandler
 		InstructionList microOps;
 		microOps = new InstructionList();
 	
-		Error : case basis
-		
 		if(operand1==null && operand2==null	&& operand3==null)
 		{
 			Operand st0 = Registers.getTopFPRegister();

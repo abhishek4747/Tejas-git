@@ -76,14 +76,24 @@ public class ObjParser {
 		
 		if(partialDecodedInstruction==null)
 		{
-			System.out.print("\n\tNo partial decoded instruction for " + dynamicInstruction + "\n");
+			//System.out.print("\n\tNo partial decoded instruction for " + dynamicInstruction + "\n");
+			return null;
+		}
+		else if((partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_MOVE) ||
+				(partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_SET) ||
+				(partialDecodedInstruction.getInstructionClass()==InstructionClass.FLOATING_POINT_CONDITIONAL_MOVE) ||
+				(partialDecodedInstruction.getInstructionClass()==InstructionClass.FLOATING_POINT_LOAD_CONTROL_WORD) ||
+				(partialDecodedInstruction.getInstructionClass()==InstructionClass.FLOATING_POINT_STORE_CONTROL_WORD) ||
+				(partialDecodedInstruction.getInstructionClass()==InstructionClass.INTERRUPT))
+		{
+			//For some instruction classes, the implementation must be reviewed.
 			return null;
 		}
 		
 		// print the details
-		System.out.print("\n\n\n\nDynamic Instruction ..." + dynamicInstruction);
-		System.out.print("\nPartial Decoded Instruction ...");
-		printPartialDecodedInstruction(partialDecodedInstruction);
+		//System.out.print("\n\n\n\nDynamic Instruction ..." + dynamicInstruction);
+		//System.out.print("\nPartial Decoded Instruction ...");
+		//printPartialDecodedInstruction(partialDecodedInstruction);
 		
 		// Obtain a handler for this instruction
 		InstructionHandler handler = InstructionClassTable.getInstructionClassHandler((InstructionClass) partialDecodedInstruction.getInstructionClass());
@@ -177,7 +187,7 @@ public class ObjParser {
 		}
 
 		double coverage = (double)(handled*100)/(double)(handled+notHandled);
-		System.out.print("\n\tInstruction Table created succesfuly with a coverage of " + coverage + " %\n");
+		System.out.print("\n\tStatic coverage = " + coverage + " %\n");
 		
 		return instructionTable;
 	}

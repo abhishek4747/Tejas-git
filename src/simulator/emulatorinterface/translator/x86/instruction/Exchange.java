@@ -32,8 +32,6 @@ public class Exchange implements InstructionHandler
 	{
 		InstructionList microOps = new InstructionList();
 	
-		Error : case basis
-		
 		//operand1 is a register and operand2 is also a register
 		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
 		   (operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand())&&

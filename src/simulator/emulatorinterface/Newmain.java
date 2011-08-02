@@ -86,7 +86,7 @@ public class Newmain {
 		
 		// Display coverage
 		double coverage = (double)(handled*100)/(double)(handled+notHandled);
-		System.out.print("\n\tProgram ran succesfuly with a coverage =  " + coverage + " %\n");
+		System.out.print("\n\tDynamic coverage =  " + coverage + " %\n");
 	}
 
 	// TODO Must provide parameters to make from here

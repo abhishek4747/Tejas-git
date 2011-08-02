@@ -31,8 +31,6 @@ public class ExchangeAndAdd implements InstructionHandler
 	{
 		InstructionList microOps = new InstructionList();
 
-		Error : case basis
-		
 		//TODO Check if the add should be performed before exchange ??
 		Exchange exchange = new Exchange();
 		microOps.appendInstruction(exchange.handle(operand1, operand2, operand3, dynamicInstruction));
