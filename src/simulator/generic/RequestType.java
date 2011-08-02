@@ -36,6 +36,6 @@ public enum RequestType {
 	MISPRED_PENALTY_COMPLETE,
 	
 	//FIXME:
-	READ,
-	WRITE,
+	MEM_READ,
+	MEM_WRITE,
 }
