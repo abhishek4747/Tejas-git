@@ -196,7 +196,11 @@ public class RenameCompleteEvent extends NewEvent {
 				newIWEntry.setOperand1Available(false);
 				
 				long readyAtTime1 = GlobalClock.getCurrentTime(), readyAtTime2 = GlobalClock.getCurrentTime();
-				if(opndAvailable[0] == false)
+				if(opndAvailable[0] == true)
+				{
+					newIWEntry.setOperand11Available(true);
+				}
+				else
 				{
 					newIWEntry.setOperand11Available(false);
 					if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.machineSpecificRegister)
@@ -212,12 +216,12 @@ public class RenameCompleteEvent extends NewEvent {
 						readyAtTime1 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 					}
 				}
-				else
-				{
-					newIWEntry.setOperand11Available(true);
-				}
 				
-				if(opndAvailable[1] == false)
+				if(opndAvailable[1] == true)
+				{
+					newIWEntry.setOperand12Available(true);
+				}
+				else
 				{
 					newIWEntry.setOperand12Available(false);
 					if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.machineSpecificRegister)
@@ -232,10 +236,6 @@ public class RenameCompleteEvent extends NewEvent {
 					{
 						readyAtTime2 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
 					}
-				}
-				else
-				{
-					newIWEntry.setOperand12Available(true);
 				}
 				
 				if(readyAtTime1 > readyAtTime2)
@@ -344,7 +344,11 @@ public class RenameCompleteEvent extends NewEvent {
 				newIWEntry.setOperand2Available(false);
 				
 				long readyAtTime1 = GlobalClock.getCurrentTime(), readyAtTime2 = GlobalClock.getCurrentTime();
-				if(opndAvailable[0] == false)
+				if(opndAvailable[0] == true)
+				{
+					newIWEntry.setOperand21Available(true);
+				}
+				else
 				{
 					newIWEntry.setOperand21Available(false);
 					if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.machineSpecificRegister)
@@ -360,12 +364,12 @@ public class RenameCompleteEvent extends NewEvent {
 						readyAtTime1 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 					}
 				}
-				else
-				{
-					newIWEntry.setOperand21Available(true);
-				}
 				
 				if(opndAvailable[1] == false)
+				{
+					newIWEntry.setOperand22Available(true);
+				}
+				else
 				{
 					newIWEntry.setOperand22Available(false);
 					if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.machineSpecificRegister)
@@ -380,10 +384,6 @@ public class RenameCompleteEvent extends NewEvent {
 					{
 						readyAtTime2 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
 					}
-				}
-				else
-				{
-					newIWEntry.setOperand22Available(true);
 				}
 				
 				if(readyAtTime1 > readyAtTime2)
