@@ -38,4 +38,6 @@ public enum RequestType {
 	//FIXME:
 	MEM_READ,
 	MEM_WRITE,
+	
+	MEM_BLOCK_READY
 }
