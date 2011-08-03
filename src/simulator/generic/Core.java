@@ -32,11 +32,13 @@ public class Core extends SimulationElement{
 	private int[] latencies;
 	
 	//TODO should be an array of InstructionLists and an array of threadIDs
-	private InstructionList incomingInstructions;
-	private int threadID;
+	private int core_number;
+	private int no_of_threads;
+	private InstructionList[] incomingInstructionLists;
+	private int[] threadIDs;
 
-	public Core(NewEventQueue eventQueue, InstructionList incomingInstructions,
-					int threadID)
+	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionList[] incomingInstructionLists,
+					int[] threadIDs)
 	{
 		super(1, new Time_t(-1), new Time_t(-1));
 		//clock = 0;
@@ -44,10 +46,12 @@ public class Core extends SimulationElement{
 		initializeCoreParameters();
 		
 		//eventQueue = new EventQueue(this);
+		this.core_number = core_number;
 		this.eventQueue = eventQueue;
+		this.no_of_threads = no_of_threads;
+		this.incomingInstructionLists = incomingInstructionLists;
+		this.threadIDs = threadIDs;
 		execEngine = new ExecutionEngine(this);
-		this.incomingInstructions = incomingInstructions;
-		this.threadID = threadID;
 	}
 	
 	private void initializeCoreParameters()
@@ -229,12 +233,35 @@ public class Core extends SimulationElement{
 		IWSize = size;
 	}
 	
-	public int getThreadID() {
-		return threadID;
+	public int[] getThreadIDs() {
+		return threadIDs;
 	}
 
-	public InstructionList getIncomingInstructions() {
-		return incomingInstructions;
+	public InstructionList getIncomingInstructions(int threadID) {
+		int index = -1;
+		for(int i = 0; i < no_of_threads; i++)
+		{
+			if(threadIDs[i] == threadID)
+			{
+				index = i;
+				break;
+			}
+		}
+		
+		if(threadID == -1 || index == -1)
+		{
+			misc.Error.showErrorAndExit("threadID of -1");
+		}
+		
+		return incomingInstructionLists[index];
+	}
+
+	public int getNo_of_threads() {
+		return no_of_threads;
+	}
+	
+	public int getCore_number() {
+		return core_number;
 	}
 
 }
