@@ -28,7 +28,17 @@ public class PerformCommitsEvent extends NewEvent {
 			core.getExecEngine().getReorderBuffer().performCommits();
 		}
 		
-		return (new PerformCommitsEvent(GlobalClock.getCurrentTime()+1, core));
+		if(core.getExecEngine().isExecutionComplete() == false)
+		{
+			return (new PerformCommitsEvent(GlobalClock.getCurrentTime()+1, core));
+		}
+		else
+		{			
+			System.out.println();
+			System.out.println("core " + core.getCore_number() + " reaches the finish line!!");
+			System.out.println(GlobalClock.getCurrentTime() + " cycles");
+			return null;
+		}
 	}
 
 }

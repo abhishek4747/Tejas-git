@@ -27,7 +27,9 @@ public class PerformDecodeEvent extends NewEvent {
 				core.getExecEngine().isStallDecode1() == false &&
 				core.getExecEngine().isDecodePipeEmpty() == false)
 		{
-			core.getExecEngine().getDecoder().scheduleDecodeCompletion();
+			//TODO if multiple threads executing on same core, fetch to be performed accordingly
+			//currently fetching from thread 0
+			core.getExecEngine().getDecoder().scheduleDecodeCompletion(0);
 		}
 		
 		if(core.getExecEngine().isDecodePipeEmpty() == false)

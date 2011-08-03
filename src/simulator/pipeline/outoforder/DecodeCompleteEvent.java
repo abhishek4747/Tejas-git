@@ -20,8 +20,9 @@ import generic.RequestType;
 public class DecodeCompleteEvent extends NewEvent {
 	
 	Core core;
+	int threadID;
 	
-	public DecodeCompleteEvent(Core core, long eventTime)
+	public DecodeCompleteEvent(Core core, int threadID, long eventTime)
 	{
 		super(eventTime,
 				null,
@@ -29,6 +30,7 @@ public class DecodeCompleteEvent extends NewEvent {
 				0,
 				RequestType.DECODE_COMPLETE);
 		this.core = core;
+		this.threadID = threadID;
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					&& core.getExecEngine().getInstructionWindow().isFull() == false
 					&& core.getExecEngine().isStallDecode1() == false)
 			{
-				newInstruction = core.getIncomingInstructions().getNextInstruction();
+				newInstruction = core.getIncomingInstructions(threadID).pollFirst();
 				if(newInstruction != null)
 				{
 					makeROBEntries(newInstruction);

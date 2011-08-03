@@ -21,13 +21,14 @@ public class DecodeLogic extends SimulationElement {
 		core = containingCore;
 	}
 	
-	public void scheduleDecodeCompletion()
+	public void scheduleDecodeCompletion(int threadID)
 	{
 		//decode completion of decodeWidth number of instructions scheduled
 		
 		core.getEventQueue().addEvent(
 				new DecodeCompleteEvent(
 						core,
+						threadID,
 						GlobalClock.getCurrentTime() + core.getDecodeTime()
 						));
 	}
