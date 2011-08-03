@@ -205,7 +205,7 @@ public class DecodeCompleteEvent extends NewEvent {
 			//processing memoryLocationFirstOperand
 			if(memLocOpnd1 == null)
 			{
-				reorderBufferEntry.setOperand1PhyReg1(-1);
+				reorderBufferEntry.setOperand2PhyReg1(-1);
 			}
 			else
 			{
@@ -231,7 +231,7 @@ public class DecodeCompleteEvent extends NewEvent {
 			//processing memoryLocationSecondOperand
 			if(memLocOpnd2 == null)
 			{
-				reorderBufferEntry.setOperand1PhyReg2(-1);
+				reorderBufferEntry.setOperand2PhyReg2(-1);
 			}
 			else
 			{
