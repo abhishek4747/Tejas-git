@@ -10,7 +10,7 @@ package generic;
  */
 public abstract class NewEvent 
 {
-	private long eventTime;
+	private Time_t eventTime;
 	private long priority;
 	
 	//Element which processes the event.
@@ -21,7 +21,7 @@ public abstract class NewEvent
 	//value of tieBreaker wins.
 	private long tieBreaker;
 
-	public NewEvent(long eventTime, SimulationElement requestingElement,
+	public NewEvent(Time_t eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker, RequestType requestType) 
 	{
 		super();
@@ -41,7 +41,7 @@ public abstract class NewEvent
 		return 0;
 	}
 
-	public long getEventTime() {
+	public Time_t getEventTime() {
 		return eventTime;
 	}
 
@@ -61,7 +61,7 @@ public abstract class NewEvent
 		return tieBreaker;
 	}
 	
-	public void setEventTime(long eventTime) {
+	public void setEventTime(Time_t eventTime) {
 		this.eventTime = eventTime;
 	}
 
