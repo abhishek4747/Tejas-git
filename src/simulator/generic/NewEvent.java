@@ -70,6 +70,8 @@ public abstract class NewEvent
 	}
 
 	//If the event cannot be handled in the current clock-cycle,
-	//then the eventPriority and eventTime will be changed and then returned.
-	public abstract NewEvent handleEvent();
+	//then the eventPriority and eventTime will be changed and then 
+	//the modified event will be added to the eventQueue which is 
+	//now passed as a paramter to this function.
+	public abstract void handleEvent(NewEventQueue newEventQueue);
 }
