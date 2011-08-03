@@ -3,10 +3,12 @@ package pipeline.outoforder;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
+import generic.NewEventQueue;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 import generic.RequestType;
+import generic.Time_t;
 
 /**
  * handling of the event :
@@ -18,11 +20,12 @@ public class RenameCompleteEvent extends NewEvent {
 	
 	ReorderBufferEntry reorderBufferEntry;
 	Core core;
+	NewEventQueue eventQueue;
 	
 	public RenameCompleteEvent(Core core, ReorderBufferEntry reorderBufferEntry,
 			long eventTime)
 	{
-		super(eventTime,
+		super(new Time_t(eventTime),
 				null,
 				null,
 				core.getExecEngine().getReorderBuffer()
@@ -33,7 +36,9 @@ public class RenameCompleteEvent extends NewEvent {
 	}
 
 	@Override
-	public NewEvent handleEvent() {
+	public void handleEvent(NewEventQueue newEventQueue) {
+		
+		this.eventQueue = newEventQueue;
 		
 		//add to Instruction Window
 		IWEntry newIWEntry = core.getExecEngine().getInstructionWindow().addToWindow(
@@ -41,7 +46,7 @@ public class RenameCompleteEvent extends NewEvent {
 		
 		if(newIWEntry == null)
 		{
-			return handleIWFull();
+			handleIWFull();
 		}
 		
 		long operandReadyTime = GlobalClock.getCurrentTime();
@@ -75,16 +80,16 @@ public class RenameCompleteEvent extends NewEvent {
 		setTimeOfCompletion(bothOperandsReadyTime);
 		
 		//attempt to issue the instruction
-		return reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
+		reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
 
 	}
 
-	NewEvent handleIWFull()
+	void handleIWFull()
 	{
 		System.out.println("IW full");
 		
 		//schedule new rename complete event
-		return (
+		this.eventQueue.addEvent(
 				new RenameCompleteEvent(
 					core,
 					reorderBufferEntry,

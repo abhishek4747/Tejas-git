@@ -3,15 +3,18 @@ package pipeline.outoforder;
 import generic.Core;
 import generic.GlobalClock;
 import generic.NewEvent;
+import generic.NewEventQueue;
 import generic.RequestType;
+import generic.Time_t;
 
 public class PerformDecodeEvent extends NewEvent {
 	
 	Core core;
+	NewEventQueue eventQueue;
 	
 	public PerformDecodeEvent(long eventTime, Core core)
 	{
-		super(eventTime,
+		super(new Time_t(eventTime),
 				null,
 				null,
 				0,
@@ -21,7 +24,9 @@ public class PerformDecodeEvent extends NewEvent {
 	}
 
 	@Override
-	public NewEvent handleEvent() {
+	public void handleEvent(NewEventQueue newEventQueue) {
+		
+		this.eventQueue = newEventQueue;
 		
 		if(core.getExecEngine().isStallDecode2() == false &&
 				core.getExecEngine().isStallDecode1() == false &&
@@ -34,11 +39,7 @@ public class PerformDecodeEvent extends NewEvent {
 		
 		if(core.getExecEngine().isDecodePipeEmpty() == false)
 		{
-			return (new PerformDecodeEvent(GlobalClock.getCurrentTime()+1, core));
-		}
-		else
-		{
-			return null;
+			this.eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime()+1, core));
 		}
 	}
 

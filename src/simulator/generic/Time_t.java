@@ -31,4 +31,9 @@ public class Time_t
 	{
 		this.time += noOfSlots;		
 	}
+	
+	public long getTime()
+	{
+		return this.time;
+	}
 }

@@ -3,7 +3,6 @@ package pipeline.outoforder;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.NewEvent;
 import generic.OperationType;
 import generic.ExecutionCompleteEvent;
 
@@ -47,12 +46,11 @@ public class IWEntry {
 	//				2) schedule ExecutionCompleteEvent
 	//		else
 	//			schedule an FUAvailableEvent
-	public NewEvent issueInstruction()
+	public void issueInstruction()
 	{
 		if(associatedROBEntry.getIssued() == true)
 		{
 			System.out.println("already issued!");
-			return null;
 		}
 		
 		if(isOperand1Available && isOperand2Available)
@@ -62,18 +60,17 @@ public class IWEntry {
 					instruction.getOperationType() == OperationType.xchg)
 			{
 				//no FU required
-				return issueMovXchg();
+				issueMovXchg();
 			}
 			
 			else
 			{
-				return issueOthers();
+				issueOthers();
 			}
 		}
-		return null;
 	}
 	
-	NewEvent issueMovXchg()
+	void issueMovXchg()
 	{
 		//no FU required
 		
@@ -83,7 +80,8 @@ public class IWEntry {
 		//remove IW entry
 		core.getExecEngine().getInstructionWindow().removeFromWindow(this);
 		
-		return (new ExecutionCompleteEvent(
+		core.getEventQueue().addEvent(
+				new ExecutionCompleteEvent(
 							this.getAssociatedROBEntry(),
 							associatedROBEntry.getFUInstance(),
 							core,
@@ -92,7 +90,7 @@ public class IWEntry {
 		
 	}
 	
-	NewEvent issueOthers()
+	void issueOthers()
 	{
 		long FURequest = 0;	//will be <= 0 if an FU was obtained
 		//will be > 0 otherwise, indicating how long before
@@ -112,7 +110,7 @@ public class IWEntry {
 			//remove IW entry
 			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
 			
-			return (
+			core.getEventQueue().addEvent(
 				new ExecutionCompleteEvent(
 						this.getAssociatedROBEntry(),
 						associatedROBEntry.getFUInstance(),
@@ -128,11 +126,11 @@ public class IWEntry {
 			associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
 			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
 			
-			return(
-			new FunctionalUnitAvailableEvent(
-					this.core,
-					this.getAssociatedROBEntry(),
-					FURequest ) );
+			core.getEventQueue().addEvent(
+					new FunctionalUnitAvailableEvent(
+						this.core,
+						this.getAssociatedROBEntry(),
+						FURequest ) );
 		}
 	}
 

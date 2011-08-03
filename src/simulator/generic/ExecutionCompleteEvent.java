@@ -25,13 +25,14 @@ public class ExecutionCompleteEvent extends NewEvent {
 	ReorderBufferEntry reorderBufferEntry;
 	int FUInstance;
 	Core core;
+	NewEventQueue eventQueue;
 	
 	public ExecutionCompleteEvent(ReorderBufferEntry reorderBufferEntry,
 									int FUInstance,
 									Core core,
 									long eventTime)
 	{
-		super(eventTime,
+		super(new Time_t(eventTime),
 				null,
 				null,
 				core.getExecEngine().getReorderBuffer()
@@ -44,12 +45,14 @@ public class ExecutionCompleteEvent extends NewEvent {
 	}
 
 	@Override
-	public NewEvent handleEvent() {
+	public void handleEvent(NewEventQueue newEventQueue) {
+		
+		this.eventQueue = newEventQueue;
 		
 		if(reorderBufferEntry.getExecuted() == true)
 		{
 			System.out.println("already executed!");
-			return null;
+			return;
 		}
 		
 		RegisterFile tempRF = null;
@@ -63,11 +66,11 @@ public class ExecutionCompleteEvent extends NewEvent {
 				//doesn't use an FU				
 				reorderBufferEntry.setExecuted(true);
 				writeBackForXchg();
-				return null;
+				return;
 			}
 			else
 			{
-				return writeBackForOthers(tempRF, tempRN);
+				writeBackForOthers(tempRF, tempRN);
 			}
 		}
 		
@@ -89,12 +92,11 @@ public class ExecutionCompleteEvent extends NewEvent {
 		{
 			//doesn't use an FU			
 			reorderBufferEntry.setExecuted(true);			
-			writeBackForMov(tempRF, tempRN);			
-			return null;
+			writeBackForMov(tempRF, tempRN);
 		}		
 		else
 		{
-			return writeBackForOthers(tempRF, tempRN);
+			writeBackForOthers(tempRF, tempRN);
 		}
 		
 	}
@@ -153,7 +155,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		}
 	}
 	
-	NewEvent writeBackForOthers(RegisterFile tempRF, RenameTable tempRN)
+	void writeBackForOthers(RegisterFile tempRF, RenameTable tempRN)
 	{
 		//check if the execution has completed
 		long time_of_completion = core.getExecEngine().getFunctionalUnitSet().getTimeWhenFUAvailable(
@@ -180,8 +182,6 @@ public class ExecutionCompleteEvent extends NewEvent {
 				OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
 				wakeUpLogic(tempOpndType, tempDestPhyReg);
 			}
-			
-			return null;
 		}
 		
 		else
@@ -189,7 +189,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 			reorderBufferEntry.setReadyAtTime(time_of_completion);
 			
 			//schedule new ExecutionCompleteEvent
-			return(
+			this.eventQueue.addEvent(
 					new ExecutionCompleteEvent(
 							reorderBufferEntry,
 							FUInstance,

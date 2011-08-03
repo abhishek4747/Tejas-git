@@ -4,10 +4,12 @@ import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
 import generic.Instruction;
+import generic.NewEventQueue;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 import generic.RequestType;
+import generic.Time_t;
 
 /**
  * scheduled at the end of decode time
@@ -21,10 +23,11 @@ public class DecodeCompleteEvent extends NewEvent {
 	
 	Core core;
 	int threadID;
+	NewEventQueue eventQueue;
 	
 	public DecodeCompleteEvent(Core core, int threadID, long eventTime)
 	{
-		super(eventTime,
+		super(new Time_t(eventTime),
 				null,
 				null,
 				0,
@@ -34,9 +37,10 @@ public class DecodeCompleteEvent extends NewEvent {
 	}
 
 	@Override
-	public NewEvent handleEvent() {
+	public void handleEvent(NewEventQueue newEventQueue)
+	{
+		this.eventQueue = newEventQueue;
 		readDecodePipe();
-		return null;
 	}
 	
 	public void readDecodePipe()
@@ -266,7 +270,7 @@ public class DecodeCompleteEvent extends NewEvent {
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 		if(tempOpnd == null)
 		{
-			core.getEventQueue().addEvent(
+			this.eventQueue.addEvent(
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
@@ -281,7 +285,7 @@ public class DecodeCompleteEvent extends NewEvent {
 				tempOpndType != OperandType.floatRegister &&
 				tempOpndType != OperandType.machineSpecificRegister)
 		{
-			core.getEventQueue().addEvent(
+			this.eventQueue.addEvent(
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
@@ -311,7 +315,7 @@ public class DecodeCompleteEvent extends NewEvent {
 		if(tempRF.getValueValid((int) tempOpnd.getValue()) == true)
 		{
 			//destination MSR available
-			core.getEventQueue().addEvent(
+			this.eventQueue.addEvent(
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
@@ -323,7 +327,7 @@ public class DecodeCompleteEvent extends NewEvent {
 		{
 			//schedule AllocateDestinationRegisterEvent
 			long regReadyTime = tempRF.getProducerROBEntry((int) tempOpnd.getValue()).getReadyAtTime();
-			core.getEventQueue().addEvent(
+			this.eventQueue.addEvent(
 					new AllocateDestinationRegisterEvent(
 							reorderBufferEntry,
 							null,
@@ -356,7 +360,7 @@ public class DecodeCompleteEvent extends NewEvent {
 			reorderBufferEntry.setPhysicalDestinationRegister(r);
 			tempRN.setValueValid(false, r);
 			tempRN.setProducerROBEntry(reorderBufferEntry, r);
-			core.getEventQueue().addEvent(
+			this.eventQueue.addEvent(
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
@@ -367,7 +371,7 @@ public class DecodeCompleteEvent extends NewEvent {
 		{
 			//look for a physical register in the next clock cycle
 			//schedule a FindPhysicalRegisterEvent at time current_clock+1
-			core.getEventQueue().addEvent(
+			this.eventQueue.addEvent(
 					new AllocateDestinationRegisterEvent(
 							reorderBufferEntry,
 							tempRN,
