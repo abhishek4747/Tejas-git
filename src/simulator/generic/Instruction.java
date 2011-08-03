@@ -27,7 +27,7 @@ public class Instruction {
 	private Operand sourceOperand1;
 	private Operand sourceOperand2;
 	private Operand destinationOperand;
-	
+	private long programCounter;
 	
 	public Instruction(OperationType type, Operand sourceOperand1,
 			Operand sourceOperand2, Operand destinationOperand)
@@ -36,6 +36,17 @@ public class Instruction {
 		this.sourceOperand1 = sourceOperand1;
 		this.sourceOperand2 = sourceOperand2;
 		this.destinationOperand = destinationOperand;
+	}
+	
+	
+	public long getProgramCounter()
+	{
+		return this.programCounter;
+	}
+	
+	public long setProgramCounter(long programCounter) 
+	{
+		return this.programCounter;
 	}
 	
 	/**

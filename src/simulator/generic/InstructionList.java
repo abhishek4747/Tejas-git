@@ -80,4 +80,12 @@ public class InstructionList
 	{
 		return instructionList.pollFirst();
 	}
+
+	public void setProgramCounter(Long instructionPointer) 
+	{
+		for(Instruction i : instructionList)
+		{
+			i.setProgramCounter(instructionPointer);
+		}
+	}
 }

@@ -104,6 +104,7 @@ public class ObjParser {
 		instructionList.appendInstruction((InstructionList) partialDecodedInstruction.getInstructionList());
 		instructionList.appendInstruction(handler.handle(partialDecodedInstruction.getOperand1(), partialDecodedInstruction.getOperand2(),	partialDecodedInstruction.getOperand3(), dynamicInstruction));
 
+		instructionList.setProgramCounter(instructionPointer);
 		// return the instructionList
 		return instructionList;
 	}
