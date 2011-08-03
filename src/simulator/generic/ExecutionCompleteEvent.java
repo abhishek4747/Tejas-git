@@ -55,7 +55,23 @@ public class ExecutionCompleteEvent extends NewEvent {
 		RegisterFile tempRF = null;
 		RenameTable tempRN = null;
 		
-		OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
+		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
+		if(tempOpnd == null)
+		{
+			if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+			{
+				//doesn't use an FU				
+				reorderBufferEntry.setExecuted(true);
+				writeBackForXchg();
+				return null;
+			}
+			else
+			{
+				return writeBackForOthers(tempRF, tempRN);
+			}
+		}
+		
+		OperandType tempOpndType = tempOpnd.getOperandType(); 
 		if(tempOpndType == OperandType.machineSpecificRegister)
 		{
 			tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
@@ -69,30 +85,17 @@ public class ExecutionCompleteEvent extends NewEvent {
 			tempRN = core.getExecEngine().getFloatingPointRenameTable();
 		}
 		
-		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.mov ||
-				reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.mov)
 		{
-			//doesn't use an FU
-			
-			reorderBufferEntry.setExecuted(true);
-			
-			if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.mov)
-			{
-				writeBackForMov(tempRF, tempRN);
-			}
-			else
-			{
-				//xchg operation
-				writeBackForXchg(tempRF, tempRN);
-			}
-		}
-		
+			//doesn't use an FU			
+			reorderBufferEntry.setExecuted(true);			
+			writeBackForMov(tempRF, tempRN);			
+			return null;
+		}		
 		else
 		{
 			return writeBackForOthers(tempRF, tempRN);
 		}
-		
-		return null;
 		
 	}
 	
@@ -111,10 +114,10 @@ public class ExecutionCompleteEvent extends NewEvent {
 		wakeUpLogic(tempOpndType, tempDestPhyReg);
 	}
 	
-	void writeBackForXchg(RegisterFile tempRF, RenameTable tempRN)
+	void writeBackForXchg()
 	{
 		//operand 1
-		int phyReg = reorderBufferEntry.getOperand1PhyReg();
+		int phyReg = reorderBufferEntry.getOperand1PhyReg1();
 		if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
 		{
 			core.getExecEngine().getMachineSpecificRegisterFile().setValueValid(true, phyReg);
@@ -132,7 +135,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		}
 		
 		//operand 2
-		phyReg = reorderBufferEntry.getOperand2PhyReg();
+		phyReg = reorderBufferEntry.getOperand2PhyReg1();
 		if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
 		{
 			core.getExecEngine().getMachineSpecificRegisterFile().setValueValid(true, phyReg);
@@ -170,8 +173,13 @@ public class ExecutionCompleteEvent extends NewEvent {
 			{
 				tempRN.setValueValid(true, tempDestPhyReg);
 			}
-			OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
-			wakeUpLogic(tempOpndType, tempDestPhyReg);
+			
+			if(tempRF != null || tempRN != null)
+			{
+				//there may some instruction that needs to be woken up
+				OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
+				wakeUpLogic(tempOpndType, tempDestPhyReg);
+			}
 			
 			return null;
 		}
@@ -196,30 +204,71 @@ public class ExecutionCompleteEvent extends NewEvent {
 		LinkedList<IWEntry> tempList = new LinkedList<IWEntry>();
 		int i = 0;
 		boolean toWakeUp;
+		ReorderBufferEntry ROBEntry;
 				
 		while(i < IW.size())
 		{
 			IWEntry IWentry = IW.get(i);
-			ReorderBufferEntry ROBEntry = IWentry.getAssociatedROBEntry();
+			ROBEntry = IWentry.getAssociatedROBEntry();
 			toWakeUp = false;
 			
 			if(IWentry.isOperand1Available() == false)
 			{
-				if(opndType == ROBEntry.getInstruction().getSourceOperand1().getOperandType()
-						&& physicalRegister == ROBEntry.getOperand1PhyReg())
+				if(ROBEntry.getInstruction().getSourceOperand1().getOperandType() == opndType
+						&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
 				{
+					IWentry.setOperand1Available(true);
+					toWakeUp = true;
+				}
+				if(ROBEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.memory)
+				{
+					if(ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationFirstOperand() != null &&
+							ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationFirstOperand().getOperandType() == opndType
+							&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
+					{
+						IWentry.setOperand11Available(true);
+					}
+					if(ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationSecondOperand() != null &&
+							ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationSecondOperand().getOperandType() == opndType
+							&& ROBEntry.getOperand1PhyReg2() == physicalRegister)
+					{
+						IWentry.setOperand12Available(true);
+					}
+					if(IWentry.isOperand11Available() && IWentry.isOperand12Available())
+					{
 						IWentry.setOperand1Available(true);
 						toWakeUp = true;
+					}
 				}
 			}
 			
 			if(IWentry.isOperand2Available() == false)
 			{
-				if(opndType == ROBEntry.getInstruction().getSourceOperand2().getOperandType()
-						&& physicalRegister == ROBEntry.getOperand2PhyReg())
+				if(ROBEntry.getInstruction().getSourceOperand2().getOperandType() == opndType
+						&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
 				{
+					IWentry.setOperand2Available(true);
+					toWakeUp = true;
+				}
+				if(ROBEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.memory)
+				{
+					if(ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationFirstOperand() != null &&
+							ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationFirstOperand().getOperandType() == opndType
+							&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
+					{
+						IWentry.setOperand21Available(true);
+					}
+					if(ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationSecondOperand() != null &&
+							ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationSecondOperand().getOperandType() == opndType
+							&& ROBEntry.getOperand2PhyReg2() == physicalRegister)
+					{
+						IWentry.setOperand22Available(true);
+					}
+					if(IWentry.isOperand21Available() && IWentry.isOperand22Available())
+					{
 						IWentry.setOperand2Available(true);
 						toWakeUp = true;
+					}
 				}
 			}
 			
