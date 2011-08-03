@@ -83,50 +83,199 @@ public class DecodeCompleteEvent extends NewEvent {
 
 	private void processOperand1(ReorderBufferEntry reorderBufferEntry)
 	{
-		int archReg = (int) reorderBufferEntry.getInstruction().getSourceOperand1().getValue();
-		if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.integerRegister)
+		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
+		if(tempOpnd == null)
 		{
-			reorderBufferEntry.setOperand1PhyReg(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand1PhyReg1(-1);
+			reorderBufferEntry.setOperand1PhyReg2(-1);
+			return;
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.floatRegister)
+		
+		int archReg = (int) tempOpnd.getValue();
+		if(tempOpnd.getOperandType() == OperandType.integerRegister)
 		{
-			reorderBufferEntry.setOperand1PhyReg(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
+		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
 		{
-			reorderBufferEntry.setOperand1PhyReg(archReg);
+			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand1PhyReg2(-1);
+		}
+		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+		{
+			reorderBufferEntry.setOperand1PhyReg1(archReg);
+			reorderBufferEntry.setOperand1PhyReg2(-1);
+		}
+		else if(tempOpnd.getOperandType() == OperandType.memory)
+		{
+			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
+			Operand memLocOpnd2 = tempOpnd.getMemoryLocationSecondOperand();
+			
+			//processing memoryLocationFirstOperand
+			if(memLocOpnd1 == null)
+			{
+				reorderBufferEntry.setOperand1PhyReg1(-1);
+			}
+			else
+			{
+				archReg = (int)memLocOpnd1.getValue();
+				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
+				{
+					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
+				{
+					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				{
+					reorderBufferEntry.setOperand1PhyReg1(archReg);
+				}
+				else
+				{
+					reorderBufferEntry.setOperand1PhyReg1(-1);
+				}
+			}
+			
+			//processing memoryLocationSecondOperand
+			if(memLocOpnd2 == null)
+			{
+				reorderBufferEntry.setOperand1PhyReg2(-1);
+			}
+			else
+			{
+				archReg = (int)memLocOpnd2.getValue();
+				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
+				{
+					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
+				{
+					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				{
+					reorderBufferEntry.setOperand1PhyReg2(archReg);
+				}
+				else
+				{
+					reorderBufferEntry.setOperand1PhyReg2(-1);
+				}
+			}
 		}
 		else
 		{
-			reorderBufferEntry.setOperand1PhyReg(-1);
+			reorderBufferEntry.setOperand1PhyReg1(-1);
+			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
 	}
 	
 	private void processOperand2(ReorderBufferEntry reorderBufferEntry)
 	{
-		int archReg = (int) reorderBufferEntry.getInstruction().getSourceOperand2().getValue();
-		if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
+		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
+		if(tempOpnd == null)
 		{
-			reorderBufferEntry.setOperand2PhyReg(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand2PhyReg1(-1);
+			reorderBufferEntry.setOperand2PhyReg2(-1);
+			return;
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.floatRegister)
+		
+		int archReg = (int) tempOpnd.getValue();
+		if(tempOpnd.getOperandType() == OperandType.integerRegister)
 		{
-			reorderBufferEntry.setOperand2PhyReg(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
+		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
 		{
-			reorderBufferEntry.setOperand2PhyReg(archReg);
+			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand2PhyReg2(-1);
+		}
+		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+		{
+			reorderBufferEntry.setOperand2PhyReg1(archReg);
+			reorderBufferEntry.setOperand2PhyReg2(-1);
+		}
+		else if(tempOpnd.getOperandType() == OperandType.memory)
+		{
+			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
+			Operand memLocOpnd2 = tempOpnd.getMemoryLocationSecondOperand();
+			
+			//processing memoryLocationFirstOperand
+			if(memLocOpnd1 == null)
+			{
+				reorderBufferEntry.setOperand1PhyReg1(-1);
+			}
+			else
+			{
+				archReg = (int)memLocOpnd1.getValue();
+				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
+				{
+					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
+				{
+					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				{
+					reorderBufferEntry.setOperand2PhyReg1(archReg);
+				}
+				else
+				{
+					reorderBufferEntry.setOperand2PhyReg1(-1);
+				}
+			}
+			
+			//processing memoryLocationSecondOperand
+			if(memLocOpnd2 == null)
+			{
+				reorderBufferEntry.setOperand1PhyReg2(-1);
+			}
+			else
+			{
+				archReg = (int)memLocOpnd2.getValue();
+				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
+				{
+					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
+				{
+					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+				}
+				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				{
+					reorderBufferEntry.setOperand2PhyReg2(archReg);
+				}
+				else
+				{
+					reorderBufferEntry.setOperand2PhyReg2(-1);
+				}
+			}
 		}
 		else
 		{
-			reorderBufferEntry.setOperand2PhyReg(-1);
+			reorderBufferEntry.setOperand2PhyReg1(-1);
+			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
 	}
 	
 	private void processDestOperand(ReorderBufferEntry reorderBufferEntry)
 	{
-		OperandType tempOpndType = reorderBufferEntry.getInstruction().
-									getDestinationOperand().getOperandType(); 
+		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
+		if(tempOpnd == null)
+		{
+			core.getEventQueue().addEvent(
+					new RenameCompleteEvent(
+							core,
+							reorderBufferEntry,
+							GlobalClock.getCurrentTime() + core.getRenamingTime()
+							));
+			return;
+		}
+		
+		OperandType tempOpndType = tempOpnd.getOperandType(); 
 		
 		if(tempOpndType != OperandType.integerRegister &&
 				tempOpndType != OperandType.floatRegister &&

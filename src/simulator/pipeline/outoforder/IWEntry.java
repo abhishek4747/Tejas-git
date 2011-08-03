@@ -16,6 +16,10 @@ public class IWEntry {
 	Instruction instruction;
 	boolean isOperand1Available;
 	boolean isOperand2Available;
+	boolean isOperand11Available;
+	boolean isOperand12Available;
+	boolean isOperand21Available;
+	boolean isOperand22Available;
 	ReorderBufferEntry associatedROBEntry;
 	
 	public IWEntry(Core core, Instruction instruction, ReorderBufferEntry ROBEntry)
@@ -25,6 +29,10 @@ public class IWEntry {
 		associatedROBEntry = ROBEntry;
 		isOperand1Available = false;
 		isOperand2Available = false;
+		isOperand11Available = false;
+		isOperand12Available = false;
+		isOperand21Available = false;
+		isOperand22Available = false;
 	}
 	
 	//	issueInstruction()
@@ -146,6 +154,37 @@ public class IWEntry {
 	}
 	public void setOperand2Available(boolean isOperand2Available) {
 		this.isOperand2Available = isOperand2Available;
+	}
+	public boolean isOperand11Available() {
+		return isOperand11Available;
+	}
+
+	public void setOperand11Available(boolean isOperand11Available) {
+		this.isOperand11Available = isOperand11Available;
+	}
+
+	public boolean isOperand12Available() {
+		return isOperand12Available;
+	}
+
+	public void setOperand12Available(boolean isOperand12Available) {
+		this.isOperand12Available = isOperand12Available;
+	}
+
+	public boolean isOperand21Available() {
+		return isOperand21Available;
+	}
+
+	public void setOperand21Available(boolean isOperand21Available) {
+		this.isOperand21Available = isOperand21Available;
+	}
+
+	public boolean isOperand22Available() {
+		return isOperand22Available;
+	}
+
+	public void setOperand22Available(boolean isOperand22Available) {
+		this.isOperand22Available = isOperand22Available;
 	}
 
 }

@@ -7,8 +7,10 @@ import generic.Instruction;
 public class ReorderBufferEntry {
 	
 	private Instruction instruction;
-	private int operand1PhyReg;
-	private int operand2PhyReg;
+	private int operand1PhyReg1;
+	private int operand1PhyReg2;
+	private int operand2PhyReg1;
+	private int operand2PhyReg2;
 	private int physicalDestinationRegister;
 	private boolean isIssued;
 	private int FUInstance;								//which FU has been assigned
@@ -20,8 +22,10 @@ public class ReorderBufferEntry {
 	public ReorderBufferEntry(Core core, Instruction objectsInstruction)
 	{
 		instruction = objectsInstruction;
-		operand1PhyReg = -1;
-		operand2PhyReg = -1;
+		operand1PhyReg1 = -1;
+		operand1PhyReg2 = -1;
+		operand2PhyReg1 = -1;
+		operand2PhyReg2 = -1;
 		physicalDestinationRegister = -1;
 		isIssued = false;
 		FUInstance = -1;
@@ -91,33 +95,42 @@ public class ReorderBufferEntry {
 	{
 		readyAtTime = _readyAtTime;
 	}
-
-	public int getOperand1PhyReg() {
-		return operand1PhyReg;
+	
+	public int getOperand1PhyReg1() {
+		return operand1PhyReg1;
 	}
 
-
-	public void setOperand1PhyReg(int operand1PhyReg) {
-		this.operand1PhyReg = operand1PhyReg;
+	public void setOperand1PhyReg1(int operand1PhyReg1) {
+		this.operand1PhyReg1 = operand1PhyReg1;
 	}
 
-
-	public int getOperand2PhyReg() {
-		return operand2PhyReg;
+	public int getOperand1PhyReg2() {
+		return operand1PhyReg2;
 	}
 
-
-	public void setOperand2PhyReg(int operand2PhyReg) {
-		this.operand2PhyReg = operand2PhyReg;
+	public void setOperand1PhyReg2(int operand1PhyReg2) {
+		this.operand1PhyReg2 = operand1PhyReg2;
 	}
 
+	public int getOperand2PhyReg1() {
+		return operand2PhyReg1;
+	}
 
+	public void setOperand2PhyReg1(int operand2PhyReg1) {
+		this.operand2PhyReg1 = operand2PhyReg1;
+	}
+
+	public int getOperand2PhyReg2() {
+		return operand2PhyReg2;
+	}
+
+	public void setOperand2PhyReg2(int operand2PhyReg2) {
+		this.operand2PhyReg2 = operand2PhyReg2;
+	}
 
 	public IWEntry getAssociatedIWEntry() {
 		return associatedIWEntry;
 	}
-
-
 
 	public void setAssociatedIWEntry(IWEntry associatedIWEntry) {
 		this.associatedIWEntry = associatedIWEntry;

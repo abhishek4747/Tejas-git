@@ -260,7 +260,8 @@ public class ReorderBuffer extends SimulationElement{
 		while(i < ROB.size())
 		{
 			e = ROB.get(i);
-			System.out.println(e.getOperand1PhyReg() + " ; " + e.getOperand2PhyReg() + " ; " + 
+			System.out.println(e.getOperand1PhyReg1() + " ; " + e.getOperand1PhyReg2() + " ; "
+					+ e.getOperand2PhyReg1() + " ; "+ e.getOperand2PhyReg2() + " ; " + 
 					e.getPhysicalDestinationRegister() + " ; " + 
 					e.getIssued() + " ; " + 
 					e.getFUInstance() + " ; " + e.getExecuted());
@@ -271,7 +272,7 @@ public class ReorderBuffer extends SimulationElement{
 			}
 			if(e.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
 			{
-				System.out.println(core.getExecEngine().getIntegerRenameTable().getValueValid(e.getOperand2PhyReg()));
+				//System.out.println(core.getExecEngine().getIntegerRenameTable().getValueValid(e.getOperand2PhyReg()));
 			}
 			System.out.println(e.getInstruction().toString());
 			i++;

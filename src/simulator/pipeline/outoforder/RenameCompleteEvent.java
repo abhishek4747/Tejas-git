@@ -3,6 +3,7 @@ package pipeline.outoforder;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
+import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 import generic.RequestType;
@@ -93,33 +94,45 @@ public class RenameCompleteEvent extends NewEvent {
 	
 	long checkOperand1Availability(IWEntry newIWEntry)
 	{
-		OperandType tempOpndType = reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType();
-		
-		if(tempOpndType != OperandType.integerRegister &&
-				tempOpndType != OperandType.floatRegister &&
-				tempOpndType != OperandType.machineSpecificRegister)
+		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
+		if(tempOpnd == null)
 		{
 			newIWEntry.setOperand1Available(true);
 			return GlobalClock.getCurrentTime();
 		}
-		else
+		
+		OperandType tempOpndType = tempOpnd.getOperandType();
+		
+		if(tempOpndType == OperandType.immediate ||
+				tempOpndType == OperandType.inValid)
 		{
-			int tempOpndPhyReg = reorderBufferEntry.getOperand1PhyReg();
-			
+			newIWEntry.setOperand1Available(true);
+			return GlobalClock.getCurrentTime();
+		}
+		
+		int tempOpndPhyReg1 = reorderBufferEntry.getOperand1PhyReg1();
+		int tempOpndPhyReg2 = reorderBufferEntry.getOperand1PhyReg2();
+		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
+		
+		if(tempOpndType == OperandType.integerRegister ||
+				tempOpndType == OperandType.floatRegister ||
+				tempOpndType == OperandType.machineSpecificRegister)
+		{
+		
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
 				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
-				if(tempRF.getValueValid(tempOpndPhyReg) == true)
+				if(opndAvailable[0] == true)
 				{
 					newIWEntry.setOperand1Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg ||
-							reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg)
+							reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
 					{
-						tempRF.setValueValid(false, tempOpndPhyReg);
-						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg);
+						tempRF.setValueValid(false, tempOpndPhyReg1);
+						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
 						//2nd operand may be the same register as 1st operand
 						if(tempOpndType == reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType()
-								&& tempOpndPhyReg == reorderBufferEntry.getOperand2PhyReg())
+								&& tempOpndPhyReg1 == reorderBufferEntry.getOperand2PhyReg1())
 						{
 							newIWEntry.setOperand2Available(true);							
 						}
@@ -129,10 +142,11 @@ public class RenameCompleteEvent extends NewEvent {
 				else
 				{
 					//assign operandReadyTime
-					return tempRF.getProducerROBEntry(tempOpndPhyReg).getReadyAtTime();
+					return tempRF.getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 				}
 			}
-			else
+			else if(tempOpndType == OperandType.integerRegister ||
+					tempOpndType == OperandType.floatRegister)
 			{
 				RenameTable tempRN;
 				if(tempOpndType	== OperandType.integerRegister)
@@ -144,16 +158,16 @@ public class RenameCompleteEvent extends NewEvent {
 					tempRN = core.getExecEngine().getFloatingPointRenameTable();
 				}
 				
-				if(tempRN.getValueValid(tempOpndPhyReg) == true)
+				if(opndAvailable[0] == true)
 				{
 					newIWEntry.setOperand1Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 					{
-						tempRN.setValueValid(false, tempOpndPhyReg);
-						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg);
+						tempRN.setValueValid(false, tempOpndPhyReg1);
+						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
 						//2nd operand may be the same register as 1st operand
 						if(tempOpndType == reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType()
-								&& tempOpndPhyReg == reorderBufferEntry.getOperand2PhyReg())
+								&& tempOpndPhyReg1 == reorderBufferEntry.getOperand2PhyReg1())
 						{
 							newIWEntry.setOperand2Available(true);							
 						}
@@ -163,48 +177,130 @@ public class RenameCompleteEvent extends NewEvent {
 				else
 				{
 					//assign operandReadyTime
-					return tempRN.getProducerROBEntry(tempOpndPhyReg).getReadyAtTime();
+					return tempRN.getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 				}
 			}
 		}
+		
+		else if(tempOpndType == OperandType.memory)
+		{
+			if(opndAvailable[0] == true && opndAvailable[1] == true)
+			{
+				newIWEntry.setOperand11Available(true);
+				newIWEntry.setOperand12Available(true);
+				newIWEntry.setOperand1Available(true);
+				return GlobalClock.getCurrentTime();
+			}
+			else
+			{
+				newIWEntry.setOperand1Available(false);
+				
+				long readyAtTime1 = GlobalClock.getCurrentTime(), readyAtTime2 = GlobalClock.getCurrentTime();
+				if(opndAvailable[0] == false)
+				{
+					newIWEntry.setOperand11Available(false);
+					if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.machineSpecificRegister)
+					{
+						readyAtTime1 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.integerRegister)
+					{
+						readyAtTime1 = core.getExecEngine().getIntegerRenameTable().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.floatRegister)
+					{
+						readyAtTime1 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+					}
+				}
+				else
+				{
+					newIWEntry.setOperand11Available(true);
+				}
+				
+				if(opndAvailable[1] == false)
+				{
+					newIWEntry.setOperand12Available(false);
+					if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.machineSpecificRegister)
+					{
+						readyAtTime2 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.integerRegister)
+					{
+						readyAtTime2 = core.getExecEngine().getIntegerRenameTable().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.floatRegister)
+					{
+						readyAtTime2 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+					}
+				}
+				else
+				{
+					newIWEntry.setOperand12Available(true);
+				}
+				
+				if(readyAtTime1 > readyAtTime2)
+				{
+					return readyAtTime1;
+				}
+				else
+				{
+					return readyAtTime2;
+				}
+			}
+		}
+		
+		return GlobalClock.getCurrentTime();
 	}
 	
 	long checkOperand2Availability(IWEntry newIWEntry)
 	{
-		OperandType tempOpndType = reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType();
-		
-		if(tempOpndType != OperandType.integerRegister &&
-				tempOpndType != OperandType.floatRegister &&
-				tempOpndType != OperandType.machineSpecificRegister)
+		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
+		if(tempOpnd == null)
 		{
 			newIWEntry.setOperand2Available(true);
 			return GlobalClock.getCurrentTime();
 		}
-		else
+		
+		OperandType tempOpndType = tempOpnd.getOperandType();
+		
+		if(tempOpndType == OperandType.immediate ||
+				tempOpndType == OperandType.inValid)
 		{
-			int tempOpndPhyReg = reorderBufferEntry.getOperand2PhyReg();
-			
+			newIWEntry.setOperand2Available(true);
+			return GlobalClock.getCurrentTime();
+		}
+		
+		int tempOpndPhyReg1 = reorderBufferEntry.getOperand2PhyReg1();
+		int tempOpndPhyReg2 = reorderBufferEntry.getOperand2PhyReg2();
+		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
+		
+		if(tempOpndType == OperandType.integerRegister ||
+				tempOpndType == OperandType.floatRegister ||
+				tempOpndType == OperandType.machineSpecificRegister)
+		{
+		
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
 				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
-				if(tempRF.getValueValid(tempOpndPhyReg) == true)
+				if(opndAvailable[0] == true)
 				{
 					newIWEntry.setOperand2Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg ||
-							reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg)
+							reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
 					{
-						tempRF.setValueValid(false, tempOpndPhyReg);
-						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg);
+						tempRF.setValueValid(false, tempOpndPhyReg1);
+						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
 					}
 					return GlobalClock.getCurrentTime();
 				}
 				else
 				{
 					//assign operandReadyTime
-					return tempRF.getProducerROBEntry(tempOpndPhyReg).getReadyAtTime();
+					return tempRF.getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 				}
 			}
-			else
+			else if(tempOpndType == OperandType.integerRegister ||
+					tempOpndType == OperandType.floatRegister)
 			{
 				RenameTable tempRN;
 				if(tempOpndType	== OperandType.integerRegister)
@@ -216,23 +312,92 @@ public class RenameCompleteEvent extends NewEvent {
 					tempRN = core.getExecEngine().getFloatingPointRenameTable();
 				}
 				
-				if(tempRN.getValueValid(tempOpndPhyReg) == true)
+				if(opndAvailable[0] == true)
 				{
 					newIWEntry.setOperand2Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 					{
-						tempRN.setValueValid(false, tempOpndPhyReg);
-						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg);
+						tempRN.setValueValid(false, tempOpndPhyReg1);
+						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
 					}
 					return GlobalClock.getCurrentTime();
 				}
 				else
 				{
 					//assign operandReadyTime
-					return tempRN.getProducerROBEntry(tempOpndPhyReg).getReadyAtTime();
+					return tempRN.getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 				}
 			}
 		}
+		
+		else if(tempOpndType == OperandType.memory)
+		{
+			if(opndAvailable[0] == true && opndAvailable[1] == true)
+			{
+				newIWEntry.setOperand21Available(true);
+				newIWEntry.setOperand22Available(true);
+				newIWEntry.setOperand2Available(true);
+				return GlobalClock.getCurrentTime();
+			}
+			else
+			{
+				newIWEntry.setOperand2Available(false);
+				
+				long readyAtTime1 = GlobalClock.getCurrentTime(), readyAtTime2 = GlobalClock.getCurrentTime();
+				if(opndAvailable[0] == false)
+				{
+					newIWEntry.setOperand21Available(false);
+					if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.machineSpecificRegister)
+					{
+						readyAtTime1 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.integerRegister)
+					{
+						readyAtTime1 = core.getExecEngine().getIntegerRenameTable().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.floatRegister)
+					{
+						readyAtTime1 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+					}
+				}
+				else
+				{
+					newIWEntry.setOperand21Available(true);
+				}
+				
+				if(opndAvailable[1] == false)
+				{
+					newIWEntry.setOperand22Available(false);
+					if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.machineSpecificRegister)
+					{
+						readyAtTime2 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.integerRegister)
+					{
+						readyAtTime2 = core.getExecEngine().getIntegerRenameTable().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+					}
+					else if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.floatRegister)
+					{
+						readyAtTime2 = core.getExecEngine().getFloatingPointRenameTable().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+					}
+				}
+				else
+				{
+					newIWEntry.setOperand22Available(true);
+				}
+				
+				if(readyAtTime1 > readyAtTime2)
+				{
+					return readyAtTime1;
+				}
+				else
+				{
+					return readyAtTime2;
+				}
+			}
+		}
+		
+		return GlobalClock.getCurrentTime();
 	}
 	
 	void setTimeOfCompletion(long bothOperandsReadyTime)
