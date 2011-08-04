@@ -19,7 +19,6 @@ public class NewEventQueue
 	public void processEvents()
 	{
 		NewEvent newEvent;
-		NewEvent modifiedEvent;
 		long eventTime;
 		
 		//FIXME :  the current clock time to be accessed from somewhere
@@ -28,18 +27,14 @@ public class NewEventQueue
 		while(!priorityQueue.isEmpty())
 		{
 			//get the eventTime of the event on the head of the queue.
-			eventTime = priorityQueue.peek().getEventTime();
+			eventTime = priorityQueue.peek().getEventTime().getTime();
 			if (eventTime <= currentClockTime)
 			{
 				//remove the event at the head of the queue.
 				newEvent = priorityQueue.remove();
 				
 				//If the event could not be handled, add it to the queue.
-				modifiedEvent = newEvent.handleEvent();
-				if(modifiedEvent!=null)
-				{
-					priorityQueue.add(modifiedEvent);
-				}
+				newEvent.handleEvent(this);
 			}
 			else
 			{

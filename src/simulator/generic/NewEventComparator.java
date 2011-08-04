@@ -17,12 +17,12 @@ public class NewEventComparator implements Comparator<NewEvent>
 {
 	public int compare(NewEvent newEvent0, NewEvent newEvent1)
 	{
-		if(newEvent0.getEventTime() < newEvent1.getEventTime())
+		if(newEvent0.getEventTime().getTime() < newEvent1.getEventTime().getTime())
 		{
 			return -1;
 		}
 
-		else if(newEvent0.getEventTime() > newEvent1.getEventTime())
+		else if(newEvent0.getEventTime().getTime() > newEvent1.getEventTime().getTime())
 		{
 			return 1;
 		}
