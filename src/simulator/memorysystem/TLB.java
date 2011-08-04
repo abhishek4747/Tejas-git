@@ -25,9 +25,9 @@ import java.util.*;
 import config.SystemConfig;
 import generic.*;
 
-public class TLB extends SimElement
+public class TLB extends SimulationElement
 {
-	CoreMemorySystem containingMemSys;
+	//CoreMemorySystem containingMemSys;
 	protected Hashtable<Long, TLBEntry> TLBuffer;
 	protected int TLBSize; //Number of entries
 	protected double timestamp;
@@ -40,13 +40,20 @@ public class TLB extends SimElement
 	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
 	protected int requestsProcessedThisCycle = 0;
 	
-	public TLB(int size)
+	public TLB(int noOfPorts, Time_t occupancy, Time_t latency,
+			int tlbSize,
+			int tlbHits, int tlbMisses,
+			ArrayList<Long> addressesProcessedThisCycle,
+			int requestsProcessedThisCycle) 
 	{
-		TLBSize = size;
+		super(noOfPorts, occupancy, latency);
+		
+		TLBSize = tlbSize;
+		this.timestamp = 0;
 		TLBuffer = new Hashtable<Long, TLBEntry>(TLBSize);
 	}
 	
-	public boolean getPhyAddrPage(long virtualAddr, LSQ lsqueue, int index) //Returns whether the address was already in the TLB or not
+	public boolean getPhyAddrPage(long virtualAddr, int index) //Returns whether the address was already in the TLB or not
 	{
 		timestamp += 1.0; //Increment the timestamp to be set in this search
 		boolean isEntryFoundInTLB;
@@ -58,7 +65,7 @@ public class TLB extends SimElement
 		{
 			tlbMisses++;
 			// TODO Fetch from Page table
-			MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*/.add(new MainMemAccessEvent(containingMemSys, 
+			MemEventQueue.eventQueue.add(new MainMemAccessEvent(containingMemSys, 
 																							this, 
 																							pageID, 
 																							virtualAddr, 
@@ -88,13 +95,13 @@ public class TLB extends SimElement
 		
 		if (!(TLBuffer.size() < TLBSize)) // If there is no space in the TLB
 		{
-			long keyToRemove = searchMinTimestamp(); //We use LRU replacement
+			long keyToRemove = searchOldestTimestamp(); //We use LRU replacement
 			TLBuffer.remove(keyToRemove);
 		}
 		TLBuffer.put(address, entry);
 	}
 	
-	private long searchMinTimestamp()
+	private long searchOldestTimestamp()
 	{
 		long oldestKey = 0;
 		int minTimestamp = 2000000000; //Far high value

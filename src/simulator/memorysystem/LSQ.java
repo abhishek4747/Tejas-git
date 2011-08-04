@@ -43,6 +43,8 @@ public class LSQ extends SimElement
 	
 	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
 	protected int requestsProcessedThisCycle = 0;
+	
+	protected static final int INVALID_INDEX = -1;
 
 	public LSQ(int size)
 	{

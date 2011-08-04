@@ -55,6 +55,9 @@ public class Cache extends SimulationElement
 
 		protected CacheLine lines[];
 		
+		protected Hashtable<Long, ArrayList<OutstandingRequestTableEntry>> outstandingRequestTable
+						= new Hashtable<Long, ArrayList<OutstandingRequestTableEntry>>();
+		
 		public int hits;
 		public int misses;
 		public int evictions;
@@ -276,12 +279,12 @@ public class Cache extends SimulationElement
 	
 		public CacheLine processRequest(CacheRequestPacket request)
 		{
-			boolean isHit;
+			//boolean isHit;
 			/* access the Cache */
 			CacheLine ll = null;
-			if(request.getType() == MemoryAccessType.READ)
+			if(request.getType() == RequestType.MEM_READ)
 				ll = this.read(request.getAddr());
-			else if (request.getType() == MemoryAccessType.WRITE)
+			else if (request.getType() == RequestType.MEM_WRITE)
 				ll = this.write(request.getAddr());
 			
 			if(ll == null)
@@ -290,7 +293,7 @@ public class Cache extends SimulationElement
 				if (!(request.isWriteThrough()))//TODO For testing purposes only
 				this.misses++;	
 				
-				isHit = false; //Is not a hit
+		//		isHit = false; //Is not a hit
 
 				//Next level will be accessed by CacheAccessEvent
 				//this.fill(request);
@@ -304,7 +307,7 @@ public class Cache extends SimulationElement
 				if (!(request.isWriteThrough()))//TODO For testing purposes only
 				this.hits++;
 				
-				isHit = true;//Is a hit
+	//			isHit = true;//Is a hit
 				
 				
 			}
@@ -342,5 +345,94 @@ public class Cache extends SimulationElement
 			
 			//Otherwise
 			return false;
+		}
+		
+		/**
+		 * Used when a new request is made to a cache and there is a miss.
+		 * This adds the request to the outstanding requests buffer of the cache
+		 * @param addr : Memory Address requested
+		 * @param requestType : MEM_READ or MEM_WRITE
+		 * @param requestingElement : Which element made the request. Helpful in backtracking and filling the stack
+		 */
+		protected void addOutstandingRequest(long addr, 
+											RequestType requestType, 
+											SimulationElement requestingElement,
+											int index)
+		{
+			if (!/*NOT*/outstandingRequestTable.containsKey(addr))
+			{
+				outstandingRequestTable.put(addr, new ArrayList<OutstandingRequestTableEntry>());
+			}
+			
+			outstandingRequestTable.get(addr).add(new OutstandingRequestTableEntry(requestType,
+																				requestingElement,
+																				index));
+		}
+		
+		/**
+		 * When a data block requested by an outstanding request arrives through a BlockReadyEvent,
+		 * this method is called to process the arrival of block and process all the outstanding requests.
+		 * @param addr : Memory address requested
+		 */
+		protected void receiveOutstandingRequestBlock(long addr)
+		{
+			CacheLine evictedLine = this.fill(addr);//FIXME
+			
+			if (!/*NOT*/outstandingRequestTable.containsKey(addr))
+			{
+				System.err.println("Memory System Crash : An outstanding request not found in the requesting element");
+				System.exit(1);
+			}
+			
+			ArrayList<OutstandingRequestTableEntry> outstandingRequestList = outstandingRequestTable.get(addr);
+			
+			while (!/*NOT*/outstandingRequestList.isEmpty())
+			{
+				if (outstandingRequestList.get(0).requestType == RequestType.MEM_READ)
+				{
+					//Pass the value to the waiting element
+					//Create an event (BlockReadyEvent) for the waiting element
+					if (outstandingRequestList.get(0).lsqIndex == LSQ.INVALID_INDEX)
+						//Generate the event for the Upper level cache
+						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
+																	this,
+																	outstandingRequestList.get(0).requestingElement, 
+																	0, //tieBreaker
+																	RequestType.MEM_BLOCK_READY));
+					else
+						//Generate the event to tell the LSQ
+						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
+																	this,
+																	outstandingRequestList.get(0).requestingElement, 
+																	0, //tieBreaker
+																	RequestType.MEM_BLOCK_READY,
+																	outstandingRequestList.get(0).lsqIndex));
+				}
+				
+				else if (outstandingRequestList.get(0).requestType == RequestType.MEM_WRITE)
+				{
+					//Write the value to the block (Do Nothing)
+					//Pass the value to the waiting element
+					//Create an event (BlockReadyEvent) for the waiting element
+					if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
+						//(If the requesting element is LSQ)
+						//Generate the event to tell the LSQ
+						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
+																	this,
+																	outstandingRequestList.get(0).requestingElement,
+																	0, //tieBreaker
+																	RequestType.MEM_BLOCK_READY,
+																	outstandingRequestList.get(0).lsqIndex));
+					
+					//Handle in any case (Whether requesting element is LSQ or cache)
+					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
+					
+				}
+				else
+				{
+					System.err.println("Memory System Crash : A request was of type other than MEM_READ or MEM_WRITE");
+					System.exit(1);
+				}
+			}
 		}
 }

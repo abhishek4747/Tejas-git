@@ -52,6 +52,10 @@ public abstract class NewEvent
 	public SimulationElement getRequestingElement() {
 		return requestingElement;
 	}
+	
+	protected void setRequestingElement(SimulationElement requestingElement) {
+		this.requestingElement = requestingElement;
+	}
 
 	public SimulationElement getProcessingElement() {
 		return processingElement;
