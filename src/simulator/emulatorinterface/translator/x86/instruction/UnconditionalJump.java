@@ -58,8 +58,10 @@ public class UnconditionalJump implements InstructionHandler
 			}
 
 			//jump to this location
-			jumpLocation.setBranchAddress(dynamicInstruction.getBranchTargetAddress());
-			microOps.appendInstruction(Instruction.getUnconditionalJumpInstruction(jumpLocation));
+			Instruction jumpInstruction = Instruction.getUnconditionalJumpInstruction(jumpLocation);
+			jumpInstruction.setBranchTaken(true);
+			jumpInstruction.setBranchTargetAddress(dynamicInstruction.getBranchTargetAddress());
+			microOps.appendInstruction(jumpInstruction);
 			
 			return microOps;
 		}

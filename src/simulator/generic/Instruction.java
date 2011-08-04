@@ -28,6 +28,8 @@ public class Instruction {
 	private Operand sourceOperand2;
 	private Operand destinationOperand;
 	private long programCounter;
+	private boolean branchTaken;
+	private long branchTargetAddress;
 	
 	public Instruction(OperationType type, Operand sourceOperand1,
 			Operand sourceOperand2, Operand destinationOperand)
@@ -70,6 +72,26 @@ public class Instruction {
 	}
 	
 	
+	public boolean isBranchTaken() {
+		return branchTaken;
+	}
+
+
+	public void setBranchTaken(boolean branchTaken) {
+		this.branchTaken = branchTaken;
+	}
+
+
+	public long getBranchTargetAddress() {
+		return branchTargetAddress;
+	}
+
+
+	public void setBranchTargetAddress(long branchTargetAddress) {
+		this.branchTargetAddress = branchTargetAddress;
+	}
+
+
 	public Operand getSourceOperand1()
 	{
 		return sourceOperand1;

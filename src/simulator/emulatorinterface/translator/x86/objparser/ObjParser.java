@@ -70,6 +70,8 @@ public class ObjParser {
 			InstructionTable instructionTable, Long instructionPointer,
 			DynamicInstruction dynamicInstruction) {
 		
+		
+		
 		// Get partial decoded instruction
 		PartialDecodedInstruction partialDecodedInstruction;
 		partialDecodedInstruction = instructionTable.getInstruction(instructionPointer);
@@ -77,7 +79,7 @@ public class ObjParser {
 		if(partialDecodedInstruction==null)
 		{
 			//System.out.print("\n\tNo partial decoded instruction for " + dynamicInstruction + "\n");
-			return null;
+			return new InstructionList();
 		}
 		else if((partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_MOVE) ||
 				(partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_SET) ||
@@ -87,7 +89,7 @@ public class ObjParser {
 				(partialDecodedInstruction.getInstructionClass()==InstructionClass.INTERRUPT))
 		{
 			//For some instruction classes, the implementation must be reviewed.
-			return null;
+			return new InstructionList();
 		}
 		
 		// print the details
@@ -102,9 +104,15 @@ public class ObjParser {
 		InstructionList instructionList;
 		instructionList = new InstructionList();
 		instructionList.appendInstruction((InstructionList) partialDecodedInstruction.getInstructionList());
+		
+		//if(instructionPointer==134579832)
+		//{
+		//	System.out.print("\n\tPartial Decoded Information = " + instructionList + "\n");
+		//}
+		
 		instructionList.appendInstruction(handler.handle(partialDecodedInstruction.getOperand1(), partialDecodedInstruction.getOperand2(),	partialDecodedInstruction.getOperand3(), dynamicInstruction));
-
 		instructionList.setProgramCounter(instructionPointer);
+		
 		// return the instructionList
 		return instructionList;
 	}
@@ -169,8 +177,8 @@ public class ObjParser {
 				handled++;
 				instructionTable.addInstruction(linearAddress, partialDecodedInstruction);
 				// Print Needed Information
-				printCodeDetails(linearAddress, operation, operand1, operand2,
-						operand3, lineNumber, partialDecodedInstruction);
+				//printCodeDetails(linearAddress, operation, operand1, operand2,
+				//		operand3, lineNumber, partialDecodedInstruction);
 			}
 			else
 			{

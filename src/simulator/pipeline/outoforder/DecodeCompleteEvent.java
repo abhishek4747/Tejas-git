@@ -54,12 +54,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					&& core.getExecEngine().isStallDecode1() == false)
 			{
 				newInstruction = core.getIncomingInstructions(threadID).pollFirst();
-				//TODO remove!!
-				if(newInstruction.getProgramCounter() == 134513376 ||
-						newInstruction.getProgramCounter() == 134513350)
-				{
-					continue;
-				}
+				
 				if(newInstruction != null)
 				{
 					makeROBEntries(newInstruction);

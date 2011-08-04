@@ -215,7 +215,7 @@ public class RunnableThread implements Runnable {
 		long dataRead = 0;
 		for (int i=0; i<EMUTHREADS; i++) {
 			dataRead+=tot_cons[i];
-		}
+		}		
 		long timeTaken = System.currentTimeMillis() - start;
 		System.out.println("\nThread"+tid+" Bytes-"+dataRead*20+" instructions-"
 				+SharedMem.numInstructions[tid]+" time-"+timeTaken+" MBPS-"+

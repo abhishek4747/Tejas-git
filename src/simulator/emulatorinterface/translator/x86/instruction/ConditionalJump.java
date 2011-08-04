@@ -53,8 +53,10 @@ public class ConditionalJump implements InstructionHandler
 			}
 
 			//jump to this location
-			jumpLocation.setBranchAddress(dynamicInstruction.getBranchTargetAddress());
-			microOps.appendInstruction(Instruction.getBranchInstruction(jumpLocation));
+			Instruction jumpInstruction = Instruction.getBranchInstruction(jumpLocation);
+			jumpInstruction.setBranchTaken(true);
+			jumpInstruction.setBranchTargetAddress(dynamicInstruction.getBranchTargetAddress());
+			microOps.appendInstruction(jumpInstruction);
 			
 			return microOps;
 		}

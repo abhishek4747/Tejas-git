@@ -139,8 +139,8 @@ public class Operand
 		this.value = memoryAddress;
 	}
 
-	public void setBranchAddress(long branchTargetAddress) 
-	{
-		this.value = branchTargetAddress;
-	}
+	//public void setBranchAddress(long branchTargetAddress) 
+	//{
+	//	this.value = branchTargetAddress;
+	//}
 }
