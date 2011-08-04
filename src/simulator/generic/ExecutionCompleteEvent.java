@@ -66,7 +66,6 @@ public class ExecutionCompleteEvent extends NewEvent {
 				//doesn't use an FU				
 				reorderBufferEntry.setExecuted(true);
 				writeBackForXchg();
-				return;
 			}
 			else
 			{
@@ -74,29 +73,32 @@ public class ExecutionCompleteEvent extends NewEvent {
 			}
 		}
 		
-		OperandType tempOpndType = tempOpnd.getOperandType(); 
-		if(tempOpndType == OperandType.machineSpecificRegister)
-		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
-		}
-		else if(tempOpndType == OperandType.integerRegister)
-		{
-			tempRN = core.getExecEngine().getIntegerRenameTable();
-		}
-		else if(tempOpndType == OperandType.floatRegister)
-		{
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
-		}
-		
-		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.mov)
-		{
-			//doesn't use an FU			
-			reorderBufferEntry.setExecuted(true);			
-			writeBackForMov(tempRF, tempRN);
-		}		
 		else
 		{
-			writeBackForOthers(tempRF, tempRN);
+			OperandType tempOpndType = tempOpnd.getOperandType(); 
+			if(tempOpndType == OperandType.machineSpecificRegister)
+			{
+				tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+			}
+			else if(tempOpndType == OperandType.integerRegister)
+			{
+				tempRN = core.getExecEngine().getIntegerRenameTable();
+			}
+			else if(tempOpndType == OperandType.floatRegister)
+			{
+				tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			}
+			
+			if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.mov)
+			{
+				//doesn't use an FU			
+				reorderBufferEntry.setExecuted(true);			
+				writeBackForMov(tempRF, tempRN);
+			}		
+			else
+			{
+				writeBackForOthers(tempRF, tempRN);
+			}
 		}
 		
 	}

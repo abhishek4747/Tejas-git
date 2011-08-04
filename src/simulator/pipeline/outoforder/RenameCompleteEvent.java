@@ -291,6 +291,7 @@ public class RenameCompleteEvent extends NewEvent {
 				{
 					newIWEntry.setOperand2Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg ||
+							reorderBufferEntry.getInstruction().getDestinationOperand() != null &&
 							reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
 					{
 						tempRF.setValueValid(false, tempOpndPhyReg1);

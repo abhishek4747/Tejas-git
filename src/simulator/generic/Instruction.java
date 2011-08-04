@@ -44,9 +44,9 @@ public class Instruction {
 		return this.programCounter;
 	}
 	
-	public long setProgramCounter(long programCounter) 
+	public void setProgramCounter(long programCounter) 
 	{
-		return this.programCounter;
+		this.programCounter = programCounter;
 	}
 	
 	/**
