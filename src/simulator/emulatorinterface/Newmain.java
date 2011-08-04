@@ -1,7 +1,5 @@
 package emulatorinterface;
 
-import pipeline.outoforder.PerformCommitsEvent;
-import pipeline.outoforder.PerformDecodeEvent;
 import misc.Error;
 import config.SimulationConfig;
 import config.XMLParser;
@@ -11,6 +9,7 @@ import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
+import generic.InstructionList;
 import generic.InstructionTable;
 import generic.NewEventQueue;
 
@@ -40,6 +39,15 @@ public class Newmain {
 
 		// configure the emulator
 		configureEmulator();
+		
+		// create PIN interface
+		IPCBase ipcBase = new SharedMem(instructionTable);
+		Process process = createPINinterface(ipcBase, executableFile,
+				dynamicInstructionBuffer);
+
+		// returns the number of instructions. and waits on a semaphore for
+		// finishing of reader threads
+		long icount = ipcBase.doExpectedWaitForSelf();
 
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp();
@@ -47,13 +55,9 @@ public class Newmain {
 		//commence pipeline
 		NewEventQueue eventQ = new NewEventQueue();
 		
-		// create PIN interface
-		IPCBase ipcBase = new SharedMem(instructionTable);
-		Process process = createPINinterface(ipcBase, executableFile,
-				dynamicInstructionBuffer);
-		
 		initCores(eventQ, ipcBase);
-		
+		//Thread.sleep(10000);
+		//System.out.println("finished sleeping..");
 		//while(core.getExecEngine().isExecutionComplete() == false)
 		while(eventQ.isEmpty() == false)
 		{
@@ -61,14 +65,6 @@ public class Newmain {
 			
 			GlobalClock.incrementClock();
 		}
-		
-		System.out.println();
-		System.out.println("the finish line!!");
-		System.out.println(GlobalClock.getCurrentTime() + " cycles");
-
-		// returns the number of instructions. and waits on a semaphore for
-		// finishing of reader threads
-		long icount = ipcBase.doExpectedWaitForSelf();
 		
 		
 		/*
@@ -102,9 +98,9 @@ public class Newmain {
 			DynamicInstructionBuffer dynamicInstructionBuffer) {
 
 		// Creating command for PIN tool.
-		String cmd = SimulationConfig.PinTool + "/pin" + " -t "
-				+ SimulationConfig.PinInstrumentor + " -map "
-				+ SimulationConfig.MapEmuCores + " -- " + executableFilePath;
+		String cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t "
+					+ SimulationConfig.PinInstrumentor + " -map "
+					+ SimulationConfig.MapEmuCores + " -- " + executableFilePath;
 
 		Process process = null;
 		try {
@@ -135,7 +131,13 @@ public class Newmain {
 	//map threads to cores
 	static void initCores(NewEventQueue eventQ, IPCBase ipcBase)
 	{
-		Core core = new Core(eventQ, ipcBase.getReaderThreads()[0].getInputToPipeline(), 0);
+		System.out.println("initializing cores...");
+		
+		Core core = new Core(0,
+							eventQ,
+							1,
+							new InstructionList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()},
+							new int[]{0});
 		core.boot();
 	}
 }
