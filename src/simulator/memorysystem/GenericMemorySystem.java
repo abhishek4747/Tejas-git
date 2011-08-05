@@ -129,7 +129,7 @@ public class GenericMemorySystem
 	
 	public void read(int coreID, long addr)
 	{
-		TLBuffer[coreID].getPhyAddrPage(addr);
+		TLBuffer[coreID].searchTLBForPhyAddr(addr);
 		CacheRequestPacket request = new CacheRequestPacket();
 		request.setThreadID(coreID);
 		request.setType(CacheRequestPacket.readWrite.CacheRequestPacket);
@@ -139,7 +139,7 @@ public class GenericMemorySystem
 	
 	public void write(int coreID, long addr)
 	{
-		TLBuffer[coreID].getPhyAddrPage(addr);
+		TLBuffer[coreID].searchTLBForPhyAddr(addr);
 		CacheRequestPacket request = new CacheRequestPacket();
 		request.setThreadID(coreID);
 		request.setType(CacheRequestPacket.readWrite.CacheRequestPacket);

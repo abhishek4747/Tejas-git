@@ -58,6 +58,7 @@ public class CoreMemorySystem
 		
 		//Initialise the LSQ
 		lsqueue = new LSQ(SystemConfig.core[coreID].LSQSize);
+		lsqueue.connectedL1Cache = l1Cache;
 		lsqueue.setLatency(SystemConfig.core[coreID].LSQLatency);
 		lsqueue.setPorts(SystemConfig.core[coreID].LSQAccessPorts);
 		lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);

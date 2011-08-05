@@ -34,7 +34,7 @@ public class NewMainMemAccessEvent extends NewEvent
 	//LSQEntry lsqEntry;
 	TLB tlbuffer;
 	//long pageID;
-	//long addr;
+	long address;
 	RequestType requestType;
 
 	MainMemAccessSource AccessSourceType;//To tell what type of element triggered the access
@@ -48,15 +48,17 @@ public class NewMainMemAccessEvent extends NewEvent
 	//Access from cache
 	public NewMainMemAccessEvent(Time_t eventTime,
 			SimulationElement requestingElement, long tieBreaker,
+			long address,
 			RequestType requestType) 
 	{
 		super(eventTime, requestingElement, null, tieBreaker,
 				requestType);
 		AccessSourceType = MainMemAccessSource.CacheGeneral;
+		this.address = address;
 		this.requestType = requestType;
 	}
 	
-
+/*
 	//Access from the TLB for Page Table
 	public NewMainMemAccessEvent(TLB _tlbuffer, 
 							long _pageID, 
@@ -77,14 +79,14 @@ public class NewMainMemAccessEvent extends NewEvent
 	}
 	public NewMainMemAccessEvent(Time_t eventTime,
 			SimulationElement requestingElement, long tieBreaker,
-			RequestType requestType) 
+			RequestType requestType, int i) 
 	{
 		super(eventTime, requestingElement, null, tieBreaker,
 				requestType);
 		AccessSourceType = MainMemAccessSource.CacheGeneral;
 		this.requestType = requestType;
 	}
-	
+	*/
 /*
 	//Fetch and set state(Access from a Source cache from cache coherence)
 	public NewMainMemAccessEvent(int _threadID,
@@ -126,7 +128,9 @@ public class NewMainMemAccessEvent extends NewEvent
 															null,
 															this.getRequestingElement(), 
 															0, //tiebreaker
-															RequestType.MEM_BLOCK_READY));
+															RequestType.MEM_BLOCK_READY,
+															address,
+															LSQ.INVALID_INDEX));
 			}
 			else if (requestType == RequestType.MEM_WRITE)
 			{

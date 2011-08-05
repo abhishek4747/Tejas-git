@@ -19,6 +19,10 @@ public abstract class SimulationElement
 		return this.latency;
 	}
 	
+	protected void setLatency(Time_t latency) {
+		this.latency = latency;
+	}
+
 	public Port getPort()
 	{
 		return this.port;

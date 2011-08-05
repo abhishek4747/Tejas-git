@@ -380,16 +380,16 @@ public class PassiveMemSysTest
 				//Process the events
 				//for (int i = 0; i <SystemConfig.NoOfCores; i++)
 				//{
-					if(MemEventQueue.eventQueue/*.get(i)*/.isEmpty() == false)
+					if(MemEventQueue.newEventQueue.isEmpty() == false)
 					{
-						LinkedList<Event> priority2_events;
+						LinkedList<NewEvent> priority2_events;
 						long eventTime;
 						
 						while(true)
 						{
-							if(MemEventQueue.eventQueue/*.get(i)*/.isEmpty() == false)
+							if(MemEventQueue.newEventQueue.isEmpty() == false)
 							{
-								eventTime  = MemEventQueue.eventQueue/*.get(i)*/.peek().getEventTime();
+								eventTime  = MemEventQueue.newEventQueue.peek().getEventTime();
 							}
 							else
 							{
@@ -400,9 +400,9 @@ public class PassiveMemSysTest
 							{
 								priority2_events = new LinkedList<Event>();
 							
-								while(MemEventQueue.eventQueue/*.get(i)*/.isEmpty() == false && MemEventQueue.eventQueue/*.get(i)*/.peek().getEventTime() == eventTime)
+								while(MemEventQueue.newEventQueue.isEmpty() == false && MemEventQueue.eventQueue/*.get(i)*/.peek().getEventTime() == eventTime)
 								{
-									Event polledEvent = MemEventQueue.eventQueue/*.get(i)*/.poll();
+									Event polledEvent = MemEventQueue.newEventQueue.poll();
 								
 									if(polledEvent.getPriority() == 2)
 									{
@@ -415,7 +415,7 @@ public class PassiveMemSysTest
 								}
 								while(priority2_events.size() > 0)
 								{
-									priority2_events.remove().handleEvent();
+									priority2_events.remove().handleEvent(MemEventQueue.newEventQueue);
 								}
 							}
 							else

@@ -20,24 +20,9 @@
 *****************************************************************************/
 package memorysystem;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
-import generic.NewEventComparator;
-import generic.NewEvent;
+import generic.NewEventQueue;
 
 public class MemEventQueue 
 {
-	protected static int clock = 0;
-	private static Comparator<NewEvent> eventComparator = new NewEventComparator();
-	//protected static ArrayList<PriorityQueue<Event>> eventQueue = new ArrayList<PriorityQueue<Event>>();
-	protected static PriorityQueue<NewEvent> eventQueue = new PriorityQueue<NewEvent>(1, eventComparator);
-	
-	//public MemEventQueue()
-	//{
-		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
-		//{
-			//clock[i] = 0;
-			//eventQueue.add(new PriorityQueue<Event>(1, eventComparator));
-		//}
-	//}
+	protected static NewEventQueue newEventQueue = new NewEventQueue();
 }

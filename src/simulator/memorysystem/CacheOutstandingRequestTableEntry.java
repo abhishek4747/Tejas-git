@@ -3,7 +3,7 @@ package memorysystem;
 import generic.RequestType;
 import generic.SimulationElement;
 
-public class OutstandingRequestTableEntry
+public class CacheOutstandingRequestTableEntry
 {	
 	RequestType requestType;
 	SimulationElement requestingElement;
@@ -14,7 +14,7 @@ public class OutstandingRequestTableEntry
 	 */
 	int lsqIndex = LSQ.INVALID_INDEX;
 	
-	public OutstandingRequestTableEntry(RequestType requestType,
+	public CacheOutstandingRequestTableEntry(RequestType requestType,
 			SimulationElement requestingElement, int index) 
 	{
 		super();

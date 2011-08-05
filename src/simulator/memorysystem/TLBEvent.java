@@ -25,8 +25,8 @@ import generic.Event;
 public class TLBEvent extends Event 
 {
 	long addr;
-	CoreMemorySystem containingMemSys;
-	int lsqIndex;
+	//CoreMemorySystem containingMemSys;
+	int lsqIndex = LSQ.INVALID_INDEX;
 	long pageID;
 	boolean addingEntry = false;
 	
@@ -65,7 +65,7 @@ public class TLBEvent extends Event
 		if (addingEntry) //If the event call is to add the entry to TLB after fetching it from Main memory
 		{
 			//Add the entry into the TLB
-			containingMemSys.TLBuffer.addTLBEntry(pageID);
+			containingMemSys.TLBuffer.addTLBEntry(TLB.getPageID(addr));
 			
 			MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*/.add(new LSQValidateEvent(containingMemSys,
 																							lsqIndex,
@@ -75,7 +75,7 @@ public class TLBEvent extends Event
 		}
 		
 		//Otherwsie Get address from TLB
-		else if (containingMemSys.TLBuffer.getPhyAddrPage(addr, containingMemSys.lsqueue, lsqIndex)) // If Entry found in TLB
+		else if (containingMemSys.TLBuffer.getPhyAddrOfPage(addr, containingMemSys.lsqueue, lsqIndex)) // If Entry found in TLB
 		{
 			
 			MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*/.add(new LSQValidateEvent(containingMemSys,

@@ -22,17 +22,19 @@ package memorysystem;
 
 import java.util.*;
 
-import config.SystemConfig;
 import generic.*;
 
 public class TLB extends SimulationElement
 {
-	//CoreMemorySystem containingMemSys;
+	CoreMemorySystem containingMemSys;
 	protected Hashtable<Long, TLBEntry> TLBuffer;
 	protected int TLBSize; //Number of entries
 	protected double timestamp;
 	protected int tlbHits = 0;
 	protected int tlbMisses = 0;
+	
+	//Outstanding Request Table : Stores pageID vs LSQEntryIndex
+	protected Hashtable<Long, ArrayList<Integer>> outstandingRequestTable;
 	
 	//For telling that what addresses are processed this cycle (for BANKED multi-port option)
 	protected ArrayList<Long> addressesProcessedThisCycle = new ArrayList<Long>();
@@ -40,11 +42,7 @@ public class TLB extends SimulationElement
 	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
 	protected int requestsProcessedThisCycle = 0;
 	
-	public TLB(int noOfPorts, Time_t occupancy, Time_t latency,
-			int tlbSize,
-			int tlbHits, int tlbMisses,
-			ArrayList<Long> addressesProcessedThisCycle,
-			int requestsProcessedThisCycle) 
+	public TLB(int noOfPorts, Time_t occupancy, Time_t latency, int tlbSize) 
 	{
 		super(noOfPorts, occupancy, latency);
 		
@@ -53,26 +51,29 @@ public class TLB extends SimulationElement
 		TLBuffer = new Hashtable<Long, TLBEntry>(TLBSize);
 	}
 	
-	public boolean getPhyAddrPage(long virtualAddr, int index) //Returns whether the address was already in the TLB or not
+	/**
+	 * Removes the page offset bits from the address
+	 * @param virtualAddr : Complete virtual address
+	 * @return pageID obtained by removing page offset bits from virtual address
+	 */
+	protected static long getPageID(long virtualAddr)
+	{
+		long pageID = virtualAddr >> Global.PAGE_OFFSET_BITS;
+		return pageID;
+	}
+	
+	public boolean searchTLBForPhyAddr(long virtualAddr) //Returns whether the address was already in the TLB or not
 	{
 		timestamp += 1.0; //Increment the timestamp to be set in this search
 		boolean isEntryFoundInTLB;
 		
-		long pageID = virtualAddr >> Global.PAGE_OFFSET_BITS; //Remove the page offset bits from the address
+		long pageID = getPageID(virtualAddr); //Remove the page offset bits from the address
 		TLBEntry entry;
 		
 		if ((TLBuffer.isEmpty()) || ((entry = TLBuffer.get(pageID)) == null)) //Entry not found in the TLB
 		{
 			tlbMisses++;
-			// TODO Fetch from Page table
-			MemEventQueue.eventQueue.add(new MainMemAccessEvent(containingMemSys, 
-																							this, 
-																							pageID, 
-																							virtualAddr, 
-																							lsqueue, 
-																							index, 
-																							MemEventQueue.clock
-																							+ SystemConfig.mainMemoryLatency));
+			//Fetch the TLB entry from Main memory through the event TLBAddrSearchEvent
 			//addTLBEntry(pageID);
 			//return pageID;
 			isEntryFoundInTLB = false;
@@ -104,7 +105,7 @@ public class TLB extends SimulationElement
 	private long searchOldestTimestamp()
 	{
 		long oldestKey = 0;
-		int minTimestamp = 2000000000; //Far high value
+		int minTimestamp = 2000000000; //Ultra-high value
 		for (Enumeration<TLBEntry> entriesEnum = TLBuffer.elements(); entriesEnum.hasMoreElements(); )
 		{
 			TLBEntry entry = entriesEnum.nextElement();
@@ -120,7 +121,7 @@ public class TLB extends SimulationElement
 	 * Tells whether the request of current event can be processed in the current cycle (due to device port availability)
 	 * @return A boolean value :TRUE if the request can be processed and FALSE otherwise
 	 */
-	protected boolean canServiceRequest()
+/*	protected boolean canServiceRequest()
 	{
 		//TLB is a Genuinely multi-ported element
 		//So if number of requests this cycle has not reached the total number of ports
@@ -131,5 +132,20 @@ public class TLB extends SimulationElement
 		}
 		else
 			return false;
+	}*/
+	
+	/**
+	 * Used when a new request is made to a cache and there is a miss.
+	 * This adds the request to the outstanding requests buffer of the cache
+	 * @param pageID : pageID requested
+	 */
+	protected void addOutstandingRequest(long pageID, int index)
+	{
+		if (!/*NOT*/outstandingRequestTable.containsKey(pageID))
+		{
+			outstandingRequestTable.put(pageID, new ArrayList<Integer>());
+		}
+		
+		outstandingRequestTable.get(pageID).add(index);
 	}
 }

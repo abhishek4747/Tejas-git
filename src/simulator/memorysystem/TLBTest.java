@@ -92,7 +92,7 @@ public class TLBTest
 					}
 					cnt ++;
 				}
-				Buffer[tid].getPhyAddrPage(addr);
+				Buffer[tid].searchTLBForPhyAddr(addr);
 			}
 			
 			for (int i = 0; i < SystemConfig.NoOfCores; i++)

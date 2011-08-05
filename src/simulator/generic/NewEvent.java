@@ -61,6 +61,10 @@ public abstract class NewEvent
 		return processingElement;
 	}
 
+	protected void setProcessingElement(SimulationElement processingElement) {
+		this.processingElement = processingElement;
+	}
+
 	public long getTieBreaker() {
 		return tieBreaker;
 	}
@@ -71,6 +75,11 @@ public abstract class NewEvent
 
 	public void setPriority(long priority) {
 		this.priority = priority;
+	}
+	
+	public void resetPriority(RequestType requestType)
+	{
+		this.priority = requestType.ordinal();
 	}
 
 	//If the event cannot be handled in the current clock-cycle,

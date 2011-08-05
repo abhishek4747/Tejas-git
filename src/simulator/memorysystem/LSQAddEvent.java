@@ -20,14 +20,18 @@
 *****************************************************************************/
 package memorysystem;
 
-import generic.Event;
+import generic.NewEventQueue;
+import generic.NewEvent;
+import generic.RequestType;
+import generic.SimulationElement;
+import generic.Time_t;
 
-public class LSQAddEvent extends Event 
+public class LSQAddEvent extends NewEvent 
 {
 	boolean isLoad;
 	long addr;
-	CoreMemorySystem containingMemSys;
-	
+	//CoreMemorySystem containingMemSys;
+/*
 	public LSQAddEvent(CoreMemorySystem _containingMemSys, boolean _isLoad, long _addr, long eventTime)
 	{
 		super(eventTime, 2, 0);
@@ -36,27 +40,40 @@ public class LSQAddEvent extends Event
 		addr = _addr;
 		containingMemSys = _containingMemSys;
 	}
-	
+*/	
+	public LSQAddEvent(Time_t eventTime, SimulationElement requestingElement,
+			SimulationElement processingElement, long tieBreaker,
+			RequestType requestType, boolean isLoad, long addr) 
+	{
+		super(eventTime, requestingElement, processingElement, tieBreaker,
+				requestType);
+		
+		this.isLoad = isLoad;
+		this.addr = addr;
+	}
+
 	@Override
-	public void handleEvent()
+	public void handleEvent(NewEventQueue newEventQueue)
 	{
 		//Try to allocate the entry
-		int index = containingMemSys.lsqueue.addEntry(isLoad, addr);
+		int index = ((LSQ)(this.getProcessingElement())).addEntry(isLoad, addr);
 		
 		//If QUEUE_FULL, schedule to try again
 		if (index == LSQ.QUEUE_FULL)
-			MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*/.add(new LSQAddEvent(containingMemSys,
-																			isLoad,
-																			addr,
-																			MemEventQueue.clock
-																			+ containingMemSys.lsqueue.getLatency()));
-																								//TODO Check this latency finally
+		{
+			this.setEventTime(this.getEventTime());//FIXME 
+			//TODO : Also change the priority if needed
+			
+			//Save one object creation and add this event to the event queue again
+			newEventQueue.addEvent(this);
+		}
+			
 		//Otherwise, check the TLB for address resolution
 		else
-			MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*/.add(new TLBEvent(containingMemSys,
-																					index,
-																					addr,
-																					MemEventQueue.clock 
-																					+ containingMemSys.TLBuffer.getLatency()));
+			newEventQueue.addEvent.add(new TLBAddrSearchEvent(containingMemSys,
+													index,
+													addr,
+													MemEventQueue.clock 
+														+ containingMemSys.TLBuffer.getLatency()));
 	}
 }

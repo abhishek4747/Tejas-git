@@ -25,7 +25,7 @@ import java.util.Stack;
 
 import generic.*;
 
-public class LSQ extends SimElement
+public class LSQ extends SimulationElement
 {
 	CoreMemorySystem containingMemSys;
 	protected LSQEntry[] lsqueue;
@@ -34,6 +34,8 @@ public class LSQ extends SimElement
 	protected int lsqSize;
 	protected int curSize;
 	public static final int QUEUE_FULL = -1;
+	
+	protected Cache connectedL1Cache;
 	
 	public int NoOfLd = 0; //Total number of load instructions encountered
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
@@ -46,9 +48,12 @@ public class LSQ extends SimElement
 	
 	protected static final int INVALID_INDEX = -1;
 
-	public LSQ(int size)
+	public LSQ(int noOfPorts, Time_t occupancy, Time_t latency,
+			CoreMemorySystem containingMemSys, int lsqSize) 
 	{
-		lsqSize = size;
+		super(noOfPorts, occupancy, latency);
+		this.containingMemSys = containingMemSys;
+		this.lsqSize = lsqSize;
 		curSize = 0;
 		lsqueue = new LSQEntry[lsqSize];	
 	}
@@ -70,30 +75,18 @@ public class LSQ extends SimElement
 		else return QUEUE_FULL; // -1 signifies that the queue is full
 	}
 
-	public void loadValidate(int index, long address)
+	public boolean loadValidate(int index, long address)
 	{
 		LSQEntry entry = lsqueue[index];
 		entry.setValid(true);
-		boolean couldFoward = loadResolve(index, entry);
-		if(couldFoward) 
+		boolean couldForward = loadResolve(index, entry);
+		if(couldForward) 
 		{
 			NoOfForwards++;
 		}
-		else
-		{
-			//TODO Read from the cache (CacheAccessEvent)
-			CacheRequestPacket request = new CacheRequestPacket();
-			request.setThreadID(0);
-			request.setType(MemoryAccessType.READ);
-			request.setAddr(lsqueue[index].getAddr());
-			MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*/.add(new CacheAccessEvent(containingMemSys.threadID,
-																							lsqueue[index], 
-																							containingMemSys.l1Cache, 
-																							request, 
-																							new Stack<CacheFillStackEntry>(),
-																							MemEventQueue.clock
-																							+ containingMemSys.l1Cache.getLatency()));
-		}
+		//Otherwise the cache access is done through LSQValidateEvent
+		
+		return couldForward;
 	}
 
 	protected boolean loadResolve(int index, LSQEntry entry)
@@ -172,9 +165,9 @@ public class LSQ extends SimElement
 			//TODO Write to the cahe
 			CacheRequestPacket request = new CacheRequestPacket();
 			request.setThreadID(0);
-			request.setType(MemoryAccessType.WRITE);
+			request.setType(RequestType.MEM_WRITE);
 			request.setAddr(lsqueue[index].getAddr());
-			MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*/.add(new CacheAccessEvent(containingMemSys.threadID,
+			newEventQueue.addEvent(new NewCacheAccessEvent(containingMemSys.threadID,
 																							lsqueue[index], 
 																							containingMemSys.l1Cache, 
 																							request, 
@@ -210,7 +203,7 @@ public class LSQ extends SimElement
 	 * @param index : The LSQ index to be accessed
 	 * @return A boolean value :TRUE if the request can be processed and FALSE otherwise
 	 */
-	protected boolean canServiceRequest(int index)
+/*	protected boolean canServiceRequest(int index)
 	{
 		//For Genuinely multi-ported elements, if number of requests this cycle has not reached the total number of ports
 		if  ((this.getMultiPortType() == MultiPortingType.GENUINE) && (this.requestsProcessedThisCycle < this.ports))
@@ -221,12 +214,12 @@ public class LSQ extends SimElement
 		
 		//For Banked multi-ported elements
 		else if ((this.getMultiPortType() == MultiPortingType.BANKED) && 
-				!/*NOT*/this.banksAccessedThisCycle.contains(index/(lsqSize/(this.ports))))
+				!/*NOT*this.banksAccessedThisCycle.contains(index/(lsqSize/(this.ports))))
 		{
 			banksAccessedThisCycle.add(index/(lsqSize/(this.ports)));
 			return true;
 		}
 		else
 			return false;
-	}
+	}*/
 }

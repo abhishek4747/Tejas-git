@@ -39,8 +39,8 @@ public class NewCacheAccessEvent extends NewEvent
 	int lsqIndex = LSQ.INVALID_INDEX;
 	Cache processingCache;
 	CacheRequestPacket request;
-	MESI stateToSet;
-	boolean isBelowBus = false;
+	//MESI stateToSet;
+	//boolean isBelowBus = false;
 
 
 	public NewCacheAccessEvent(Time_t eventTime,
@@ -48,17 +48,17 @@ public class NewCacheAccessEvent extends NewEvent
 								Cache processingCache,
 								int lsqIndex, 
 								long tieBreaker,
-								CacheRequestPacket request, 
-								MESI stateToSet, 
-								boolean isBelowBus) 
+								CacheRequestPacket request)//, 
+								//MESI stateToSet, 
+								//boolean isBelowBus) 
 	{
 		super(eventTime, requestingElement, processingCache, tieBreaker,
 				request.getType());
 		this.lsqIndex = lsqIndex;
 		this.processingCache = processingCache;
 		this.request = request;
-		this.stateToSet = stateToSet;
-		this.isBelowBus = isBelowBus;
+		//this.stateToSet = stateToSet;
+		//this.isBelowBus = isBelowBus;
 	}
 /*
 	//Fetch and set state(Access from a Source cache from cache coherence)
@@ -85,23 +85,24 @@ public class NewCacheAccessEvent extends NewEvent
 	{
 		CacheLine cl = processingCache.processRequest(request);
 
-		if (!isBelowBus)
+		//if (!isBelowBus)
 		{
 			if (cl != null) //Process the access and if it is a hit, proceed
 			{
 				//Schedule the requesting element to receive the block
-				if (lsqIndex == LSQ.INVALID_INDEX)
+	/*			if (lsqIndex == LSQ.INVALID_INDEX)
 					newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
 															this.processingCache,
 															this.getRequestingElement(),
 															0,//tieBreaker
 															RequestType.MEM_BLOCK_READY));
-				else
+				else*/
 					newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
 															this.processingCache,
 															this.getRequestingElement(),
 															0,//tieBreaker
-															RequestType.MEM_BLOCK_READY, 
+															RequestType.MEM_BLOCK_READY,
+															request.getAddr(),
 															lsqIndex));
 /*				
 				//Handling Cache Coherence
@@ -171,11 +172,11 @@ public class NewCacheAccessEvent extends NewEvent
 				if (processingCache.isLastLevel)
 				{
 					//FIXME
-					MemEventQueue.eventQueue.add(new MainMemAccessEvent(threadID,
-																				lsqEntry, 
-																				cacheFillStack, 
-																				MemEventQueue.clock 
-																				+ SystemConfig.mainMemoryLatency));
+					newEventQueue.addEvent(new NewMainMemAccessEvent(processingCache.getLatency(), //FIXME : this is COMPLETELY incorrect
+																	processingCache, 
+																	0, //tieBreaker,
+																	request.getAddr(),
+																	RequestType.MEM_READ));
 					return;
 				}
 				else

@@ -55,8 +55,8 @@ public class Cache extends SimulationElement
 
 		protected CacheLine lines[];
 		
-		protected Hashtable<Long, ArrayList<OutstandingRequestTableEntry>> outstandingRequestTable
-						= new Hashtable<Long, ArrayList<OutstandingRequestTableEntry>>();
+		protected Hashtable<Long, ArrayList<CacheOutstandingRequestTableEntry>> outstandingRequestTable
+						= new Hashtable<Long, ArrayList<CacheOutstandingRequestTableEntry>>();
 		
 		public int hits;
 		public int misses;
@@ -202,12 +202,12 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		protected CacheLine fill(CacheRequestPacket request, MESI stateToSet) //Returns a copy of the evicted line
+		protected CacheLine fill(long addr) //Returns a copy of the evicted line
 		{
 			CacheLine evictedLine = null;
 			
 			/* remove the block size */
-			long tag = request.getAddr() >> this.blockSizeBits;
+			long tag = addr >> this.blockSizeBits;
 
 			/* search all the lines that might match */
 			long laddr = tag >> this.assocBits;
@@ -273,7 +273,7 @@ public class Cache extends SimulationElement
 			{
 				fillLine.setState(MESI.EXCLUSIVE);
 			}*/
-			fillLine.setState(stateToSet);
+//			fillLine.setState(stateToSet);
 			return evictedLine;
 		}
 	
@@ -291,25 +291,14 @@ public class Cache extends SimulationElement
 			{
 				/* Miss */
 				if (!(request.isWriteThrough()))//TODO For testing purposes only
-				this.misses++;	
-				
-		//		isHit = false; //Is not a hit
-
-				//Next level will be accessed by CacheAccessEvent
-				//this.fill(request);
-				
-				
+				this.misses++;
 			} 
 			else 
 			{
 				/* Hit */
 				/* do nothing */
 				if (!(request.isWriteThrough()))//TODO For testing purposes only
-				this.hits++;
-				
-	//			isHit = true;//Is a hit
-				
-				
+				this.hits++;				
 			}
 			return ll;
 		}
@@ -319,7 +308,7 @@ public class Cache extends SimulationElement
 		 * @param addr : The address to be accessed
 		 * @return A boolean value :TRUE if the request can be processed and FALSE otherwise
 		 */
-		protected boolean canServiceRequest(long addr)
+/*		protected boolean canServiceRequest(long addr)
 		{
 			//For Genuinely multi-ported elements, if number of requests this cycle has not reached the total number of ports
 			if  ((this.getMultiPortType() == MultiPortingType.GENUINE) && (this.requestsProcessedThisCycle < this.ports))
@@ -331,12 +320,12 @@ public class Cache extends SimulationElement
 			//For Banked multi-ported elements
 			else if (this.getMultiPortType() == MultiPortingType.BANKED)
 			{
-				/* remove the block size */
+				/* remove the block size *
 				long tag = addr >> this.blockSizeBits;
 
 				long lineIndex = tag & numLinesMask;
 				
-				if (!/*NOT*/banksAccessedThisCycle.contains(lineIndex/(numLines/(this.ports))))
+				if (!/*NOT*banksAccessedThisCycle.contains(lineIndex/(numLines/(this.ports))))
 				{
 					banksAccessedThisCycle.add((int) (lineIndex/(numLines/(this.ports))));
 					return true;
@@ -345,7 +334,7 @@ public class Cache extends SimulationElement
 			
 			//Otherwise
 			return false;
-		}
+		}*/
 		
 		/**
 		 * Used when a new request is made to a cache and there is a miss.
@@ -361,32 +350,32 @@ public class Cache extends SimulationElement
 		{
 			if (!/*NOT*/outstandingRequestTable.containsKey(addr))
 			{
-				outstandingRequestTable.put(addr, new ArrayList<OutstandingRequestTableEntry>());
+				outstandingRequestTable.put(addr, new ArrayList<CacheOutstandingRequestTableEntry>());
 			}
 			
-			outstandingRequestTable.get(addr).add(new OutstandingRequestTableEntry(requestType,
+			outstandingRequestTable.get(addr).add(new CacheOutstandingRequestTableEntry(requestType,
 																				requestingElement,
 																				index));
 		}
-		
+/*		
 		/**
 		 * When a data block requested by an outstanding request arrives through a BlockReadyEvent,
 		 * this method is called to process the arrival of block and process all the outstanding requests.
 		 * @param addr : Memory address requested
-		 */
+		 *
 		protected void receiveOutstandingRequestBlock(long addr)
 		{
 			CacheLine evictedLine = this.fill(addr);//FIXME
 			
-			if (!/*NOT*/outstandingRequestTable.containsKey(addr))
+			if (!/*NOT*outstandingRequestTable.containsKey(addr))
 			{
 				System.err.println("Memory System Crash : An outstanding request not found in the requesting element");
 				System.exit(1);
 			}
 			
-			ArrayList<OutstandingRequestTableEntry> outstandingRequestList = outstandingRequestTable.get(addr);
+			ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = outstandingRequestTable.get(addr);
 			
-			while (!/*NOT*/outstandingRequestList.isEmpty())
+			while (!/*NOT*outstandingRequestList.isEmpty())
 			{
 				if (outstandingRequestList.get(0).requestType == RequestType.MEM_READ)
 				{
@@ -434,5 +423,5 @@ public class Cache extends SimulationElement
 					System.exit(1);
 				}
 			}
-		}
+		}*/
 }

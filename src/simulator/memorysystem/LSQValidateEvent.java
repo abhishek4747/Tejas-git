@@ -20,29 +20,56 @@
 *****************************************************************************/
 package memorysystem;
 
+import java.util.Stack;
+
+import memorysystem.CacheLine.MESI;
 import memorysystem.LSQEntry.LSQEntryType;
 import generic.*;
 
-public class LSQValidateEvent extends Event
+public class LSQValidateEvent extends NewEvent
 {
-	CoreMemorySystem containingMemSys;
+	//CoreMemorySystem containingMemSys;
 	int lsqIndex;
 	long addr;
 	
-	public LSQValidateEvent(CoreMemorySystem _containingMemSys, int _lsqIndex, long _addr, long eventTime)
-	{
-		super(eventTime, 2, 0);
-		
-		lsqIndex = _lsqIndex;
-		addr = _addr;
-		containingMemSys = _containingMemSys;
+	public LSQValidateEvent(Time_t eventTime,
+			SimulationElement requestingElement,
+			SimulationElement processingElement, long tieBreaker,
+			RequestType requestType, int lsqIndex, long addr) {
+		super(eventTime, requestingElement, processingElement, tieBreaker,
+				requestType);
+		this.lsqIndex = lsqIndex;
+		this.addr = addr;
 	}
-	
-	public void handleEvent()
+
+	public void handleEvent(NewEventQueue newEventQueue)
 	{
-		if (containingMemSys.lsqueue.lsqueue[lsqIndex].getType() == LSQEntryType.LOAD)
-			containingMemSys.lsqueue.loadValidate(lsqIndex, addr);
-		else
-			containingMemSys.lsqueue.storeValidate(lsqIndex, addr);
+		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
+		
+		//If the LSQ entry is a load
+		if (processingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.LOAD)
+		{
+			//If the value could not be forwarded
+			if (!(processingLSQ.loadValidate(lsqIndex, addr)))
+			{
+				//TODO Read from the cache (CacheAccessEvent)
+				CacheRequestPacket request = new CacheRequestPacket();
+				request.setThreadID(0);
+				request.setType(RequestType.MEM_READ);
+				request.setAddr(((LSQ)(this.getProcessingElement())).lsqueue[lsqIndex].getAddr());
+				newEventQueue.addEvent(new NewCacheAccessEvent(this.getEventTime(),//FIXME
+															this.getProcessingElement(),
+															((LSQ)(this.getProcessingElement())).connectedL1Cache,
+															lsqIndex, 
+															0, //tieBreaker,
+															request));//, 
+															//MESI stateToSet, 
+															//false));
+			}
+		}
+		else //If the LSQ entry is a store
+		{
+			processingLSQ.storeValidate(lsqIndex, addr);
+		}
 	}
 }
