@@ -90,13 +90,16 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 			
 			core.getExecEngine().setStallDecode1(true);
 			
-			this.eventQueue.addEvent(
+			/*this.eventQueue.addEvent(
 					new AllocateDestinationRegisterEvent(
 							reorderBufferEntry,
 							null,
 							core,
 							newEventTime
 							));
+			*/
+			this.setEventTime(new Time_t(newEventTime));
+			this.eventQueue.addEvent(this);
 		}
 	}
 	
@@ -121,13 +124,15 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 		else
 		{
 			core.getExecEngine().setStallDecode1(true);
-			this.eventQueue.addEvent(
+			/*this.eventQueue.addEvent(
 					new AllocateDestinationRegisterEvent(
 									reorderBufferEntry,
 									renameTable,
 									core,
 									getEventTime().getTime()+1
-									));
+									));*/
+			this.setEventTime(new Time_t(getEventTime().getTime()+1));
+			this.eventQueue.addEvent(this);
 		}
 	}
 }

@@ -191,12 +191,15 @@ public class ExecutionCompleteEvent extends NewEvent {
 			reorderBufferEntry.setReadyAtTime(time_of_completion);
 			
 			//schedule new ExecutionCompleteEvent
-			this.eventQueue.addEvent(
+			/*this.eventQueue.addEvent(
 					new ExecutionCompleteEvent(
 							reorderBufferEntry,
 							FUInstance,
 							core,
 							time_of_completion ) );
+			*/
+			this.setEventTime(new Time_t(time_of_completion));
+			this.eventQueue.addEvent(this);
 		}
 	}
 	

@@ -35,7 +35,9 @@ public class PerformCommitsEvent extends NewEvent {
 		
 		if(core.getExecEngine().isExecutionComplete() == false)
 		{
-			this.eventQueue.addEvent(new PerformCommitsEvent(GlobalClock.getCurrentTime()+1, core));
+			/*this.eventQueue.addEvent(new PerformCommitsEvent(GlobalClock.getCurrentTime()+1, core));*/
+			this.setEventTime(new Time_t(GlobalClock.getCurrentTime()+1));
+			this.eventQueue.addEvent(this);
 		}
 		else
 		{			

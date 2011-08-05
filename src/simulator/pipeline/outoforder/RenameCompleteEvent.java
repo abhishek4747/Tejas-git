@@ -89,12 +89,15 @@ public class RenameCompleteEvent extends NewEvent {
 		System.out.println("IW full");
 		
 		//schedule new rename complete event
-		this.eventQueue.addEvent(
+		/*this.eventQueue.addEvent(
 				new RenameCompleteEvent(
 					core,
 					reorderBufferEntry,
 					GlobalClock.getCurrentTime() + 1
 				));
+		*/
+		this.setEventTime(new Time_t(GlobalClock.getCurrentTime() + 1));
+		this.eventQueue.addEvent(this);
 	}
 	
 	long checkOperand1Availability(IWEntry newIWEntry)

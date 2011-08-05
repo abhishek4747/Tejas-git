@@ -36,7 +36,7 @@ public class FunctionalUnitAvailableEvent extends NewEvent {
 
 	@Override
 	public void handleEvent(NewEventQueue newEventQueue) {
-
+		
 		reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
 		
 	}
