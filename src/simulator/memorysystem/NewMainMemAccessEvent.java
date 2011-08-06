@@ -32,7 +32,7 @@ public class NewMainMemAccessEvent extends NewEvent
 	//MESI stateToSet; //Only for access from coherent cache
 	//int threadID;
 	//LSQEntry lsqEntry;
-	TLB tlbuffer;
+	//TLB tlbuffer;
 	//long pageID;
 	long address;
 	RequestType requestType;
@@ -41,7 +41,6 @@ public class NewMainMemAccessEvent extends NewEvent
 	
 	public static enum MainMemAccessSource {
 		CacheGeneral,
-		TLB,
 		CoherentCache
 	}
 	
@@ -57,36 +56,6 @@ public class NewMainMemAccessEvent extends NewEvent
 		this.address = address;
 		this.requestType = requestType;
 	}
-	
-/*
-	//Access from the TLB for Page Table
-	public NewMainMemAccessEvent(TLB _tlbuffer, 
-							long _pageID, 
-							long _addr, 
-							LSQ _lsqueue, 
-							int _lsqIndex, 
-							long eventTime)
-	{
-		super(eventTime, 2, 0);
-		
-		AccessSource = MainMemAccessSource.TLB;
-		containingMemSys = _containingMemSys;
-		tlbuffer = _tlbuffer;
-		pageID = _pageID;
-		lsqueue = _lsqueue;
-		lsqIndex = _lsqIndex;
-		addr = _addr;
-	}
-	public NewMainMemAccessEvent(Time_t eventTime,
-			SimulationElement requestingElement, long tieBreaker,
-			RequestType requestType, int i) 
-	{
-		super(eventTime, requestingElement, null, tieBreaker,
-				requestType);
-		AccessSourceType = MainMemAccessSource.CacheGeneral;
-		this.requestType = requestType;
-	}
-	*/
 /*
 	//Fetch and set state(Access from a Source cache from cache coherence)
 	public NewMainMemAccessEvent(int _threadID,
@@ -107,20 +76,7 @@ public class NewMainMemAccessEvent extends NewEvent
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
 		/*Do nothing for the main memory*/
-/*		
-		//If the call was for a page table access from a TLB
-		if (AccessSource == MainMemAccessSource.TLB)
-		{
-			//Add the entry into the TLB
-			MemEventQueue.eventQueue.add(new TLBEvent(containingMemSys,
-																					pageID,
-																					lsqIndex,
-																					addr,
-																					MemEventQueue.clock
-																					+ containingMemSys.TLBuffer.getLatency()));
-		}
-
-		else*/ if (AccessSourceType == MainMemAccessSource.CacheGeneral)//If the call was from the cache
+		if (AccessSourceType == MainMemAccessSource.CacheGeneral)//If the call was from the cache
 		{
 			if (requestType == RequestType.MEM_READ)
 			{

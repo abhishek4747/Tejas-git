@@ -2,7 +2,7 @@
 				BhartiSim Simulator
 ------------------------------------------------------------------------------------------------------------
 
-   Copyright [2010] [Indian Institute of Technology, Delhi]
+   Copyright 2010 Indian Institute of Technology, Delhi
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -20,59 +20,34 @@
 *****************************************************************************/
 package memorysystem;
 
+import memorysystem.CacheLine.MESI;
+import generic.*;
 
-public class LSQEntry
+public class MainMemAccessForTLBEvent extends NewEvent 
 {
-	private LSQEntryType type;
-	private long addr;
-	private boolean valid;
-	private boolean forwarded;//Whether the load has got its value or not
-
-	private boolean storeCommitted;
+	long pageID;
 	
-	public enum LSQEntryType {LOAD, STORE};
-	
-	public LSQEntry(LSQEntryType type)
+	//Access from cache
+	public MainMemAccessForTLBEvent(Time_t eventTime,
+			SimulationElement requestingElement, long tieBreaker,
+			long pageID,
+			RequestType requestType) 
 	{
-		this.type = type;
-		valid = false;
-		forwarded = false;
-		storeCommitted = false;
-	}
-
-	public LSQEntryType getType() {
-		return type;
+		super(eventTime, requestingElement, null, tieBreaker,
+				requestType);
+		this.pageID = pageID;
 	}
 	
-	public long getAddr() {
-		return addr;
-	}
-
-	public void setAddr(long addr) {
-		this.addr = addr;
-	}
-
-	public boolean isValid() {
-		return valid;
-	}
-
-	public void setValid(boolean valid) {
-		this.valid = valid;
-	}
-
-	public boolean isForwarded() {
-		return forwarded;
-	}
-
-	public void setForwarded(boolean forwarded) {
-		this.forwarded = forwarded;
-	}
-	
-	protected boolean isStoreCommitted() {
-		return storeCommitted;
-	}
-
-	protected void setStoreCommitted(boolean storeCommitted) {
-		this.storeCommitted = storeCommitted;
+	@Override
+	public void handleEvent(NewEventQueue newEventQueue)
+	{
+		/*Do nothing for the main memory*/
+		//Add the entry into the TLB
+		newEventQueue.addEvent(new TLBAddEntryEvent(this.getEventTime(),//FIXME
+													null,
+													this.getRequestingElement(), 
+													0, //tieBreaker,
+													RequestType.TLB_ADD, 
+													pageID));
 	}
 }

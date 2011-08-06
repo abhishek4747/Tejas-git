@@ -88,10 +88,14 @@ public class TLB extends SimulationElement
 		return isEntryFoundInTLB;
 	}
 	
-	protected void addTLBEntry(long address)
+	//Just have to provide the full address.
+	//The pageID is calculated within
+	protected void addTLBEntry(long pageID)
 	{
+		long addressForTLB = pageID << Global.PAGE_OFFSET_BITS;
+		
 		TLBEntry entry = new TLBEntry();
-		entry.setPhyAddr(address);
+		entry.setPhyAddr(addressForTLB);
 		entry.setTimestamp(timestamp);
 		
 		if (!(TLBuffer.size() < TLBSize)) // If there is no space in the TLB
@@ -99,22 +103,23 @@ public class TLB extends SimulationElement
 			long keyToRemove = searchOldestTimestamp(); //We use LRU replacement
 			TLBuffer.remove(keyToRemove);
 		}
-		TLBuffer.put(address, entry);
+		TLBuffer.put(pageID, entry);
 	}
+	
 	
 	private long searchOldestTimestamp()
 	{
-		long oldestKey = 0;
+		long oldestAddr = 0;
 		int minTimestamp = 2000000000; //Ultra-high value
 		for (Enumeration<TLBEntry> entriesEnum = TLBuffer.elements(); entriesEnum.hasMoreElements(); )
 		{
 			TLBEntry entry = entriesEnum.nextElement();
 			if (entry.getTimestamp() < minTimestamp)
 			{
-				oldestKey = entry.getPhyAddr();
+				oldestAddr = entry.getPhyAddr();
 			}
 		}
-		return oldestKey;
+		return (getPageID(oldestAddr));
 	}
 	
 	/**
@@ -138,14 +143,22 @@ public class TLB extends SimulationElement
 	 * Used when a new request is made to a cache and there is a miss.
 	 * This adds the request to the outstanding requests buffer of the cache
 	 * @param pageID : pageID requested
+	 * @return Whether the entry was already there or not
 	 */
-	protected void addOutstandingRequest(long pageID, int index)
+	protected boolean addOutstandingRequest(long pageID, int index)
 	{
+		boolean entryAlreadyThere;
+		
 		if (!/*NOT*/outstandingRequestTable.containsKey(pageID))
 		{
+			entryAlreadyThere = false;
 			outstandingRequestTable.put(pageID, new ArrayList<Integer>());
 		}
+		else
+			entryAlreadyThere = true;
 		
 		outstandingRequestTable.get(pageID).add(index);
+		
+		return entryAlreadyThere;
 	}
 }

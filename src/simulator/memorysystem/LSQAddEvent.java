@@ -43,7 +43,7 @@ public class LSQAddEvent extends NewEvent
 */	
 	public LSQAddEvent(Time_t eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,
-			RequestType requestType, boolean isLoad, long addr) 
+			RequestType requestType, boolean isLoad, long addr)
 	{
 		super(eventTime, requestingElement, processingElement, tieBreaker,
 				requestType);
@@ -70,10 +70,12 @@ public class LSQAddEvent extends NewEvent
 			
 		//Otherwise, check the TLB for address resolution
 		else
-			newEventQueue.addEvent.add(new TLBAddrSearchEvent(containingMemSys,
-													index,
-													addr,
-													MemEventQueue.clock 
-														+ containingMemSys.TLBuffer.getLatency()));
+			newEventQueue.addEvent(new TLBAddrSearchEvent(this.getEventTime(), //FIXME
+															this.getProcessingElement(),
+															((LSQ)(this.getProcessingElement())).containingMemSys.TLBuffer, 
+															0, //tieBreaker,
+															RequestType.TLB_SEARCH, 
+															addr,
+															index));
 	}
 }

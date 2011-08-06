@@ -69,11 +69,11 @@ public class BlockReadyEvent extends NewEvent
 	 */
 	protected void receiveBlockAtCache(NewEventQueue newEventQueue,Cache receivingCache, long addr)
 	{
-		CacheLine evictedLine = receivingCache.fill(addr);//FIXME
+		CacheLine evictedLine = receivingCache.fill(addr);//FIXME : Have to handle whole eviction process
 		
 		if (!/*NOT*/receivingCache.outstandingRequestTable.containsKey(addr))
 		{
-			System.err.println("Memory System Crash : An outstanding request not found in the requesting element");
+			System.err.println("Memory System Error : An outstanding request not found in the requesting element");
 			System.exit(1);
 		}
 		
@@ -128,7 +128,7 @@ public class BlockReadyEvent extends NewEvent
 			}
 			else
 			{
-				System.err.println("Memory System Crash : A request was of type other than MEM_READ or MEM_WRITE");
+				System.err.println("Memory System Error : A request was of type other than MEM_READ or MEM_WRITE");
 				System.exit(1);
 			}
 		}
@@ -145,6 +145,8 @@ public class BlockReadyEvent extends NewEvent
 		}
 		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
 		{
+			receivingLSQ.lsqueue[lsqIndex].setStoreCommitted(true);
+			
 			//TODO : Commit the STORE entry in the LSQ and may be generate an event 
 			//to tell the ROB or something
 		}

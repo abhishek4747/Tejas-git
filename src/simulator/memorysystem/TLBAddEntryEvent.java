@@ -1,5 +1,7 @@
 package memorysystem;
 
+import java.util.ArrayList;
+
 import generic.NewEvent;
 import generic.NewEventQueue;
 import generic.RequestType;
@@ -22,13 +24,23 @@ public class TLBAddEntryEvent extends NewEvent
 	
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
-		//Add the entry into the TLB
-		((TLB)(this.getProcessingElement())).addTLBEntry(TLB.getPageID(pageID));
+		TLB processingTLB = (TLB)(this.getProcessingElement());
 		
-		newEventQueue.addEntry(new LSQValidateEvent(containingMemSys,
-								lsqIndex,
-								addr,
-								MemEventQueue.clock
-									+ containingMemSys.lsqueue.getLatency()));
+		//Add the entry into the TLB
+		processingTLB.addTLBEntry(pageID);
+		
+		//TODO : Pickup all outstanding requests and LSQValidate them
+		ArrayList<Integer> outstandingRequestList = processingTLB.outstandingRequestTable.get(pageID);
+		
+		while (!outstandingRequestList.isEmpty())
+		{
+			newEventQueue.addEvent(new LSQValidateEvent(this.getEventTime(), //FIXME
+														processingTLB,
+														processingTLB.containingMemSys.lsqueue, 
+														0, //tieBreaker,
+														RequestType.VALIDATE_LSQ_ENTRY, 
+														outstandingRequestList.remove(0), 
+														pageID)); //FIXME : Right now, we are passing pageID in place of ADDRESS
+		}
 	}
 }

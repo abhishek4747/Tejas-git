@@ -21,8 +21,8 @@
 package generic;
 
 public enum RequestType {
-	LSQ_REQUEST,
-	TLB_REQUEST,
+	TLB_SEARCH,
+	TLB_ADD,
 	CACHE_REQUEST,
 	BUS_REQUEST,
 	
@@ -45,5 +45,6 @@ public enum RequestType {
 	ADD_LSQ_ENTRY,
 	VALIDATE_LSQ_ENTRY,
 	LSQ_WRITE_COMMIT,
-	LSQ_LOAD_COMPLETE
+	LSQ_LOAD_COMPLETE,
+	MAIN_MEM_ACCESS_TLB
 }

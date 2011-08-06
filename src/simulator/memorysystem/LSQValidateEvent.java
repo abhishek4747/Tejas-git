@@ -56,10 +56,11 @@ public class LSQValidateEvent extends NewEvent
 				CacheRequestPacket request = new CacheRequestPacket();
 				request.setThreadID(0);
 				request.setType(RequestType.MEM_READ);
-				request.setAddr(((LSQ)(this.getProcessingElement())).lsqueue[lsqIndex].getAddr());
+				request.setAddr(((LSQ)(this.getProcessingElement())).lsqueue[lsqIndex].getAddr()); 
+				//Direct address must not be set as it is pageID in some cases
 				newEventQueue.addEvent(new NewCacheAccessEvent(this.getEventTime(),//FIXME
 															this.getProcessingElement(),
-															((LSQ)(this.getProcessingElement())).connectedL1Cache,
+															((LSQ)(this.getProcessingElement())).containingMemSys.l1Cache,
 															lsqIndex, 
 															0, //tieBreaker,
 															request));//, 

@@ -25,12 +25,14 @@ public class TLBAddrSearchEvent extends NewEvent
 
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
+		TLB processingTLB = (TLB)(this.getProcessingElement());
+		
 		// If Entry found in TLB
-		if (((TLB)(this.getProcessingElement())).searchTLBForPhyAddr(address)) 
+		if (processingTLB.searchTLBForPhyAddr(address)) 
 		{
 			//Validate the address in the LSQ right away
 			newEventQueue.addEvent(new LSQValidateEvent(this.getEventTime(),//FIXME
-														this.getProcessingElement(),
+														processingTLB,
 														this.getRequestingElement(), 
 														0, //tieBreaker,
 														RequestType.VALIDATE_LSQ_ENTRY, 
@@ -39,17 +41,16 @@ public class TLBAddrSearchEvent extends NewEvent
 		}
 		else
 		{
-			//TODO :  Add the requesting LSQ Index to Outstanding Request table
+			//Add the requesting LSQ Index to Outstanding Request table
+			boolean alreadyRequested = processingTLB.addOutstandingRequest(TLB.getPageID(address), lsqIndex);
 			
-			//Fetch the physical address from from Page table
-			newEventQueue.addEntry(new MainMemAccessEvent(containingMemSys, 
-																							this, 
-																							pageID, 
-																							virtualAddr, 
-																							lsqueue, 
-																							index, 
-																							MemEventQueue.clock
-																							+ SystemConfig.mainMemoryLatency));
+			if (!alreadyRequested)
+				//Fetch the physical address from from Page table
+				newEventQueue.addEvent(new MainMemAccessForTLBEvent(this.getEventTime(),//FIXME
+																	this.getProcessingElement(), 
+																	0, //tieBreaker,
+																	TLB.getPageID(address),
+																	RequestType.MAIN_MEM_ACCESS_TLB));
 		}
 	}
 }

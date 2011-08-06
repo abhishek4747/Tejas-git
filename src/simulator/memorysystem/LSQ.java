@@ -34,9 +34,7 @@ public class LSQ extends SimulationElement
 	protected int lsqSize;
 	protected int curSize;
 	public static final int QUEUE_FULL = -1;
-	
-	protected Cache connectedL1Cache;
-	
+		
 	public int NoOfLd = 0; //Total number of load instructions encountered
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
 	
