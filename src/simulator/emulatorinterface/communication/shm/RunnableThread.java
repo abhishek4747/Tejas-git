@@ -8,9 +8,12 @@ import java.util.Vector;
 
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
+import emulatorinterface.Newmain;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import generic.Instruction;
 import generic.InstructionList;
+import generic.OperationType;
 
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
@@ -157,6 +160,15 @@ public class RunnableThread implements Runnable {
 						
 						inputToPipeline.appendInstruction(fusedInstructions);
 						
+						//if size of list is greater than a certain constant, the pipeline may be signalled to resume
+						if(inputToPipeline.getListSize() > 100)
+						{
+							synchronized(Newmain.syncObject)
+							{
+								Newmain.syncObject.notify();
+							}
+						}
+						
 						pold = pnew;
 						vectorPacket.clear();
 						vectorPacket.add(pold);
@@ -212,6 +224,16 @@ public class RunnableThread implements Runnable {
 				break;
 			}
 		}
+		
+		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
+		inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
+		
+		//signal pipeline to resume to process the outstanding instructions
+		synchronized(Newmain.syncObject)
+		{
+			Newmain.syncObject.notify();
+		}
+		
 		long dataRead = 0;
 		for (int i=0; i<EMUTHREADS; i++) {
 			dataRead+=tot_cons[i];

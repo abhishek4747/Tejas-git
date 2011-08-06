@@ -88,4 +88,14 @@ public class InstructionList
 			i.setProgramCounter(instructionPointer);
 		}
 	}
+	
+	public int getListSize()
+	{
+		return instructionList.size();
+	}
+	
+	public Instruction peekInstructionAt(int position)
+	{
+		return instructionList.get(position);
+	}
 }

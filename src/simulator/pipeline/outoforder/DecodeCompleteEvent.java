@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import emulatorinterface.Newmain;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
@@ -46,6 +47,46 @@ public class DecodeCompleteEvent extends NewEvent {
 	public void readDecodePipe()
 	{
 		Instruction newInstruction;
+		
+		if(core.getIncomingInstructions(threadID).getListSize() < core.getDecodeWidth())
+		{
+			//when should the pipeline wait?
+			//when the input to the pipeline has less than decodeWidth number of instructions
+			// AND
+			//the instruction marking the end of the stream (OperationType = inValid) isn't in the input to the pipeline
+			boolean toWait = true;
+			
+			for(int i = 0; i < core.getIncomingInstructions(threadID).getListSize(); i++)
+			{
+				newInstruction = core.getIncomingInstructions(threadID).peekInstructionAt(i);
+				if(newInstruction == null)
+				{
+					break;
+				}
+				else
+				{
+					if(newInstruction.getOperationType() == OperationType.inValid)
+					{
+						toWait = false;
+						break;
+					}
+				}
+			}
+			
+			if(toWait == true)
+			{
+				synchronized(Newmain.syncObject)
+				{
+					try {
+						Newmain.syncObject.wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
 		for(int i = 0; i < core.getDecodeWidth(); i++)
 		{
 			if(core.getExecEngine().getReorderBuffer().isFull() == false
@@ -57,11 +98,17 @@ public class DecodeCompleteEvent extends NewEvent {
 				
 				if(newInstruction != null)
 				{
+					if(newInstruction.getOperationType() == OperationType.inValid)
+					{
+						core.getExecEngine().setDecodePipeEmpty(true);
+						break;
+					}
 					makeROBEntries(newInstruction);
 				}
 				else
 				{
-					core.getExecEngine().setDecodePipeEmpty(true);
+					//core.getExecEngine().setDecodePipeEmpty(true);
+					System.out.println("input to pipe is empty");
 					break;
 				}
 			}
