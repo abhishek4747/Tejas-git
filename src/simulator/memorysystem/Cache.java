@@ -119,8 +119,10 @@ public class Cache extends SimulationElement
 			return (int)(totSize / (long)(blockSize));
 		}
 		
-		public Cache(CacheConfig cacheParameters)
+		public Cache(int noOfPorts, Time_t occupancy, Time_t latency, CacheConfig cacheParameters)
 		{
+			super(noOfPorts, occupancy, latency);
+			
 			// set the parameters
 			//containingMemSys = _containingMemSys;
 			this.blockSize = cacheParameters.getBlockSize();
@@ -133,7 +135,7 @@ public class Cache extends SimulationElement
 			this.writePolicy = cacheParameters.getWritePolicy();
 			this.isLastLevel = cacheParameters.isLastLevel();
 			this.nextLevelName = cacheParameters.getNextLevel();
-			this.latency = cacheParameters.getLatency();
+			this.latency = new Time_t(cacheParameters.getLatency());
 			//this.setPorts(cacheParameters.getAccessPorts());
 			//this.setMultiPortType(cacheParameters.getMultiportType());
 			
