@@ -31,7 +31,7 @@ public class BootPipelineEvent extends NewEvent {
 	@Override
 	public void handleEvent(NewEventQueue newEventQueue) {
 		
-		for(int i = 0; i < ipcBase.MAXNUMTHREADS; i++)
+		for(int i = 0; i < IPCBase.MAXNUMTHREADS; i++)
 		{
 			if(ipcBase.getReaderThreads()[i].getInputToPipeline().isEmpty() == false)
 			{
