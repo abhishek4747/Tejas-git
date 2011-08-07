@@ -67,7 +67,7 @@ public class ReorderBuffer extends SimulationElement{
 	//  instruction at head of ROB can be purged
 	//	if it has completed
 	//	if it didn't raise an exception (in simulation, exceptions aren't possible)
-	//	and it isn't a mis-predicted branch TODO
+	//	and it isn't a mis-predicted branch
 	public void performCommits()
 	{
 		while(true)

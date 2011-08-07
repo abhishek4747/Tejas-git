@@ -21,7 +21,6 @@ public class NewEventQueue
 		NewEvent newEvent;
 		long eventTime;
 		
-		//FIXME :  the current clock time to be accessed from somewhere
 		long currentClockTime = GlobalClock.currentTime;
 		
 		while(!priorityQueue.isEmpty())

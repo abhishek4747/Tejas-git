@@ -80,7 +80,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					try {
 						Newmain.syncObject.wait();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
+						
 						e.printStackTrace();
 					}
 				}

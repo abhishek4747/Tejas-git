@@ -9,6 +9,7 @@ public class GlobalClock {
 	{
 		currentTime = 0;
 		stepSize = 1;
+		//TODO setting up of a heterogeneous clock environment
 	}
 
 	public static long getCurrentTime() {

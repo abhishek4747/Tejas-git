@@ -32,7 +32,6 @@ public class Core extends SimulationElement{
 	private int[] nUnits;
 	private int[] latencies;
 	
-	//TODO should be an array of InstructionLists and an array of threadIDs
 	private int core_number;
 	private int no_of_threads;
 	private InstructionList[] incomingInstructionLists;
