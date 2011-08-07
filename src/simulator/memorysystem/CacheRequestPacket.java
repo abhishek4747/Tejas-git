@@ -24,30 +24,38 @@ import generic.*;
 
 public class CacheRequestPacket
 {
-		private int threadID;
-		private double time;
+		//private int threadID;
+		//private double time;
 		private RequestType memRequestType;
 		private long memoryReqAddr;
 		
-		private boolean writeThrough = false; //For testing purposes (for cache)
+		//private boolean writeThrough = false; //For testing purposes (for cache)
 		
 		public CacheRequestPacket() ////For testing purposes only
 		{
-			this.setWriteThrough(false);
+			//this.setWriteThrough(false);
 		}
 		
+		
+		public CacheRequestPacket(RequestType memRequestType, long memoryReqAddr) 
+		{
+			this.memRequestType = memRequestType;
+			this.memoryReqAddr = memoryReqAddr;
+		}
+
+
 		public CacheRequestPacket copy()
 		{
 			CacheRequestPacket newEntry = new CacheRequestPacket();
-			newEntry.setThreadID(this.getThreadID());
-			newEntry.setTime(this.getTime());
+			//newEntry.setThreadID(this.getThreadID());
+			//newEntry.setTime(this.getTime());
 			newEntry.setType(this.getType());
 			newEntry.setAddr(this.getAddr());
 			return newEntry;
 		}
 		
 		//Getters and setters
-		public int getThreadID() {
+/*		public int getThreadID() {
 			return threadID;
 		}
 
@@ -62,7 +70,7 @@ public class CacheRequestPacket
 		public void setTime(double time) {
 			this.time = time;
 		}
-
+*/
 		public RequestType getType() {
 			return memRequestType;
 		}
@@ -78,12 +86,12 @@ public class CacheRequestPacket
 		public void setAddr(long addr) {
 			this.memoryReqAddr = addr;
 		}
-
+/*
 		public boolean isWriteThrough() {
 			return writeThrough;
 		}
 
 		public void setWriteThrough(boolean writeThrough) {
 			this.writeThrough = writeThrough;
-		}
+		}*/
 }

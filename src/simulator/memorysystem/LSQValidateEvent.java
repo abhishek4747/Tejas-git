@@ -54,7 +54,7 @@ public class LSQValidateEvent extends NewEvent
 			{
 				//TODO Read from the cache (CacheAccessEvent)
 				CacheRequestPacket request = new CacheRequestPacket();
-				request.setThreadID(0);
+				//request.setThreadID(0);
 				request.setType(RequestType.MEM_READ);
 				request.setAddr(((LSQ)(this.getProcessingElement())).lsqueue[lsqIndex].getAddr()); 
 				//Direct address must not be set as it is pageID in some cases

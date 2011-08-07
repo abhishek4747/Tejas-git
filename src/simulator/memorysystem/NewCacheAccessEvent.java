@@ -83,27 +83,56 @@ public class NewCacheAccessEvent extends NewEvent
 	@Override
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
+		//Process the access
 		CacheLine cl = processingCache.processRequest(request);
 
-		//if (!isBelowBus)
+		//IF HIT
+		if (cl != null)
 		{
-			if (cl != null) //Process the access and if it is a hit, proceed
-			{
-				//Schedule the requesting element to receive the block
-	/*			if (lsqIndex == LSQ.INVALID_INDEX)
-					newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
-															this.processingCache,
-															this.getRequestingElement(),
-															0,//tieBreaker
-															RequestType.MEM_BLOCK_READY));
-				else*/
-					newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
+			//Schedule the requesting element to receive the block TODO (for LSQ)
+			if (request.getType() == RequestType.MEM_READ)
+				//Just return the read block
+				newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
 															this.processingCache,
 															this.getRequestingElement(),
 															0,//tieBreaker
 															RequestType.MEM_BLOCK_READY,
 															request.getAddr(),
 															lsqIndex));
+			else if (request.getType() == RequestType.MEM_WRITE)
+			{
+				//Write the data to the cache block (Do Nothing)
+				//Tell the LSQ (if this is L1) that write is done
+				if (lsqIndex != LSQ.INVALID_INDEX)
+				{
+					newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
+																this.processingCache,
+																this.getRequestingElement(),
+																0,//tieBreaker
+																RequestType.LSQ_WRITE_COMMIT,
+																request.getAddr(),
+																lsqIndex));
+				}	
+				
+				if (processingCache.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+				{
+					//Handle in any case (Whether requesting element is LSQ or cache)
+					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
+					if (processingCache.isLastLevel)
+						newEventQueue.addEvent(new NewMainMemAccessEvent(processingCache.nextLevel.getLatency(),//FIXME :main memory latency is going to come here
+																		processingCache, 
+																		0, //tieBreaker,
+																		request.getAddr(),
+																		RequestType.MEM_WRITE));
+					else
+						newEventQueue.addEvent(new NewCacheAccessEvent(processingCache.nextLevel.getLatency(),//FIXME
+																		processingCache,
+																		processingCache.nextLevel,
+																		LSQ.INVALID_INDEX, 
+																		0, //tieBreaker,
+																		request));
+				}	
+			}
 /*				
 				//Handling Cache Coherence
 				if ((request.getType() == MemoryAccessType.WRITE) && (processingCache.isCoherent) && (!processingCache.nextLevel.enforcesCoherence))
@@ -128,13 +157,13 @@ public class NewCacheAccessEvent extends NewEvent
 						return;
 					}
 				} //READ needs nothing to be done
-
 */
-			}
-			else //The cache access is a miss
-			{
-/*
-				//Handle cache coherence
+		}
+		
+		//IF MISS
+		else
+		{
+/*				//Handle cache coherence
 				if ((processingCache.isCoherent) && (!processingCache.nextLevel.enforcesCoherence))
 				{
 					if (request.getType() == MemoryAccessType.WRITE)
@@ -162,38 +191,39 @@ public class NewCacheAccessEvent extends NewEvent
 				}
 */
 			
-				//Add the request to the outstanding request buffer
-				processingCache.addOutstandingRequest(request.getAddr(), 
-														request.getType(), 
-														this.getRequestingElement(), 
-														lsqIndex);
+			//Add the request to the outstanding request buffer
+			processingCache.addOutstandingRequest(request.getAddr(), 
+													request.getType(), 
+													this.getRequestingElement(), 
+													lsqIndex);
 			
-				// access the next level
-				if (processingCache.isLastLevel)
-				{
-					//FIXME
-					newEventQueue.addEvent(new NewMainMemAccessEvent(processingCache.getLatency(), //FIXME : this is COMPLETELY incorrect
-																	processingCache, 
-																	0, //tieBreaker,
-																	request.getAddr(),
-																	RequestType.MEM_READ));
-					return;
-				}
-				else
-				{
-					//Change the parameters of this event to forward it for scheduling next cache's access
-					this.setRequestingElement(processingCache);
-					this.processingCache = processingCache.nextLevel;
-					this.lsqIndex = LSQ.INVALID_INDEX;
-					this.request.setType(RequestType.MEM_READ);
-					this.setEventTime(processingCache.getLatency());//FIXME
-					newEventQueue.addEvent(this);
-				}
+			// access the next level
+			if (processingCache.isLastLevel)
+			{
+				//FIXME
+				newEventQueue.addEvent(new NewMainMemAccessEvent(processingCache.getLatency(), //FIXME : this is COMPLETELY incorrect
+																processingCache, 
+																0, //tieBreaker,
+																request.getAddr(),
+																RequestType.MEM_READ));
+				return;
+			}
+			else
+			{
+				//Change the parameters of this event to forward it for scheduling next cache's access
+				this.setRequestingElement(processingCache);
+				this.processingCache = processingCache.nextLevel;
+				this.lsqIndex = LSQ.INVALID_INDEX;
+				this.request.setType(RequestType.MEM_READ);
+				this.setEventTime(processingCache.getLatency());//FIXME
+				newEventQueue.addEvent(this);
+				return;
 			}
 		}
-		
+	}
+	
 		/**
-		 * Is the access is below the bus
+		 * If the access is below the bus
 		 */
 /*		else 
 		{
@@ -232,5 +262,4 @@ public class NewCacheAccessEvent extends NewEvent
 			}
 		}
 		*/
-	}
 }

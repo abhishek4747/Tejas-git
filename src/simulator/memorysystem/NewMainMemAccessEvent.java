@@ -83,7 +83,7 @@ public class NewMainMemAccessEvent extends NewEvent
 				newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), //FIXME
 															null,
 															this.getRequestingElement(), 
-															0, //tiebreaker
+															0, //tie-breaker
 															RequestType.MEM_BLOCK_READY,
 															address,
 															LSQ.INVALID_INDEX));
@@ -91,6 +91,7 @@ public class NewMainMemAccessEvent extends NewEvent
 			else if (requestType == RequestType.MEM_WRITE)
 			{
 				//TODO : If we have to simulate the write timings also, then the code will come here
+				//Just to tell the requesting things that the write is completed
 			}
 		}
 /*		else if (AccessSource == MainMemAccessSource.CoherentCache)//If the access is for a coherent cache (the access if below the bus)

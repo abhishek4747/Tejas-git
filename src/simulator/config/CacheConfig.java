@@ -24,7 +24,7 @@ import generic.MultiPortingType;
 
 public class CacheConfig 
 {
-	public writeModes writeMode;
+	public WritePolicy writePolicy;
 	public boolean isLastLevel;
 	public String nextLevel;
 	public int blockSize;
@@ -35,17 +35,17 @@ public class CacheConfig
 	public int accessPorts;
 	public MultiPortingType multiportType;
 	
-	public static enum writeModes{
+	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
 	}
 
 	//Getters and setters
-	public writeModes getWriteMode() {
-		return writeMode;
+	public WritePolicy getWritePolicy() {
+		return writePolicy;
 	}
 
-	public void setWriteMode(writeModes writeMode) {
-		this.writeMode = writeMode;
+	public void setWritePolicy(WritePolicy writePolicy) {
+		this.writePolicy = writePolicy;
 	}
 
 	public boolean isLastLevel() {

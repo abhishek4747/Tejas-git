@@ -196,9 +196,9 @@ public class XMLParser
 	{
 		String tempStr = getImmediateString("WriteMode", CacheType);
 		if (tempStr.equalsIgnoreCase("WB"))
-			cache.writeMode = CacheConfig.writeModes.WRITE_BACK;
+			cache.writePolicy = CacheConfig.WritePolicy.WRITE_BACK;
 		else if (tempStr.equalsIgnoreCase("WT"))
-			cache.writeMode = CacheConfig.writeModes.WRITE_THROUGH;
+			cache.writePolicy = CacheConfig.WritePolicy.WRITE_THROUGH;
 		else
 		{
 			System.err.println("XML Configuration error : Invalid Write Mode (please enter WB for write-back or WT for write-through)");

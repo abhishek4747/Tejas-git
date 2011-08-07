@@ -77,7 +77,7 @@ public class FillCacheStackEvent extends Event
 				//Just to show that its VALID (for levels below bus)
 
 			//Write the evicted line(if any) to lower levels if dirty
-			if ((evictedLine != null) && (stackEntry.cache.writeMode == CacheConfig.writeModes.WRITE_BACK) && (evictedLine.isModified()))
+			if ((evictedLine != null) && (stackEntry.cache.writePolicy == CacheConfig.WritePolicy.WRITE_BACK) && (evictedLine.isModified()))
 			{					
 				if(stackEntry.cache.isLastLevel)
 				{
@@ -130,7 +130,7 @@ public class FillCacheStackEvent extends Event
 			evictedLine = stackEntry.cache.fill(stackEntry.request, stateToSet);
 
 			//Write the evicted line(if any) to lower levels if dirty
-			if ((evictedLine != null) && (stackEntry.cache.writeMode == CacheConfig.writeModes.WRITE_BACK) && (evictedLine.isModified()))
+			if ((evictedLine != null) && (stackEntry.cache.writePolicy == CacheConfig.WritePolicy.WRITE_BACK) && (evictedLine.isModified()))
 			{					
 				if(stackEntry.cache.isLastLevel)
 				{

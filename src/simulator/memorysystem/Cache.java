@@ -32,7 +32,7 @@ import generic.*;
 public class Cache extends SimulationElement
 {
 		/* cache parameters */
-		CoreMemorySystem containingMemSys;
+		//CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
 		protected int blockSizeBits; // in bits
 		protected int assoc;
@@ -47,7 +47,7 @@ public class Cache extends SimulationElement
 		protected boolean enforcesCoherence = false; //The cache which is shared between the coherent cache level
 		protected boolean isCoherent = false; //Tells whether the level is coherent or not
 		protected boolean isLastLevel; //Tells whether there are any more levels of cache
-		protected CacheConfig.writeModes writeMode; //WRITE_BACK or WRITE_THROUGH
+		protected CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
 		
 		protected String nextLevelName; //Name of the next level cache according to the configuration file
 		protected ArrayList<Cache> prevLevel = new ArrayList<Cache>(); //Points towards the previous level in the cache hierarchy
@@ -119,10 +119,10 @@ public class Cache extends SimulationElement
 			return (int)(totSize / (long)(blockSize));
 		}
 		
-		public Cache(CacheConfig cacheParameters, CoreMemorySystem _containingMemSys)
+		public Cache(CacheConfig cacheParameters)
 		{
 			// set the parameters
-			containingMemSys = _containingMemSys;
+			//containingMemSys = _containingMemSys;
 			this.blockSize = cacheParameters.getBlockSize();
 			this.assoc = cacheParameters.getAssoc();
 			this.size = cacheParameters.getSize();
@@ -130,12 +130,12 @@ public class Cache extends SimulationElement
 			this.assocBits = Util.logbase2(assoc);
 			this.numLines = getNumLines();
 			
-			this.writeMode = cacheParameters.getWriteMode();
+			this.writePolicy = cacheParameters.getWritePolicy();
 			this.isLastLevel = cacheParameters.isLastLevel();
 			this.nextLevelName = cacheParameters.getNextLevel();
 			this.latency = cacheParameters.getLatency();
-			this.setPorts(cacheParameters.getAccessPorts());
-			this.setMultiPortType(cacheParameters.getMultiportType());
+			//this.setPorts(cacheParameters.getAccessPorts());
+			//this.setMultiPortType(cacheParameters.getMultiportType());
 			
 			this.numLinesBits = Util.logbase2(numLines);
 			this.timestamp = 0;
@@ -290,14 +290,14 @@ public class Cache extends SimulationElement
 			if(ll == null)
 			{
 				/* Miss */
-				if (!(request.isWriteThrough()))//TODO For testing purposes only
+//				if (!(request.isWriteThrough()))//TODO For testing purposes only
 				this.misses++;
 			} 
 			else 
 			{
 				/* Hit */
 				/* do nothing */
-				if (!(request.isWriteThrough()))//TODO For testing purposes only
+//				if (!(request.isWriteThrough()))//TODO For testing purposes only
 				this.hits++;				
 			}
 			return ll;
@@ -339,7 +339,7 @@ public class Cache extends SimulationElement
 		/**
 		 * Used when a new request is made to a cache and there is a miss.
 		 * This adds the request to the outstanding requests buffer of the cache
-		 * @param addr : Memory Address requested
+		 * @param blockAddr : Memory Address requested
 		 * @param requestType : MEM_READ or MEM_WRITE
 		 * @param requestingElement : Which element made the request. Helpful in backtracking and filling the stack
 		 */
@@ -348,14 +348,17 @@ public class Cache extends SimulationElement
 											SimulationElement requestingElement,
 											int index)
 		{
-			if (!/*NOT*/outstandingRequestTable.containsKey(addr))
+			long blockAddr = addr >> blockSizeBits;
+			
+			if (!/*NOT*/outstandingRequestTable.containsKey(blockAddr))
 			{
-				outstandingRequestTable.put(addr, new ArrayList<CacheOutstandingRequestTableEntry>());
+				outstandingRequestTable.put(blockAddr, new ArrayList<CacheOutstandingRequestTableEntry>());
 			}
 			
-			outstandingRequestTable.get(addr).add(new CacheOutstandingRequestTableEntry(requestType,
-																				requestingElement,
-																				index));
+			outstandingRequestTable.get(blockAddr).add(new CacheOutstandingRequestTableEntry(requestType,
+																							requestingElement,
+																							addr,
+																							index));
 		}
 /*		
 		/**

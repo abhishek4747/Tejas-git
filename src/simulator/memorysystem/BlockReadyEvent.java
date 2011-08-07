@@ -2,6 +2,8 @@ package memorysystem;
 
 import java.util.ArrayList;
 
+import config.CacheConfig;
+
 import memorysystem.LSQEntry.LSQEntryType;
 
 import generic.NewEventQueue;
@@ -71,13 +73,14 @@ public class BlockReadyEvent extends NewEvent
 	{
 		CacheLine evictedLine = receivingCache.fill(addr);//FIXME : Have to handle whole eviction process
 		
-		if (!/*NOT*/receivingCache.outstandingRequestTable.containsKey(addr))
+		long blockAddr = addr >> receivingCache.blockSizeBits;
+		if (!/*NOT*/receivingCache.outstandingRequestTable.containsKey(blockAddr))
 		{
 			System.err.println("Memory System Error : An outstanding request not found in the requesting element");
 			System.exit(1);
 		}
 		
-		ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = receivingCache.outstandingRequestTable.get(addr);
+		ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = receivingCache.outstandingRequestTable.get(blockAddr);
 		
 		while (!/*NOT*/outstandingRequestList.isEmpty())
 		{
@@ -93,7 +96,7 @@ public class BlockReadyEvent extends NewEvent
 															outstandingRequestList.get(0).requestingElement, 
 															0, //tieBreaker
 															RequestType.MEM_BLOCK_READY,
-															address,
+															outstandingRequestList.get(0).address,
 															lsqIndex));
 				else
 					//Generate the event to tell the LSQ
@@ -102,7 +105,7 @@ public class BlockReadyEvent extends NewEvent
 															outstandingRequestList.get(0).requestingElement, 
 															0, //tieBreaker
 															RequestType.LSQ_LOAD_COMPLETE,
-															address,
+															outstandingRequestList.get(0).address,
 															lsqIndex));
 			}
 			
@@ -119,18 +122,37 @@ public class BlockReadyEvent extends NewEvent
 															outstandingRequestList.get(0).requestingElement, 
 															0, //tieBreaker
 															RequestType.LSQ_WRITE_COMMIT,
-															address,
+															outstandingRequestList.get(0).address,
 															lsqIndex));
 				
-				//Handle in any case (Whether requesting element is LSQ or cache)
-				//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
-				
+				if (receivingCache.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+				{
+					//Handle in any case (Whether requesting element is LSQ or cache)
+					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
+					if (receivingCache.isLastLevel)
+						newEventQueue.addEvent(new NewMainMemAccessEvent(receivingCache.nextLevel.getLatency(),//FIXME :main memory latency is going to come here
+																		receivingCache, 
+																		0, //tieBreaker,
+																		outstandingRequestList.get(0).address,
+																		RequestType.MEM_WRITE));
+					else
+						newEventQueue.addEvent(new NewCacheAccessEvent(receivingCache.nextLevel.getLatency(),//FIXME
+																		receivingCache,
+																		receivingCache.nextLevel,
+																		LSQ.INVALID_INDEX, 
+																		0, //tieBreaker,
+																		new CacheRequestPacket(RequestType.MEM_WRITE,
+																							outstandingRequestList.get(0).address)));
+				}			
 			}
 			else
 			{
 				System.err.println("Memory System Error : A request was of type other than MEM_READ or MEM_WRITE");
 				System.exit(1);
 			}
+			
+			//Remove the processed entry from the outstanding request list
+			outstandingRequestList.remove(0);
 		}
 	}
 	

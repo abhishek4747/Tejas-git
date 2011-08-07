@@ -169,7 +169,7 @@ public class CacheAccessEvent extends Event
 				}
 			
 				//Change the access type for the next level if the present cache is write back
-				if (request.getType() == MemoryAccessType.WRITE && targetCache.writeMode == CacheConfig.writeModes.WRITE_BACK)
+				if (request.getType() == MemoryAccessType.WRITE && targetCache.writePolicy == CacheConfig.WritePolicy.WRITE_BACK)
 				{
 					CacheRequestPacket changedRequest = request.copy();
 					changedRequest.setType(MemoryAccessType.READ);
