@@ -4,6 +4,7 @@ import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperandType;
+import generic.OperationType;
 import generic.SimulationElement;
 import generic.Time_t;
 
@@ -85,7 +86,11 @@ public class ReorderBuffer extends SimulationElement{
 			
 			if(first.getExecuted() == true)
 			{
-				if(true)		//if branch, then if branch prediction correct		
+				//if branch, then if branch prediction correct
+				if(first.getInstruction().getOperationType() != OperationType.branch ||
+						first.getInstruction().getOperationType() == OperationType.branch &&
+						core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
+							== first.getInstruction().isBranchTaken())		
 				{
 					//add to available list
 					//update checkpoint
@@ -112,7 +117,17 @@ public class ReorderBuffer extends SimulationElement{
 				}
 				else
 				{
+					System.out.println("branch mispredicted");
 					handleBranchMisprediction();
+				}
+				
+				if(first.getInstruction().getOperationType() == OperationType.branch)
+				{
+					core.getBranchPredictor().Train(
+													first.getInstruction().getProgramCounter(),
+													first.getInstruction().isBranchTaken(),
+													core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
+													);
 				}
 			}
 			else

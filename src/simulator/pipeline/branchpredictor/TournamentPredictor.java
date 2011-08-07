@@ -49,7 +49,7 @@ public class TournamentPredictor implements BranchPredictor{
         /**
          * Constructor <code>Tournament_predictor()</code> used to instantiate the member variables
          */
-        TournamentPredictor()
+        public TournamentPredictor()
         {
                 pred1=new PAgPredictor(16,10,5);
                 pred2=new PApPredictor(10,10,5);

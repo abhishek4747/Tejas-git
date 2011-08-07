@@ -1,5 +1,6 @@
 package generic;
 
+import pipeline.branchpredictor.TournamentPredictor;
 import pipeline.outoforder.ExecutionEngine;
 import pipeline.outoforder.PerformCommitsEvent;
 import pipeline.outoforder.PerformDecodeEvent;
@@ -36,6 +37,8 @@ public class Core extends SimulationElement{
 	private int no_of_threads;
 	private InstructionList[] incomingInstructionLists;
 	private int[] threadIDs;
+	
+	private TournamentPredictor branchPredictor;
 
 	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionList[] incomingInstructionLists,
 					int[] threadIDs)
@@ -51,7 +54,8 @@ public class Core extends SimulationElement{
 		this.no_of_threads = no_of_threads;
 		this.incomingInstructionLists = incomingInstructionLists;
 		this.threadIDs = threadIDs;
-		execEngine = new ExecutionEngine(this);
+		this.execEngine = new ExecutionEngine(this);
+		this.branchPredictor = new TournamentPredictor();
 	}
 	
 	private void initializeCoreParameters()
@@ -262,6 +266,10 @@ public class Core extends SimulationElement{
 	
 	public int getCore_number() {
 		return core_number;
+	}
+
+	public TournamentPredictor getBranchPredictor() {
+		return branchPredictor;
 	}
 
 }
