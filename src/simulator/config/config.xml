@@ -45,11 +45,13 @@
 			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
 			<LSQLatency>2</LSQLatency>			<!--In clock cycles-->
 			<LSQAccessPorts>2</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
+			<LSQPortOccupancy>2</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
 			<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
 
 			<TLBSize>256</TLBSize>				<!--Maximum number of entries in the TLB-->
 			<TLBLatency>2</TLBLatency>			<!--In clock cycles-->
 			<TLBAccessPorts>2</TLBAccessPorts>		<!--Number of access ports in the TLB-->
+			<TLBPortOccupancy>2</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 	
 			<IntALUNum>5</IntALUNum>			<!--Number of Integer ALUs-->
 			<IntMulNum>5</IntMulNum>			<!--Number of Integer Multipliers-->
@@ -84,6 +86,7 @@
 			<Size>64</Size>					<!--In KBs-->
 			<Latency>3</Latency>				<!--In clock cycles-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 		</Type1>
 		<Type2>
@@ -94,6 +97,7 @@
 			<Size>8192</Size>				<!--In KBs-->
 			<Latency>4</Latency>				<!--In clock cycles-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 		</Type2>
 		<Type3>
@@ -104,6 +108,7 @@
 			<Size>16384</Size>				<!--In KBs-->
 			<Latency>5</Latency>				<!--In clock cycles-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 		</Type3>
 	</Library>

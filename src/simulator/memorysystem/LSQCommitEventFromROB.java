@@ -41,7 +41,8 @@ public class LSQCommitEventFromROB extends NewEvent
 			//request.setThreadID(0);
 			request.setType(RequestType.MEM_WRITE);
 			request.setAddr(processingLSQ.lsqueue[lsqIndex].getAddr());
-			newEventQueue.addEvent(new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatency(), //FIXME
+			newEventQueue.addEvent(new NewCacheAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																processingLSQ.containingMemSys.l1Cache.getLatency().getTime()), //FIXME
 															processingLSQ,
 															processingLSQ.containingMemSys.l1Cache,
 															lsqIndex, 

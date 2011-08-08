@@ -33,6 +33,7 @@ public class CacheConfig
 	public int latency;
 	
 	public int accessPorts;
+	public int portOccupancy;
 	public MultiPortingType multiportType;
 	
 	public static enum WritePolicy{
@@ -44,48 +45,24 @@ public class CacheConfig
 		return writePolicy;
 	}
 
-	public void setWritePolicy(WritePolicy writePolicy) {
-		this.writePolicy = writePolicy;
-	}
-
 	public boolean isLastLevel() {
 		return isLastLevel;
-	}
-
-	public void setLastLevel(boolean isLastLevel) {
-		this.isLastLevel = isLastLevel;
 	}
 
 	public String getNextLevel() {
 		return nextLevel;
 	}
 
-	public void setNextLevel(String nextLevel) {
-		this.nextLevel = nextLevel;
-	}
-
 	public int getBlockSize() {
 		return blockSize;
-	}
-
-	public void setBlockSize(int blockSize) {
-		this.blockSize = blockSize;
 	}
 
 	public int getAssoc() {
 		return assoc;
 	}
 
-	public void setAssoc(int assoc) {
-		this.assoc = assoc;
-	}
-
 	public int getSize() {
 		return size;
-	}
-
-	public void setSize(int size) {
-		this.size = size;
 	}
 
 	public int getLatency() {
@@ -96,19 +73,51 @@ public class CacheConfig
 		return accessPorts;
 	}
 
-	public void setAccessPorts(int accessPorts) {
-		this.accessPorts = accessPorts;
+	public int getPortOccupancy() {
+		return portOccupancy;
 	}
 
 	public MultiPortingType getMultiportType() {
 		return multiportType;
 	}
 
-	public void setMultiportType(MultiPortingType multiportType) {
-		this.multiportType = multiportType;
+	protected void setWritePolicy(WritePolicy writePolicy) {
+		this.writePolicy = writePolicy;
 	}
 
-	public void setLatency(int latency) {
+	protected void setLastLevel(boolean isLastLevel) {
+		this.isLastLevel = isLastLevel;
+	}
+
+	protected void setNextLevel(String nextLevel) {
+		this.nextLevel = nextLevel;
+	}
+
+	protected void setBlockSize(int blockSize) {
+		this.blockSize = blockSize;
+	}
+
+	protected void setAssoc(int assoc) {
+		this.assoc = assoc;
+	}
+
+	protected void setSize(int size) {
+		this.size = size;
+	}
+
+	protected void setLatency(int latency) {
 		this.latency = latency;
 	}
+
+	protected void setAccessPorts(int accessPorts) {
+		this.accessPorts = accessPorts;
+	}
+
+	protected void setPortOccupancy(int portOccupancy) {
+		this.portOccupancy = portOccupancy;
+	}
+
+	protected void setMultiportType(MultiPortingType multiportType) {
+		this.multiportType = multiportType;
+	}	
 }

@@ -1,5 +1,7 @@
 package memorysystem;
 
+import emulatorinterface.Newmain;
+import generic.GlobalClock;
 import generic.NewEvent;
 import generic.NewEventQueue;
 import generic.RequestType;
@@ -31,7 +33,8 @@ public class TLBAddrSearchEvent extends NewEvent
 		if (processingTLB.searchTLBForPhyAddr(address)) 
 		{
 			//Validate the address in the LSQ right away
-			newEventQueue.addEvent(new LSQValidateEvent(this.getEventTime(),//FIXME
+			newEventQueue.addEvent(new LSQValidateEvent(new Time_t(GlobalClock.getCurrentTime() +
+																this.getRequestingElement().getLatency().getTime()),//FIXME
 														processingTLB,
 														this.getRequestingElement(), 
 														0, //tieBreaker,
@@ -46,7 +49,8 @@ public class TLBAddrSearchEvent extends NewEvent
 			
 			if (!alreadyRequested)
 				//Fetch the physical address from from Page table
-				newEventQueue.addEvent(new MainMemAccessForTLBEvent(this.getEventTime(),//FIXME
+				newEventQueue.addEvent(new MainMemAccessForTLBEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		Newmain.mainMemoryLatency.getTime()),//FIXME
 																	this.getProcessingElement(), 
 																	0, //tieBreaker,
 																	TLB.getPageID(address),

@@ -20,6 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
+import emulatorinterface.Newmain;
 import memorysystem.CacheLine.MESI;
 import generic.*;
 
@@ -43,7 +44,8 @@ public class MainMemAccessForTLBEvent extends NewEvent
 	{
 		/*Do nothing for the main memory*/
 		//Add the entry into the TLB
-		newEventQueue.addEvent(new TLBAddEntryEvent(this.getEventTime(),//FIXME
+		newEventQueue.addEvent(new TLBAddEntryEvent(new Time_t(GlobalClock.getCurrentTime() +
+															this.getRequestingElement().getLatency().getTime()),//FIXME
 													null,
 													this.getRequestingElement(), 
 													0, //tieBreaker,

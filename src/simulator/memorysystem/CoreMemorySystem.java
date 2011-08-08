@@ -53,18 +53,18 @@ public class CoreMemorySystem
 		
 		//Initialise the TLB
 		TLBuffer = new TLB(SystemConfig.core[coreID].TLBAccessPorts, 
-							Time_t occupancy, 
-							SystemConfig.core[coreID].TLBLatency,
+							new Time_t(SystemConfig.core[coreID].TLBPortOccupancy), 
+							new Time_t(SystemConfig.core[coreID].TLBLatency),
 							this,
 							SystemConfig.core[coreID].TLBSize);
 		
 		//Initialise the LSQ
 		lsqueue = new LSQ(SystemConfig.core[coreID].LSQAccessPorts, 
-							Time_t occupancy, 
-							SystemConfig.core[coreID].LSQLatency,
+							new Time_t(SystemConfig.core[coreID].LSQPortOccupancy), 
+							new Time_t(SystemConfig.core[coreID].LSQLatency),
 							this, 
 							SystemConfig.core[coreID].LSQSize);
-		lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
+	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
 	}
 /*	
 	public void read(long addr)

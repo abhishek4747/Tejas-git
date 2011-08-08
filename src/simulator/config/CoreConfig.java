@@ -29,11 +29,13 @@ public class CoreConfig
 	public int LSQSize;
 	public int LSQLatency;
 	public int LSQAccessPorts;
+	public int LSQPortOccupancy;
 	public MultiPortingType LSQMultiportType;
 	
 	public int TLBSize;
 	public int TLBLatency;
 	public int TLBAccessPorts;
+	public int TLBPortOccupancy;
 
 	public int IntALUNum;
 	public int IntMulNum;

@@ -1,8 +1,10 @@
 package emulatorinterface;
 
 import pipeline.outoforder.BootPipelineEvent;
+import generic.Time_t;
 import misc.Error;
 import config.SimulationConfig;
+import config.SystemConfig;
 import config.XMLParser;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
@@ -19,6 +21,7 @@ public class Newmain {
 	public static int handled=0;
 	public static int notHandled=0;
 	public static Object syncObject = new Object();
+	public static Time_t mainMemoryLatency;
 
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -30,6 +33,9 @@ public class Newmain {
 
 		// Parse the command line arguments
 		XMLParser.parse();
+		
+		//Set the main memory latency
+		mainMemoryLatency = new Time_t(SystemConfig.mainMemoryLatency);
 
 		// Create a hash-table for the static representation of the executable
 		InstructionTable instructionTable;

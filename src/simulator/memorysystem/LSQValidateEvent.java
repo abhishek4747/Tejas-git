@@ -20,8 +20,6 @@
 *****************************************************************************/
 package memorysystem;
 
-import java.util.Stack;
-
 import memorysystem.CacheLine.MESI;
 import memorysystem.LSQEntry.LSQEntryType;
 import generic.*;
@@ -56,11 +54,12 @@ public class LSQValidateEvent extends NewEvent
 				CacheRequestPacket request = new CacheRequestPacket();
 				//request.setThreadID(0);
 				request.setType(RequestType.MEM_READ);
-				request.setAddr(((LSQ)(this.getProcessingElement())).lsqueue[lsqIndex].getAddr()); 
+				request.setAddr(processingLSQ.lsqueue[lsqIndex].getAddr()); 
 				//Direct address must not be set as it is pageID in some cases
-				newEventQueue.addEvent(new NewCacheAccessEvent(this.getEventTime(),//FIXME
+				newEventQueue.addEvent(new NewCacheAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		processingLSQ.containingMemSys.l1Cache.getLatency().getTime()),//FIXME
 															this.getProcessingElement(),
-															((LSQ)(this.getProcessingElement())).containingMemSys.l1Cache,
+															processingLSQ.containingMemSys.l1Cache,
 															lsqIndex, 
 															0, //tieBreaker,
 															request));//, 

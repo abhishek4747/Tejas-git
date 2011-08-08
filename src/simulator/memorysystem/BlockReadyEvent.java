@@ -3,9 +3,11 @@ package memorysystem;
 import java.util.ArrayList;
 
 import config.CacheConfig;
+import emulatorinterface.Newmain;
 
 import memorysystem.LSQEntry.LSQEntryType;
 
+import generic.GlobalClock;
 import generic.NewEventQueue;
 import generic.Time_t;
 import generic.NewEvent;
@@ -91,7 +93,8 @@ public class BlockReadyEvent extends NewEvent
 				//Generate the event for the Upper level cache or LSQ
 				if (outstandingRequestList.get(0).lsqIndex == LSQ.INVALID_INDEX)
 					//Generate the event for the Upper level cache
-					newEventQueue.addEvent(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(),//FIXME 
+					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
 															this.getProcessingElement(),
 															outstandingRequestList.get(0).requestingElement, 
 															0, //tieBreaker
@@ -100,7 +103,8 @@ public class BlockReadyEvent extends NewEvent
 															lsqIndex));
 				else
 					//Generate the event to tell the LSQ
-					newEventQueue.addEvent(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(),//FIXME 
+					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
 															this.getProcessingElement(),
 															outstandingRequestList.get(0).requestingElement, 
 															0, //tieBreaker
@@ -117,7 +121,8 @@ public class BlockReadyEvent extends NewEvent
 				if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
 					//(If the requesting element is LSQ)
 					//Generate the event to tell the LSQ
-					newEventQueue.addEvent(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(),//FIXME 
+					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
 															this.getProcessingElement(),
 															outstandingRequestList.get(0).requestingElement, 
 															0, //tieBreaker
@@ -130,13 +135,15 @@ public class BlockReadyEvent extends NewEvent
 					//Handle in any case (Whether requesting element is LSQ or cache)
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (receivingCache.isLastLevel)
-						newEventQueue.addEvent(new NewMainMemAccessEvent(receivingCache.nextLevel.getLatency(),//FIXME :main memory latency is going to come here
+						newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																				Newmain.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
 																		receivingCache, 
 																		0, //tieBreaker,
 																		outstandingRequestList.get(0).address,
 																		RequestType.MEM_WRITE));
 					else
-						newEventQueue.addEvent(new NewCacheAccessEvent(receivingCache.nextLevel.getLatency(),//FIXME
+						newEventQueue.addEvent(new NewCacheAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																				receivingCache.nextLevel.getLatency().getTime()),//FIXME
 																		receivingCache,
 																		receivingCache.nextLevel,
 																		LSQ.INVALID_INDEX, 

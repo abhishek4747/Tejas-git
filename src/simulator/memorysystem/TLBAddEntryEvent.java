@@ -2,6 +2,7 @@ package memorysystem;
 
 import java.util.ArrayList;
 
+import generic.GlobalClock;
 import generic.NewEvent;
 import generic.NewEventQueue;
 import generic.RequestType;
@@ -34,7 +35,8 @@ public class TLBAddEntryEvent extends NewEvent
 		
 		while (!outstandingRequestList.isEmpty())
 		{
-			newEventQueue.addEvent(new LSQValidateEvent(this.getEventTime(), //FIXME
+			newEventQueue.addEvent(new LSQValidateEvent(new Time_t(GlobalClock.getCurrentTime() +
+																processingTLB.containingMemSys.lsqueue.getLatency().getTime()), //FIXME
 														processingTLB,
 														processingTLB.containingMemSys.lsqueue, 
 														0, //tieBreaker,

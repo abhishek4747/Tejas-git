@@ -80,7 +80,8 @@ public class NewMainMemAccessEvent extends NewEvent
 		{
 			if (requestType == RequestType.MEM_READ)
 			{
-				newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), //FIXME
+				newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+																	this.getRequestingElement().getLatency().getTime()), //FIXME
 															null,
 															this.getRequestingElement(), 
 															0, //tie-breaker

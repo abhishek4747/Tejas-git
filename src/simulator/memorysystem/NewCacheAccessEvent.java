@@ -20,6 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
+import emulatorinterface.Newmain;
 import generic.*;
 
 import java.util.ArrayList;
@@ -92,7 +93,8 @@ public class NewCacheAccessEvent extends NewEvent
 			//Schedule the requesting element to receive the block TODO (for LSQ)
 			if (request.getType() == RequestType.MEM_READ)
 				//Just return the read block
-				newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
+				newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+																	this.getRequestingElement().getLatency().getTime()), 
 															this.processingCache,
 															this.getRequestingElement(),
 															0,//tieBreaker
@@ -105,7 +107,8 @@ public class NewCacheAccessEvent extends NewEvent
 				//Tell the LSQ (if this is L1) that write is done
 				if (lsqIndex != LSQ.INVALID_INDEX)
 				{
-					newEventQueue.addEvent(new BlockReadyEvent(this.getRequestingElement().getLatency(), 
+					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+																	this.getRequestingElement().getLatency().getTime()), 
 																this.processingCache,
 																this.getRequestingElement(),
 																0,//tieBreaker
@@ -119,13 +122,15 @@ public class NewCacheAccessEvent extends NewEvent
 					//Handle in any case (Whether requesting element is LSQ or cache)
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (processingCache.isLastLevel)
-						newEventQueue.addEvent(new NewMainMemAccessEvent(processingCache.nextLevel.getLatency(),//FIXME :main memory latency is going to come here
+						newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																				Newmain.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
 																		processingCache, 
 																		0, //tieBreaker,
 																		request.getAddr(),
 																		RequestType.MEM_WRITE));
 					else
-						newEventQueue.addEvent(new NewCacheAccessEvent(processingCache.nextLevel.getLatency(),//FIXME
+						newEventQueue.addEvent(new NewCacheAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																				processingCache.nextLevel.getLatency().getTime()),//FIXME
 																		processingCache,
 																		processingCache.nextLevel,
 																		LSQ.INVALID_INDEX, 
@@ -201,7 +206,8 @@ public class NewCacheAccessEvent extends NewEvent
 			if (processingCache.isLastLevel)
 			{
 				//FIXME
-				newEventQueue.addEvent(new NewMainMemAccessEvent(processingCache.getLatency(), //FIXME : this is COMPLETELY incorrect
+				newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		Newmain.mainMemoryLatency.getTime()), //FIXME 
 																processingCache, 
 																0, //tieBreaker,
 																request.getAddr(),
@@ -211,11 +217,11 @@ public class NewCacheAccessEvent extends NewEvent
 			else
 			{
 				//Change the parameters of this event to forward it for scheduling next cache's access
+				this.setEventTime(new Time_t(GlobalClock.getCurrentTime() + processingCache.nextLevel.getLatency().getTime()));//FIXME
 				this.setRequestingElement(processingCache);
 				this.processingCache = processingCache.nextLevel;
 				this.lsqIndex = LSQ.INVALID_INDEX;
 				this.request.setType(RequestType.MEM_READ);
-				this.setEventTime(processingCache.getLatency());//FIXME
 				newEventQueue.addEvent(this);
 				return;
 			}

@@ -134,10 +134,12 @@ public class XMLParser
 			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", coreElmnt));
 			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", coreElmnt));
 			core.LSQAccessPorts = Integer.parseInt(getImmediateString("LSQAccessPorts", coreElmnt));
+			core.LSQPortOccupancy = Integer.parseInt(getImmediateString("LSQPortOccupancy", coreElmnt));
 			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", coreElmnt));
 			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
 			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
 			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
+			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
 			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", coreElmnt));
 			core.IntMulNum = Integer.parseInt(getImmediateString("IntMulNum", coreElmnt));
 			core.IntDivNum = Integer.parseInt(getImmediateString("IntDivNum", coreElmnt));
@@ -212,6 +214,7 @@ public class XMLParser
 		cache.size = Integer.parseInt(getImmediateString("Size", CacheType));
 		cache.latency = Integer.parseInt(getImmediateString("Latency", CacheType));
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
+		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
 		
 		tempStr = getImmediateString("LastLevel", CacheType);

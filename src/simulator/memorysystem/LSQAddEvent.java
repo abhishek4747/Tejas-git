@@ -20,6 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
+import generic.GlobalClock;
 import generic.NewEventQueue;
 import generic.NewEvent;
 import generic.RequestType;
@@ -55,8 +56,10 @@ public class LSQAddEvent extends NewEvent
 	@Override
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
+		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
+		
 		//Try to allocate the entry
-		int index = ((LSQ)(this.getProcessingElement())).addEntry(isLoad, addr);
+		int index = processingLSQ.addEntry(isLoad, addr);
 		
 		//If QUEUE_FULL, schedule to try again
 		if (index == LSQ.QUEUE_FULL)
@@ -70,9 +73,10 @@ public class LSQAddEvent extends NewEvent
 			
 		//Otherwise, check the TLB for address resolution
 		else
-			newEventQueue.addEvent(new TLBAddrSearchEvent(this.getEventTime(), //FIXME
+			newEventQueue.addEvent(new TLBAddrSearchEvent(new Time_t(GlobalClock.getCurrentTime() + 
+																	processingLSQ.containingMemSys.TLBuffer.getLatency().getTime()), //FIXME
 															this.getProcessingElement(),
-															((LSQ)(this.getProcessingElement())).containingMemSys.TLBuffer, 
+															processingLSQ.containingMemSys.TLBuffer, 
 															0, //tieBreaker,
 															RequestType.TLB_SEARCH, 
 															addr,
