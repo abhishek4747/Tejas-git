@@ -9,9 +9,6 @@ public class Port
 	private Time_t occupancy;
 	private Time_t portBusyUntil[];
 	
-	//FIXME: need a separate arrangement for globalClock.
-	private Time_t globalClock;
-	
 	public Port(int noOfPorts, Time_t occupancy)
 	{
 		//initialize no. of ports and the occupancy.
@@ -25,7 +22,7 @@ public class Port
 		{
 			for(int i=0; i < noOfPorts; i++)
 			{
-				this.portBusyUntil[i] = globalClock;
+				this.portBusyUntil[i] = new Time_t(GlobalClock.getCurrentTime());
 			}
 		}
 	}
@@ -33,10 +30,12 @@ public class Port
 	//returns the next available slot.
 	Time_t getNextSlot()
 	{
+		Time_t temp = new Time_t(GlobalClock.getCurrentTime());
+		
 		if(this.noOfPorts==-1 && this.occupancy.equals(-1))
 		{
 			//In case of unlimited ports, return now.
-			return globalClock;
+			return temp;
 		}
 		else
 		{
@@ -50,9 +49,9 @@ public class Port
 				}
 			}
 			
-			if(availableSlot.lessThan(globalClock))
+			if(availableSlot.lessThan(temp))
 			{
-				availableSlot = globalClock;
+				availableSlot = temp;
 			}
 			
 			return availableSlot;
@@ -71,7 +70,7 @@ public class Port
 		{
 			for(int i=0; i<noOfPorts; i++)
 			{
-				if(portBusyUntil[i].lessThan(globalClock))
+				if(portBusyUntil[i].lessThan(new Time_t(GlobalClock.getCurrentTime())))
 				{
 					portBusyUntil[i].add(noOfSlots);
 					return true;
