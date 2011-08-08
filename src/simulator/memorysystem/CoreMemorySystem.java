@@ -20,6 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
+import generic.Time_t;
 import config.SystemConfig;
 import config.CacheConfig;
 
@@ -47,34 +48,35 @@ public class CoreMemorySystem
 		
 		//Initialise the  L1 cache
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
-		l1Cache = new Cache(cacheParameterObj, this);
+		l1Cache = new Cache(cacheParameterObj);
 		//l1Cache.nextLevel = l2Cache;
 		
 		//Initialise the TLB
-		TLBuffer = new TLB(SystemConfig.core[coreID].TLBSize);
-		TLBuffer.setLatency(SystemConfig.core[coreID].TLBLatency);
-		TLBuffer.setPorts(SystemConfig.core[coreID].TLBAccessPorts);
-		TLBuffer.containingMemSys = this;
+		TLBuffer = new TLB(SystemConfig.core[coreID].TLBAccessPorts, 
+							Time_t occupancy, 
+							SystemConfig.core[coreID].TLBLatency,
+							this,
+							SystemConfig.core[coreID].TLBSize);
 		
 		//Initialise the LSQ
-		lsqueue = new LSQ(SystemConfig.core[coreID].LSQSize);
-		lsqueue.connectedL1Cache = l1Cache;
-		lsqueue.setLatency(SystemConfig.core[coreID].LSQLatency);
-		lsqueue.setPorts(SystemConfig.core[coreID].LSQAccessPorts);
+		lsqueue = new LSQ(SystemConfig.core[coreID].LSQAccessPorts, 
+							Time_t occupancy, 
+							SystemConfig.core[coreID].LSQLatency,
+							this, 
+							SystemConfig.core[coreID].LSQSize);
 		lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
-		lsqueue.containingMemSys = this;
 	}
-	
+/*	
 	public void read(long addr)
 	{
 		//Allocate the LSQ entry
-		MemEventQueue.eventQueue/*.get(threadID)*/.add(new LSQAddEvent(this, 
+		MemEventQueue.eventQueue.add(new LSQAddEvent(this, 
 																	true, 
 																	addr, 
 																	MemEventQueue.clock + lsqueue.getLatency()));
 		
 		//TLBuffer.getPhyAddrPage(addr);
-		//MemEventQueue.eventQueue.add(new TLBAccessEvent(this, addr, 25 /* latency*/));
+		//MemEventQueue.eventQueue.add(new TLBAccessEvent(this, addr, 25));
 		//CacheRequestPacket request = new CacheRequestPacket();
 		//request.tid = coreID;
 		//request.setType(CacheRequestPacket.readWrite.READ);
@@ -85,7 +87,7 @@ public class CoreMemorySystem
 	public void write(long addr)
 	{
 		//Allocate the LSQ entry
-		MemEventQueue.eventQueue/*.get(threadID)*/.add(new LSQAddEvent(this, 
+		MemEventQueue.eventQueue.add(new LSQAddEvent(this, 
 																	false, 
 																	addr, 
 																	MemEventQueue.clock + lsqueue.getLatency()));
@@ -97,4 +99,5 @@ public class CoreMemorySystem
 		//request.setAddr(addr);
 		//l1Cache.processEntry(request);
 	}
+	*/
 }
