@@ -26,19 +26,19 @@ import config.CacheConfig;
 
 public class CoreMemorySystem 
 {
-	protected int threadID;
+	protected int coreID;
 	protected Cache l1Cache;
-	protected Cache l2Cache;
-	protected Cache l3Cache;
+	//protected Cache l2Cache;
+	//protected Cache l3Cache;
 	protected TLB TLBuffer;
 	protected LSQ lsqueue;
 	
 	public CoreMemorySystem(int coreID)
 	{
-		threadID = coreID;
+		this.coreID = coreID;
 		
 		//Initialise the  L3 cache
-		CacheConfig cacheParameterObj;// = SystemConfig.core[coreID].l3Cache;
+		//CacheConfig cacheParameterObj;// = SystemConfig.core[coreID].l3Cache;
 		//l3Cache = new Cache(cacheParameterObj, this); 
 		
 		//Initialise the  L2 cache
@@ -47,6 +47,7 @@ public class CoreMemorySystem
 		//l2Cache.nextLevel = l3Cache;
 		
 		//Initialise the  L1 cache
+		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
 		l1Cache = new Cache(cacheParameterObj);
 		//l1Cache.nextLevel = l2Cache;

@@ -68,9 +68,16 @@ public class PassiveMemSysTest
 		new MemEventQueue();
 		Global.commitErrors = 0;
 		
+		initialiseMemSys();
+		
+	}
+	
+	public static void initialiseMemSys()
+	{
+		Hashtable<String, Cache> cacheList;
 		// initialising the memory system
 		
-		/*-- Initialize the memory system --*/
+		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
 		
 		/*First initialise the L2 and greater caches (to be linked with L1 caches and among themselves)*/
@@ -84,7 +91,7 @@ public class PassiveMemSysTest
 				cacheParameterObj = SystemConfig.declaredCaches.get(cacheName);
 				
 				//Declare the new cache
-				Cache newCache = new Cache(cacheParameterObj, null);
+				Cache newCache = new Cache(cacheParameterObj);
 				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
@@ -174,8 +181,7 @@ public class PassiveMemSysTest
 		}
 		Bus.lowerLevel.enforcesCoherence = true;
 		
-		propagateCoherencyUpwards(Bus.upperLevels);
-		
+		//propagateCoherencyUpwards(Bus.upperLevels);
 	}
 	
 	/**

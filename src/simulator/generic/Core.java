@@ -4,6 +4,7 @@ import pipeline.branchpredictor.TournamentPredictor;
 import pipeline.outoforder.ExecutionEngine;
 import pipeline.outoforder.PerformCommitsEvent;
 import pipeline.outoforder.PerformDecodeEvent;
+import memorysystem.CoreMemorySystem;
 
 /**
  * represents a single core
@@ -38,6 +39,9 @@ public class Core extends SimulationElement{
 	private int[] threadIDs;
 	
 	private TournamentPredictor branchPredictor;
+	
+	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
+	public CoreMemorySystem coreMemSys;
 
 	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionList[] incomingInstructionLists,
 					int[] threadIDs)

@@ -1,8 +1,17 @@
 package emulatorinterface;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 import pipeline.outoforder.BootPipelineEvent;
+import memorysystem.InitialiseMemSys;
 import generic.Time_t;
+import memorysystem.Bus;
+import memorysystem.Cache;
+import memorysystem.CoreMemorySystem;
+import memorysystem.Global;
 import misc.Error;
+import config.CacheConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 import config.XMLParser;
@@ -61,6 +70,9 @@ public class Newmain {
 		
 		//create cores
 		Core[] cores = initCores(eventQ, ipcBase);
+		
+		//Create the memory system
+		InitialiseMemSys.initialiseMemSys(cores);
 		
 		//commence pipeline
 		eventQ.addEvent(new BootPipelineEvent(cores, ipcBase, eventQ, 0));

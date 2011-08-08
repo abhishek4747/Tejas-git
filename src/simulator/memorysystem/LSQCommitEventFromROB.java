@@ -63,7 +63,7 @@ public class LSQCommitEventFromROB extends NewEvent
 		{
 			//TODO Uncomment these in the real system
 			//Global.commitErrors++;
-			System.err.println("Error in LSQ " +processingLSQ.containingMemSys.threadID+ " :  ROB sent commit for a load which has not received its value");
+			System.err.println("Error in LSQ " +processingLSQ.containingMemSys.coreID+ " :  ROB sent commit for a load which has not received its value");
 			System.exit(1);
 		}
 	}
