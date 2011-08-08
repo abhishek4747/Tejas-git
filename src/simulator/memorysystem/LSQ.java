@@ -141,47 +141,12 @@ public class LSQ extends SimulationElement
 			sindex = incrementQ(sindex);
 		}
 	}
-
+/*
 	public void processROBCommit(int index)
 	{
-		//Check the error condition
-		if (index != head)
-		{
-			System.err.println("Error in LSQ :  ROB sent commit for an instruction other than the one at the head");
-			System.exit(1);
-		}
-		
-		// advance the head of the queue
-		LSQEntry entry = lsqueue[index];
-		head = incrementQ(head);
-		curSize--;
-		//long address = entry.getAddr();
-		
-		// if it is a store, send the request to the cache
-		if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
-		{
-			//TODO Write to the cahe
-			CacheRequestPacket request = new CacheRequestPacket();
-			request.setThreadID(0);
-			request.setType(RequestType.MEM_WRITE);
-			request.setAddr(lsqueue[index].getAddr());
-			newEventQueue.addEvent(new NewCacheAccessEvent(containingMemSys.threadID,
-																							lsqueue[index], 
-																							containingMemSys.l1Cache, 
-																							request, 
-																							new Stack<CacheFillStackEntry>(),
-																							MemEventQueue.clock 
-																							+ containingMemSys.l1Cache.getLatency()));
-		}
-		else if (!(entry.isForwarded()))
-		{
-			//TODO Uncomment these in the real system
-			//Global.commitErrors++;
-			System.err.println("Error in LSQ " +containingMemSys.threadID+ " :  ROB sent commit for a load which has not received its value");
-			System.exit(1);
-		}
+		Went into LSQCommitEventFromROB
 	}
-
+*/
 	protected int incrementQ(int value)
 	{
 		value = (value+1)%lsqSize;

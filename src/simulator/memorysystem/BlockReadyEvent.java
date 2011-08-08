@@ -168,7 +168,12 @@ public class BlockReadyEvent extends NewEvent
 		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
 		{
 			receivingLSQ.lsqueue[lsqIndex].setStoreCommitted(true);
-			
+			//TODO : Also to increment the head of the queue. Following code is from the LSQCommitEventFromROB
+			/*
+			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
+			processingLSQ.curSize--;
+			//long address = entry.getAddr();
+			*/
 			//TODO : Commit the STORE entry in the LSQ and may be generate an event 
 			//to tell the ROB or something
 		}

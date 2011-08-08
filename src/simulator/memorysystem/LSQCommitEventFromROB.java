@@ -1,5 +1,7 @@
 package memorysystem;
 
+import java.util.Stack;
+
 import generic.*;
 
 public class LSQCommitEventFromROB extends NewEvent
@@ -18,6 +20,50 @@ public class LSQCommitEventFromROB extends NewEvent
 
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
+		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		
+		//Check the error condition
+		if (lsqIndex != processingLSQ.head)
+		{
+			System.err.println("Error in LSQ :  ROB sent commit for an instruction other than the one at the head");
+			System.exit(1);
+		}
+		
+//TODO : This needs to be moved some place especially for the store when it finally commits()
+		// advance the head of the queue
+		LSQEntry entry = processingLSQ.lsqueue[lsqIndex];
+		
+		// if it is a store, send the request to the cache
+		if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
+		{
+			//TODO Write to the cahe
+			CacheRequestPacket request = new CacheRequestPacket();
+			//request.setThreadID(0);
+			request.setType(RequestType.MEM_WRITE);
+			request.setAddr(processingLSQ.lsqueue[lsqIndex].getAddr());
+			newEventQueue.addEvent(new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatency(), //FIXME
+															processingLSQ,
+															processingLSQ.containingMemSys.l1Cache,
+															lsqIndex, 
+															0, //tieBreaker,
+															request));
+		}
+		
+		//If it is a LOAD which has received its value
+		else if (entry.isForwarded())
+		{
+			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
+			processingLSQ.curSize--;
+			//long address = entry.getAddr();
+		}
+		
+		//If it is a LOAD which has not yet received its value
+		else
+		{
+			//TODO Uncomment these in the real system
+			//Global.commitErrors++;
+			System.err.println("Error in LSQ " +processingLSQ.containingMemSys.threadID+ " :  ROB sent commit for a load which has not received its value");
+			System.exit(1);
+		}
 	}
 }
