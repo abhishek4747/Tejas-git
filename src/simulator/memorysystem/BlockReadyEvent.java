@@ -114,7 +114,7 @@ public class BlockReadyEvent extends NewEvent
 															0, //tieBreaker
 															RequestType.LSQ_LOAD_COMPLETE,
 															outstandingRequestList.get(0).address,
-															lsqIndex));
+															outstandingRequestList.get(0).lsqIndex));
 			}
 			
 			else if (outstandingRequestList.get(0).requestType == RequestType.MEM_WRITE)

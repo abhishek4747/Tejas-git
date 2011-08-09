@@ -79,8 +79,8 @@ public class InitializeMemSys
 		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			cores[i].getExecEngine().coreMemSys = new CoreMemorySystem(i);
-			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
+			cores[i].getExecEngine().coreMemSys = new CoreMemorySystem(cores[i]);
+//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			
 			//Set the next levels of the L1 cache
 			if (cores[i].getExecEngine().coreMemSys.l1Cache.isLastLevel == true) //If this is the last level, don't set anything
@@ -108,7 +108,7 @@ public class InitializeMemSys
 				System.exit(1);
 			}
 		}
-		
+/*		
 		//Initialising the BUS for cache coherence
 		if (!cacheList.containsKey(SystemConfig.coherenceEnforcingCache))
 		{
@@ -122,7 +122,7 @@ public class InitializeMemSys
 		}
 		Bus.lowerLevel.enforcesCoherence = true;
 		
-		propagateCoherencyUpwards(Bus.upperLevels);
+		propagateCoherencyUpwards(Bus.upperLevels);*/
 	}
 	
 	/**

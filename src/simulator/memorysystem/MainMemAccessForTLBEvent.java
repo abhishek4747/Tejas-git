@@ -49,7 +49,7 @@ public class MainMemAccessForTLBEvent extends NewEvent
 													null,
 													this.getRequestingElement(), 
 													0, //tieBreaker,
-													RequestType.TLB_ADD, 
+													RequestType.TLB_ADDRESS_READY, 
 													pageID));
 	}
 }

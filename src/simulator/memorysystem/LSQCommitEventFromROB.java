@@ -36,7 +36,7 @@ public class LSQCommitEventFromROB extends NewEvent
 		// if it is a store, send the request to the cache
 		if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
 		{
-			//TODO Write to the cahe
+			//TODO Write to the cache
 			CacheRequestPacket request = new CacheRequestPacket();
 			//request.setThreadID(0);
 			request.setType(RequestType.MEM_WRITE);

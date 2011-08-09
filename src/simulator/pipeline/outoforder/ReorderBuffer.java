@@ -72,7 +72,8 @@ public class ReorderBuffer extends SimulationElement{
 	//	if it didn't raise an exception (in simulation, exceptions aren't possible)
 	//	and it isn't a mis-predicted branch
 	public void performCommits()
-	{
+	{	
+		int tieBreaker = 0;
 		while(true)
 		{
 			if(ROB.size() <= 0)
@@ -115,11 +116,13 @@ public class ReorderBuffer extends SimulationElement{
 					//System.out.println("committed : " + first.getInstruction());
 					
 					//TODO Signal LSQ for committing the Instruction at the queue head
-					core.getEventQueue().addEvent(new LSQCommitEventFromROB(new Time_t(GlobalClock.getCurrentTime() +
+					if(first.getInstruction().getOperationType() == OperationType.load ||
+							first.getInstruction().getOperationType() == OperationType.store)
+						core.getEventQueue().addEvent(new LSQCommitEventFromROB(new Time_t(GlobalClock.getCurrentTime() +
 																					core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime()),
 																			this,
 																			core.getExecEngine().coreMemSys.getLsqueue(), 
-																			0, //tieBreaker,
+																			tieBreaker, //tieBreaker,
 																			RequestType.LSQ_COMMIT, 
 																			first.getLsqIndex()));
 					ROB.removeFirst();
@@ -144,6 +147,7 @@ public class ReorderBuffer extends SimulationElement{
 			{
 				break;
 			}
+			tieBreaker++;
 		}
 	}
 	

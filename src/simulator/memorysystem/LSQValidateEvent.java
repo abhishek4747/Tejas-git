@@ -58,7 +58,7 @@ public class LSQValidateEvent extends NewEvent
 				//Direct address must not be set as it is pageID in some cases
 				newEventQueue.addEvent(new NewCacheAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
 																		processingLSQ.containingMemSys.l1Cache.getLatency().getTime()),//FIXME
-															this.getProcessingElement(),
+															processingLSQ,
 															processingLSQ.containingMemSys.l1Cache,
 															lsqIndex, 
 															0, //tieBreaker,

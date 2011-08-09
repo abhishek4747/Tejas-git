@@ -46,7 +46,7 @@ public class LSQ extends SimulationElement
 	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
 	protected int requestsProcessedThisCycle = 0;
 	
-	protected static final int INVALID_INDEX = -1;
+	public static final int INVALID_INDEX = -1;
 
 	public LSQ(int noOfPorts, Time_t occupancy, Time_t latency,
 			CoreMemorySystem containingMemSys, int lsqSize) 
@@ -66,8 +66,8 @@ public class LSQ extends SimulationElement
 					: LSQEntry.LSQEntryType.STORE;
 			LSQEntry entry = new LSQEntry(type, robEntry);
 			int index = tail;
-			lsqueue[index].setAddr(address);
-			lsqueue[tail] = entry;
+			entry.setAddr(address);
+			lsqueue[index] = entry;
 			tail = incrementQ(tail);
 			this.curSize++;
 			return index;
@@ -102,6 +102,10 @@ public class LSQ extends SimulationElement
 				{
 					// successfully forwarded the value
 					entry.setForwarded(true);
+					containingMemSys.core.getEventQueue().addEvent(new ExecutionCompleteEvent(entry.getRobEntry(),
+									-1,
+									containingMemSys.core,
+									GlobalClock.getCurrentTime()));
 					return true;
 				}
 			}

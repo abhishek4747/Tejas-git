@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import memorysystem.LSQ;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -17,19 +18,15 @@ public class ReorderBufferEntry {
 	private boolean isExecuted;
 	private long readyAtTime;
 	private IWEntry associatedIWEntry;
-	private int lsqIndex; //Index of the entry in LSQ
+	private int lsqIndex = LSQ.INVALID_INDEX; //Index of the entry in LSQ
 	
 	protected int getLsqIndex() {
 		return lsqIndex;
 	}
 
-
-
 	protected void setLsqIndex(int lsqIndex) {
 		this.lsqIndex = lsqIndex;
 	}
-
-
 
 	public ReorderBufferEntry(Core core, Instruction objectsInstruction)
 	{

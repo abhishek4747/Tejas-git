@@ -160,9 +160,14 @@ public class ExecutionCompleteEvent extends NewEvent {
 	void writeBackForOthers(RegisterFile tempRF, RenameTable tempRN)
 	{
 		//check if the execution has completed
-		long time_of_completion = core.getExecEngine().getFunctionalUnitSet().getTimeWhenFUAvailable(
+		long time_of_completion = 0;
+		if(reorderBufferEntry.getInstruction().getOperationType() != OperationType.load &&
+				reorderBufferEntry.getInstruction().getOperationType() != OperationType.store)
+		{
+			time_of_completion = core.getExecEngine().getFunctionalUnitSet().getTimeWhenFUAvailable(
 				OpTypeToFUTypeMapping.getFUType(reorderBufferEntry.getInstruction().getOperationType()),
 				FUInstance );
+		}
 		
 		if(time_of_completion <= GlobalClock.getCurrentTime())
 		{

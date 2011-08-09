@@ -34,7 +34,8 @@ public class TLB extends SimulationElement
 	protected int tlbMisses = 0;
 	
 	//Outstanding Request Table : Stores pageID vs LSQEntryIndex
-	protected Hashtable<Long, ArrayList<Integer>> outstandingRequestTable;
+	protected Hashtable<Long, ArrayList<Integer>> outstandingRequestTable
+			= new Hashtable<Long, ArrayList<Integer>>();
 	
 	//For telling that what addresses are processed this cycle (for BANKED multi-port option)
 	protected ArrayList<Long> addressesProcessedThisCycle = new ArrayList<Long>();
@@ -49,6 +50,7 @@ public class TLB extends SimulationElement
 		TLBSize = tlbSize;
 		this.timestamp = 0;
 		TLBuffer = new Hashtable<Long, TLBEntry>(TLBSize);
+		this.containingMemSys =containingMemSys;
 	}
 	
 	/**
