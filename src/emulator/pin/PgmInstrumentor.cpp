@@ -57,8 +57,8 @@ VOID ThreadFini(THREADID tid,const CONTEXT *ctxt, INT32 flags, VOID *v)
 // Pass a memory read record
 VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 {
-	if ((int)ip>= START_ADDRESS && (int)ip <= END_ADDRESS) {
-		while (tst->analysisFn(tid,(UINT64)ip,2,(UINT64)addr)== -1) {
+	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		while (tst->analysisFn(tid,(uint64_t)ip,2,(uint64_t)addr)== -1) {
 			PIN_Yield();
 		}
 	}
@@ -67,8 +67,8 @@ VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 // Pass a memory write record
 VOID RecordMemWrite(THREADID tid,VOID * ip, VOID * addr)
 {
-	if ((int)ip>= START_ADDRESS && (int)ip <= END_ADDRESS) {
-		while(tst->analysisFn(tid,(UINT64)ip,3,(UINT64)addr)== -1) {
+	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		while(tst->analysisFn(tid,(uint64_t)ip,3,(uint64_t)addr)== -1) {
 			PIN_Yield();
 		}
 	}
@@ -76,14 +76,14 @@ VOID RecordMemWrite(THREADID tid,VOID * ip, VOID * addr)
 
 VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 {
-	if ((int)ip>= START_ADDRESS && (int)ip <= END_ADDRESS) {
+	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
 		if (taken) {
-			while (tst->analysisFn(tid,(UINT64)ip,4,(UINT64)tadr)==-1) {
+			while (tst->analysisFn(tid,(uint64_t)ip,4,(uint64_t)tadr)==-1) {
 				PIN_Yield();
 			}
 		}
 		else {
-			while (tst->analysisFn(tid,(UINT64)ip,5,(UINT64)tadr)==-1) {
+			while (tst->analysisFn(tid,(uint64_t)ip,5,(uint64_t)tadr)==-1) {
 				PIN_Yield();
 			}
 		}
@@ -92,8 +92,8 @@ VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 
 VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 {
-	if ((int)ip>= START_ADDRESS && (int)ip <= END_ADDRESS) {
-		while (tst->analysisFn(tid,(UINT64)ip,6,(UINT64)_reg)== -1) {
+	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		while (tst->analysisFn(tid,(uint64_t)ip,6,(uint64_t)_reg)== -1) {
 			PIN_Yield();
 		}
 	}
@@ -102,8 +102,8 @@ VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 
 VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
 {
-	if ((int)ip>= START_ADDRESS && (int)ip <= END_ADDRESS) {
-		while (tst->analysisFn(tid,(UINT64)ip,7,(UINT64)_reg)== -1) {
+	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		while (tst->analysisFn(tid,(uint64_t)ip,7,(uint64_t)_reg)== -1) {
 			PIN_Yield();
 		}
 	}
