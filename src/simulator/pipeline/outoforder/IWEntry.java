@@ -1,10 +1,14 @@
 package pipeline.outoforder;
 
+import memorysystem.LSQAddressReadyEvent;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.ExecutionCompleteEvent;
+import generic.RequestType;
+import generic.SimulationElement;
+import generic.Time_t;
 
 /**
  * represents an entry in the instruction window
@@ -92,45 +96,66 @@ public class IWEntry {
 	
 	void issueOthers()
 	{
-		long FURequest = 0;	//will be <= 0 if an FU was obtained
-		//will be > 0 otherwise, indicating how long before
-		//	an FU of the type will be available
-
-		FURequest = core.getExecEngine().getFunctionalUnitSet().requestFU(
-		OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()),
-		GlobalClock.getCurrentTime());
-		
-		if(FURequest <= 0)
+		if(associatedROBEntry.getInstruction().getOperationType() == OperationType.load ||
+				associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
 		{
 			associatedROBEntry.setIssued(true);
-			associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
-			associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
-			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
-			
-			//remove IW entry
+			if(associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
+				associatedROBEntry.setExecuted(true);
 			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
-			
-			core.getEventQueue().addEvent(
-				new ExecutionCompleteEvent(
-						this.getAssociatedROBEntry(),
-						associatedROBEntry.getFUInstance(),
-						core,
-						GlobalClock.getCurrentTime() + core.getLatency(
-								OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal())
-						) );
+			//TODO do something about readyAtTime
+			//TODO add event to indicate address ready
+			core.getEventQueue().addEvent(new LSQAddressReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+																core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime()), 
+														null, //Requesting Element
+														core.getExecEngine().coreMemSys.getLsqueue(), 
+														0, //tieBreaker,
+														RequestType.TLB_ADDRESS_READY,
+														associatedROBEntry.getLsqIndex()));
 		}
 		
 		else
 		{
+			long FURequest = 0;	//will be <= 0 if an FU was obtained
+			//will be > 0 otherwise, indicating how long before
+			//	an FU of the type will be available
+	
+			FURequest = core.getExecEngine().getFunctionalUnitSet().requestFU(
+			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()),
+			GlobalClock.getCurrentTime());
 			
-			associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
-			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
+			if(FURequest <= 0)
+			{
+				associatedROBEntry.setIssued(true);
+				associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
+				associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
+				OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
+				
+				//remove IW entry
+				core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+				
+				core.getEventQueue().addEvent(
+					new ExecutionCompleteEvent(
+							this.getAssociatedROBEntry(),
+							associatedROBEntry.getFUInstance(),
+							core,
+							GlobalClock.getCurrentTime() + core.getLatency(
+									OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal())
+							) );
+			}
 			
-			core.getEventQueue().addEvent(
-					new FunctionalUnitAvailableEvent(
-						this.core,
-						this.getAssociatedROBEntry(),
-						FURequest ) );
+			else
+			{
+				
+				associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
+				OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()));
+				
+				core.getEventQueue().addEvent(
+						new FunctionalUnitAvailableEvent(
+							this.core,
+							this.getAssociatedROBEntry(),
+							FURequest ) );
+			}
 		}
 	}
 

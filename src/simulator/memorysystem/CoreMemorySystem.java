@@ -20,6 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
+import generic.Core;
 import generic.Time_t;
 import config.SystemConfig;
 import config.CacheConfig;
@@ -27,15 +28,17 @@ import config.CacheConfig;
 public class CoreMemorySystem 
 {
 	protected int coreID;
+	protected Core core;
 	protected Cache l1Cache;
 	//protected Cache l2Cache;
 	//protected Cache l3Cache;
 	protected TLB TLBuffer;
 	protected LSQ lsqueue;
 	
-	public CoreMemorySystem(int coreID)
+	public CoreMemorySystem(Core core)
 	{
-		this.coreID = coreID;
+		this.core = core;
+		this.coreID = core.getCore_number();
 		
 		//Initialise the  L3 cache
 		//CacheConfig cacheParameterObj;// = SystemConfig.core[coreID].l3Cache;
@@ -101,4 +104,8 @@ public class CoreMemorySystem
 		//l1Cache.processEntry(request);
 	}
 	*/
+
+	public LSQ getLsqueue() {
+		return lsqueue;
+	}
 }

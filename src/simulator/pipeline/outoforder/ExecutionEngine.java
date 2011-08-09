@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import memorysystem.CoreMemorySystem;
 import generic.Core;
 
 /**
@@ -22,6 +23,9 @@ public class ExecutionEngine {
 	private RenameTable integerRenameTable;
 	private RenameTable floatingPointRenameTable;
 	private FunctionalUnitSet functionalUnitSet;
+	
+	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
+	public CoreMemorySystem coreMemSys;
 	
 	//flags
 	private boolean toStallDecode1;				//if physical register cannot be

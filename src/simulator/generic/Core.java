@@ -39,9 +39,6 @@ public class Core extends SimulationElement{
 	private int[] threadIDs;
 	
 	private TournamentPredictor branchPredictor;
-	
-	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
-	public CoreMemorySystem coreMemSys;
 
 	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionList[] incomingInstructionLists,
 					int[] threadIDs)
@@ -63,7 +60,7 @@ public class Core extends SimulationElement{
 	
 	private void initializeCoreParameters()
 	{
-		//TODO parameters to be set according to contents of an xml configuration file
+		//TODO parameters to be set according to contents of an XML configuration file
 		setDecodeWidth(4);
 		setDecodeTime(1);
 		setRenamingTime(2);

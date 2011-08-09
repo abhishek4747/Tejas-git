@@ -9,9 +9,9 @@ import generic.Core;
 import config.CacheConfig;
 import config.SystemConfig;
 
-public class InitialiseMemSys 
+public class InitializeMemSys 
 {
-	public static void initialiseMemSys(Core[] cores)
+	public static void initializeMemSys(Core[] cores)
 	{
 		System.out.println("initializing memory system...");
 		
@@ -76,19 +76,19 @@ public class InitialiseMemSys
 		}
 		
 		//Initialise the core memory systems
-		Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
+		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			Global.memSys[i] = new CoreMemorySystem(i);
-			Bus.upperLevels.add(Global.memSys[i].l1Cache);
+			cores[i].getExecEngine().coreMemSys = new CoreMemorySystem(i);
+			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			
 			//Set the next levels of the L1 cache
-			if (Global.memSys[i].l1Cache.isLastLevel == true) //If this is the last level, don't set anything
+			if (cores[i].getExecEngine().coreMemSys.l1Cache.isLastLevel == true) //If this is the last level, don't set anything
 			{
 				continue;
 			}
 			
-			String nextLevelName = Global.memSys[i].l1Cache.nextLevelName;
+			String nextLevelName = cores[i].getExecEngine().coreMemSys.l1Cache.nextLevelName;
 			
 			if (nextLevelName.isEmpty())
 			{
@@ -99,8 +99,8 @@ public class InitialiseMemSys
 			if (cacheList.containsKey(nextLevelName)) 
 			{
 				//Point the cache to its next level
-				Global.memSys[i].l1Cache.nextLevel = cacheList.get(nextLevelName);
-				Global.memSys[i].l1Cache.nextLevel.prevLevel.add(Global.memSys[i].l1Cache);
+				cores[i].getExecEngine().coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
+				cores[i].getExecEngine().coreMemSys.l1Cache.nextLevel.prevLevel.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			}
 			else
 			{

@@ -27,10 +27,9 @@ import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
 
-public class LSQAddEvent extends NewEvent 
+public class LSQAddressReadyEvent extends NewEvent 
 {
-	boolean isLoad;
-	long addr;
+	int lsqIndex;
 	//CoreMemorySystem containingMemSys;
 /*
 	public LSQAddEvent(CoreMemorySystem _containingMemSys, boolean _isLoad, long _addr, long eventTime)
@@ -42,15 +41,14 @@ public class LSQAddEvent extends NewEvent
 		containingMemSys = _containingMemSys;
 	}
 */	
-	public LSQAddEvent(Time_t eventTime, SimulationElement requestingElement,
+	public LSQAddressReadyEvent(Time_t eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,
-			RequestType requestType, boolean isLoad, long addr)
+			RequestType requestType, int lsqIndex)
 	{
 		super(eventTime, requestingElement, processingElement, tieBreaker,
 				requestType);
 		
-		this.isLoad = isLoad;
-		this.addr = addr;
+		this.lsqIndex =lsqIndex;
 	}
 
 	@Override
@@ -58,28 +56,13 @@ public class LSQAddEvent extends NewEvent
 	{
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		
-		//Try to allocate the entry
-		int index = processingLSQ.addEntry(isLoad, addr);
-		
-		//If QUEUE_FULL, schedule to try again
-		if (index == LSQ.QUEUE_FULL)
-		{
-			this.setEventTime(this.getEventTime());//FIXME 
-			//TODO : Also change the priority if needed
-			
-			//Save one object creation and add this event to the event queue again
-			newEventQueue.addEvent(this);
-		}
-			
-		//Otherwise, check the TLB for address resolution
-		else
-			newEventQueue.addEvent(new TLBAddrSearchEvent(new Time_t(GlobalClock.getCurrentTime() + 
-																	processingLSQ.containingMemSys.TLBuffer.getLatency().getTime()), //FIXME
-															this.getProcessingElement(),
-															processingLSQ.containingMemSys.TLBuffer, 
-															0, //tieBreaker,
-															RequestType.TLB_SEARCH, 
-															addr,
-															index));
+		newEventQueue.addEvent(new TLBAddrSearchEvent(new Time_t(GlobalClock.getCurrentTime() + 
+															processingLSQ.containingMemSys.TLBuffer.getLatency().getTime()), //FIXME
+														processingLSQ,
+														processingLSQ.containingMemSys.TLBuffer, 
+														0, //tieBreaker,
+														RequestType.TLB_SEARCH, 
+														processingLSQ.lsqueue[lsqIndex].getAddr(),
+														lsqIndex));
 	}
 }

@@ -48,6 +48,9 @@ public class LSQCommitEventFromROB extends NewEvent
 															lsqIndex, 
 															0, //tieBreaker,
 															request));
+			
+			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
+			processingLSQ.curSize--;
 		}
 		
 		//If it is a LOAD which has received its value

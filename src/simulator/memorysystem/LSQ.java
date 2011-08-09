@@ -23,6 +23,8 @@ package memorysystem;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import pipeline.outoforder.ReorderBufferEntry;
+
 import generic.*;
 
 public class LSQ extends SimulationElement
@@ -33,7 +35,7 @@ public class LSQ extends SimulationElement
 	protected int head = 0;	// Instructions retire at the head
 	protected int lsqSize;
 	protected int curSize;
-	public static final int QUEUE_FULL = -1;
+	//public static final int QUEUE_FULL = -1;
 		
 	public int NoOfLd = 0; //Total number of load instructions encountered
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
@@ -56,21 +58,21 @@ public class LSQ extends SimulationElement
 		lsqueue = new LSQEntry[lsqSize];	
 	}
 
-	public int addEntry(boolean isLoad, long address) //To be accessed at the time of allocating the entry
+	public int addEntry(boolean isLoad, long address, ReorderBufferEntry robEntry) //To be accessed at the time of allocating the entry
 	{
-		if (curSize < lsqSize)
-		{
+		//if (curSize < lsqSize)
+		//{
 			LSQEntry.LSQEntryType type = (isLoad) ? LSQEntry.LSQEntryType.LOAD 
 					: LSQEntry.LSQEntryType.STORE;
-			LSQEntry entry = new LSQEntry(type);
-			entry.setAddr(address);
+			LSQEntry entry = new LSQEntry(type, robEntry);
 			int index = tail;
+			lsqueue[index].setAddr(address);
 			lsqueue[tail] = entry;
-			tail = incrementQ(tail);// TODO Set the physical address and data whenever available
+			tail = incrementQ(tail);
 			this.curSize++;
 			return index;
-		}
-		else return QUEUE_FULL; // -1 signifies that the queue is full
+		//}
+		//else return QUEUE_FULL; // -1 signifies that the queue is full
 	}
 
 	public boolean loadValidate(int index, long address)
@@ -159,6 +161,14 @@ public class LSQ extends SimulationElement
 		else if (value == 0)
 			value = lsqSize - 1;
 		return value;
+	}
+	
+	public boolean isFull()
+	{
+		if (curSize >= lsqSize)
+			return true;
+		else 
+			return false;
 	}
 	
 	/**

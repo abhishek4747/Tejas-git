@@ -5,10 +5,13 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperandType;
 import generic.OperationType;
+import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
 
 import java.util.LinkedList;
+
+import memorysystem.LSQCommitEventFromROB;
 
 public class ReorderBuffer extends SimulationElement{
 	
@@ -109,11 +112,18 @@ public class ReorderBuffer extends SimulationElement{
 						}
 					}
 					
+					//System.out.println("committed : " + first.getInstruction());
+					
+					//TODO Signal LSQ for committing the Instruction at the queue head
+					core.getEventQueue().addEvent(new LSQCommitEventFromROB(new Time_t(GlobalClock.getCurrentTime() +
+																					core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime()),
+																			this,
+																			core.getExecEngine().coreMemSys.getLsqueue(), 
+																			0, //tieBreaker,
+																			RequestType.LSQ_COMMIT, 
+																			first.getLsqIndex()));
 					ROB.removeFirst();
 					
-					//System.out.println("commited : " + first.getInstruction());
-					
-					//signal LSQ
 				}
 				else
 				{

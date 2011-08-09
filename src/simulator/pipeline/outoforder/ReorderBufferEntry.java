@@ -17,8 +17,20 @@ public class ReorderBufferEntry {
 	private boolean isExecuted;
 	private long readyAtTime;
 	private IWEntry associatedIWEntry;
-	//TODO private LSQEntry associated LSQEntry;
+	private int lsqIndex; //Index of the entry in LSQ
 	
+	protected int getLsqIndex() {
+		return lsqIndex;
+	}
+
+
+
+	protected void setLsqIndex(int lsqIndex) {
+		this.lsqIndex = lsqIndex;
+	}
+
+
+
 	public ReorderBufferEntry(Core core, Instruction objectsInstruction)
 	{
 		instruction = objectsInstruction;

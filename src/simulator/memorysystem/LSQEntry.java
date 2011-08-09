@@ -20,10 +20,17 @@
 *****************************************************************************/
 package memorysystem;
 
+import pipeline.outoforder.ReorderBufferEntry;
+
 
 public class LSQEntry
 {
 	private LSQEntryType type;
+	public ReorderBufferEntry getRobEntry() {
+		return robEntry;
+	}
+
+	private ReorderBufferEntry robEntry;
 	private long addr;
 	private boolean valid;
 	private boolean forwarded;//Whether the load has got its value or not
@@ -32,9 +39,10 @@ public class LSQEntry
 	
 	public enum LSQEntryType {LOAD, STORE};
 	
-	public LSQEntry(LSQEntryType type)
+	public LSQEntry(LSQEntryType type, ReorderBufferEntry robEntry)
 	{
 		this.type = type;
+		this.robEntry = robEntry;
 		valid = false;
 		forwarded = false;
 		storeCommitted = false;

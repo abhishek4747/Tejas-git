@@ -2,11 +2,15 @@ package memorysystem;
 
 import java.util.ArrayList;
 
+import pipeline.outoforder.ReorderBufferEntry;
+import generic.ExecutionCompleteEvent;
+
 import config.CacheConfig;
 import emulatorinterface.Newmain;
 
 import memorysystem.LSQEntry.LSQEntryType;
 
+import generic.Core;
 import generic.GlobalClock;
 import generic.NewEventQueue;
 import generic.Time_t;
@@ -117,7 +121,7 @@ public class BlockReadyEvent extends NewEvent
 			{
 				//Write the value to the block (Do Nothing)
 				//Pass the value to the waiting element
-				//Create an event (BlockReadyEvent) for the waiting element
+	/*			//Create an event (BlockReadyEvent) for the waiting element
 				if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
 					//(If the requesting element is LSQ)
 					//Generate the event to tell the LSQ
@@ -129,7 +133,7 @@ public class BlockReadyEvent extends NewEvent
 															RequestType.LSQ_WRITE_COMMIT,
 															outstandingRequestList.get(0).address,
 															lsqIndex));
-				
+	*/			
 				if (receivingCache.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 				{
 					//Handle in any case (Whether requesting element is LSQ or cache)
@@ -168,10 +172,11 @@ public class BlockReadyEvent extends NewEvent
 		if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.LOAD)
 		{
 			receivingLSQ.lsqueue[lsqIndex].setForwarded(true);
-			
-			//TODO : May be here will come a call to an event to tell the processing unit
-			//that the data is available
-		}
+			newEventQueue.addEvent(new ExecutionCompleteEvent(receivingLSQ.lsqueue[lsqIndex].getRobEntry(),
+									-1,
+									receivingLSQ.containingMemSys.core,
+									this.getEventTime().getTime()));
+		}/*
 		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
 		{
 			receivingLSQ.lsqueue[lsqIndex].setStoreCommitted(true);
@@ -180,10 +185,10 @@ public class BlockReadyEvent extends NewEvent
 			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
 			processingLSQ.curSize--;
 			//long address = entry.getAddr();
-			*/
+			*
 			//TODO : Commit the STORE entry in the LSQ and may be generate an event 
 			//to tell the ROB or something
-		}
+		}*/
 			
 	}
 }

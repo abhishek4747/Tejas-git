@@ -10,6 +10,7 @@ import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 import generic.RequestType;
+import generic.SimulationElement;
 import generic.Time_t;
 
 /**
@@ -94,22 +95,29 @@ public class DecodeCompleteEvent extends NewEvent {
 					&& core.getExecEngine().getInstructionWindow().isFull() == false
 					&& core.getExecEngine().isStallDecode1() == false)
 			{
-				newInstruction = core.getIncomingInstructions(threadID).pollFirst();
+				newInstruction = core.getIncomingInstructions(threadID).peekInstructionAt(0);
 				
-				if(newInstruction != null)
+				if((newInstruction.getOperationType() != OperationType.load &&
+					newInstruction.getOperationType() != OperationType.store) ||
+					(!this.core.getExecEngine().coreMemSys.getLsqueue().isFull()))
 				{
-					if(newInstruction.getOperationType() == OperationType.inValid)
+					newInstruction = core.getIncomingInstructions(threadID).pollFirst();
+					
+					if(newInstruction != null)
 					{
-						core.getExecEngine().setDecodePipeEmpty(true);
+						if(newInstruction.getOperationType() == OperationType.inValid)
+						{
+							core.getExecEngine().setDecodePipeEmpty(true);
+							break;
+						}
+						makeROBEntries(newInstruction);
+					}
+					else
+					{
+						//core.getExecEngine().setDecodePipeEmpty(true);
+						System.out.println("input to pipe is empty");
 						break;
 					}
-					makeROBEntries(newInstruction);
-				}
-				else
-				{
-					//core.getExecEngine().setDecodePipeEmpty(true);
-					System.out.println("input to pipe is empty");
-					break;
 				}
 			}
 		}
@@ -125,6 +133,18 @@ public class DecodeCompleteEvent extends NewEvent {
 				.getReorderBuffer().addInstructionToROB(newInstruction);
 			
 			//TODO if load or store, make entry in LSQ
+			if(newInstruction.getOperationType() == OperationType.load ||
+					newInstruction.getOperationType() == OperationType.store)
+			{
+				boolean isLoad;
+				if (newInstruction.getOperationType() == OperationType.load)
+					isLoad = true;
+				else
+					isLoad = false;
+					
+				newROBEntry.setLsqIndex(this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
+									newROBEntry.getInstruction().getSourceOperand1().getValue(), newROBEntry));
+			}
 			
 			//perform renaming			
 			processOperand1(newROBEntry);

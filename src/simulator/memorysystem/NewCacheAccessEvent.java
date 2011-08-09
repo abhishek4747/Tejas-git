@@ -104,7 +104,7 @@ public class NewCacheAccessEvent extends NewEvent
 			else if (request.getType() == RequestType.MEM_WRITE)
 			{
 				//Write the data to the cache block (Do Nothing)
-				//Tell the LSQ (if this is L1) that write is done
+/*				//Tell the LSQ (if this is L1) that write is done
 				if (lsqIndex != LSQ.INVALID_INDEX)
 				{
 					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
@@ -116,6 +116,7 @@ public class NewCacheAccessEvent extends NewEvent
 																request.getAddr(),
 																lsqIndex));
 				}	
+*/
 				
 				if (processingCache.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 				{

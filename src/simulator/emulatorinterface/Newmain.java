@@ -4,7 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import pipeline.outoforder.BootPipelineEvent;
-import memorysystem.InitialiseMemSys;
+import memorysystem.InitializeMemSys;
 import generic.Time_t;
 import memorysystem.Bus;
 import memorysystem.Cache;
@@ -72,7 +72,7 @@ public class Newmain {
 		Core[] cores = initCores(eventQ, ipcBase);
 		
 		//Create the memory system
-		InitialiseMemSys.initialiseMemSys(cores);
+		InitializeMemSys.initializeMemSys(cores);
 		
 		//commence pipeline
 		eventQ.addEvent(new BootPipelineEvent(cores, ipcBase, eventQ, 0));
