@@ -21,7 +21,6 @@
 package memorysystem;
 
 import java.util.ArrayList;
-import java.util.Stack;
 
 import pipeline.outoforder.ReorderBufferEntry;
 
@@ -91,7 +90,7 @@ public class LSQ extends SimulationElement
 
 	protected boolean loadResolve(int index, LSQEntry entry)
 	{
-		int tmpIndex = index;
+		int tmpIndex = decrementQ(index);
 
 		while(true)
 		{
@@ -100,13 +99,18 @@ public class LSQ extends SimulationElement
 			{
 				if (tmpEntry.getAddr() == entry.getAddr())
 				{
-					// successfully forwarded the value
-					entry.setForwarded(true);
-					containingMemSys.core.getEventQueue().addEvent(new ExecutionCompleteEvent(entry.getRobEntry(),
-									-1,
-									containingMemSys.core,
-									GlobalClock.getCurrentTime()));
-					return true;
+					if (tmpEntry.isValid())
+					{
+						// Successfully forwarded the value
+						entry.setForwarded(true);
+						containingMemSys.core.getEventQueue().addEvent(new ExecutionCompleteEvent(entry.getRobEntry(),
+										-1,
+										containingMemSys.core,
+										GlobalClock.getCurrentTime()));
+						return true;
+					}
+					else
+						break;
 				}
 			}
 			if(tmpIndex == head)
@@ -125,7 +129,7 @@ public class LSQ extends SimulationElement
 
 	protected void storeResolve(int index, LSQEntry entry)
 	{
-		int sindex = index;
+		int sindex = incrementQ(index);
 		while (sindex != tail) //Alright
 		{
 			LSQEntry tmpEntry = lsqueue[sindex];
@@ -133,13 +137,21 @@ public class LSQ extends SimulationElement
 			{
 				if(tmpEntry.getAddr() == entry.getAddr()) 
 				{
-					tmpEntry.setForwarded(true);
-					NoOfForwards++;
+					if (tmpEntry.isValid())
+					{
+						tmpEntry.setForwarded(true);
+						containingMemSys.core.getEventQueue().addEvent(
+								new ExecutionCompleteEvent(tmpEntry.getRobEntry(),
+										-1,
+										containingMemSys.core,
+										GlobalClock.getCurrentTime()));
+						NoOfForwards++;
+					}
 				}
 			}
 			else //It is a STORE
 			{
-				if(tmpEntry.getAddr() == entry.getAddr())
+				if((tmpEntry.getAddr() == entry.getAddr()) || !(tmpEntry.isValid()))
 					return;
 			}
 			
