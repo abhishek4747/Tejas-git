@@ -3,6 +3,7 @@ package memorysystem;
 import java.util.ArrayList;
 
 import pipeline.outoforder.ReorderBufferEntry;
+import generic.PortRequestEvent;
 import generic.ExecutionCompleteEvent;
 
 import config.CacheConfig;
@@ -97,24 +98,28 @@ public class BlockReadyEvent extends NewEvent
 				//Generate the event for the Upper level cache or LSQ
 				if (outstandingRequestList.get(0).lsqIndex == LSQ.INVALID_INDEX)
 					//Generate the event for the Upper level cache
-					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
-																		outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
-															this.getProcessingElement(),
-															outstandingRequestList.get(0).requestingElement, 
-															0, //tieBreaker
-															RequestType.MEM_BLOCK_READY,
-															outstandingRequestList.get(0).address,
-															lsqIndex));
+					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+							RequestType.PORT_REQUEST, 
+							int noOfSlots, 
+							new BlockReadyEvent(new Time_t(outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
+									this.getProcessingElement(),
+									outstandingRequestList.get(0).requestingElement, 
+									0, //tieBreaker
+									RequestType.MEM_BLOCK_READY,
+									outstandingRequestList.get(0).address,
+									lsqIndex)));
 				else
 					//Generate the event to tell the LSQ
-					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
-																		outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
-															this.getProcessingElement(),
-															outstandingRequestList.get(0).requestingElement, 
-															0, //tieBreaker
-															RequestType.LSQ_LOAD_COMPLETE,
-															outstandingRequestList.get(0).address,
-															outstandingRequestList.get(0).lsqIndex));
+					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+							RequestType.PORT_REQUEST, 
+							int noOfSlots,
+							new BlockReadyEvent(new Time_t(outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
+									this.getProcessingElement(),
+									outstandingRequestList.get(0).requestingElement, 
+									0, //tieBreaker
+									RequestType.LSQ_LOAD_COMPLETE,
+									outstandingRequestList.get(0).address,
+									outstandingRequestList.get(0).lsqIndex)));
 			}
 			
 			else if (outstandingRequestList.get(0).requestType == RequestType.MEM_WRITE)
@@ -125,8 +130,7 @@ public class BlockReadyEvent extends NewEvent
 				if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
 					//(If the requesting element is LSQ)
 					//Generate the event to tell the LSQ
-					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
-																		outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
+					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
 															this.getProcessingElement(),
 															outstandingRequestList.get(0).requestingElement, 
 															0, //tieBreaker
@@ -139,21 +143,26 @@ public class BlockReadyEvent extends NewEvent
 					//Handle in any case (Whether requesting element is LSQ or cache)
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (receivingCache.isLastLevel)
-						newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
-																				Newmain.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
-																		receivingCache, 
-																		0, //tieBreaker,
-																		outstandingRequestList.get(0).address,
-																		RequestType.MEM_WRITE));
+						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+								RequestType.PORT_REQUEST, 
+								int noOfSlots,
+								new NewMainMemAccessEvent(new Time_t(Newmain.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
+										receivingCache, 
+										0, //tieBreaker,
+										outstandingRequestList.get(0).address,
+										RequestType.MEM_WRITE)));
 					else
-						newEventQueue.addEvent(new NewCacheAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
-																				receivingCache.nextLevel.getLatency().getTime()),//FIXME
-																		receivingCache,
-																		receivingCache.nextLevel,
-																		LSQ.INVALID_INDEX, 
-																		0, //tieBreaker,
-																		new CacheRequestPacket(RequestType.MEM_WRITE,
-																							outstandingRequestList.get(0).address)));
+						if (receivingCache.isLastLevel)
+							newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+									RequestType.PORT_REQUEST, 
+									int noOfSlots,
+									new NewCacheAccessEvent(new Time_t(receivingCache.nextLevel.getLatency().getTime()),//FIXME
+											receivingCache,
+											receivingCache.nextLevel,
+											LSQ.INVALID_INDEX, 
+											0, //tieBreaker,
+											new CacheRequestPacket(RequestType.MEM_WRITE,
+																outstandingRequestList.get(0).address))));
 				}			
 			}
 			else
@@ -169,13 +178,16 @@ public class BlockReadyEvent extends NewEvent
 	
 	protected void receiveBlockAtLSQ(NewEventQueue newEventQueue, LSQ receivingLSQ)
 	{
-		if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.LOAD)
+		if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.LOAD &&
+				!receivingLSQ.lsqueue[lsqIndex].isForwarded())
 		{
 			receivingLSQ.lsqueue[lsqIndex].setForwarded(true);
+			
+			//FIXME : See if a PortRequestEvent needs to be created
 			newEventQueue.addEvent(new ExecutionCompleteEvent(receivingLSQ.lsqueue[lsqIndex].getRobEntry(),
-									-1,
-									receivingLSQ.containingMemSys.core,
-									this.getEventTime().getTime()));
+																-1,
+																receivingLSQ.containingMemSys.core,
+																this.getEventTime().getTime()));
 		}/*
 		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
 		{
