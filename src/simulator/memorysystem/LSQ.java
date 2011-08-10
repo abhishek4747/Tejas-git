@@ -142,7 +142,7 @@ public class LSQ extends SimulationElement
 			{
 				if(tmpEntry.getAddr() == entry.getAddr()) 
 				{
-					if (tmpEntry.isValid())
+					if (tmpEntry.isValid() && !tmpEntry.isForwarded())
 					{
 						tmpEntry.setForwarded(true);
 						containingMemSys.core.getEventQueue().addEvent(
