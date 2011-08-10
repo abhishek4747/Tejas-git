@@ -90,7 +90,12 @@ public class LSQ extends SimulationElement
 
 	protected boolean loadResolve(int index, LSQEntry entry)
 	{
-		int tmpIndex = decrementQ(index);
+		int tmpIndex;
+		
+		if (index == head)
+			return false;
+		else
+			tmpIndex = decrementQ(index);
 
 		while(true)
 		{
