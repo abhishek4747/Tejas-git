@@ -34,7 +34,7 @@
 
 	<!--System Parameters-->
 	<System>
-		<NoOfCores>16</NoOfCores>
+		<NoOfCores>1</NoOfCores>
 		<MainMemoryLatency>5</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>				<!--Latency of the BUS used for broadcasting messages for cache coherence-->
 
