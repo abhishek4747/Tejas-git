@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import config.SystemConfig;
 import emulatorinterface.communication.IPCBase;
 import generic.Core;
 import generic.GlobalClock;
@@ -35,7 +36,7 @@ public class BootPipelineEvent extends NewEvent {
 		{
 			if(ipcBase.getReaderThreads()[i].getInputToPipeline().isEmpty() == false)
 			{
-				for(int j = 0; j < 1; j++)//TODO number_of_cores
+				for(int j = 0; j < SystemConfig.NoOfCores; j++)
 				{
 					cores[j].boot();
 				}

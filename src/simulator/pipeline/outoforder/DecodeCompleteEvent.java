@@ -103,11 +103,12 @@ public class DecodeCompleteEvent extends NewEvent {
 			}
 		}
 		
-		if(toWait == true)
+		
+		synchronized(inputToPipeline.getSyncObject())
 		{
-			System.out.println("input to pipeline too small.. consumer going to sleep");
-			synchronized(inputToPipeline.getSyncObject())
+			if(toWait == true)
 			{
+				System.out.println("input to pipeline too small.. consumer going to sleep");
 				try
 				{
 					//consumer shouldn't sleep with the producer also sleeping
