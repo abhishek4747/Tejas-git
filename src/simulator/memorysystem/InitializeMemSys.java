@@ -11,11 +11,15 @@ import config.SystemConfig;
 
 public class InitializeMemSys 
 {
+	static Hashtable<String, Cache> cacheList;
+	
+	public static Hashtable<String, Cache> getCacheList() {
+		return cacheList;
+	}
+
 	public static void initializeMemSys(Core[] cores)
 	{
 		System.out.println("initializing memory system...");
-		
-		Hashtable<String, Cache> cacheList;
 		// initialising the memory system
 		
 		/*-- Initialise the memory system --*/

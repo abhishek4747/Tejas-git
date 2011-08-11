@@ -13,7 +13,7 @@ public class InstructionWindow extends SimulationElement {
 	
 	public InstructionWindow(Core core)
 	{
-		super(1, new Time_t(-1), new Time_t(-1));
+		super(1, new Time_t(-1), new Time_t(-1), -1);
 		this.core = core;
 		IW = new LinkedList<IWEntry>();
 	}

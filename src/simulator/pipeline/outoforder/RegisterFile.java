@@ -14,7 +14,7 @@ public class RegisterFile extends SimulationElement{
 	
 	public RegisterFile(Core core, int _registerFileSize)
 	{
-		super(core.getNoOfRegFilePorts(), new Time_t(core.getRegFileOccupancy()), new Time_t(-1));
+		super(core.getNoOfRegFilePorts(), new Time_t(core.getRegFileOccupancy()), new Time_t(-1), -1);
 		this.core = core;
 		registerFileSize = _registerFileSize;
 		value = new Object[registerFileSize];

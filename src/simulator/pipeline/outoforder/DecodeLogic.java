@@ -17,7 +17,7 @@ public class DecodeLogic extends SimulationElement {
 	
 	public DecodeLogic(Core containingCore)
 	{
-		super(1, new Time_t(-1), new Time_t(-1));
+		super(1, new Time_t(-1), new Time_t(-1), -1);
 		core = containingCore;
 	}
 	

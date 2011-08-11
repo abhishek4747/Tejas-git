@@ -123,7 +123,8 @@ public class Cache extends SimulationElement
 		{
 			super(cacheParameters.getAccessPorts(), 
 					new Time_t(cacheParameters.getPortOccupancy()), 
-					new Time_t(cacheParameters.getLatency()));
+					new Time_t(cacheParameters.getLatency()),
+					1000);							//TODO set frequency from config file
 			
 			// set the parameters
 			//containingMemSys = _containingMemSys;

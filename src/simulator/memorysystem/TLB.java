@@ -45,7 +45,7 @@ public class TLB extends SimulationElement
 	
 	public TLB(int noOfPorts, Time_t occupancy, Time_t latency, CoreMemorySystem containingMemSys, int tlbSize) 
 	{
-		super(noOfPorts, occupancy, latency);
+		super(noOfPorts, occupancy, latency, -1);
 		
 		TLBSize = tlbSize;
 		this.timestamp = 0;

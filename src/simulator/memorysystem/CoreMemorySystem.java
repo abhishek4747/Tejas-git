@@ -108,4 +108,12 @@ public class CoreMemorySystem
 	public LSQ getLsqueue() {
 		return lsqueue;
 	}
+	
+	public Cache getL1Cache() {
+		return l1Cache;
+	}
+
+	public TLB getTLBuffer() {
+		return TLBuffer;
+	}
 }

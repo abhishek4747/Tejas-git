@@ -6,12 +6,18 @@ public abstract class SimulationElement
 	//all the request for the port are ported through simulationElement
 	Port port;
 	protected Time_t latency;
-	
-	
-	public SimulationElement(int noOfPorts, Time_t occupancy, Time_t latency)
+	long frequency;								//in MHz
+	int stepSize;
+
+	public SimulationElement(int noOfPorts,
+								Time_t occupancy,
+								Time_t latency,
+								long frequency	//in MHz
+								)
 	{
 		this.port = new Port(noOfPorts, occupancy);
 		this.latency = latency;
+		this.frequency = frequency;
 	}
 	
 	public Time_t getLatency() 
@@ -26,5 +32,21 @@ public abstract class SimulationElement
 	public Port getPort()
 	{
 		return this.port;
+	}	
+	
+	public long getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(long frequency) {
+		this.frequency = frequency;
+	}
+
+	public int getStepSize() {
+		return stepSize;
+	}
+
+	public void setStepSize(int stepSize) {
+		this.stepSize = stepSize;
 	}
 }

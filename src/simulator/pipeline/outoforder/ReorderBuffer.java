@@ -22,7 +22,7 @@ public class ReorderBuffer extends SimulationElement{
 
 	public ReorderBuffer(Core _core)
 	{
-		super(1, new Time_t(-1), new Time_t(-1));
+		super(1, new Time_t(-1), new Time_t(-1), -1);
 		ROB = new LinkedList<ReorderBufferEntry>();
 		core = _core;
 		MaxROBSize = core.getReorderBufferSize();

@@ -63,9 +63,6 @@ public class Newmain {
 		Process process = createPINinterface(ipcBase, executableFile,
 				dynamicInstructionBuffer);
 
-		//different core components may work at different frequencies
-		GlobalClock.systemTimingSetUp();
-		
 		//create event queue
 		NewEventQueue eventQ = new NewEventQueue();
 		
@@ -74,6 +71,9 @@ public class Newmain {
 		
 		//Create the memory system
 		InitializeMemSys.initializeMemSys(cores);
+		
+		//different core components may work at different frequencies
+		GlobalClock.systemTimingSetUp(cores, InitializeMemSys.getCacheList());
 		
 		
 		
@@ -171,8 +171,7 @@ public class Newmain {
 										eventQ,
 										1,
 										new InstructionList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()},
-										new int[]{0})
-								};
+										new int[]{0})};
 		
 		return cores;
 	}
