@@ -116,10 +116,6 @@ public class Newmain {
 		ipcBase.doWaitForPIN(process);
 		ipcBase.finish();
 		
-		System.out.println();
-		System.out.println("core " + cores[0].getCore_number() + " reaches the finish line!!");
-		System.out.println(GlobalClock.getCurrentTime() + " cycles");
-		
 		// Display coverage
 		double coverage = (double)(handled*100)/(double)(handled+notHandled);
 		System.out.print("\n\tDynamic coverage =  " + coverage + " %\n");
@@ -135,7 +131,7 @@ public class Newmain {
 			DynamicInstructionBuffer dynamicInstructionBuffer) {
 
 		// Creating command for PIN tool.
-		String cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t "
+		String cmd = SimulationConfig.PinTool + "/pin" + " -t "
 		+ SimulationConfig.PinInstrumentor + " -map "
 		+ SimulationConfig.MapEmuCores + " -- " + executableFilePath;
 
