@@ -36,4 +36,9 @@ public class Time_t
 	{
 		return this.time;
 	}
+	
+	public void setTime(long time)
+	{
+		this.time = time;
+	}
 }

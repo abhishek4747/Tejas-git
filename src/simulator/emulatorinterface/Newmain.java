@@ -29,7 +29,8 @@ public class Newmain {
 	
 	public static int handled=0;
 	public static int notHandled=0;
-	public static Object syncObject = new Object();
+	//public static Object syncObject = new Object();
+	//public static Object syncObject2 = new Object();
 	public static Time_t mainMemoryLatency;
 
 	public static void main(String[] arguments) throws Exception 
@@ -74,6 +75,8 @@ public class Newmain {
 		//Create the memory system
 		InitializeMemSys.initializeMemSys(cores);
 		
+		
+		
 		//commence pipeline
 		eventQ.addEvent(new BootPipelineEvent(cores, ipcBase, eventQ, 0));
 		
@@ -85,6 +88,11 @@ public class Newmain {
 			eventQ.processEvents();
 			
 			GlobalClock.incrementClock();
+		}
+		
+		//synchronized(Newmain.syncObject2)
+		{
+			//Newmain.syncObject2.notify();
 		}
 
 		// returns the number of instructions. and waits on a semaphore for
@@ -127,7 +135,7 @@ public class Newmain {
 			DynamicInstructionBuffer dynamicInstructionBuffer) {
 
 		// Creating command for PIN tool.
-		String cmd = SimulationConfig.PinTool + "/pin" + " -t "
+		String cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t "
 		+ SimulationConfig.PinInstrumentor + " -map "
 		+ SimulationConfig.MapEmuCores + " -- " + executableFilePath;
 

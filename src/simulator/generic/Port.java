@@ -28,7 +28,7 @@ public class Port
 	}
 	
 	//returns the next available slot.
-	Time_t getNextSlot()
+	public Time_t getNextSlot()
 	{
 		Time_t temp = new Time_t(GlobalClock.getCurrentTime());
 		
@@ -59,7 +59,7 @@ public class Port
 	}
 	
 	//returns if any port is available for next n slots.
-	boolean occupySlots(int noOfSlots)
+	public boolean occupySlots(int noOfSlots)
 	{
 		if(noOfPorts==-1 && occupancy.equals(-1))
 		{

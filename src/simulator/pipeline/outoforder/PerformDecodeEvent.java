@@ -40,7 +40,8 @@ public class PerformDecodeEvent extends NewEvent {
 		if(core.getExecEngine().isDecodePipeEmpty() == false)
 		{
 			/*this.eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime()+1, core));*/
-			this.setEventTime(new Time_t(GlobalClock.getCurrentTime()+1));
+			//this.setEventTime(new Time_t(GlobalClock.getCurrentTime()+1));
+			this.getEventTime().setTime(GlobalClock.getCurrentTime()+1);
 			this.eventQueue.addEvent(this);
 		}
 	}

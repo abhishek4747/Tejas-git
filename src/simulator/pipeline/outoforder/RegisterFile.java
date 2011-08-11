@@ -1,18 +1,21 @@
 package pipeline.outoforder;
 
+import generic.Core;
 import generic.SimulationElement;
 import generic.Time_t;
 
 public class RegisterFile extends SimulationElement{
 	
+	private Core core;
 	private int registerFileSize;
 	private Object[] value;
 	private boolean[] valueValid;					//28-6-11. currently used only for
 	private ReorderBufferEntry[] producerROBEntry;	//machine specific registers
 	
-	public RegisterFile(int _registerFileSize)
+	public RegisterFile(Core core, int _registerFileSize)
 	{
-		super(1, new Time_t(-1), new Time_t(-1));
+		super(core.getNoOfRegFilePorts(), new Time_t(core.getRegFileOccupancy()), new Time_t(-1));
+		this.core = core;
 		registerFileSize = _registerFileSize;
 		value = new Object[registerFileSize];
 		valueValid = new boolean[registerFileSize];
@@ -50,5 +53,9 @@ public class RegisterFile extends SimulationElement{
 
 	public void setProducerROBEntry(ReorderBufferEntry producerROBEntry, int index) {
 		this.producerROBEntry[index] = producerROBEntry;
+	}
+
+	public Core getCore() {
+		return core;
 	}
 }

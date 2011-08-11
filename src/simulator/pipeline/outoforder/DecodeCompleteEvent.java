@@ -1,6 +1,6 @@
 package pipeline.outoforder;
 
-import emulatorinterface.Newmain;
+import generic.InstructionList;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
@@ -10,7 +10,6 @@ import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 import generic.RequestType;
-import generic.SimulationElement;
 import generic.Time_t;
 
 /**
@@ -47,43 +46,87 @@ public class DecodeCompleteEvent extends NewEvent {
 	
 	public void readDecodePipe()
 	{
-		Instruction newInstruction;
+		Instruction newInstruction;		
+		InstructionList inputToPipeline = core.getIncomingInstructions(threadID);		
+		boolean toWait = false;		
+		long listSize;
 		
-		if(core.getIncomingInstructions(threadID).getListSize() < core.getDecodeWidth())
+		synchronized(inputToPipeline)
 		{
-			//when should the pipeline wait?
-			//when the input to the pipeline has less than decodeWidth number of instructions
-			// AND
-			//the instruction marking the end of the stream (OperationType = inValid) isn't in the input to the pipeline
-			boolean toWait = true;
-			
-			for(int i = 0; i < core.getIncomingInstructions(threadID).getListSize(); i++)
+			listSize = inputToPipeline.getListSize();		
+		
+			//if producer is sleeping,
+			//and if the input to the pipeline is sufficiently short,
+			//wake the producer
+			if(listSize < 100)
 			{
-				newInstruction = core.getIncomingInstructions(threadID).peekInstructionAt(i);
-				if(newInstruction == null)
+				synchronized(inputToPipeline.getSyncObject2())
 				{
-					break;
-				}
-				else
-				{
-					if(newInstruction.getOperationType() == OperationType.inValid)
+					if(inputToPipeline.getSyncObject2().isFlag())
 					{
-						toWait = false;
-						break;
+						System.out.println("consumer waking up producer");
+						inputToPipeline.getSyncObject2().setFlag(false);
+						inputToPipeline.getSyncObject2().notify();
 					}
 				}
 			}
 			
-			if(toWait == true)
+			if(listSize < core.getDecodeWidth())
 			{
-				synchronized(Newmain.syncObject)
+				//when should the pipeline wait?
+				//when the input to the pipeline has less than decodeWidth number of instructions
+				// AND
+				//the instruction marking the end of the stream (OperationType = inValid) isn't in the input to the pipeline
+				
+				toWait = true;
+				
+				for(int i = 0; i < listSize; i++)
 				{
-					try {
-						Newmain.syncObject.wait();
-					} catch (InterruptedException e) {
-						
-						e.printStackTrace();
+					synchronized(inputToPipeline)
+					{
+						newInstruction = inputToPipeline.peekInstructionAt(i);
 					}
+					
+					if(newInstruction == null)
+					{
+						break;
+					}
+					else
+					{
+						if(newInstruction.getOperationType() == OperationType.inValid)
+						{
+							toWait = false;
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		if(toWait == true)
+		{
+			System.out.println("input to pipeline too small.. consumer going to sleep");
+			synchronized(inputToPipeline.getSyncObject())
+			{
+				try
+				{
+					//consumer shouldn't sleep with the producer also sleeping
+					synchronized(inputToPipeline.getSyncObject2())
+					{
+						if(inputToPipeline.getSyncObject2().isFlag())
+						{
+							System.out.println("consumer waking up producer");
+							inputToPipeline.getSyncObject2().setFlag(false);
+							inputToPipeline.getSyncObject2().notify();
+						}
+					}
+					
+					inputToPipeline.getSyncObject().setFlag(true);
+					inputToPipeline.getSyncObject().wait();
+				}
+				catch (InterruptedException e)
+				{						
+					e.printStackTrace();
 				}
 			}
 		}
@@ -95,13 +138,19 @@ public class DecodeCompleteEvent extends NewEvent {
 					&& core.getExecEngine().getInstructionWindow().isFull() == false
 					&& core.getExecEngine().isStallDecode1() == false)
 			{
-				newInstruction = core.getIncomingInstructions(threadID).peekInstructionAt(0);
+				synchronized(inputToPipeline)
+				{
+					newInstruction = inputToPipeline.peekInstructionAt(0);
+				}
 				
 				if((newInstruction.getOperationType() != OperationType.load &&
 					newInstruction.getOperationType() != OperationType.store) ||
 					(!this.core.getExecEngine().coreMemSys.getLsqueue().isFull()))
 				{
-					newInstruction = core.getIncomingInstructions(threadID).pollFirst();
+					synchronized(inputToPipeline)
+					{
+						newInstruction = inputToPipeline.pollFirst();
+					}
 					
 					if(newInstruction != null)
 					{
@@ -114,7 +163,6 @@ public class DecodeCompleteEvent extends NewEvent {
 					}
 					else
 					{
-						//core.getExecEngine().setDecodePipeEmpty(true);
 						System.out.println("input to pipe is empty");
 						break;
 					}
@@ -378,11 +426,16 @@ public class DecodeCompleteEvent extends NewEvent {
 		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 		
-		reorderBufferEntry.setPhysicalDestinationRegister((int) tempOpnd.getValue());
+		int destPhyReg = (int) tempOpnd.getValue();
+		reorderBufferEntry.setPhysicalDestinationRegister(destPhyReg);
 		
-		if(tempRF.getValueValid((int) tempOpnd.getValue()) == true)
+		if(tempRF.getValueValid(destPhyReg) == true)
 		{
 			//destination MSR available
+			
+			tempRF.setProducerROBEntry(reorderBufferEntry, destPhyReg);
+			tempRF.setValueValid(false, destPhyReg);
+			
 			this.eventQueue.addEvent(
 					new RenameCompleteEvent(
 							core,
@@ -425,9 +478,11 @@ public class DecodeCompleteEvent extends NewEvent {
 		if(r >= 0)
 		{
 			//physical register found
+			
 			reorderBufferEntry.setPhysicalDestinationRegister(r);
 			tempRN.setValueValid(false, r);
 			tempRN.setProducerROBEntry(reorderBufferEntry, r);
+			
 			this.eventQueue.addEvent(
 					new RenameCompleteEvent(
 							core,
@@ -438,7 +493,7 @@ public class DecodeCompleteEvent extends NewEvent {
 		else
 		{
 			//look for a physical register in the next clock cycle
-			//schedule a FindPhysicalRegisterEvent at time current_clock+1
+			//schedule a AllocateDestinationRegisterEvent at time current_clock+1
 			this.eventQueue.addEvent(
 					new AllocateDestinationRegisterEvent(
 							reorderBufferEntry,

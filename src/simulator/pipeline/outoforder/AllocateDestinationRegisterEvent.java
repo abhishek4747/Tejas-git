@@ -67,10 +67,15 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 					
-		if(tempRF.getValueValid((int)tempOpnd.getValue()) == true ||
-				tempRF.getProducerROBEntry((int)tempOpnd.getValue()).getExecuted() == true)
+		int destPhyReg = (int) tempOpnd.getValue();
+		
+		if(tempRF.getValueValid(destPhyReg) == true)
+				//|| tempRF.getProducerROBEntry((int)tempOpnd.getValue()).isWriteBackDone() == true)
 		{
-			reorderBufferEntry.setPhysicalDestinationRegister((int) tempOpnd.getValue());
+			reorderBufferEntry.setPhysicalDestinationRegister(destPhyReg);
+			
+			tempRF.setProducerROBEntry(reorderBufferEntry, destPhyReg);
+			tempRF.setValueValid(false, destPhyReg);
 			
 			core.getExecEngine().setStallDecode1(false);
 			
@@ -98,7 +103,11 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 							newEventTime
 							));
 			*/
-			this.setEventTime(new Time_t(newEventTime));
+			if(newEventTime <= GlobalClock.getCurrentTime())
+				this.getEventTime().setTime(GlobalClock.getCurrentTime() + 1);
+			else
+				this.getEventTime().setTime(newEventTime);
+			
 			this.eventQueue.addEvent(this);
 		}
 	}
@@ -112,6 +121,8 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 		{
 			reorderBufferEntry.setPhysicalDestinationRegister(r);
 			renameTable.setProducerROBEntry(reorderBufferEntry, r);
+			renameTable.setValueValid(false, r);
+			
 			core.getExecEngine().setStallDecode1(false);
 			
 			this.eventQueue.addEvent(
@@ -131,7 +142,8 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 									core,
 									getEventTime().getTime()+1
 									));*/
-			this.setEventTime(new Time_t(getEventTime().getTime()+1));
+			//this.setEventTime(new Time_t(getEventTime().getTime()+1));
+			this.getEventTime().setTime(GlobalClock.getCurrentTime() + 1);
 			this.eventQueue.addEvent(this);
 		}
 	}

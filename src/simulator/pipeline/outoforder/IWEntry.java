@@ -7,7 +7,6 @@ import generic.Instruction;
 import generic.OperationType;
 import generic.ExecutionCompleteEvent;
 import generic.RequestType;
-import generic.SimulationElement;
 import generic.Time_t;
 
 /**
@@ -101,9 +100,13 @@ public class IWEntry {
 		{
 			associatedROBEntry.setIssued(true);
 			if(associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
+			{
 				associatedROBEntry.setExecuted(true);
+				associatedROBEntry.setWriteBackDone1(true);
+				associatedROBEntry.setWriteBackDone2(true);
+			}
+			
 			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
-			//TODO do something about readyAtTime
 			//TODO add event to indicate address ready
 			core.getEventQueue().addEvent(new LSQAddressReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
 																core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime()), 

@@ -29,26 +29,30 @@ public class InstructionList
 {
 	private LinkedList<Instruction> instructionList;
 	private ListIterator<Instruction> listIterator;
+	SynchronizationObject syncObject;
+	SynchronizationObject syncObject2;
 	
 	public InstructionList()
 	{
 		instructionList = new LinkedList<Instruction>();
 		listIterator = instructionList.listIterator();
+		syncObject = new SynchronizationObject();
+		syncObject2 = new SynchronizationObject();
 	}
-	
+
 	//appends a single instruction to the instruction list
-	public void appendInstruction(Instruction newInstruction)
+	synchronized public void appendInstruction(Instruction newInstruction)
 	{
 		instructionList.add(newInstruction);
 	}
 	
 	//appends a list of instructions to the instruction list
-	public void appendInstruction(InstructionList instructionList)
+	synchronized public void appendInstruction(InstructionList instructionList)
 	{
 		this.instructionList.addAll(instructionList.instructionList);	
 	}
 
-	public boolean isEmpty()
+	synchronized public boolean isEmpty()
 	{
 		return instructionList.isEmpty();
 	}
@@ -76,7 +80,7 @@ public class InstructionList
 		}
 	}
 	
-	public Instruction pollFirst()
+	synchronized public Instruction pollFirst()
 	{
 		return instructionList.pollFirst();
 	}
@@ -89,13 +93,21 @@ public class InstructionList
 		}
 	}
 	
-	public int getListSize()
+	synchronized public int getListSize()
 	{
 		return instructionList.size();
 	}
 	
-	public Instruction peekInstructionAt(int position)
+	synchronized public Instruction peekInstructionAt(int position)
 	{
 		return instructionList.get(position);
+	}
+	
+	public SynchronizationObject getSyncObject() {
+		return syncObject;
+	}
+
+	public SynchronizationObject getSyncObject2() {
+		return syncObject2;
 	}
 }

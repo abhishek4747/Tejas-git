@@ -4,7 +4,6 @@ import pipeline.branchpredictor.TournamentPredictor;
 import pipeline.outoforder.ExecutionEngine;
 import pipeline.outoforder.PerformCommitsEvent;
 import pipeline.outoforder.PerformDecodeEvent;
-import memorysystem.CoreMemorySystem;
 
 /**
  * represents a single core
@@ -29,6 +28,8 @@ public class Core extends SimulationElement{
 	private int nIntegerArchitecturalRegisters;
 	private int nFloatingPointArchitecturalRegisters;
 	private int nMachineSpecificRegisters;
+	private int noOfRegFilePorts;
+	private int regFileOccupancy;
 	private int branchMispredictionPenalty;
 	private int[] nUnits;
 	private int[] latencies;
@@ -71,6 +72,8 @@ public class Core extends SimulationElement{
 		setNIntegerArchitecturalRegisters(32);
 		setNFloatingPointArchitecturalRegisters(32);
 		setNMachineSpecificRegisters(64);
+		setNoOfRegFilePorts(4);
+		setRegFileOccupancy(1);
 		setBranchMispredictionPenalty(50);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
@@ -91,7 +94,7 @@ public class Core extends SimulationElement{
 		latencies[FunctionalUnitType.floatALU.ordinal()] = 2;
 		latencies[FunctionalUnitType.floatMul.ordinal()] = 8;
 		latencies[FunctionalUnitType.floatDiv.ordinal()] = 16;
-		latencies[FunctionalUnitType.memory.ordinal()] = 2;
+		latencies[FunctionalUnitType.memory.ordinal()] = 1;
 		latencies[FunctionalUnitType.memory.ordinal()+1] = 20;
 		latencies[FunctionalUnitType.memory.ordinal()+2] = 100;
 	}
@@ -270,6 +273,22 @@ public class Core extends SimulationElement{
 
 	public TournamentPredictor getBranchPredictor() {
 		return branchPredictor;
+	}
+
+	public int getNoOfRegFilePorts() {
+		return noOfRegFilePorts;
+	}
+
+	public void setNoOfRegFilePorts(int noOfRegFilePorts) {
+		this.noOfRegFilePorts = noOfRegFilePorts;
+	}
+
+	public int getRegFileOccupancy() {
+		return regFileOccupancy;
+	}
+
+	public void setRegFileOccupancy(int regFileOccupancy) {
+		this.regFileOccupancy = regFileOccupancy;
 	}
 
 }

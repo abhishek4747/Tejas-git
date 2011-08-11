@@ -88,7 +88,7 @@ public class ReorderBuffer extends SimulationElement{
 			
 			ReorderBufferEntry first = ROB.getFirst();
 			
-			if(first.getExecuted() == true)
+			if(first.isWriteBackDone() == true)
 			{
 				//if branch, then if branch prediction correct
 				if(first.getInstruction().getOperationType() != OperationType.branch ||
@@ -113,7 +113,7 @@ public class ReorderBuffer extends SimulationElement{
 						}
 					}
 					
-					//System.out.println("committed : " + first.getInstruction());
+					//System.out.println("committed : " +GlobalClock.getCurrentTime() + first.getInstruction().getOperationType());
 					
 					//TODO Signal LSQ for committing the Instruction at the queue head
 					if(first.getInstruction().getOperationType() == OperationType.load ||

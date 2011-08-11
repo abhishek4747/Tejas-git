@@ -42,11 +42,11 @@ public class ExecutionEngine {
 		decoder = new DecodeLogic(core);
 		reorderBuffer = new ReorderBuffer(core);
 		instructionWindow = new InstructionWindow(core);
-		integerRegisterFile = new RegisterFile(core.getIntegerRegisterFileSize());
+		integerRegisterFile = new RegisterFile(core, core.getIntegerRegisterFileSize());
 		integerRenameTable = new RenameTable(core.getNIntegerArchitecturalRegisters(), core.getIntegerRegisterFileSize(), integerRegisterFile);
-		floatingPointRegisterFile = new RegisterFile(core.getFloatingPointRegisterFileSize());
+		floatingPointRegisterFile = new RegisterFile(core, core.getFloatingPointRegisterFileSize());
 		floatingPointRenameTable = new RenameTable(core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile);
-		machineSpecificRegisterFile = new RegisterFile(core.getNMachineSpecificRegisters());
+		machineSpecificRegisterFile = new RegisterFile(core, core.getNMachineSpecificRegisters());
 		
 		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),
 													core.getAllLatencies());

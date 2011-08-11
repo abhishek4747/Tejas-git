@@ -79,6 +79,41 @@ public class RenameCompleteEvent extends NewEvent {
 		//estimate and set, time of completion
 		setTimeOfCompletion(bothOperandsReadyTime);
 		
+		/*
+		//set valueValid of corresponding register file/rename table entry to false
+		//set producerROBEntry of corresponding register file/rename table entry to reorderBufferEntry
+		if(reorderBufferEntry.getInstruction().getDestinationOperand() != null)
+		{
+			RegisterFile tempRF = null;
+			RenameTable tempRN = null; 
+			if(reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.machineSpecificRegister)
+			{
+				tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+			}
+			else if(reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.integerRegister)
+			{
+				tempRN = core.getExecEngine().getIntegerRenameTable();
+			}
+			else if(reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.floatRegister)
+			{
+				tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			}
+			
+			int phyDestReg = (int) reorderBufferEntry.getPhysicalDestinationRegister();
+			
+			if(tempRF != null)
+			{
+				tempRF.setValueValid(false, phyDestReg);
+				tempRF.setProducerROBEntry(reorderBufferEntry, phyDestReg);
+			}
+			
+			if(tempRN != null)
+			{
+				tempRN.setValueValid(false, phyDestReg);
+				tempRN.setProducerROBEntry(reorderBufferEntry, phyDestReg);
+			}
+		}
+		*/
 		//attempt to issue the instruction
 		reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
 
@@ -96,7 +131,8 @@ public class RenameCompleteEvent extends NewEvent {
 					GlobalClock.getCurrentTime() + 1
 				));
 		*/
-		this.setEventTime(new Time_t(GlobalClock.getCurrentTime() + 1));
+		//this.setEventTime(new Time_t(GlobalClock.getCurrentTime() + 1));
+		this.getEventTime().setTime(GlobalClock.getCurrentTime() + 1);
 		this.eventQueue.addEvent(this);
 	}
 	
@@ -120,7 +156,7 @@ public class RenameCompleteEvent extends NewEvent {
 		
 		int tempOpndPhyReg1 = reorderBufferEntry.getOperand1PhyReg1();
 		int tempOpndPhyReg2 = reorderBufferEntry.getOperand1PhyReg2();
-		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
+		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(reorderBufferEntry, tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
 		
 		if(tempOpndType == OperandType.integerRegister ||
 				tempOpndType == OperandType.floatRegister ||
@@ -133,8 +169,9 @@ public class RenameCompleteEvent extends NewEvent {
 				if(opndAvailable[0] == true)
 				{
 					newIWEntry.setOperand1Available(true);
-					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg ||
-							reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
+					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+							//|| reorderBufferEntry.getInstruction().getDestinationOperand() != null &&
+							//reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
 					{
 						tempRF.setValueValid(false, tempOpndPhyReg1);
 						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
@@ -280,7 +317,7 @@ public class RenameCompleteEvent extends NewEvent {
 		
 		int tempOpndPhyReg1 = reorderBufferEntry.getOperand2PhyReg1();
 		int tempOpndPhyReg2 = reorderBufferEntry.getOperand2PhyReg2();
-		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
+		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(reorderBufferEntry, tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
 		
 		if(tempOpndType == OperandType.integerRegister ||
 				tempOpndType == OperandType.floatRegister ||
@@ -293,9 +330,9 @@ public class RenameCompleteEvent extends NewEvent {
 				if(opndAvailable[0] == true)
 				{
 					newIWEntry.setOperand2Available(true);
-					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg ||
-							reorderBufferEntry.getInstruction().getDestinationOperand() != null &&
-							reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
+					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+							//|| reorderBufferEntry.getInstruction().getDestinationOperand() != null &&
+							//reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
 					{
 						tempRF.setValueValid(false, tempOpndPhyReg1);
 						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);

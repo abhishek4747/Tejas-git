@@ -6,7 +6,11 @@ import generic.OperandType;
 
 public class OperandAvailabilityChecker {
 	
-	public static boolean[] isAvailable(Operand opnd, int phyReg1, int phyReg2, Core core)
+	public static boolean[] isAvailable(ReorderBufferEntry reorderBufferEntry,
+										Operand opnd,
+										int phyReg1,
+										int phyReg2,
+										Core core)
 	//phyReg2 required because if OperandType is memory, 2 physical registers may have to be specified
 	{
 		if(opnd == null)
@@ -29,7 +33,10 @@ public class OperandAvailabilityChecker {
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
 				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
-				if(tempRF.getValueValid(phyReg1) == true)
+				if(tempRF.getValueValid(phyReg1) == true ||
+						tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry ||
+						core.getExecEngine().getReorderBuffer().getROB().indexOf(tempRF.getProducerROBEntry(phyReg1))
+						> core.getExecEngine().getReorderBuffer().getROB().indexOf(reorderBufferEntry))
 				{
 					return new boolean[]{true};
 				}
@@ -50,7 +57,10 @@ public class OperandAvailabilityChecker {
 					tempRN = core.getExecEngine().getFloatingPointRenameTable();
 				}
 				
-				if(tempRN.getValueValid(phyReg1) == true)
+				if(tempRN.getValueValid(phyReg1) == true ||
+						tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry ||
+						core.getExecEngine().getReorderBuffer().getROB().indexOf(tempRN.getProducerROBEntry(phyReg1))
+						> core.getExecEngine().getReorderBuffer().getROB().indexOf(reorderBufferEntry))
 				{
 					return new boolean[]{true};
 				}
@@ -64,8 +74,8 @@ public class OperandAvailabilityChecker {
 		if(tempOpndType == OperandType.memory)
 		{
 			return new boolean[]
-			 {OperandAvailabilityChecker.isAvailable(opnd.getMemoryLocationFirstOperand(), phyReg1, phyReg2, core)[0],
-			  OperandAvailabilityChecker.isAvailable(opnd.getMemoryLocationSecondOperand(), phyReg1, phyReg2, core)[0]};
+			 {OperandAvailabilityChecker.isAvailable(reorderBufferEntry, opnd.getMemoryLocationFirstOperand(), phyReg1, phyReg2, core)[0],
+			  OperandAvailabilityChecker.isAvailable(reorderBufferEntry, opnd.getMemoryLocationSecondOperand(), phyReg2, phyReg1, core)[0]};
 		}
 		
 		return new boolean[]{true};

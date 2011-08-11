@@ -7,6 +7,7 @@ import generic.Instruction;
 
 public class ReorderBufferEntry {
 	
+	private Core core;
 	private Instruction instruction;
 	private int operand1PhyReg1;
 	private int operand1PhyReg2;
@@ -16,20 +17,15 @@ public class ReorderBufferEntry {
 	private boolean isIssued;
 	private int FUInstance;								//which FU has been assigned
 	private boolean isExecuted;
+	private boolean isWriteBackDone1;
+	private boolean isWriteBackDone2;
 	private long readyAtTime;
 	private IWEntry associatedIWEntry;
 	private int lsqIndex = LSQ.INVALID_INDEX; //Index of the entry in LSQ
-	
-	protected int getLsqIndex() {
-		return lsqIndex;
-	}
-
-	protected void setLsqIndex(int lsqIndex) {
-		this.lsqIndex = lsqIndex;
-	}
 
 	public ReorderBufferEntry(Core core, Instruction objectsInstruction)
 	{
+		this.core = core;
 		instruction = objectsInstruction;
 		operand1PhyReg1 = -1;
 		operand1PhyReg2 = -1;
@@ -39,6 +35,8 @@ public class ReorderBufferEntry {
 		isIssued = false;
 		FUInstance = -1;
 		isExecuted = false;
+		isWriteBackDone1 = false;
+		isWriteBackDone2 = false;
 		readyAtTime = GlobalClock.getCurrentTime();
 		associatedIWEntry = null;
 	}
@@ -97,12 +95,21 @@ public class ReorderBufferEntry {
 	
 	public long getReadyAtTime()
 	{
-		return readyAtTime;
+		if(readyAtTime <= GlobalClock.getCurrentTime())
+		{
+			return GlobalClock.getCurrentTime() + 1; //TODO not 1 - step_size
+		}
+		else
+		{
+			return readyAtTime;
+		}
 	}
 	
 	public void setReadyAtTime(long _readyAtTime)
 	{
-		readyAtTime = _readyAtTime;
+		readyAtTime = _readyAtTime + core.getRegFileOccupancy();
+		//at places where the readyAtTime is calculated, the focus is on completion of operation
+		//hence, the register file latency is accounted for here
 	}
 	
 	public int getOperand1PhyReg1() {
@@ -143,6 +150,35 @@ public class ReorderBufferEntry {
 
 	public void setAssociatedIWEntry(IWEntry associatedIWEntry) {
 		this.associatedIWEntry = associatedIWEntry;
+	}
+	
+	protected int getLsqIndex() {
+		return lsqIndex;
+	}
+
+	protected void setLsqIndex(int lsqIndex) {
+		this.lsqIndex = lsqIndex;
+	}
+
+	public boolean isWriteBackDone1() {
+		return isWriteBackDone1;
+	}
+
+	public void setWriteBackDone1(boolean isWriteBackDone1) {
+		this.isWriteBackDone1 = isWriteBackDone1;
+	}
+
+	public boolean isWriteBackDone2() {
+		return isWriteBackDone2;
+	}
+
+	public void setWriteBackDone2(boolean isWriteBackDone2) {
+		this.isWriteBackDone2 = isWriteBackDone2;
+	}
+	
+	public boolean isWriteBackDone()
+	{
+		return (isWriteBackDone1 && isWriteBackDone2);
 	}
 
 }

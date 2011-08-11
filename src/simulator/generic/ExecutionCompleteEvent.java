@@ -4,8 +4,9 @@ import pipeline.outoforder.ReorderBufferEntry;
 import pipeline.outoforder.OpTypeToFUTypeMapping;
 import pipeline.outoforder.RegisterFile;
 import pipeline.outoforder.RenameTable;
-import java.util.LinkedList;
-import pipeline.outoforder.IWEntry;
+import pipeline.outoforder.WakeUpLogic;
+import pipeline.outoforder.WriteBackAttemptEvent;
+import pipeline.outoforder.WriteBackCompleteEvent;
 
 /**
  * this event is scheduled at the clock_time at which an FU completes it's execution
@@ -55,6 +56,12 @@ public class ExecutionCompleteEvent extends NewEvent {
 			return;
 		}
 		
+		if(reorderBufferEntry.getIssued() == false)
+		{
+			System.out.println("not yet issued, but execution complete");
+			return;
+		}
+		
 		RegisterFile tempRF = null;
 		RenameTable tempRN = null;
 		
@@ -69,7 +76,10 @@ public class ExecutionCompleteEvent extends NewEvent {
 			}
 			else
 			{
-				writeBackForOthers(tempRF, tempRN);
+				//writeBackForOthers(tempRF, tempRN);
+				reorderBufferEntry.setExecuted(true);
+				reorderBufferEntry.setWriteBackDone1(true);
+				reorderBufferEntry.setWriteBackDone2(true);
 			}
 		}
 		
@@ -79,14 +89,24 @@ public class ExecutionCompleteEvent extends NewEvent {
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
 				tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+				tempRN = null;
 			}
 			else if(tempOpndType == OperandType.integerRegister)
 			{
+				tempRF = core.getExecEngine().getIntegerRegisterFile();
 				tempRN = core.getExecEngine().getIntegerRenameTable();
 			}
 			else if(tempOpndType == OperandType.floatRegister)
 			{
+				tempRF = core.getExecEngine().getFloatingPointRegisterFile();
 				tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			}
+			else
+			{
+				reorderBufferEntry.setExecuted(true);
+				reorderBufferEntry.setWriteBackDone1(true);
+				reorderBufferEntry.setWriteBackDone2(true);
+				return;
 			}
 			
 			if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.mov)
@@ -105,56 +125,72 @@ public class ExecutionCompleteEvent extends NewEvent {
 	
 	void writeBackForMov(RegisterFile tempRF, RenameTable tempRN)
 	{
+		//wakeup waiting IW entries
 		int tempDestPhyReg = reorderBufferEntry.getPhysicalDestinationRegister();
-		if(tempRF != null)
-		{
-			tempRF.setValueValid(true, tempDestPhyReg);
-		}
-		else if(tempRN != null)
-		{
-			tempRN.setValueValid(true, tempDestPhyReg);
-		}
 		OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
-		wakeUpLogic(tempOpndType, tempDestPhyReg);
+		WakeUpLogic.wakeUpLogic(core, tempOpndType, tempDestPhyReg);
+		
+		//attempt to write-back
+		writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg);
+		
 	}
 	
 	void writeBackForXchg()
 	{
+		RegisterFile tempRF = null;
+		RenameTable tempRN = null;
+		int phyReg;
+		
 		//operand 1
-		int phyReg = reorderBufferEntry.getOperand1PhyReg1();
+		phyReg = reorderBufferEntry.getOperand1PhyReg1();
 		if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
 		{
-			core.getExecEngine().getMachineSpecificRegisterFile().setValueValid(true, phyReg);
-			wakeUpLogic(OperandType.machineSpecificRegister, phyReg);
+			tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg);
 		}
 		else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.integerRegister)
 		{
-			core.getExecEngine().getIntegerRenameTable().setValueValid(true, phyReg);
-			wakeUpLogic(OperandType.integerRegister, phyReg);
+			tempRF = core.getExecEngine().getIntegerRegisterFile();
+			tempRN = core.getExecEngine().getIntegerRenameTable();
+			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg);
 		}
 		else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.floatRegister)
 		{
-			core.getExecEngine().getFloatingPointRenameTable().setValueValid(true, phyReg);
-			wakeUpLogic(OperandType.floatRegister, phyReg);
+			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
+			tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			WakeUpLogic.wakeUpLogic(core, OperandType.floatRegister, phyReg);
 		}
 		
+		//attempt to write-back
+		writeBack(reorderBufferEntry, 1, tempRF, tempRN, phyReg);
+		
+		
+		
+		tempRF = null;
+		tempRN = null;
 		//operand 2
 		phyReg = reorderBufferEntry.getOperand2PhyReg1();
 		if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
 		{
-			core.getExecEngine().getMachineSpecificRegisterFile().setValueValid(true, phyReg);
-			wakeUpLogic(OperandType.machineSpecificRegister, phyReg);
+			tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg);
 		}
 		else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
 		{
-			core.getExecEngine().getIntegerRenameTable().setValueValid(true, phyReg);
-			wakeUpLogic(OperandType.integerRegister, phyReg);
+			tempRF = core.getExecEngine().getIntegerRegisterFile();
+			tempRN = core.getExecEngine().getIntegerRenameTable();
+			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg);
 		}
 		else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.floatRegister)
 		{
-			core.getExecEngine().getFloatingPointRenameTable().setValueValid(true, phyReg);
-			wakeUpLogic(OperandType.floatRegister, phyReg);
+			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
+			tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			WakeUpLogic.wakeUpLogic(core, OperandType.floatRegister, phyReg);
 		}
+		
+		//attempt to write-back
+		writeBack(reorderBufferEntry, 2, tempRF, tempRN, phyReg);
+		
 	}
 	
 	void writeBackForOthers(RegisterFile tempRF, RenameTable tempRN)
@@ -170,25 +206,24 @@ public class ExecutionCompleteEvent extends NewEvent {
 		}
 		
 		if(time_of_completion <= GlobalClock.getCurrentTime())
+			//this condition will always evaluate to true, if instruction is a load or a store
+			//actually, stores don't have executioncompleteEvents scheduled - they are included just in case
 		{
 			//execution complete
 			reorderBufferEntry.setExecuted(true);
-			int tempDestPhyReg = reorderBufferEntry.getPhysicalDestinationRegister();
-			if(tempRF != null)
-			{
-				tempRF.setValueValid(true, tempDestPhyReg);
-			}
-			else if(tempRN != null)
-			{
-				tempRN.setValueValid(true, tempDestPhyReg);
-			}
 			
+			int tempDestPhyReg = reorderBufferEntry.getPhysicalDestinationRegister();
+			//wakeup waiting IW entries
 			if(tempRF != null || tempRN != null)
 			{
 				//there may some instruction that needs to be woken up
 				OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
-				wakeUpLogic(tempOpndType, tempDestPhyReg);
+				WakeUpLogic.wakeUpLogic(core, tempOpndType, tempDestPhyReg);
 			}
+			
+			//attempt to write-back
+			writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg);			
+			
 		}
 		
 		else
@@ -208,94 +243,47 @@ public class ExecutionCompleteEvent extends NewEvent {
 		}
 	}
 	
-	void wakeUpLogic(OperandType opndType, int physicalRegister)
+	void writeBack (
+					ReorderBufferEntry reorderBufferEntry,
+					int whichWBFlag,
+					RegisterFile tempRF,
+					RenameTable tempRN,
+					int tempDestPhyReg	)
 	{
-		LinkedList<IWEntry> IW = core.getExecEngine().getInstructionWindow().getIW();
-		LinkedList<IWEntry> tempList = new LinkedList<IWEntry>();
-		int i = 0;
-		boolean toWakeUp;
-		ReorderBufferEntry ROBEntry;
-				
-		while(i < IW.size())
+		if(tempRF != null)
 		{
-			IWEntry IWentry = IW.get(i);
-			ROBEntry = IWentry.getAssociatedROBEntry();
-			toWakeUp = false;
-			
-			if(IWentry.isOperand1Available() == false)
+			long slotAvailableTime = tempRF.getPort().getNextSlot().getTime();
+			if(slotAvailableTime <= GlobalClock.getCurrentTime())
 			{
-				if(ROBEntry.getInstruction().getSourceOperand1().getOperandType() == opndType
-						&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
-				{
-					IWentry.setOperand1Available(true);
-					toWakeUp = true;
-				}
-				if(ROBEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.memory)
-				{
-					if(ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationFirstOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationFirstOperand().getOperandType() == opndType
-							&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
-					{
-						IWentry.setOperand11Available(true);
-					}
-					if(ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationSecondOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationSecondOperand().getOperandType() == opndType
-							&& ROBEntry.getOperand1PhyReg2() == physicalRegister)
-					{
-						IWentry.setOperand12Available(true);
-					}
-					if(IWentry.isOperand11Available() && IWentry.isOperand12Available())
-					{
-						IWentry.setOperand1Available(true);
-						toWakeUp = true;
-					}
-				}
+				//port to register file is available
+				//occupying port
+				tempRF.getPort().occupySlots(core.getRegFileOccupancy());
+				//scheduling write-back complete event
+				this.eventQueue.addEvent(new WriteBackCompleteEvent(
+																	core,
+																	reorderBufferEntry,
+																	whichWBFlag,
+																	tempRF,
+																	tempRN,
+																	tempDestPhyReg,
+																	GlobalClock.getCurrentTime() + core.getRegFileOccupancy()
+																	));
 			}
-			
-			if(IWentry.isOperand2Available() == false)
+			else
 			{
-				if(ROBEntry.getInstruction().getSourceOperand2().getOperandType() == opndType
-						&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
-				{
-					IWentry.setOperand2Available(true);
-					toWakeUp = true;
-				}
-				if(ROBEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.memory)
-				{
-					if(ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationFirstOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationFirstOperand().getOperandType() == opndType
-							&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
-					{
-						IWentry.setOperand21Available(true);
-					}
-					if(ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationSecondOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationSecondOperand().getOperandType() == opndType
-							&& ROBEntry.getOperand2PhyReg2() == physicalRegister)
-					{
-						IWentry.setOperand22Available(true);
-					}
-					if(IWentry.isOperand21Available() && IWentry.isOperand22Available())
-					{
-						IWentry.setOperand2Available(true);
-						toWakeUp = true;
-					}
-				}
+				//port to register file is not available
+				this.eventQueue.addEvent(new WriteBackAttemptEvent(
+																	core,
+																	tempRF,
+																	tempRN,
+																	tempDestPhyReg,																
+																	reorderBufferEntry,
+																	whichWBFlag,
+																	GlobalClock.getCurrentTime() + slotAvailableTime));
 			}
-			
-			if(toWakeUp == true)
-			{
-				tempList.addLast(IWentry);
-			}
-			
-			i++;
-		}
-		
-		i = 0;
-		while(i < tempList.size())
-		{
-			tempList.get(i).issueInstruction();
-			i++;
 		}
 	}
+	
+	
 
 }

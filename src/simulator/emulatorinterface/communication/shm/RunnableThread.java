@@ -158,14 +158,62 @@ public class RunnableThread implements Runnable {
 						}
 						*/
 						
-						inputToPipeline.appendInstruction(fusedInstructions);
+						long listSize;
+						boolean toWait = false;
 						
-						//if size of list is greater than a certain constant, the pipeline may be signalled to resume
-						if(inputToPipeline.getListSize() > 100)
+						synchronized(inputToPipeline)
 						{
-							synchronized(Newmain.syncObject)
+							//add fused instructions to the input to the pipeline
+							inputToPipeline.appendInstruction(fusedInstructions);
+							listSize = inputToPipeline.getListSize();
+						
+							//if size of list is greater than a certain constant, the pipeline may be signalled to resume
+							if(listSize > 200)
 							{
-								Newmain.syncObject.notify();
+								synchronized(inputToPipeline.getSyncObject())
+								{
+									if(inputToPipeline.getSyncObject().isFlag())
+									{
+										System.out.println("producer waking up consumer");
+										inputToPipeline.getSyncObject().setFlag(false);
+										inputToPipeline.getSyncObject().notify();
+									}
+								}
+							}
+						
+							//if input to the pipeline is too large, producer goes to sleep
+							//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
+							if(listSize > 400)
+							{
+								toWait = true;
+							}
+						}
+						
+						if(toWait == true)
+						{
+							System.out.println("input to pipeline too large - producer going to sleep");
+							synchronized(inputToPipeline.getSyncObject2())
+							{
+								try
+								{
+									//producer shouldn't sleep with the consumer also sleeping
+									synchronized(inputToPipeline.getSyncObject())
+									{
+										if(inputToPipeline.getSyncObject().isFlag())
+										{
+											System.out.println("producer waking up consumer");
+											inputToPipeline.getSyncObject().setFlag(false);
+											inputToPipeline.getSyncObject().notify();
+										}
+									}
+									
+									inputToPipeline.getSyncObject2().setFlag(true);
+									inputToPipeline.getSyncObject2().wait();
+								}
+								catch (InterruptedException e)
+								{
+									e.printStackTrace();
+								}
 							}
 						}
 						
@@ -226,12 +274,20 @@ public class RunnableThread implements Runnable {
 		}
 		
 		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
-		inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
+		synchronized(inputToPipeline)
+		{
+			inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
+		}
 		
 		//signal pipeline to resume to process the outstanding instructions
-		synchronized(Newmain.syncObject)
+		synchronized(inputToPipeline.getSyncObject())
 		{
-			Newmain.syncObject.notify();
+			if(inputToPipeline.getSyncObject().isFlag())
+			{
+				System.out.println("producer waking up consumer");
+				inputToPipeline.getSyncObject().setFlag(false);
+				inputToPipeline.getSyncObject().notify();
+			}
 		}
 		
 		long dataRead = 0;
