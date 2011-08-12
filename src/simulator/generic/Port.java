@@ -72,7 +72,7 @@ public class Port
 			{
 				if(portBusyUntil[i].lessThan(new Time_t(GlobalClock.getCurrentTime())))
 				{
-					portBusyUntil[i].add(noOfSlots);
+					portBusyUntil[i].add(new Time_t(noOfSlots*occupancy.getTime()));
 					return true;
 				}
 			}
