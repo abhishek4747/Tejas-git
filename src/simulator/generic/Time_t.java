@@ -27,9 +27,9 @@ public class Time_t
 		return(this.time > time.time);
 	}
 
-	public void add(int noOfSlots) 
+	public void add(Time_t time) 
 	{
-		this.time += noOfSlots;		
+		this.time += time.getTime();		
 	}
 	
 	public long getTime()
