@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import memorysystem.MemorySystem;
 import generic.Core;
 import generic.GlobalClock;
 import generic.NewEvent;
@@ -44,6 +45,8 @@ public class PerformCommitsEvent extends NewEvent {
 			System.out.println();
 			System.out.println("core " + core.getCore_number() + " reaches the finish line!!");
 			System.out.println(GlobalClock.getCurrentTime() + " cycles");
+			
+			MemorySystem.printMemSysResults();
 		}
 	}
 
