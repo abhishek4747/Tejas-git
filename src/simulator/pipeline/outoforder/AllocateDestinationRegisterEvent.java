@@ -83,7 +83,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
 							));
 			
 			
@@ -104,7 +104,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 							));
 			*/
 			if(newEventTime <= GlobalClock.getCurrentTime())
-				this.getEventTime().setTime(GlobalClock.getCurrentTime() + 1);
+				this.getEventTime().setTime(GlobalClock.getCurrentTime() + core.getStepSize());
 			else
 				this.getEventTime().setTime(newEventTime);
 			
@@ -129,7 +129,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
 							));
 		}
 		else
@@ -143,7 +143,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 									getEventTime().getTime()+1
 									));*/
 			//this.setEventTime(new Time_t(getEventTime().getTime()+1));
-			this.getEventTime().setTime(GlobalClock.getCurrentTime() + 1);
+			this.getEventTime().setTime(GlobalClock.getCurrentTime() + core.getStepSize());
 			this.eventQueue.addEvent(this);
 		}
 	}

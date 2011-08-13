@@ -29,7 +29,7 @@ public class DecodeLogic extends SimulationElement {
 				new DecodeCompleteEvent(
 						core,
 						threadID,
-						GlobalClock.getCurrentTime() + core.getDecodeTime()
+						GlobalClock.getCurrentTime() + core.getDecodeTime()*core.getStepSize()
 						));
 	}
 }

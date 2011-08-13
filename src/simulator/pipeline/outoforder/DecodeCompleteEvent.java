@@ -391,7 +391,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
 							));
 			return;
 		}
@@ -406,7 +406,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
 							));
 		}		
 		else
@@ -441,7 +441,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
 							));
 		}
 		
@@ -488,7 +488,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					new RenameCompleteEvent(
 							core,
 							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()
+							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
 							));
 		}
 		else
@@ -500,7 +500,7 @@ public class DecodeCompleteEvent extends NewEvent {
 							reorderBufferEntry,
 							tempRN,
 							core,
-							GlobalClock.getCurrentTime()+1
+							GlobalClock.getCurrentTime()+core.getStepSize()
 							));
 			//stall decode because physical register for destination was not allocated
 			core.getExecEngine().setStallDecode1(true);

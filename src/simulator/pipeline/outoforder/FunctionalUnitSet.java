@@ -13,7 +13,7 @@ public class FunctionalUnitSet {
 	private int[] latencies;
 	
 	//usage : if timeWhenFUAvailable <= current_time, then FU available for use
-	//absolute time
+	//absolute time - in terms of GlobalClock
 	private long[][] timeWhenFUAvailable;
 	
 	
@@ -46,7 +46,7 @@ public class FunctionalUnitSet {
 	//						negative of the FU instance is returned
 	//else, the earliest time, at which an FU of the type becomes available, is returned
 	
-	public long requestFU(FunctionalUnitType FUType, long current_time)
+	public long requestFU(FunctionalUnitType FUType, long current_time, int stepSize)
 	{
 		long timeTillAvailable = timeWhenFUAvailable[FUType.ordinal()][0];
 		
@@ -54,7 +54,7 @@ public class FunctionalUnitSet {
 		{
 			if(timeWhenFUAvailable[FUType.ordinal()][i] <= current_time)
 			{
-				timeWhenFUAvailable[FUType.ordinal()][i] = current_time + latencies[FUType.ordinal()];
+				timeWhenFUAvailable[FUType.ordinal()][i] = current_time + latencies[FUType.ordinal()]*stepSize;
 				return i * (-1);
 			}
 			if(timeWhenFUAvailable[FUType.ordinal()][i] < timeTillAvailable)

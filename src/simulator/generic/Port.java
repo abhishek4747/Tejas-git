@@ -9,6 +9,8 @@ public class Port
 	private Time_t occupancy;
 	private Time_t portBusyUntil[];
 	
+	//NOTE : all notions of time is in terms of GlobalClock cycles
+	
 	public Port(int noOfPorts, Time_t occupancy)
 	{
 		//initialize no. of ports and the occupancy.
@@ -59,7 +61,7 @@ public class Port
 	}
 	
 	//returns if any port is available for next n slots.
-	public boolean occupySlots(int noOfSlots)
+	public boolean occupySlots(int noOfSlots, int stepSize)
 	{
 		if(noOfPorts==-1 && occupancy.equals(-1))
 		{
@@ -72,7 +74,7 @@ public class Port
 			{
 				if(portBusyUntil[i].lessThan(new Time_t(GlobalClock.getCurrentTime())))
 				{
-					portBusyUntil[i].add(new Time_t(noOfSlots*occupancy.getTime()));
+					portBusyUntil[i].add(new Time_t(noOfSlots*occupancy.getTime()*stepSize));
 					return true;
 				}
 			}

@@ -132,7 +132,7 @@ public class RenameCompleteEvent extends NewEvent {
 				));
 		*/
 		//this.setEventTime(new Time_t(GlobalClock.getCurrentTime() + 1));
-		this.getEventTime().setTime(GlobalClock.getCurrentTime() + 1);
+		this.getEventTime().setTime(GlobalClock.getCurrentTime() + core.getStepSize());
 		this.eventQueue.addEvent(this);
 	}
 	
@@ -462,7 +462,7 @@ public class RenameCompleteEvent extends NewEvent {
 		}
 		
 		reorderBufferEntry.setReadyAtTime(
-				bothOperandsReadyTime + opTime);
+				bothOperandsReadyTime + opTime*core.getStepSize());
 	}
 	
 }

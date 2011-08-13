@@ -43,7 +43,7 @@ public class WriteBackAttemptEvent extends NewEvent {
 		{
 			//port to register file is available
 			//occupying port
-			tempRF.getPort().occupySlots(core.getRegFileOccupancy());
+			tempRF.getPort().occupySlots(1, core.getStepSize());
 			//scheduling write-back complete event
 			core.getEventQueue().addEvent(new WriteBackCompleteEvent(
 																core,
@@ -52,7 +52,7 @@ public class WriteBackAttemptEvent extends NewEvent {
 																tempRF,
 																tempRN,
 																tempDestPhyReg,
-																GlobalClock.getCurrentTime() + core.getRegFileOccupancy()
+																GlobalClock.getCurrentTime() + core.getRegFileOccupancy()*core.getStepSize()
 																));
 		}
 		else

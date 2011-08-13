@@ -13,7 +13,13 @@ public class WriteBackCompleteEvent extends NewEvent {
 	RenameTable tempRN;
 	int tempDestPhyReg;
 	ReorderBufferEntry reorderBufferEntry;
-	int whichWBFlag;
+	int whichWBFlag;						//if 1, refers to 1st operand of an xchg operation - given by source operand 1
+											//		writeBackDone1 flag is updated
+											//if 2, refers to 2nd operand of an xchg operation - given by source operand 2
+											//		writeBackDone2 flag is updated
+											//if 3, refers to destination operand of all other operations
+											//		writeBackDone1 flag is updated AND
+											//		writeBackDone2 flag is updated
 	
 	public WriteBackCompleteEvent(
 									Core core,

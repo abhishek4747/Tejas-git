@@ -257,7 +257,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 			{
 				//port to register file is available
 				//occupying port
-				tempRF.getPort().occupySlots(core.getRegFileOccupancy());
+				tempRF.getPort().occupySlots(1, core.getStepSize());
 				//scheduling write-back complete event
 				this.eventQueue.addEvent(new WriteBackCompleteEvent(
 																	core,
@@ -266,7 +266,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 																	tempRF,
 																	tempRN,
 																	tempDestPhyReg,
-																	GlobalClock.getCurrentTime() + core.getRegFileOccupancy()
+																	GlobalClock.getCurrentTime() + core.getRegFileOccupancy()*core.getStepSize()
 																	));
 			}
 			else

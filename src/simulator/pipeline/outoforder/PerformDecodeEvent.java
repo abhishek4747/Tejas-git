@@ -41,7 +41,7 @@ public class PerformDecodeEvent extends NewEvent {
 		{
 			/*this.eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime()+1, core));*/
 			//this.setEventTime(new Time_t(GlobalClock.getCurrentTime()+1));
-			this.getEventTime().setTime(GlobalClock.getCurrentTime()+1);
+			this.getEventTime().setTime(GlobalClock.getCurrentTime()+core.getStepSize());
 			this.eventQueue.addEvent(this);
 		}
 	}

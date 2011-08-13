@@ -119,7 +119,7 @@ public class ReorderBuffer extends SimulationElement{
 					if(first.getInstruction().getOperationType() == OperationType.load ||
 							first.getInstruction().getOperationType() == OperationType.store)
 						core.getEventQueue().addEvent(new LSQCommitEventFromROB(new Time_t(GlobalClock.getCurrentTime() +
-																					core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime()),
+																					core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime() * core.getStepSize()),
 																			this,
 																			core.getExecEngine().coreMemSys.getLsqueue(), 
 																			tieBreaker, //tieBreaker,
@@ -130,7 +130,6 @@ public class ReorderBuffer extends SimulationElement{
 				}
 				else
 				{
-					System.out.println("branch mispredicted");
 					handleBranchMisprediction();
 				}
 				
@@ -187,6 +186,8 @@ public class ReorderBuffer extends SimulationElement{
 	
 	void handleBranchMisprediction()
 	{
+		System.out.println("branch mispredicted");
+		
 		//remove all entries from ROB				
 		ROB.removeAll(null);
 		
@@ -203,7 +204,7 @@ public class ReorderBuffer extends SimulationElement{
 		core.getExecEngine().setStallDecode2(true);
 		core.getEventQueue().addEvent(
 				new MispredictionPenaltyCompleteEvent(
-						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty(),
+						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty()*core.getStepSize(),
 						core)
 				);
 	}

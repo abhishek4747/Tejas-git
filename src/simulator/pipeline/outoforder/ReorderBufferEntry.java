@@ -19,7 +19,7 @@ public class ReorderBufferEntry {
 	private boolean isExecuted;
 	private boolean isWriteBackDone1;
 	private boolean isWriteBackDone2;
-	private long readyAtTime;
+	private long readyAtTime;							//in terms of GlobalClock cycles
 	private IWEntry associatedIWEntry;
 	private int lsqIndex = LSQ.INVALID_INDEX; //Index of the entry in LSQ
 
@@ -107,7 +107,7 @@ public class ReorderBufferEntry {
 	
 	public void setReadyAtTime(long _readyAtTime)
 	{
-		readyAtTime = _readyAtTime + core.getRegFileOccupancy();
+		readyAtTime = _readyAtTime + core.getRegFileOccupancy()*core.getStepSize();
 		//at places where the readyAtTime is calculated, the focus is on completion of operation
 		//hence, the register file latency is accounted for here
 	}
