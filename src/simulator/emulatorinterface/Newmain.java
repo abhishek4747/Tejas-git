@@ -4,7 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import pipeline.outoforder.BootPipelineEvent;
-import memorysystem.InitializeMemSys;
+import memorysystem.MemorySystem;
 import generic.Time_t;
 import memorysystem.Bus;
 import memorysystem.Cache;
@@ -31,7 +31,6 @@ public class Newmain {
 	public static int notHandled=0;
 	//public static Object syncObject = new Object();
 	//public static Object syncObject2 = new Object();
-	public static Time_t mainMemoryLatency;
 
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -43,9 +42,6 @@ public class Newmain {
 
 		// Parse the command line arguments
 		XMLParser.parse();
-		
-		//Set the main memory latency
-		mainMemoryLatency = new Time_t(SystemConfig.mainMemoryLatency);
 
 		// Create a hash-table for the static representation of the executable
 		InstructionTable instructionTable;
@@ -70,10 +66,10 @@ public class Newmain {
 		Core[] cores = initCores(eventQ, ipcBase);
 		
 		//Create the memory system
-		InitializeMemSys.initializeMemSys(cores);
+		MemorySystem.initializeMemSys(cores);
 		
 		//different core components may work at different frequencies
-		GlobalClock.systemTimingSetUp(cores, InitializeMemSys.getCacheList());
+		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
 		
 		
@@ -131,7 +127,7 @@ public class Newmain {
 			DynamicInstructionBuffer dynamicInstructionBuffer) {
 
 		// Creating command for PIN tool.
-		String cmd = SimulationConfig.PinTool + "/pin" + " -t "
+		String cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t " 
 		+ SimulationConfig.PinInstrumentor + " -map "
 		+ SimulationConfig.MapEmuCores + " -- " + executableFilePath;
 
