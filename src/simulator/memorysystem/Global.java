@@ -25,11 +25,7 @@ import java.io.*;
 public class Global
 {
 		public static BufferedReader mainTraceFile;
-		public static int LSQSize = 128;
-		public static int TLBSize = 512;
 		public static final int PAGE_OFFSET_BITS = 12;
-		
-		public static CoreMemorySystem[] memSys;
 		
 		public static int commitErrors;
 }

@@ -37,6 +37,7 @@ public class LSQ extends SimulationElement
 	//public static final int QUEUE_FULL = -1;
 		
 	public int NoOfLd = 0; //Total number of load instructions encountered
+	public int NoOfSt = 0;
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
 	
 	//For telling that what addresses are processed this cycle (for BANKED multi-port option)
@@ -63,6 +64,12 @@ public class LSQ extends SimulationElement
 		//{
 			LSQEntry.LSQEntryType type = (isLoad) ? LSQEntry.LSQEntryType.LOAD 
 					: LSQEntry.LSQEntryType.STORE;
+			
+			if (isLoad)
+				NoOfLd++;
+			else
+				NoOfSt++;
+			
 			LSQEntry entry = new LSQEntry(type, robEntry);
 			int index = tail;
 			entry.setAddr(address);

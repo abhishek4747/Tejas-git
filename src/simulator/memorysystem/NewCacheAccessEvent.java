@@ -124,7 +124,7 @@ public class NewCacheAccessEvent extends NewEvent
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (processingCache.isLastLevel)
 						newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
-																				Newmain.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
+																				MemorySystem.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
 																		processingCache, 
 																		0, //tieBreaker,
 																		request.getAddr(),
@@ -208,7 +208,7 @@ public class NewCacheAccessEvent extends NewEvent
 			{
 				//FIXME
 				newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
-																		Newmain.mainMemoryLatency.getTime()), //FIXME 
+																		MemorySystem.mainMemoryLatency.getTime()), //FIXME 
 																processingCache, 
 																0, //tieBreaker,
 																request.getAddr(),

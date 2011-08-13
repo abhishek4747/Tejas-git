@@ -5,13 +5,16 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import generic.Core;
+import generic.Time_t;
 
 import config.CacheConfig;
 import config.SystemConfig;
 
-public class InitializeMemSys 
+public class MemorySystem 
 {
+	static Core[] cores;
 	static Hashtable<String, Cache> cacheList;
+	public static Time_t mainMemoryLatency;
 	
 	public static Hashtable<String, Cache> getCacheList() {
 		return cacheList;
@@ -19,8 +22,13 @@ public class InitializeMemSys
 
 	public static void initializeMemSys(Core[] cores)
 	{
+		MemorySystem.cores = cores;
+		
 		System.out.println("initializing memory system...");
 		// initialising the memory system
+		
+		//Set the main memory latency
+		mainMemoryLatency = new Time_t(SystemConfig.mainMemoryLatency);
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
@@ -141,6 +149,58 @@ public class InitializeMemSys
 		{
 			list.get(i).isCoherent = true;
 			propagateCoherencyUpwards(list.get(i).prevLevel);
+		}
+	}
+	
+	public static void printMemSysResults()
+	{
+		System.out.println("\n Memory System results\n");
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			System.out.println(
+					"LSQ[" + i + "] Loads : "
+					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfLd 
+					+ "\t ; LSQ[" + i + "] Stores : " 
+					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfSt
+					+ "\t ; LSQ[" + i + "] Value Forwards : " 
+					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfForwards);
+		}
+		
+		System.out.println(" ");
+		
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			System.out.println(
+					"TLB[" + i + "] Hits : " 
+					+ cores[i].getExecEngine().coreMemSys.TLBuffer.tlbHits 
+					+ "\t ; TLB[" + i + "] misses : " 
+					+ cores[i].getExecEngine().coreMemSys.TLBuffer.tlbMisses);
+		}
+		
+		System.out.println(" ");
+		
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			System.out.println(
+					"L1[" + i + "] Hits : " 
+					+ cores[i].getExecEngine().coreMemSys.l1Cache.hits 
+					+ "\t ; L1[" + i + "] misses : " 
+					+ cores[i].getExecEngine().coreMemSys.l1Cache.misses);
+		}
+		
+		System.out.println(" ");
+		System.out.println(" Results of other caches");
+		
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cache = cacheList.get(cacheName);
+			
+			System.out.println(
+					cacheName + " Hits : " 
+					+ cache.hits 
+					+ "\t ; " + cacheName + " misses : " 
+					+ cache.misses);
 		}
 	}
 }

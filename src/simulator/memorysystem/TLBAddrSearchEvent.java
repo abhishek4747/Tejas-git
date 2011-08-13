@@ -50,7 +50,7 @@ public class TLBAddrSearchEvent extends NewEvent
 			if (!alreadyRequested)
 				//Fetch the physical address from from Page table
 				newEventQueue.addEvent(new MainMemAccessForTLBEvent(new Time_t(GlobalClock.getCurrentTime() +
-																		Newmain.mainMemoryLatency.getTime()),//FIXME
+																		MemorySystem.mainMemoryLatency.getTime()),//FIXME
 																	this.getProcessingElement(), 
 																	0, //tieBreaker,
 																	TLB.getPageID(address),

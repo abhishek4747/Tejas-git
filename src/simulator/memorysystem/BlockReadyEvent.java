@@ -78,6 +78,25 @@ public class BlockReadyEvent extends NewEvent
 	protected void receiveBlockAtCache(NewEventQueue newEventQueue,Cache receivingCache, long addr)
 	{
 		CacheLine evictedLine = receivingCache.fill(addr);//FIXME : Have to handle whole eviction process
+		if (evictedLine != null)
+		{
+			if (receivingCache.isLastLevel)
+				newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		MemorySystem.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
+																receivingCache, 
+																0, //tieBreaker,
+																evictedLine.getTag() << receivingCache.blockSizeBits,
+																RequestType.MEM_WRITE));
+			else
+				newEventQueue.addEvent(new NewCacheAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
+																		receivingCache.nextLevel.getLatency().getTime()),//FIXME
+																receivingCache,
+																receivingCache.nextLevel,
+																LSQ.INVALID_INDEX, 
+																0, //tieBreaker,
+																new CacheRequestPacket(RequestType.MEM_WRITE,
+																		evictedLine.getTag() << receivingCache.blockSizeBits)));
+		}
 		
 		long blockAddr = addr >> receivingCache.blockSizeBits;
 		if (!/*NOT*/receivingCache.outstandingRequestTable.containsKey(blockAddr))
@@ -140,7 +159,7 @@ public class BlockReadyEvent extends NewEvent
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (receivingCache.isLastLevel)
 						newEventQueue.addEvent(new NewMainMemAccessEvent(new Time_t(GlobalClock.getCurrentTime() +
-																				Newmain.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
+																				MemorySystem.mainMemoryLatency.getTime()),//FIXME :main memory latency is going to come here
 																		receivingCache, 
 																		0, //tieBreaker,
 																		outstandingRequestList.get(0).address,
