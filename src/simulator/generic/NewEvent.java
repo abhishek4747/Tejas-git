@@ -33,23 +33,6 @@ public abstract class NewEvent
 		//this.priority = calculatePriority(requestType);
 		this.priority = requestType.ordinal();
 	}
-	
-	/**
-	 * To occupy the port of a device if available
-	 * @param simulationElement : The device whose port is requested
-	 * @param noOfSlots for which the port is to be occupied
-	 * @return TRUE if the port is occupied, FALSE if the port was not free
-	 */
-	public boolean getDevicePort(SimulationElement simulationElement, int noOfSlots)
-	{
-		//If the port has not been occupied
-		if ((simulationElement != null) && (!simulationElement.port.occupySlots(noOfSlots)))
-		{
-			this.setEventTime(simulationElement.port.getNextSlot());
-			return false;
-		}
-		return true;
-	}
 
 	//Converts request-type to priority.
 	private long calculatePriority(RequestType requestType) 
