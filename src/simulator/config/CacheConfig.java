@@ -24,6 +24,8 @@ import generic.MultiPortingType;
 
 public class CacheConfig 
 {
+	public long operatingFreq;
+	
 	public WritePolicy writePolicy;
 	public boolean isLastLevel;
 	public String nextLevel;
@@ -41,6 +43,7 @@ public class CacheConfig
 	}
 
 	//Getters and setters
+	
 	public WritePolicy getWritePolicy() {
 		return writePolicy;
 	}

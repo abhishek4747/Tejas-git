@@ -24,6 +24,8 @@ import generic.MultiPortingType;
 
 public class CoreConfig 
 {
+	public long frequency;
+	
 	public int ROBSize;
 	
 	public int LSQSize;

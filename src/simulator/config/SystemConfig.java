@@ -28,6 +28,9 @@ public class SystemConfig
 	public static CoreConfig[] core; 
 	public static Hashtable<String, CacheConfig> declaredCaches;
 	public static int mainMemoryLatency;
+	public static long mainMemoryFrequency;
+	public static int mainMemoryAccessPorts;
+	public static int mainMemoryPortOccupancy;
 	public static int cacheBusLatency;
 	public static String coherenceEnforcingCache;
 }

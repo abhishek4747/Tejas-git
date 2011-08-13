@@ -117,6 +117,9 @@ public class XMLParser
 		//Read number of cores and define the array of core configurations
 		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
+		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
+		SystemConfig.mainMemoryAccessPorts = Integer.parseInt(getImmediateString("MainMemoryAccessPorts", systemElmnt));
+		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		
@@ -129,7 +132,8 @@ public class XMLParser
 			SystemConfig.core[i] = new CoreConfig();
 			CoreConfig core = SystemConfig.core[i]; //To be locally used for assignments
 		
-			Element coreElmnt = (Element) coreLst.item(0);;
+			Element coreElmnt = (Element) coreLst.item(0);
+			core.frequency = Long.parseLong(getImmediateString("CoreFrequency", coreElmnt));
 			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
 			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", coreElmnt));
 			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", coreElmnt));
@@ -156,6 +160,7 @@ public class XMLParser
 			Element typeElmnt = searchLibraryForItem(cacheType);
 			setCacheProperties(typeElmnt, core.l1Cache);
 			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
+			core.l1Cache.operatingFreq = core.frequency;
 			
 			//Code for L1 cache configurations for each core
 			//NodeList l2CacheList = coreElmnt.getElementsByTagName("L2Cache");
@@ -187,6 +192,7 @@ public class XMLParser
 				Element cacheTypeElmnt = searchLibraryForItem(cacheType);
 				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);
 				newCacheConfigEntry.nextLevel = cacheElmnt.getAttribute("nextLevel");
+				newCacheConfigEntry.operatingFreq = Long.parseLong(cacheElmnt.getAttribute("frequency"));
 				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
 			}
 		}
