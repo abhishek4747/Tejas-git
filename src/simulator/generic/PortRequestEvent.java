@@ -1,5 +1,7 @@
 package generic;
 
+import memorysystem.MemorySystem;
+
 /**
  * @author Moksh Upadhyay
  *	Used to request the acquiring of the ports of the device requested
@@ -10,7 +12,7 @@ package generic;
 public class PortRequestEvent extends NewEvent
 {
 	NewEvent targetEvent;
-	SimulationElement requestedDevice;
+	SimulationElement requestedDevice; //null means Main memory
 	int noOfSlots;
 	
 	public PortRequestEvent(long tieBreaker, 
@@ -28,12 +30,19 @@ public class PortRequestEvent extends NewEvent
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
 		//If the port has not been occupied
-		if ((requestedDevice != null) && (!requestedDevice.port.occupySlots(noOfSlots)))
+		if ((requestedDevice != null) && (!requestedDevice.port.occupySlots(noOfSlots, requestedDevice.getStepSize())))
 		{
 			this.setEventTime(requestedDevice.port.getNextSlot());
 			newEventQueue.addEvent(this);
 			return;
 		}
+		else if (!MemorySystem.mainMemPort.occupySlots(noOfSlots, MemorySystem.mainMemStepSize))
+		{
+			this.setEventTime(MemorySystem.mainMemPort.getNextSlot());
+			newEventQueue.addEvent(this);
+			return;
+		}
+		
 		//If port occupied
 		targetEvent.getEventTime().add(new Time_t(GlobalClock.getCurrentTime()));
 		newEventQueue.addEvent(targetEvent);

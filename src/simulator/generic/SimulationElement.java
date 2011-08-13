@@ -20,6 +20,12 @@ public abstract class SimulationElement
 		this.frequency = frequency;
 	}
 	
+	//To get the time delay(due to latency) to schedule the event 
+	public Time_t getLatencyDelay()
+	{
+		return (new Time_t(this.latency.getTime() * this.stepSize));
+	}
+	
 	public Time_t getLatency() 
 	{
 		return this.latency;

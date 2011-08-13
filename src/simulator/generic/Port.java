@@ -7,7 +7,7 @@ public class Port
 	//occupancy defines the number of clockCycles it takes for one completion 
 	//of a single transfer on the port.
 	private Time_t occupancy;
-	private Time_t portBusyUntil[];
+	private Time_t[] portBusyUntil;
 	
 	//NOTE : all notions of time is in terms of GlobalClock cycles
 	
@@ -17,7 +17,10 @@ public class Port
 		this.noOfPorts = noOfPorts;
 		this.occupancy = occupancy;
 		
-		portBusyUntil = new Time_t[noOfPorts];
+		if (noOfPorts > 0)
+			portBusyUntil = new Time_t[noOfPorts];
+		else //To avoid the out of bounds error
+			portBusyUntil = new Time_t[1];
 				
 		//If the port is an unlimited port, no need for setting timeBusyUntil field.
 		if(!(noOfPorts==-1 && occupancy.equals(-1)))
