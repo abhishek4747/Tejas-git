@@ -4,6 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import memorysystem.Cache;
+import memorysystem.MemorySystem;
 import config.SystemConfig;
 
 public class GlobalClock {
@@ -19,7 +20,7 @@ public class GlobalClock {
 		//TODO setting up of a heterogeneous clock environment
 		
 		//populate time_periods[]
-		int[] time_periods = new int[SystemConfig.NoOfCores + SystemConfig.declaredCaches.size()];
+		int[] time_periods = new int[SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1];
 		int i = 0;
 		int seed = Integer.MAX_VALUE;
 		String cacheName;
@@ -44,6 +45,11 @@ public class GlobalClock {
 			}
 			i++;
 		}
+		time_periods[i] = Math.round(100000/MemorySystem.mainMemFrequency);
+		if(time_periods[i] < seed)
+		{
+			seed = time_periods[i];
+		}
 				
 		//compute HCF
 		//TODO look for a better algorithm
@@ -55,7 +61,7 @@ public class GlobalClock {
 			if(seed%i == 0)
 			{
 				flag = true;
-				for(j = 0; j < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size(); j++)
+				for(j = 0; j < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1; j++)
 				{
 					if(time_periods[j]%(seed/i) != 0)
 					{
@@ -85,6 +91,8 @@ public class GlobalClock {
 			cache = cacheList.get(cacheName);
 			cache.setStepSize(time_periods[i++]/HCF);
 		}
+		MemorySystem.mainMemStepSize = time_periods[i]/HCF;
+		
 	}
 
 	public static long getCurrentTime() {
