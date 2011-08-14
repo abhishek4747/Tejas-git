@@ -29,13 +29,18 @@ public class PortRequestEvent extends NewEvent
 
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
-		//If the port has not been occupied
-		if ((requestedDevice != null) && (!requestedDevice.port.occupySlots(noOfSlots, requestedDevice.getStepSize())))
+		//If the requested device is not main memory
+		if (requestedDevice != null)
 		{
-			this.setEventTime(requestedDevice.port.getNextSlot());
-			newEventQueue.addEvent(this);
-			return;
+			//If the port cannot be occupied
+			if (!requestedDevice.port.occupySlots(noOfSlots, requestedDevice.getStepSize()))
+			{
+				this.setEventTime(requestedDevice.port.getNextSlot());
+				newEventQueue.addEvent(this);
+				return;
+			}
 		}
+		//If the requested device is main memory and the port cannot be occupied
 		else if (!MemorySystem.mainMemPort.occupySlots(noOfSlots, MemorySystem.mainMemStepSize))
 		{
 			this.setEventTime(MemorySystem.mainMemPort.getNextSlot());

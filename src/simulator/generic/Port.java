@@ -19,8 +19,6 @@ public class Port
 		
 		if (noOfPorts > 0)
 			portBusyUntil = new Time_t[noOfPorts];
-		else //To avoid the out of bounds error
-			portBusyUntil = new Time_t[1];
 				
 		//If the port is an unlimited port, no need for setting timeBusyUntil field.
 		if(!(noOfPorts==-1 && occupancy.equals(-1)))
@@ -37,7 +35,7 @@ public class Port
 	{
 		Time_t temp = new Time_t(GlobalClock.getCurrentTime());
 		
-		if(this.noOfPorts==-1 && this.occupancy.equals(-1))
+		if ((this.noOfPorts == -1) && (this.occupancy.getTime() == -1))
 		{
 			//In case of unlimited ports, return now.
 			return temp;
