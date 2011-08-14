@@ -5,6 +5,7 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperandType;
 import generic.OperationType;
+import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
@@ -118,13 +119,15 @@ public class ReorderBuffer extends SimulationElement{
 					//TODO Signal LSQ for committing the Instruction at the queue head
 					if(first.getInstruction().getOperationType() == OperationType.load ||
 							first.getInstruction().getOperationType() == OperationType.store)
-						core.getEventQueue().addEvent(new LSQCommitEventFromROB(new Time_t(GlobalClock.getCurrentTime() +
+						core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
+								1, //noOfSlots,
+								new LSQCommitEventFromROB(new Time_t(GlobalClock.getCurrentTime() +
 																					core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime() * core.getStepSize()),
 																			this,
 																			core.getExecEngine().coreMemSys.getLsqueue(), 
 																			tieBreaker, //tieBreaker,
 																			RequestType.LSQ_COMMIT, 
-																			first.getLsqIndex()));
+																			first.getLsqIndex())));
 					ROB.removeFirst();
 					
 				}
