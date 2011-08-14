@@ -64,18 +64,18 @@ public class Port
 	//returns if any port is available for next n slots.
 	public boolean occupySlots(int noOfSlots, int stepSize)
 	{
-		if(noOfPorts==-1 && occupancy.equals(-1))
+		if(noOfPorts == -1 && (this.occupancy.getTime() == -1))
 		{
 			//In case of unlimited port, anybody can occupy the port for n slots.
 			return true;
 		}
 		else
 		{
-			for(int i=0; i<noOfPorts; i++)
+			for(int i=0; i < noOfPorts; i++)
 			{
 				if(portBusyUntil[i].lessThan(new Time_t(GlobalClock.getCurrentTime())))
 				{
-					portBusyUntil[i].add(new Time_t(noOfSlots*occupancy.getTime()*stepSize));
+					portBusyUntil[i].add(new Time_t(noOfSlots * occupancy.getTime() * stepSize));
 					return true;
 				}
 			}

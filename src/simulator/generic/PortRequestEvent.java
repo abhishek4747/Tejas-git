@@ -15,20 +15,19 @@ public class PortRequestEvent extends NewEvent
 	SimulationElement requestedDevice; //null means Main memory
 	int noOfSlots;
 	
-	public PortRequestEvent(long tieBreaker, 
-							RequestType requestType, 
+	public PortRequestEvent(long tieBreaker,
 							int noOfSlots, 
 							NewEvent targetEvent) 
 	{
 		super(new Time_t(GlobalClock.getCurrentTime()), null, null, tieBreaker,
-				requestType);
+				targetEvent.requestType);
 		this.targetEvent = targetEvent;
 		this.requestedDevice = targetEvent.getProcessingElement();
 		this.noOfSlots = noOfSlots;
 	}
 
 	public void handleEvent(NewEventQueue newEventQueue)
-	{
+	{System.out.println("Heya!!");
 		//If the requested device is not main memory
 		if (requestedDevice != null)
 		{
@@ -36,6 +35,7 @@ public class PortRequestEvent extends NewEvent
 			if (!requestedDevice.port.occupySlots(noOfSlots, requestedDevice.getStepSize()))
 			{
 				this.setEventTime(requestedDevice.port.getNextSlot());
+				this.setPriority(this.getPriority() + 1); //Increase the priority to prevent starvation (and to maintain preference)
 				newEventQueue.addEvent(this);
 				return;
 			}
@@ -44,6 +44,7 @@ public class PortRequestEvent extends NewEvent
 		else if (!MemorySystem.mainMemPort.occupySlots(noOfSlots, MemorySystem.mainMemStepSize))
 		{
 			this.setEventTime(MemorySystem.mainMemPort.getNextSlot());
+			this.setPriority(this.getPriority() + 1); //Increase the priority to prevent starvation (and to maintain preference)
 			newEventQueue.addEvent(this);
 			return;
 		}
