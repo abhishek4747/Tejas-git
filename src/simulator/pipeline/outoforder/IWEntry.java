@@ -6,6 +6,7 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.ExecutionCompleteEvent;
+import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.Time_t;
 
@@ -111,13 +112,15 @@ public class IWEntry {
 		
 		core.getExecEngine().getInstructionWindow().removeFromWindow(this);
 		//TODO add event to indicate address ready
-		core.getEventQueue().addEvent(new LSQAddressReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+		core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
+				1, //noOfSlots,
+				new LSQAddressReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
 															core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime()*core.getStepSize()), 
 													null, //Requesting Element
 													core.getExecEngine().coreMemSys.getLsqueue(), 
 													0, //tieBreaker,
 													RequestType.TLB_ADDRESS_READY,
-													associatedROBEntry.getLsqIndex()));
+													associatedROBEntry.getLsqIndex())));
 	}
 	
 	void issueOthers()
