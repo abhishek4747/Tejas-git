@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.NewEventQueue;
+import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
@@ -35,14 +36,16 @@ public class TLBAddEntryEvent extends NewEvent
 		
 		while (!outstandingRequestList.isEmpty())
 		{
-			newEventQueue.addEvent(new LSQValidateEvent(new Time_t(GlobalClock.getCurrentTime() +
-																processingTLB.containingMemSys.lsqueue.getLatency().getTime()), //FIXME
+			newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+					RequestType.PORT_REQUEST, 
+					1, //noOfSlots,
+					new LSQValidateEvent(processingTLB.containingMemSys.lsqueue.getLatencyDelay(), //FIXME
 														processingTLB,
 														processingTLB.containingMemSys.lsqueue, 
 														0, //tieBreaker,
 														RequestType.VALIDATE_LSQ_ENTRY, 
 														outstandingRequestList.remove(0), 
-														pageID)); //FIXME : Right now, we are passing pageID in place of ADDRESS
+														pageID))); //FIXME : Right now, we are passing pageID in place of ADDRESS
 		}
 	}
 }

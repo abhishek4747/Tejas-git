@@ -44,12 +44,14 @@ public class MainMemAccessForTLBEvent extends NewEvent
 	{
 		/*Do nothing for the main memory*/
 		//Add the entry into the TLB
-		newEventQueue.addEvent(new TLBAddEntryEvent(new Time_t(GlobalClock.getCurrentTime() +
-															this.getRequestingElement().getLatency().getTime()),//FIXME
+		newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+				RequestType.PORT_REQUEST, 
+				1, //noOfSlots,
+				new TLBAddEntryEvent(this.getRequestingElement().getLatencyDelay(),//FIXME
 													null,
 													this.getRequestingElement(), 
 													0, //tieBreaker,
 													RequestType.TLB_ADDRESS_READY, 
-													pageID));
+													pageID)));
 	}
 }

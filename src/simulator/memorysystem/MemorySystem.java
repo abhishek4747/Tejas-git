@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import generic.Port;
+
 import generic.Core;
 import generic.Time_t;
 
@@ -15,6 +17,16 @@ public class MemorySystem
 	static Core[] cores;
 	static Hashtable<String, Cache> cacheList;
 	public static Time_t mainMemoryLatency;
+	public static long mainMemFrequency;								//in MHz
+	public static int mainMemStepSize;
+	public static Port mainMemPort;
+	static int mainMemoryAccessPorts;
+	static Time_t mainMemoryPortOccupancy;
+	
+	public static Time_t getMainMemLatencyDelay()
+	{
+		return (new Time_t(mainMemoryLatency.getTime() * mainMemStepSize));
+	}
 	
 	public static Hashtable<String, Cache> getCacheList() {
 		return cacheList;
@@ -27,8 +39,12 @@ public class MemorySystem
 		System.out.println("initializing memory system...");
 		// initialising the memory system
 		
-		//Set the main memory latency
+		//Set up the main memory properties
 		mainMemoryLatency = new Time_t(SystemConfig.mainMemoryLatency);
+		mainMemFrequency = SystemConfig.mainMemoryFrequency;
+		mainMemoryAccessPorts = SystemConfig.mainMemoryAccessPorts;
+		mainMemoryPortOccupancy = new Time_t(SystemConfig.mainMemoryPortOccupancy);
+		mainMemPort = new Port(mainMemoryAccessPorts, mainMemoryPortOccupancy);
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;

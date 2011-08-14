@@ -51,7 +51,7 @@ public class LSQ extends SimulationElement
 	public LSQ(int noOfPorts, Time_t occupancy, Time_t latency,
 			CoreMemorySystem containingMemSys, int lsqSize) 
 	{
-		super(noOfPorts, occupancy, latency, -1);
+		super(noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());
 		this.containingMemSys = containingMemSys;
 		this.lsqSize = lsqSize;
 		curSize = 0;

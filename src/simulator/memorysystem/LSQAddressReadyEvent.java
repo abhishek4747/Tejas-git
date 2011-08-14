@@ -23,6 +23,7 @@ package memorysystem;
 import generic.GlobalClock;
 import generic.NewEventQueue;
 import generic.NewEvent;
+import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
@@ -56,13 +57,15 @@ public class LSQAddressReadyEvent extends NewEvent
 	{
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		
-		newEventQueue.addEvent(new TLBAddrSearchEvent(new Time_t(GlobalClock.getCurrentTime() + 
-															processingLSQ.containingMemSys.TLBuffer.getLatency().getTime()), //FIXME
+		newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+				RequestType.PORT_REQUEST, 
+				1, //noOfSlots,
+				new TLBAddrSearchEvent(processingLSQ.containingMemSys.TLBuffer.getLatencyDelay(), //FIXME
 														processingLSQ,
 														processingLSQ.containingMemSys.TLBuffer, 
 														0, //tieBreaker,
 														RequestType.TLB_SEARCH, 
 														processingLSQ.lsqueue[lsqIndex].getAddr(),
-														lsqIndex));
+														lsqIndex)));
 	}
 }

@@ -20,8 +20,6 @@
 *****************************************************************************/
 package memorysystem;
 
-import java.util.Stack;
-
 import memorysystem.CacheLine.MESI;
 import generic.*;
 
@@ -80,14 +78,16 @@ public class NewMainMemAccessEvent extends NewEvent
 		{
 			if (requestType == RequestType.MEM_READ)
 			{
-				newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
-																	this.getRequestingElement().getLatency().getTime()), //FIXME
+				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+						RequestType.PORT_REQUEST, 
+						1, //noOfSlots,
+						new BlockReadyEvent(this.getRequestingElement().getLatencyDelay(), //FIXME
 															null,
 															this.getRequestingElement(), 
 															0, //tie-breaker
 															RequestType.MEM_BLOCK_READY,
 															address,
-															LSQ.INVALID_INDEX));
+															LSQ.INVALID_INDEX)));
 			}
 			else if (requestType == RequestType.MEM_WRITE)
 			{
