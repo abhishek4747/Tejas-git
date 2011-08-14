@@ -27,7 +27,7 @@ public class PortRequestEvent extends NewEvent
 	}
 
 	public void handleEvent(NewEventQueue newEventQueue)
-	{System.out.println("Heya!!");
+	{
 		//If the requested device is not main memory
 		if (requestedDevice != null)
 		{

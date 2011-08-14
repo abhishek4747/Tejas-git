@@ -45,7 +45,6 @@ public class MainMemAccessForTLBEvent extends NewEvent
 		/*Do nothing for the main memory*/
 		//Add the entry into the TLB
 		newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-				RequestType.PORT_REQUEST, 
 				1, //noOfSlots,
 				new TLBAddEntryEvent(this.getRequestingElement().getLatencyDelay(),//FIXME
 													null,

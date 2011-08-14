@@ -58,7 +58,6 @@ public class LSQAddressReadyEvent extends NewEvent
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		
 		newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-				RequestType.PORT_REQUEST, 
 				1, //noOfSlots,
 				new TLBAddrSearchEvent(processingLSQ.containingMemSys.TLBuffer.getLatencyDelay(), //FIXME
 														processingLSQ,

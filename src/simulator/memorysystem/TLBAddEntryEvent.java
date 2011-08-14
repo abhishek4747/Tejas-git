@@ -37,7 +37,6 @@ public class TLBAddEntryEvent extends NewEvent
 		while (!outstandingRequestList.isEmpty())
 		{
 			newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-					RequestType.PORT_REQUEST, 
 					1, //noOfSlots,
 					new LSQValidateEvent(processingTLB.containingMemSys.lsqueue.getLatencyDelay(), //FIXME
 														processingTLB,

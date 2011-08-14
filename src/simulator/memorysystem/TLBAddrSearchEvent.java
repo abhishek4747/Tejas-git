@@ -35,7 +35,6 @@ public class TLBAddrSearchEvent extends NewEvent
 		{
 			//Validate the address in the LSQ right away
 			newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-					RequestType.PORT_REQUEST, 
 					1, //noOfSlots,
 					new LSQValidateEvent(this.getRequestingElement().getLatencyDelay(),//FIXME
 														processingTLB,
@@ -52,8 +51,7 @@ public class TLBAddrSearchEvent extends NewEvent
 			
 			if (!alreadyRequested)
 				//Fetch the physical address from from Page table
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						RequestType.PORT_REQUEST, 
+				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker,  
 						1, //noOfSlots,
 						new MainMemAccessForTLBEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME
 																	this.getProcessingElement(), 

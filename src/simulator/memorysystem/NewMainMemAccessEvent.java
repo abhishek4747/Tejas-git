@@ -79,7 +79,6 @@ public class NewMainMemAccessEvent extends NewEvent
 			if (requestType == RequestType.MEM_READ)
 			{
 				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						RequestType.PORT_REQUEST, 
 						1, //noOfSlots,
 						new BlockReadyEvent(this.getRequestingElement().getLatencyDelay(), //FIXME
 															null,

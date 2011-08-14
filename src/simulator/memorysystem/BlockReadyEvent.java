@@ -82,8 +82,7 @@ public class BlockReadyEvent extends NewEvent
 		if (evictedLine != null)
 		{
 			if (receivingCache.isLastLevel)
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						RequestType.PORT_REQUEST, 
+				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker,  
 						1, //noOfSlots, 
 						new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
 								receivingCache, 
@@ -92,7 +91,6 @@ public class BlockReadyEvent extends NewEvent
 								RequestType.MEM_WRITE)));
 			else
 				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						RequestType.PORT_REQUEST, 
 						1, //noOfSlots,
 						new NewCacheAccessEvent(receivingCache.nextLevel.getLatencyDelay(),//FIXME
 								receivingCache,
@@ -121,8 +119,7 @@ public class BlockReadyEvent extends NewEvent
 				//Generate the event for the Upper level cache or LSQ
 				if (outstandingRequestList.get(0).lsqIndex == LSQ.INVALID_INDEX)
 					//Generate the event for the Upper level cache
-					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-							RequestType.PORT_REQUEST, 
+					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker,  
 							1, //noOfSlots,
 							new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatencyDelay(),//FIXME 
 															this.getProcessingElement(),
@@ -134,7 +131,6 @@ public class BlockReadyEvent extends NewEvent
 				else
 					//Generate the event to tell the LSQ
 					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-							RequestType.PORT_REQUEST, 
 							1, //noOfSlots,
 							new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatencyDelay(),//FIXME 
 															this.getProcessingElement(),
@@ -168,7 +164,6 @@ public class BlockReadyEvent extends NewEvent
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (receivingCache.isLastLevel)
 						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-								RequestType.PORT_REQUEST, 
 								1, //noOfSlots,
 								new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
 																		receivingCache, 
@@ -177,7 +172,6 @@ public class BlockReadyEvent extends NewEvent
 																		RequestType.MEM_WRITE)));
 					else
 						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-								RequestType.PORT_REQUEST, 
 								1, //noOfSlots,
 								new NewCacheAccessEvent(receivingCache.nextLevel.getLatencyDelay(),//FIXME
 																		receivingCache,

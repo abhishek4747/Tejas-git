@@ -94,7 +94,6 @@ public class NewCacheAccessEvent extends NewEvent
 			if (request.getType() == RequestType.MEM_READ)
 				//Just return the read block
 				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						RequestType.PORT_REQUEST, 
 						1, //noOfSlots,
 						new BlockReadyEvent(this.getRequestingElement().getLatencyDelay(), 
 															this.processingCache,
@@ -126,7 +125,6 @@ public class NewCacheAccessEvent extends NewEvent
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (processingCache.isLastLevel)
 						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-								RequestType.PORT_REQUEST, 
 								1, //noOfSlots,
 								new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
 																		processingCache, 
@@ -134,8 +132,7 @@ public class NewCacheAccessEvent extends NewEvent
 																		request.getAddr(),
 																		RequestType.MEM_WRITE)));
 					else
-						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-								RequestType.PORT_REQUEST, 
+						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker,
 								1, //noOfSlots,
 								new NewCacheAccessEvent(processingCache.nextLevel.getLatencyDelay(),//FIXME
 																		processingCache,
@@ -214,7 +211,6 @@ public class NewCacheAccessEvent extends NewEvent
 			{
 				//FIXME
 				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						RequestType.PORT_REQUEST, 
 						1, //noOfSlots,
 						new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(), //FIXME 
 																processingCache, 
@@ -232,7 +228,6 @@ public class NewCacheAccessEvent extends NewEvent
 				this.lsqIndex = LSQ.INVALID_INDEX;
 				this.request.setType(RequestType.MEM_READ);
 				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						RequestType.PORT_REQUEST, 
 						1, //noOfSlots,
 						this));
 				return;
