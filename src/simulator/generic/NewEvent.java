@@ -11,6 +11,7 @@ package generic;
 public abstract class NewEvent 
 {
 	private Time_t eventTime;
+	RequestType requestType;
 	private long priority;
 	
 	//Element which processes the event.
@@ -29,6 +30,7 @@ public abstract class NewEvent
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
 		this.tieBreaker = tieBreaker;
+		this.requestType = requestType;
 		
 		//this.priority = calculatePriority(requestType);
 		this.priority = requestType.ordinal();
