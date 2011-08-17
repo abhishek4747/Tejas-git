@@ -46,7 +46,7 @@ public class Core extends SimulationElement{
 	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionList[] incomingInstructionLists,
 					int[] threadIDs)
 	{
-		super(1, new Time_t(-1), new Time_t(-1), 2000);			//TODO frequency from config file
+		super(1, new Time_t(-1), new Time_t(-1), SystemConfig.core[core_number].frequency);			//TODO frequency from config file
 		//clock = 0;
 		
 		initializeCoreParameters(SystemConfig.core[core_number]);

@@ -39,7 +39,6 @@ public enum RequestType {
 	MISPRED_PENALTY_COMPLETE,
 	BOOT_PIPELINE,
 	
-	//FIXME:
 	MEM_READ,
 	MEM_WRITE,
 	

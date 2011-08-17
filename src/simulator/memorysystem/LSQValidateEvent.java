@@ -26,7 +26,6 @@ import generic.*;
 
 public class LSQValidateEvent extends NewEvent
 {
-	//CoreMemorySystem containingMemSys;
 	int lsqIndex;
 	long addr;
 	
@@ -63,9 +62,7 @@ public class LSQValidateEvent extends NewEvent
 															processingLSQ.containingMemSys.l1Cache,
 															lsqIndex, 
 															0, //tieBreaker,
-															request)));//, 
-															//MESI stateToSet, 
-															//false));
+															request)));
 			}
 		}
 		else //If the LSQ entry is a store

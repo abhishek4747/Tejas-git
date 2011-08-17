@@ -59,14 +59,11 @@ public class LSQCommitEventFromROB extends NewEvent
 		{
 			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
 			processingLSQ.curSize--;
-			//long address = entry.getAddr();
 		}
 		
 		//If it is a LOAD which has not yet received its value
 		else
 		{
-			//TODO Uncomment these in the real system
-			//Global.commitErrors++;
 			System.err.println("Error in LSQ " +processingLSQ.containingMemSys.coreID+ " :  ROB sent commit for a load which has not received its value");
 			System.exit(1);
 		}

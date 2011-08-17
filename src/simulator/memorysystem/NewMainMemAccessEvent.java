@@ -25,13 +25,6 @@ import generic.*;
 
 public class NewMainMemAccessEvent extends NewEvent 
 {
-	//CoreMemorySystem containingMemSys; // For Page table accesses
-	//Cache sourceCache; //Only for access from coherent cache
-	//MESI stateToSet; //Only for access from coherent cache
-	//int threadID;
-	//LSQEntry lsqEntry;
-	//TLB tlbuffer;
-	//long pageID;
 	long address;
 	RequestType requestType;
 

@@ -28,7 +28,6 @@ public class MainMemAccessForTLBEvent extends NewEvent
 {
 	long pageID;
 	
-	//Access from cache
 	public MainMemAccessForTLBEvent(Time_t eventTime,
 			SimulationElement requestingElement, long tieBreaker,
 			long pageID,

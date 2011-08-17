@@ -34,7 +34,6 @@ public class LSQ extends SimulationElement
 	protected int head = 0;	// Instructions retire at the head
 	protected int lsqSize;
 	protected int curSize;
-	//public static final int QUEUE_FULL = -1;
 		
 	public int NoOfLd = 0; //Total number of load instructions encountered
 	public int NoOfSt = 0;
@@ -174,7 +173,8 @@ public class LSQ extends SimulationElement
 /*
 	public void processROBCommit(int index)
 	{
-		Went into LSQCommitEventFromROB
+		The work which was to be done here is finally done 
+		through the event LSQCommitEventFromROB
 	}
 */
 	protected int incrementQ(int value)
@@ -198,29 +198,4 @@ public class LSQ extends SimulationElement
 		else 
 			return false;
 	}
-	
-	/**
-	 * Tells whether the request of current event can be processed in the current cycle (due to device port availability)
-	 * @param index : The LSQ index to be accessed
-	 * @return A boolean value :TRUE if the request can be processed and FALSE otherwise
-	 */
-/*	protected boolean canServiceRequest(int index)
-	{
-		//For Genuinely multi-ported elements, if number of requests this cycle has not reached the total number of ports
-		if  ((this.getMultiPortType() == MultiPortingType.GENUINE) && (this.requestsProcessedThisCycle < this.ports))
-		{
-			requestsProcessedThisCycle++;
-			return true;
-		}
-		
-		//For Banked multi-ported elements
-		else if ((this.getMultiPortType() == MultiPortingType.BANKED) && 
-				!/*NOT*this.banksAccessedThisCycle.contains(index/(lsqSize/(this.ports))))
-		{
-			banksAccessedThisCycle.add(index/(lsqSize/(this.ports)));
-			return true;
-		}
-		else
-			return false;
-	}*/
 }

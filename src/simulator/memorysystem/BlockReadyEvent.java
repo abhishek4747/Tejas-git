@@ -32,17 +32,7 @@ public class BlockReadyEvent extends NewEvent
 	 */
 	int lsqIndex = LSQ.INVALID_INDEX;
 	long address;
-/*
-	//For the caches
-	public BlockReadyEvent(Time_t eventTime, SimulationElement requestingElement,
-			SimulationElement processingElement, long tieBreaker,
-			RequestType requestType) 
-	{
-		super(eventTime, requestingElement, processingElement, tieBreaker, requestType);
-		// TODO Auto-generated constructor stub
-	}
-*/ 
-	//For LSQ
+	
 	public BlockReadyEvent(Time_t eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,

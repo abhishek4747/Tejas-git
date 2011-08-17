@@ -127,7 +127,6 @@ public class Cache extends SimulationElement
 					cacheParameters.operatingFreq);
 			
 			// set the parameters
-			//containingMemSys = _containingMemSys;
 			this.blockSize = cacheParameters.getBlockSize();
 			this.assoc = cacheParameters.getAssoc();
 			this.size = cacheParameters.getSize();
@@ -138,7 +137,6 @@ public class Cache extends SimulationElement
 			this.writePolicy = cacheParameters.getWritePolicy();
 			this.isLastLevel = cacheParameters.isLastLevel();
 			this.nextLevelName = cacheParameters.getNextLevel();
-			//this.setMultiPortType(cacheParameters.getMultiportType());
 			
 			this.numLinesBits = Util.logbase2(numLines);
 			this.timestamp = 0;
@@ -163,45 +161,7 @@ public class Cache extends SimulationElement
 		{
 			CacheLine cl = access(addr);
 			if(cl != null) 
-			{
 				mark(cl);
-				
-				
-				
-				/*if (this.writeMode == CacheConfig.writeModes.WRITE_BACK) //Set the modified-bit only if the cache is write-back
-					cl.setModified(true);
-				else //The cache is write through
-				{
-					//Write through in the next level or memory
-					if (this.isLastLevel)
-					{
-						//TODO Enter code for writing to main memory
-						Stack<CacheFillStackEntry> fillStack = new Stack<CacheFillStackEntry>();
-						MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*.add(new MainMemAccessEvent(containingMemSys.threadID,
-																			null, 
-																			fillStack, 
-																			MemEventQueue.clock
-																			+ SystemConfig.mainMemoryLatency));
-					}
-					else
-					{
-						CacheRequestPacket writeThrough = new CacheRequestPacket();
-						writeThrough.setAddr(addr);
-						writeThrough.setType(MemoryAccessType.WRITE);
-						writeThrough.setThreadID(0); //TODO This has to be taken care of in memory consistency
-						writeThrough.setWriteThrough(true);//TODO For testing purposes only
-						//this.nextLevel.processEntry(writeThrough);
-						Stack<CacheFillStackEntry> fillStack = new Stack<CacheFillStackEntry>();
-						MemEventQueue.eventQueue/*.get(containingMemSys.threadID)*.add(new CacheAccessEvent(containingMemSys.threadID,
-																			null,
-																			this.nextLevel, 
-																			writeThrough, 
-																			fillStack, 
-																			MemEventQueue.clock
-																			+ this.nextLevel.latency));
-					}
-				}*/
-			}
 			return cl;
 		}
 		
@@ -267,16 +227,6 @@ public class Cache extends SimulationElement
 			fillLine.setState(MESI.SHARED);
 			//fillLine.setValid(true);
 			mark(fillLine, tag);
-			
-			/*if ((request.getType() == MemoryAccessType.WRITE) && (this.writeMode == CacheConfig.writeModes.WRITE_BACK))
-			{
-				fillLine.setState(MESI.MODIFIED);
-			}
-			else if (request.getType() == MemoryAccessType.READ)
-			{
-				fillLine.setState(MESI.EXCLUSIVE);
-			}*/
-//			fillLine.setState(stateToSet);
 			return evictedLine;
 		}
 	

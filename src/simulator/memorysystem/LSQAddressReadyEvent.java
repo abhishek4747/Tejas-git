@@ -31,17 +31,7 @@ import generic.Time_t;
 public class LSQAddressReadyEvent extends NewEvent 
 {
 	int lsqIndex;
-	//CoreMemorySystem containingMemSys;
-/*
-	public LSQAddEvent(CoreMemorySystem _containingMemSys, boolean _isLoad, long _addr, long eventTime)
-	{
-		super(eventTime, 2, 0);
-		
-		isLoad = _isLoad;
-		addr = _addr;
-		containingMemSys = _containingMemSys;
-	}
-*/	
+	
 	public LSQAddressReadyEvent(Time_t eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,
 			RequestType requestType, int lsqIndex)
