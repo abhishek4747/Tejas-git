@@ -13,15 +13,16 @@ public class CacheOutstandingRequestTableEntry
 	 * Just stores the LSQ entry index if the ready event is for an LSQ.
 	 * Stores the INVALID_INDEX otherwise.
 	 */
-	int lsqIndex = LSQ.INVALID_INDEX;
+	//int lsqIndex = LSQ.INVALID_INDEX;
+	LSQEntry lsqEntry = null;
 	
 	public CacheOutstandingRequestTableEntry(RequestType requestType,
-			SimulationElement requestingElement, long address, int index) 
+			SimulationElement requestingElement, long address, LSQEntry lsqEntry) 
 	{
 		super();
 		this.requestType = requestType;
 		this.requestingElement = requestingElement;
 		this.address =address;
-		this.lsqIndex = index;
+		this.lsqEntry = lsqEntry;
 	}	
 }

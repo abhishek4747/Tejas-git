@@ -119,14 +119,17 @@ public class ReorderBuffer extends SimulationElement{
 					//TODO Signal LSQ for committing the Instruction at the queue head
 					if(first.getInstruction().getOperationType() == OperationType.load ||
 							first.getInstruction().getOperationType() == OperationType.store)
-						core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
+					{
+						core.getEventQueue().addEvent(new PortRequestEvent((GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker, 
 								1, //noOfSlots,
 								new LSQCommitEventFromROB(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(),
 																			this,
 																			core.getExecEngine().coreMemSys.getLsqueue(), 
-																			tieBreaker, //tieBreaker,
+																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
 																			RequestType.LSQ_COMMIT, 
-																			first.getLsqIndex())));
+																			first.getLsqEntry())));
+						first.getLsqEntry().setRemoved(true);
+					}
 					ROB.removeFirst();
 					
 				}

@@ -47,6 +47,7 @@ public class RenameCompleteEvent extends NewEvent {
 		if(newIWEntry == null)
 		{
 			handleIWFull();
+			return;
 		}
 		
 		long operandReadyTime = GlobalClock.getCurrentTime();

@@ -31,30 +31,29 @@ public class Port
 	}
 	
 	//returns the next available slot.
-	public Time_t getNextSlot()
+	public long getNextSlot()
 	{
-		Time_t temp = new Time_t(GlobalClock.getCurrentTime());
 		
 		if ((this.noOfPorts == -1) && (this.occupancy.getTime() == -1))
 		{
 			//In case of unlimited ports, return now.
-			return temp;
+			return GlobalClock.getCurrentTime();
 		}
 		else
 		{
 			//else return the most recent available slot.
-			Time_t availableSlot = portBusyUntil[0];
+			long availableSlot = portBusyUntil[0].getTime();
 			for(int i=0; i<noOfPorts; i++)
 			{
-				if(portBusyUntil[i].lessThan(availableSlot))
+				if(portBusyUntil[i].getTime() < availableSlot)
 				{
-					availableSlot = portBusyUntil[i];
+					availableSlot = portBusyUntil[i].getTime();
 				}
 			}
 			
-			if(availableSlot.lessThan(temp))
+			if(!(availableSlot > GlobalClock.getCurrentTime()))
 			{
-				availableSlot = temp;
+				availableSlot = GlobalClock.getCurrentTime();
 			}
 			
 			return availableSlot;

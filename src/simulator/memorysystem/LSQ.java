@@ -32,7 +32,7 @@ public class LSQ extends SimulationElement
 	protected LSQEntry[] lsqueue;
 	protected int tail = 0; // You can start adding at the tail index
 	protected int head = 0;	// Instructions retire at the head
-	protected int lsqSize;
+	public int lsqSize;
 	protected int curSize;
 		
 	public int NoOfLd = 0; //Total number of load instructions encountered
@@ -57,7 +57,7 @@ public class LSQ extends SimulationElement
 		lsqueue = new LSQEntry[lsqSize];	
 	}
 
-	public int addEntry(boolean isLoad, long address, ReorderBufferEntry robEntry) //To be accessed at the time of allocating the entry
+	public LSQEntry addEntry(boolean isLoad, long address, ReorderBufferEntry robEntry) //To be accessed at the time of allocating the entry
 	{
 		//if (curSize < lsqSize)
 		//{
@@ -72,10 +72,11 @@ public class LSQ extends SimulationElement
 			LSQEntry entry = new LSQEntry(type, robEntry);
 			int index = tail;
 			entry.setAddr(address);
+			entry.setIndexInQ(index);
 			lsqueue[index] = entry;
 			tail = incrementQ(tail);
 			this.curSize++;
-			return index;
+			return entry;
 		//}
 		//else return QUEUE_FULL; // -1 signifies that the queue is full
 	}
@@ -114,10 +115,11 @@ public class LSQ extends SimulationElement
 					{
 						// Successfully forwarded the value
 						entry.setForwarded(true);
-						containingMemSys.core.getEventQueue().addEvent(new ExecutionCompleteEvent(entry.getRobEntry(),
-										-1,
-										containingMemSys.core,
-										GlobalClock.getCurrentTime()));
+						if (!entry.getRobEntry().getExecuted())
+							containingMemSys.core.getEventQueue().addEvent(new ExecutionCompleteEvent(entry.getRobEntry(),
+											-1,
+											containingMemSys.core,
+											GlobalClock.getCurrentTime()));
 						return true;
 					}
 					else
@@ -135,7 +137,7 @@ public class LSQ extends SimulationElement
 	{
 		LSQEntry entry = lsqueue[index];
 		entry.setValid(true);
-		storeResolve(index, entry);
+		//storeResolve(index, entry);
 	}
 
 	protected void storeResolve(int index, LSQEntry entry)
@@ -151,7 +153,8 @@ public class LSQ extends SimulationElement
 					if (tmpEntry.isValid() && !tmpEntry.isForwarded())
 					{
 						tmpEntry.setForwarded(true);
-						containingMemSys.core.getEventQueue().addEvent(
+						if (!tmpEntry.getRobEntry().getExecuted())
+							containingMemSys.core.getEventQueue().addEvent(
 								new ExecutionCompleteEvent(tmpEntry.getRobEntry(),
 										-1,
 										containingMemSys.core,
@@ -163,7 +166,7 @@ public class LSQ extends SimulationElement
 			else //It is a STORE
 			{
 				if((tmpEntry.getAddr() == entry.getAddr()) || !(tmpEntry.isValid()))
-					return;
+					break;
 			}
 			
 			// increment
@@ -197,5 +200,14 @@ public class LSQ extends SimulationElement
 			return true;
 		else 
 			return false;
+	}
+
+	public int getLsqSize() {
+		return lsqSize;
+	}
+	
+	public void setRemoved(int index)
+	{
+		lsqueue[index].setRemoved(true);
 	}
 }

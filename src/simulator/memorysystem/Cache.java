@@ -299,7 +299,7 @@ public class Cache extends SimulationElement
 		protected void addOutstandingRequest(long addr, 
 											RequestType requestType, 
 											SimulationElement requestingElement,
-											int index)
+											LSQEntry lsqEntry)
 		{
 			long blockAddr = addr >> blockSizeBits;
 			
@@ -311,7 +311,7 @@ public class Cache extends SimulationElement
 			outstandingRequestTable.get(blockAddr).add(new CacheOutstandingRequestTableEntry(requestType,
 																							requestingElement,
 																							addr,
-																							index));
+																							lsqEntry));
 		}
 /*		
 		/**

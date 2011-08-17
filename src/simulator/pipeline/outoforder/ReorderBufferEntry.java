@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import memorysystem.LSQEntry;
 import memorysystem.LSQ;
 import generic.Core;
 import generic.GlobalClock;
@@ -21,7 +22,7 @@ public class ReorderBufferEntry {
 	private boolean isWriteBackDone2;
 	private long readyAtTime;							//in terms of GlobalClock cycles
 	private IWEntry associatedIWEntry;
-	private int lsqIndex = LSQ.INVALID_INDEX; //Index of the entry in LSQ
+	private LSQEntry lsqEntry = null; //entry in LSQ
 
 	public ReorderBufferEntry(Core core, Instruction objectsInstruction)
 	{
@@ -152,12 +153,12 @@ public class ReorderBufferEntry {
 		this.associatedIWEntry = associatedIWEntry;
 	}
 	
-	protected int getLsqIndex() {
-		return lsqIndex;
+	protected LSQEntry getLsqEntry() {
+		return lsqEntry;
 	}
 
-	protected void setLsqIndex(int lsqIndex) {
-		this.lsqIndex = lsqIndex;
+	protected void setLsqEntry(LSQEntry lsqEntry) {
+		this.lsqEntry = lsqEntry;
 	}
 
 	public boolean isWriteBackDone1() {

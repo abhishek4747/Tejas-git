@@ -30,16 +30,16 @@ import generic.Time_t;
 
 public class LSQAddressReadyEvent extends NewEvent 
 {
-	int lsqIndex;
+	LSQEntry lsqEntry;
 	
 	public LSQAddressReadyEvent(Time_t eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,
-			RequestType requestType, int lsqIndex)
+			RequestType requestType, LSQEntry lsqEntry)
 	{
 		super(eventTime, requestingElement, processingElement, tieBreaker,
 				requestType);
 		
-		this.lsqIndex =lsqIndex;
+		this.lsqEntry =lsqEntry;
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class LSQAddressReadyEvent extends NewEvent
 														processingLSQ.containingMemSys.TLBuffer, 
 														0, //tieBreaker,
 														RequestType.TLB_SEARCH, 
-														processingLSQ.lsqueue[lsqIndex].getAddr(),
-														lsqIndex)));
+														lsqEntry.getAddr(),
+														lsqEntry)));
 	}
 }

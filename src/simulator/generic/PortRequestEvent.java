@@ -34,7 +34,7 @@ public class PortRequestEvent extends NewEvent
 			//If the port cannot be occupied
 			if (!requestedDevice.port.occupySlots(noOfSlots, requestedDevice.getStepSize()))
 			{
-				this.setEventTime(requestedDevice.port.getNextSlot());
+				this.getEventTime().setTime(requestedDevice.port.getNextSlot());
 				this.setPriority(this.getPriority() + 1); //Increase the priority to prevent starvation (and to maintain preference)
 				newEventQueue.addEvent(this);
 				return;
@@ -43,7 +43,7 @@ public class PortRequestEvent extends NewEvent
 		//If the requested device is main memory and the port cannot be occupied
 		else if (!MemorySystem.mainMemPort.occupySlots(noOfSlots, MemorySystem.mainMemStepSize))
 		{
-			this.setEventTime(MemorySystem.mainMemPort.getNextSlot());
+			this.getEventTime().setTime(MemorySystem.mainMemPort.getNextSlot());
 			this.setPriority(this.getPriority() + 1); //Increase the priority to prevent starvation (and to maintain preference)
 			newEventQueue.addEvent(this);
 			return;

@@ -79,7 +79,7 @@ public class NewMainMemAccessEvent extends NewEvent
 															0, //tie-breaker
 															RequestType.MEM_BLOCK_READY,
 															address,
-															LSQ.INVALID_INDEX)));
+															null)));
 			}
 			else if (requestType == RequestType.MEM_WRITE)
 			{

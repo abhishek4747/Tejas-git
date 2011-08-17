@@ -34,8 +34,8 @@ public class TLB extends SimulationElement
 	protected int tlbMisses = 0;
 	
 	//Outstanding Request Table : Stores pageID vs LSQEntryIndex
-	protected Hashtable<Long, ArrayList<Integer>> outstandingRequestTable
-			= new Hashtable<Long, ArrayList<Integer>>();
+	protected Hashtable<Long, ArrayList<LSQEntry>> outstandingRequestTable
+			= new Hashtable<Long, ArrayList<LSQEntry>>();
 	
 	//For telling that what addresses are processed this cycle (for BANKED multi-port option)
 	protected ArrayList<Long> addressesProcessedThisCycle = new ArrayList<Long>();
@@ -147,19 +147,19 @@ public class TLB extends SimulationElement
 	 * @param pageID : pageID requested
 	 * @return Whether the entry was already there or not
 	 */
-	protected boolean addOutstandingRequest(long pageID, int index)
+	protected boolean addOutstandingRequest(long pageID, LSQEntry lsqEntry)
 	{
 		boolean entryAlreadyThere;
 		
 		if (!/*NOT*/outstandingRequestTable.containsKey(pageID))
 		{
 			entryAlreadyThere = false;
-			outstandingRequestTable.put(pageID, new ArrayList<Integer>());
+			outstandingRequestTable.put(pageID, new ArrayList<LSQEntry>());
 		}
 		else
 			entryAlreadyThere = true;
 		
-		outstandingRequestTable.get(pageID).add(index);
+		outstandingRequestTable.get(pageID).add(lsqEntry);
 		
 		return entryAlreadyThere;
 	}

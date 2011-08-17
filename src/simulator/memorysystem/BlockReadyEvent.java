@@ -30,24 +30,25 @@ public class BlockReadyEvent extends NewEvent
 	 * Just stores the LSQ entry index if the ready event is for an LSQ.
 	 * Stores the INVALID_INDEX otherwise.
 	 */
-	int lsqIndex = LSQ.INVALID_INDEX;
+	//int lsqIndex = LSQ.INVALID_INDEX;
+	LSQEntry lsqEntry = null;
 	long address;
 	
 	public BlockReadyEvent(Time_t eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,
-			RequestType requestType, long address, int lsqIndex) 
+			RequestType requestType, long address, LSQEntry lsqEntry) 
 	{
 		super(eventTime, requestingElement, processingElement, tieBreaker,
 				requestType);
-		this.lsqIndex = lsqIndex;
+		this.lsqEntry = lsqEntry;
 		this.address = address;
 	}
 
 	@Override
 	public void handleEvent(NewEventQueue newEventQueue)
 	{
-		if (lsqIndex == LSQ.INVALID_INDEX) //The processing element is a Cache
+		if (lsqEntry == null) //The processing element is a Cache
 		{
 			Cache receivingCache = (Cache)(this.getProcessingElement());
 			receiveBlockAtCache(newEventQueue, receivingCache, address);
@@ -85,7 +86,7 @@ public class BlockReadyEvent extends NewEvent
 						new NewCacheAccessEvent(receivingCache.nextLevel.getLatencyDelay(),//FIXME
 								receivingCache,
 								receivingCache.nextLevel,
-								LSQ.INVALID_INDEX, 
+								null, 
 								0, //tieBreaker,
 								new CacheRequestPacket(RequestType.MEM_WRITE,
 										evictedLine.getTag() << receivingCache.blockSizeBits))));
@@ -107,7 +108,7 @@ public class BlockReadyEvent extends NewEvent
 				//Pass the value to the waiting element
 				//Create an event (BlockReadyEvent) for the waiting element
 				//Generate the event for the Upper level cache or LSQ
-				if (outstandingRequestList.get(0).lsqIndex == LSQ.INVALID_INDEX)
+				if (outstandingRequestList.get(0).lsqEntry == null)
 					//Generate the event for the Upper level cache
 					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker,  
 							1, //noOfSlots,
@@ -117,7 +118,7 @@ public class BlockReadyEvent extends NewEvent
 															0, //tieBreaker
 															RequestType.MEM_BLOCK_READY,
 															outstandingRequestList.get(0).address,
-															lsqIndex)));
+															outstandingRequestList.get(0).lsqEntry)));
 				else
 					//Generate the event to tell the LSQ
 					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
@@ -128,7 +129,7 @@ public class BlockReadyEvent extends NewEvent
 															0, //tieBreaker
 															RequestType.LSQ_LOAD_COMPLETE,
 															outstandingRequestList.get(0).address,
-															outstandingRequestList.get(0).lsqIndex)));
+															outstandingRequestList.get(0).lsqEntry)));
 			}
 			
 			else if (outstandingRequestList.get(0).requestType == RequestType.MEM_WRITE)
@@ -166,7 +167,7 @@ public class BlockReadyEvent extends NewEvent
 								new NewCacheAccessEvent(receivingCache.nextLevel.getLatencyDelay(),//FIXME
 																		receivingCache,
 																		receivingCache.nextLevel,
-																		LSQ.INVALID_INDEX, 
+																		null, 
 																		0, //tieBreaker,
 																		new CacheRequestPacket(RequestType.MEM_WRITE,
 																							outstandingRequestList.get(0).address))));
@@ -185,13 +186,15 @@ public class BlockReadyEvent extends NewEvent
 	
 	protected void receiveBlockAtLSQ(NewEventQueue newEventQueue, LSQ receivingLSQ)
 	{
-		if ((receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.LOAD) &&
-				!receivingLSQ.lsqueue[lsqIndex].isForwarded())
+		if ((lsqEntry.getType() == LSQEntryType.LOAD) &&
+				!lsqEntry.isRemoved() &&
+				!lsqEntry.isForwarded())
 		{
-			receivingLSQ.lsqueue[lsqIndex].setForwarded(true);
+			lsqEntry.setForwarded(true);
 			
 			//No ports to be used in this event
-			newEventQueue.addEvent(new ExecutionCompleteEvent(receivingLSQ.lsqueue[lsqIndex].getRobEntry(),
+			if (!lsqEntry.getRobEntry().getExecuted())
+				newEventQueue.addEvent(new ExecutionCompleteEvent(lsqEntry.getRobEntry(),
 									-1,
 									receivingLSQ.containingMemSys.core,
 									this.getEventTime().getTime()));

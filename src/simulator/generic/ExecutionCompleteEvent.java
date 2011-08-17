@@ -252,7 +252,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 	{
 		if(tempRF != null)
 		{
-			long slotAvailableTime = tempRF.getPort().getNextSlot().getTime();
+			long slotAvailableTime = tempRF.getPort().getNextSlot();
 			if(slotAvailableTime <= GlobalClock.getCurrentTime())
 			{
 				//port to register file is available

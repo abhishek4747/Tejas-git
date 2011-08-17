@@ -60,7 +60,7 @@
 			<DecodeTime>1</DecodeTime>			<!--Instruction decode time-->
 			<RenamingTime>2</RenamingTime>			<!--Renaming Time-->
 			<ROBSize>128</ROBSize>				<!--Maximum number of entries in the ROB-->
-			<IWSize>36</IWSize>				<!--Maximum number of entries in the Instruction Window-->
+			<IWSize>128</IWSize>				<!--Maximum number of entries in the Instruction Window-->
 			<IntRegFileSize>128</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
 			<FloatRegFileSize>128</FloatRegFileSize>	<!--Maximum number of entries in the Floating point register file-->
 			<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->

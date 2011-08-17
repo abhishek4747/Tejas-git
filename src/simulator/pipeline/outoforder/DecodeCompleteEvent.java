@@ -191,7 +191,7 @@ public class DecodeCompleteEvent extends NewEvent {
 				else
 					isLoad = false;
 					
-				newROBEntry.setLsqIndex(this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
+				newROBEntry.setLsqEntry(this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
 									newROBEntry.getInstruction().getSourceOperand1().getValue(), newROBEntry));
 			}
 			

@@ -26,16 +26,16 @@ import generic.*;
 
 public class LSQValidateEvent extends NewEvent
 {
-	int lsqIndex;
+	LSQEntry lsqEntry;
 	long addr;
 	
 	public LSQValidateEvent(Time_t eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,
-			RequestType requestType, int lsqIndex, long addr) {
+			RequestType requestType, LSQEntry lsqEntry, long addr) {
 		super(eventTime, requestingElement, processingElement, tieBreaker,
 				requestType);
-		this.lsqIndex = lsqIndex;
+		this.lsqEntry = lsqEntry;
 		this.addr = addr;
 	}
 
@@ -44,30 +44,30 @@ public class LSQValidateEvent extends NewEvent
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		
 		//If the LSQ entry is a load
-		if (processingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.LOAD)
+		if (lsqEntry.getType() == LSQEntryType.LOAD)
 		{
 			//If the value could not be forwarded
-			if (!(processingLSQ.loadValidate(lsqIndex, addr)))
+			if (!(processingLSQ.loadValidate(lsqEntry.getIndexInQ(), addr)))
 			{
 				//TODO Read from the cache (CacheAccessEvent)
 				CacheRequestPacket request = new CacheRequestPacket();
 				//request.setThreadID(0);
 				request.setType(RequestType.MEM_READ);
-				request.setAddr(processingLSQ.lsqueue[lsqIndex].getAddr()); 
+				request.setAddr(lsqEntry.getAddr()); 
 				//Direct address must not be set as it is pageID in some cases
 				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
 						1, //noOfSlots,
 						new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(),//FIXME
 															processingLSQ,
 															processingLSQ.containingMemSys.l1Cache,
-															lsqIndex, 
+															lsqEntry, 
 															0, //tieBreaker,
 															request)));
 			}
 		}
 		else //If the LSQ entry is a store
 		{
-			processingLSQ.storeValidate(lsqIndex, addr);
+			processingLSQ.storeValidate(lsqEntry.getIndexInQ(), addr);
 		}
 	}
 }

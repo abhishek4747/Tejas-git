@@ -118,7 +118,7 @@ public class IWEntry {
 													core.getExecEngine().coreMemSys.getLsqueue(), 
 													0, //tieBreaker,
 													RequestType.TLB_ADDRESS_READY,
-													associatedROBEntry.getLsqIndex())));
+													associatedROBEntry.getLsqEntry())));
 	}
 	
 	void issueOthers()

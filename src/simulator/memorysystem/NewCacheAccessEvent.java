@@ -28,7 +28,8 @@ public class NewCacheAccessEvent extends NewEvent
 	//int threadID;
 	//LSQEntry lsqEntry;
 	//Stack<CacheFillStackEntry> cacheFillStack;
-	int lsqIndex = LSQ.INVALID_INDEX;
+	//int lsqIndex = LSQ.INVALID_INDEX;
+	LSQEntry lsqEntry = null;
 	Cache processingCache;
 	CacheRequestPacket request;
 	//MESI stateToSet;
@@ -38,7 +39,7 @@ public class NewCacheAccessEvent extends NewEvent
 	public NewCacheAccessEvent(Time_t eventTime,
 								SimulationElement requestingElement,
 								Cache processingCache,
-								int lsqIndex, 
+								LSQEntry lsqEntry, 
 								long tieBreaker,
 								CacheRequestPacket request)//, 
 								//MESI stateToSet, 
@@ -46,7 +47,7 @@ public class NewCacheAccessEvent extends NewEvent
 	{
 		super(eventTime, requestingElement, processingCache, tieBreaker,
 				request.getType());
-		this.lsqIndex = lsqIndex;
+		this.lsqEntry = lsqEntry;
 		this.processingCache = processingCache;
 		this.request = request;
 	}
@@ -71,7 +72,7 @@ public class NewCacheAccessEvent extends NewEvent
 															0,//tieBreaker
 															RequestType.MEM_BLOCK_READY,
 															request.getAddr(),
-															lsqIndex)));
+															lsqEntry)));
 			else if (request.getType() == RequestType.MEM_WRITE)
 			{
 				//Write the data to the cache block (Do Nothing)
@@ -107,7 +108,7 @@ public class NewCacheAccessEvent extends NewEvent
 								new NewCacheAccessEvent(processingCache.nextLevel.getLatencyDelay(),//FIXME
 																		processingCache,
 																		processingCache.nextLevel,
-																		LSQ.INVALID_INDEX, 
+																		null, 
 																		0, //tieBreaker,
 																		request)));
 				}	
@@ -121,7 +122,7 @@ public class NewCacheAccessEvent extends NewEvent
 			processingCache.addOutstandingRequest(request.getAddr(), 
 													request.getType(), 
 													this.getRequestingElement(), 
-													lsqIndex);
+													lsqEntry);
 			
 			// access the next level
 			if (processingCache.isLastLevel)
@@ -142,7 +143,7 @@ public class NewCacheAccessEvent extends NewEvent
 				this.setEventTime(processingCache.nextLevel.getLatencyDelay());//FIXME
 				this.setRequestingElement(processingCache);
 				this.processingCache = processingCache.nextLevel;
-				this.lsqIndex = LSQ.INVALID_INDEX;
+				this.lsqEntry = null;
 				this.request.setType(RequestType.MEM_READ);
 				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
 						1, //noOfSlots,

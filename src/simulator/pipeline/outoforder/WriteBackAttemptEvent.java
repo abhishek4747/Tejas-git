@@ -38,7 +38,7 @@ public class WriteBackAttemptEvent extends NewEvent {
 	public void handleEvent(NewEventQueue newEventQueue) {
 		
 		//attempt to write-back
-		long slotAvailableTime = tempRF.getPort().getNextSlot().getTime();
+		long slotAvailableTime = tempRF.getPort().getNextSlot();
 		if(slotAvailableTime <= GlobalClock.getCurrentTime())
 		{
 			//port to register file is available

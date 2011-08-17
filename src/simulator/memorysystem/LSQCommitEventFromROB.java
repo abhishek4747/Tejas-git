@@ -6,16 +6,16 @@ import generic.*;
 
 public class LSQCommitEventFromROB extends NewEvent
 {
-	int lsqIndex;
+	LSQEntry lsqEntry;
 	
 	public LSQCommitEventFromROB(Time_t eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker,
-			RequestType requestType, int lsqIndex) 
+			RequestType requestType, LSQEntry lsqEntry) 
 	{
 		super(eventTime, requestingElement, processingElement, tieBreaker,
 				requestType);
-		this.lsqIndex = lsqIndex;
+		this.lsqEntry = lsqEntry;
 	}
 
 	public void handleEvent(NewEventQueue newEventQueue)
@@ -23,7 +23,7 @@ public class LSQCommitEventFromROB extends NewEvent
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		
 		//Check the error condition
-		if (lsqIndex != processingLSQ.head)
+		if (lsqEntry.getIndexInQ() != processingLSQ.head)
 		{
 			System.err.println("Error in LSQ :  ROB sent commit for an instruction other than the one at the head");
 			System.exit(1);
@@ -31,7 +31,7 @@ public class LSQCommitEventFromROB extends NewEvent
 		
 //TODO : This needs to be moved some place especially for the store when it finally commits()
 		// advance the head of the queue
-		LSQEntry entry = processingLSQ.lsqueue[lsqIndex];
+		LSQEntry entry = lsqEntry;
 		
 		// if it is a store, send the request to the cache
 		if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
@@ -40,13 +40,13 @@ public class LSQCommitEventFromROB extends NewEvent
 			CacheRequestPacket request = new CacheRequestPacket();
 			//request.setThreadID(0);
 			request.setType(RequestType.MEM_WRITE);
-			request.setAddr(processingLSQ.lsqueue[lsqIndex].getAddr());
+			request.setAddr(entry.getAddr());
 			newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
 					1, //noOfSlots,
 					new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(), //FIXME
 															processingLSQ,
 															processingLSQ.containingMemSys.l1Cache,
-															lsqIndex, 
+															entry, 
 															0, //tieBreaker,
 															request)));
 			

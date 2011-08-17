@@ -25,17 +25,15 @@ import pipeline.outoforder.ReorderBufferEntry;
 
 public class LSQEntry
 {
+	private int indexInQ;
 	private LSQEntryType type;
-	public ReorderBufferEntry getRobEntry() {
-		return robEntry;
-	}
 
 	private ReorderBufferEntry robEntry;
 	private long addr;
 	private boolean valid;
 	private boolean forwarded;//Whether the load has got its value or not
 
-	private boolean storeCommitted;
+	private boolean removed; //If the entry has been committed and removed from the LSQ
 	
 	public enum LSQEntryType {LOAD, STORE};
 	
@@ -45,7 +43,7 @@ public class LSQEntry
 		this.robEntry = robEntry;
 		valid = false;
 		forwarded = false;
-		storeCommitted = false;
+		removed = false;
 	}
 
 	public LSQEntryType getType() {
@@ -76,11 +74,25 @@ public class LSQEntry
 		this.forwarded = forwarded;
 	}
 	
-	protected boolean isStoreCommitted() {
-		return storeCommitted;
+	protected boolean isRemoved() {
+		return removed;
 	}
 
-	protected void setStoreCommitted(boolean storeCommitted) {
-		this.storeCommitted = storeCommitted;
+	public void setRemoved(boolean removed) {
+		this.removed = removed;
 	}
+	
+	public ReorderBufferEntry getRobEntry() {
+		return robEntry;
+	}
+
+	protected void setIndexInQ(int indexInQ) {
+		this.indexInQ = indexInQ;
+	}
+
+	public int getIndexInQ() {
+		return indexInQ;
+	}
+	
+	
 }

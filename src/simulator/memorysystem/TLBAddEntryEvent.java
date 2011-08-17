@@ -32,7 +32,7 @@ public class TLBAddEntryEvent extends NewEvent
 		processingTLB.addTLBEntry(pageID);
 		
 		//TODO : Pickup all outstanding requests and LSQValidate them
-		ArrayList<Integer> outstandingRequestList = processingTLB.outstandingRequestTable.get(pageID);
+		ArrayList<LSQEntry> outstandingRequestList = processingTLB.outstandingRequestTable.get(pageID);
 		
 		while (!outstandingRequestList.isEmpty())
 		{
