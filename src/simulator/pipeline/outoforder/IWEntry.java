@@ -8,7 +8,6 @@ import generic.OperationType;
 import generic.ExecutionCompleteEvent;
 import generic.PortRequestEvent;
 import generic.RequestType;
-import generic.Time_t;
 
 /**
  * represents an entry in the instruction window
