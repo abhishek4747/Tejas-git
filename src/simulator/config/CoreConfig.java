@@ -26,8 +26,6 @@ public class CoreConfig
 {
 	public long frequency;
 	
-	public int ROBSize;
-	
 	public int LSQSize;
 	public int LSQLatency;
 	public int LSQAccessPorts;
@@ -39,16 +37,33 @@ public class CoreConfig
 	public int TLBAccessPorts;
 	public int TLBPortOccupancy;
 
+	public int DecodeWidth;
+	public int DecodeTime;
+	public int RenamingTime;
+	public int ROBSize;
+	public int IWSize;
+	public int IntRegFileSize;
+	public int FloatRegFileSize;
+	public int IntArchRegNum;
+	public int FloatArchRegNum;
+	public int MSRegNum;
+	public int RegFilePorts;
+	public int RegFileOccupancy;
+	public int BranchMispredPenalty;
+	
 	public int IntALUNum;
 	public int IntMulNum;
 	public int IntDivNum;
-
 	public int FloatALUNum;
 	public int FloatMulNum;
 	public int FloatDivNum;
-
-	public int NumPhyIntReg;
-	public int NumPhyFloatReg;
+	
+	public int IntALULatency;
+	public int IntMulLatency;
+	public int IntDivLatency;
+	public int FloatALULatency;
+	public int FloatMulLatency;
+	public int FloatDivLatency;
 	
 	public CacheConfig l1Cache = new CacheConfig();
 	public CacheConfig l2Cache = new CacheConfig();

@@ -133,25 +133,47 @@ public class XMLParser
 			CoreConfig core = SystemConfig.core[i]; //To be locally used for assignments
 		
 			Element coreElmnt = (Element) coreLst.item(0);
+			
 			core.frequency = Long.parseLong(getImmediateString("CoreFrequency", coreElmnt));
-			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
+			
 			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", coreElmnt));
 			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", coreElmnt));
 			core.LSQAccessPorts = Integer.parseInt(getImmediateString("LSQAccessPorts", coreElmnt));
 			core.LSQPortOccupancy = Integer.parseInt(getImmediateString("LSQPortOccupancy", coreElmnt));
 			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", coreElmnt));
+			
 			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
 			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
 			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
+
+			core.DecodeWidth = Integer.parseInt(getImmediateString("DecodeWidth", coreElmnt));
+			core.DecodeTime = Integer.parseInt(getImmediateString("DecodeTime", coreElmnt));
+			core.RenamingTime = Integer.parseInt(getImmediateString("RenamingTime", coreElmnt));
+			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
+			core.IWSize = Integer.parseInt(getImmediateString("IWSize", coreElmnt));
+			core.IntRegFileSize = Integer.parseInt(getImmediateString("IntRegFileSize", coreElmnt));
+			core.FloatRegFileSize = Integer.parseInt(getImmediateString("FloatRegFileSize", coreElmnt));
+			core.IntArchRegNum = Integer.parseInt(getImmediateString("IntArchRegNum", coreElmnt));
+			core.FloatArchRegNum = Integer.parseInt(getImmediateString("FloatArchRegNum", coreElmnt));
+			core.MSRegNum = Integer.parseInt(getImmediateString("MSRegNum", coreElmnt));
+			core.RegFilePorts = Integer.parseInt(getImmediateString("RegFilePorts", coreElmnt));
+			core.RegFileOccupancy = Integer.parseInt(getImmediateString("RegFileOccupancy", coreElmnt));
+			core.BranchMispredPenalty = Integer.parseInt(getImmediateString("BranchMispredPenalty", coreElmnt));
+			
 			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", coreElmnt));
 			core.IntMulNum = Integer.parseInt(getImmediateString("IntMulNum", coreElmnt));
 			core.IntDivNum = Integer.parseInt(getImmediateString("IntDivNum", coreElmnt));
 			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", coreElmnt));
 			core.FloatMulNum = Integer.parseInt(getImmediateString("FloatMulNum", coreElmnt));
 			core.FloatDivNum = Integer.parseInt(getImmediateString("FloatDivNum", coreElmnt));
-			core.NumPhyIntReg = Integer.parseInt(getImmediateString("NumPhyIntReg", coreElmnt));
-			core.NumPhyFloatReg = Integer.parseInt(getImmediateString("NumPhyFloatReg", coreElmnt));
+			
+			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", coreElmnt));
+			core.IntMulLatency = Integer.parseInt(getImmediateString("IntMulLatency", coreElmnt));
+			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", coreElmnt));
+			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", coreElmnt));
+			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
+			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
 		
 			//Code for L1 cache configurations for each core
 			NodeList l1CacheList = coreElmnt.getElementsByTagName("L1Cache");

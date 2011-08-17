@@ -121,8 +121,7 @@ public class ReorderBuffer extends SimulationElement{
 							first.getInstruction().getOperationType() == OperationType.store)
 						core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
 								1, //noOfSlots,
-								new LSQCommitEventFromROB(new Time_t(GlobalClock.getCurrentTime() +
-																					core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime() * core.getStepSize()),
+								new LSQCommitEventFromROB(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(),
 																			this,
 																			core.getExecEngine().coreMemSys.getLsqueue(), 
 																			tieBreaker, //tieBreaker,

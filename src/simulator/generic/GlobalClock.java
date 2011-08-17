@@ -11,7 +11,8 @@ public class GlobalClock {
 	
 	static long currentTime;
 	static int stepSize;
-	
+	static double stepValue;
+
 	public static void systemTimingSetUp(Core[] cores, Hashtable<String, Cache> cacheList)
 	{
 		currentTime = 0;
@@ -84,14 +85,19 @@ public class GlobalClock {
 			cores[i].getExecEngine().coreMemSys.getL1Cache().setStepSize(cores[i].getStepSize());
 			cores[i].getExecEngine().coreMemSys.getLsqueue().setStepSize(cores[i].getStepSize());
 			cores[i].getExecEngine().coreMemSys.getTLBuffer().setStepSize(cores[i].getStepSize());
+			System.out.println(cores[i].getStepSize());
 		}
 		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{
 			cacheName = cacheNameSet.nextElement();
 			cache = cacheList.get(cacheName);
 			cache.setStepSize(time_periods[i++]/HCF);
+			System.out.println(cache.getStepSize());
 		}
 		MemorySystem.mainMemStepSize = time_periods[i]/HCF;
+		System.out.println(MemorySystem.mainMemStepSize);
+		
+		stepValue = HCF/100000.0;
 		
 	}
 
@@ -114,6 +120,10 @@ public class GlobalClock {
 
 	public static void setStepSize(int stepSize) {
 		GlobalClock.stepSize = stepSize;
+	}
+	
+	public static double getStepValue() {
+		return stepValue;
 	}
 
 }

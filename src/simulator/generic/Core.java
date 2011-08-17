@@ -4,6 +4,8 @@ import pipeline.branchpredictor.TournamentPredictor;
 import pipeline.outoforder.ExecutionEngine;
 import pipeline.outoforder.PerformCommitsEvent;
 import pipeline.outoforder.PerformDecodeEvent;
+import config.CoreConfig;
+import config.SystemConfig;
 
 /**
  * represents a single core
@@ -47,7 +49,7 @@ public class Core extends SimulationElement{
 		super(1, new Time_t(-1), new Time_t(-1), 2000);			//TODO frequency from config file
 		//clock = 0;
 		
-		initializeCoreParameters();
+		initializeCoreParameters(SystemConfig.core[core_number]);
 		
 		//eventQueue = new EventQueue(this);
 		this.core_number = core_number;
@@ -59,40 +61,40 @@ public class Core extends SimulationElement{
 		this.branchPredictor = new TournamentPredictor();
 	}
 	
-	private void initializeCoreParameters()
+	private void initializeCoreParameters(CoreConfig coreConfig)
 	{
 		//TODO parameters to be set according to contents of an XML configuration file
-		setDecodeWidth(4);
-		setDecodeTime(1);
-		setRenamingTime(2);
-		setReorderBufferSize(128);
-		setIWSize(128);
-		setIntegerRegisterFileSize(128);
-		setFloatingPointRegisterFileSize(128);
-		setNIntegerArchitecturalRegisters(32);
-		setNFloatingPointArchitecturalRegisters(32);
-		setNMachineSpecificRegisters(64);
-		setNoOfRegFilePorts(4);
-		setRegFileOccupancy(1);
-		setBranchMispredictionPenalty(50);
+		setDecodeWidth(coreConfig.DecodeWidth);
+		setDecodeTime(coreConfig.DecodeTime);
+		setRenamingTime(coreConfig.RenamingTime);
+		setReorderBufferSize(coreConfig.ROBSize);
+		setIWSize(coreConfig.IWSize);
+		setIntegerRegisterFileSize(coreConfig.IntRegFileSize);
+		setFloatingPointRegisterFileSize(coreConfig.FloatRegFileSize);
+		setNIntegerArchitecturalRegisters(coreConfig.IntArchRegNum);
+		setNFloatingPointArchitecturalRegisters(coreConfig.FloatArchRegNum);
+		setNMachineSpecificRegisters(coreConfig.MSRegNum);
+		setNoOfRegFilePorts(coreConfig.RegFilePorts);
+		setRegFileOccupancy(coreConfig.RegFileOccupancy);
+		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
 					// +2 because memory unit has L1 latency, L2 latency, main memory latency
 		
-		nUnits[FunctionalUnitType.integerALU.ordinal()] = 4;
-		nUnits[FunctionalUnitType.integerMul.ordinal()] = 1;
-		nUnits[FunctionalUnitType.integerDiv.ordinal()] = 1;
-		nUnits[FunctionalUnitType.floatALU.ordinal()] = 2;
-		nUnits[FunctionalUnitType.floatMul.ordinal()] = 1;
-		nUnits[FunctionalUnitType.floatDiv.ordinal()] = 1;
+		nUnits[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALUNum;
+		nUnits[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulNum;
+		nUnits[FunctionalUnitType.integerDiv.ordinal()] = coreConfig.IntDivNum;
+		nUnits[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALUNum;
+		nUnits[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulNum;
+		nUnits[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivNum;
 		
-		latencies[FunctionalUnitType.integerALU.ordinal()] = 1;
-		latencies[FunctionalUnitType.integerMul.ordinal()] = 4;
-		latencies[FunctionalUnitType.integerDiv.ordinal()] = 8;
-		latencies[FunctionalUnitType.floatALU.ordinal()] = 2;
-		latencies[FunctionalUnitType.floatMul.ordinal()] = 8;
-		latencies[FunctionalUnitType.floatDiv.ordinal()] = 16;
+		latencies[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALULatency;
+		latencies[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulLatency;
+		latencies[FunctionalUnitType.integerDiv.ordinal()] = coreConfig.IntDivLatency;
+		latencies[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALULatency;
+		latencies[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulLatency;
+		latencies[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivLatency;
 	}
 	
 	public void boot()

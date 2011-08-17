@@ -114,8 +114,7 @@ public class IWEntry {
 		//TODO add event to indicate address ready
 		core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
 				1, //noOfSlots,
-				new LSQAddressReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
-															core.getExecEngine().coreMemSys.getLsqueue().getLatency().getTime()*core.getStepSize()), 
+				new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
 													null, //Requesting Element
 													core.getExecEngine().coreMemSys.getLsqueue(), 
 													0, //tieBreaker,

@@ -36,16 +36,14 @@
 	<System>
 		<NoOfCores>1</NoOfCores>				<!--Number of cores in the simulated system-->
 		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
-		<MainMemoryFrequency>833</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
+		<MainMemoryFrequency>2000</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
 		<MainMemoryAccessPorts>-1</MainMemoryAccessPorts>	<!--Number of access ports in the LSQ-->
 		<MainMemoryPortOccupancy>-1</MainMemoryPortOccupancy>	<!--The occupancy of the LSQ ports (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the BUS used for broadcasting messages for cache coherence-->
 
 		<!--Core Parameters-->
 		<Core>
-			<CoreFrequency>833</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
-		
-			<ROBSize>256</ROBSize>				<!--Maximum number of entries in the ROB-->
+			<CoreFrequency>2000</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
 
 			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
 			<LSQLatency>1</LSQLatency>			<!--In clock cycles-->
@@ -57,17 +55,34 @@
 			<TLBLatency>1</TLBLatency>			<!--In clock cycles-->
 			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
+			
+			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
+			<DecodeTime>1</DecodeTime>			<!--Instruction decode time-->
+			<RenamingTime>2</RenamingTime>			<!--Renaming Time-->
+			<ROBSize>128</ROBSize>				<!--Maximum number of entries in the ROB-->
+			<IWSize>128</IWSize>				<!--Maximum number of entries in the Instruction Window-->
+			<IntRegFileSize>128</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
+			<FloatRegFileSize>128</FloatRegFileSize>	<!--Maximum number of entries in the Floating point register file-->
+			<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
+			<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
+			<MSRegNum>64</MSRegNum>				<!--Number of machine specific registers-->
+			<RegFilePorts>4</RegFilePorts>			<!--Number of ports in the register file-->
+			<RegFileOccupancy>1</RegFileOccupancy>		<!--Occupancy of the register file ports (in clock cycles)-->
+			<BranchMispredPenalty>50</BranchMispredPenalty>	<!--Branch misprediction Penalty-->
 	
-			<IntALUNum>5</IntALUNum>			<!--Number of Integer ALUs-->
-			<IntMulNum>5</IntMulNum>			<!--Number of Integer Multipliers-->
-			<IntDivNum>5</IntDivNum>			<!--Number of Integer Dividers-->
-	
-			<FloatALUNum>5</FloatALUNum>			<!--Number of Floating Point ALUs-->
-			<FloatMulNum>5</FloatMulNum>			<!--Number of Floating Point Multipliers-->
-			<FloatDivNum>5</FloatDivNum>			<!--Number of Floating Point Dividers-->
-	
-			<NumPhyIntReg>5</NumPhyIntReg>			<!--Number of physical Integer registers-->
-			<NumPhyFloatReg>5</NumPhyFloatReg>		<!--Number of physical Floating point registers-->
+			<IntALUNum>4</IntALUNum>			<!--Number of Integer ALUs-->
+			<IntMulNum>1</IntMulNum>			<!--Number of Integer Multipliers-->
+			<IntDivNum>1</IntDivNum>			<!--Number of Integer Dividers-->
+			<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
+			<FloatMulNum>1</FloatMulNum>			<!--Number of Floating Point Multipliers-->
+			<FloatDivNum>1</FloatDivNum>			<!--Number of Floating Point Dividers-->
+			
+			<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
+			<IntMulLatency>4</IntMulLatency>		<!--Latency of Integer Multipliers-->
+			<IntDivLatency>8</IntDivLatency>		<!--Latency of Integer Dividers-->
+			<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
+			<FloatMulLatency>8</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
+			<FloatDivLatency>16</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
 			
 			<!--Specify only the L1 (immediately next to the core) cache of the core here-->
 			<L1Cache type = "Type1" nextLevel = "L2"/>
@@ -76,7 +91,7 @@
 		</Core>
 
 		<!--Specify the caches other the L1 caches after this-->
-		<Cache name = "L2" type = "Type2" nextLevel = "" frequency = "833"/>
+		<Cache name = "L2" type = "Type2" nextLevel = "" frequency = "2000"/>
 
 		<CoherenceEnforcingCache>L2</CoherenceEnforcingCache>	<!--NAME of the cache whose immediate upper caches are coherent-->
 	</System>
