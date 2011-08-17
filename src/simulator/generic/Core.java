@@ -85,8 +85,7 @@ public class Core extends SimulationElement{
 		nUnits[FunctionalUnitType.integerDiv.ordinal()] = 1;
 		nUnits[FunctionalUnitType.floatALU.ordinal()] = 2;
 		nUnits[FunctionalUnitType.floatMul.ordinal()] = 1;
-		nUnits[FunctionalUnitType.floatDiv.ordinal()] = 1;		
-		nUnits[FunctionalUnitType.memory.ordinal()] = 4;
+		nUnits[FunctionalUnitType.floatDiv.ordinal()] = 1;
 		
 		latencies[FunctionalUnitType.integerALU.ordinal()] = 1;
 		latencies[FunctionalUnitType.integerMul.ordinal()] = 4;
@@ -94,9 +93,6 @@ public class Core extends SimulationElement{
 		latencies[FunctionalUnitType.floatALU.ordinal()] = 2;
 		latencies[FunctionalUnitType.floatMul.ordinal()] = 8;
 		latencies[FunctionalUnitType.floatDiv.ordinal()] = 16;
-		latencies[FunctionalUnitType.memory.ordinal()] = 1;
-		latencies[FunctionalUnitType.memory.ordinal()+1] = 20;
-		latencies[FunctionalUnitType.memory.ordinal()+2] = 100;
 	}
 	
 	public void boot()
