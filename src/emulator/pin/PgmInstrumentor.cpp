@@ -23,8 +23,8 @@
 #define QSIZE	(locQ*sizeof(packet))
 
 // Profiling occurs only if the instruction pointers address is between these two.
-#define START_ADDRESS	(0x0000000000000000)
-#define END_ADDRESS	    (0xffffffffffffffff)
+#define START_ADDRESS	(0x00000000)
+#define END_ADDRESS	    (0xffffffff)
 
 // Defining  command line arguments
 KNOB<UINT64>   KnobLong(KNOB_MODE_WRITEONCE,       "pintool",
