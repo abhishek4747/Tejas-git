@@ -56,7 +56,7 @@ public class Newmain {
 		
 		// create PIN interface
 		IPCBase ipcBase = new SharedMem(instructionTable);
-		Process process = createPINinterface(ipcBase, executableFile,
+		Process process = createPINinterface(ipcBase, arguments,
 				dynamicInstructionBuffer);
 
 		
@@ -139,13 +139,19 @@ public class Newmain {
 	}
 
 	private static Process createPINinterface(IPCBase ipcBase,
-			String executableFilePath,
+			String[] arguments,
 			DynamicInstructionBuffer dynamicInstructionBuffer) {
 
 		// Creating command for PIN tool.
 		String cmd = SimulationConfig.PinTool + "/pin" + " -t " 
 		+ SimulationConfig.PinInstrumentor + " -map "
-		+ SimulationConfig.MapEmuCores + " -- " + executableFilePath;
+		+ SimulationConfig.MapEmuCores + " --";
+		
+		for(int i = 0; i < arguments.length; i++)
+		{
+			cmd += " ";
+			cmd += arguments[i];
+		}
 
 		Process process = null;
 		try {
@@ -166,7 +172,7 @@ public class Newmain {
 
 	// checks if the command line arguments are in required format and number
 	private static void checkCommandLineArguments(String arguments[]) {
-		if (arguments.length != 1) {
+		if (arguments.length < 1) {
 			Error.showErrorAndExit("\n\tIllegal number of arguments !!");
 		}
 	}
