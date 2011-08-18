@@ -32,6 +32,7 @@ KNOB<UINT64>   KnobLong(KNOB_MODE_WRITEONCE,       "pintool",
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
+UINT64 checkSum = 0;
 
 IPC::IPCBase *tst;
 
@@ -58,6 +59,7 @@ VOID ThreadFini(THREADID tid,const CONTEXT *ctxt, INT32 flags, VOID *v)
 VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 {
 	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		checkSum+=2;
 		while (tst->analysisFn(tid,(uint64_t)ip,2,(uint64_t)addr)== -1) {
 			PIN_Yield();
 		}
@@ -68,6 +70,7 @@ VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 VOID RecordMemWrite(THREADID tid,VOID * ip, VOID * addr)
 {
 	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		checkSum+=3;
 		while(tst->analysisFn(tid,(uint64_t)ip,3,(uint64_t)addr)== -1) {
 			PIN_Yield();
 		}
@@ -78,11 +81,13 @@ VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 {
 	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
 		if (taken) {
+			checkSum+=4;
 			while (tst->analysisFn(tid,(uint64_t)ip,4,(uint64_t)tadr)==-1) {
 				PIN_Yield();
 			}
 		}
 		else {
+			checkSum+=5;
 			while (tst->analysisFn(tid,(uint64_t)ip,5,(uint64_t)tadr)==-1) {
 				PIN_Yield();
 			}
@@ -93,6 +98,7 @@ VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 {
 	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		checkSum+=6;
 		while (tst->analysisFn(tid,(uint64_t)ip,6,(uint64_t)_reg)== -1) {
 			PIN_Yield();
 		}
@@ -103,6 +109,7 @@ VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
 {
 	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+		checkSum+=7;
 		while (tst->analysisFn(tid,(uint64_t)ip,7,(uint64_t)_reg)== -1) {
 			PIN_Yield();
 		}
@@ -166,6 +173,7 @@ VOID Instruction(INS ins, VOID *v)
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
+	printf("checkSum is %lld\n",checkSum);
 	tst->unload();
 }
 

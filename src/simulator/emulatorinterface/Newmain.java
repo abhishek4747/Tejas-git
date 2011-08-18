@@ -59,6 +59,11 @@ public class Newmain {
 		Process process = createPINinterface(ipcBase, executableFile,
 				dynamicInstructionBuffer);
 
+		
+		
+/*		
+		
+		
 		//create event queue
 		NewEventQueue eventQ = new NewEventQueue();
 		
@@ -90,7 +95,18 @@ public class Newmain {
 		{
 			//Newmain.syncObject2.notify();
 		}
-
+		
+		
+		
+		
+		
+*/
+		
+		
+		
+		
+		
+		
 		// returns the number of instructions. and waits on a semaphore for
 		// finishing of reader threads
 		long icount = ipcBase.doExpectedWaitForSelf();
@@ -127,7 +143,7 @@ public class Newmain {
 			DynamicInstructionBuffer dynamicInstructionBuffer) {
 
 		// Creating command for PIN tool.
-		String cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t " 
+		String cmd = SimulationConfig.PinTool + "/pin" + " -t " 
 		+ SimulationConfig.PinInstrumentor + " -map "
 		+ SimulationConfig.MapEmuCores + " -- " + executableFilePath;
 
