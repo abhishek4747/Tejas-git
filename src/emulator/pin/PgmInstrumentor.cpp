@@ -22,6 +22,7 @@
 #define locQ	(50)
 #define QSIZE	(locQ*sizeof(packet))
 
+// if 64 bit machine change this to 0xffffffffffffffff
 #define MASK 0x00000000ffffffff
 
 // Defining  command line arguments
