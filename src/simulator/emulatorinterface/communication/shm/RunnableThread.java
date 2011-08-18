@@ -157,8 +157,8 @@ public class RunnableThread implements Runnable {
 						InstructionList fusedInstructions;
 						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
 						
-						/*
-						System.out.print("\n\nFused Instructions ..." + fusedInstructions);
+						
+						//System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 											
 						if(fusedInstructions != null)
 						{
@@ -168,7 +168,7 @@ public class RunnableThread implements Runnable {
 						{
 							Newmain.notHandled++;
 						}
-						*/
+						
 						
 						long listSize;
 						

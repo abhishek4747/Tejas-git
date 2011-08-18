@@ -173,7 +173,7 @@ public class Instruction {
 	
 	public static Instruction getBranchInstruction(Operand newInstructionAddress)
 	{
-		if(newInstructionAddress.getValue()==-1)
+		if(newInstructionAddress.getValue()<0)
 			misc.Error.showErrorAndExit("\n\tUninitialized instruction pointer passed to a branch instruction");
 			
 		return new Instruction(OperationType.branch, newInstructionAddress, null, null);
@@ -181,7 +181,7 @@ public class Instruction {
 
 	public static Instruction getUnconditionalJumpInstruction(Operand newInstructionAddress)
 	{
-		if(newInstructionAddress.getValue()==-1)
+		if(newInstructionAddress.getValue()<0)
 			misc.Error.showErrorAndExit("\n\tUninitialized instruction pointer passed to a jump instruction");
 		
 		return new Instruction(OperationType.jump, newInstructionAddress, null, null);
@@ -189,9 +189,9 @@ public class Instruction {
 	
 	public static Instruction getLoadInstruction(Operand memoryLocation, Operand destinationRegister)
 	{
-		if(memoryLocation.getValue()==-1)
+		if(memoryLocation.getValue()<0)
 		{
-			//misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a load instruction");
+			misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a load instruction");
 			System.out.println("\n\tUninitialized memory-location passed to a load instruction");
 			return new Instruction(OperationType.nop, null, null, null);
 		}
@@ -202,9 +202,9 @@ public class Instruction {
 
 	public static Instruction getStoreInstruction(Operand memoryLocation, Operand sourceOperand)
 	{
-		if(memoryLocation.getValue()==-1)
+		if(memoryLocation.getValue()<0)
 		{
-			//misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a store instruction");
+			misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a store instruction");
 			System.out.println("\n\tUninitialized memory-location passed to a store instruction");
 			return new Instruction(OperationType.nop, null, null, null);
 		}

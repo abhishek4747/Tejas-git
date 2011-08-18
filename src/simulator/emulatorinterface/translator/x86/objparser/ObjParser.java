@@ -70,15 +70,13 @@ public class ObjParser {
 			InstructionTable instructionTable, Long instructionPointer,
 			DynamicInstruction dynamicInstruction) {
 		
-		
-		
 		// Get partial decoded instruction
 		PartialDecodedInstruction partialDecodedInstruction;
 		partialDecodedInstruction = instructionTable.getInstruction(instructionPointer);
 		
 		if(partialDecodedInstruction==null)
 		{
-			System.out.print("\n\tNo partial decoded instruction for " + instructionPointer + "\n");
+			//System.out.print("\n\tNo partial decoded instruction for " + Long.toHexString(instructionPointer) + "\n");
 			return new InstructionList();
 		}
 		else if((partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_MOVE) ||
@@ -182,7 +180,7 @@ public class ObjParser {
 			}
 			else
 			{
-				System.out.print("\n\n\t### Did not handle : " + line + "\n");
+				//System.out.print("\n\n\t### Did not handle : " + line + "\n");
 				notHandled++;
 			}
 		}
