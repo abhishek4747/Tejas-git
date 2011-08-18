@@ -34,6 +34,8 @@ public class RunnableThread implements Runnable {
 	boolean[] emuThreadStartStatus = new boolean[EMUTHREADS];
 	long noOfPackets;
 	long noOfMicroOps;
+	long noOfLoads;
+	long noOfStores;
 
 	DynamicInstructionBuffer passPackets;
 	InstructionList inputToPipeline;
@@ -52,6 +54,8 @@ public class RunnableThread implements Runnable {
 		inputToPipeline = new InstructionList();
 		noOfPackets = 0;
 		noOfMicroOps = 0;
+		noOfLoads = 0;
+		noOfStores = 0;
 		runner = new Thread(this, threadName);
 		//System.out.println(runner.getName());
 		runner.start(); //Start the thread.
@@ -207,6 +211,14 @@ public class RunnableThread implements Runnable {
 						
 						noOfMicroOps += fusedInstructions.getListSize();
 						
+						for(int i1 = 0; i1 < fusedInstructions.getListSize(); i1++)
+						{
+							if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.load)
+								noOfLoads++;
+							if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.store)
+								noOfStores++;
+						}
+						
 						pold = pnew;
 						vectorPacket.clear();
 						vectorPacket.add(pold);
@@ -289,6 +301,8 @@ public class RunnableThread implements Runnable {
 				+" packets-"+noOfPackets
 				+" instructions-"+SharedMem.numInstructions[tid]
 				+" microops-"+noOfMicroOps
+				+" noOfLoads-"+noOfLoads
+				+" noOfStores-"+noOfStores
 				+" time-"+timeTaken+" MBPS-"+
 				(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+
 				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");
