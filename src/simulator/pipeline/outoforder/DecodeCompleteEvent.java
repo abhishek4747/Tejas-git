@@ -60,13 +60,13 @@ public class DecodeCompleteEvent extends NewEvent {
 			//wake the producer
 			if(listSize < 100)
 			{
-				synchronized(inputToPipeline.getSyncObject2())
+				synchronized(inputToPipeline.getSyncObject())
 				{
-					if(inputToPipeline.getSyncObject2().isFlag())
+					if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 2)
 					{
 						System.out.println("consumer waking up producer");
-						inputToPipeline.getSyncObject2().setFlag(false);
-						inputToPipeline.getSyncObject2().notify();
+						inputToPipeline.getSyncObject().setWhoIsSleeping(0);
+						inputToPipeline.getSyncObject().notify();
 					}
 				}
 			}
@@ -82,10 +82,7 @@ public class DecodeCompleteEvent extends NewEvent {
 				
 				for(int i = 0; i < listSize; i++)
 				{
-					synchronized(inputToPipeline)
-					{
-						newInstruction = inputToPipeline.peekInstructionAt(i);
-					}
+					newInstruction = inputToPipeline.peekInstructionAt(i);
 					
 					if(newInstruction == null)
 					{
@@ -104,25 +101,15 @@ public class DecodeCompleteEvent extends NewEvent {
 		}
 		
 		
-		synchronized(inputToPipeline.getSyncObject())
+		if(toWait == true)
 		{
-			if(toWait == true)
+			synchronized(inputToPipeline.getSyncObject())
 			{
 				System.out.println("input to pipeline too small.. consumer going to sleep");
+				inputToPipeline.getSyncObject().setWhoIsSleeping(1);
 				try
 				{
 					//consumer shouldn't sleep with the producer also sleeping
-					synchronized(inputToPipeline.getSyncObject2())
-					{
-						if(inputToPipeline.getSyncObject2().isFlag())
-						{
-							System.out.println("consumer waking up producer");
-							inputToPipeline.getSyncObject2().setFlag(false);
-							inputToPipeline.getSyncObject2().notify();
-						}
-					}
-					
-					inputToPipeline.getSyncObject().setFlag(true);
 					inputToPipeline.getSyncObject().wait();
 				}
 				catch (InterruptedException e)

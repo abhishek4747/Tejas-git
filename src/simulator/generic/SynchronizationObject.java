@@ -2,19 +2,21 @@ package generic;
 
 public class SynchronizationObject {
 	
-	boolean flag;
+	int whoIsSleeping;		//0 - no one is sleeping
+							//1 - consumer is sleeping
+							//2 - producer is sleeping
 
 	public SynchronizationObject()
 	{
-		flag = false;
-	}
-	
-	synchronized public boolean isFlag() {
-		return flag;
+		whoIsSleeping = 0;
 	}
 
-	synchronized public void setFlag(boolean flag) {
-		this.flag = flag;
+	public int getWhoIsSleeping() {
+		return whoIsSleeping;
+	}
+
+	public void setWhoIsSleeping(int whoIsSleeping) {
+		this.whoIsSleeping = whoIsSleeping;
 	}
 
 }

@@ -30,14 +30,14 @@ public class InstructionList
 	private LinkedList<Instruction> instructionList;
 	private ListIterator<Instruction> listIterator;
 	SynchronizationObject syncObject;
-	SynchronizationObject syncObject2;
+	//SynchronizationObject syncObject2;
 	
 	public InstructionList()
 	{
 		instructionList = new LinkedList<Instruction>();
 		listIterator = instructionList.listIterator();
 		syncObject = new SynchronizationObject();
-		syncObject2 = new SynchronizationObject();
+		//syncObject2 = new SynchronizationObject();
 	}
 
 	//appends a single instruction to the instruction list
@@ -107,7 +107,7 @@ public class InstructionList
 		return syncObject;
 	}
 
-	public SynchronizationObject getSyncObject2() {
+	/*public SynchronizationObject getSyncObject2() {
 		return syncObject2;
-	}
+	}*/
 }

@@ -159,7 +159,6 @@ public class RunnableThread implements Runnable {
 						*/
 						
 						long listSize;
-						boolean toWait = false;
 						
 						synchronized(inputToPipeline)
 						{
@@ -172,43 +171,27 @@ public class RunnableThread implements Runnable {
 							{
 								synchronized(inputToPipeline.getSyncObject())
 								{
-									if(inputToPipeline.getSyncObject().isFlag())
+									if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 1)
 									{
 										System.out.println("producer waking up consumer");
-										inputToPipeline.getSyncObject().setFlag(false);
+										inputToPipeline.getSyncObject().setWhoIsSleeping(0);
 										inputToPipeline.getSyncObject().notify();
 									}
 								}
 							}
-						
-							//if input to the pipeline is too large, producer goes to sleep
-							//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
-							if(listSize > 400)
-							{
-								toWait = true;
-							}
 						}
 						
-						if(toWait == true)
+						//if input to the pipeline is too large, producer goes to sleep
+						//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
+						if(listSize > 400)
 						{
-							System.out.println("input to pipeline too large - producer going to sleep");
-							synchronized(inputToPipeline.getSyncObject2())
+							synchronized(inputToPipeline.getSyncObject())
 							{
+								System.out.println("input to pipeline too large.. producer going to sleep");
+								inputToPipeline.getSyncObject().setWhoIsSleeping(2);
 								try
 								{
-									//producer shouldn't sleep with the consumer also sleeping
-									synchronized(inputToPipeline.getSyncObject())
-									{
-										if(inputToPipeline.getSyncObject().isFlag())
-										{
-											System.out.println("producer waking up consumer");
-											inputToPipeline.getSyncObject().setFlag(false);
-											inputToPipeline.getSyncObject().notify();
-										}
-									}
-									
-									inputToPipeline.getSyncObject2().setFlag(true);
-									inputToPipeline.getSyncObject2().wait();
+									inputToPipeline.getSyncObject().wait();
 								}
 								catch (InterruptedException e)
 								{
@@ -282,10 +265,10 @@ public class RunnableThread implements Runnable {
 		//signal pipeline to resume to process the outstanding instructions
 		synchronized(inputToPipeline.getSyncObject())
 		{
-			if(inputToPipeline.getSyncObject().isFlag())
+			if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 1)
 			{
 				System.out.println("producer waking up consumer");
-				inputToPipeline.getSyncObject().setFlag(false);
+				inputToPipeline.getSyncObject().setWhoIsSleeping(0);
 				inputToPipeline.getSyncObject().notify();
 			}
 		}
