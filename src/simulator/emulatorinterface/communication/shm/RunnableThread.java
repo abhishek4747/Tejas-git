@@ -36,6 +36,7 @@ public class RunnableThread implements Runnable {
 	long noOfMicroOps;
 	long noOfLoads;
 	long noOfStores;
+	long noDebug;
 
 	DynamicInstructionBuffer passPackets;
 	InstructionList inputToPipeline;
@@ -54,6 +55,7 @@ public class RunnableThread implements Runnable {
 		inputToPipeline = new InstructionList();
 		noOfPackets = 0;
 		noOfMicroOps = 0;
+		noDebug=0;
 		noOfLoads = 0;
 		noOfStores = 0;
 		runner = new Thread(this, threadName);
@@ -154,7 +156,7 @@ public class RunnableThread implements Runnable {
 						//TODO This instructionList must be provided to raj's code
 						InstructionList fusedInstructions;
 						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
-						inputToPipeline.appendInstruction(fusedInstructions);
+						
 						/*
 						System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 											
@@ -167,7 +169,7 @@ public class RunnableThread implements Runnable {
 							Newmain.notHandled++;
 						}
 						*/
-						/*
+						
 						long listSize;
 						
 						synchronized(inputToPipeline)
@@ -208,9 +210,10 @@ public class RunnableThread implements Runnable {
 									e.printStackTrace();
 								}
 							}
-						}*/
+						}
 						
-	/*					noOfMicroOps += fusedInstructions.getListSize();
+						noOfMicroOps += fusedInstructions.getListSize();
+						noDebug++;
 						
 						for(int i1 = 0; i1 < fusedInstructions.getListSize(); i1++)
 						{
@@ -219,7 +222,7 @@ public class RunnableThread implements Runnable {
 							if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.store)
 								noOfStores++;
 						}
-	*/					
+						
 						pold = pnew;
 						vectorPacket.clear();
 						vectorPacket.add(pold);
@@ -276,7 +279,7 @@ public class RunnableThread implements Runnable {
 			}
 		}
 		
-/*		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
+		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
 		synchronized(inputToPipeline)
 		{
 			inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
@@ -292,7 +295,7 @@ public class RunnableThread implements Runnable {
 				inputToPipeline.getSyncObject().notify();
 			}
 		}
-*/		
+		
 		long dataRead = 0;
 		for (int i=0; i<EMUTHREADS; i++) {
 			dataRead+=tot_cons[i];
@@ -307,7 +310,7 @@ public class RunnableThread implements Runnable {
 				+" time-"+timeTaken+" MBPS-"+
 				(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+
 				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");
-		System.out.println("sum is "+sum);
+		System.out.println("sum is "+sum+" noDebug is "+noDebug);
 		SharedMem.free.release();
 	}
 

@@ -78,7 +78,7 @@ public class ObjParser {
 		
 		if(partialDecodedInstruction==null)
 		{
-			//System.out.print("\n\tNo partial decoded instruction for " + dynamicInstruction + "\n");
+			System.out.print("\n\tNo partial decoded instruction for " + instructionPointer + "\n");
 			return new InstructionList();
 		}
 		else if((partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_MOVE) ||

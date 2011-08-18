@@ -22,9 +22,7 @@
 #define locQ	(50)
 #define QSIZE	(locQ*sizeof(packet))
 
-// Profiling occurs only if the instruction pointers address is between these two.
-#define START_ADDRESS	(0x00000000)
-#define END_ADDRESS	    (0xffffffff)
+#define MASK 0x00000000ffffffff
 
 // Defining  command line arguments
 KNOB<UINT64>   KnobLong(KNOB_MODE_WRITEONCE,       "pintool",
@@ -58,62 +56,63 @@ VOID ThreadFini(THREADID tid,const CONTEXT *ctxt, INT32 flags, VOID *v)
 // Pass a memory read record
 VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 {
-	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
 		checkSum+=2;
-		while (tst->analysisFn(tid,(uint64_t)ip,2,(uint64_t)addr)== -1) {
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t naddr = MASK & (uint64_t)addr;
+		while (tst->analysisFn(tid,nip,2,naddr)== -1) {
 			PIN_Yield();
 		}
-	}
 }
 
 // Pass a memory write record
 VOID RecordMemWrite(THREADID tid,VOID * ip, VOID * addr)
 {
-	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
 		checkSum+=3;
-		while(tst->analysisFn(tid,(uint64_t)ip,3,(uint64_t)addr)== -1) {
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t naddr = MASK & (uint64_t)addr;
+		while(tst->analysisFn(tid,nip,3,naddr)== -1) {
 			PIN_Yield();
 		}
-	}
 }
 
 VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 {
-	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+	uint64_t nip = MASK & (uint64_t)ip;
+	uint64_t ntadr = MASK & (uint64_t)tadr;
 		if (taken) {
 			checkSum+=4;
-			while (tst->analysisFn(tid,(uint64_t)ip,4,(uint64_t)tadr)==-1) {
+			while (tst->analysisFn(tid,nip,4,ntadr)==-1) {
 				PIN_Yield();
 			}
 		}
 		else {
 			checkSum+=5;
-			while (tst->analysisFn(tid,(uint64_t)ip,5,(uint64_t)tadr)==-1) {
+			while (tst->analysisFn(tid,nip,5,ntadr)==-1) {
 				PIN_Yield();
 			}
 		}
-	}
 }
 
 VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 {
-	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
 		checkSum+=6;
-		while (tst->analysisFn(tid,(uint64_t)ip,6,(uint64_t)_reg)== -1) {
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t _nreg = MASK & (uint64_t)_reg;
+		while (tst->analysisFn(tid,nip,6,_nreg)== -1) {
 			PIN_Yield();
 		}
-	}
 }
 
 
 VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
 {
-	if ((uint64_t)ip>= START_ADDRESS && (uint64_t)ip <= END_ADDRESS) {
+
 		checkSum+=7;
-		while (tst->analysisFn(tid,(uint64_t)ip,7,(uint64_t)_reg)== -1) {
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t _nreg = MASK & (uint64_t)_reg;
+		while (tst->analysisFn(tid,nip,7,_nreg)== -1) {
 			PIN_Yield();
 		}
-	}
 }
 
 // Pin calls this function every time a new instruction is encountered

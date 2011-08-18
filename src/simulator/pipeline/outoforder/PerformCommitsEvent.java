@@ -45,8 +45,9 @@ public class PerformCommitsEvent extends NewEvent {
 			System.out.println();
 			System.out.println("core " + core.getCore_number() + " reaches the finish line!!");
 			System.out.println(GlobalClock.getCurrentTime() + " global clock cycles");
-			System.out.println(GlobalClock.getCurrentTime()/core.getStepSize() + " core cycles");
-			System.out.println(GlobalClock.getCurrentTime() * GlobalClock.getStepValue()+ " microseconds");
+			System.out.println(GlobalClock.getCurrentTime()/core.getStepSize() + " core cycles at "
+					+ core.getFrequency() + " MHz, viz., "
+					+ GlobalClock.getCurrentTime() * GlobalClock.getStepValue()+ " microseconds");
 			
 			MemorySystem.printMemSysResults();
 		}
