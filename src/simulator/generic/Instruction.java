@@ -190,7 +190,11 @@ public class Instruction {
 	public static Instruction getLoadInstruction(Operand memoryLocation, Operand destinationRegister)
 	{
 		if(memoryLocation.getValue()==-1)
-			misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a load instruction");
+		{
+			//misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a load instruction");
+			System.out.println("\n\tUninitialized memory-location passed to a load instruction");
+			return new Instruction(OperationType.nop, null, null, null);
+		}
 
 		return new Instruction(OperationType.load, memoryLocation,	null, destinationRegister);
 	}
@@ -199,7 +203,11 @@ public class Instruction {
 	public static Instruction getStoreInstruction(Operand memoryLocation, Operand sourceOperand)
 	{
 		if(memoryLocation.getValue()==-1)
-			misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a store instruction");
+		{
+			//misc.Error.showErrorAndExit("\n\tUninitialized memory-location passed to a store instruction");
+			System.out.println("\n\tUninitialized memory-location passed to a store instruction");
+			return new Instruction(OperationType.nop, null, null, null);
+		}
 
 		return new Instruction(OperationType.store, memoryLocation, sourceOperand, null);
 	}

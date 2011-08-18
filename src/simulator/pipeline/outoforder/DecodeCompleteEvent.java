@@ -275,7 +275,7 @@ public class DecodeCompleteEvent extends NewEvent {
 				{
 					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
 				}
-				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg2(archReg);
 				}
@@ -365,7 +365,7 @@ public class DecodeCompleteEvent extends NewEvent {
 				{
 					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
 				}
-				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg2(archReg);
 				}
