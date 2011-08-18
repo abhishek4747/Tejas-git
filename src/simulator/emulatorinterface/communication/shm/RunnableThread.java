@@ -32,6 +32,8 @@ public class RunnableThread implements Runnable {
 	long[] tot_cons = new long[EMUTHREADS];	// total consumed data
 	boolean[] overstatus = new boolean[EMUTHREADS];
 	boolean[] emuThreadStartStatus = new boolean[EMUTHREADS];
+	long noOfPackets;
+	long noOfMicroOps;
 
 	DynamicInstructionBuffer passPackets;
 	InstructionList inputToPipeline;
@@ -48,6 +50,8 @@ public class RunnableThread implements Runnable {
 			overstatus[i] = false;
 		}
 		inputToPipeline = new InstructionList();
+		noOfPackets = 0;
+		noOfMicroOps = 0;
 		runner = new Thread(this, threadName);
 		//System.out.println(runner.getName());
 		runner.start(); //Start the thread.
@@ -138,6 +142,7 @@ public class RunnableThread implements Runnable {
 					}
 					else {
 						(SharedMem.numInstructions[tid])++;
+						noOfPackets += vectorPacket.size();
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
 						DynamicInstruction dynamicInstruction = configurePackets(vectorPacket, tid, tid_emu);
 						
@@ -199,6 +204,8 @@ public class RunnableThread implements Runnable {
 								}
 							}
 						}
+						
+						noOfMicroOps += fusedInstructions.getListSize();
 						
 						pold = pnew;
 						vectorPacket.clear();
@@ -278,8 +285,11 @@ public class RunnableThread implements Runnable {
 			dataRead+=tot_cons[i];
 		}		
 		long timeTaken = System.currentTimeMillis() - start;
-		System.out.println("\nThread"+tid+" Bytes-"+dataRead*20+" instructions-"
-				+SharedMem.numInstructions[tid]+" time-"+timeTaken+" MBPS-"+
+		System.out.println("\nThread"+tid+" Bytes-"+dataRead*20
+				+" packets-"+noOfPackets
+				+" instructions-"+SharedMem.numInstructions[tid]
+				+" microops-"+noOfMicroOps
+				+" time-"+timeTaken+" MBPS-"+
 				(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+
 				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");
 		
