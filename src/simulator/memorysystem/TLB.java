@@ -60,7 +60,7 @@ public class TLB extends SimulationElement
 	 */
 	protected static long getPageID(long virtualAddr)
 	{
-		long pageID = virtualAddr >> Global.PAGE_OFFSET_BITS;
+		long pageID = virtualAddr >>> Global.PAGE_OFFSET_BITS;
 		return pageID;
 	}
 	

@@ -143,7 +143,7 @@ public class Newmain {
 			DynamicInstructionBuffer dynamicInstructionBuffer) {
 
 		// Creating command for PIN tool.
-		String cmd = SimulationConfig.PinTool + "/pin" + " -t " 
+		String cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t " 
 		+ SimulationConfig.PinInstrumentor + " -map "
 		+ SimulationConfig.MapEmuCores + " --";
 		

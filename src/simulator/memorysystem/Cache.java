@@ -73,11 +73,11 @@ public class Cache extends SimulationElement
 		protected CacheLine access(long addr)
 		{
 			/* remove the block size */
-			long tag = addr >> this.blockSizeBits;
+			long tag = addr >>> this.blockSizeBits;
 
 			/* search all the lines that might match */
 			
-			long laddr = tag >> this.assocBits;
+			long laddr = tag >>> this.assocBits;
 			laddr = laddr << assocBits; //Replace the associativity bits with zeros.
 
 			/* remove the tag portion */
@@ -170,10 +170,10 @@ public class Cache extends SimulationElement
 			CacheLine evictedLine = null;
 			
 			/* remove the block size */
-			long tag = addr >> this.blockSizeBits;
+			long tag = addr >>> this.blockSizeBits;
 
 			/* search all the lines that might match */
-			long laddr = tag >> this.assocBits;
+			long laddr = tag >>> this.assocBits;
 			laddr = laddr << assocBits; // replace the associativity bits with zeros.
 
 			/* remove the tag portion */
@@ -274,7 +274,7 @@ public class Cache extends SimulationElement
 			else if (this.getMultiPortType() == MultiPortingType.BANKED)
 			{
 				/* remove the block size *
-				long tag = addr >> this.blockSizeBits;
+				long tag = addr >>> this.blockSizeBits;
 
 				long lineIndex = tag & numLinesMask;
 				
@@ -301,7 +301,7 @@ public class Cache extends SimulationElement
 											SimulationElement requestingElement,
 											LSQEntry lsqEntry)
 		{
-			long blockAddr = addr >> blockSizeBits;
+			long blockAddr = addr >>> blockSizeBits;
 			
 			if (!/*NOT*/outstandingRequestTable.containsKey(blockAddr))
 			{
