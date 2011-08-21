@@ -119,36 +119,39 @@ public class NewCacheAccessEvent extends NewEvent
 		else
 		{			
 			//Add the request to the outstanding request buffer
-			processingCache.addOutstandingRequest(request.getAddr(), 
+			boolean alreadyRequested = processingCache.addOutstandingRequest(request.getAddr(), 
 													request.getType(), 
 													this.getRequestingElement(), 
 													lsqEntry);
 			
-			// access the next level
-			if (processingCache.isLastLevel)
+			if (!alreadyRequested)
 			{
-				//FIXME
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(), //FIXME 
-																processingCache, 
-																0, //tieBreaker,
-																request.getAddr(),
-																RequestType.MEM_READ)));
-				return;
-			}
-			else
-			{
-				//Change the parameters of this event to forward it for scheduling next cache's access
-				this.setEventTime(processingCache.nextLevel.getLatencyDelay());//FIXME
-				this.setRequestingElement(processingCache);
-				this.processingCache = processingCache.nextLevel;
-				this.lsqEntry = null;
-				this.request.setType(RequestType.MEM_READ);
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						this));
-				return;
+				// access the next level
+				if (processingCache.isLastLevel)
+				{
+					//FIXME
+					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+							1, //noOfSlots,
+							new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(), //FIXME 
+																	processingCache, 
+																	0, //tieBreaker,
+																	request.getAddr(),
+																	RequestType.MEM_READ)));
+					return;
+				}
+				else
+				{
+					//Change the parameters of this event to forward it for scheduling next cache's access
+					this.setEventTime(processingCache.nextLevel.getLatencyDelay());//FIXME
+					this.setRequestingElement(processingCache);
+					this.processingCache = processingCache.nextLevel;
+					this.lsqEntry = null;
+					this.request.setType(RequestType.MEM_READ);
+					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+							1, //noOfSlots,
+							this));
+					return;
+				}
 			}
 		}
 	}

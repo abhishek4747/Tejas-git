@@ -296,22 +296,29 @@ public class Cache extends SimulationElement
 		 * @param requestType : MEM_READ or MEM_WRITE
 		 * @param requestingElement : Which element made the request. Helpful in backtracking and filling the stack
 		 */
-		protected void addOutstandingRequest(long addr, 
+		protected boolean addOutstandingRequest(long addr, 
 											RequestType requestType, 
 											SimulationElement requestingElement,
 											LSQEntry lsqEntry)
 		{
+			boolean entryAlreadyThere;
+			
 			long blockAddr = addr >>> blockSizeBits;
 			
 			if (!/*NOT*/outstandingRequestTable.containsKey(blockAddr))
 			{
+				entryAlreadyThere = false;
 				outstandingRequestTable.put(blockAddr, new ArrayList<CacheOutstandingRequestTableEntry>());
 			}
+			else
+				entryAlreadyThere = true;
 			
 			outstandingRequestTable.get(blockAddr).add(new CacheOutstandingRequestTableEntry(requestType,
 																							requestingElement,
 																							addr,
 																							lsqEntry));
+			
+			return entryAlreadyThere;
 		}
 /*		
 		/**

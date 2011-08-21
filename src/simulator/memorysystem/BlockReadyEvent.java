@@ -119,7 +119,7 @@ public class BlockReadyEvent extends NewEvent
 			System.exit(1);
 		}
 		
-		ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = receivingCache.outstandingRequestTable.get(blockAddr);
+		ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = receivingCache.outstandingRequestTable.remove(blockAddr);
 		
 		while (!/*NOT*/outstandingRequestList.isEmpty())
 		{
