@@ -55,22 +55,6 @@ public class DecodeCompleteEvent extends NewEvent {
 		{
 			listSize = inputToPipeline.getListSize();		
 		
-			//if producer is sleeping,
-			//and if the input to the pipeline is sufficiently short,
-			//wake the producer
-			if(listSize < 100)
-			{
-				synchronized(inputToPipeline.getSyncObject())
-				{
-					if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 2)
-					{
-						System.out.println("consumer waking up producer");
-						inputToPipeline.getSyncObject().setWhoIsSleeping(0);
-						inputToPipeline.getSyncObject().notify();
-					}
-				}
-			}
-			
 			if(listSize < core.getDecodeWidth())
 			{
 				//when should the pipeline wait?
@@ -100,24 +84,36 @@ public class DecodeCompleteEvent extends NewEvent {
 			}
 		}
 		
-		
-		if(toWait == true)
+		//if producer is sleeping,
+		//and if the input to the pipeline is sufficiently short,
+		//wake the producer
+		if(listSize < 100)
 		{
 			synchronized(inputToPipeline.getSyncObject())
 			{
-				System.out.println("input to pipeline too small.. consumer going to sleep");
-				inputToPipeline.getSyncObject().setWhoIsSleeping(1);
-				try
+				if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 2)
 				{
-					//consumer shouldn't sleep with the producer also sleeping
-					inputToPipeline.getSyncObject().wait();
+					System.out.println("consumer waking up producer");
+					inputToPipeline.getSyncObject().setWhoIsSleeping(0);
+					inputToPipeline.getSyncObject().notify();
 				}
-				catch (InterruptedException e)
-				{						
-					e.printStackTrace();
+				
+				if(toWait == true)
+				{
+					System.out.println("input to pipeline too small.. consumer going to sleep");
+					inputToPipeline.getSyncObject().setWhoIsSleeping(1);
+					try
+					{
+						//consumer shouldn't sleep with the producer also sleeping
+						inputToPipeline.getSyncObject().wait();
+					}
+					catch (InterruptedException e)
+					{						
+						e.printStackTrace();
+					}
 				}
 			}
-		}
+		}		
 		
 		for(int i = 0; i < core.getDecodeWidth(); i++)
 		{

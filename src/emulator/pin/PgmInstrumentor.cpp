@@ -120,7 +120,7 @@ VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
 VOID Instruction(INS ins, VOID *v)
 {
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
-	/*UINT32 maxWregs = INS_MaxNumWRegs(ins);
+	UINT32 maxWregs = INS_MaxNumWRegs(ins);
 		UINT32 maxRregs = INS_MaxNumRRegs(ins);
 
 		for(UINT32 i=0; i< maxWregs; i++) {
@@ -133,7 +133,7 @@ VOID Instruction(INS ins, VOID *v)
 			if (REG_is_gr(x) || x == REG_EFLAGS)
 				INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RegValRead,IARG_THREAD_ID, IARG_INST_PTR, IARG_REG_VALUE,x,IARG_END);
 		}
-	 */
+
 
 	if (INS_IsBranchOrCall(ins))//INS_IsIndirectBranchOrCall(ins))
 	{

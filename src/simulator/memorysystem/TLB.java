@@ -33,7 +33,7 @@ public class TLB extends SimulationElement
 	protected int tlbHits = 0;
 	protected int tlbMisses = 0;
 	
-	//Outstanding Request Table : Stores pageID vs LSQEntryIndex
+	//Outstanding Request Table : Stores pageID v/s LSQEntryIndex
 	protected Hashtable<Long, ArrayList<LSQEntry>> outstandingRequestTable
 			= new Hashtable<Long, ArrayList<LSQEntry>>();
 	

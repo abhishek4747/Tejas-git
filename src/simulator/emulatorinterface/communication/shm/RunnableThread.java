@@ -156,8 +156,6 @@ public class RunnableThread implements Runnable {
 						//TODO This instructionList must be provided to raj's code
 						InstructionList fusedInstructions;
 						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
-						
-						
 						//System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 											
 						if(fusedInstructions != null)
@@ -169,15 +167,17 @@ public class RunnableThread implements Runnable {
 							Newmain.notHandled++;
 						}
 						
-						
-						long listSize;
-						
-						synchronized(inputToPipeline)
+						if(fusedInstructions != null)
 						{
-							//add fused instructions to the input to the pipeline
-							inputToPipeline.appendInstruction(fusedInstructions);
-							listSize = inputToPipeline.getListSize();
-						
+							long listSize;
+							
+							synchronized(inputToPipeline)
+							{
+								//add fused instructions to the input to the pipeline
+								inputToPipeline.appendInstruction(fusedInstructions);
+								listSize = inputToPipeline.getListSize();
+							}
+							
 							//if size of list is greater than a certain constant, the pipeline may be signalled to resume
 							if(listSize > 200)
 							{
@@ -189,40 +189,40 @@ public class RunnableThread implements Runnable {
 										inputToPipeline.getSyncObject().setWhoIsSleeping(0);
 										inputToPipeline.getSyncObject().notify();
 									}
+									
+									//if input to the pipeline is too large, producer goes to sleep
+									//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
+									if(listSize > 400)
+									{
+										System.out.println("input to pipeline too large.. producer going to sleep");
+										inputToPipeline.getSyncObject().setWhoIsSleeping(2);
+										try
+										{
+											inputToPipeline.getSyncObject().wait();
+										}
+										catch (InterruptedException e)
+										{
+											e.printStackTrace();
+										}
+									}
 								}
-							}
-						}
-						
-						//if input to the pipeline is too large, producer goes to sleep
-						//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
-						if(listSize > 400)
-						{
-							synchronized(inputToPipeline.getSyncObject())
+							}							
+							
+							noOfMicroOps += fusedInstructions.getListSize();
+							
+							for(int i1 = 0; i1 < fusedInstructions.getListSize(); i1++)
 							{
-								System.out.println("input to pipeline too large.. producer going to sleep");
-								inputToPipeline.getSyncObject().setWhoIsSleeping(2);
-								try
-								{
-									inputToPipeline.getSyncObject().wait();
-								}
-								catch (InterruptedException e)
-								{
-									e.printStackTrace();
-								}
+								if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.load)
+									noOfLoads++;
+								if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.store)
+									noOfStores++;
 							}
+							
 						}
 						
-						noOfMicroOps += fusedInstructions.getListSize();
 						noDebug++;
 						
-						for(int i1 = 0; i1 < fusedInstructions.getListSize(); i1++)
-						{
-							if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.load)
-								noOfLoads++;
-							if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.store)
-								noOfStores++;
-						}
-						
+										
 						pold = pnew;
 						vectorPacket.clear();
 						vectorPacket.add(pold);
