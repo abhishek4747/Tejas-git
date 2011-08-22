@@ -21,7 +21,7 @@ public class Port
 			portBusyUntil = new Time_t[noOfPorts];
 				
 		//If the port is an unlimited port, no need for setting timeBusyUntil field.
-		if(!(noOfPorts==-1 && occupancy.equals(-1)))
+		if(!(noOfPorts==-1 && occupancy.getTime() == -1))
 		{
 			for(int i=0; i < noOfPorts; i++)
 			{
