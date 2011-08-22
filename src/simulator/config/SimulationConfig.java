@@ -28,4 +28,6 @@ public class SimulationConfig
 	public static long MapJavaCores; //Java simulator cores to run on
 	public static String PinTool;
 	public static String PinInstrumentor;
+	public static String outputFileName;
+	public static boolean debugMode;
 }

@@ -163,4 +163,13 @@ public class TLB extends SimulationElement
 		
 		return entryAlreadyThere;
 	}
+	
+	public int getTlbHits() {
+		return tlbHits;
+	}
+
+	public int getTlbMisses() {
+		return tlbMisses;
+	}
+
 }

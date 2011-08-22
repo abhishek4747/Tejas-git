@@ -42,6 +42,8 @@ public class Core extends SimulationElement{
 	private int[] threadIDs;
 	
 	private TournamentPredictor branchPredictor;
+	
+	private int noOfInstructionsExecuted;
 
 	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionList[] incomingInstructionLists,
 					int[] threadIDs)
@@ -59,8 +61,9 @@ public class Core extends SimulationElement{
 		this.threadIDs = threadIDs;
 		this.execEngine = new ExecutionEngine(this);
 		this.branchPredictor = new TournamentPredictor();
+		this.noOfInstructionsExecuted = 0;
 	}
-	
+
 	private void initializeCoreParameters(CoreConfig coreConfig)
 	{
 		//TODO parameters to be set according to contents of an XML configuration file
@@ -287,6 +290,19 @@ public class Core extends SimulationElement{
 
 	public void setRegFileOccupancy(int regFileOccupancy) {
 		this.regFileOccupancy = regFileOccupancy;
+	}
+	
+	public int getNoOfInstructionsExecuted() {
+		return noOfInstructionsExecuted;
+	}
+
+	public void setNoOfInstructionsExecuted(int noOfInstructionsExecuted) {
+		this.noOfInstructionsExecuted = noOfInstructionsExecuted;
+	}
+	
+	public void incrementNoOfInstructionsExecuted()
+	{
+		this.noOfInstructionsExecuted++;
 	}
 
 }

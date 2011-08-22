@@ -6,6 +6,8 @@ package emulatorinterface.communication.shm;
 
 import java.util.Vector;
 
+import config.SimulationConfig;
+
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.Newmain;
@@ -14,6 +16,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Instruction;
 import generic.InstructionList;
 import generic.OperationType;
+import generic.Statistics;
 
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
@@ -32,11 +35,7 @@ public class RunnableThread implements Runnable {
 	long[] tot_cons = new long[EMUTHREADS];	// total consumed data
 	boolean[] overstatus = new boolean[EMUTHREADS];
 	boolean[] emuThreadStartStatus = new boolean[EMUTHREADS];
-	long noOfPackets;
 	long noOfMicroOps;
-	long noOfLoads;
-	long noOfStores;
-	long noDebug;
 
 	DynamicInstructionBuffer passPackets;
 	InstructionList inputToPipeline;
@@ -53,11 +52,7 @@ public class RunnableThread implements Runnable {
 			overstatus[i] = false;
 		}
 		inputToPipeline = new InstructionList();
-		noOfPackets = 0;
 		noOfMicroOps = 0;
-		noDebug=0;
-		noOfLoads = 0;
-		noOfStores = 0;
 		runner = new Thread(this, threadName);
 		//System.out.println(runner.getName());
 		runner.start(); //Start the thread.
@@ -148,7 +143,7 @@ public class RunnableThread implements Runnable {
 					}
 					else {
 						(SharedMem.numInstructions[tid])++;
-						noOfPackets += vectorPacket.size();
+						
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
 						DynamicInstruction dynamicInstruction = configurePackets(vectorPacket, tid, tid_emu);
 						
@@ -185,7 +180,10 @@ public class RunnableThread implements Runnable {
 								{
 									if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 1)
 									{
-										System.out.println("producer waking up consumer");
+										if(SimulationConfig.debugMode)
+										{
+											System.out.println("producer waking up consumer");
+										}
 										inputToPipeline.getSyncObject().setWhoIsSleeping(0);
 										inputToPipeline.getSyncObject().notify();
 									}
@@ -194,7 +192,10 @@ public class RunnableThread implements Runnable {
 									//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
 									if(listSize > 400)
 									{
-										System.out.println("input to pipeline too large.. producer going to sleep");
+										if(SimulationConfig.debugMode)
+										{
+											System.out.println("input to pipeline too large.. producer going to sleep");
+										}
 										inputToPipeline.getSyncObject().setWhoIsSleeping(2);
 										try
 										{
@@ -210,18 +211,7 @@ public class RunnableThread implements Runnable {
 							
 							noOfMicroOps += fusedInstructions.getListSize();
 							
-							for(int i1 = 0; i1 < fusedInstructions.getListSize(); i1++)
-							{
-								if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.load)
-									noOfLoads++;
-								if(fusedInstructions.peekInstructionAt(i1).getOperationType() == OperationType.store)
-									noOfStores++;
-							}
-							
-						}
-						
-						noDebug++;
-						
+						}						
 										
 						pold = pnew;
 						vectorPacket.clear();
@@ -290,7 +280,10 @@ public class RunnableThread implements Runnable {
 		{
 			if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 1)
 			{
-				System.out.println("producer waking up consumer");
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("producer waking up consumer");
+				}
 				inputToPipeline.getSyncObject().setWhoIsSleeping(0);
 				inputToPipeline.getSyncObject().notify();
 			}
@@ -301,16 +294,17 @@ public class RunnableThread implements Runnable {
 			dataRead+=tot_cons[i];
 		}		
 		long timeTaken = System.currentTimeMillis() - start;
-		System.out.println("\nThread"+tid+" Bytes-"+dataRead*20
-				+" packets-"+noOfPackets
+		/*System.out.println("\nThread"+tid+" Bytes-"+dataRead*20
 				+" instructions-"+SharedMem.numInstructions[tid]
 				+" microops-"+noOfMicroOps
-				+" noOfLoads-"+noOfLoads
-				+" noOfStores-"+noOfStores
 				+" time-"+timeTaken+" MBPS-"+
 				(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+
-				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");
-		System.out.println("sum is "+sum+" noDebug is "+noDebug);
+				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");*/
+		
+		Statistics.setDataRead(dataRead*20, tid);
+		Statistics.setNumInstructions(SharedMem.numInstructions[tid], tid);
+		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
+		
 		SharedMem.free.release();
 	}
 

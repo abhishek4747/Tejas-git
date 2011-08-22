@@ -1,19 +1,9 @@
 package emulatorinterface;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-
 import pipeline.outoforder.BootPipelineEvent;
 import memorysystem.MemorySystem;
-import generic.Time_t;
-import memorysystem.Bus;
-import memorysystem.Cache;
-import memorysystem.CoreMemorySystem;
-import memorysystem.Global;
 import misc.Error;
-import config.CacheConfig;
 import config.SimulationConfig;
-import config.SystemConfig;
 import config.XMLParser;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
@@ -24,11 +14,13 @@ import generic.GlobalClock;
 import generic.InstructionList;
 import generic.InstructionTable;
 import generic.NewEventQueue;
+import generic.Statistics;
 
 public class Newmain {
 	
 	public static int handled=0;
 	public static int notHandled=0;
+	public static String executableFile;
 	//public static Object syncObject = new Object();
 	//public static Object syncObject2 = new Object();
 
@@ -38,7 +30,7 @@ public class Newmain {
 		checkCommandLineArguments(arguments);
 
 		// Read the command line arguments
-		String executableFile = arguments[0];
+		executableFile = arguments[0];
 
 		// Parse the command line arguments
 		XMLParser.parse();
@@ -76,6 +68,9 @@ public class Newmain {
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
+		//set up statistics module
+		Statistics.initStatistics();
+		
 		
 		
 		//commence pipeline
@@ -111,7 +106,6 @@ public class Newmain {
 		// finishing of reader threads
 		long icount = ipcBase.doExpectedWaitForSelf();
 		
-		
 		/*
 		 
 		//TODO currently simulating single core
@@ -131,6 +125,14 @@ public class Newmain {
 		// Display coverage
 		double coverage = (double)(handled*100)/(double)(handled+notHandled);
 		System.out.print("\n\tDynamic coverage =  " + coverage + " %\n");
+		
+		//print statistics
+		Statistics.openStream();
+		Statistics.printSystemConfig();
+		Statistics.printTranslatorStatistics();
+		Statistics.printTimingStatistics();
+		Statistics.printMemorySystemStatistics();
+		Statistics.closeStream();
 	}
 
 	// TODO Must provide parameters to make from here

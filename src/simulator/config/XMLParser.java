@@ -104,6 +104,9 @@ public class XMLParser
 		SimulationConfig.MapJavaCores = parseMapper(getImmediateString("JavaCores", simulationElmnt));
 		
 		//System.out.println(SimulationConfig.NumTempIntReg + ", " + SimulationConfig.IndexAddrModeEnable);
+		
+		SimulationConfig.outputFileName = getImmediateString("OutputFile", simulationElmnt);
+		SimulationConfig.debugMode = Boolean.getBoolean(getImmediateString("DebugMode", simulationElmnt));
 	}
 	
 	private static void setSystemParameters()

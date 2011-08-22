@@ -101,6 +101,10 @@ public class ReorderBuffer extends SimulationElement{
 					//update checkpoint
 					//note : if values are involved, a checkpoint of
 					//       the machine specific register file must also be implemented TODO
+					
+					//increment number of instructions executed
+					core.incrementNoOfInstructionsExecuted();
+					
 					if(first.getInstruction().getDestinationOperand() != null)
 					{
 						if(first.getInstruction().getDestinationOperand().getOperandType()

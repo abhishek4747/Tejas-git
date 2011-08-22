@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import generic.InstructionList;
 import generic.GlobalClock;
 import generic.NewEvent;
@@ -93,14 +94,20 @@ public class DecodeCompleteEvent extends NewEvent {
 			{
 				if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 2)
 				{
-					System.out.println("consumer waking up producer");
+					if(SimulationConfig.debugMode)
+					{
+						System.out.println("consumer waking up producer");
+					}
 					inputToPipeline.getSyncObject().setWhoIsSleeping(0);
 					inputToPipeline.getSyncObject().notify();
 				}
 				
 				if(toWait == true)
 				{
-					System.out.println("input to pipeline too small.. consumer going to sleep");
+					if(SimulationConfig.debugMode)
+					{
+						System.out.println("input to pipeline too small.. consumer going to sleep");
+					}
 					inputToPipeline.getSyncObject().setWhoIsSleeping(1);
 					try
 					{
