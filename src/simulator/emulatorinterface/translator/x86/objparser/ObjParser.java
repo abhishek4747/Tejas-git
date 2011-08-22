@@ -31,6 +31,7 @@ import generic.InstructionList;
 import generic.InstructionTable;
 import generic.Operand;
 import generic.PartialDecodedInstruction;
+import generic.Statistics;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -196,7 +197,8 @@ public class ObjParser {
 		}
 
 		double coverage = (double)(handled*100)/(double)(handled+notHandled);
-		System.out.print("\n\tStatic coverage = " + coverage + " %\n");
+		//System.out.print("\n\tStatic coverage = " + coverage + " %\n");
+		Statistics.setStaticCoverage(coverage);
 		
 		return instructionTable;
 	}

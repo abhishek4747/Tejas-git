@@ -85,13 +85,13 @@ public class DecodeCompleteEvent extends NewEvent {
 			}
 		}
 		
-		//if producer is sleeping,
-		//and if the input to the pipeline is sufficiently short,
-		//wake the producer
 		if(listSize < 100)
 		{
 			synchronized(inputToPipeline.getSyncObject())
 			{
+				//if producer is sleeping,
+				//and if the input to the pipeline is sufficiently short,
+				//wake the producer
 				if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 2)
 				{
 					if(SimulationConfig.debugMode)
@@ -111,7 +111,6 @@ public class DecodeCompleteEvent extends NewEvent {
 					inputToPipeline.getSyncObject().setWhoIsSleeping(1);
 					try
 					{
-						//consumer shouldn't sleep with the producer also sleeping
 						inputToPipeline.getSyncObject().wait();
 					}
 					catch (InterruptedException e)
@@ -131,6 +130,8 @@ public class DecodeCompleteEvent extends NewEvent {
 			{
 				synchronized(inputToPipeline)
 				{
+					if(inputToPipeline.getListSize() == 0)
+						break;
 					newInstruction = inputToPipeline.peekInstructionAt(0);
 				}
 				

@@ -24,11 +24,14 @@ public class Statistics {
 	
 	
 	
+	
 	//Translator Statistics
 	
 	static long dataRead[];
 	static long numInstructions[];
 	static long noOfMicroOps[];
+	static double staticCoverage;
+	static double dynamicCoverage;
 	
 	public static void printTranslatorStatistics()
 	{
@@ -47,13 +50,16 @@ public class Statistics {
 				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
 				outputFileWriter.write("\n");
 			}
-			outputFileWriter.write("\n");
+			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + "\n");
+			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage);
+			outputFileWriter.write("\n\n");
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
 	}
+	
 	
 	
 	
@@ -73,8 +79,8 @@ public class Statistics {
 			outputFileWriter.write("[Timing Statistics]\n");
 			outputFileWriter.write("\n");
 			
-			outputFileWriter.write("global clock\t=\t" + GlobalClock.getCurrentTime() + " cycles\n");
-			outputFileWriter.write("\n");
+			//outputFileWriter.write("global clock\t=\t" + GlobalClock.getCurrentTime() + " cycles\n");
+			//outputFileWriter.write("\n");
 			
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
@@ -149,7 +155,31 @@ public class Statistics {
 	
 	
 	
+	//Simulation time
 	
+	public static void printSimulationTime(long time)
+	{
+		//print time taken by simulator
+		long seconds = time/1000;
+		long minutes = seconds/60;
+		seconds = seconds%60;
+		try
+		{
+			outputFileWriter.write("\n");
+			outputFileWriter.write("[Simulator Time]\n");
+			
+			outputFileWriter.write("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
+			outputFileWriter.write("\n");
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+
+
+
 	public static void initStatistics()
 	{		
 		dataRead = new long[IPCBase.MAXNUMTHREADS];
@@ -240,6 +270,14 @@ public class Statistics {
 
 	public static void setNoOfMicroOps(long noOfMicroOps, int thread) {
 		Statistics.noOfMicroOps[thread] = noOfMicroOps;
+	}
+	
+	public static void setStaticCoverage(double staticCoverage) {
+		Statistics.staticCoverage = staticCoverage;
+	}
+	
+	public static void setDynamicCoverage(double dynamicCoverage) {
+		Statistics.dynamicCoverage = dynamicCoverage;
 	}
 
 	public static void setCoreCyclesTaken(long coreCyclesTaken, int core) {

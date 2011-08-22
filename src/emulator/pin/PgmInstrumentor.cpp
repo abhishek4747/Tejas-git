@@ -173,7 +173,7 @@ VOID Instruction(INS ins, VOID *v)
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
-	printf("checkSum is %lld\n",checkSum);
+	//printf("checkSum is %lld\n",checkSum);
 	tst->unload();
 }
 

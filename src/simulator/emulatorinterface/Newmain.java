@@ -1,6 +1,9 @@
 package emulatorinterface;
 
+import java.util.Enumeration;
+
 import pipeline.outoforder.BootPipelineEvent;
+import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import misc.Error;
 import config.SimulationConfig;
@@ -26,6 +29,8 @@ public class Newmain {
 
 	public static void main(String[] arguments) throws Exception 
 	{
+		long start = System.currentTimeMillis();
+		
 		// check command line arguments
 		checkCommandLineArguments(arguments);
 
@@ -124,7 +129,20 @@ public class Newmain {
 		
 		// Display coverage
 		double coverage = (double)(handled*100)/(double)(handled+notHandled);
-		System.out.print("\n\tDynamic coverage =  " + coverage + " %\n");
+		//System.out.print("\n\tDynamic coverage =  " + coverage + " %\n");
+		Statistics.setDynamicCoverage(coverage);
+		
+		//set memory statistics for levels L2 and below
+		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cache = MemorySystem.getCacheList().get(cacheName);
+			
+			Statistics.setNoOfL2Hits(cache.hits);
+			Statistics.setNoOfL2Misses(cache.misses);
+		}
+		
+		long end = System.currentTimeMillis();
 		
 		//print statistics
 		Statistics.openStream();
@@ -132,6 +150,7 @@ public class Newmain {
 		Statistics.printTranslatorStatistics();
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
+		Statistics.printSimulationTime(end - start);
 		Statistics.closeStream();
 	}
 
