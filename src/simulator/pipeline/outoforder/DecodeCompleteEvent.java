@@ -151,6 +151,13 @@ public class DecodeCompleteEvent extends NewEvent {
 							core.getExecEngine().setDecodePipeEmpty(true);
 							break;
 						}
+						//to detach memory system
+						/*if(newInstruction.getOperationType() == OperationType.load ||
+								newInstruction.getOperationType() == OperationType.store)
+						{
+							i--;
+							continue;
+						}*/
 						makeROBEntries(newInstruction);
 					}
 					else
