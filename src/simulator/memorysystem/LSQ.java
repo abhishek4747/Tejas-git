@@ -35,6 +35,7 @@ public class LSQ extends SimulationElement
 	public int lsqSize;
 	protected int curSize;
 		
+	public int noOfMemRequests = 0;
 	public int NoOfLd = 0; //Total number of load instructions encountered
 	public int NoOfSt = 0;
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
@@ -61,6 +62,7 @@ public class LSQ extends SimulationElement
 	{
 		//if (curSize < lsqSize)
 		//{
+			noOfMemRequests++;
 			LSQEntry.LSQEntryType type = (isLoad) ? LSQEntry.LSQEntryType.LOAD 
 					: LSQEntry.LSQEntryType.STORE;
 			

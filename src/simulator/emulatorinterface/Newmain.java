@@ -138,6 +138,7 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
+			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
 		}

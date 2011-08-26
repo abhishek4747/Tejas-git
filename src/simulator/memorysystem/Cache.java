@@ -58,6 +58,7 @@ public class Cache extends SimulationElement
 		protected Hashtable<Long, ArrayList<CacheOutstandingRequestTableEntry>> outstandingRequestTable
 						= new Hashtable<Long, ArrayList<CacheOutstandingRequestTableEntry>>();
 		
+		public int noOfRequests;
 		public int hits;
 		public int misses;
 		public int evictions;
@@ -141,6 +142,7 @@ public class Cache extends SimulationElement
 			this.numLinesBits = Util.logbase2(numLines);
 			this.timestamp = 0;
 			this.numLinesMask = numLines - 1;
+			this.noOfRequests = 0;
 			this.hits = 0;
 			this.misses = 0;
 			this.evictions = 0;
@@ -232,6 +234,7 @@ public class Cache extends SimulationElement
 	
 		public CacheLine processRequest(CacheRequestPacket request)
 		{
+			noOfRequests++;
 			//boolean isHit;
 			/* access the Cache */
 			CacheLine ll = null;

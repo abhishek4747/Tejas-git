@@ -103,14 +103,17 @@ public class Statistics {
 	
 	
 	//Memory System Statistics
-	
+	static long noOfMemRequests[];
 	static long noOfLoads[];
 	static long noOfStores[];
 	static long noOfValueForwards[];
+	static long noOfTLBRequests[];
 	static long noOfTLBHits[];
 	static long noOfTLBMisses[];
+	static long noOfL1Requests[];
 	static long noOfL1Hits[];
 	static long noOfL1Misses[];
+	static long noOfL2Requests;
 	static long noOfL2Hits;
 	static long noOfL2Misses;
 	
@@ -130,11 +133,26 @@ public class Statistics {
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
 				outputFileWriter.write("core\t\t=\t" + i + "\n");
+				outputFileWriter.write("Memory Requests\t=\t" + noOfMemRequests[i] + "\n");
 				outputFileWriter.write("Loads\t\t=\t" + noOfLoads[i] + "\n");
 				outputFileWriter.write("Stores\t\t=\t" + noOfStores[i] + "\n");
-				outputFileWriter.write("Value Forwards\t=\t" + noOfValueForwards[i] + "\n");
+				outputFileWriter.write("LSQ forwardings\t=\t" + noOfValueForwards[i] + "\n");
+				outputFileWriter.write("TLB Requests\t=\t" + noOfTLBRequests[i] + "\n");
+				outputFileWriter.write("TLB Hits\t=\t" + noOfTLBHits[i] + "\n");
+				outputFileWriter.write("TLB Misses\t=\t" + noOfTLBMisses[i] + "\n");
+				if (noOfTLBRequests[i] != 0)
+				{
+					outputFileWriter.write("TLB Hit-rate\t=\t" + (float)(noOfTLBHits[i])/noOfTLBRequests[i] + "\n");
+					outputFileWriter.write("TLB Miss-rate\t=\t" + (float)(noOfTLBMisses[i])/noOfTLBRequests[i] + "\n");
+				}
+				outputFileWriter.write("L1 Requests\t=\t" + noOfL1Requests[i] + "\n");
 				outputFileWriter.write("L1 Hits\t\t=\t" + noOfL1Hits[i] + "\n");
 				outputFileWriter.write("L1 Misses\t=\t" + noOfL1Misses[i] + "\n");
+				if (noOfL1Requests[i] != 0)
+				{
+					outputFileWriter.write("L1 Hit-Rate\t=\t" + (float)(noOfL1Hits[i])/noOfL1Requests[i] + "\n");
+					outputFileWriter.write("L1 Miss-Rate\t=\t" + (float)(noOfL1Misses[i])/noOfL1Requests[i] + "\n");
+				}
 				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("\n");
@@ -142,8 +160,14 @@ public class Statistics {
 			outputFileWriter.write("[Other cache statistics]\n");
 			outputFileWriter.write("\n");
 			
+			outputFileWriter.write("L2 Requests\t=\t" + noOfL2Requests + "\n");
 			outputFileWriter.write("L2 Hits\t\t=\t" + noOfL2Hits + "\n");
 			outputFileWriter.write("L2 Misses\t=\t" + noOfL2Misses + "\n");
+			if (noOfL2Requests != 0)
+			{
+				outputFileWriter.write("L2 Hit-Rate\t=\t" + (float)(noOfL2Hits)/noOfL2Requests + "\n");
+				outputFileWriter.write("L2 Miss-Rate\t=\t" + (float)(noOfL2Misses)/noOfL2Requests + "\n");
+			}
 			outputFileWriter.write("\n");
 		}
 		catch(IOException e)
@@ -190,11 +214,14 @@ public class Statistics {
 		coreFrequencies = new long[SystemConfig.NoOfCores];
 		numCoreInstructions = new long[SystemConfig.NoOfCores];
 		
+		noOfMemRequests = new long[SystemConfig.NoOfCores];
 		noOfLoads = new long[SystemConfig.NoOfCores];
 		noOfStores = new long[SystemConfig.NoOfCores];
 		noOfValueForwards = new long[SystemConfig.NoOfCores];
+		noOfTLBRequests = new long[SystemConfig.NoOfCores];
 		noOfTLBHits = new long[SystemConfig.NoOfCores];
 		noOfTLBMisses = new long[SystemConfig.NoOfCores];
+		noOfL1Requests = new long[SystemConfig.NoOfCores];
 		noOfL1Hits = new long[SystemConfig.NoOfCores];
 		noOfL1Misses = new long[SystemConfig.NoOfCores];
 	}	
@@ -304,6 +331,10 @@ public class Statistics {
 		Statistics.noOfValueForwards[core] = noOfValueForwards;
 	}
 	
+	public static void setNoOfTLBRequests(long noOfTLBRequests, int core) {
+		Statistics.noOfTLBRequests[core] = noOfTLBRequests;
+	}
+	
 	public static void setNoOfTLBHits(long noOfTLBHits, int core) {
 		Statistics.noOfTLBHits[core] = noOfTLBHits;
 	}
@@ -327,4 +358,18 @@ public class Statistics {
 	public static void setNoOfL2Misses(long noOfL2Misses) {
 		Statistics.noOfL2Misses = noOfL2Misses;
 	}
+
+	public static void setNoOfMemRequests(long noOfMemRequests, int core) {
+		Statistics.noOfMemRequests[core] = noOfMemRequests;
+	}
+
+	public static void setNoOfL2Requests(long noOfL2Requests) {
+		Statistics.noOfL2Requests = noOfL2Requests;
+	}
+	
+	public static void setNoOfL1Requests(long noOfL1Requests, int core) {
+		Statistics.noOfL1Requests[core] = noOfL1Requests;
+	}
+	
+	
 }

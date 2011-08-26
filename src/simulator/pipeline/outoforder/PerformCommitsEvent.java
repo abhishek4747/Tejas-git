@@ -65,11 +65,14 @@ public class PerformCommitsEvent extends NewEvent {
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
+		Statistics.setNoOfMemRequests(core.getExecEngine().coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
 		Statistics.setNoOfLoads(core.getExecEngine().coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
 		Statistics.setNoOfStores(core.getExecEngine().coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
 		Statistics.setNoOfValueForwards(core.getExecEngine().coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
+		Statistics.setNoOfTLBRequests(core.getExecEngine().coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
 		Statistics.setNoOfTLBHits(core.getExecEngine().coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
 		Statistics.setNoOfTLBMisses(core.getExecEngine().coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(core.getExecEngine().coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfL1Hits(core.getExecEngine().coreMemSys.getL1Cache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(core.getExecEngine().coreMemSys.getL1Cache().misses, core.getCore_number());
 	}

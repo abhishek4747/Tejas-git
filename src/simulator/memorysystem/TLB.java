@@ -30,6 +30,7 @@ public class TLB extends SimulationElement
 	protected Hashtable<Long, TLBEntry> TLBuffer;
 	protected int TLBSize; //Number of entries
 	protected double timestamp;
+	protected int tlbRequests = 0;
 	protected int tlbHits = 0;
 	protected int tlbMisses = 0;
 	
@@ -66,6 +67,7 @@ public class TLB extends SimulationElement
 	
 	public boolean searchTLBForPhyAddr(long virtualAddr) //Returns whether the address was already in the TLB or not
 	{
+		tlbRequests++;
 		timestamp += 1.0; //Increment the timestamp to be set in this search
 		boolean isEntryFoundInTLB;
 		
@@ -170,6 +172,10 @@ public class TLB extends SimulationElement
 
 	public int getTlbMisses() {
 		return tlbMisses;
+	}
+	
+	public int getTlbRequests() {
+		return tlbRequests;
 	}
 
 }

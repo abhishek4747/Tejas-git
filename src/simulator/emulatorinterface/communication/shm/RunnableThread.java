@@ -161,7 +161,7 @@ public class RunnableThread implements Runnable {
 						{
 							Newmain.notHandled++;
 						}
-						
+						/**/
 						if(fusedInstructions != null)
 						{
 							long listSize;
@@ -212,7 +212,7 @@ public class RunnableThread implements Runnable {
 							noOfMicroOps += fusedInstructions.getListSize();
 							
 						}						
-										
+							/**/			
 						pold = pnew;
 						vectorPacket.clear();
 						vectorPacket.add(pold);
@@ -228,10 +228,10 @@ public class RunnableThread implements Runnable {
 				
 				// some error checking
 				tot_cons[emuid] += numReads;
-				int tot_prod = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT+4,COUNT);
+				long tot_prod = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT+4,COUNT);
 				if(tot_cons[emuid] > tot_prod) {
 					System.out.println("tot_prod = " + tot_prod + " tot_cons = " + tot_cons + " v = " + v);
-					System.exit(1);
+					//System.exit(1);
 				}
 				if(queue_size < 0) {
 					System.out.println("queue less than 0");
