@@ -112,7 +112,7 @@ public class TLB extends SimulationElement
 	private long searchOldestTimestamp()
 	{
 		long oldestAddr = 0;
-		int minTimestamp = 2000000000; //Ultra-high value
+		double minTimestamp = Double.MAX_VALUE;
 		for (Enumeration<TLBEntry> entriesEnum = TLBuffer.elements(); entriesEnum.hasMoreElements(); )
 		{
 			TLBEntry entry = entriesEnum.nextElement();

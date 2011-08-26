@@ -196,7 +196,7 @@ public class Cache extends SimulationElement
 			if (fillLine == null) 
 			{
 				evicted = true; // We need eviction in this case
-				double minTimeStamp = 100000000;
+				double minTimeStamp = Double.MAX_VALUE;
 				for(int idx=0; idx<assoc; idx++) 
 				{
 					CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
