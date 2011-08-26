@@ -113,13 +113,13 @@ public class BlockReadyEvent extends NewEvent
 		}
 		
 		long blockAddr = addr >>> receivingCache.blockSizeBits;
-		if (!/*NOT*/receivingCache.outstandingRequestTable.containsKey(blockAddr))
+		if (!/*NOT*/receivingCache.missStatusHoldingRegister.containsKey(blockAddr))
 		{
 			System.err.println("Memory System Error : An outstanding request not found in the requesting element");
 			System.exit(1);
 		}
 		
-		ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = receivingCache.outstandingRequestTable.remove(blockAddr);
+		ArrayList<CacheMissStatusHoldingRegisterEntry> outstandingRequestList = receivingCache.missStatusHoldingRegister.remove(blockAddr);
 		
 		while (!/*NOT*/outstandingRequestList.isEmpty())
 		{

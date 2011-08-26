@@ -35,7 +35,7 @@ public class TLB extends SimulationElement
 	protected int tlbMisses = 0;
 	
 	//Outstanding Request Table : Stores pageID v/s LSQEntryIndex
-	protected Hashtable<Long, ArrayList<LSQEntry>> outstandingRequestTable
+	protected Hashtable<Long, ArrayList<LSQEntry>> missStatusHoldingRegister
 			= new Hashtable<Long, ArrayList<LSQEntry>>();
 	
 	//For telling that what addresses are processed this cycle (for BANKED multi-port option)
@@ -153,15 +153,15 @@ public class TLB extends SimulationElement
 	{
 		boolean entryAlreadyThere;
 		
-		if (!/*NOT*/outstandingRequestTable.containsKey(pageID))
+		if (!/*NOT*/missStatusHoldingRegister.containsKey(pageID))
 		{
 			entryAlreadyThere = false;
-			outstandingRequestTable.put(pageID, new ArrayList<LSQEntry>());
+			missStatusHoldingRegister.put(pageID, new ArrayList<LSQEntry>());
 		}
 		else
 			entryAlreadyThere = true;
 		
-		outstandingRequestTable.get(pageID).add(lsqEntry);
+		missStatusHoldingRegister.get(pageID).add(lsqEntry);
 		
 		return entryAlreadyThere;
 	}

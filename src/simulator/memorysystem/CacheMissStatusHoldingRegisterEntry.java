@@ -23,7 +23,7 @@ package memorysystem;
 import generic.RequestType;
 import generic.SimulationElement;
 
-public class CacheOutstandingRequestTableEntry
+public class CacheMissStatusHoldingRegisterEntry
 {	
 	RequestType requestType;
 	SimulationElement requestingElement;
@@ -36,7 +36,7 @@ public class CacheOutstandingRequestTableEntry
 	//int lsqIndex = LSQ.INVALID_INDEX;
 	LSQEntry lsqEntry = null;
 	
-	public CacheOutstandingRequestTableEntry(RequestType requestType,
+	public CacheMissStatusHoldingRegisterEntry(RequestType requestType,
 			SimulationElement requestingElement, long address, LSQEntry lsqEntry) 
 	{
 		super();

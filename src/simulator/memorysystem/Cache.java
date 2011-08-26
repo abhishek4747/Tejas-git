@@ -55,8 +55,8 @@ public class Cache extends SimulationElement
 
 		protected CacheLine lines[];
 		
-		protected Hashtable<Long, ArrayList<CacheOutstandingRequestTableEntry>> outstandingRequestTable
-						= new Hashtable<Long, ArrayList<CacheOutstandingRequestTableEntry>>();
+		protected Hashtable<Long, ArrayList<CacheMissStatusHoldingRegisterEntry>> missStatusHoldingRegister
+						= new Hashtable<Long, ArrayList<CacheMissStatusHoldingRegisterEntry>>();
 		
 		public int noOfRequests;
 		public int hits;
@@ -308,15 +308,15 @@ public class Cache extends SimulationElement
 			
 			long blockAddr = addr >>> blockSizeBits;
 			
-			if (!/*NOT*/outstandingRequestTable.containsKey(blockAddr))
+			if (!/*NOT*/missStatusHoldingRegister.containsKey(blockAddr))
 			{
 				entryAlreadyThere = false;
-				outstandingRequestTable.put(blockAddr, new ArrayList<CacheOutstandingRequestTableEntry>());
+				missStatusHoldingRegister.put(blockAddr, new ArrayList<CacheMissStatusHoldingRegisterEntry>());
 			}
 			else
 				entryAlreadyThere = true;
 			
-			outstandingRequestTable.get(blockAddr).add(new CacheOutstandingRequestTableEntry(requestType,
+			missStatusHoldingRegister.get(blockAddr).add(new CacheMissStatusHoldingRegisterEntry(requestType,
 																							requestingElement,
 																							addr,
 																							lsqEntry));

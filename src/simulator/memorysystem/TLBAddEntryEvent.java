@@ -52,7 +52,7 @@ public class TLBAddEntryEvent extends NewEvent
 		processingTLB.addTLBEntry(pageID);
 		
 		//TODO : Pickup all outstanding requests and LSQValidate them
-		ArrayList<LSQEntry> outstandingRequestList = processingTLB.outstandingRequestTable.remove(pageID);
+		ArrayList<LSQEntry> outstandingRequestList = processingTLB.missStatusHoldingRegister.remove(pageID);
 		
 		while (!outstandingRequestList.isEmpty())
 		{

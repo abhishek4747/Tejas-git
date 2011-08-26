@@ -25,7 +25,7 @@ import java.io.*;
 public class Global
 {
 		public static BufferedReader mainTraceFile;
-		public static final int PAGE_OFFSET_BITS = 12;
+		public static final int PAGE_OFFSET_BITS = 12; //most general value
 		
 		public static int commitErrors;
 }
