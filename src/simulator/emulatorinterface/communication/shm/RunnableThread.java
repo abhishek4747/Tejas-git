@@ -36,6 +36,8 @@ public class RunnableThread implements Runnable {
 	boolean[] overstatus = new boolean[EMUTHREADS];
 	boolean[] emuThreadStartStatus = new boolean[EMUTHREADS];
 	long noOfMicroOps;
+	
+	long noOfInstructionsArrived =0; //For testing purposes
 
 	DynamicInstructionBuffer passPackets;
 	InstructionList inputToPipeline;
@@ -161,16 +163,40 @@ public class RunnableThread implements Runnable {
 						{
 							Newmain.notHandled++;
 						}
+			/*			
+						//Testing time without attaching pipeline
+						if(fusedInstructions != null)
+							noOfInstructionsArrived += fusedInstructions.getListSize();
+						if (noOfInstructionsArrived > 2000000)
+						{
+							System.out.println("Processes instr 100000 to "+ noOfInstructionsArrived);
+							Newmain.end = System.currentTimeMillis();
+							Newmain.printSimulationTime(Newmain.end - Newmain.start);
+							System.exit(0);
+						}*/
 						/**/
+						//All the commented statements around here for timing statistics are added by moksh
 						if(fusedInstructions != null)
 						{
 							long listSize;
 							
 							synchronized(inputToPipeline)
 							{
-								//add fused instructions to the input to the pipeline
-								inputToPipeline.appendInstruction(fusedInstructions);
-								listSize = inputToPipeline.getListSize();
+								//noOfInstructionsArrived += fusedInstructions.getListSize();
+								//	if (noOfInstructionsArrived > 0 && noOfInstructionsArrived < 2000000) 
+									//{
+										//add fused instructions to the input to the pipeline
+										inputToPipeline.appendInstruction(fusedInstructions);
+										
+									//}
+									//else if (noOfInstructionsArrived > 2000000)
+									//{
+										//System.out.println("Processes instr 100000 to "+ noOfInstructionsArrived);
+										//Newmain.end = System.currentTimeMillis();
+										//Newmain.printSimulationTime(Newmain.end - Newmain.start);
+										//System.exit(0);
+									//}
+									listSize = inputToPipeline.getListSize();
 							}
 							
 							//if size of list is greater than a certain constant, the pipeline may be signalled to resume
@@ -271,7 +297,7 @@ public class RunnableThread implements Runnable {
 		
 		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
 		synchronized(inputToPipeline)
-		{
+		{	
 			inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
 		}
 		

@@ -1,5 +1,6 @@
 package emulatorinterface;
 
+import java.io.IOException;
 import java.util.Enumeration;
 
 import pipeline.outoforder.BootPipelineEvent;
@@ -20,7 +21,7 @@ import generic.NewEventQueue;
 import generic.Statistics;
 
 public class Newmain {
-	
+	public static long start, end;
 	public static int handled=0;
 	public static int notHandled=0;
 	public static String executableFile;
@@ -29,7 +30,7 @@ public class Newmain {
 
 	public static void main(String[] arguments) throws Exception 
 	{
-		long start = System.currentTimeMillis();
+		start = System.currentTimeMillis();
 		
 		// check command line arguments
 		checkCommandLineArguments(arguments);
@@ -143,7 +144,7 @@ public class Newmain {
 			Statistics.setNoOfL2Misses(cache.misses);
 		}
 		
-		long end = System.currentTimeMillis();
+		end = System.currentTimeMillis();
 		
 		//print statistics
 		Statistics.openStream();
@@ -214,5 +215,22 @@ public class Newmain {
 										new int[]{0})};
 		
 		return cores;
+	}
+
+	/**
+	 * @author Moksh
+	 * For real-time printing of the running time, when program exited on request
+	 */
+	public static void printSimulationTime(long time)
+	{
+		//print time taken by simulator
+		long seconds = time/1000;
+		long minutes = seconds/60;
+		seconds = seconds%60;
+			System.out.println("\n");
+			System.out.println("[Simulator Time]\n");
+			
+			System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
+			System.out.println("\n");
 	}
 }

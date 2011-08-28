@@ -30,16 +30,16 @@
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<OutputFile>default</OutputFile>				<!--Filename where the statistics are printed-->
+		<OutputFile>/home/moksh/lcs1.out</OutputFile>				<!--Filename where the statistics are printed-->
 														<!--if default, then file "<executable>_<time_stamp>" is created-->
-		<DebugMode>false</DebugMode>					<!--True if debug related printing is desired-->
+		<DebugMode>true</DebugMode>					<!--True if debug related printing is desired-->
 	</Simulation>
 
 	<!--System Parameters-->
 	<System>
 		<NoOfCores>1</NoOfCores>				<!--Number of cores in the simulated system-->
 		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
-		<MainMemoryFrequency>2000</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
+		<MainMemoryFrequency>200</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
 		<MainMemoryAccessPorts>-1</MainMemoryAccessPorts>	<!--Number of access ports in the LSQ-->
 		<MainMemoryPortOccupancy>-1</MainMemoryPortOccupancy>	<!--The occupancy of the LSQ ports (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the BUS used for broadcasting messages for cache coherence-->
@@ -50,13 +50,13 @@
 
 			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
 			<LSQLatency>1</LSQLatency>			<!--In clock cycles-->
-			<LSQAccessPorts>2</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
-			<LSQPortOccupancy>1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
+			<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
+			<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
 			<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
 
-			<TLBSize>256</TLBSize>				<!--Maximum number of entries in the TLB-->
+			<TLBSize>128</TLBSize>				<!--Maximum number of entries in the TLB-->
 			<TLBLatency>4</TLBLatency>			<!--In clock cycles-->
-			<TLBAccessPorts>1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
+			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 			
 			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
@@ -104,23 +104,23 @@
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>32</BlockSize>			<!--In bytes-->
-			<Associativity>2</Associativity>
-			<Size>32</Size>					<!--In KBs-->
+			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<Associativity>8</Associativity>
+			<Size>16</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
-			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>128</BlockSize>			<!--In bytes-->
-			<Associativity>4</Associativity>
-			<Size>8192</Size>				<!--In KBs-->
-			<Latency>4</Latency>				<!--In clock cycles-->
-			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<Associativity>8</Associativity>
+			<Size>2048</Size>				<!--In KBs-->
+			<Latency>22</Latency>				<!--In clock cycles-->
+			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 		</Type2>
 		<Type3>
