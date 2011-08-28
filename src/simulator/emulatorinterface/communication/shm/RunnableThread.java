@@ -96,8 +96,10 @@ public class RunnableThread implements Runnable {
 		
 		// keep on looping till there is something to read. iterates on the emulator threads from
 		// which it has to read.
+		long noOfInstr = 0;
+		boolean toExit = false;
 		while(true){
-			for (int emuid=0; emuid< EMUTHREADS; emuid++) {
+			for (int emuid=0; emuid < EMUTHREADS; emuid++) {
 				
 				tid_emu = tid*EMUTHREADS+emuid;	// the actual tid of a PIN thread, from which I will read now
 				
@@ -131,7 +133,7 @@ public class RunnableThread implements Runnable {
 				if (isFirstPacket[emuid]) {
 					emuThreadStartStatus[emuid]=true;
 				}
-
+				
 				// Read the entries. The packets belonging to the same instruction are added
 				// in a vector and passed to the DynamicInstructionBuffer which then processes it.
 				for(int i=0 ; i < numReads ; i++ ) {
@@ -139,7 +141,7 @@ public class RunnableThread implements Runnable {
 					v = pnew.value;
 					read_count ++;
 					sum += v;
-					if (pnew.ip == pold.ip || isFirstPacket[emuid] ) {
+					if (pnew.ip == pold.ip || isFirstPacket[emuid]) {
 						if (isFirstPacket[emuid]) pold = pnew;
 						vectorPacket.add(pnew);
 					}
@@ -150,6 +152,7 @@ public class RunnableThread implements Runnable {
 						DynamicInstruction dynamicInstruction = configurePackets(vectorPacket, tid, tid_emu);
 						
 						
+												
 						//TODO This instructionList must be provided to raj's code
 						InstructionList fusedInstructions;
 						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
@@ -174,8 +177,9 @@ public class RunnableThread implements Runnable {
 							Newmain.printSimulationTime(Newmain.end - Newmain.start);
 							System.exit(0);
 						}*/
-						/**/
+						/*
 						//All the commented statements around here for timing statistics are added by moksh
+						
 						if(fusedInstructions != null)
 						{
 							long listSize;
@@ -255,6 +259,13 @@ public class RunnableThread implements Runnable {
 				// some error checking
 				tot_cons[emuid] += numReads;
 				long tot_prod = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT+4,COUNT);
+				
+				if (SharedMem.numInstructions[tid] > 50000000)
+				{
+					toExit = true;
+					break;
+				}
+				
 				/*if(tot_cons[emuid] > tot_prod) {
 					System.out.println("tot_prod = " + tot_prod + " tot_cons = " + tot_cons[emuid] + " v = " + v);
 					System.exit(1);
@@ -279,6 +290,8 @@ public class RunnableThread implements Runnable {
 					break;
 				}
 			}
+			if (toExit)
+				break;
 			
 			// this runnable thread can be stopped in two ways. Either the emulator threads from 
 			// which it was supposed to read never started(none of them) so it has to be 
@@ -320,12 +333,12 @@ public class RunnableThread implements Runnable {
 			dataRead+=tot_cons[i];
 		}		
 		long timeTaken = System.currentTimeMillis() - start;
-		/*System.out.println("\nThread"+tid+" Bytes-"+dataRead*20
+		System.out.println("\nThread"+tid+" Bytes-"+dataRead*20
 				+" instructions-"+SharedMem.numInstructions[tid]
 				+" microops-"+noOfMicroOps
 				+" time-"+timeTaken+" MBPS-"+
 				(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+
-				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");*/
+				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");
 		
 		Statistics.setDataRead(dataRead*20, tid);
 		Statistics.setNumInstructions(SharedMem.numInstructions[tid], tid);
