@@ -299,7 +299,7 @@ public class RunnableThread implements Runnable {
 				break;
 			}
 		}
-		
+		/*
 		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
 		synchronized(inputToPipeline)
 		{	
@@ -319,7 +319,7 @@ public class RunnableThread implements Runnable {
 				inputToPipeline.getSyncObject().notify();
 			}
 		}
-		
+		*/
 		long dataRead = 0;
 		for (int i=0; i<EMUTHREADS; i++) {
 			dataRead+=tot_cons[i];

@@ -76,9 +76,10 @@ public class Newmain {
 		Statistics.initStatistics();
 		
 		
-		
+		/*
 		//commence pipeline
 		eventQ.addEvent(new BootPipelineEvent(cores, ipcBase, eventQ, 0));
+		*/
 		
 		//Thread.sleep(10000);
 		//System.out.println("finished sleeping..");
