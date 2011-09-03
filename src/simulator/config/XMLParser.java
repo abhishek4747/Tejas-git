@@ -105,7 +105,6 @@ public class XMLParser
 		
 		//System.out.println(SimulationConfig.NumTempIntReg + ", " + SimulationConfig.IndexAddrModeEnable);
 		
-		SimulationConfig.outputFileName = getImmediateString("OutputFile", simulationElmnt);
 		if(getImmediateString("DebugMode", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("DebugMode", simulationElmnt).compareTo("True") == 0)
 		{

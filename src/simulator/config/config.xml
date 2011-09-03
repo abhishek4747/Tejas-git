@@ -30,8 +30,6 @@
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<OutputFile>/home/prathmesh/Eclipse_Projects/check.out</OutputFile>				<!--Filename where the statistics are printed-->
-														<!--if default, then file "<executable>_<time_stamp>" is created-->
 		<DebugMode>true</DebugMode>					<!--True if debug related printing is desired-->
 	</Simulation>
 

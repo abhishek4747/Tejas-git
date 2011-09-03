@@ -228,7 +228,7 @@ public class Statistics {
 	
 	public static void openStream()
 	{
-		if(SimulationConfig.outputFileName != null && SimulationConfig.outputFileName.compareTo("default") != 0)
+		if(SimulationConfig.outputFileName != null)
 		{
 			try
 			{
@@ -237,7 +237,7 @@ public class Statistics {
 			catch (IOException e)
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append(Newmain.executableFile + "_");
+				sb.append("CONSTANT_");
 			    Calendar cal = Calendar.getInstance();
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 				sb.append(sdf.format(cal.getTime()));
@@ -256,7 +256,7 @@ public class Statistics {
 		else
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.append(Newmain.executableFile + "_");
+			sb.append("CONSTANT_");
 		    Calendar cal = Calendar.getInstance();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 			sb.append(sdf.format(cal.getTime()));

@@ -1,8 +1,8 @@
 package emulatorinterface;
 
+
 import java.io.IOException;
 import java.util.Enumeration;
-
 import pipeline.outoforder.BootPipelineEvent;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
@@ -22,19 +22,26 @@ import generic.Statistics;
 
 public class Newmain {
 	public static long start, end;
-	public static String executableFile;
 	//public static Object syncObject = new Object();
 	//public static Object syncObject2 = new Object();
 
 	public static void main(String[] arguments) throws Exception 
 	{
+		String executableArguments=" ";
+		String executableFile = " ";
+		
 		start = System.currentTimeMillis();
 		
 		// check command line arguments
 		checkCommandLineArguments(arguments);
 
 		// Read the command line arguments
-		executableFile = arguments[0];
+		SimulationConfig.outputFileName = arguments[0];
+		executableFile = arguments[1];
+		for(int i=1; i < arguments.length; i++)
+		{
+			executableArguments = executableArguments + " " + arguments[i];
+		}
 
 		// Parse the command line arguments
 		XMLParser.parse();
@@ -52,14 +59,9 @@ public class Newmain {
 		
 		// create PIN interface
 		IPCBase ipcBase = new SharedMem(instructionTable);
-		Process process = createPINinterface(ipcBase, arguments,
+		Process process = createPINinterface(ipcBase, executableArguments,
 				dynamicInstructionBuffer);
 
-		
-		
-	
-		
-		
 		//create event queue
 		NewEventQueue eventQ = new NewEventQueue();
 		
@@ -162,19 +164,18 @@ public class Newmain {
 	}
 
 	private static Process createPINinterface(IPCBase ipcBase,
-			String[] arguments,
-			DynamicInstructionBuffer dynamicInstructionBuffer) {
+			String executableArguments,
+			DynamicInstructionBuffer dynamicInstructionBuffer) 
+	{
 
 		// Creating command for PIN tool.
-		String cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t " 
-		+ SimulationConfig.PinInstrumentor + " -map "
-		+ SimulationConfig.MapEmuCores + " --";
+		String cmd;
 		
-		for(int i = 0; i < arguments.length; i++)
-		{
-			cmd += " ";
-			cmd += arguments[i];
-		}
+		cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t " 
+						+ SimulationConfig.PinInstrumentor + " -map "
+						+ SimulationConfig.MapEmuCores + " -- ";
+		cmd += executableArguments;
+
 
 		Process process = null;
 		try {
@@ -195,8 +196,8 @@ public class Newmain {
 
 	// checks if the command line arguments are in required format and number
 	private static void checkCommandLineArguments(String arguments[]) {
-		if (arguments.length < 1) {
-			Error.showErrorAndExit("\n\tIllegal number of arguments !!");
+		if (arguments.length < 2) {
+			Error.showErrorAndExit("\n\tIllegal number of arguments !!\nUsage java Newmain <output-file> <benchmark-program and arguments>");
 		}
 	}
 	
