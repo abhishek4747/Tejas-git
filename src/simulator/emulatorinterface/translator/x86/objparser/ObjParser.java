@@ -57,6 +57,9 @@ public class ObjParser
 	public static long staticNotHandled=0;
 	public static long dynamicHandled=0;
 	public static long dynamicNotHandled=0;
+	
+	public static long dynamicCISCs=0;
+	public static long dynamicMicroOps=0;
 
 	/**
 	* This method translates a static instruction to dynamic instruction.
@@ -65,7 +68,9 @@ public class ObjParser
 	*/
 	public static InstructionList translateInstruction(
 			InstructionTable instructionTable, Long instructionPointer,
-			DynamicInstruction dynamicInstruction) {
+			DynamicInstruction dynamicInstruction) 
+	{
+		dynamicCISCs++;
 		
 		//System.out.print("\n\tip = " + Long.toHexString(instructionPointer) + "\n");
 		
@@ -80,6 +85,7 @@ public class ObjParser
 			//		Long.toHexString(instructionPointer) + "\n");
 			
 			dynamicNotHandled++;
+			dynamicMicroOps += 0;
 			return null;
 		}
 		
@@ -93,6 +99,7 @@ public class ObjParser
 			//For some instruction classes, the implementation must be reviewed.
 			
 			dynamicNotHandled++;
+			dynamicMicroOps += 0;
 			return null;
 		}
 		
@@ -117,6 +124,7 @@ public class ObjParser
 			instructionList.setProgramCounter(instructionPointer);
 			
 			dynamicHandled++;
+			dynamicMicroOps += instructionList.length();
 			return instructionList;
 		}
 	}
@@ -150,7 +158,8 @@ public class ObjParser
 		long lineNumber = 0;
 
 		// Read from the obj-dump output
-		while ((line = readNextLineOfObjDump(input)) != null) {
+		while ((line = readNextLineOfObjDump(input)) != null) 
+		{
 			lineNumber++;
 
 			if (!(isContainingAssemblyCode(line)))

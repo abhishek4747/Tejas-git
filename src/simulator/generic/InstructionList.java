@@ -106,6 +106,11 @@ public class InstructionList
 	public SynchronizationObject getSyncObject() {
 		return syncObject;
 	}
+	
+	public int length()
+	{
+		return instructionList.size();
+	}
 
 	/*public SynchronizationObject getSyncObject2() {
 		return syncObject2;

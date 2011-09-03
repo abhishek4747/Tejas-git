@@ -118,22 +118,8 @@ public class Newmain {
 		ipcBase.doWaitForPIN(process);
 		ipcBase.finish();
 		
-		//calculate and report the static and dynamic coverage
-		double staticCoverage;
-		double dynamicCoverage;
-		
-		staticCoverage= (double)(ObjParser.staticHandled*100)/
-					(double)(ObjParser.staticHandled+ObjParser.staticNotHandled);
-
-		dynamicCoverage= (double)(ObjParser.dynamicHandled*100)/
-					(double)(ObjParser.dynamicHandled+ObjParser.dynamicNotHandled);
-		
-		System.out.print("\n\tStatic coverage = " + staticCoverage + " %\n");
-		System.out.print("\n\tDynamic coverage = " + dynamicCoverage + " %\n");
-		
-		Statistics.setStaticCoverage(staticCoverage);
-		Statistics.setDynamicCoverage(dynamicCoverage);
-		
+		reportStatistics();
+						
 		
 		//set memory statistics for levels L2 and below
 		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
@@ -156,6 +142,31 @@ public class Newmain {
 		Statistics.printMemorySystemStatistics();
 		Statistics.printSimulationTime(end - start);
 		Statistics.closeStream();
+	}
+
+	private static void reportStatistics() 
+	{
+		//calculate and report the static and dynamic coverage
+		double staticCoverage;
+		double dynamicCoverage;
+		
+		staticCoverage= (double)(ObjParser.staticHandled*100)/
+					(double)(ObjParser.staticHandled+ObjParser.staticNotHandled);
+
+		dynamicCoverage= (double)(ObjParser.dynamicHandled*100)/
+					(double)(ObjParser.dynamicHandled+ObjParser.dynamicNotHandled);
+		
+		System.out.print("\n\tStatic coverage = " + staticCoverage + " %\n");
+		System.out.print("\n\tDynamic coverage = " + dynamicCoverage + " %\n");
+		
+		Statistics.setStaticCoverage(staticCoverage);
+		Statistics.setDynamicCoverage(dynamicCoverage);
+		
+		//calculate and show CISCs vs MicroOps
+		System.out.print("\n\tNo. of CISCs = " + ObjParser.dynamicCISCs);
+		System.out.print("\n\tNo. of MicroOps = " + ObjParser.dynamicMicroOps + "\n");
+		System.out.print("\n\tMicroOps/CISC = " + 
+				(double)ObjParser.dynamicMicroOps/(double)ObjParser.dynamicCISCs + "\n");
 	}
 
 	// TODO Must provide parameters to make from here
