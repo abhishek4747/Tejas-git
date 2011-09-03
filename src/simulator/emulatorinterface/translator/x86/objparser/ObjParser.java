@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.objparser;
 
+
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.translator.x86.instruction.InstructionClass;
 import emulatorinterface.translator.x86.instruction.InstructionClassTable;
@@ -31,13 +32,10 @@ import generic.InstructionList;
 import generic.InstructionTable;
 import generic.Operand;
 import generic.PartialDecodedInstruction;
-import generic.Statistics;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
-
 import misc.Error;
 import misc.Numbers;
 
@@ -53,20 +51,18 @@ import misc.Numbers;
  * 
  * @author prathmesh
  */
-public class ObjParser {
-	/**
-	 * The main method is just an interface right now. It reads the path to the
-	 * executable file from the user, calls hash-table creation method and then
-	 * starts a core to execute static instructions.
-	 * 
-	 * @param arguments
-	 *            Command line arguments to the application are passed from
-	 *            here.
-	 */
+public class ObjParser 
+{
+	public static long staticHandled=0;
+	public static long staticNotHandled=0;
+	public static long dynamicHandled=0;
+	public static long dynamicNotHandled=0;
 
-	// This method translates a static instruction to dynamic instruction.
-	// It takes as arguments - instructionTable, instructionPointer and dynamic
-	// Instruction information
+	/**
+	* This method translates a static instruction to dynamic instruction.
+	* It takes as arguments - instructionTable, instructionPointer and dynamic
+	* Instruction information
+	*/
 	public static InstructionList translateInstruction(
 			InstructionTable instructionTable, Long instructionPointer,
 			DynamicInstruction dynamicInstruction) {
@@ -79,9 +75,14 @@ public class ObjParser {
 		
 		if(partialDecodedInstruction==null)
 		{
-			//System.out.print("\n\tNo partial decoded instruction for " + Long.toHexString(instructionPointer) + "\n");
-			return null; //TODO : Returned NULL 
+			// Check if the instruction was partially decoded or not ??
+			//System.out.print("\n\tNo partial decoded instruction for " + 
+			//		Long.toHexString(instructionPointer) + "\n");
+			
+			dynamicNotHandled++;
+			return null;
 		}
+		
 		else if((partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_MOVE) ||
 				(partialDecodedInstruction.getInstructionClass()==InstructionClass.CONDITIONAL_SET) ||
 				(partialDecodedInstruction.getInstructionClass()==InstructionClass.FLOATING_POINT_CONDITIONAL_MOVE) ||
@@ -90,42 +91,44 @@ public class ObjParser {
 				(partialDecodedInstruction.getInstructionClass()==InstructionClass.INTERRUPT))
 		{
 			//For some instruction classes, the implementation must be reviewed.
-			return null; //TODO Returned Null
+			
+			dynamicNotHandled++;
+			return null;
 		}
 		
-		// print the details
-		//System.out.print("\n\n\n\nDynamic Instruction ..." + dynamicInstruction);
-		//System.out.print("\nPartial Decoded Instruction ...");
-		//printPartialDecodedInstruction(partialDecodedInstruction);
-		
-		// Obtain a handler for this instruction
-		InstructionHandler handler = InstructionClassTable.getInstructionClassHandler((InstructionClass) partialDecodedInstruction.getInstructionClass());
+		else
+		{
+			//Handle the instruction.
+			
+			// Obtain a handler for this instruction
+			InstructionHandler handler = InstructionClassTable.getInstructionClassHandler((InstructionClass) partialDecodedInstruction.getInstructionClass());
 
-		// Handle the instruction
-		InstructionList instructionList;
-		instructionList = new InstructionList();
-		instructionList.appendInstruction((InstructionList) partialDecodedInstruction.getInstructionList());
-		
-		//if(instructionPointer==134579832)
-		//{
-		//	System.out.print("\n\tPartial Decoded Information = " + instructionList + "\n");
-		//}
-		
-		instructionList.appendInstruction(handler.handle(partialDecodedInstruction.getOperand1(), partialDecodedInstruction.getOperand2(),	partialDecodedInstruction.getOperand3(), dynamicInstruction));
-		instructionList.setProgramCounter(instructionPointer);
-		
-		// return the instructionList
-		return instructionList;
+			// Handle the instruction
+			InstructionList instructionList;
+			instructionList = new InstructionList();
+			
+			// Append operand handling code
+			instructionList.appendInstruction((InstructionList) partialDecodedInstruction.getInstructionList());
+			
+			// Fuse the dynamic and the static instruction
+			instructionList.appendInstruction(handler.handle(partialDecodedInstruction.getOperand1(), partialDecodedInstruction.getOperand2(),	partialDecodedInstruction.getOperand3(), dynamicInstruction));
+			
+			// Set the program counter for this bunch of instructions
+			instructionList.setProgramCounter(instructionPointer);
+			
+			dynamicHandled++;
+			return instructionList;
+		}
 	}
 
-	// This method parses the object file, and creates a hash-table from the
-	// static instructions.
+	/**
+	* This method parses the object file, and creates a hash-table from the
+	* static instructions.
+	* @param executableFile
+	* @return
+	*/
 	public static InstructionTable buildStaticInstructionTable(String executableFile) 
 	{
-		
-		long handled=0;
-		long notHandled=0;
-		
 		BufferedReader input;
 
 		// Read the assembly code from the program using obj-dump utility
@@ -135,7 +138,7 @@ public class ObjParser {
 		InstructionTable instructionTable;
 		instructionTable = new InstructionTable();
 
-		// create a hash-table for microOps generator for instructions
+		// Create a instruction class hash-table
 		InstructionClassTable instructionClassTable;
 		instructionClassTable = new InstructionClassTable();
 
@@ -143,6 +146,7 @@ public class ObjParser {
 		Long linearAddress;
 		String operation;
 		String operand1, operand2, operand3;
+		PartialDecodedInstruction partialDecodedInstruction;
 		long lineNumber = 0;
 
 		// Read from the obj-dump output
@@ -161,30 +165,20 @@ public class ObjParser {
 			operand2 = assemblyCodeTokens[3];
 			operand3 = assemblyCodeTokens[4];
 
-			// TODO simple checks
-			// operation = "push";
-			// operand1 = "ebp";
-			// operand2 = null;
-			// operand3 = null;
 
 			// Riscify current instruction
-			PartialDecodedInstruction partialDecodedInstruction;
 			partialDecodedInstruction = createPartialDecodedInstruction(
 					operation, operand1, operand2, operand3,
 					instructionClassTable);
 			
 			if(partialDecodedInstruction!=null)
 			{
-				handled++;
+				staticHandled++;
 				instructionTable.addInstruction(linearAddress, partialDecodedInstruction);
-				// Print Needed Information
-				//printCodeDetails(linearAddress, operation, operand1, operand2,
-				//		operand3, lineNumber, partialDecodedInstruction);
 			}
 			else
 			{
-				//System.out.print("\n\n\t### Did not handle : " + line + "\n");
-				notHandled++;
+				staticNotHandled++;
 			}
 		}
 
@@ -192,14 +186,9 @@ public class ObjParser {
 		try {
 			input.close();
 		} catch (IOException ioe) {
-			Error
-					.showErrorAndExit("\n\tError in closing the buffered reader !!");
+			Error.showErrorAndExit("\n\tError in closing the buffered reader !!");
 		}
 
-		double coverage = (double)(handled*100)/(double)(handled+notHandled);
-		//System.out.print("\n\tStatic coverage = " + coverage + " %\n");
-		Statistics.setStaticCoverage(coverage);
-		
 		return instructionTable;
 	}
 
@@ -210,6 +199,7 @@ public class ObjParser {
 		InstructionClass instructionClass;
 		instructionClass = InstructionClassTable.getInstructionClass(operation);
 		
+		// We are not handling any instruction prefix now.
 		if(instructionClass==InstructionClass.INVALID || 
 		   instructionClass==InstructionClass.LOCK ||
 		   instructionClass==InstructionClass.REPEAT)
@@ -228,11 +218,11 @@ public class ObjParser {
 				microOps, registers);
 		
 		return new PartialDecodedInstruction(instructionClass, 
-				microOps, operand1, operand2, operand3);	
+				microOps, operand1, operand2, operand3);
 	}
 
-	// runs objdump utility on the executable file to obtain the assembly code.
-	// The objdump output is then returned using a buffered reader.
+	// runs obj-dump utility on the executable file to obtain the assembly code.
+	// The obj-dump output is then returned using a buffered reader.
 	private static BufferedReader readObjDumpOutput(String executableFileName) {
 		BufferedReader input = null;
 
@@ -318,6 +308,7 @@ public class ObjParser {
 	}
 
 	// prints the assembly code parameters for a particular instruction
+	@SuppressWarnings("unused")
 	private static void printCodeDetails(Long linearAddress, String operation,
 			String operand1, String operand2, String operand3, long lineNumber,
 			PartialDecodedInstruction partialDecodedInstruction) {

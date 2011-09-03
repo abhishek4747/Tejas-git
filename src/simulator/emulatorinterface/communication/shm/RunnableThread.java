@@ -158,14 +158,6 @@ public class RunnableThread implements Runnable {
 						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
 						//System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 											
-						if(fusedInstructions != null)
-						{
-							Newmain.handled++;
-						}
-						else
-						{
-							Newmain.notHandled++;
-						}
 			/*			
 						//Testing time without attaching pipeline
 						if(fusedInstructions != null)

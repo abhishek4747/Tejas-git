@@ -22,8 +22,6 @@ import generic.Statistics;
 
 public class Newmain {
 	public static long start, end;
-	public static int handled=0;
-	public static int notHandled=0;
 	public static String executableFile;
 	//public static Object syncObject = new Object();
 	//public static Object syncObject2 = new Object();
@@ -98,16 +96,6 @@ public class Newmain {
 		}
 		
 		
-		
-		
-		
-
-		
-		
-		
-		
-		
-		
 		// returns the number of instructions. and waits on a semaphore for
 		// finishing of reader threads
 		long icount = ipcBase.doExpectedWaitForSelf();
@@ -121,17 +109,28 @@ public class Newmain {
 		eventQ.addEvent(new PerformDecodeEvent(0, core));
 		eventQ.addEvent(new PerformCommitsEvent(0, core));
 
-
 		*/
 
 		// Call these functions at last
 		ipcBase.doWaitForPIN(process);
 		ipcBase.finish();
 		
-		// Display coverage
-		double coverage = (double)(handled*100)/(double)(handled+notHandled);
-		//System.out.print("\n\tDynamic coverage =  " + coverage + " %\n");
-		Statistics.setDynamicCoverage(coverage);
+		//calculate and report the static and dynamic coverage
+		double staticCoverage;
+		double dynamicCoverage;
+		
+		staticCoverage= (double)(ObjParser.staticHandled*100)/
+					(double)(ObjParser.staticHandled+ObjParser.staticNotHandled);
+
+		dynamicCoverage= (double)(ObjParser.dynamicHandled*100)/
+					(double)(ObjParser.dynamicHandled+ObjParser.dynamicNotHandled);
+		
+		System.out.print("\n\tStatic coverage = " + staticCoverage + " %\n");
+		System.out.print("\n\tDynamic coverage = " + dynamicCoverage + " %\n");
+		
+		Statistics.setStaticCoverage(staticCoverage);
+		Statistics.setDynamicCoverage(dynamicCoverage);
+		
 		
 		//set memory statistics for levels L2 and below
 		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
