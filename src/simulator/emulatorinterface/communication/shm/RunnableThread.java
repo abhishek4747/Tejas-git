@@ -259,11 +259,11 @@ public class RunnableThread implements Runnable {
 				tot_cons[emuid] += numReads;
 				long tot_prod = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT+4,COUNT);
 				
-				if (SharedMem.numInstructions[tid] > 50000000)
-				{
-					toExit = true;
-					break;
-				}
+//				if (SharedMem.numInstructions[tid] > 50000000)
+//				{
+//					toExit = true;
+//					break;
+//				}
 				
 				/*if(tot_cons[emuid] > tot_prod) {
 					System.out.println("tot_prod = " + tot_prod + " tot_cons = " + tot_cons[emuid] + " v = " + v);
@@ -289,8 +289,8 @@ public class RunnableThread implements Runnable {
 					break;
 				}
 			}
-			if (toExit)
-				break;
+//			if (toExit)
+//				break;
 			
 			// this runnable thread can be stopped in two ways. Either the emulator threads from 
 			// which it was supposed to read never started(none of them) so it has to be 

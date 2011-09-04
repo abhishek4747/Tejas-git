@@ -199,7 +199,7 @@ public class OperandTranslator
 		//TODO : Once xml file is ready, we have to read this boolean from the configuration parameters
 		//Default value is true.
 		boolean indexedAddressingMode;
-		indexedAddressingMode = false;
+		indexedAddressingMode = true;
 		
 		//determine the type of addressing used
 		Operand memoryLocationFirstOperand = null;
