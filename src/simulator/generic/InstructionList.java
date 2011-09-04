@@ -59,7 +59,7 @@ public class InstructionList
 	
 	public String toString() 
 	{
-		String toString = new String("");
+		String toString = new String(" ");
 		
 		for(Instruction i : instructionList)
 			toString = toString + "\n" + i;

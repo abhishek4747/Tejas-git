@@ -85,7 +85,6 @@ public class ObjParser
 			//		Long.toHexString(instructionPointer) + "\n");
 			
 			dynamicNotHandled++;
-			dynamicMicroOps += 0;
 			return null;
 		}
 		
@@ -99,7 +98,6 @@ public class ObjParser
 			//For some instruction classes, the implementation must be reviewed.
 			
 			dynamicNotHandled++;
-			dynamicMicroOps += 0;
 			return null;
 		}
 		
@@ -108,7 +106,8 @@ public class ObjParser
 			//Handle the instruction.
 			
 			// Obtain a handler for this instruction
-			InstructionHandler handler = InstructionClassTable.getInstructionClassHandler((InstructionClass) partialDecodedInstruction.getInstructionClass());
+			InstructionHandler handler = InstructionClassTable.
+					getInstructionClassHandler((InstructionClass) partialDecodedInstruction.getInstructionClass());
 
 			// Handle the instruction
 			InstructionList instructionList;
@@ -118,10 +117,17 @@ public class ObjParser
 			instructionList.appendInstruction((InstructionList) partialDecodedInstruction.getInstructionList());
 			
 			// Fuse the dynamic and the static instruction
-			instructionList.appendInstruction(handler.handle(partialDecodedInstruction.getOperand1(), partialDecodedInstruction.getOperand2(),	partialDecodedInstruction.getOperand3(), dynamicInstruction));
+			instructionList.appendInstruction(handler.handle(partialDecodedInstruction.getOperand1(), 
+					partialDecodedInstruction.getOperand2(),	partialDecodedInstruction.getOperand3(), dynamicInstruction));
 			
 			// Set the program counter for this bunch of instructions
 			instructionList.setProgramCounter(instructionPointer);
+			
+			//debug print
+			//System.out.print(String.format("%-180s", " ").replace(" ", "#") + "\n\n");
+			//System.out.print("IP=" + instructionPointer);
+			//printPartialDecodedInstruction(partialDecodedInstruction);
+			//System.out.print(instructionList);
 			
 			dynamicHandled++;
 			dynamicMicroOps += instructionList.length();
@@ -184,6 +190,10 @@ public class ObjParser
 			{
 				staticHandled++;
 				instructionTable.addInstruction(linearAddress, partialDecodedInstruction);
+				
+				//debug print
+				//printCodeDetails(linearAddress, operation, operand1, operand2, 
+				//		operand3, lineNumber, partialDecodedInstruction);
 			}
 			else
 			{
@@ -317,7 +327,6 @@ public class ObjParser
 	}
 
 	// prints the assembly code parameters for a particular instruction
-	@SuppressWarnings("unused")
 	private static void printCodeDetails(Long linearAddress, String operation,
 			String operand1, String operand2, String operand3, long lineNumber,
 			PartialDecodedInstruction partialDecodedInstruction) {

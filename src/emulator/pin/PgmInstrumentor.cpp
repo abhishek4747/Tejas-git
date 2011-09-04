@@ -23,9 +23,9 @@
 #define QSIZE	(locQ*sizeof(packet))
 
 #ifdef _LP64
-#define MASK 0xffffffffffffffff
+	#define MASK 0xffffffffffffffff
 #else
-#define MASK 0x00000000ffffffff
+	#define MASK 0x00000000ffffffff
 #endif
 
 // Defining  command line arguments

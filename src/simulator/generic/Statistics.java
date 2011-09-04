@@ -14,19 +14,12 @@ public class Statistics {
 	
 	static FileWriter outputFileWriter;
 	
-	
-	
-	
 	public static void printSystemConfig()
 	{
 		//read config.xml and write to output file
 	}
 	
-	
-	
-	
 	//Translator Statistics
-	
 	static long dataRead[];
 	static long numInstructions[];
 	static long noOfMicroOps[];

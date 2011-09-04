@@ -156,7 +156,7 @@ public class Newmain {
 		dynamicCoverage= (double)(ObjParser.dynamicHandled*100)/
 					(double)(ObjParser.dynamicHandled+ObjParser.dynamicNotHandled);
 		
-		System.out.print("\n\tStatic coverage = " + staticCoverage + " %\n");
+		System.out.print("\n\tStatic coverage = " + staticCoverage + " %");
 		System.out.print("\n\tDynamic coverage = " + dynamicCoverage + " %\n");
 		
 		Statistics.setStaticCoverage(staticCoverage);
@@ -164,7 +164,7 @@ public class Newmain {
 		
 		//calculate and show CISCs vs MicroOps
 		System.out.print("\n\tNo. of CISCs = " + ObjParser.dynamicCISCs);
-		System.out.print("\n\tNo. of MicroOps = " + ObjParser.dynamicMicroOps + "\n");
+		System.out.print("\n\tNo. of MicroOps = " + ObjParser.dynamicMicroOps);
 		System.out.print("\n\tMicroOps/CISC = " + 
 				(double)ObjParser.dynamicMicroOps/(double)ObjParser.dynamicCISCs + "\n");
 	}

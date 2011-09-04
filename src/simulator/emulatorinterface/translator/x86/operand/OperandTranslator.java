@@ -136,11 +136,11 @@ public class OperandTranslator
 			{
 				base = Operand.getIntegerRegister(Registers.encodeRegister(memoryAddressTokens[i]));
 			}
+			
 			else if(Registers.isMachineSpecificRegister(memoryAddressTokens[i]))
 			{
 				base = Operand.getMachineSpecificRegister(Registers.encodeRegister(memoryAddressTokens[i]));	
 			}
-			
 			
 			//offset
 			else if(Numbers.isValidNumber(memoryAddressTokens[i]))
@@ -152,8 +152,6 @@ public class OperandTranslator
 				
 				offset = Operand.getImmediateOperand();
 			}
-			
-			
 			
 			//index*scale
 			else if(memoryAddressTokens[i].matches("[a-zA-Z0-9]+\\*[0x123456789abcdef]+"))
@@ -201,7 +199,7 @@ public class OperandTranslator
 		//TODO : Once xml file is ready, we have to read this boolean from the configuration parameters
 		//Default value is true.
 		boolean indexedAddressingMode;
-		indexedAddressingMode = true;
+		indexedAddressingMode = false;
 		
 		//determine the type of addressing used
 		Operand memoryLocationFirstOperand = null;

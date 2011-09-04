@@ -156,6 +156,13 @@ public class RunnableThread implements Runnable {
 						//TODO This instructionList must be provided to raj's code
 						InstructionList fusedInstructions;
 						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
+						
+						if(fusedInstructions != null)
+						{
+							noOfMicroOps += fusedInstructions.getListSize();
+						}
+						
+						
 						//System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 											
 			/*			

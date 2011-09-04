@@ -1,0 +1,48 @@
+
+[Translator Statistics]
+
+Java thread	=	0
+Data Read	=	1341360 bytes
+Number of instructions provided by emulator	=	21731
+Number of Micro-Ops	=	28088 
+
+Static coverage		=	98.68290793268196
+Dynamic Coverage	=	99.43398831162855
+
+
+[Timing Statistics]
+
+core		=	0
+cycles taken	=	0 cycles
+IPC		=	NaN
+core frequency	=	0 MHz
+time taken	=	NaN microseconds
+
+
+
+[Memory System Statistics]
+
+[Per core statistics]
+
+core		=	0
+Memory Requests	=	0
+Loads		=	0
+Stores		=	0
+LSQ forwardings	=	0
+TLB Requests	=	0
+TLB Hits	=	0
+TLB Misses	=	0
+L1 Requests	=	0
+L1 Hits		=	0
+L1 Misses	=	0
+
+
+[Other cache statistics]
+
+L2 Requests	=	0
+L2 Hits		=	0
+L2 Misses	=	0
+
+
+[Simulator Time]
+Time Taken	=	0 : 8 minutes
