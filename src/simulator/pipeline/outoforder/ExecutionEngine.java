@@ -19,7 +19,7 @@ public class ExecutionEngine {
 	private InstructionWindow instructionWindow;
 	private RegisterFile integerRegisterFile;
 	private RegisterFile floatingPointRegisterFile;
-	private RegisterFile machineSpecificRegisterFile;
+	private RegisterFile machineSpecificRegisterFile[];
 	private RenameTable integerRenameTable;
 	private RenameTable floatingPointRenameTable;
 	private FunctionalUnitSet functionalUnitSet;
@@ -31,10 +31,13 @@ public class ExecutionEngine {
 	private boolean toStallDecode1;				//if physical register cannot be
 												//allocated to the dest of an instruction,
 												//all subsequent processing must stall
-	private boolean toStallDecode2;				//if branch mis-predicted
-	private boolean isExecutionComplete;		//TRUE indicates end of simulation
-	private boolean isDecodePipeEmpty;
 	
+	private boolean toStallDecode2;				//if branch mis-predicted
+
+	private boolean isExecutionComplete;		//TRUE indicates end of simulation
+	private boolean isDecodePipeEmpty[];
+	private boolean allPipesEmpty;
+
 	public ExecutionEngine(Core containingCore)
 	{
 		core = containingCore;
@@ -43,10 +46,14 @@ public class ExecutionEngine {
 		reorderBuffer = new ReorderBuffer(core);
 		instructionWindow = new InstructionWindow(core);
 		integerRegisterFile = new RegisterFile(core, core.getIntegerRegisterFileSize());
-		integerRenameTable = new RenameTable(core.getNIntegerArchitecturalRegisters(), core.getIntegerRegisterFileSize(), integerRegisterFile);
+		integerRenameTable = new RenameTable(core.getNIntegerArchitecturalRegisters(), core.getIntegerRegisterFileSize(), integerRegisterFile, core.getNo_of_threads());
 		floatingPointRegisterFile = new RegisterFile(core, core.getFloatingPointRegisterFileSize());
-		floatingPointRenameTable = new RenameTable(core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile);
-		machineSpecificRegisterFile = new RegisterFile(core, core.getNMachineSpecificRegisters());
+		floatingPointRenameTable = new RenameTable(core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile, core.getNo_of_threads());
+		machineSpecificRegisterFile = new RegisterFile[core.getNo_of_threads()];
+		for(int i = 0; i < core.getNo_of_threads(); i++)
+		{
+			machineSpecificRegisterFile[i] = new RegisterFile(core, core.getNMachineSpecificRegisters());
+		}
 		
 		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),
 													core.getAllLatencies());
@@ -54,7 +61,8 @@ public class ExecutionEngine {
 		toStallDecode1 = false;
 		toStallDecode2 = false;
 		isExecutionComplete = false;
-		isDecodePipeEmpty = false;
+		isDecodePipeEmpty = new boolean[core.getNo_of_threads()];
+		allPipesEmpty = false;
 	}
 	
 	/*public void work()
@@ -100,12 +108,12 @@ public class ExecutionEngine {
 		return integerRenameTable;
 	}
 
-	public boolean isDecodePipeEmpty() {
-		return isDecodePipeEmpty;
+	public boolean isDecodePipeEmpty(int threadIndex) {
+		return isDecodePipeEmpty[threadIndex];
 	}
 
-	public void setDecodePipeEmpty(boolean isDecodePipeEmpty) {
-		this.isDecodePipeEmpty = isDecodePipeEmpty;
+	public void setDecodePipeEmpty(int threadIndex, boolean isDecodePipeEmpty) {
+		this.isDecodePipeEmpty[threadIndex] = isDecodePipeEmpty;
 	}
 
 	public boolean isExecutionComplete() {
@@ -116,8 +124,8 @@ public class ExecutionEngine {
 		this.isExecutionComplete = isExecutionComplete;
 	}
 
-	public RegisterFile getMachineSpecificRegisterFile() {
-		return machineSpecificRegisterFile;
+	public RegisterFile getMachineSpecificRegisterFile(int threadID) {
+		return machineSpecificRegisterFile[threadID];
 	}
 	
 	public ReorderBuffer getReorderBuffer() {
@@ -140,13 +148,20 @@ public class ExecutionEngine {
 		this.toStallDecode2 = toStallDecode2;
 	}
 
-
 	public InstructionWindow getInstructionWindow() {
 		return instructionWindow;
 	}
 
 	public void setInstructionWindow(InstructionWindow instructionWindow) {
 		this.instructionWindow = instructionWindow;
+	}
+	
+	public boolean isAllPipesEmpty() {
+		return allPipesEmpty;
+	}
+
+	public void setAllPipesEmpty(boolean allPipesEmpty) {
+		this.allPipesEmpty = allPipesEmpty;
 	}
 
 

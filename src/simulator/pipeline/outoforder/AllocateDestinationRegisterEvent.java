@@ -22,6 +22,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 	
 	RenameTable renameTable;
 	ReorderBufferEntry reorderBufferEntry;
+	int threadID;
 	Core core;
 	NewEventQueue eventQueue;
 	
@@ -33,11 +34,11 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 		super(new Time_t(eventTime),
 				null,
 				null,
-				(long) core.getExecEngine().getReorderBuffer()
-				.getROB().indexOf(reorderBufferEntry),
+				(long) core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry),
 				RequestType.ALLOC_DEST_REG);
 		
 		this.reorderBufferEntry = reorderBufferEntry;
+		this.threadID = reorderBufferEntry.getThreadID();
 		this.renameTable = renameTable;
 		this.core = core;
 	}
@@ -64,7 +65,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 	
 	void handleMSR()
 	{
-		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 					
 		int destPhyReg = (int) tempOpnd.getValue();
@@ -115,7 +116,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 	void handleIntFloat()
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
-		int r = renameTable.allocatePhysicalRegister((int) tempOpnd.getValue());
+		int r = renameTable.allocatePhysicalRegister(threadID, (int) tempOpnd.getValue());
 		
 		if(r >= 0)
 		{

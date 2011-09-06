@@ -9,36 +9,46 @@ import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
-
-import java.util.LinkedList;
-
 import memorysystem.LSQCommitEventFromROB;
 
 public class ReorderBuffer extends SimulationElement{
 	
 	private Core core;
 	
-	private LinkedList<ReorderBufferEntry> ROB;
+	private ReorderBufferEntry[] ROB;
 	private int MaxROBSize;
+	
+	int head;
+	int tail;
 
 	public ReorderBuffer(Core _core)
 	{
 		super(1, new Time_t(-1), new Time_t(-1), -1);
-		ROB = new LinkedList<ReorderBufferEntry>();
 		core = _core;
 		MaxROBSize = core.getReorderBufferSize();
+		ROB = new ReorderBufferEntry[MaxROBSize];
+		for(int i = 0; i < MaxROBSize; i++)
+		{
+			ROB[i] = new ReorderBufferEntry(core, i);
+		}
+		head = -1;
+		tail = -1;
 	}
 	
 	public boolean isFull()
 	{
-		if(ROB.size() >= MaxROBSize)
+		if((tail - head) == MaxROBSize - 1)
+		{
+			return true;
+		}
+		if((tail - head) == -1)
 		{
 			return true;
 		}
 		return false;
 	}
 	
-	public LinkedList<ReorderBufferEntry> getROB()
+	public ReorderBufferEntry[] getROB()
 	{
 		return ROB;
 	}
@@ -55,12 +65,33 @@ public class ReorderBuffer extends SimulationElement{
 	
 	//creates a  new ROB entry, initialises it, and returns it
 	//check if there is space in ROB before calling this function
-	public ReorderBufferEntry addInstructionToROB(Instruction newInstruction)
+	public ReorderBufferEntry addInstructionToROB(Instruction newInstruction, int threadID)
 	{
 		if(!isFull())
 		{
-			ReorderBufferEntry newReorderBufferEntry = new ReorderBufferEntry(core, newInstruction);
-			ROB.addLast(newReorderBufferEntry);
+			tail = (tail + 1)%MaxROBSize;
+			if(head == -1)
+			{
+				head = 0;
+			}
+			ReorderBufferEntry newReorderBufferEntry = ROB[tail];
+			
+			newReorderBufferEntry.setInstruction(newInstruction);
+			newReorderBufferEntry.setThreadID(threadID);
+			newReorderBufferEntry.setOperand1PhyReg1(-1);
+			newReorderBufferEntry.setOperand1PhyReg2(-1);
+			newReorderBufferEntry.setOperand2PhyReg1(-1);
+			newReorderBufferEntry.setOperand2PhyReg2(-1);
+			newReorderBufferEntry.setPhysicalDestinationRegister(-1);
+			newReorderBufferEntry.setIssued(false);
+			newReorderBufferEntry.setFUInstance(-1);
+			newReorderBufferEntry.setExecuted(false);
+			newReorderBufferEntry.setWriteBackDone1(false);
+			newReorderBufferEntry.setWriteBackDone2(false);
+			newReorderBufferEntry.setReadyAtTime(GlobalClock.getCurrentTime());
+			newReorderBufferEntry.setAssociatedIWEntry(null);
+			
+			newReorderBufferEntry.setValid(true);
 			
 			return newReorderBufferEntry;
 		}
@@ -77,9 +108,9 @@ public class ReorderBuffer extends SimulationElement{
 		int tieBreaker = 0;
 		while(true)
 		{
-			if(ROB.size() <= 0)
+			if(head == -1)
 			{
-				if(core.getExecEngine().isDecodePipeEmpty() == true)
+				if(core.getExecEngine().isAllPipesEmpty() == true)
 				{
 					//if ROB is empty, and decode pipe is empty, that means execution is complete
 					core.getExecEngine().setExecutionComplete(true);
@@ -87,7 +118,7 @@ public class ReorderBuffer extends SimulationElement{
 				break;
 			}
 			
-			ReorderBufferEntry first = ROB.getFirst();
+			ReorderBufferEntry first = ROB[head];
 			
 			if(first.isWriteBackDone() == true)
 			{
@@ -134,7 +165,17 @@ public class ReorderBuffer extends SimulationElement{
 																			first.getLsqEntry())));
 						first.getLsqEntry().setRemoved(true);
 					}
-					ROB.removeFirst();
+					
+					ROB[head].setValid(false);
+					if(head == tail)
+					{
+						head = -1;
+						tail = -1;
+					}
+					else
+					{
+						head = (head+1)%MaxROBSize;
+					}
 					
 				}
 				else
@@ -163,25 +204,28 @@ public class ReorderBuffer extends SimulationElement{
 	{
 		//adding current mapping to available list
 		int curPhyReg = core.getExecEngine().getIntegerRenameTable()
-				.getCheckpoint().getMapping((int) first.getInstruction()
-				.getDestinationOperand().getValue());
+				.getCheckpoint().getMapping(
+						first.getThreadID(),
+						(int) first.getInstruction().getDestinationOperand().getValue());
 		if(curPhyReg != first.getPhysicalDestinationRegister())
 		{
 			core.getExecEngine().getIntegerRenameTable().addToAvailableList(curPhyReg);
 		}
 		
 		//updating checkpoint
-		core.getExecEngine().getIntegerRenameTable().getCheckpoint().
-			setMapping(first.getPhysicalDestinationRegister(),
-			(int) first.getInstruction().getDestinationOperand().getValue());
+		core.getExecEngine().getIntegerRenameTable().getCheckpoint().setMapping(
+				first.getThreadID(),
+				first.getPhysicalDestinationRegister(),
+				(int) first.getInstruction().getDestinationOperand().getValue());
 	}
 	
 	void updateFloatRenameTable(ReorderBufferEntry first)
 	{
 		//adding current mapping to available list
 		int curPhyReg = core.getExecEngine().getFloatingPointRenameTable()
-				.getCheckpoint().getMapping((int) first.getInstruction()
-				.getDestinationOperand().getValue());
+				.getCheckpoint().getMapping(
+						first.getThreadID(),
+						(int) first.getInstruction().getDestinationOperand().getValue());
 		if(curPhyReg != first.getPhysicalDestinationRegister())
 		{
 			core.getExecEngine().getFloatingPointRenameTable().addToAvailableList(curPhyReg);
@@ -189,14 +233,15 @@ public class ReorderBuffer extends SimulationElement{
 		
 		//updating checkpoint
 		core.getExecEngine().getFloatingPointRenameTable().getCheckpoint().setMapping(
-			first.getPhysicalDestinationRegister(),
-			(int) first.getInstruction().getDestinationOperand().getValue());
+				first.getThreadID(),
+				first.getPhysicalDestinationRegister(),
+				(int) first.getInstruction().getDestinationOperand().getValue());
 	}
 	
 	void handleBranchMisprediction()
 	{
 		System.out.println("branch mispredicted");
-		
+		/*
 		//remove all entries from ROB				
 		ROB.removeAll(null);
 		
@@ -208,7 +253,7 @@ public class ReorderBuffer extends SimulationElement{
 		
 		//roll back rename tables
 		rollBackRenameTables();
-		
+		*/
 		//impose branch misprediction penalty
 		core.getExecEngine().setStallDecode2(true);
 		core.getEventQueue().addEvent(
@@ -218,6 +263,7 @@ public class ReorderBuffer extends SimulationElement{
 				);
 	}
 	
+	//TODO checkpoint needs to incorporate threadIDs
 	public void rollBackRenameTables()
 	{
 		int phyReg;
@@ -229,12 +275,15 @@ public class ReorderBuffer extends SimulationElement{
 			core.getExecEngine().getIntegerRenameTable().setValueValid(false, i);
 			core.getExecEngine().getIntegerRenameTable().setProducerROBEntry(null, i);
 		}
-		for(int i = 0; i < core.getNIntegerArchitecturalRegisters(); i++)
+		for(int j = 0; j < core.getNo_of_threads(); j++)
 		{
-			phyReg = core.getExecEngine().getIntegerRenameTable().getCheckpoint().getMapping(i);
-			core.getExecEngine().getIntegerRenameTable().setArchReg(i, phyReg);
-			core.getExecEngine().getIntegerRenameTable().setMappingValid(true, phyReg);
-			core.getExecEngine().getIntegerRenameTable().setValueValid(true, phyReg);
+			for(int i = 0; i < core.getNIntegerArchitecturalRegisters(); i++)
+			{
+				phyReg = core.getExecEngine().getIntegerRenameTable().getCheckpoint().getMapping(j, i);
+				core.getExecEngine().getIntegerRenameTable().setArchReg(j, i, phyReg);
+				core.getExecEngine().getIntegerRenameTable().setMappingValid(true, phyReg);
+				core.getExecEngine().getIntegerRenameTable().setValueValid(true, phyReg);
+			}
 		}
 		
 		//floating point rename table
@@ -244,15 +293,19 @@ public class ReorderBuffer extends SimulationElement{
 			core.getExecEngine().getFloatingPointRenameTable().setValueValid(false, i);
 			core.getExecEngine().getFloatingPointRenameTable().setProducerROBEntry(null, i);
 		}
-		for(int i = 0; i < core.getNFloatingPointArchitecturalRegisters(); i++)
+		for(int j = 0; j < core.getNo_of_threads(); j++)
 		{
-			phyReg = core.getExecEngine().getFloatingPointRenameTable().getCheckpoint().getMapping(i);
-			core.getExecEngine().getFloatingPointRenameTable().setArchReg(i, phyReg);
-			core.getExecEngine().getFloatingPointRenameTable().setMappingValid(true, phyReg);
-			core.getExecEngine().getFloatingPointRenameTable().setValueValid(true, phyReg);
+			for(int i = 0; i < core.getNFloatingPointArchitecturalRegisters(); i++)
+			{
+				phyReg = core.getExecEngine().getFloatingPointRenameTable().getCheckpoint().getMapping(j, i);
+				core.getExecEngine().getFloatingPointRenameTable().setArchReg(j, i, phyReg);
+				core.getExecEngine().getFloatingPointRenameTable().setMappingValid(true, phyReg);
+				core.getExecEngine().getFloatingPointRenameTable().setValueValid(true, phyReg);
+			}
 		}
 	}
 	
+	/*
 	public void removeInstructionFromROB(ReorderBufferEntry _ROBEntry)
 	{
 		RenameTable tempRN = null;
@@ -260,7 +313,7 @@ public class ReorderBuffer extends SimulationElement{
 		
 		if(_ROBEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.machineSpecificRegister)
 		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(_ROBEntry.getThreadID());
 		}
 		else if(_ROBEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.integerRegister)
 		{
@@ -286,19 +339,26 @@ public class ReorderBuffer extends SimulationElement{
 		
 		ROB.remove(_ROBEntry);
 	}
+	*/
 	
 	public void dump()
 	{
-		int i = 0;
 		ReorderBufferEntry e;
 		
 		System.out.println();
 		System.out.println();
 		System.out.println("----------ROB dump---------");
 		
-		while(i < ROB.size())
+		if(head == -1)
 		{
-			e = ROB.get(i);
+			return;
+		}
+		
+		//for(int i = head; i <= tail; i = (i+1)%MaxROBSize)
+		int i = head;
+		while(true)
+		{
+			e = ROB[i];
 			System.out.println(e.getOperand1PhyReg1() + " ; " + e.getOperand1PhyReg2() + " ; "
 					+ e.getOperand2PhyReg1() + " ; "+ e.getOperand2PhyReg2() + " ; " + 
 					e.getPhysicalDestinationRegister() + " ; " + 
@@ -306,17 +366,68 @@ public class ReorderBuffer extends SimulationElement{
 					e.getFUInstance() + " ; " + e.getExecuted());
 			if(e.getAssociatedIWEntry() != null)
 			{
-				System.out.println(e.getAssociatedIWEntry().isOperand1Available
-						 + " ; " + e.getAssociatedIWEntry().isOperand2Available);
+				System.out.println(e.isOperand1Available
+						 + " ; " + e.isOperand2Available);
 			}
 			if(e.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
 			{
 				//System.out.println(core.getExecEngine().getIntegerRenameTable().getValueValid(e.getOperand2PhyReg()));
 			}
 			System.out.println(e.getInstruction().toString());
-			i++;
+			
+			if(i == tail)
+			{
+				break;
+			}
+			i = (i+1)%MaxROBSize;
 		}
 		System.out.println();
+	}
+	
+	/*
+	public int indexOf(ReorderBufferEntry reorderBufferEntry)
+	{
+		//for(int i = head; i <= tail; i = (i+1)%MaxROBSize)
+		if(head == -1)
+		{
+			return -1;
+		}
+		
+		int i = head;
+		while(true)
+		{
+			if(ROB[i] == reorderBufferEntry)
+			{
+				if(i - head >= 0)
+				{
+					return (i - head);
+				}
+				else
+				{
+					return (i - head + MaxROBSize);
+				}
+			}
+			if(i == tail)
+			{
+				break;
+			}
+			i = (i+1)%MaxROBSize;
+		}
+		System.out.println("index of non-existent ROB entry requested!");
+		return -1;
+	}
+	*/
+	
+	public int indexOf(ReorderBufferEntry reorderBufferEntry)
+	{
+		if(reorderBufferEntry.pos - head >= 0)
+		{
+			return (reorderBufferEntry.pos - head);
+		}
+		else
+		{
+			return (reorderBufferEntry.pos - head + MaxROBSize);
+		}
 	}
 
 }

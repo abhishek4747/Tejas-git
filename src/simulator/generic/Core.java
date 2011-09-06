@@ -106,7 +106,7 @@ public class Core extends SimulationElement{
 	public void boot()
 	{
 		//set up initial events in the queue
-		eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime(), this));
+		eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime(), this, 0));
 		eventQueue.addEvent(new PerformCommitsEvent(GlobalClock.getCurrentTime(), this));
 	}
 	

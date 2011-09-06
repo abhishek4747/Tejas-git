@@ -111,6 +111,10 @@ public class Newmain {
 		}
 		
 		end = System.currentTimeMillis();
+		if(Statistics.getTime() == 0)
+		{
+			Statistics.setTime(end - start);
+		}
 		
 		//print statistics
 		Statistics.openStream();
@@ -118,7 +122,7 @@ public class Newmain {
 		Statistics.printTranslatorStatistics();
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
-		Statistics.printSimulationTime(end - start);
+		Statistics.printSimulationTime();
 		Statistics.closeStream();
 		
 		System.exit(0);

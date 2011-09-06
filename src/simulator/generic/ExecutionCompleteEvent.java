@@ -5,8 +5,7 @@ import pipeline.outoforder.OpTypeToFUTypeMapping;
 import pipeline.outoforder.RegisterFile;
 import pipeline.outoforder.RenameTable;
 import pipeline.outoforder.WakeUpLogic;
-import pipeline.outoforder.WriteBackAttemptEvent;
-import pipeline.outoforder.WriteBackCompleteEvent;
+import pipeline.outoforder.WriteBackLogic;
 
 /**
  * this event is scheduled at the clock_time at which an FU completes it's execution
@@ -24,6 +23,7 @@ import pipeline.outoforder.WriteBackCompleteEvent;
 public class ExecutionCompleteEvent extends NewEvent {
 	
 	ReorderBufferEntry reorderBufferEntry;
+	int threadID;
 	int FUInstance;
 	Core core;
 	NewEventQueue eventQueue;
@@ -36,11 +36,11 @@ public class ExecutionCompleteEvent extends NewEvent {
 		super(new Time_t(eventTime),
 				null,
 				null,
-				core.getExecEngine().getReorderBuffer()
-					.getROB().indexOf(reorderBufferEntry),
+				core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry),
 				RequestType.EXEC_COMPLETE	);
 		
 		this.reorderBufferEntry = reorderBufferEntry;
+		this.threadID = reorderBufferEntry.getThreadID();
 		this.FUInstance = FUInstance;
 		this.core = core;
 	}
@@ -61,6 +61,11 @@ public class ExecutionCompleteEvent extends NewEvent {
 			System.out.println("not yet issued, but execution complete");
 			return;
 		}
+		/*
+		if(core.getCoreMode() == CoreMode.CheckerSMT)
+		{
+			System.out.println("exec\n" + reorderBufferEntry);
+		}*/
 		
 		RegisterFile tempRF = null;
 		RenameTable tempRN = null;
@@ -88,7 +93,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 			OperandType tempOpndType = tempOpnd.getOperandType(); 
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
-				tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+				tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 				tempRN = null;
 			}
 			else if(tempOpndType == OperandType.integerRegister)
@@ -131,7 +136,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		WakeUpLogic.wakeUpLogic(core, tempOpndType, tempDestPhyReg);
 		
 		//attempt to write-back
-		writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg);
+		WriteBackLogic.writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg, core);
 		
 	}
 	
@@ -145,7 +150,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		phyReg = reorderBufferEntry.getOperand1PhyReg1();
 		if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
 		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg);
 		}
 		else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.integerRegister)
@@ -162,7 +167,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		}
 		
 		//attempt to write-back
-		writeBack(reorderBufferEntry, 1, tempRF, tempRN, phyReg);
+		WriteBackLogic.writeBack(reorderBufferEntry, 1, tempRF, tempRN, phyReg, core);
 		
 		
 		
@@ -172,7 +177,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		phyReg = reorderBufferEntry.getOperand2PhyReg1();
 		if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
 		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg);
 		}
 		else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
@@ -189,7 +194,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		}
 		
 		//attempt to write-back
-		writeBack(reorderBufferEntry, 2, tempRF, tempRN, phyReg);
+		WriteBackLogic.writeBack(reorderBufferEntry, 2, tempRF, tempRN, phyReg, core);
 		
 	}
 	
@@ -222,7 +227,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 			}
 			
 			//attempt to write-back
-			writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg);			
+			WriteBackLogic.writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg, core);			
 			
 		}
 		
@@ -243,47 +248,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 		}
 	}
 	
-	void writeBack (
-					ReorderBufferEntry reorderBufferEntry,
-					int whichWBFlag,
-					RegisterFile tempRF,
-					RenameTable tempRN,
-					int tempDestPhyReg	)
-	{
-		if(tempRF != null)
-		{
-			long slotAvailableTime = tempRF.getPort().getNextSlot();
-			if(slotAvailableTime <= GlobalClock.getCurrentTime())
-			{
-				//port to register file is available
-				//occupying port
-				tempRF.getPort().occupySlots(1, core.getStepSize());
-				//scheduling write-back complete event
-				this.eventQueue.addEvent(new WriteBackCompleteEvent(
-																	core,
-																	reorderBufferEntry,
-																	whichWBFlag,
-																	tempRF,
-																	tempRN,
-																	tempDestPhyReg,
-																	GlobalClock.getCurrentTime() + core.getRegFileOccupancy()*core.getStepSize()
-																	));
-			}
-			else
-			{
-				//port to register file is not available
-				this.eventQueue.addEvent(new WriteBackAttemptEvent(
-																	core,
-																	tempRF,
-																	tempRN,
-																	tempDestPhyReg,																
-																	reorderBufferEntry,
-																	whichWBFlag,
-																	GlobalClock.getCurrentTime() + slotAvailableTime));
-			}
-		}
-	}
-	
+		
 	
 
 }

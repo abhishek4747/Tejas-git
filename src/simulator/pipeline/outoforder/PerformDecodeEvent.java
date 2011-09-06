@@ -12,7 +12,10 @@ public class PerformDecodeEvent extends NewEvent {
 	Core core;
 	NewEventQueue eventQueue;
 	
-	public PerformDecodeEvent(long eventTime, Core core)
+	//the decoder is supposed to read from all pipes in round-robin fashion
+	private int pipeToReadFrom;
+	
+	public PerformDecodeEvent(long eventTime, Core core, int pipeToReadFrom)
 	{
 		super(new Time_t(eventTime),
 				null,
@@ -21,6 +24,7 @@ public class PerformDecodeEvent extends NewEvent {
 				RequestType.PERFORM_DECODE);
 		
 		this.core = core;
+		this.pipeToReadFrom = pipeToReadFrom;
 	}
 
 	@Override
@@ -28,20 +32,32 @@ public class PerformDecodeEvent extends NewEvent {
 		
 		this.eventQueue = newEventQueue;
 		
-		if(core.getExecEngine().isStallDecode2() == false &&
-				core.getExecEngine().isStallDecode1() == false &&
-				core.getExecEngine().isDecodePipeEmpty() == false)
+		if(core.getExecEngine().isStallDecode1() == false &&
+				core.getExecEngine().isStallDecode2() == false)
 		{
-			//TODO if multiple threads executing on same core, fetch to be performed accordingly
-			//currently fetching from thread 0
-			core.getExecEngine().getDecoder().scheduleDecodeCompletion(0);
+			int ctr = 0;
+			while(core.getExecEngine().isDecodePipeEmpty(pipeToReadFrom) == true
+					&& ctr < core.getNo_of_threads())
+			{
+				ctr++;
+			}
+			
+			if(ctr == core.getNo_of_threads())
+			{
+				core.getExecEngine().setAllPipesEmpty(true);
+			}
+			else
+			{
+				core.getExecEngine().getDecoder().scheduleDecodeCompletion(pipeToReadFrom);
+			}
 		}
 		
-		if(core.getExecEngine().isDecodePipeEmpty() == false)
+		if(core.getExecEngine().isAllPipesEmpty() == false)
 		{
 			/*this.eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime()+1, core));*/
 			//this.setEventTime(new Time_t(GlobalClock.getCurrentTime()+1));
 			this.getEventTime().setTime(GlobalClock.getCurrentTime()+core.getStepSize());
+			pipeToReadFrom = (pipeToReadFrom + 1)%core.getNo_of_threads();
 			this.eventQueue.addEvent(this);
 		}
 	}

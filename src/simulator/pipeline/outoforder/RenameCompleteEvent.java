@@ -19,8 +19,11 @@ import generic.Time_t;
 public class RenameCompleteEvent extends NewEvent {
 	
 	ReorderBufferEntry reorderBufferEntry;
+	int threadID;
 	Core core;
 	NewEventQueue eventQueue;
+	
+	int ctr = 0;
 	
 	public RenameCompleteEvent(Core core, ReorderBufferEntry reorderBufferEntry,
 			long eventTime)
@@ -28,10 +31,10 @@ public class RenameCompleteEvent extends NewEvent {
 		super(new Time_t(eventTime),
 				null,
 				null,
-				core.getExecEngine().getReorderBuffer()
-					.getROB().indexOf(reorderBufferEntry),
+				core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry),
 				RequestType.RENAME_COMPLETE);
 		this.reorderBufferEntry = reorderBufferEntry;
+		this.threadID = reorderBufferEntry.getThreadID();
 		this.core = core;
 	}
 
@@ -54,10 +57,10 @@ public class RenameCompleteEvent extends NewEvent {
 		long bothOperandsReadyTime = GlobalClock.getCurrentTime();
 		
 		//operand 1
-		operandReadyTime = checkOperand1Availability(newIWEntry);
+		operandReadyTime = checkOperand1Availability();
 		bothOperandsReadyTime = operandReadyTime;
 		
-		if(newIWEntry.isOperand1Available && (
+		if(reorderBufferEntry.isOperand1Available && (
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.load ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.store))
 		{
@@ -65,13 +68,16 @@ public class RenameCompleteEvent extends NewEvent {
 		}		
 		
 		//operand 2
-		operandReadyTime = checkOperand2Availability(newIWEntry);
+		if(reorderBufferEntry.isOperand2Available() == false)
+		{
+			operandReadyTime = checkOperand2Availability();
+		}
 		if(operandReadyTime > bothOperandsReadyTime)
 		{
 			bothOperandsReadyTime = operandReadyTime;
 		}
 		
-		if(newIWEntry.isOperand2Available &&
+		if(reorderBufferEntry.isOperand2Available &&
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.store)
 		{
 			//TODO signal LSQ
@@ -115,6 +121,15 @@ public class RenameCompleteEvent extends NewEvent {
 			}
 		}
 		*/
+		
+		//set rename done flag
+		reorderBufferEntry.setRenameDone(true);
+		/*
+		if(core.getCoreMode() == CoreMode.CheckerSMT)
+		{
+			System.out.println("rename complete\n" + reorderBufferEntry);
+		}*/
+		
 		//attempt to issue the instruction
 		reorderBufferEntry.getAssociatedIWEntry().issueInstruction();
 
@@ -137,12 +152,12 @@ public class RenameCompleteEvent extends NewEvent {
 		this.eventQueue.addEvent(this);
 	}
 	
-	long checkOperand1Availability(IWEntry newIWEntry)
+	long checkOperand1Availability()
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
 		if(tempOpnd == null)
 		{
-			newIWEntry.setOperand1Available(true);
+			reorderBufferEntry.setOperand1Available(true);
 			return GlobalClock.getCurrentTime();
 		}
 		
@@ -151,7 +166,7 @@ public class RenameCompleteEvent extends NewEvent {
 		if(tempOpndType == OperandType.immediate ||
 				tempOpndType == OperandType.inValid)
 		{
-			newIWEntry.setOperand1Available(true);
+			reorderBufferEntry.setOperand1Available(true);
 			return GlobalClock.getCurrentTime();
 		}
 		
@@ -166,10 +181,10 @@ public class RenameCompleteEvent extends NewEvent {
 		
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
-				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 				if(opndAvailable[0] == true)
 				{
-					newIWEntry.setOperand1Available(true);
+					reorderBufferEntry.setOperand1Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 							//|| reorderBufferEntry.getInstruction().getDestinationOperand() != null &&
 							//reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
@@ -180,7 +195,7 @@ public class RenameCompleteEvent extends NewEvent {
 						if(tempOpndType == reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType()
 								&& tempOpndPhyReg1 == reorderBufferEntry.getOperand2PhyReg1())
 						{
-							newIWEntry.setOperand2Available(true);							
+							reorderBufferEntry.setOperand2Available(true);							
 						}
 					}
 					return GlobalClock.getCurrentTime();
@@ -206,7 +221,7 @@ public class RenameCompleteEvent extends NewEvent {
 				
 				if(opndAvailable[0] == true)
 				{
-					newIWEntry.setOperand1Available(true);
+					reorderBufferEntry.setOperand1Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 					{
 						tempRN.setValueValid(false, tempOpndPhyReg1);
@@ -215,7 +230,7 @@ public class RenameCompleteEvent extends NewEvent {
 						if(tempOpndType == reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType()
 								&& tempOpndPhyReg1 == reorderBufferEntry.getOperand2PhyReg1())
 						{
-							newIWEntry.setOperand2Available(true);							
+							reorderBufferEntry.setOperand2Available(true);							
 						}
 					}
 					return GlobalClock.getCurrentTime();
@@ -232,26 +247,26 @@ public class RenameCompleteEvent extends NewEvent {
 		{
 			if(opndAvailable[0] == true && opndAvailable[1] == true)
 			{
-				newIWEntry.setOperand11Available(true);
-				newIWEntry.setOperand12Available(true);
-				newIWEntry.setOperand1Available(true);
+				reorderBufferEntry.setOperand11Available(true);
+				reorderBufferEntry.setOperand12Available(true);
+				reorderBufferEntry.setOperand1Available(true);
 				return GlobalClock.getCurrentTime();
 			}
 			else
 			{
-				newIWEntry.setOperand1Available(false);
+				reorderBufferEntry.setOperand1Available(false);
 				
 				long readyAtTime1 = GlobalClock.getCurrentTime(), readyAtTime2 = GlobalClock.getCurrentTime();
 				if(opndAvailable[0] == true)
 				{
-					newIWEntry.setOperand11Available(true);
+					reorderBufferEntry.setOperand11Available(true);
 				}
 				else
 				{
-					newIWEntry.setOperand11Available(false);
+					reorderBufferEntry.setOperand11Available(false);
 					if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.machineSpecificRegister)
 					{
-						readyAtTime1 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+						readyAtTime1 = core.getExecEngine().getMachineSpecificRegisterFile(threadID).getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 					}
 					else if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.integerRegister)
 					{
@@ -265,14 +280,14 @@ public class RenameCompleteEvent extends NewEvent {
 				
 				if(opndAvailable[1] == true)
 				{
-					newIWEntry.setOperand12Available(true);
+					reorderBufferEntry.setOperand12Available(true);
 				}
 				else
 				{
-					newIWEntry.setOperand12Available(false);
+					reorderBufferEntry.setOperand12Available(false);
 					if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.machineSpecificRegister)
 					{
-						readyAtTime2 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+						readyAtTime2 = core.getExecEngine().getMachineSpecificRegisterFile(threadID).getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
 					}
 					else if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.integerRegister)
 					{
@@ -298,12 +313,12 @@ public class RenameCompleteEvent extends NewEvent {
 		return GlobalClock.getCurrentTime();
 	}
 	
-	long checkOperand2Availability(IWEntry newIWEntry)
+	long checkOperand2Availability()
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
 		if(tempOpnd == null)
 		{
-			newIWEntry.setOperand2Available(true);
+			reorderBufferEntry.setOperand2Available(true);
 			return GlobalClock.getCurrentTime();
 		}
 		
@@ -312,7 +327,7 @@ public class RenameCompleteEvent extends NewEvent {
 		if(tempOpndType == OperandType.immediate ||
 				tempOpndType == OperandType.inValid)
 		{
-			newIWEntry.setOperand2Available(true);
+			reorderBufferEntry.setOperand2Available(true);
 			return GlobalClock.getCurrentTime();
 		}
 		
@@ -327,10 +342,10 @@ public class RenameCompleteEvent extends NewEvent {
 		
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
-				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 				if(opndAvailable[0] == true)
 				{
-					newIWEntry.setOperand2Available(true);
+					reorderBufferEntry.setOperand2Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 							//|| reorderBufferEntry.getInstruction().getDestinationOperand() != null &&
 							//reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
@@ -361,7 +376,7 @@ public class RenameCompleteEvent extends NewEvent {
 				
 				if(opndAvailable[0] == true)
 				{
-					newIWEntry.setOperand2Available(true);
+					reorderBufferEntry.setOperand2Available(true);
 					if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 					{
 						tempRN.setValueValid(false, tempOpndPhyReg1);
@@ -372,6 +387,13 @@ public class RenameCompleteEvent extends NewEvent {
 				else
 				{
 					//assign operandReadyTime
+					
+					if(tempRN.getProducerROBEntry(tempOpndPhyReg1) == null)
+					{
+						System.out.println(reorderBufferEntry);
+						System.out.println(tempOpndPhyReg1);
+					}
+					
 					return tempRN.getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 				}
 			}
@@ -381,26 +403,26 @@ public class RenameCompleteEvent extends NewEvent {
 		{
 			if(opndAvailable[0] == true && opndAvailable[1] == true)
 			{
-				newIWEntry.setOperand21Available(true);
-				newIWEntry.setOperand22Available(true);
-				newIWEntry.setOperand2Available(true);
+				reorderBufferEntry.setOperand21Available(true);
+				reorderBufferEntry.setOperand22Available(true);
+				reorderBufferEntry.setOperand2Available(true);
 				return GlobalClock.getCurrentTime();
 			}
 			else
 			{
-				newIWEntry.setOperand2Available(false);
+				reorderBufferEntry.setOperand2Available(false);
 				
 				long readyAtTime1 = GlobalClock.getCurrentTime(), readyAtTime2 = GlobalClock.getCurrentTime();
 				if(opndAvailable[0] == true)
 				{
-					newIWEntry.setOperand21Available(true);
+					reorderBufferEntry.setOperand21Available(true);
 				}
 				else
 				{
-					newIWEntry.setOperand21Available(false);
+					reorderBufferEntry.setOperand21Available(false);
 					if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.machineSpecificRegister)
 					{
-						readyAtTime1 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
+						readyAtTime1 = core.getExecEngine().getMachineSpecificRegisterFile(threadID).getProducerROBEntry(tempOpndPhyReg1).getReadyAtTime();
 					}
 					else if(tempOpnd.getMemoryLocationFirstOperand().getOperandType() == OperandType.integerRegister)
 					{
@@ -414,14 +436,14 @@ public class RenameCompleteEvent extends NewEvent {
 				
 				if(opndAvailable[1] == false)
 				{
-					newIWEntry.setOperand22Available(true);
+					reorderBufferEntry.setOperand22Available(true);
 				}
 				else
 				{
-					newIWEntry.setOperand22Available(false);
+					reorderBufferEntry.setOperand22Available(false);
 					if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.machineSpecificRegister)
 					{
-						readyAtTime2 = core.getExecEngine().getMachineSpecificRegisterFile().getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
+						readyAtTime2 = core.getExecEngine().getMachineSpecificRegisterFile(threadID).getProducerROBEntry(tempOpndPhyReg2).getReadyAtTime();
 					}
 					else if(tempOpnd.getMemoryLocationSecondOperand().getOperandType() == OperandType.integerRegister)
 					{

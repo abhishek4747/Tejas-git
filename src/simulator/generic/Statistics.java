@@ -185,8 +185,9 @@ public class Statistics {
 	
 	
 	//Simulation time
-	
-	public static void printSimulationTime(long time)
+	static long time;
+
+	public static void printSimulationTime()
 	{
 		//print time taken by simulator
 		long seconds = time/1000;
@@ -384,5 +385,13 @@ public class Statistics {
 	
 	public static void setNoOfL1Requests(long noOfL1Requests, int core) {
 		Statistics.noOfL1Requests[core] = noOfL1Requests;
+	}
+	
+	public static long getTime() {
+		return Statistics.time;
+	}
+	
+	public static void setTime(long time) {
+		Statistics.time = time;
 	}
 }

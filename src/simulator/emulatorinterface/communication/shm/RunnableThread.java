@@ -94,12 +94,14 @@ public class RunnableThread implements Runnable {
 		int tid_emu = -1;
 		boolean emulatorStarted = false;
 		boolean pipelineCommenced = false;
+		boolean pipelineDone = false;		/* - set to true to detach pipeline - */
 		
-		int noOfFusedInstructions = 0;
-		
+		boolean subsetSimulation = false;	/* - for pipeline of instructions 2000000 - 12000000 - */
+		boolean memSystemDetach = false;	/* to detach memory system */
 		long insCtr = 0;
 		long s = 0, e = 0;
-		boolean pipelineDone = false;
+		
+		int noOfFusedInstructions = 0;
 		
 		
 		//FIXME:
@@ -207,10 +209,10 @@ public class RunnableThread implements Runnable {
 									cores[i1].boot();
 								}
 								pipelineCommenced = true;
-								/* - for pipeline of instructions 2000000 - 12000000 - */
-								/*
-								s = System.currentTimeMillis();
-								*/
+								if(subsetSimulation == true) /* - for pipeline of instructions 2000000 - 12000000 - */
+								{
+									s = System.currentTimeMillis();
+								}
 							}
 							
 							noOfFusedInstructions += fusedInstructions.getListSize();
@@ -219,17 +221,14 @@ public class RunnableThread implements Runnable {
 							
 							//add fused instructions to the input to the pipeline
 							/* - for pipeline of instructions 2000000 - 12000000 - */
-							/*
-							if(noOfMicroOps > 2000000 && insCtr < 10000000)
-							*/
+							if(subsetSimulation == false || noOfMicroOps > 2000000 && insCtr < 10000000)
 							{
 								for(int i3 = 0; i3 < fusedInstructions.getListSize(); i3++)
 								{
 									/* - to disconnect memory system - */
-									/*
-									if(fusedInstructions.peekInstructionAt(i3).getOperationType() != OperationType.load &&
+									if(memSystemDetach == false ||
+											fusedInstructions.peekInstructionAt(i3).getOperationType() != OperationType.load &&
 											fusedInstructions.peekInstructionAt(i3).getOperationType() != OperationType.store)
-									*/
 									{
 										inputToPipeline.appendInstruction(fusedInstructions.peekInstructionAt(i3));
 										insCtr++;
@@ -247,8 +246,7 @@ public class RunnableThread implements Runnable {
 							}
 							
 							/* - for pipeline of instructions 2000000 - 12000000 - */
-							/*
-							if(insCtr > 10000000)
+							if(subsetSimulation == true && insCtr > 10000000)
 							{
 								inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
 								
@@ -262,9 +260,9 @@ public class RunnableThread implements Runnable {
 								e = System.currentTimeMillis();
 								long t = e - s;
 								System.out.println("time for 10000000 microps = " + t);
+								Statistics.setTime(t);
 								pipelineDone = true;
 							}
-							*/
 							
 							noOfMicroOps += fusedInstructions.getListSize();
 							

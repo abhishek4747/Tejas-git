@@ -26,8 +26,7 @@ public class FunctionalUnitAvailableEvent extends NewEvent {
 		super(new Time_t(eventTime),
 				null,
 				null,
-				core.getExecEngine().getReorderBuffer()
-					.getROB().indexOf(reorderBufferEntry),
+				core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry),
 				RequestType.FUNC_UNIT_AVAILABLE	);
 		
 		this.core = core;

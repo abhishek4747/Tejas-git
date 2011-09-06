@@ -6,33 +6,41 @@ package pipeline.outoforder;
  */
 public class RenameTableCheckpoint {
 	
+	int noOfThreads;
 	int registerFileSize;
-	int[] mapping;
+	int[][] mapping;
 	
-	public RenameTableCheckpoint(int registerFileSize) {
+	public RenameTableCheckpoint(int noOfThreads, int registerFileSize) {
 		
+		this.noOfThreads = noOfThreads;
 		this.registerFileSize = registerFileSize;
-		mapping = new int[registerFileSize];
-		for(int i = 0; i < this.registerFileSize; i++)
+		
+		mapping = new int[noOfThreads][registerFileSize];
+		int temp;
+		for(int j = 0; j < noOfThreads; j++)
 		{
-			mapping[i] = i;
+			temp = j * registerFileSize;
+			for(int i = 0; i < this.registerFileSize; i++)
+			{
+				mapping[j][i] = temp + i;
+			}
 		}
 	}
 	
-	public boolean isInCheckpoint(int archReg, int phyReg)
+	public boolean isInCheckpoint(int threadID, int archReg, int phyReg)
 	{
-		if(mapping[archReg] == phyReg)
+		if(mapping[threadID][archReg] == phyReg)
 			return true;
 		else
 			return false;
 	}
 
-	public int getMapping(int index) {
-		return mapping[index];
+	public int getMapping(int threadID, int archReg) {
+		return mapping[threadID][archReg];
 	}
 
-	public void setMapping(int mapping, int index) {
-		this.mapping[index] = mapping;
+	public void setMapping(int threadID, int mapping, int archReg) {
+		this.mapping[threadID][archReg] = mapping;
 	}
 
 }

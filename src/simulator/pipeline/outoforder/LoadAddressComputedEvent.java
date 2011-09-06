@@ -20,8 +20,7 @@ public class LoadAddressComputedEvent extends NewEvent {
 		super(new Time_t(eventTime),
 				null,
 				null,
-				core.getExecEngine().getReorderBuffer()
-					.getROB().indexOf(reorderBufferEntry),
+				core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry),
 				RequestType.LOAD_ADDRESS_COMPUTED	);
 		
 		this.core = core;

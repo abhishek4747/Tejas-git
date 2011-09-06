@@ -1,6 +1,5 @@
 package pipeline.outoforder;
 
-import config.SimulationConfig;
 import generic.InstructionList;
 import generic.GlobalClock;
 import generic.NewEvent;
@@ -75,8 +74,7 @@ public class DecodeCompleteEvent extends NewEvent {
 					{
 						if(newInstruction.getOperationType() == OperationType.inValid)
 						{
-							//core.getExecEngine().setDecodePipeEmpty(threadID, true);
-							core.getExecEngine().setDecodePipeEmpty(true);
+							core.getExecEngine().setDecodePipeEmpty(threadID, true);
 							break;
 						}
 						//to detach memory system
@@ -105,7 +103,7 @@ public class DecodeCompleteEvent extends NewEvent {
 				newInstruction.getOperationType() != OperationType.inValid)
 		{			
 			ReorderBufferEntry newROBEntry = core.getExecEngine()
-				.getReorderBuffer().addInstructionToROB(newInstruction);
+				.getReorderBuffer().addInstructionToROB(newInstruction, threadID);
 			
 			//TODO if load or store, make entry in LSQ
 			if(newInstruction.getOperationType() == OperationType.load ||
@@ -141,12 +139,12 @@ public class DecodeCompleteEvent extends NewEvent {
 		int archReg = (int) tempOpnd.getValue();
 		if(tempOpnd.getOperandType() == OperandType.integerRegister)
 		{
-			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
 		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
 		{
-			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
 		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
@@ -169,11 +167,11 @@ public class DecodeCompleteEvent extends NewEvent {
 				archReg = (int)memLocOpnd1.getValue();
 				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
 				{
-					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
 				{
-					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
 				{
@@ -195,11 +193,11 @@ public class DecodeCompleteEvent extends NewEvent {
 				archReg = (int)memLocOpnd2.getValue();
 				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
 				{
-					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
 				{
-					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
 				{
@@ -231,12 +229,12 @@ public class DecodeCompleteEvent extends NewEvent {
 		int archReg = (int) tempOpnd.getValue();
 		if(tempOpnd.getOperandType() == OperandType.integerRegister)
 		{
-			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
 		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
 		{
-			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
 		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
@@ -259,11 +257,11 @@ public class DecodeCompleteEvent extends NewEvent {
 				archReg = (int)memLocOpnd1.getValue();
 				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
 				{
-					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
 				{
-					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
 				{
@@ -285,11 +283,11 @@ public class DecodeCompleteEvent extends NewEvent {
 				archReg = (int)memLocOpnd2.getValue();
 				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
 				{
-					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
 				{
-					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(archReg));
+					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
 				{
@@ -350,7 +348,7 @@ public class DecodeCompleteEvent extends NewEvent {
 	
 	void handleMSR(ReorderBufferEntry reorderBufferEntry)
 	{
-		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 		
 		int destPhyReg = (int) tempOpnd.getValue();
@@ -401,7 +399,7 @@ public class DecodeCompleteEvent extends NewEvent {
 			tempRN = core.getExecEngine().getFloatingPointRenameTable();
 		}
 		
-		int r = tempRN.allocatePhysicalRegister((int) reorderBufferEntry.getInstruction().getDestinationOperand().getValue());
+		int r = tempRN.allocatePhysicalRegister(threadID, (int) reorderBufferEntry.getInstruction().getDestinationOperand().getValue());
 		if(r >= 0)
 		{
 			//physical register found

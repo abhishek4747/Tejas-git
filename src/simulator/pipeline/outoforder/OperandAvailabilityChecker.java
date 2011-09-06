@@ -19,6 +19,7 @@ public class OperandAvailabilityChecker {
 		}
 		
 		OperandType tempOpndType = opnd.getOperandType();
+		int threadID = reorderBufferEntry.getThreadID();
 		
 		if(tempOpndType == OperandType.immediate ||
 				tempOpndType == OperandType.inValid)
@@ -32,11 +33,11 @@ public class OperandAvailabilityChecker {
 		{
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
-				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile();
+				RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 				if(tempRF.getValueValid(phyReg1) == true ||
 						tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry ||
-						core.getExecEngine().getReorderBuffer().getROB().indexOf(tempRF.getProducerROBEntry(phyReg1))
-						> core.getExecEngine().getReorderBuffer().getROB().indexOf(reorderBufferEntry))
+						core.getExecEngine().getReorderBuffer().indexOf(tempRF.getProducerROBEntry(phyReg1))
+						> core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry))
 				{
 					return new boolean[]{true};
 				}
@@ -59,8 +60,8 @@ public class OperandAvailabilityChecker {
 				
 				if(tempRN.getValueValid(phyReg1) == true ||
 						tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry ||
-						core.getExecEngine().getReorderBuffer().getROB().indexOf(tempRN.getProducerROBEntry(phyReg1))
-						> core.getExecEngine().getReorderBuffer().getROB().indexOf(reorderBufferEntry))
+						core.getExecEngine().getReorderBuffer().indexOf(tempRN.getProducerROBEntry(phyReg1))
+						> core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry))
 				{
 					return new boolean[]{true};
 				}
