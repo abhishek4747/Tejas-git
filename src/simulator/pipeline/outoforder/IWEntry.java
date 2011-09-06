@@ -101,24 +101,68 @@ public class IWEntry {
 	
 	void issueLoadStore()
 	{
-		associatedROBEntry.setIssued(true);
-		if(associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
+		//if addressFU required
+		if(instruction.getSourceOperand2() != null)
 		{
-			associatedROBEntry.setExecuted(true);
-			associatedROBEntry.setWriteBackDone1(true);
-			associatedROBEntry.setWriteBackDone2(true);
+			long FURequest = 0;	//will be <= 0 if an FU was obtained
+			//will be > 0 otherwise, indicating how long before
+			//	an FU of the type will be available
+	
+			FURequest = core.getExecEngine().getFunctionalUnitSet().requestFU(
+				OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()),
+				GlobalClock.getCurrentTime(),
+				core.getStepSize() );
+			
+			if(FURequest <= 0)
+			{
+				associatedROBEntry.setIssued(true);
+				associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
+				
+				//remove IW entry
+				core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+				
+				core.getEventQueue().addEvent(
+						new LoadAddressComputedEvent(core,
+													associatedROBEntry,
+													GlobalClock.getCurrentTime() + core.getLatency(
+															OpTypeToFUTypeMapping.getFUType(OperationType.load).ordinal()) * core.getStepSize()
+													));
+			}
+			
+			else
+			{
+				
+				core.getEventQueue().addEvent(
+						new FunctionalUnitAvailableEvent(
+							this.core,
+							this.getAssociatedROBEntry(),
+							FURequest ) );
+			}
 		}
-		
-		core.getExecEngine().getInstructionWindow().removeFromWindow(this);
-		//TODO add event to indicate address ready
-		core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
-				1, //noOfSlots,
-				new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
-													null, //Requesting Element
-													core.getExecEngine().coreMemSys.getLsqueue(), 
-													0, //tieBreaker,
-													RequestType.TLB_ADDRESS_READY,
-													associatedROBEntry.getLsqEntry())));
+		else
+		{
+			associatedROBEntry.setIssued(true);
+			
+			//remove IW entry
+			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+			
+			if(associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
+			{
+				associatedROBEntry.setExecuted(true);
+				associatedROBEntry.setWriteBackDone1(true);
+				associatedROBEntry.setWriteBackDone2(true);
+			}
+			
+			//add event to indicate address ready
+			core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
+					1, //noOfSlots,
+					new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+														null, //Requesting Element
+														core.getExecEngine().coreMemSys.getLsqueue(), 
+														0, //tieBreaker,
+														RequestType.TLB_ADDRESS_READY,
+														associatedROBEntry.getLsqEntry())));
+		}
 	}
 	
 	void issueOthers()

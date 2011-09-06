@@ -36,10 +36,21 @@ public class FloatingPointCompare implements InstructionHandler
 			microOps.appendInstruction(Instruction.getFloatingPointALU(operand1, operand2, null));
 		}
 		
+		//TODO Fix me : single-operand=memory
 		else
 		{
-			misc.Error.invalidOperation("Floating Point Compare", operand1, operand2, operand3);
+			microOps.appendInstruction(Instruction.getNOPInstruction());
 		}
+		
+/*
+ 		else
+ 
+		{
+			misc.Error.invalidOperation("Floating Point Compare for ip=" 
+					+ dynamicInstruction.getInstructionPointer()
+					, operand1, operand2, operand3);
+		}
+*/
 		
 		return microOps;
 	}

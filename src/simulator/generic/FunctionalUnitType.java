@@ -9,6 +9,7 @@ public enum FunctionalUnitType {
 	floatALU,
 	floatMul,
 	floatDiv,
+	acceleratedFU,
 	memory,
 	no_of_types
 	

@@ -37,6 +37,7 @@ public enum OperationType
 	branch,
 	mov,
 	xchg,
+	acceleratedOp,
 	nop,
 	//TODO Software interrupt can also be modelled as a far jump
 	interrupt,

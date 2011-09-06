@@ -153,7 +153,7 @@ public class ReorderBufferEntry {
 		this.associatedIWEntry = associatedIWEntry;
 	}
 	
-	protected LSQEntry getLsqEntry() {
+	public LSQEntry getLsqEntry() {
 		return lsqEntry;
 	}
 

@@ -51,6 +51,11 @@ public class Instruction {
 		this.programCounter = programCounter;
 	}
 	
+	public void setOperationType(OperationType operationType)
+	{
+		this.type = operationType;
+	}
+	
 	/**
 	 * strInstruction method returns the instruction information in a string.
 	 * @return String describing the instruction
@@ -59,6 +64,7 @@ public class Instruction {
 	{
 		return 
 		(
+			String.format("%-20s", "IP = " + Long.toHexString(programCounter)) +
 			String.format("%-20s", "Op = " + type) +
 			String.format("%-40s", "srcOp1 = " + sourceOperand1) +
 			String.format("%-40s", "srcOp2 = " + sourceOperand2) +

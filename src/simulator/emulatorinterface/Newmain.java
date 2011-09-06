@@ -1,6 +1,9 @@
 package emulatorinterface;
 
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Enumeration;
 import pipeline.outoforder.BootPipelineEvent;
@@ -22,6 +25,7 @@ import generic.Statistics;
 
 public class Newmain {
 	public static long start, end;
+	public static long instructionCount = 0;
 	//public static Object syncObject = new Object();
 	//public static Object syncObject2 = new Object();
 
@@ -50,6 +54,7 @@ public class Newmain {
 		InstructionTable instructionTable;
 		instructionTable = ObjParser
 				.buildStaticInstructionTable(executableFile);
+		createMicroOpsWriter();
 
 		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
@@ -78,10 +83,10 @@ public class Newmain {
 		Statistics.initStatistics();
 		
 		
-		/*
+		/**/
 		//commence pipeline
 		eventQ.addEvent(new BootPipelineEvent(cores, ipcBase, eventQ, 0));
-		*/
+		/**/
 		
 		//Thread.sleep(10000);
 		//System.out.println("finished sleeping..");
@@ -99,9 +104,6 @@ public class Newmain {
 		}
 		
 		
-		// returns the number of instructions. and waits on a semaphore for
-		// finishing of reader threads
-		long icount = ipcBase.doExpectedWaitForSelf();
 		
 		/*
 		 
@@ -115,11 +117,15 @@ public class Newmain {
 		*/
 
 		// Call these functions at last
-		ipcBase.doWaitForPIN(process);
-		ipcBase.finish();
+		// returns the number of instructions. and waits on a semaphore for
+		// finishing of reader threads
+		//FIXME : wait stopped for unexpected exit.
+		//long icount = ipcBase.doExpectedWaitForSelf();
+		//ipcBase.doWaitForPIN(process);
+		//ipcBase.finish();
 		
 		reportStatistics();
-						
+		ObjParser.microOpsWriter.close();
 		
 		//set memory statistics for levels L2 and below
 		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
@@ -142,6 +148,9 @@ public class Newmain {
 		Statistics.printMemorySystemStatistics();
 		Statistics.printSimulationTime(end - start);
 		Statistics.closeStream();
+		
+		System.exit(0);
+		System.exit(0);
 	}
 
 	private static void reportStatistics() 
@@ -244,5 +253,28 @@ public class Newmain {
 			
 			System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
 			System.out.println("\n");
+	}
+	
+	private static void createMicroOpsWriter()
+	{
+		File microOpsFile = null;
+		String fileName;
+		FileWriter fileWriter = null;
+			
+		fileName = File.separator + "home" + File.separator + "prathmesh" + File.separator +
+				"Desktop" + File.separator + "microOps" + File.separator + "microOps.txt";
+						
+		try 
+		{
+			microOpsFile = new File(fileName);
+			microOpsFile.createNewFile();
+			fileWriter = new FileWriter(fileName);
+			ObjParser.microOpsWriter = new BufferedWriter(fileWriter);
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+			System.exit(0);
+		}
 	}
 }

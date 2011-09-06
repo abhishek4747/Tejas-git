@@ -4,6 +4,7 @@
 
 package emulatorinterface.communication.shm;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import config.SimulationConfig;
@@ -86,6 +87,10 @@ public class RunnableThread implements Runnable {
 		int tid_emu = -1;
 		boolean emulatorStarted = false;
 		
+		
+		//FIXME:
+		boolean breakLoop = false;
+		
 		boolean isFirstPacket[] = new boolean[EMUTHREADS];
 		for (int i=0; i<EMUTHREADS; i++) {
 			isFirstPacket[i] = true;
@@ -98,8 +103,13 @@ public class RunnableThread implements Runnable {
 		// which it has to read.
 		long noOfInstr = 0;
 		boolean toExit = false;
-		while(true){
-			for (int emuid=0; emuid < EMUTHREADS; emuid++) {
+		
+		InstructionList bufferedInstructions = null;
+		
+		while(true && breakLoop==false)
+		{
+			for (int emuid=0; (emuid < EMUTHREADS) & (breakLoop==false); emuid++) 
+			{
 				
 				tid_emu = tid*EMUTHREADS+emuid;	// the actual tid of a PIN thread, from which I will read now
 				
@@ -112,7 +122,8 @@ public class RunnableThread implements Runnable {
 				queue_size = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT,COUNT);
 				SharedMem.release_lock(tid_emu,ibuf, COUNT);
 				numReads = queue_size;
-				if(numReads == 0)	{
+				if(numReads == 0)	
+				{
 					continue;
 				}
 				
@@ -136,7 +147,8 @@ public class RunnableThread implements Runnable {
 				
 				// Read the entries. The packets belonging to the same instruction are added
 				// in a vector and passed to the DynamicInstructionBuffer which then processes it.
-				for(int i=0 ; i < numReads ; i++ ) {
+				for(int i=0 ; (i < numReads)  && (breakLoop==false); i++ ) 
+				{
 					pnew = SharedMem.shmread(tid_emu,ibuf,(cons_ptr[emuid] + i) %COUNT,COUNT );
 					v = pnew.value;
 					read_count ++;
@@ -145,7 +157,8 @@ public class RunnableThread implements Runnable {
 						if (isFirstPacket[emuid]) pold = pnew;
 						vectorPacket.add(pnew);
 					}
-					else {
+					else 
+					{
 						(SharedMem.numInstructions[tid])++;
 						
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
@@ -154,15 +167,21 @@ public class RunnableThread implements Runnable {
 						
 												
 						//TODO This instructionList must be provided to raj's code
-						InstructionList fusedInstructions;
-						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
+						InstructionList fusedInstructions = null;
+						Newmain.instructionCount ++;
 						
-						if(fusedInstructions != null)
+						//gobble instructions till some time
+						if(Newmain.instructionCount >= 10000)
 						{
-							noOfMicroOps += fusedInstructions.getListSize();
+							fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
 						}
 						
-						
+						//break loop after one million instructions
+						if(Newmain.instructionCount>=5010000)
+						{
+							breakLoop=true;
+						}
+					
 						//System.out.print("\n\nFused Instructions ..." + fusedInstructions);
 											
 			/*			
@@ -176,72 +195,95 @@ public class RunnableThread implements Runnable {
 							Newmain.printSimulationTime(Newmain.end - Newmain.start);
 							System.exit(0);
 						}*/
-						/*
+						
 						//All the commented statements around here for timing statistics are added by moksh
 						
 						if(fusedInstructions != null)
 						{
-							long listSize;
+							/**/
+							boolean isFusedFront = fusedInstructions.peekInstructionAt(0).getOperationType() == OperationType.integerALU;
 							
-							synchronized(inputToPipeline)
+							if(bufferedInstructions!=null && isFusedFront)
 							{
-								//noOfInstructionsArrived += fusedInstructions.getListSize();
-								//	if (noOfInstructionsArrived > 0 && noOfInstructionsArrived < 2000000) 
-									//{
-										//add fused instructions to the input to the pipeline
-										inputToPipeline.appendInstruction(fusedInstructions);
-										
-									//}
-									//else if (noOfInstructionsArrived > 2000000)
-									//{
-										//System.out.println("Processes instr 100000 to "+ noOfInstructionsArrived);
-										//Newmain.end = System.currentTimeMillis();
-										//Newmain.printSimulationTime(Newmain.end - Newmain.start);
-										//System.exit(0);
-									//}
-									listSize = inputToPipeline.getListSize();
+								fusedInstructions.peekInstructionAt(0).setOperationType(OperationType.acceleratedOp);
+								bufferedInstructions = null;
+							}
+							else if(bufferedInstructions!=null && !isFusedFront)
+							{
+								bufferedInstructions.appendInstruction(fusedInstructions);
+								fusedInstructions = bufferedInstructions;
+								bufferedInstructions = null;
 							}
 							
-							//if size of list is greater than a certain constant, the pipeline may be signalled to resume
-							if(listSize > 200)
+							boolean isFusedBack = fusedInstructions.peekInstructionAt(fusedInstructions.getListSize()-1).getOperationType() == OperationType.integerALU;
+							if(isFusedBack)
 							{
-								synchronized(inputToPipeline.getSyncObject())
+								bufferedInstructions = fusedInstructions;
+							}
+							else
+							{
+								long listSize;
+								
+								synchronized(inputToPipeline)
 								{
-									if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 1)
-									{
-										if(SimulationConfig.debugMode)
-										{
-											System.out.println("producer waking up consumer");
-										}
-										inputToPipeline.getSyncObject().setWhoIsSleeping(0);
-										inputToPipeline.getSyncObject().notify();
-									}
-									
-									//if input to the pipeline is too large, producer goes to sleep
-									//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
-									if(listSize > 400)
-									{
-										if(SimulationConfig.debugMode)
-										{
-											System.out.println("input to pipeline too large.. producer going to sleep");
-										}
-										inputToPipeline.getSyncObject().setWhoIsSleeping(2);
-										try
-										{
-											inputToPipeline.getSyncObject().wait();
-										}
-										catch (InterruptedException e)
-										{
-											e.printStackTrace();
-										}
-									}
+									//noOfInstructionsArrived += fusedInstructions.getListSize();
+									//	if (noOfInstructionsArrived > 0 && noOfInstructionsArrived < 2000000) 
+										//{
+											//add fused instructions to the input to the pipeline
+											inputToPipeline.appendInstruction(fusedInstructions);
+											
+										//}
+										//else if (noOfInstructionsArrived > 2000000)
+										//{
+											//System.out.println("Processes instr 100000 to "+ noOfInstructionsArrived);
+											//Newmain.end = System.currentTimeMillis();
+											//Newmain.printSimulationTime(Newmain.end - Newmain.start);
+											//System.exit(0);
+										//}
+										listSize = inputToPipeline.getListSize();
 								}
-							}							
-							
-							noOfMicroOps += fusedInstructions.getListSize();
-							
+								
+								//if size of list is greater than a certain constant, the pipeline may be signalled to resume
+								if(listSize > 200)
+								{
+									synchronized(inputToPipeline.getSyncObject())
+									{
+										if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 1)
+										{
+											if(SimulationConfig.debugMode)
+											{
+												System.out.println("producer waking up consumer");
+											}
+											inputToPipeline.getSyncObject().setWhoIsSleeping(0);
+											inputToPipeline.getSyncObject().notify();
+										}
+										
+										//if input to the pipeline is too large, producer goes to sleep
+										//when the consumer sufficiently shortens the input to the pipeline, it wakes the producer up
+										if(listSize > 400)
+										{
+											if(SimulationConfig.debugMode)
+											{
+												System.out.println("input to pipeline too large.. producer going to sleep");
+											}
+											inputToPipeline.getSyncObject().setWhoIsSleeping(2);
+											try
+											{
+												inputToPipeline.getSyncObject().wait();
+											}
+											catch (InterruptedException e)
+											{
+												e.printStackTrace();
+											}
+										}
+									}
+								}							
+								/**/
+								noOfMicroOps += fusedInstructions.getListSize();
+								
+							}
+								
 						}						
-							/**/			
 						pold = pnew;
 						vectorPacket.clear();
 						vectorPacket.add(pold);
@@ -269,7 +311,8 @@ public class RunnableThread implements Runnable {
 					System.out.println("tot_prod = " + tot_prod + " tot_cons = " + tot_cons[emuid] + " v = " + v);
 					System.exit(1);
 				}*/
-				if(queue_size < 0) {
+				if(queue_size < 0) 
+				{
 					System.out.println("queue less than 0");
 					System.exit(1);
 				}
@@ -306,7 +349,7 @@ public class RunnableThread implements Runnable {
 				break;
 			}
 		}
-		/*
+		/**/
 		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
 		synchronized(inputToPipeline)
 		{	
@@ -326,7 +369,7 @@ public class RunnableThread implements Runnable {
 				inputToPipeline.getSyncObject().notify();
 			}
 		}
-		*/
+		/**/
 		long dataRead = 0;
 		for (int i=0; i<EMUTHREADS; i++) {
 			dataRead+=tot_cons[i];

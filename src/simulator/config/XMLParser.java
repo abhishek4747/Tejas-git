@@ -36,7 +36,7 @@ public class XMLParser
 	{ 
 		try 
 		{
-			File file = new File("src/simulator/config/config.xml");
+			File file = new File("/home/prathmesh/Eclipse_Projects/BhartiSim/src/simulator/config/config.xml");
 			DocumentBuilderFactory DBFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder DBuilder = DBFactory.newDocumentBuilder();
 			doc = DBuilder.parse(file);
@@ -177,13 +177,16 @@ public class XMLParser
 			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", coreElmnt));
 			core.FloatMulNum = Integer.parseInt(getImmediateString("FloatMulNum", coreElmnt));
 			core.FloatDivNum = Integer.parseInt(getImmediateString("FloatDivNum", coreElmnt));
+			core.AddressFUNum = Integer.parseInt(getImmediateString("AddressFUNum", coreElmnt));
+			core.AcceleratedFUNum = Integer.parseInt(getImmediateString("AcceleratedFUNum", coreElmnt));
 			
 			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", coreElmnt));
 			core.IntMulLatency = Integer.parseInt(getImmediateString("IntMulLatency", coreElmnt));
 			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", coreElmnt));
 			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", coreElmnt));
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
-			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
+			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
+			core.AcceleratedFULatency = Integer.parseInt(getImmediateString("AcceleratedFULatency", coreElmnt));
 		
 			//Code for L1 cache configurations for each core
 			NodeList l1CacheList = coreElmnt.getElementsByTagName("L1Cache");

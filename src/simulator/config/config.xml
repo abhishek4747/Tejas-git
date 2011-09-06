@@ -77,6 +77,8 @@
 			<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
 			<FloatMulNum>1</FloatMulNum>			<!--Number of Floating Point Multipliers-->
 			<FloatDivNum>1</FloatDivNum>			<!--Number of Floating Point Dividers-->
+			<AddressFUNum>4</AddressFUNum>
+			<AcceleratedFUNum>4</AcceleratedFUNum>
 			
 			<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
 			<IntMulLatency>4</IntMulLatency>		<!--Latency of Integer Multipliers-->
@@ -84,6 +86,8 @@
 			<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
 			<FloatMulLatency>8</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
 			<FloatDivLatency>16</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
+			<AddressFULatency>1</AddressFULatency>
+			<AcceleratedFULatency>1</AcceleratedFULatency>
 			
 			<!--Specify only the L1 (immediately next to the core) cache of the core here-->
 			<L1Cache type = "Type1" nextLevel = "L2"/>

@@ -27,9 +27,11 @@ import generic.Instruction;
 import generic.Operand;
 import generic.InstructionList;
 
-public class ReturnOp implements InstructionHandler {
+public class ReturnOp implements InstructionHandler 
+{
 	public InstructionList handle(Operand operand1, Operand operand2,
-			Operand operand3, DynamicInstruction dynamicInstruction) {
+			Operand operand3, DynamicInstruction dynamicInstruction) 
+	{
 		InstructionList microOps = new InstructionList();
 
 		if ((operand1 == null || operand1.isImmediateOperand())
@@ -54,7 +56,9 @@ public class ReturnOp implements InstructionHandler {
 						stackPointer));
 			}
 			return microOps;
-		} else {
+		} 
+		else 
+		{
 			misc.Error.invalidOperation("Return Operation", operand1, operand2,
 					operand3);
 			return null;

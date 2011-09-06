@@ -124,7 +124,7 @@ public class OperandTranslator
 		
 		
 		Operand base, offset, index,scale;
-		String indexStr, scaleStr = null;
+		String indexStr = null, scaleStr = null;
 		base=offset=index=scale=null;
 				
 		
@@ -136,11 +136,11 @@ public class OperandTranslator
 			{
 				base = Operand.getIntegerRegister(Registers.encodeRegister(memoryAddressTokens[i]));
 			}
-			
 			else if(Registers.isMachineSpecificRegister(memoryAddressTokens[i]))
 			{
 				base = Operand.getMachineSpecificRegister(Registers.encodeRegister(memoryAddressTokens[i]));	
 			}
+			
 			
 			//offset
 			else if(Numbers.isValidNumber(memoryAddressTokens[i]))
@@ -152,6 +152,8 @@ public class OperandTranslator
 				
 				offset = Operand.getImmediateOperand();
 			}
+			
+			
 			
 			//index*scale
 			else if(memoryAddressTokens[i].matches("[a-zA-Z0-9]+\\*[0x123456789abcdef]+"))
@@ -194,99 +196,84 @@ public class OperandTranslator
 				microOps.appendInstruction(Instruction.getIntALUInstruction(index, scale, scaledIndex));
 			}
 		}
-
 		
+				
 		//TODO : Once xml file is ready, we have to read this boolean from the configuration parameters
 		//Default value is true.
-		boolean indexedAddressingMode;
-		indexedAddressingMode = true;
+		boolean pureRisc;
+		pureRisc=false;
 		
 		//determine the type of addressing used
 		Operand memoryLocationFirstOperand = null;
 		Operand memoryLocationSecondOperand = null;
 		
-		if(base==null && index==null && offset==null)
+		if(base==null && scaledIndex==null && offset==null)
 		{}
 		
-		else if(base==null && index==null && offset!=null)
+		else if(base==null && scaledIndex==null && offset!=null)
 		{
 			memoryLocationFirstOperand = offset;
 		}
 		
-		else if(base==null && index!=null && offset==null)
+		else if(base==null && scaledIndex!=null && offset==null)
 		{
 			memoryLocationFirstOperand = scaledIndex;
 		}
 		
-		else if(base==null && index!=null && offset!=null)
+		else if(base==null && scaledIndex!=null && offset!=null)
 		{
 			memoryLocationFirstOperand = scaledIndex;
 			memoryLocationSecondOperand = offset;
 		}
 		
-		else if(base!=null && index==null && offset==null)
+		else if(base!=null && scaledIndex==null && offset==null)
 		{
 			memoryLocationFirstOperand = base;
 		}
 		
-		else if(base!=null && index==null && offset!=null)
+		else if(base!=null && scaledIndex==null && offset!=null)
 		{
 			memoryLocationFirstOperand = base;
 			memoryLocationSecondOperand = offset;
 		}
 		
-		else if(base!=null && index!=null)
+		else if(base!=null && scaledIndex!=null && offset==null)
 		{
-			if(indexedAddressingMode == false)
+			memoryLocationFirstOperand = base;
+			memoryLocationSecondOperand = scaledIndex;
+		}
+		
+		else if(base!=null && scaledIndex!=null && offset!=null)
+		{
+			if(pureRisc)
 			{
-				Operand registerSumOperand;
-				
-				//In this case, we must always perform tempRegister = base + scaledIndex
-				if(scaledIndex != index)
-				{
-					registerSumOperand = scaledIndex;
-				}
-				else
-				{
-					registerSumOperand = registers.getTempIntReg();
-				}
-				
-				microOps.appendInstruction(Instruction.getIntALUInstruction(scaledIndex, base, registerSumOperand));
-				memoryLocationFirstOperand = registerSumOperand;
-				
-				if(offset!=null)
-					memoryLocationSecondOperand = offset;
+				Operand tempRegister = registers.getTempIntReg();
+				microOps.appendInstruction(Instruction.getIntALUInstruction(scaledIndex, offset, tempRegister));
+				memoryLocationFirstOperand = base;
+				memoryLocationSecondOperand = tempRegister;
 			}
 			
-			else if(indexedAddressingMode==true && offset==null)
+			else
 			{
 				memoryLocationFirstOperand = base;
 				memoryLocationSecondOperand = scaledIndex;
 			}
-			
-			else if(indexedAddressingMode==true && offset!=null) 
-			{
-				Operand registerSumOperand;
-				
-				//In this case, we must always perform tempRegister = base + scaledIndex
-				if(scaledIndex != index)
-				{
-					registerSumOperand = scaledIndex;
-				}
-				else
-				{
-					registerSumOperand = registers.getTempIntReg();
-				}
-				
-				microOps.appendInstruction(Instruction.getIntALUInstruction(scaledIndex, base, registerSumOperand));
-				memoryLocationFirstOperand = registerSumOperand;
-				memoryLocationSecondOperand = offset;
-			}
+		}
+		
+		else
+		{}
+		
+		//pure risc -> pass a single operand
+		if(pureRisc && memoryLocationSecondOperand!=null)
+		{
+			Operand tempRegister = registers.getTempIntReg();
+			microOps.appendInstruction(Instruction.getIntALUInstruction(memoryLocationFirstOperand, memoryLocationFirstOperand, tempRegister));
+			memoryLocationFirstOperand = tempRegister;
+			memoryLocationSecondOperand = null;
 		}
 		
 		return Operand.getMemoryOperand(memoryLocationFirstOperand, memoryLocationSecondOperand, -1);
-	}
-	
+	}	
 
 
 	private static boolean areValidMemoryAddressTokens(String memoryAddressTokens[])

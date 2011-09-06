@@ -111,6 +111,11 @@ public class InstructionList
 	{
 		return instructionList.size();
 	}
+	
+	public Instruction accelarateInstruction()
+	{
+		return instructionList.getFirst();
+	}
 
 	/*public SynchronizationObject getSyncObject2() {
 		return syncObject2;

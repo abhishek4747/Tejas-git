@@ -91,6 +91,8 @@ public class Core extends SimulationElement{
 		nUnits[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALUNum;
 		nUnits[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulNum;
 		nUnits[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivNum;
+		nUnits[FunctionalUnitType.acceleratedFU.ordinal()] = coreConfig.AcceleratedFUNum;
+		nUnits[FunctionalUnitType.memory.ordinal()] = coreConfig.AddressFUNum;
 		
 		latencies[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALULatency;
 		latencies[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulLatency;
@@ -98,6 +100,8 @@ public class Core extends SimulationElement{
 		latencies[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALULatency;
 		latencies[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulLatency;
 		latencies[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivLatency;
+		latencies[FunctionalUnitType.acceleratedFU.ordinal()] = coreConfig.AcceleratedFULatency;
+		latencies[FunctionalUnitType.memory.ordinal()] = coreConfig.AddressFULatency;
 	}
 	
 	public void boot()
