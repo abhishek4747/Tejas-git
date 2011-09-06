@@ -58,7 +58,6 @@ public class CoreConfig
 	public int FloatMulNum;
 	public int FloatDivNum;
 	public int AddressFUNum;
-	public int AcceleratedFUNum;
 	
 	public int IntALULatency;
 	public int IntMulLatency;
@@ -67,7 +66,6 @@ public class CoreConfig
 	public int FloatMulLatency;
 	public int FloatDivLatency;
 	public int AddressFULatency;
-	public int AcceleratedFULatency;
 	
 	public CacheConfig l1Cache = new CacheConfig();
 	public CacheConfig l2Cache = new CacheConfig();

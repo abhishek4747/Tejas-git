@@ -11,6 +11,7 @@ import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import misc.Error;
 import config.SimulationConfig;
+import config.SystemConfig;
 import config.XMLParser;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
@@ -54,24 +55,31 @@ public class Newmain {
 		InstructionTable instructionTable;
 		instructionTable = ObjParser
 				.buildStaticInstructionTable(executableFile);
-		createMicroOpsWriter();
 
 		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
 
 		// configure the emulator
 		configureEmulator();
-		
-		// create PIN interface
-		IPCBase ipcBase = new SharedMem(instructionTable);
-		Process process = createPINinterface(ipcBase, executableArguments,
-				dynamicInstructionBuffer);
 
 		//create event queue
-		NewEventQueue eventQ = new NewEventQueue();
+		NewEventQueue[] eventQ = new NewEventQueue[1];	//TODO number of queues = number of java threads
+														//number of java threads to be specified/determinable from config file
+		for(int i = 0; i < 1; i++)
+		{
+			eventQ[i] = new NewEventQueue();
+		}
 		
 		//create cores
-		Core[] cores = initCores(eventQ, ipcBase);
+		Core[] cores = initCores(eventQ[0]);
+		
+		// create PIN interface
+		IPCBase ipcBase = new SharedMem(instructionTable, eventQ, cores);
+		Process process = createPINinterface(ipcBase, executableArguments,
+				dynamicInstructionBuffer);
+		
+		//connect pipe between instruction translator and pipeline
+		cores[0].setIncomingInstructionLists(new InstructionList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
 		
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores);
@@ -81,51 +89,15 @@ public class Newmain {
 		
 		//set up statistics module
 		Statistics.initStatistics();
-		
-		
-		/**/
-		//commence pipeline
-		eventQ.addEvent(new BootPipelineEvent(cores, ipcBase, eventQ, 0));
-		/**/
-		
-		//Thread.sleep(10000);
-		//System.out.println("finished sleeping..");
-		//while(core.getExecEngine().isExecutionComplete() == false)
-		while(eventQ.isEmpty() == false)
-		{
-			eventQ.processEvents();
-			
-			GlobalClock.incrementClock();
-		}
-		
-		//synchronized(Newmain.syncObject2)
-		{
-			//Newmain.syncObject2.notify();
-		}
-		
-		
-		
-		/*
-		 
-		//TODO currently simulating single core
-		//number of cores to be read from configuration file
-		Core core = new Core(dynamicInstructionBuffer, 0);
-		//set up initial events in the queue
-		eventQ.addEvent(new PerformDecodeEvent(0, core));
-		eventQ.addEvent(new PerformCommitsEvent(0, core));
-
-		*/
-
 		// Call these functions at last
 		// returns the number of instructions. and waits on a semaphore for
 		// finishing of reader threads
 		//FIXME : wait stopped for unexpected exit.
-		//long icount = ipcBase.doExpectedWaitForSelf();
-		//ipcBase.doWaitForPIN(process);
-		//ipcBase.finish();
+		long icount = ipcBase.doExpectedWaitForSelf();
+		ipcBase.doWaitForPIN(process);
+		ipcBase.finish();
 		
 		reportStatistics();
-		ObjParser.microOpsWriter.close();
 		
 		//set memory statistics for levels L2 and below
 		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
@@ -133,7 +105,7 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
-			Statistics.setNoOfL2Requests(cache.noOfRequests);
+			//Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
 		}
@@ -224,7 +196,7 @@ public class Newmain {
 	//TODO read a config file
 	//create specified number of cores
 	//map threads to cores
-	static Core[] initCores(NewEventQueue eventQ, IPCBase ipcBase)
+	static Core[] initCores(NewEventQueue eventQ)
 	{
 		System.out.println("initializing cores...");
 		
@@ -232,7 +204,7 @@ public class Newmain {
 								new Core(0,
 										eventQ,
 										1,
-										new InstructionList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()},
+										null,
 										new int[]{0})};
 		
 		return cores;
@@ -253,28 +225,5 @@ public class Newmain {
 			
 			System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
 			System.out.println("\n");
-	}
-	
-	private static void createMicroOpsWriter()
-	{
-		File microOpsFile = null;
-		String fileName;
-		FileWriter fileWriter = null;
-			
-		fileName = File.separator + "home" + File.separator + "prathmesh" + File.separator +
-				"Desktop" + File.separator + "microOps" + File.separator + "microOps.txt";
-						
-		try 
-		{
-			microOpsFile = new File(fileName);
-			microOpsFile.createNewFile();
-			fileWriter = new FileWriter(fileName);
-			ObjParser.microOpsWriter = new BufferedWriter(fileWriter);
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-			System.exit(0);
-		}
 	}
 }

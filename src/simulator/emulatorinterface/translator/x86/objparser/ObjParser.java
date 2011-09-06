@@ -64,8 +64,6 @@ public class ObjParser
 	
 	public static long dynamicCISCs=0;
 	public static long dynamicMicroOps=0;
-
-	public static BufferedWriter microOpsWriter = null;
 	/**
 	* This method translates a static instruction to dynamic instruction.
 	* It takes as arguments - instructionTable, instructionPointer and dynamic
@@ -133,8 +131,8 @@ public class ObjParser
 			//System.out.print("IP=" + instructionPointer);
 			//printPartialDecodedInstruction(partialDecodedInstruction);
 			//System.out.print(instructionList);
-			try {ObjParser.microOpsWriter.write(instructionList.toString());}
-			catch (IOException e) {e.printStackTrace();}
+			//try {ObjParser.microOpsWriter.write(instructionList.toString());}
+			//catch (IOException e) {e.printStackTrace();}
 						
 			dynamicHandled++;
 			dynamicMicroOps += instructionList.length();

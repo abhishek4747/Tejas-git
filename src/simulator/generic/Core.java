@@ -39,6 +39,7 @@ public class Core extends SimulationElement{
 	private int core_number;
 	private int no_of_threads;
 	private InstructionList[] incomingInstructionLists;
+
 	private int[] threadIDs;
 	
 	private TournamentPredictor branchPredictor;
@@ -91,7 +92,6 @@ public class Core extends SimulationElement{
 		nUnits[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALUNum;
 		nUnits[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulNum;
 		nUnits[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivNum;
-		nUnits[FunctionalUnitType.acceleratedFU.ordinal()] = coreConfig.AcceleratedFUNum;
 		nUnits[FunctionalUnitType.memory.ordinal()] = coreConfig.AddressFUNum;
 		
 		latencies[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALULatency;
@@ -100,7 +100,6 @@ public class Core extends SimulationElement{
 		latencies[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALULatency;
 		latencies[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulLatency;
 		latencies[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivLatency;
-		latencies[FunctionalUnitType.acceleratedFU.ordinal()] = coreConfig.AcceleratedFULatency;
 		latencies[FunctionalUnitType.memory.ordinal()] = coreConfig.AddressFULatency;
 	}
 	
@@ -307,6 +306,13 @@ public class Core extends SimulationElement{
 	public void incrementNoOfInstructionsExecuted()
 	{
 		this.noOfInstructionsExecuted++;
+	}
+	public InstructionList[] getIncomingInstructionLists() {
+		return incomingInstructionLists;
+	}
+
+	public void setIncomingInstructionLists(InstructionList[] incomingInstructionLists) {
+		this.incomingInstructionLists = incomingInstructionLists;
 	}
 
 }

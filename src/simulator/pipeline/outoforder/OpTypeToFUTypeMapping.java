@@ -42,9 +42,6 @@ public class OpTypeToFUTypeMapping {
 			case branch		:	{
 									return FunctionalUnitType.integerALU;
 								}
-			case acceleratedOp : {
-									return FunctionalUnitType.acceleratedFU;
-								}
 			default			:	{
 									return FunctionalUnitType.inValid;
 								}

@@ -9,17 +9,25 @@ import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.Newmain;
 import emulatorinterface.communication.IPCBase;
+import emulatorinterface.translator.x86.objparser.ObjParser;
 
 public class Statistics {
 	
 	static FileWriter outputFileWriter;
+	
+	
+	
 	
 	public static void printSystemConfig()
 	{
 		//read config.xml and write to output file
 	}
 	
+	
+	
+	
 	//Translator Statistics
+	
 	static long dataRead[];
 	static long numInstructions[];
 	static long noOfMicroOps[];
@@ -41,11 +49,13 @@ public class Statistics {
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
 				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numInstructions[i] + "\n");
 				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
+				outputFileWriter.write("MicroOps/CISC = " + 
+						(double)numInstructions[i]/(double)noOfMicroOps[i] + "\n");
 				outputFileWriter.write("\n");
 			}
-			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + "\n");
-			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage);
-			outputFileWriter.write("\n\n");
+			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + " %\n");
+			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage + " %\n");
+			outputFileWriter.write("\n");
 		}
 		catch (IOException e)
 		{
@@ -78,8 +88,10 @@ public class Statistics {
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
 				outputFileWriter.write("core\t\t=\t" + i + "\n");
+				outputFileWriter.write("instructions executed\t=\t" + numCoreInstructions[i] + "\n");
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)numCoreInstructions[i]/coreCyclesTaken[i] + "\n");
+				outputFileWriter.write("IPC\t\t=\t" + (double)numCoreInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
+				outputFileWriter.write("IPC\t\t=\t" + (double)numInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
 				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
 				outputFileWriter.write("\n");
@@ -185,7 +197,17 @@ public class Statistics {
 			outputFileWriter.write("\n");
 			outputFileWriter.write("[Simulator Time]\n");
 			
-			outputFileWriter.write("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
+			outputFileWriter.write("Time Taken\t\t=\t" + minutes + " : " + seconds + " minutes\n");
+			
+			long totalNumMicroOps = 0;
+			long totalNumInstructions = 0;
+			for(int i = 0; i < SystemConfig.NoOfCores; i++)
+			{
+				totalNumMicroOps += numCoreInstructions[i];
+				totalNumInstructions += numInstructions[i];
+			}
+			outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/time + " KIPS\t\tin terms of micro-ops\n");
+			outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumInstructions/time + " KIPS\t\tin terms of CISC instructions\n");
 			outputFileWriter.write("\n");
 		}
 		catch(IOException e)
@@ -221,7 +243,7 @@ public class Statistics {
 	
 	public static void openStream()
 	{
-		if(SimulationConfig.outputFileName != null)
+		if(SimulationConfig.outputFileName != null && SimulationConfig.outputFileName.compareTo("default") != 0)
 		{
 			try
 			{
@@ -230,7 +252,7 @@ public class Statistics {
 			catch (IOException e)
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append("CONSTANT_");
+				sb.append("DEFAULT_");
 			    Calendar cal = Calendar.getInstance();
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 				sb.append(sdf.format(cal.getTime()));
@@ -249,7 +271,7 @@ public class Statistics {
 		else
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.append("CONSTANT_");
+			sb.append("DEFAULT_");
 		    Calendar cal = Calendar.getInstance();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 			sb.append(sdf.format(cal.getTime()));
@@ -363,6 +385,4 @@ public class Statistics {
 	public static void setNoOfL1Requests(long noOfL1Requests, int core) {
 		Statistics.noOfL1Requests[core] = noOfL1Requests;
 	}
-	
-	
 }

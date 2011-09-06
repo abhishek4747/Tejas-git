@@ -48,78 +48,7 @@ public class DecodeCompleteEvent extends NewEvent {
 	public void readDecodePipe()
 	{
 		Instruction newInstruction;		
-		InstructionList inputToPipeline = core.getIncomingInstructions(threadID);		
-		boolean toWait = false;		
-		long listSize;
-		
-		synchronized(inputToPipeline)
-		{
-			listSize = inputToPipeline.getListSize();		
-		
-			if(listSize < core.getDecodeWidth())
-			{
-				//when should the pipeline wait?
-				//when the input to the pipeline has less than decodeWidth number of instructions
-				// AND
-				//the instruction marking the end of the stream (OperationType = inValid) isn't in the input to the pipeline
-				
-				toWait = true;
-				
-				for(int i = 0; i < listSize; i++)
-				{
-					newInstruction = inputToPipeline.peekInstructionAt(i);
-					
-					if(newInstruction == null)
-					{
-						break;
-					}
-					else
-					{
-						if(newInstruction.getOperationType() == OperationType.inValid)
-						{
-							toWait = false;
-							break;
-						}
-					}
-				}
-			}
-		}
-		
-		if(listSize < 100)
-		{
-			synchronized(inputToPipeline.getSyncObject())
-			{
-				//if producer is sleeping,
-				//and if the input to the pipeline is sufficiently short,
-				//wake the producer
-				if(inputToPipeline.getSyncObject().getWhoIsSleeping() == 2)
-				{
-					if(SimulationConfig.debugMode)
-					{
-						System.out.println("consumer waking up producer");
-					}
-					inputToPipeline.getSyncObject().setWhoIsSleeping(0);
-					inputToPipeline.getSyncObject().notify();
-				}
-				
-				if(toWait == true)
-				{
-					if(SimulationConfig.debugMode)
-					{
-						System.out.println("input to pipeline too small.. consumer going to sleep");
-					}
-					inputToPipeline.getSyncObject().setWhoIsSleeping(1);
-					try
-					{
-						inputToPipeline.getSyncObject().wait();
-					}
-					catch (InterruptedException e)
-					{						
-						e.printStackTrace();
-					}
-				}
-			}
-		}		
+		InstructionList inputToPipeline = core.getIncomingInstructions(threadID);
 		
 		for(int i = 0; i < core.getDecodeWidth(); i++)
 		{
@@ -128,26 +57,25 @@ public class DecodeCompleteEvent extends NewEvent {
 					&& core.getExecEngine().getInstructionWindow().isFull() == false
 					&& core.getExecEngine().isStallDecode1() == false)
 			{
-				synchronized(inputToPipeline)
+				if(inputToPipeline.getListSize() == 0)
 				{
-					if(inputToPipeline.getListSize() == 0)
-						break;
-					newInstruction = inputToPipeline.peekInstructionAt(0);
+					System.out.println("this shouldn't be happening");
+					break;
 				}
+				
+				newInstruction = inputToPipeline.peekInstructionAt(0);
 				
 				if((newInstruction.getOperationType() != OperationType.load &&
 					newInstruction.getOperationType() != OperationType.store) ||
 					(!this.core.getExecEngine().coreMemSys.getLsqueue().isFull()))
 				{
-					synchronized(inputToPipeline)
-					{
-						newInstruction = inputToPipeline.pollFirst();
-					}
+					newInstruction = inputToPipeline.pollFirst();
 					
 					if(newInstruction != null)
 					{
 						if(newInstruction.getOperationType() == OperationType.inValid)
 						{
+							//core.getExecEngine().setDecodePipeEmpty(threadID, true);
 							core.getExecEngine().setDecodePipeEmpty(true);
 							break;
 						}
