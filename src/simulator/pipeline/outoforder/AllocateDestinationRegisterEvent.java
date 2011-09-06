@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
@@ -45,6 +46,12 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 
 	//@Override
 	public void handleEvent(NewEventQueue newEventQueue) {
+		
+
+		if(SimulationConfig.debugMode)
+		{
+			System.out.println("alloc : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
+		}
 		
 		this.eventQueue = newEventQueue;
 		

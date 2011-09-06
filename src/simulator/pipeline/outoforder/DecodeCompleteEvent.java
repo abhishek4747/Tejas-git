@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import generic.InstructionList;
 import generic.GlobalClock;
 import generic.NewEvent;
@@ -85,6 +86,10 @@ public class DecodeCompleteEvent extends NewEvent {
 							continue;
 						}*/
 						makeROBEntries(newInstruction);
+						if(SimulationConfig.debugMode)
+						{
+							System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + newInstruction);
+						}
 					}
 					else
 					{

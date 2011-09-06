@@ -1,5 +1,6 @@
 package generic;
 
+import config.SimulationConfig;
 import pipeline.outoforder.ReorderBufferEntry;
 import pipeline.outoforder.OpTypeToFUTypeMapping;
 import pipeline.outoforder.RegisterFile;
@@ -47,6 +48,11 @@ public class ExecutionCompleteEvent extends NewEvent {
 
 	@Override
 	public void handleEvent(NewEventQueue newEventQueue) {
+
+		if(SimulationConfig.debugMode)
+		{
+			System.out.println("executed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
+		}
 		
 		this.eventQueue = newEventQueue;
 		

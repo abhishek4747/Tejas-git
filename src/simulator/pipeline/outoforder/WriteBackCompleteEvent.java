@@ -1,6 +1,8 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import generic.Core;
+import generic.GlobalClock;
 import generic.NewEvent;
 import generic.NewEventQueue;
 import generic.RequestType;
@@ -80,6 +82,11 @@ public class WriteBackCompleteEvent extends NewEvent {
 		else
 		{
 			WakeUpLogic.wakeUpLogic(core, reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(), tempDestPhyReg);
+		}
+
+		if(SimulationConfig.debugMode)
+		{
+			System.out.println("wb : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
 		}
 
 	}

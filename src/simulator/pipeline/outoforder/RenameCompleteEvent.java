@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
@@ -40,6 +41,12 @@ public class RenameCompleteEvent extends NewEvent {
 
 	@Override
 	public void handleEvent(NewEventQueue newEventQueue) {
+		
+
+		if(SimulationConfig.debugMode)
+		{
+			System.out.println("rename : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
+		}
 		
 		this.eventQueue = newEventQueue;
 		

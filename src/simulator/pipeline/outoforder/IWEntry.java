@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import memorysystem.LSQAddressReadyEvent;
 import generic.Core;
 import generic.GlobalClock;
@@ -97,6 +98,12 @@ public class IWEntry {
 							core,
 							GlobalClock.getCurrentTime() + core.getStepSize() ) );
 		
+
+		if(SimulationConfig.debugMode)
+		{
+			System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());
+		}
+		
 		
 	}
 	
@@ -120,6 +127,12 @@ public class IWEntry {
 													0, //tieBreaker,
 													RequestType.TLB_ADDRESS_READY,
 													associatedROBEntry.getLsqEntry())));
+		
+
+		if(SimulationConfig.debugMode)
+		{
+			System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());
+		}
 	}
 	
 	void issueOthers()
@@ -151,6 +164,11 @@ public class IWEntry {
 						GlobalClock.getCurrentTime() + core.getLatency(
 								OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()) * core.getStepSize()
 						) );
+
+			if(SimulationConfig.debugMode)
+			{
+				System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());
+			}
 		}
 		
 		else

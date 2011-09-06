@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -147,6 +148,11 @@ public class ReorderBuffer extends SimulationElement{
 						{
 							updateFloatRenameTable(first);
 						}
+					}
+
+					if(SimulationConfig.debugMode)
+					{
+						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + first.getInstruction());
 					}
 					
 					//System.out.println("committed : " +GlobalClock.getCurrentTime() + first.getInstruction().getOperationType());

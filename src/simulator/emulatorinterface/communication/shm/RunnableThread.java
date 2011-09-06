@@ -202,13 +202,14 @@ public class RunnableThread implements Runnable {
 						{
 							//if this is the first instruction, then pipeline needs
 							//to be commenced
-							if(pipelineCommenced == false && insCtr > 20 * cores[0].getDecodeWidth())
+							if(pipelineCommenced == false && insCtr > cores[0].getDecodeWidth())
 							{
 								for(int i1 = 0; i1 < cores.length; i1++)
 								{
 									cores[i1].boot();
 								}
 								pipelineCommenced = true;
+								GlobalClock.setCurrentTime(0);
 								if(subsetSimulation == true) /* - for pipeline of instructions 2000000 - 12000000 - */
 								{
 									s = System.currentTimeMillis();
