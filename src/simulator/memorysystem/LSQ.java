@@ -22,6 +22,8 @@ package memorysystem;
 
 import java.util.ArrayList;
 
+import memorysystem.LSQEntry.LSQEntryType;
+
 import pipeline.outoforder.ReorderBufferEntry;
 
 import generic.*;
@@ -117,7 +119,7 @@ public class LSQ extends SimulationElement
 					{
 						// Successfully forwarded the value
 						entry.setForwarded(true);
-						if (!entry.getRobEntry().getExecuted())
+						if (entry.getRobEntry() != null && !entry.getRobEntry().getExecuted())
 							containingMemSys.core.getEventQueue().addEvent(new ExecutionCompleteEvent(entry.getRobEntry(),
 											-1,
 											containingMemSys.core,
@@ -175,13 +177,47 @@ public class LSQ extends SimulationElement
 			sindex = incrementQ(sindex);
 		}
 	}
-/*
-	public void processROBCommit(int index)
+
+	
+	//Only used by the perfect pipeline
+	public void processROBCommitForPerfectPipeline(NewEventQueue newEventQueue)
 	{
-		The work which was to be done here is finally done 
-		through the event LSQCommitEventFromROB
+		while (lsqueue[head].getType() == LSQEntryType.STORE ||
+				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true))
+		{
+			LSQEntry entry = lsqueue[head];
+			
+			// if it is a store, send the request to the cache
+			if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
+			{
+				//TODO Write to the cache
+				CacheRequestPacket request = new CacheRequestPacket();
+				//request.setThreadID(0);
+				request.setType(RequestType.MEM_WRITE);
+				request.setAddr(entry.getAddr());
+				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
+						1, //noOfSlots,
+						new NewCacheAccessEvent(this.containingMemSys.l1Cache.getLatencyDelay(),
+																this,
+																this.containingMemSys.l1Cache,
+																entry, 
+																0, //tieBreaker,
+																request)));
+				
+				this.head = this.incrementQ(this.head);
+				this.curSize--;
+			}
+			
+			//If it is a LOAD which has received its value
+			else if (entry.isForwarded())
+			{
+				this.head = this.incrementQ(this.head);
+				this.curSize--;
+			}
+		}
 	}
-*/
+
+	
 	protected int incrementQ(int value)
 	{
 		value = (value+1)%lsqSize;

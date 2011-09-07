@@ -189,7 +189,7 @@ public class LSQTest
 					{
 						randomIndex = generator.nextInt(3);
 						if (randomIndex == 1)
-							lsqueue[request.getThreadID()].processROBCommit(lsqueue[request.getThreadID()].head);
+							lsqueue[request.getThreadID()].processROBCommitForPerfectPipeline(lsqueue[request.getThreadID()].head);
 						index = lsqueue[request.getThreadID()].addEntry(true, request.getAddr());
 					}
 					lsqueue[request.getThreadID()].loadValidate(index, request.getAddr());
@@ -201,14 +201,14 @@ public class LSQTest
 					{
 						randomIndex = generator.nextInt(3);
 						if (randomIndex == 1)
-							lsqueue[request.getThreadID()].processROBCommit(lsqueue[request.getThreadID()].head);
+							lsqueue[request.getThreadID()].processROBCommitForPerfectPipeline(lsqueue[request.getThreadID()].head);
 						index = lsqueue[request.getThreadID()].addEntry(false, request.getAddr());
 					}
 					lsqueue[request.getThreadID()].storeValidate(index, request.getAddr());
 				}
 				randomIndex = generator.nextInt(2);
 				if ((randomIndex == 1)&&(lsqueue[request.getThreadID()].curSize != 0))
-					lsqueue[request.getThreadID()].processROBCommit(lsqueue[request.getThreadID()].head);
+					lsqueue[request.getThreadID()].processROBCommitForPerfectPipeline(lsqueue[request.getThreadID()].head);
 				//Code added for LSQ on top of cache ENDS
 				
 				//processEntry(request);

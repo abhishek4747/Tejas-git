@@ -213,7 +213,7 @@ public class BlockReadyEvent extends NewEvent
 			lsqEntry.setForwarded(true);
 			
 			//No ports to be used in this event
-			if (!lsqEntry.getRobEntry().getExecuted())
+			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())
 				newEventQueue.addEvent(new ExecutionCompleteEvent(lsqEntry.getRobEntry(),
 									-1,
 									receivingLSQ.containingMemSys.core,

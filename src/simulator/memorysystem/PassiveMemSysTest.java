@@ -371,13 +371,13 @@ public class PassiveMemSysTest
 					for (int j = 0; j < randomIndex; j++)
 					{
 						//if (!((Global.memSys[i].lsqueue.lsqueue[Global.memSys[i].lsqueue.head].getType() == LSQEntryType.LOAD) && (Global.memSys[i].lsqueue.lsqueue[Global.memSys[i].lsqueue.head].isForwarded() == false)))
-							Global.memSys[i].lsqueue.processROBCommit(Global.memSys[i].lsqueue.head);
+							Global.memSys[i].lsqueue.processROBCommitForPerfectPipeline(Global.memSys[i].lsqueue.head);
 					}
 					else if (MemEventQueue.eventQueue/*.get(i)*/.isEmpty()  && (Global.memSys[i].lsqueue.curSize > 0))
 						for (int j = 0; j < randomIndex; j++)
 						{
 							//if (!((Global.memSys[i].lsqueue.lsqueue[Global.memSys[i].lsqueue.head].getType() == LSQEntryType.LOAD) && (Global.memSys[i].lsqueue.lsqueue[Global.memSys[i].lsqueue.head].isForwarded() == false)))
-								Global.memSys[i].lsqueue.processROBCommit(Global.memSys[i].lsqueue.head);
+								Global.memSys[i].lsqueue.processROBCommitForPerfectPipeline(Global.memSys[i].lsqueue.head);
 								if (Global.memSys[i].lsqueue.curSize == 0)
 									break;
 						}
