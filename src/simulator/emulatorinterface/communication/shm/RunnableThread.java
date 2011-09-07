@@ -261,7 +261,7 @@ public class RunnableThread implements Runnable {
 								e = System.currentTimeMillis();
 								long t = e - s;
 								System.out.println("time for 10000000 microps = " + t);
-								Statistics.setTime(t);
+								Statistics.setSubsetTime(t);
 								pipelineDone = true;
 							}
 							

@@ -186,6 +186,10 @@ public class Statistics {
 	
 	//Simulation time
 	static long time;
+	static long subsetTime;
+
+
+
 
 	public static void printSimulationTime()
 	{
@@ -207,8 +211,16 @@ public class Statistics {
 				totalNumMicroOps += numCoreInstructions[i];
 				totalNumInstructions += numInstructions[i];
 			}
-			outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/time + " KIPS\t\tin terms of micro-ops\n");
-			outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumInstructions/time + " KIPS\t\tin terms of CISC instructions\n");
+			if(subsetTime != 0)
+			{
+				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/subsetTime + " KIPS\t\tin terms of micro-ops\n");
+				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumInstructions/subsetTime + " KIPS\t\tin terms of CISC instructions\n");
+			}
+			else
+			{
+				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/time + " KIPS\t\tin terms of micro-ops\n");
+				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumInstructions/time + " KIPS\t\tin terms of CISC instructions\n");
+			}
 			outputFileWriter.write("\n");
 		}
 		catch(IOException e)
@@ -393,5 +405,13 @@ public class Statistics {
 	
 	public static void setTime(long time) {
 		Statistics.time = time;
+	}
+
+	public static long getSubsetTime() {
+		return subsetTime;
+	}
+
+	public static void setSubsetTime(long subsetTime) {
+		Statistics.subsetTime = subsetTime;
 	}
 }

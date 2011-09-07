@@ -111,10 +111,7 @@ public class Newmain {
 		}
 		
 		end = System.currentTimeMillis();
-		if(Statistics.getTime() == 0)
-		{
-			Statistics.setTime(end - start);
-		}
+		Statistics.setTime(end - start);
 		
 		//print statistics
 		Statistics.openStream();
