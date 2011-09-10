@@ -103,7 +103,7 @@ public class RunnableThread implements Runnable {
 		
 		int noOfFusedInstructions = 0;
 		
-		
+		DynamicInstructionBuffer[] dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		//FIXME:
 		boolean breakLoop = false;
 		
@@ -179,7 +179,7 @@ public class RunnableThread implements Runnable {
 						
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
 						DynamicInstruction dynamicInstruction = configurePackets(vectorPacket, tid, tid_emu);
-						
+						dynamicInstructionBuffer[emuid].addDynamicInstruction(dynamicInstruction);
 						
 												
 						//TODO This instructionList must be provided to raj's code
