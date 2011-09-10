@@ -186,17 +186,7 @@ public class RunnableThread implements Runnable {
 						MicroOpsList fusedInstructions = null;
 						Newmain.instructionCount ++;
 						
-						//gobble instructions till some time
-//						if(Newmain.instructionCount >= 10000)
-						{
-							fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, pold.ip, dynamicInstruction);
-						}
-						
-						//break loop after one million instructions
-						if(Newmain.instructionCount>=5010000)
-						{
-//							breakLoop=true;
-						}
+						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, dynamicInstructionBuffer[emuid]);
 						
 						if(fusedInstructions != null && pipelineDone == false)
 						{

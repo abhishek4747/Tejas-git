@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.objparser;
 
 
+import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.translator.x86.instruction.InstructionClass;
 import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.InstructionHandler;
@@ -317,5 +318,12 @@ public class ObjParser
 						+ partialDecodedInstruction.getOperand3())
 				+ "\ninstructionList = "
 				+ partialDecodedInstruction.getInstructionList());
+	}
+
+	public static MicroOpsList translateInstruction(InstructionTable insTable,
+			DynamicInstructionBuffer dynamicInstructionBuffer) 
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
