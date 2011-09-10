@@ -26,17 +26,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import emulatorinterface.communication.Packet;
 
-public class DynamicInstructionBuffer {
-	private static final int MAX_THREADS = 10;
-	private LinkedBlockingQueue<DynamicInstruction>[] queue;
+public class DynamicInstructionBuffer 
+{
+	private LinkedBlockingQueue<DynamicInstruction> queue;
 
-	@SuppressWarnings("unchecked")
-	public DynamicInstructionBuffer() {
-		// Create max number of queues
-		queue = new LinkedBlockingQueue[MAX_THREADS];
-
-		for (int i = 0; i < MAX_THREADS; i++)
-			queue[i] = new LinkedBlockingQueue<DynamicInstruction>();
+	public DynamicInstructionBuffer() 
+	{
+		queue = new LinkedBlockingQueue<DynamicInstruction>();
 	}
 
 	/*
@@ -53,7 +49,9 @@ public class DynamicInstructionBuffer {
 	 * has a source register value 7 - means "tgt" has a destination register
 	 * value
 	 */
-	public void configurePackets(Vector<Packet> buildDynamicInstruction, int tid, int tidEmu) {
+
+	public void configurePackets(Vector<Packet> buildDynamicInstruction, int tid, int tidEmu) 
+	{
 		Packet p;
 		Vector<Long> memReadAddr = new Vector<Long>();
 		Vector<Long> memWriteAddr = new Vector<Long>();
@@ -100,26 +98,32 @@ public class DynamicInstructionBuffer {
 			}
 		}
 
-		queue[tidEmu].add(new DynamicInstruction(ip, tidEmu, taken,
+		queue.add(new DynamicInstruction(ip, tidEmu, taken,
 				branchTargetAddress, memReadAddr, memWriteAddr, srcRegs,
 				dstRegs));
 	}
 
-	public void addDynamicInstruction(DynamicInstruction dynamicInstruction) {
-		queue[(int) dynamicInstruction.getThreadId()].add(dynamicInstruction);
+	public void addDynamicInstruction(DynamicInstruction dynamicInstruction) 
+	{
+		queue.add(dynamicInstruction);
 	}
 
-	public DynamicInstruction getNextDynamicInstruction(int threadID) {
-		try {
-			return queue[threadID].take();
-		} catch (InterruptedException e) {
+	public DynamicInstruction getNextDynamicInstruction(int threadID) 
+	{
+		try 
+		{
+			return queue.take();
+		} 
+		catch (InterruptedException e) 
+		{
 			misc.Error.showErrorAndExit("\n\tThread " + threadID
 					+ " unable to obtain next dynamic operation !!");
+			return null;
 		}
-		return null;
 	}
 
-	public boolean isEmpty(int threadID) {
-		return queue[threadID].isEmpty();
+	public boolean isEmpty(int threadID) 
+	{
+		return queue.isEmpty();
 	}
 }

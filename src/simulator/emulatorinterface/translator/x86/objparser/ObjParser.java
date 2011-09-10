@@ -323,7 +323,16 @@ public class ObjParser
 	public static MicroOpsList translateInstruction(InstructionTable insTable,
 			DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
-		// TODO Auto-generated method stub
+		Long startPC;
+		
+		startPC = dynamicInstructionBuffer.getNextDynamicInstruction(0).getInstructionPointer();
+		
+		while(true)
+		{
+			startPC = startPC+1;
+			break;
+		}
+		
 		return null;
 	}
 }
