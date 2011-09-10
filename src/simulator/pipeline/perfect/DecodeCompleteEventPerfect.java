@@ -2,7 +2,7 @@ package pipeline.perfect;
 
 import memorysystem.LSQAddressReadyEvent;
 import memorysystem.LSQEntry;
-import generic.InstructionList;
+import generic.MicroOpsList;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
@@ -50,7 +50,7 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 	public void readDecodePipe()
 	{
 		Instruction newInstruction;		
-		InstructionList inputToPipeline = core.getIncomingInstructions(threadID);
+		MicroOpsList inputToPipeline = core.getIncomingInstructions(threadID);
 		
 		for(int i = 0; i < core.getDecodeWidth(); i++)
 		{

@@ -25,20 +25,20 @@ import java.util.Hashtable;
 
 public class InstructionTable 
 {
-	private Hashtable<Long, PartialDecodedInstruction> instructionHashTable;
+	private Hashtable<Long, Long> instructionHashTable;
 
-	public InstructionTable() 
+	public InstructionTable()
 	{
-		this.instructionHashTable = new Hashtable<Long, PartialDecodedInstruction>(); 
+		this.instructionHashTable = new Hashtable<Long, Long>(); 
 	}
 	
-	public void addInstruction(Long linearAddress, PartialDecodedInstruction partialDecodedInstruction)
+	public void addInstruction(Long instructionPointer, Long index)
 	{
-		instructionHashTable.put(linearAddress, partialDecodedInstruction);
+		instructionHashTable.put(instructionPointer, index);
 	}
 	
-	public PartialDecodedInstruction getInstruction(Long linearAddress)
+	public Long getInstruction(Long instructionPointer)
 	{
-		return instructionHashTable.get(linearAddress);
+		return instructionHashTable.get(instructionPointer);
 	}
 }

@@ -129,7 +129,7 @@ public class ObjParser
 			
 
 			// Riscify current instruction
-			microOpsIndex = microOpsList.size();
+			microOpsIndex = microOpsList.length();
 			
 			// Decode instruction
 			riscifyInstruction( instructionPointer, 

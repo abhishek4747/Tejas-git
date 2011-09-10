@@ -25,14 +25,14 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 
-public class InstructionList 
+public class MicroOpsList 
 {
 	private LinkedList<Instruction> instructionList;
 	private ListIterator<Instruction> listIterator;
 	SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
-	public InstructionList()
+	public MicroOpsList()
 	{
 		instructionList = new LinkedList<Instruction>();
 		listIterator = instructionList.listIterator();
@@ -47,9 +47,9 @@ public class InstructionList
 	}
 	
 	//appends a list of instructions to the instruction list
-	synchronized public void appendInstruction(InstructionList instructionList)
+	synchronized public void appendInstruction(MicroOpsList microOpsList)
 	{
-		this.instructionList.addAll(instructionList.instructionList);	
+		this.instructionList.addAll(microOpsList.instructionList);	
 	}
 
 	synchronized public boolean isEmpty()

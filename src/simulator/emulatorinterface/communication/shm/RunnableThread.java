@@ -17,7 +17,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.InstructionList;
+import generic.MicroOpsList;
 import generic.NewEventQueue;
 import generic.OperationType;
 import generic.Statistics;
@@ -46,7 +46,7 @@ public class RunnableThread implements Runnable {
 	long noOfInstructionsArrived =0; //For testing purposes
 
 	DynamicInstructionBuffer passPackets;
-	InstructionList inputToPipeline;
+	MicroOpsList inputToPipeline;
 
 	public RunnableThread() {
 	}
@@ -59,7 +59,7 @@ public class RunnableThread implements Runnable {
 			emuThreadStartStatus[i] = false;
 			overstatus[i] = false;
 		}
-		inputToPipeline = new InstructionList();
+		inputToPipeline = new MicroOpsList();
 		this.eventQ = eventQ;
 		this.cores = cores;
 		noOfMicroOps = 0;
@@ -120,7 +120,7 @@ public class RunnableThread implements Runnable {
 		long noOfInstr = 0;
 		boolean toExit = false;
 		
-		InstructionList bufferedInstructions = null;
+		MicroOpsList bufferedInstructions = null;
 		
 		while(true && breakLoop==false)
 		{
@@ -183,7 +183,7 @@ public class RunnableThread implements Runnable {
 						
 												
 						//TODO This instructionList must be provided to raj's code
-						InstructionList fusedInstructions = null;
+						MicroOpsList fusedInstructions = null;
 						Newmain.instructionCount ++;
 						
 						//gobble instructions till some time
@@ -417,7 +417,7 @@ public class RunnableThread implements Runnable {
 				dstRegs);
 	}
 
-	public InstructionList getInputToPipeline() {
+	public MicroOpsList getInputToPipeline() {
 		return inputToPipeline;
 	}
 }

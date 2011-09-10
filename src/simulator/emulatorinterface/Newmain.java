@@ -19,7 +19,7 @@ import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
-import generic.InstructionList;
+import generic.MicroOpsList;
 import generic.InstructionTable;
 import generic.NewEventQueue;
 import generic.Statistics;
@@ -79,7 +79,7 @@ public class Newmain {
 				dynamicInstructionBuffer);
 		
 		//connect pipe between instruction translator and pipeline
-		cores[0].setIncomingInstructionLists(new InstructionList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
+		cores[0].setIncomingInstructionLists(new MicroOpsList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
 		
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores);
@@ -143,12 +143,6 @@ public class Newmain {
 		
 		Statistics.setStaticCoverage(staticCoverage);
 		Statistics.setDynamicCoverage(dynamicCoverage);
-		
-		//calculate and show CISCs vs MicroOps
-		System.out.print("\n\tNo. of CISCs = " + ObjParser.dynamicCISCs);
-		System.out.print("\n\tNo. of MicroOps = " + ObjParser.dynamicMicroOps);
-		System.out.print("\n\tMicroOps/CISC = " + 
-				(double)ObjParser.dynamicMicroOps/(double)ObjParser.dynamicCISCs + "\n");
 	}
 
 	// TODO Must provide parameters to make from here

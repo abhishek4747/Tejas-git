@@ -126,11 +126,11 @@ public class Operand
 		return new Operand(OperandType.immediate, -1);
 	}
 	
-	public static Operand getMemoryOperand(Operand memoryOperand1, Operand memoryOperand2, long memoryAddress)
+	public static Operand getMemoryOperand(Operand memoryOperand1, Operand memoryOperand2)
 	{
-		return new Operand(OperandType.memory, memoryAddress, memoryOperand1, memoryOperand2);
+		return new Operand(OperandType.memory, -1, memoryOperand1, memoryOperand2);
 	}
-	
+/*	
 	public void setMemoryAddress(long memoryAddress)
 	{
 		if(!this.isMemoryOperand())
@@ -139,8 +139,9 @@ public class Operand
 		this.value = memoryAddress;
 	}
 
-	//public void setBranchAddress(long branchTargetAddress) 
-	//{
-	//	this.value = branchTargetAddress;
-	//}
+	public void setBranchAddress(long branchTargetAddress) 
+	{
+		this.value = branchTargetAddress;
+	}
+*/
 }
