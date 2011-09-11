@@ -195,7 +195,7 @@ public class ObjParser
 	//return true if the string is a valid instruction prefix
 	private static boolean isInstructionPrefix(String string)
 	{
-		if(string.contentEquals("rep"))
+		if(string.matches("rep|repe|repne|repz|repnz|lock"))
 		{
 			return true;
 		}
