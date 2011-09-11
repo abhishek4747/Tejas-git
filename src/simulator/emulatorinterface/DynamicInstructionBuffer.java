@@ -108,7 +108,7 @@ public class DynamicInstructionBuffer
 		queue.add(dynamicInstruction);
 	}
 
-	public DynamicInstruction getNextDynamicInstruction(int threadID) 
+	public DynamicInstruction getNextDynamicInstruction() 
 	{
 		try 
 		{
@@ -116,13 +116,13 @@ public class DynamicInstructionBuffer
 		} 
 		catch (InterruptedException e) 
 		{
-			misc.Error.showErrorAndExit("\n\tThread " + threadID
-					+ " unable to obtain next dynamic operation !!");
+			misc.Error.showErrorAndExit("\n\t" + 
+					" unable to obtain next dynamic operation !!");
 			return null;
 		}
 	}
 
-	public boolean isEmpty(int threadID) 
+	public boolean isEmpty() 
 	{
 		return queue.isEmpty();
 	}

@@ -324,12 +324,14 @@ public class ObjParser
 			DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
 		Long startPC;
+		startPC = dynamicInstructionBuffer.getNextDynamicInstruction().getInstructionPointer();
 		
-		startPC = dynamicInstructionBuffer.getNextDynamicInstruction(0).getInstructionPointer();
+		Long microOpIndex;
+		microOpIndex = insTable.getInstruction(startPC);
 		
-		while(true)
+		while(!dynamicInstructionBuffer.isEmpty())
 		{
-			startPC = startPC+1;
+			System.out.print("");
 			break;
 		}
 		

@@ -186,7 +186,7 @@ public class RunnableThread implements Runnable {
 						MicroOpsList fusedInstructions = null;
 						Newmain.instructionCount ++;
 						
-						fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, dynamicInstructionBuffer[emuid]);
+						//fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, dynamicInstructionBuffer[emuid]);
 						
 						if(fusedInstructions != null && pipelineDone == false)
 						{
