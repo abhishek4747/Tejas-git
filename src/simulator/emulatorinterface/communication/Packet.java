@@ -8,11 +8,13 @@ public class Packet
 	public int value;
 	public long tgt;
 	
-	public Packet () {
+	public Packet () 
+	{
 		ip = -1;
 	}
 
-	public Packet(long ip, int value, long tgt) {
+	public Packet(long ip, int value, long tgt) 
+	{
 		this.ip = ip;
 		this.value = value;
 		this.tgt = tgt;

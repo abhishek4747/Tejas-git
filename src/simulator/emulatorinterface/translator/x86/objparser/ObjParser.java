@@ -335,17 +335,7 @@ public class ObjParser
 	public static MicroOpsList translateInstruction(InstructionTable insTable,
 			DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
-		Long startPC;
-		startPC = dynamicInstructionBuffer.getNextDynamicInstruction().getInstructionPointer();
-		
-		Long microOpIndex;
-		microOpIndex = insTable.getInstruction(startPC);
-		
-		while(!dynamicInstructionBuffer.isEmpty())
-		{
-			System.out.print("");
-			break;
-		}
+		Start from here..
 		
 		return null;
 	}
