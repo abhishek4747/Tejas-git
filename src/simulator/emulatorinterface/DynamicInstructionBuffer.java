@@ -21,18 +21,25 @@
 
 package emulatorinterface;
 
+import java.util.Queue;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import emulatorinterface.communication.Packet;
 
+/*
+ip-MemoryReadAddress
+ip-MemoryWriteAddress
+ip-taken/not-BranchAddress
+*/
+
 public class DynamicInstructionBuffer 
 {
-	private LinkedBlockingQueue<DynamicInstruction> queue;
+	private Queue<Packet> packets;
 
 	public DynamicInstructionBuffer() 
 	{
-		queue = new LinkedBlockingQueue<DynamicInstruction>();
+		packets = new Queue<Packet>();
 	}
 
 	/*
