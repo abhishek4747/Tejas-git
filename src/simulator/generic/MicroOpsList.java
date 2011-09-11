@@ -21,20 +21,21 @@
 
 package generic;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 
 public class MicroOpsList 
 {
-	private LinkedList<Instruction> instructionList;
+	private ArrayList<Instruction> instructionList;
 	private ListIterator<Instruction> listIterator;
 	SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
 	public MicroOpsList()
 	{
-		instructionList = new LinkedList<Instruction>();
+		instructionList = new ArrayList<Instruction>();
 		listIterator = instructionList.listIterator();
 		syncObject = new SynchronizationObject();
 		//syncObject2 = new SynchronizationObject();
@@ -57,14 +58,12 @@ public class MicroOpsList
 		return instructionList.isEmpty();
 	}
 	
-	public String toString() 
+	public void printList() 
 	{
-		String toString = new String(" ");
-		
-		for(Instruction i : instructionList)
-			toString = toString + "\n" + i;
-		
-		return toString;
+		for(int i = 0; i< instructionList.size(); i++)
+		{
+			System.out.print(instructionList.get(i).toString() + "\n");
+		}
 	}
 
 	public Instruction getNextInstruction()
@@ -82,15 +81,13 @@ public class MicroOpsList
 	
 	synchronized public Instruction pollFirst()
 	{
+		// FIXME : Need to decide an laternative for this
 		return instructionList.pollFirst();
 	}
 
-	public void setProgramCounter(Long instructionPointer) 
+	public void setProgramCounter(int index, long instructionPointer) 
 	{
-		for(Instruction i : instructionList)
-		{
-			i.setProgramCounter(instructionPointer);
-		}
+		instructionList.get(index).setProgramCounter(instructionPointer);
 	}
 	
 	synchronized public int getListSize()
@@ -112,11 +109,6 @@ public class MicroOpsList
 		return instructionList.size();
 	}
 	
-	public Instruction accelarateInstruction()
-	{
-		return instructionList.getFirst();
-	}
-
 	/*public SynchronizationObject getSyncObject2() {
 		return syncObject2;
 	}*/

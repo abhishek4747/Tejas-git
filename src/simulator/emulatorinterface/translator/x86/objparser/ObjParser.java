@@ -27,6 +27,7 @@ import emulatorinterface.translator.x86.instruction.InstructionClass;
 import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.InstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
+import emulatorinterface.translator.x86.registers.Registers;
 import generic.MicroOpsList;
 import generic.InstructionTable;
 import generic.Operand;
@@ -130,10 +131,7 @@ public class ObjParser
 			
 
 			// Riscify current instruction
-			microOpsIndex = microOpsList.length();
-			
-			// Decode instruction
-			riscifyInstruction( instructionPointer, 
+			microOpsIndex = riscifyInstruction( instructionPointer, 
 					instructionPrefix, operation, 
 					operand1, operand2, operand3, 
 					instructionClassTable, microOpsList);
@@ -143,26 +141,32 @@ public class ObjParser
 		}
 
 		// close the buffered reader
-		try {
-			input.close();
-		} catch (IOException ioe) {
-			Error.showErrorAndExit("\n\tError in closing the buffered reader !!");
-		}
-
+		try {input.close();}
+		catch (IOException ioe) {Error.showErrorAndExit("\n\tError in closing the buffered reader !!");}
+		
+		System.out.print("\n\tProgram statically parsed.\n");
+		System.out.print("\n\tIts microOps list ...\n");
+		microOpsList.printList();
+				
 		return instructionTable;
 	}
 
-	private static void riscifyInstruction(
+	private static long riscifyInstruction(
 			long instructionPointer, String instructionPrefix, String operation, 
 			String operand1Str, String operand2Str, String operand3Str, 
 			InstructionClassTable instructionClassTable, MicroOpsList microOpsList) 
 	{
+		int microOpsIndex = microOpsList.length();
+		
 		//Determine the instruction class for this instruction
 		InstructionClass instructionClass;
 		instructionClass = InstructionClassTable.getInstructionClass(operation);
 		
 		// Simplify the operands
 		Operand operand1, operand2, operand3;
+		
+		Registers.noOfIntTempRegs = 0;
+		Registers.noOfFloatTempRegs = 0;
 		
 		operand1 = OperandTranslator.simplifyOperand(operand1Str, microOpsList);
 		operand2 = OperandTranslator.simplifyOperand(operand2Str, microOpsList);
@@ -178,6 +182,14 @@ public class ObjParser
 		{
 			handler.handle(instructionPointer, operand1, operand2, operand3, microOpsList);
 		}
+		
+		//now set the ip of all converted instructions to instructionPointer
+		for(int i=microOpsIndex; i<microOpsList.length(); i++)
+		{
+			microOpsList.setProgramCounter(i, instructionPointer);
+		}
+		
+		return microOpsIndex;
 	}
 	
 	//return true if the string is a valid instruction prefix

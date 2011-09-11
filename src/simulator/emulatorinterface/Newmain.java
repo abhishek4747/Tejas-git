@@ -1,6 +1,7 @@
 package emulatorinterface;
 
 
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -55,6 +56,9 @@ public class Newmain {
 		InstructionTable instructionTable;
 		instructionTable = ObjParser
 				.buildStaticInstructionTable(executableFile);
+		
+		// No need to run the complete program.
+		System.exit(0);
 
 		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
