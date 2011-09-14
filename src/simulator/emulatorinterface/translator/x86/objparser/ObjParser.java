@@ -340,11 +340,14 @@ public class ObjParser
 		int microOpIndex;
 		Instruction microOp;
 		
+		//check all dynamicInstructions
 		while(!dynamicInstructionBuffer.isEmpty())
 		{
+			// get next dynamic Instruction
 			dynamicInstruction = dynamicInstructionBuffer.getNextDynamicInstruction();
 			currentInstructionPointer = dynamicInstruction.getInstructionPointer();
 			
+			// print dynamic Instruction
 			System.out.print(dynamicInstruction);
 			
 			microOpIndex = instructionTable.getInstruction(currentInstructionPointer);
@@ -353,19 +356,18 @@ public class ObjParser
 			if(microOpIndex == -1)
 				continue;
 			
-			System.out.print("\n\tStart microOp index = " + microOpIndex );
-			
 			while(true)
 			{
 				microOp = microOpsList.get(microOpIndex);
 				
-				if((microOp == null) || 
+				// if microOp was the last microOp in the file, it returns null
+				if((microOp == null) ||
 						(microOp.getProgramCounter() != currentInstructionPointer))
 				{
 					break;
 				}
 				
-				System.out.print("\n microOp = " + microOp);
+				System.out.print("\n microOpIndex (" + microOpIndex + ") :" + microOp);
 				microOpIndex++;
 			}
 		}
