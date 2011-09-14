@@ -358,7 +358,8 @@ public class RunnableThread implements Runnable {
 	}
 
 	private DynamicInstruction configurePackets(Vector<Packet> vectorPacket,
-			int tid2, int tidEmu) {
+			int tid2, int tidEmu) 
+	{
 		Packet p;
 		Vector<Long> memReadAddr = new Vector<Long>();
 		Vector<Long> memWriteAddr = new Vector<Long>();

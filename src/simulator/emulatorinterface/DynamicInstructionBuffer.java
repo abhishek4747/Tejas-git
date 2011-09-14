@@ -23,16 +23,24 @@ package emulatorinterface;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Vector;
+
+import emulatorinterface.communication.Packet;
+import generic.BranchInstr;
 
 
 public class DynamicInstructionBuffer 
 {
-	private Queue<DynamicInstruction> queue;
-
+	private Queue<Vector<Packet>> memReadQueue = null;
+	private Queue<Vector<Packet>> memWriteQueue = null;
+	private Queue<Packet> branchQueue = null;
+	
 	public DynamicInstructionBuffer() 
 	{
 		// Create max number of queues
-		queue = new LinkedList<DynamicInstruction>();
+		memReadQueue = new LinkedList<Vector<Packet>>();
+		memWriteQueue = new LinkedList<Vector<Packet>>();
+		branchQueue = new LinkedList<Packet>();
 	}
 
 	/*
@@ -49,84 +57,157 @@ public class DynamicInstructionBuffer
 	 * has a source register value 7 - means "tgt" has a destination register
 	 * value
 	 */
-	
-	/*
-	public void configurePackets(Vector<Packet> buildDynamicInstruction, int tid, int tidEmu) 
+
+	public void configurePackets(Vector<Packet> vectorPacket,
+			int tid2, int tidEmu) 
 	{
 		Packet p;
-		Vector<Long> memReadAddr = new Vector<Long>();
-		Vector<Long> memWriteAddr = new Vector<Long>();
-		Vector<Long> srcRegs = new Vector<Long>();
-		Vector<Long> dstRegs = new Vector<Long>();
+		Vector<Packet> memReadAddr = new Vector<Packet>();
+		Vector<Packet> memWriteAddr = new Vector<Packet>();
+		Packet branchPacket = null;
 
-		long ip = buildDynamicInstruction.elementAt(0).ip;
-		boolean taken = false;
-		long branchTargetAddress = 0;
-		for (int i = 0; i < buildDynamicInstruction.size(); i++) {
-			p = buildDynamicInstruction.elementAt(i);
+		long ip = vectorPacket.elementAt(0).ip;
+		
+		for (int i = 0; i < vectorPacket.size(); i++) 
+		{
+			p = vectorPacket.elementAt(i);
 			assert (ip == p.ip) : "all instruction pointers not matching";
-			switch (p.value) {
-			case (-1):
-				break;
-			case (0):
-				assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
-				break;
-			case (1):
-				assert (false) : "The value is reserved for locks";
-				break;
-			case (2):
-				memReadAddr.add(p.tgt);
-				break;
-			case (3):
-				memWriteAddr.add(p.tgt);
-				break;
-			case (4):
-				taken = true;
-				branchTargetAddress = p.tgt;
-				break;
-			case (5):
-				taken = false;
-				branchTargetAddress = p.tgt;
-				break;
-			case (6):
-				srcRegs.add(p.tgt);
-				break;
-			case (7):
-				dstRegs.add(p.tgt);
-				break;
-			default:
-				assert (false) : "error in configuring packets";
+			switch (p.value) 
+			{
+				case (-1):
+					break;
+				
+				case (0):
+					assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
+					break;
+					
+				case (1):
+					assert (false) : "The value is reserved for locks";
+					break;
+					
+				case (2):
+					memReadAddr.add(p);
+					break;
+					
+				case (3):
+					memWriteAddr.add(p);
+					break;
+					
+				case (4):
+					branchPacket = p;
+					break;
+					
+				case (5):
+					branchPacket = p;
+					break;
+					
+				default:
+					assert (false) : "error in configuring packets";
 			}
 		}
-
-		queue.add(new DynamicInstruction(ip, tidEmu, taken,
-				branchTargetAddress, memReadAddr, memWriteAddr, srcRegs,
-				dstRegs));
-	}
-	*/
-
-	public void addDynamicInstruction(DynamicInstruction dynamicInstruction) 
-	{
-		queue.add(dynamicInstruction);
-	}
-
-	public DynamicInstruction getNextDynamicInstruction() 
-	{
-		try
+		
+		if(!memReadAddr.isEmpty())
 		{
-			return queue.poll();
-		} 
-		catch (Exception exception) 
+			this.memReadQueue.add(memReadAddr);
+		}
+		
+		if(!memWriteAddr.isEmpty())
 		{
-			misc.Error.showErrorAndExit("\n\tThread "
-					+ " unable to obtain next dynamic operation !!");
-			
-			return null;
+			this.memWriteQueue.add(memWriteAddr);
+		}
+		
+		if(branchPacket != null)
+		{
+			this.branchQueue.add(branchPacket);
 		}
 	}
-
-	public boolean isEmpty() 
+	
+	public BranchInstr getBranchPacket(long instructionPointer)
 	{
-		return queue.isEmpty();
+		Packet headPacket = null;
+		
+		while(!branchQueue.isEmpty())
+		{
+			headPacket = branchQueue.poll();
+			
+			if(headPacket.ip == instructionPointer)
+			{
+				return new BranchInstr(headPacket.value==4, headPacket.tgt);
+			}
+			else
+			{
+				System.out.print("\n\tExtra instruction found !!\n");
+				System.exit(0);
+			}
+		}
+		
+		return null;
 	}
+	
+	public LinkedList<Long> getmemoryReadAddress(long instructionPointer)
+	{
+		Vector<Packet> headPacket = null;
+		
+		while(!memReadQueue.isEmpty())
+		{
+			headPacket = memReadQueue.poll();
+			
+			// check the ip of this instruction
+			if(headPacket.get(0).ip == instructionPointer)
+			{
+				// read Addresses contains all addresses read by this instruction.
+				LinkedList<Long> readAddessList = new LinkedList<Long>();
+				long readAddress;
+				
+				while(!headPacket.isEmpty())
+				{
+					readAddress = ((Queue<Packet>) headPacket).poll().tgt;
+					readAddessList.add(readAddress);
+				}
+				
+				return readAddessList;
+			}
+			else
+			{
+				System.out.print("\n\tExtra instruction found !!\n");
+				System.exit(0);
+			}
+		}
+		
+		return null;
+	}
+	
+	public LinkedList<Long> getmemoryWriteAddress(long instructionPointer)
+	{
+		Vector<Packet> headPacket = null;
+		
+		while(!memWriteQueue.isEmpty())
+		{
+			headPacket = memWriteQueue.poll();
+			
+			// check the ip of this instruction
+			if(headPacket.get(0).ip == instructionPointer)
+			{
+				// read Addresses contains all addresses read by this instruction.
+				LinkedList<Long> writeAddessList = new LinkedList<Long>();
+				long writeAddress;
+				
+				while(!headPacket.isEmpty())
+				{
+					writeAddress = ((Queue<Packet>) headPacket).poll().tgt;
+					writeAddessList.add(writeAddress);
+				}
+				
+				return writeAddessList;
+			}
+			else
+			{
+				System.out.print("\n\tExtra instruction found !!\n");
+				System.exit(0);
+			}
+		}
+		
+		return null;
+	}
+
 }
