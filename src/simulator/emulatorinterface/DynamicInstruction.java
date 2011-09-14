@@ -120,15 +120,18 @@ public class DynamicInstruction {
 		this.destinationRegister = destinationRegister;
 	}
 
-	public String toString() {
+	public String toString() 
+	{
 
-		return ("\ninstructionPointer=" + instructionPointer + "\tthreadId=" + threadId
-				+ "\nbranchTaken=" + branchTaken + "\tbranchTargetAddress=" + branchTargetAddress +
+		return (  "\n" + String.format("%-180s", " ").replace(" ", "-")
+				+ "\nDynamicInstruction ..."
+			    + "\ninstructionPointer=" + Long.toHexString(instructionPointer) + "\tthreadId=" + threadId
+				+ "\nbranchTaken=" + branchTaken + "\tbranchTargetAddress=" + Long.toHexString(branchTargetAddress) +
 
 				"\ndestinationRegister=" + destinationRegister
 				+ "\tsourceRegisters=" + sourceRegisters +
 
 				"\nmemoryReadAddress=" + memoryReadAddress
-				+ "\tmemoryWriteAddress=" + memoryWriteAddress);
+				+ "\tmemoryWriteAddress=" + memoryWriteAddress + "\n");
 	}
 }

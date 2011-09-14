@@ -42,25 +42,34 @@ public class MicroOpsList
 	}
 
 	//appends a single instruction to the instruction list
-	synchronized public void appendInstruction(Instruction newInstruction)
+	public void appendInstruction(Instruction newInstruction)
 	{
 		microOpsList.add(newInstruction);
 	}
 	
 	//appends a list of instructions to the instruction list
-	synchronized public void appendInstruction(MicroOpsList microOpsList)
+	public void appendInstruction(MicroOpsList microOpsList)
 	{
 		this.microOpsList.addAll(microOpsList.microOpsList);	
 	}
 
-	synchronized public boolean isEmpty()
+	public boolean isEmpty()
 	{
 		return microOpsList.isEmpty();
 	}
 	
 	public Instruction get(int index)
 	{
-		return microOpsList.get(index);
+		// For the last instruction of the file, we will have to return null,
+		// otherwise, we will encounter an Exception.
+		if(index >= microOpsList.size())
+		{
+			return null;
+		}
+		else
+		{
+			return microOpsList.get(index);
+		}
 	}
 	
 	public void printList() 
@@ -84,7 +93,7 @@ public class MicroOpsList
 		}
 	}
 	
-	synchronized public Instruction pollFirst()
+	public Instruction pollFirst()
 	{
 		// FIXME : Need to decide an laternative for this
 		return microOpsList.pollFirst();
@@ -95,12 +104,12 @@ public class MicroOpsList
 		microOpsList.get(index).setProgramCounter(instructionPointer);
 	}
 	
-	synchronized public int getListSize()
+	public int getListSize()
 	{
 		return microOpsList.size();
 	}
 	
-	synchronized public Instruction peekInstructionAt(int position)
+	public Instruction peekInstructionAt(int position)
 	{
 		return microOpsList.get(position);
 	}

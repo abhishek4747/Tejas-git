@@ -22,12 +22,14 @@
 package emulatorinterface.translator.x86.objparser;
 
 
+import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.translator.x86.instruction.InstructionClass;
 import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.InstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
+import generic.Instruction;
 import generic.MicroOpsList;
 import generic.InstructionTable;
 import generic.Operand;
@@ -331,67 +333,41 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 
-	public static MicroOpsList translateInstruction(long startInstructionPointer,
-			DynamicInstructionBuffer dynamicInstructionBuffer) 
+	public static MicroOpsList translateInstruction(DynamicInstructionBuffer dynamicInstructionBuffer)
 	{
-		int pcIndex = instructionTable.getInstruction(startInstructionPointer);
-		boolean flag = false;
+		DynamicInstruction dynamicInstruction;
+		long currentInstructionPointer;
+		int microOpIndex;
+		Instruction microOp;
 		
-		while(true)
+		while(!dynamicInstructionBuffer.isEmpty())
 		{
-			switch(microOpsList.get(pcIndex).getOperationType())
-			{
-				case inValid:
-					break;
-					
-				case integerALU:
-					break;
-					
-				case integerMul:
-					break;
-					
-				case integerDiv:
-					break;
-					
-				case floatALU:
-					break;
-					
-				case floatMul:
-					break;
-					
-				case floatDiv:
-					break;
-					
-				case load:
-					break;
-					
-				case store:
-					break;
-					
-				case jump:
-					break;
-					
-				case branch:
-					break;
-					
-				case mov:
-					break;
-					
-				case xchg:
-					break;
-					
-				case acceleratedOp:
-					break;
-					
-				case nop:
-					break;
-					
-				default:
-					break;
-			}
+			dynamicInstruction = dynamicInstructionBuffer.getNextDynamicInstruction();
+			currentInstructionPointer = dynamicInstruction.getInstructionPointer();
 			
-			if(flag == true)
-				break;
+			System.out.print(dynamicInstruction);
+			
+			microOpIndex = instructionTable.getInstruction(currentInstructionPointer);
+			
+			//if the instruction has not been decoded before, continue to next instruction.
+			if(microOpIndex == -1)
+				continue;
+			
+			System.out.print("\n\tStart microOp index = " + microOpIndex );
+			
+			while(true)
+			{
+				microOp = microOpsList.get(microOpIndex);
+				
+				if((microOp == null) || 
+						(microOp.getProgramCounter() != currentInstructionPointer))
+				{
+					break;
+				}
+				
+				System.out.print("\n microOp = " + microOp);
+				microOpIndex++;
+			}
 		}
 		
 		return null;

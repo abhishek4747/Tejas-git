@@ -23,8 +23,6 @@ package emulatorinterface;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Vector;
-import emulatorinterface.communication.Packet;
 
 
 public class DynamicInstructionBuffer 
@@ -51,6 +49,8 @@ public class DynamicInstructionBuffer
 	 * has a source register value 7 - means "tgt" has a destination register
 	 * value
 	 */
+	
+	/*
 	public void configurePackets(Vector<Packet> buildDynamicInstruction, int tid, int tidEmu) 
 	{
 		Packet p;
@@ -103,28 +103,29 @@ public class DynamicInstructionBuffer
 				branchTargetAddress, memReadAddr, memWriteAddr, srcRegs,
 				dstRegs));
 	}
+	*/
 
 	public void addDynamicInstruction(DynamicInstruction dynamicInstruction) 
 	{
 		queue.add(dynamicInstruction);
 	}
 
-	public DynamicInstruction getNextDynamicInstruction(int threadID) 
+	public DynamicInstruction getNextDynamicInstruction() 
 	{
-		try 
+		try
 		{
 			return queue.poll();
 		} 
 		catch (Exception exception) 
 		{
-			misc.Error.showErrorAndExit("\n\tThread " + threadID
+			misc.Error.showErrorAndExit("\n\tThread "
 					+ " unable to obtain next dynamic operation !!");
 			
 			return null;
 		}
 	}
 
-	public boolean isEmpty(int threadID) 
+	public boolean isEmpty() 
 	{
 		return queue.isEmpty();
 	}

@@ -4,11 +4,8 @@
 
 package emulatorinterface.communication.shm;
 
-import java.io.IOException;
+
 import java.util.Vector;
-
-import config.SimulationConfig;
-
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.Newmain;
@@ -104,6 +101,12 @@ public class RunnableThread implements Runnable {
 		int noOfFusedInstructions = 0;
 		
 		DynamicInstructionBuffer[] dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
+		//FIXME: Hack - added for 50 thread only. 50 must be replaced by MAX_THREADS
+		for (long i=0; i<50; i++)
+		{
+			dynamicInstructionBuffer[0] = new DynamicInstructionBuffer();
+		}
+		
 		//FIXME:
 		boolean breakLoop = false;
 		
@@ -178,14 +181,14 @@ public class RunnableThread implements Runnable {
 						(SharedMem.numInstructions[tid])++;
 						
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
-						configurePackets(vectorPacket, tid, tid_emu);
-												
-												
+						DynamicInstruction dynamicInstruction = null;
+						dynamicInstruction = configurePackets(vectorPacket, tid, tid_emu);
+						dynamicInstructionBuffer[emuid].addDynamicInstruction(dynamicInstruction);
+						
 						//TODO This instructionList must be provided to raj's code
 						MicroOpsList fusedInstructions = null;
 						Newmain.instructionCount ++;
-						
-						fusedInstructions = ObjParser.translateInstruction(0,dynamicInstructionBuffer[emuid]);
+						ObjParser.translateInstruction(dynamicInstructionBuffer[emuid]);
 						
 						
 						if(fusedInstructions != null && pipelineDone == false)

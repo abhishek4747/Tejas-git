@@ -47,8 +47,8 @@ public class Newmain {
 		// Create a hash-table for the static representation of the executable
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
-		// No need to run the complete program.
-		System.exit(0);
+//		// No need to run the complete program.
+//		System.exit(0);
 
 		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();

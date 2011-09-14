@@ -41,6 +41,14 @@ public class InstructionTable
 	
 	public int getInstruction(Long instructionPointer)
 	{
-		return instructionHashTable.get(instructionPointer);
+		try
+		{
+			return instructionHashTable.get(instructionPointer);	
+		}
+		catch(Exception exception)
+		{
+			return -1;
+		}
+		
 	}
 }
