@@ -148,8 +148,8 @@ public class ObjParser
 		catch (IOException ioe) {Error.showErrorAndExit("\n\tError in closing the buffered reader !!");}
 		
 		System.out.print("\n\tProgram statically parsed.\n");
-		System.out.print("\n\tIts microOps list ...\n");
-		microOpsList.printList();
+		//System.out.print("\n\tIts microOps list ...\n");
+		//microOpsList.printList();
 	}
 
 	private static int riscifyInstruction(
@@ -365,5 +365,7 @@ public class ObjParser
 				break;
 			}
 		}
+		
+		dynamicInstructionBuffer.clearBuffer();
 	}
 }

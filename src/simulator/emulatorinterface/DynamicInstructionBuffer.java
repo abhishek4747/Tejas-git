@@ -206,4 +206,10 @@ public class DynamicInstructionBuffer
 		return null;
 	}
 
+	public void clearBuffer() 
+	{
+		this.branchQueue.clear();
+		this.memReadQueue.clear();
+		this.memWriteQueue.clear();
+	}
 }

@@ -22,7 +22,6 @@
 package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.operand.OperandTranslator;
-import emulatorinterface.translator.x86.registers.Registers;
 import generic.Operand;
 import generic.MicroOpsList;
 import generic.Instruction;
@@ -49,7 +48,7 @@ public class UnconditionalJump implements InstructionHandler
 			{
 				//near jump : jumpLocation = instruction-pointer + operand1
 				jumpLocation = operand1;
-				microOpsList.appendInstruction(Instruction.getIntALUInstruction(Registers.getInstructionPointer(), operand1, jumpLocation));
+				//microOpsList.appendInstruction(Instruction.getIntALUInstruction(Registers.getInstructionPointer(), operand1, jumpLocation));
 			}
 
 			//jump to this location
