@@ -101,11 +101,6 @@ public class Operand
 		return (this.type == OperandType.floatRegister);
 	}
 	
-//	public boolean isInvalidOperand()
-//	{
-//		return (this.type == OperandType.inValid);
-//	}
-	
 	public static Operand getIntegerRegister(long value)
 	{
 		return new Operand(OperandType.integerRegister, value);
@@ -130,18 +125,9 @@ public class Operand
 	{
 		return new Operand(OperandType.memory, -1, memoryOperand1, memoryOperand2);
 	}
-/*	
-	public void setMemoryAddress(long memoryAddress)
-	{
-		if(!this.isMemoryOperand())
-			misc.Error.showErrorAndExit("\n\tCannot set memory address for a non-memory operand !!");
-		
-		this.value = memoryAddress;
-	}
 
-	public void setBranchAddress(long branchTargetAddress) 
+	public void setValue(long value) 
 	{
-		this.value = branchTargetAddress;
+		this.value = value; 
 	}
-*/
 }

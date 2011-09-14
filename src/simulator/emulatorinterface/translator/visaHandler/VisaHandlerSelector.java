@@ -2,7 +2,6 @@ package emulatorinterface.translator.visaHandler;
 
 import generic.OperationType;
 
-import java.util.Hashtable;
 
 public class VisaHandlerSelector
 {
@@ -34,35 +33,73 @@ public class VisaHandlerSelector
 		switch(operationType)
 		{
 			case inValid:
-				break;
+				return inValid;
+
 			case integerALU:
-				break;
+				return integerALU;
+				
 			case integerMul:
-				break;
+				return integerMul;
+				
 			case integerDiv:
-				break;
+				return integerDiv;
+
 			case floatALU:
-				break;
+				return floatALU;
+				
 			case floatMul:
-				break;
+				return floatMul;
+				
 			case floatDiv:
-				break;
+				return floatDiv;
+				
 			case load:
-				break;
+				return load;
+				
 			case store:
-				break;
+				return store;
+				
 			case jump:
-				break;
+				return jump;
+				
 			case branch:
-				break;
+				return branch;
+				
 			case mov:
-				break;
+				return mov;
+				
 			case xchg:
-				break;
+				return xchg;
+				
 			case acceleratedOp:
-				break;
+				return acceleratedOp;
+				
 			case nop:
-				break;
+				return nop;
+				
+			default:
+				System.out.print("Invalid operation");
+				System.exit(0);
+				return null;
 		}
+	}
+
+	private void createVisaHandlers() 
+	{
+		inValid = new Invalid();
+		integerALU = new IntegerALU();
+		integerMul = new IntegerMul();
+		integerDiv = new IntegerDiv();
+		floatALU = new FloatALU();
+		floatMul = new FloatMul();
+		floatDiv = new FloatDiv();
+		load = new Load();
+		store = new Store();
+		jump = new Jump();
+		branch = new Branch();
+		mov = new Mov();
+		xchg = new Xchg();
+		acceleratedOp = new AcceleratedOp();
+		nop = new NOP();
 	}
 }

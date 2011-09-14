@@ -191,10 +191,19 @@ public class Instruction {
 	{
 		return new Instruction(OperationType.load, memoryLocation,	null, destinationRegister);
 	}
-	
 
 	public static Instruction getStoreInstruction(Operand memoryLocation, Operand sourceOperand)
 	{
 		return new Instruction(OperationType.store, memoryLocation, sourceOperand, null);
+	}
+	
+	public Operand getOperand1()
+	{
+		return sourceOperand1;
+	}
+
+	public Operand getOperand2()
+	{
+		return sourceOperand2;
 	}
 }
