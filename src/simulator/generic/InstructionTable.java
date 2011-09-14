@@ -39,7 +39,7 @@ public class InstructionTable
 		instructionHashTable.put(instructionPointer, index);
 	}
 	
-	public int getInstruction(Long instructionPointer)
+	public int getMicroOpIndex(Long instructionPointer)
 	{
 		try
 		{

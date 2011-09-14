@@ -333,45 +333,31 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 
-	public static MicroOpsList translateInstruction(DynamicInstructionBuffer dynamicInstructionBuffer)
+	public static void translateInstruction(long startInstructionPointer,
+			DynamicInstructionBuffer dynamicInstructionBuffer)
 	{
-		DynamicInstruction dynamicInstruction;
-		long currentInstructionPointer;
 		int microOpIndex;
 		Instruction microOp;
 		
-		//check all dynamicInstructions
-		while(!dynamicInstructionBuffer.isEmpty())
+		microOpIndex = instructionTable.getMicroOpIndex(startInstructionPointer);
+		if(microOpIndex==-1)
 		{
-			// get next dynamic Instruction
-			dynamicInstruction = dynamicInstructionBuffer.getNextDynamicInstruction();
-			currentInstructionPointer = dynamicInstruction.getInstructionPointer();
-			
-			// print dynamic Instruction
-			System.out.print(dynamicInstruction);
-			
-			microOpIndex = instructionTable.getInstruction(currentInstructionPointer);
-			
-			//if the instruction has not been decoded before, continue to next instruction.
-			if(microOpIndex == -1)
-				continue;
-			
-			while(true)
-			{
-				microOp = microOpsList.get(microOpIndex);
-				
-				// if microOp was the last microOp in the file, it returns null
-				if((microOp == null) ||
-						(microOp.getProgramCounter() != currentInstructionPointer))
-				{
-					break;
-				}
-				
-				System.out.print("\n microOpIndex (" + microOpIndex + ") :" + microOp);
-				microOpIndex++;
-			}
+			return;
 		}
 		
-		return null;
+		while(true)
+		{
+			microOp = microOpsList.get(microOpIndex); 
+			if(microOp==null || 
+					(microOp.getProgramCounter() != startInstructionPointer))
+			{
+				break;
+			}
+			
+			
+			System.out.print("\nmicroOp(" + microOpIndex + ") : " + microOp);
+			
+			microOpIndex++;
+		}
 	}
 }
