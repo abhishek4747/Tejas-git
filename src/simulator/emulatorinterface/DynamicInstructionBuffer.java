@@ -157,12 +157,10 @@ public class DynamicInstructionBuffer
 			{
 				// read Addresses contains all addresses read by this instruction.
 				LinkedList<Long> readAddessList = new LinkedList<Long>();
-				long readAddress;
-				
-				while(!headPacket.isEmpty())
+
+				for(int i=0; i<headPacket.size(); i++)
 				{
-					readAddress = ((Queue<Packet>) headPacket).poll().tgt;
-					readAddessList.add(readAddress);
+					readAddessList.add(headPacket.get(i).tgt);
 				}
 				
 				return readAddessList;
@@ -190,14 +188,12 @@ public class DynamicInstructionBuffer
 			{
 				// read Addresses contains all addresses read by this instruction.
 				LinkedList<Long> writeAddessList = new LinkedList<Long>();
-				long writeAddress;
-				
-				while(!headPacket.isEmpty())
+								
+				for(int i=0; i<headPacket.size(); i++)
 				{
-					writeAddress = ((Queue<Packet>) headPacket).poll().tgt;
-					writeAddessList.add(writeAddress);
+					writeAddessList.add(headPacket.get(i).tgt);
 				}
-				
+								
 				return writeAddessList;
 			}
 			else
