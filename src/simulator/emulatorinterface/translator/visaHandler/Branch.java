@@ -12,17 +12,24 @@ public class Branch implements VisaHandler
 	{
 		BranchInstr branchInstruction;
 		branchInstruction = dynamicInstructionBuffer.getBranchPacket(microOp.getProgramCounter()); 
-		
-		microOp.setBranchTaken(branchInstruction.branchTaken);
-		microOp.setBranchTargetAddress(branchInstruction.branchAddress);
-		
-		if(branchInstruction.branchTaken == true)
+
+		if(branchInstruction != null)
 		{
-			return instructionTable.getMicroOpIndex(branchInstruction.branchAddress);
+			microOp.setBranchTaken(branchInstruction.branchTaken);
+			microOp.setBranchTargetAddress(branchInstruction.branchAddress);
+			
+			if(branchInstruction.branchTaken == true)
+			{
+				return instructionTable.getMicroOpIndex(branchInstruction.branchAddress);
+			}
+			else
+			{
+				return ++microOpIndex;
+			}
 		}
 		else
 		{
-			return ++microOpIndex;
+			return -1;
 		}
 	}
 }

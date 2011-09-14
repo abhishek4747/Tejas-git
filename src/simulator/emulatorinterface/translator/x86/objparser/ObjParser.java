@@ -349,14 +349,21 @@ public class ObjParser
 		while(true)
 		{
 			microOp = microOpsList.get(microOpIndex); 
-			if(microOp==null ||	(microOp.getProgramCounter() != startInstructionPointer))
-			{break;}
+			if(microOp==null)
+			{continue;}
 			
 			visaHandler = VisaHandlerSelector.selectHandler(microOp.getOperationType());
 			
 			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOp, dynamicInstructionBuffer);
 
-			System.out.print("\nmicroOp(" + microOpIndex + ") : " + microOp);
+			if(microOpIndex != -1)
+			{
+				System.out.print("\nmicroOp(" + microOpIndex + ") : " + microOp);
+			}
+			else
+			{
+				break;
+			}
 		}
 	}
 }

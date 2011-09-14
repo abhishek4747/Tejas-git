@@ -16,8 +16,14 @@ public class Load implements VisaHandler
 		memoryReadAddress = dynamicInstructionBuffer.
 				getmemoryReadAddress(microOp.getProgramCounter());
 		
-		microOp.getOperand1().setValue(memoryReadAddress.poll());
-		
-		return ++microOpIndex;
+		if(memoryReadAddress != null)
+		{
+			microOp.getOperand1().setValue(memoryReadAddress.poll());
+			return ++microOpIndex;
+		}
+		else
+		{
+			return -1;
+		}
 	}
 }
