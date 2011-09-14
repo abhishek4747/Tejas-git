@@ -2,12 +2,13 @@ package emulatorinterface.translator.visaHandler;
 
 import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
+import generic.InstructionTable;
 
 public class AcceleratedOp implements VisaHandler 
 {
-	public long handle(Instruction microOp,
-			DynamicInstructionBuffer dynamicInstructionBuffer) 
+	public int handle(int microOpIndex, InstructionTable instructionTable,
+			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
-		return -1;
+		return ++microOpIndex;
 	}
 }

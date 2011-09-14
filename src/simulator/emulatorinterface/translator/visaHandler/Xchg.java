@@ -2,14 +2,14 @@ package emulatorinterface.translator.visaHandler;
 
 import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
+import generic.InstructionTable;
 
 public class Xchg implements VisaHandler 
 {
-	public long handle(Instruction microOp,
-			DynamicInstructionBuffer dynamicInstructionBuffer) 
+	public int handle(int microOpIndex, InstructionTable instructionTable,
+			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
 		//nothing to be done in such cases
-		return microOp.getProgramCounter();
+		return ++microOpIndex;
 	}
-
 }

@@ -2,6 +2,7 @@ package emulatorinterface.translator.visaHandler;
 
 import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
+import generic.InstructionTable;
 
 public interface VisaHandler 
 {
@@ -9,5 +10,6 @@ public interface VisaHandler
 	// It takes an Instruction and a DynamicInstructionBuffer, changes microOp appropriately.
 	// It will raise an error and terminate if it is not able to get an expected value, from
 	// dynamicInstructionBuffer.
-	public long handle(Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer);
+	public int handle(int microOpIndex, InstructionTable instructionTable,
+			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer);
 }

@@ -21,7 +21,7 @@ public class VisaHandlerSelector
 	private static VisaHandler acceleratedOp;
 	private static VisaHandler nop;
 
-	public VisaHandler selectHandler(OperationType operationType)
+	public static VisaHandler selectHandler(OperationType operationType)
 	{
 		// if the handlers are not defined in the beginning, we
 		// must initialise them.
@@ -84,7 +84,7 @@ public class VisaHandlerSelector
 		}
 	}
 
-	private void createVisaHandlers() 
+	private static void createVisaHandlers() 
 	{
 		inValid = new Invalid();
 		integerALU = new IntegerALU();

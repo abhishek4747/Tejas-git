@@ -21,9 +21,9 @@
 
 package emulatorinterface.translator.x86.objparser;
 
-
-import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
+import emulatorinterface.translator.visaHandler.VisaHandler;
+import emulatorinterface.translator.visaHandler.VisaHandlerSelector;
 import emulatorinterface.translator.x86.instruction.InstructionClass;
 import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.InstructionHandler;
@@ -338,6 +338,7 @@ public class ObjParser
 	{
 		int microOpIndex;
 		Instruction microOp;
+		VisaHandler visaHandler;
 		
 		microOpIndex = instructionTable.getMicroOpIndex(startInstructionPointer);
 		if(microOpIndex==-1)
@@ -348,16 +349,14 @@ public class ObjParser
 		while(true)
 		{
 			microOp = microOpsList.get(microOpIndex); 
-			if(microOp==null || 
-					(microOp.getProgramCounter() != startInstructionPointer))
-			{
-				break;
-			}
+			if(microOp==null ||	(microOp.getProgramCounter() != startInstructionPointer))
+			{break;}
 			
+			visaHandler = VisaHandlerSelector.selectHandler(microOp.getOperationType());
 			
+			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOp, dynamicInstructionBuffer);
+
 			System.out.print("\nmicroOp(" + microOpIndex + ") : " + microOp);
-			
-			microOpIndex++;
 		}
 	}
 }
