@@ -178,15 +178,15 @@ public class RunnableThread implements Runnable {
 						(SharedMem.numInstructions[tid])++;
 						
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
-						DynamicInstruction dynamicInstruction = configurePackets(vectorPacket, tid, tid_emu);
-						dynamicInstructionBuffer[emuid].addDynamicInstruction(dynamicInstruction);
-						
+						configurePackets(vectorPacket, tid, tid_emu);
+												
 												
 						//TODO This instructionList must be provided to raj's code
 						MicroOpsList fusedInstructions = null;
 						Newmain.instructionCount ++;
 						
-						//fusedInstructions = ObjParser.translateInstruction(SharedMem.insTable, dynamicInstructionBuffer[emuid]);
+						fusedInstructions = ObjParser.translateInstruction(0,dynamicInstructionBuffer[emuid]);
+						
 						
 						if(fusedInstructions != null && pipelineDone == false)
 						{

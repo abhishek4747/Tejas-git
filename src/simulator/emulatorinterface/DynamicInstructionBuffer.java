@@ -24,30 +24,17 @@ package emulatorinterface;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
-
 import emulatorinterface.communication.Packet;
-import generic.BranchInstr;
 
-
-
-/*
-ip-MemoryReadAddress
-ip-MemoryWriteAddress
-ip-taken/not-BranchAddress
-*/
 
 public class DynamicInstructionBuffer 
 {
-	private Queue<Packet> memReadQueue;
-	private Queue<Packet> memWriteQueue;
-	private Queue<Packet> branchQueue;
+	private Queue<DynamicInstruction> queue;
 
-	
 	public DynamicInstructionBuffer() 
 	{
-		memReadQueue = new LinkedList<Packet>();
-		memWriteQueue = new LinkedList<Packet>();
-		branchQueue = new LinkedList<Packet>();
+		// Create max number of queues
+		queue = new LinkedList<DynamicInstruction>();
 	}
 
 	/*
@@ -64,106 +51,81 @@ public class DynamicInstructionBuffer
 	 * has a source register value 7 - means "tgt" has a destination register
 	 * value
 	 */
-
 	public void configurePackets(Vector<Packet> buildDynamicInstruction, int tid, int tidEmu) 
 	{
 		Packet p;
+		Vector<Long> memReadAddr = new Vector<Long>();
+		Vector<Long> memWriteAddr = new Vector<Long>();
+		Vector<Long> srcRegs = new Vector<Long>();
+		Vector<Long> dstRegs = new Vector<Long>();
 
 		long ip = buildDynamicInstruction.elementAt(0).ip;
-
-		for (int i = 0; i < buildDynamicInstruction.size(); i++) 
-		{
+		boolean taken = false;
+		long branchTargetAddress = 0;
+		for (int i = 0; i < buildDynamicInstruction.size(); i++) {
 			p = buildDynamicInstruction.elementAt(i);
 			assert (ip == p.ip) : "all instruction pointers not matching";
-			switch (p.value) 
-			{
-				case (-1):
-					break;
-				
-				case (0):
-					assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
-					break;
-					
-				case (1):
-					assert (false) : "The value is reserved for locks";
-					break;
-					
-				case (2):
-					memReadQueue.add(p);
-					break;
-					
-				case (3):
-					memWriteQueue.add(p);
-					break;
-					
-				case (4):
-					branchQueue.add(p);
-					break;
-					
-				case (5):
-					branchQueue.add(p);
-					break;
-					
-				default:
-					assert (false) : "error in configuring packets";
+			switch (p.value) {
+			case (-1):
+				break;
+			case (0):
+				assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
+				break;
+			case (1):
+				assert (false) : "The value is reserved for locks";
+				break;
+			case (2):
+				memReadAddr.add(p.tgt);
+				break;
+			case (3):
+				memWriteAddr.add(p.tgt);
+				break;
+			case (4):
+				taken = true;
+				branchTargetAddress = p.tgt;
+				break;
+			case (5):
+				taken = false;
+				branchTargetAddress = p.tgt;
+				break;
+			case (6):
+				srcRegs.add(p.tgt);
+				break;
+			case (7):
+				dstRegs.add(p.tgt);
+				break;
+			default:
+				assert (false) : "error in configuring packets";
 			}
+		}
+
+		queue.add(new DynamicInstruction(ip, tidEmu, taken,
+				branchTargetAddress, memReadAddr, memWriteAddr, srcRegs,
+				dstRegs));
+	}
+
+	public void addDynamicInstruction(DynamicInstruction dynamicInstruction) 
+	{
+		queue.add(dynamicInstruction);
+	}
+
+	public DynamicInstruction getNextDynamicInstruction(int threadID) 
+	{
+		try 
+		{
+			return queue.poll();
+		} 
+		catch (Exception exception) 
+		{
+			misc.Error.showErrorAndExit("\n\tThread " + threadID
+					+ " unable to obtain next dynamic operation !!");
+			
+			return null;
 		}
 	}
 
-	public long getMemoryReadAddress(long instructionPointer)
+	public boolean isEmpty(int threadID) 
 	{
-		Packet p;
-		
-		do
-		{
-			p = memReadQueue.poll();
-			
-			if(p.ip == instructionPointer)
-			{
-				return p.tgt;
-			}
-			
-		}while(!memReadQueue.isEmpty());
-		
-		//Could not find the address in the queue
-		return -1;
-	}
-	
-	public long getMemoryWriteAddress(long instructionPointer)
-	{
-		Packet p;
-		
-		do
-		{
-			p = memWriteQueue.poll();
-			
-			if(p.ip == instructionPointer)
-			{
-				return p.tgt;
-			}
-			
-		}while(!memWriteQueue.isEmpty());
-		
-		//Could not find the address in the queue
-		return -1;
-	}
-	
-	public BranchInstr getBranchInfo(long instructionPointer)
-	{
-		Packet p;
-				
-		do
-		{
-			p = branchQueue.poll();
-			
-			if(p.ip == instructionPointer)
-			{
-				return new BranchInstr(p.value==4, p.tgt);
-			}
-			
-		}while(!branchQueue.isEmpty());
-		
-		//Could not find the address in the queue
-		return null;
+		return queue.isEmpty();
 	}
 }

@@ -59,6 +59,9 @@ public class ObjParser
 	public static long dynamicHandled = 0;
 	public static long dynamicNotHandled = 0;
 	
+	private static InstructionTable instructionTable = null;
+	private static MicroOpsList microOpsList = null;
+	
 	/**
 	* This method translates a static instruction to dynamic instruction.
 	* It takes as arguments - instructionTable, instructionPointer and dynamic
@@ -71,7 +74,7 @@ public class ObjParser
 	* @param executableFile
 	* @return
 	*/
-	public static InstructionTable buildStaticInstructionTable(String executableFile) 
+	public static void buildStaticInstructionTable(String executableFile) 
 	{
 		BufferedReader input;
 
@@ -79,7 +82,6 @@ public class ObjParser
 		input = readObjDumpOutput(executableFile);
 
 		// Create a new hash table
-		InstructionTable instructionTable;
 		instructionTable = new InstructionTable();
 
 		// Create a instruction class hash-table
@@ -92,11 +94,10 @@ public class ObjParser
 		String operation;
 		String operand1, operand2, operand3;
 		
-		MicroOpsList microOpsList;
 		microOpsList = new MicroOpsList();
 		
 		long lineNumber = 0;
-		long microOpsIndex = 0;
+		int microOpsIndex = 0;
 		
 		// Read from the obj-dump output
 		while ((line = readNextLineOfObjDump(input)) != null) 
@@ -147,11 +148,9 @@ public class ObjParser
 		System.out.print("\n\tProgram statically parsed.\n");
 		System.out.print("\n\tIts microOps list ...\n");
 		microOpsList.printList();
-				
-		return instructionTable;
 	}
 
-	private static long riscifyInstruction(
+	private static int riscifyInstruction(
 			long instructionPointer, String instructionPrefix, String operation, 
 			String operand1Str, String operand2Str, String operand3Str, 
 			InstructionClassTable instructionClassTable, MicroOpsList microOpsList) 
@@ -332,10 +331,68 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 
-	public static MicroOpsList translateInstruction(InstructionTable insTable,
+	public static MicroOpsList translateInstruction(long startInstructionPointer,
 			DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
-		Start from here..
+		int pcIndex = instructionTable.getInstruction(startInstructionPointer);
+		boolean flag = false;
+		
+		while(true)
+		{
+			switch(microOpsList.get(pcIndex).getOperationType())
+			{
+				case inValid:
+					break;
+					
+				case integerALU:
+					break;
+					
+				case integerMul:
+					break;
+					
+				case integerDiv:
+					break;
+					
+				case floatALU:
+					break;
+					
+				case floatMul:
+					break;
+					
+				case floatDiv:
+					break;
+					
+				case load:
+					break;
+					
+				case store:
+					break;
+					
+				case jump:
+					break;
+					
+				case branch:
+					break;
+					
+				case mov:
+					break;
+					
+				case xchg:
+					break;
+					
+				case acceleratedOp:
+					break;
+					
+				case nop:
+					break;
+					
+				default:
+					break;
+			}
+			
+			if(flag == true)
+				break;
+		}
 		
 		return null;
 	}

@@ -1,18 +1,11 @@
 package emulatorinterface;
 
 
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Enumeration;
-import pipeline.outoforder.BootPipelineEvent;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import misc.Error;
 import config.SimulationConfig;
-import config.SystemConfig;
 import config.XMLParser;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
@@ -21,7 +14,6 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
 import generic.MicroOpsList;
-import generic.InstructionTable;
 import generic.NewEventQueue;
 import generic.Statistics;
 
@@ -53,9 +45,7 @@ public class Newmain {
 		XMLParser.parse();
 
 		// Create a hash-table for the static representation of the executable
-		InstructionTable instructionTable;
-		instructionTable = ObjParser
-				.buildStaticInstructionTable(executableFile);
+		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// No need to run the complete program.
 		System.exit(0);
@@ -78,7 +68,7 @@ public class Newmain {
 		Core[] cores = initCores(eventQ[0]);
 		
 		// create PIN interface
-		IPCBase ipcBase = new SharedMem(instructionTable, eventQ, cores);
+		IPCBase ipcBase = new SharedMem(eventQ, cores);
 		Process process = createPINinterface(ipcBase, executableArguments,
 				dynamicInstructionBuffer);
 		
@@ -97,6 +87,7 @@ public class Newmain {
 		// returns the number of instructions. and waits on a semaphore for
 		// finishing of reader threads
 		//FIXME : wait stopped for unexpected exit.
+		@SuppressWarnings("unused")
 		long icount = ipcBase.doExpectedWaitForSelf();
 		ipcBase.doWaitForPIN(process);
 		ipcBase.finish();

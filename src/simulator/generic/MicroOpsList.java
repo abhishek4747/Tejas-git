@@ -28,15 +28,15 @@ import java.util.ListIterator;
 
 public class MicroOpsList 
 {
-	private ArrayList<Instruction> instructionList;
+	private ArrayList<Instruction> microOpsList;
 	private ListIterator<Instruction> listIterator;
 	SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
 	public MicroOpsList()
 	{
-		instructionList = new ArrayList<Instruction>();
-		listIterator = instructionList.listIterator();
+		microOpsList = new ArrayList<Instruction>();
+		listIterator = microOpsList.listIterator();
 		syncObject = new SynchronizationObject();
 		//syncObject2 = new SynchronizationObject();
 	}
@@ -44,25 +44,30 @@ public class MicroOpsList
 	//appends a single instruction to the instruction list
 	synchronized public void appendInstruction(Instruction newInstruction)
 	{
-		instructionList.add(newInstruction);
+		microOpsList.add(newInstruction);
 	}
 	
 	//appends a list of instructions to the instruction list
 	synchronized public void appendInstruction(MicroOpsList microOpsList)
 	{
-		this.instructionList.addAll(microOpsList.instructionList);	
+		this.microOpsList.addAll(microOpsList.microOpsList);	
 	}
 
 	synchronized public boolean isEmpty()
 	{
-		return instructionList.isEmpty();
+		return microOpsList.isEmpty();
+	}
+	
+	public Instruction get(int index)
+	{
+		return microOpsList.get(index);
 	}
 	
 	public void printList() 
 	{
-		for(int i = 0; i< instructionList.size(); i++)
+		for(int i = 0; i< microOpsList.size(); i++)
 		{
-			System.out.print(instructionList.get(i).toString() + "\n");
+			System.out.print(microOpsList.get(i).toString() + "\n");
 		}
 	}
 
@@ -82,22 +87,22 @@ public class MicroOpsList
 	synchronized public Instruction pollFirst()
 	{
 		// FIXME : Need to decide an laternative for this
-		return instructionList.pollFirst();
+		return microOpsList.pollFirst();
 	}
 
 	public void setProgramCounter(int index, long instructionPointer) 
 	{
-		instructionList.get(index).setProgramCounter(instructionPointer);
+		microOpsList.get(index).setProgramCounter(instructionPointer);
 	}
 	
 	synchronized public int getListSize()
 	{
-		return instructionList.size();
+		return microOpsList.size();
 	}
 	
 	synchronized public Instruction peekInstructionAt(int position)
 	{
-		return instructionList.get(position);
+		return microOpsList.get(position);
 	}
 	
 	public SynchronizationObject getSyncObject() {
@@ -106,7 +111,7 @@ public class MicroOpsList
 	
 	public int length()
 	{
-		return instructionList.size();
+		return microOpsList.size();
 	}
 	
 	/*public SynchronizationObject getSyncObject2() {

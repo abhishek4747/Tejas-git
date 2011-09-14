@@ -15,7 +15,6 @@ import config.SimulationConfig;
 import emulatorinterface.communication.*;
 import emulatorinterface.*;
 import generic.Core;
-import generic.InstructionTable;
 import generic.NewEventQueue;
 
 
@@ -24,13 +23,13 @@ public class SharedMem extends  IPCBase
 
 	// Must ensure that this is same as COUNT in IPCBase.h
 	public static final int COUNT = 1000;
-	public static InstructionTable insTable;
+
 	
-	public SharedMem(InstructionTable instructionTable, NewEventQueue[] eventQ, Core[] cores) {
+	public SharedMem(NewEventQueue[] eventQ, Core[] cores) 
+	{
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
-		insTable = instructionTable;
 		this.eventQ = eventQ;
 		this.cores = cores;
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);

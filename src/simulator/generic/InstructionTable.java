@@ -23,21 +23,23 @@ package generic;
 
 import java.util.Hashtable;
 
+//Hashtable record : instructionPointer - index
+
 public class InstructionTable 
 {
-	private Hashtable<Long, Long> instructionHashTable;
+	private Hashtable<Long, Integer> instructionHashTable;
 
 	public InstructionTable()
 	{
-		this.instructionHashTable = new Hashtable<Long, Long>(); 
+		this.instructionHashTable = new Hashtable<Long, Integer>(); 
 	}
 	
-	public void addInstruction(Long instructionPointer, Long index)
+	public void addInstruction(Long instructionPointer, int index)
 	{
 		instructionHashTable.put(instructionPointer, index);
 	}
 	
-	public Long getInstruction(Long instructionPointer)
+	public int getInstruction(Long instructionPointer)
 	{
 		return instructionHashTable.get(instructionPointer);
 	}
