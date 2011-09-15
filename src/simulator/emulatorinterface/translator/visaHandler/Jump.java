@@ -13,9 +13,16 @@ public class Jump implements VisaHandler
 		BranchInstr branchInstruction;
 		branchInstruction = dynamicInstructionBuffer.getBranchPacket(microOp.getProgramCounter()); 
 		
-		microOp.setBranchTaken(true);
-		microOp.setBranchTargetAddress(branchInstruction.branchAddress);
+		if(branchInstruction != null)
+		{
+			microOp.setBranchTaken(true);
+			microOp.setBranchTargetAddress(branchInstruction.branchAddress);
+			return instructionTable.getMicroOpIndex(branchInstruction.branchAddress);
+		}
+		else
+		{
+			return -1;
+		}
 		
-		return instructionTable.getMicroOpIndex(branchInstruction.branchAddress);
 	}
 }

@@ -53,7 +53,7 @@ public class Operand
 	
 	public String toString()
 	{
-			return ("(" + type + ")" + value);
+			return ("(" + type + ")" + Long.toHexString(value));
 	}
 
 	public OperandType getOperandType()

@@ -148,8 +148,8 @@ public class ObjParser
 		catch (IOException ioe) {Error.showErrorAndExit("\n\tError in closing the buffered reader !!");}
 		
 		System.out.print("\n\tProgram statically parsed.\n");
-		//System.out.print("\n\tIts microOps list ...\n");
-		//microOpsList.printList();
+		System.out.print("\n\tIts microOps list ...\n");
+		microOpsList.printList();
 	}
 
 	private static int riscifyInstruction(
@@ -341,7 +341,7 @@ public class ObjParser
 		VisaHandler visaHandler;
 
 //		dynamicInstructionBuffer.printBuffer();
-		System.out.print("\n\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer));
+		System.out.print("\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer) + "\n");
 		
 		// traverse dynamicInstruction Buffer to go to a known instruction
 		while(true)
@@ -373,6 +373,8 @@ public class ObjParser
 			}
 		}
 
+	
+		// main translate loop.
 		while(true)
 		{
 			microOp = microOpsList.get(microOpIndex); 
@@ -385,7 +387,7 @@ public class ObjParser
 			
 			if(microOpIndex != -1)
 			{
-				System.out.print("\nmicroOp(" + microOpIndex + ") : " + microOp);
+				System.out.print("microOp(" + microOpIndex + ") : " + microOp + "\n");
 			}
 			else
 			{
