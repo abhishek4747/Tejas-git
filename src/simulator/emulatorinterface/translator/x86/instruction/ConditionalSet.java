@@ -19,7 +19,7 @@ public class ConditionalSet implements InstructionHandler
 		
 		else if(operand1.isMemoryOperand())
 		{
-			microOpsList.appendInstruction(Instruction.getStoreInstruction(operand2, 
+			microOpsList.appendInstruction(Instruction.getStoreInstruction(operand1, 
 					Operand.getImmediateOperand()));
 		}
 		

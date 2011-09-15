@@ -20,6 +20,7 @@ public class VisaHandlerSelector
 	private static VisaHandler xchg;
 	private static VisaHandler acceleratedOp;
 	private static VisaHandler nop;
+	private static VisaHandler interrupt;
 
 	public static VisaHandler selectHandler(OperationType operationType)
 	{
@@ -77,6 +78,9 @@ public class VisaHandlerSelector
 			case nop:
 				return nop;
 				
+			case interrupt:
+				return interrupt;
+				
 			default:
 				System.out.print("Invalid operation");
 				System.exit(0);
@@ -101,5 +105,6 @@ public class VisaHandlerSelector
 		xchg = new Xchg();
 		acceleratedOp = new AcceleratedOp();
 		nop = new NOP();
+		interrupt = new Interrupt();
 	}
 }
