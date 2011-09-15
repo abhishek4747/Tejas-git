@@ -24,7 +24,6 @@ package emulatorinterface;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
-
 import emulatorinterface.communication.Packet;
 import generic.BranchInstr;
 
@@ -136,7 +135,10 @@ public class DynamicInstructionBuffer
 			}
 			else
 			{
-				System.out.print("\n\tExtra instruction found !!\n");
+				System.out.print("\n\tExtra branch instruction found : original instruction=" +
+						Long.toHexString(instructionPointer) + " found instruction=" + 
+						Long.toHexString(headPacket.ip) + "\n");
+
 				System.exit(0);
 			}
 		}
@@ -167,7 +169,10 @@ public class DynamicInstructionBuffer
 			}
 			else
 			{
-				System.out.print("\n\tExtra instruction found !!\n");
+				System.out.print("\n\tExtra memRead instruction found : original instruction=" +
+						Long.toHexString(instructionPointer) + " found instruction=" + 
+						Long.toHexString(headPacket.get(0).ip) + "\n");
+				
 				System.exit(0);
 			}
 		}
@@ -198,12 +203,75 @@ public class DynamicInstructionBuffer
 			}
 			else
 			{
-				System.out.print("\n\tExtra instruction found !!\n");
+				System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
+						Long.toHexString(instructionPointer) + " found instruction=" + 
+						Long.toHexString(headPacket.get(0).ip) + "\n");
+
 				System.exit(0);
 			}
 		}
 		
 		return null;
+	}
+	
+	// This function gobbles the branch, memRead and memWrite instructions
+	// related to instructionPointer. Only the head of the queue are 
+	// searched for this type of instructions.
+	public void gobbleInstruction(long instructionPointer)
+	{
+		// gobble branch instructions
+		Packet headBranchPacket;
+		while(!this.branchQueue.isEmpty())
+		{
+			headBranchPacket = branchQueue.peek();
+			
+			if(headBranchPacket.ip == instructionPointer)
+			{
+				// remove all the branch instructions whose ip=instructionPointer
+				branchQueue.poll();
+			}
+			else
+			{
+				// no need to look into this queue further
+				break;
+			}
+		}
+
+		// gobble memRead instructions		
+		Vector<Packet> headMemReadPacket;
+		while(!this.memReadQueue.isEmpty())
+		{
+			headMemReadPacket = memReadQueue.peek();
+			
+			if(headMemReadPacket.get(0).ip == instructionPointer)
+			{
+				// remove all memRead instructions whose ip=instructionPointer
+				memReadQueue.poll();
+			}
+			else
+			{
+				// no need to look into this queue further
+				break;
+			}
+		}
+		
+		// gobble memWrite instructions
+		Vector<Packet> headMemWritePacket;
+		while(!this.memWriteQueue.isEmpty())
+		{
+			headMemWritePacket = memWriteQueue.peek();
+			
+			if(headMemWritePacket.get(0).ip == instructionPointer)
+			{
+				// remove all memRead instructions whose ip=instructionPointer
+				memWriteQueue.poll();
+			}
+			else
+			{
+				// no need to look into this queue further
+				break;
+			}
+		}
 	}
 
 	public void clearBuffer() 
@@ -211,5 +279,22 @@ public class DynamicInstructionBuffer
 		this.branchQueue.clear();
 		this.memReadQueue.clear();
 		this.memWriteQueue.clear();
+	}
+	
+	public void printBuffer()
+	{
+		//print branch info
+		System.out.print("\n\n\tBranch Info : ");
+		if(branchQueue.isEmpty())
+		{
+			Object[] branchInstrs = branchQueue.toArray();
+			Packet branchPacket;
+			for(int i=0; i<branchInstrs.length; i++)
+			{
+				branchPacket = (Packet)branchInstrs[i];
+				System.out.print("\ttaken = " + (branchPacket.value==4) + " addr = " + branchPacket.tgt + "\n");
+			}
+		}
+		//print memory read addresses
 	}
 }

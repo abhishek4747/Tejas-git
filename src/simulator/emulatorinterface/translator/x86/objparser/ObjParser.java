@@ -339,23 +339,50 @@ public class ObjParser
 		int microOpIndex;
 		Instruction microOp;
 		VisaHandler visaHandler;
+
+//		dynamicInstructionBuffer.printBuffer();
+		System.out.print("\n\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer));
 		
-		microOpIndex = instructionTable.getMicroOpIndex(startInstructionPointer);
-		if(microOpIndex==-1)
+		// traverse dynamicInstruction Buffer to go to a known instruction
+		while(true)
 		{
-			return;
+			microOpIndex = instructionTable.getMicroOpIndex(startInstructionPointer);
+			
+			if(microOpIndex==-1)
+			{
+				// if this instruction was never a part of the executable, just clear buffer and exit.
+				dynamicInstructionBuffer.clearBuffer();
+				return;
+			}
+			
+			else if(microOpsList.get(microOpIndex).getProgramCounter()!=startInstructionPointer)
+			{
+				// if the starting instructions was part of the executable but not decoded, 
+				// then gobble all the instructions with this ip and allign the startInstruction pointer 
+				// to the next ip.
+				dynamicInstructionBuffer.gobbleInstruction(startInstructionPointer);
+				
+				// go to the next microOpIndex and set startInstructionPointer = microOps ip.
+				microOpIndex++;
+				startInstructionPointer = microOpsList.get(microOpIndex).getProgramCounter();
+			}
+			
+			else
+			{
+				break;
+			}
 		}
-		
+
 		while(true)
 		{
 			microOp = microOpsList.get(microOpIndex); 
 			if(microOp==null)
-			{continue;}
+			{break;}
 			
 			visaHandler = VisaHandlerSelector.selectHandler(microOp.getOperationType());
 			
 			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOp, dynamicInstructionBuffer);
-
+			
 			if(microOpIndex != -1)
 			{
 				System.out.print("\nmicroOp(" + microOpIndex + ") : " + microOp);
