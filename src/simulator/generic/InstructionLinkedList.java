@@ -21,20 +21,21 @@
 
 package generic;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.ListIterator;
 
-public class MicroOpsList 
+
+public class InstructionLinkedList 
 {
-	private ArrayList<Instruction> microOpsList;
+	private LinkedList<Instruction> instructionLinkedList;
 	private ListIterator<Instruction> listIterator;
 	//SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
-	public MicroOpsList()
+	public InstructionLinkedList()
 	{
-		microOpsList = new ArrayList<Instruction>();
-		listIterator = microOpsList.listIterator();
+		instructionLinkedList = new LinkedList<Instruction>();
+		listIterator = instructionLinkedList.listIterator();
 		//syncObject = new SynchronizationObject();
 		//syncObject2 = new SynchronizationObject();
 	}
@@ -42,39 +43,30 @@ public class MicroOpsList
 	//appends a single instruction to the instruction list
 	public void appendInstruction(Instruction newInstruction)
 	{
-		microOpsList.add(newInstruction);
+		instructionLinkedList.add(newInstruction);
 	}
 	
-	//appends a list of instructions to the instruction list
-	public void appendInstruction(MicroOpsList microOpsList)
-	{
-		this.microOpsList.addAll(microOpsList.microOpsList);	
-	}
-
 	public boolean isEmpty()
 	{
-		return microOpsList.isEmpty();
+		return instructionLinkedList.isEmpty();
 	}
 	
-	public Instruction get(int index)
+	// This method removes all the micro-ops at the end of the list which have 
+	// ip=instructionPointer
+	public void removeInstructionFromTail(long instructionPointer)
 	{
-		// For the last instruction of the file, we will have to return null,
-		// otherwise, we will encounter an Exception.
-		if(index >= microOpsList.size())
+		while( (instructionLinkedList.isEmpty()==false) &&
+			(instructionLinkedList.getLast().getProgramCounter()==instructionPointer))
 		{
-			return null;
-		}
-		else
-		{
-			return microOpsList.get(index);
+			instructionLinkedList.removeLast();
 		}
 	}
 	
 	public void printList() 
 	{
-		for(int i = 0; i< microOpsList.size(); i++)
+		for(int i = 0; i< instructionLinkedList.size(); i++)
 		{
-			System.out.print(microOpsList.get(i).toString() + "\n");
+			System.out.print(instructionLinkedList.get(i).toString() + "\n");
 		}
 	}
 
@@ -90,26 +82,21 @@ public class MicroOpsList
 			return null;
 		}
 	}
-	
-//	public Instruction pollFirst()
-//	{
-//		// FIXME : Need to decide an laternative for this
-//		return microOpsList.pollFirst();
-//	}
 
-	public void setProgramCounter(int index, long instructionPointer) 
-	{
-		microOpsList.get(index).setProgramCounter(instructionPointer);
-	}
-	
-	public int getListSize()
-	{
-		return microOpsList.size();
-	}
-	
 	public Instruction peekInstructionAt(int position)
 	{
-		return microOpsList.get(position);
+		return instructionLinkedList.get(position);
+	}
+
+	public Instruction pollFirst()
+	{
+		// FIXME : Need to decide an laternative for this
+		return instructionLinkedList.pollFirst();
+	}
+
+	public int getListSize()
+	{
+		return instructionLinkedList.size();
 	}
 	
 //	public SynchronizationObject getSyncObject() {
@@ -118,7 +105,7 @@ public class MicroOpsList
 	
 	public int length()
 	{
-		return microOpsList.size();
+		return instructionLinkedList.size();
 	}
 	
 	/*public SynchronizationObject getSyncObject2() {

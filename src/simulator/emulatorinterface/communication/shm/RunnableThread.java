@@ -14,6 +14,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
+import generic.InstructionLinkedList;
 import generic.MicroOpsList;
 import generic.NewEventQueue;
 import generic.OperationType;
@@ -185,9 +186,12 @@ public class RunnableThread implements Runnable {
 						
 						//TODO This instructionList must be provided to raj's code
 						Newmain.instructionCount ++;
-						ObjParser.translateInstruction(pold.ip, dynamicInstructionBuffer[emuid]);
 						
-						MicroOpsList fusedInstructions = null;
+						InstructionLinkedList fusedInstructions = null;
+						fusedInstructions = ObjParser.translateInstruction(pold.ip, dynamicInstructionBuffer[emuid]);
+						fusedInstructions=null;
+						
+						
 						if(fusedInstructions != null && pipelineDone == false)
 						{
 							//if this is the first instruction, then pipeline needs

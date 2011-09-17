@@ -30,6 +30,7 @@ import emulatorinterface.translator.x86.instruction.InstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
+import generic.InstructionLinkedList;
 import generic.MicroOpsList;
 import generic.InstructionTable;
 import generic.Operand;
@@ -147,9 +148,9 @@ public class ObjParser
 		try {input.close();}
 		catch (IOException ioe) {Error.showErrorAndExit("\n\tError in closing the buffered reader !!");}
 		
-		System.out.print("\n\tProgram statically parsed.\n");
-		System.out.print("\n\tIts microOps list ...\n");
-		microOpsList.printList();
+		//System.out.print("\n\tProgram statically parsed.\n");
+		//System.out.print("\n\tIts microOps list ...\n");
+		//microOpsList.printList();
 	}
 
 	private static int riscifyInstruction(
@@ -333,12 +334,14 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 
-	public static void translateInstruction(long startInstructionPointer,
+	public static InstructionLinkedList translateInstruction(
+			long startInstructionPointer,
 			DynamicInstructionBuffer dynamicInstructionBuffer)
 	{
 		int microOpIndex;
 		Instruction microOp;
 		VisaHandler visaHandler;
+		InstructionLinkedList instructionLinkedList = new InstructionLinkedList();
 
 //		dynamicInstructionBuffer.printBuffer();
 		System.out.print("\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer) + "\n");
@@ -352,7 +355,7 @@ public class ObjParser
 			{
 				// if this instruction was never a part of the executable, just clear buffer and exit.
 				dynamicInstructionBuffer.clearBuffer();
-				return;
+				return instructionLinkedList;
 			}
 			
 			else if(microOpsList.get(microOpIndex).getProgramCounter()!=startInstructionPointer)
@@ -373,7 +376,8 @@ public class ObjParser
 			}
 		}
 
-	
+		int microOpIndexBefore;
+		
 		// main translate loop.
 		while(true)
 		{
@@ -383,18 +387,24 @@ public class ObjParser
 			
 			visaHandler = VisaHandlerSelector.selectHandler(microOp.getOperationType());
 			
-			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOp, dynamicInstructionBuffer);
+			microOpIndexBefore = microOpIndex;     //store microOpIndex
+			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOp, dynamicInstructionBuffer); //handle
+			instructionLinkedList.appendInstruction(microOpsList.get(microOpIndexBefore)); //append microOp
 			
 			if(microOpIndex != -1)
 			{
-				System.out.print("microOp(" + microOpIndex + ") : " + microOp + "\n");
+				//System.out.print("microOp(" + microOpIndex + ") : " + microOp + "\n");
 			}
 			else
 			{
+				instructionLinkedList.removeInstructionFromTail(microOpsList.get(microOpIndexBefore).getProgramCounter());
 				break;
 			}
 		}
 		
 		dynamicInstructionBuffer.clearBuffer();
+		
+		instructionLinkedList.printList();
+		return instructionLinkedList;
 	}
 }
