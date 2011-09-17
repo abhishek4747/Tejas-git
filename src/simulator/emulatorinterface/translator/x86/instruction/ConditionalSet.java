@@ -1,25 +1,25 @@
 package emulatorinterface.translator.x86.instruction;
 
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
+import generic.InstructionArrayList;
 
 public class ConditionalSet implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) && 
 				operand2==null && operand3==null)
 		{
-			instructionLinkedList.appendInstruction(Instruction.getMoveInstruction(operand1, 
+			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1, 
 					Operand.getImmediateOperand()));
 		}
 		
 		else if(operand1.isMemoryOperand())
 		{
-			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand1, 
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand1, 
 					Operand.getImmediateOperand()));
 		}
 		

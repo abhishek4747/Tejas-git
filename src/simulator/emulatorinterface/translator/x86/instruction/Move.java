@@ -22,24 +22,23 @@
 package emulatorinterface.translator.x86.instruction;
 
 
-import generic.InstructionLinkedList;
 import generic.Instruction;
 import generic.Operand;
-
+import generic.InstructionArrayList;
 
 
 public class Move implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		//if operand1 is a register and operand2 is a register/immediate, we will use normal move operation
 		if( (operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
 			(operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand() || operand2.isImmediateOperand()) &&
 		    (operand3==null))
 		{
-			instructionLinkedList.appendInstruction(Instruction.getMoveInstruction(operand1, operand2));
+			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1, operand2));
 		}
 		
 		
@@ -49,7 +48,7 @@ public class Move implements InstructionHandler
 				 operand3==null)
 		{
 			//Obtain value at the memory location [operand2]
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand2, operand1));
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand2, operand1));
 		}
 		
 		//if the operand1 is a memory location and operand2 is a register/immediate then
@@ -58,7 +57,7 @@ public class Move implements InstructionHandler
 				(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
 				(operand3==null))
 		{
-			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand1, operand2));
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand1, operand2));
 		}
 		
 		//TODO I doubt if this is a valid instruction !! Anyways found this in an object-code

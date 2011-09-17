@@ -20,16 +20,15 @@
 *****************************************************************************/
 package emulatorinterface.translator.x86.instruction;
 
-
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import generic.Instruction;
+import generic.InstructionArrayList;
 import generic.Operand;
-import generic.InstructionLinkedList;
 
 public class ConditionalJump implements InstructionHandler 
 {
 	public void handle(long instructionPointer, Operand operand1,
-			Operand operand2, Operand operand3, InstructionLinkedList instructionLinkedList)
+			Operand operand2, Operand operand3, InstructionArrayList instructionArrayList)
 	{
 		Operand jumpLocation = null;
 		
@@ -37,14 +36,14 @@ public class ConditionalJump implements InstructionHandler
 		   &&  operand2==null  &&  operand3==null)
 		{
 			jumpLocation = operand1;
-			instructionLinkedList.appendInstruction(Instruction.getBranchInstruction(jumpLocation));
+			instructionArrayList.appendInstruction(Instruction.getBranchInstruction(jumpLocation));
 		}
 		
 		else if(operand1.isMemoryOperand() && operand2==null && operand3==null)
 		{
 			jumpLocation = OperandTranslator.getLocationToStoreValue(operand1);
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1, jumpLocation));
-			instructionLinkedList.appendInstruction(Instruction.getBranchInstruction(jumpLocation));
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1, jumpLocation));
+			instructionArrayList.appendInstruction(Instruction.getBranchInstruction(jumpLocation));
 		}
 		
 		else

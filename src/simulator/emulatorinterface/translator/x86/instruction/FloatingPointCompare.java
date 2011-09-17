@@ -3,14 +3,14 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
+import generic.InstructionArrayList;
 
 public class FloatingPointCompare implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 	
 		if(operand1==null && operand2==null && operand3==null)
@@ -19,7 +19,7 @@ public class FloatingPointCompare implements InstructionHandler
 			Operand st0 = Registers.getTopFPRegister();
 			Operand st1 = Registers.getSecondTopFPRegister();
 			
-			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(st0, st1, null));
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointALU(st0, st1, null));
 		}
 		
 		else if(operand1.isFloatRegisterOperand() && operand2==null && operand3==null)
@@ -27,13 +27,13 @@ public class FloatingPointCompare implements InstructionHandler
 			//First implicit operand is implicitly st0 and second operand is passed as argument.
 			Operand st0 = Registers.getTopFPRegister();
 
-			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(st0, operand1, null));
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointALU(st0, operand1, null));
 		}
 		
 		else if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand() && operand3==null)
 		{
 			//Both the operands are passed as operands to the command.
-			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(operand1, operand2, null));
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointALU(operand1, operand2, null));
 		}
 		
 		else if(operand1.isMemoryOperand() && operand2==null && operand3==null)
@@ -44,8 +44,8 @@ public class FloatingPointCompare implements InstructionHandler
 			tempFloatRegister=Registers.getTempFloatReg();
 			
 			//tempFloatRegister = [operand1]
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1, tempFloatRegister));
-			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(st0, tempFloatRegister, null));
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1, tempFloatRegister));
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointALU(st0, tempFloatRegister, null));
 		}
 		
  		else

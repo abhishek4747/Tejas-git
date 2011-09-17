@@ -21,23 +21,22 @@
 
 package emulatorinterface.translator.x86.instruction;
 
-
+import generic.InstructionArrayList;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
 
 public class Exchange implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		//operand1 is a register and operand2 is also a register
 		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
 		   (operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand())&&
 		   operand3==null)
 		{
-			instructionLinkedList.appendInstruction(Instruction.getExchangeInstruction(operand1, operand2));
+			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction(operand1, operand2));
 		}
 
 		//operand1 is memory operand and operand2 is a register
@@ -45,7 +44,7 @@ public class Exchange implements InstructionHandler
 				(operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
 				 operand3==null)
 		{
-			instructionLinkedList.appendInstruction(Instruction.getExchangeInstruction(operand1, operand2));
+			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction(operand1, operand2));
 		}
 
 		//operand1 is a register and operand2 is also a memory operand
@@ -53,7 +52,7 @@ public class Exchange implements InstructionHandler
 		        (operand2.isMemoryOperand()) &&
 		         operand3==null)
 		{
-			instructionLinkedList.appendInstruction(Instruction.getExchangeInstruction( operand2, operand1));
+			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction( operand2, operand1));
 		}
 
 		else

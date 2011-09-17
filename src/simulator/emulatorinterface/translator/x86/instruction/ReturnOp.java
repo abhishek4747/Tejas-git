@@ -24,13 +24,13 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionLinkedList;
+import generic.InstructionArrayList;
 
 public class ReturnOp implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		if ((operand1 == null || operand1.isImmediateOperand())
 				&& operand2 == null && operand3 == null) 
@@ -40,18 +40,18 @@ public class ReturnOp implements InstructionHandler
 
 			// pop the new instruction-pointer from the stack
 			(new Pop()).handle(instructionPointer,
-					newInstructionPointer, null, null, instructionLinkedList);
+					newInstructionPointer, null, null, instructionArrayList);
 
 			// perform an unconditional jump to the new location
 			(new UnconditionalJump()).handle(instructionPointer,
-					newInstructionPointer, null, null, instructionLinkedList);
+					newInstructionPointer, null, null, instructionArrayList);
 
 			if (operand1 != null && operand1.isImmediateOperand()) 
 			{
 				// If operand1 is an immediate value, then it must be added to
 				// the stack pointer
 				Operand stackPointer = Registers.getStackPointer();
-				instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction(
+				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(
 						stackPointer, Operand.getImmediateOperand(),
 						stackPointer));
 			}

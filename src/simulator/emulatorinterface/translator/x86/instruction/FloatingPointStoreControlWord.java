@@ -2,14 +2,14 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
+import generic.InstructionArrayList;
 
 public class FloatingPointStoreControlWord implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		if(operand1.isMemoryOperand() && 
 				operand2==null && operand3==null)
@@ -18,7 +18,7 @@ public class FloatingPointStoreControlWord implements InstructionHandler
 			floatingPointControlWord=Registers.getFloatingPointControlWord();
 			
 			// control-word to memory
-			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand1,
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand1,
 					floatingPointControlWord));
 		}
 		

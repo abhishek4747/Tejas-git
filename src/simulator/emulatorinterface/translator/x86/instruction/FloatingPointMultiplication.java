@@ -24,13 +24,13 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionLinkedList;
+import generic.InstructionArrayList;
 
 public class FloatingPointMultiplication implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList) 
+			InstructionArrayList instructionArrayList) 
 	{
 		//If no operand is provided to the function, then st(0)
 		//and st(1) are the implicit operands
@@ -39,7 +39,7 @@ public class FloatingPointMultiplication implements InstructionHandler
 			Operand st0 = Registers.getTopFPRegister();
 			Operand st1 = Registers.getSecondTopFPRegister();
 			
-			instructionLinkedList.appendInstruction(
+			instructionArrayList.appendInstruction(
 					Instruction.getFloatingPointMultiplication(st1, st0, st0));
 		}
 		
@@ -49,7 +49,7 @@ public class FloatingPointMultiplication implements InstructionHandler
 				operand2==null	&& operand3==null)
 		{
 			Operand st0 = Registers.getTopFPRegister();
-			instructionLinkedList.appendInstruction(
+			instructionArrayList.appendInstruction(
 					Instruction.getFloatingPointMultiplication(st0, operand1, st0));
 		}
 		
@@ -65,11 +65,11 @@ public class FloatingPointMultiplication implements InstructionHandler
 			tempFloatRegister = Registers.getTempFloatReg();
 			
 			//tempFloatRegister = [operand1]
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1,
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1,
 					tempFloatRegister));
 			
 			//st(0) = st(0) * tempFloatRegister
-			instructionLinkedList.appendInstruction(Instruction.getFloatingPointMultiplication(st0, 
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointMultiplication(st0, 
 					tempFloatRegister, st0));
 		}
 		
@@ -77,7 +77,7 @@ public class FloatingPointMultiplication implements InstructionHandler
 		else if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand() &&
 				operand3==null)
 		{
-			instructionLinkedList.appendInstruction(Instruction.getFloatingPointMultiplication(
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointMultiplication(
 					operand1, operand2, operand1));
 		}
 		

@@ -25,13 +25,12 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
-
+import generic.InstructionArrayList;
 
 public class Push implements InstructionHandler 
 {
-	public void handle(long instructionPointer, Operand operand1, Operand operand2, Operand operand3, InstructionLinkedList instructionLinkedList) 
+	public void handle(long instructionPointer, Operand operand1, Operand operand2, Operand operand3, InstructionArrayList instructionArrayList) 
 	{
 		//get stack-pointer and [stack-pointer]
 		Operand stackPointer = Registers.getStackPointer();
@@ -47,7 +46,7 @@ public class Push implements InstructionHandler
 			{
 				valueToPush = OperandTranslator.getLocationToStoreValue(operand1);
 			
-				instructionLinkedList.appendInstruction(
+				instructionArrayList.appendInstruction(
 						Instruction.getLoadInstruction(operand1,valueToPush));
 			}
 			else
@@ -56,10 +55,10 @@ public class Push implements InstructionHandler
 			}
 			
 			//Increment the stack-pointer
-			instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction( stackPointer, Operand.getImmediateOperand(), stackPointer));
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction( stackPointer, Operand.getImmediateOperand(), stackPointer));
 			
 			//perform a store to the top of the stack
-			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(stackPointerLocation, valueToPush));
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(stackPointerLocation, valueToPush));
 		}
 		
 		else

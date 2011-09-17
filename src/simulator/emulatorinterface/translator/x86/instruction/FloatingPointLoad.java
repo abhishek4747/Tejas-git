@@ -25,21 +25,20 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionLinkedList;
-
+import generic.InstructionArrayList;
 
 public class FloatingPointLoad implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList) 
+			InstructionArrayList instructionArrayList) 
 	{
 		if(operand1.isMemoryOperand() && 
 				operand2==null	&& operand3==null)
 		{
 			//TODO Push operation at present requires just a single move operation
 			//may be some more work needs to be done
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1, 
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1, 
 					Registers.getTopFPRegister()));
 		}
 		
@@ -48,7 +47,7 @@ public class FloatingPointLoad implements InstructionHandler
 		{
 			//TODO Push operation at present requires just a single move operation
 			//may be some more work needs to be done
-			instructionLinkedList.appendInstruction(Instruction.getMoveInstruction(
+			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(
 					Registers.getTopFPRegister(), operand1));
 		}
 		

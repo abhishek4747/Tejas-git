@@ -22,15 +22,14 @@
 package emulatorinterface.translator.x86.instruction;
 
 
-import generic.InstructionLinkedList;
 import generic.Operand;
-
+import generic.InstructionArrayList;
 
 public class FloatingPointComplexOperation implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		//TODO : Must do something !!
 	}

@@ -25,20 +25,19 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionLinkedList;
-
+import generic.InstructionArrayList;
 
 public class FloatingPointSingleOperandALU implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList) 
+			InstructionArrayList instructionArrayList) 
 	{
 		if(operand1==null && operand2==null && operand3==null)
 		{
 			Operand st0 = Registers.getTopFPRegister();
 			
-			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(null, st0, st0));
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointALU(null, st0, st0));
 		}
 		
 		else

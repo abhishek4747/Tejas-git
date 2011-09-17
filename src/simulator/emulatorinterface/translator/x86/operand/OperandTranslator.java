@@ -21,15 +21,12 @@
 
 package emulatorinterface.translator.x86.operand;
 
-
-
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.InstructionLinkedList;
+import generic.InstructionArrayList;
 import generic.Operand;
 import generic.OperandType;
 import java.util.StringTokenizer;
-
 
 
 import misc.Numbers;
@@ -37,7 +34,7 @@ import misc.Numbers;
 
 public class OperandTranslator 
 {
-	public static Operand simplifyOperand(String operandStr, InstructionLinkedList microOps)
+	public static Operand simplifyOperand(String operandStr, InstructionArrayList instructionArrayList)
 	{
 		//If there is no operand, then just don't process it. 
 		if(operandStr == null)
@@ -74,7 +71,7 @@ public class OperandTranslator
 			String memLocation = operandStr = operandStr.substring(operandStr.indexOf("[") + 1, operandStr.indexOf("]"));
 			
 			//Mark the operand as an operand whose value is stored in the memory
-			return simplifyMemoryLocation(memLocation, microOps);
+			return simplifyMemoryLocation(memLocation, instructionArrayList);
 		}
 		
 		else if(operandStr.matches("[0-9a-f]+ <.*>"))
@@ -97,7 +94,7 @@ public class OperandTranslator
 			// If the operand contains the keyword PTR, mark it as stored in memory
 			if(operandStr.contains("PTR"))
 			{
-				return simplifyMemoryLocation(memLocation, microOps);
+				return simplifyMemoryLocation(memLocation, instructionArrayList);
 			}
 			else
 			{
@@ -114,7 +111,7 @@ public class OperandTranslator
 	}
 	
 
-	static Operand simplifyMemoryLocation(String operandStr, InstructionLinkedList microOps)
+	static Operand simplifyMemoryLocation(String operandStr, InstructionArrayList instructionArrayList)
 	{
 		String memoryAddressTokens[] = operandStr.split("\\+|-");
 		
@@ -195,7 +192,7 @@ public class OperandTranslator
 			else
 			{
 				scaledIndex = Registers.getTempIntReg();
-				microOps.appendInstruction(Instruction.getIntALUInstruction(index, scale, scaledIndex));
+				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(index, scale, scaledIndex));
 			}
 		}
 		
@@ -250,7 +247,7 @@ public class OperandTranslator
 			if(pureRisc)
 			{
 				Operand tempRegister = Registers.getTempIntReg();
-				microOps.appendInstruction(Instruction.getIntALUInstruction(scaledIndex, offset, tempRegister));
+				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(scaledIndex, offset, tempRegister));
 				memoryLocationFirstOperand = base;
 				memoryLocationSecondOperand = tempRegister;
 			}
@@ -269,7 +266,7 @@ public class OperandTranslator
 		if(pureRisc && memoryLocationSecondOperand!=null)
 		{
 			Operand tempRegister = Registers.getTempIntReg();
-			microOps.appendInstruction(Instruction.getIntALUInstruction(memoryLocationFirstOperand, memoryLocationFirstOperand, tempRegister));
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(memoryLocationFirstOperand, memoryLocationFirstOperand, tempRegister));
 			memoryLocationFirstOperand = tempRegister;
 			memoryLocationSecondOperand = null;
 		}

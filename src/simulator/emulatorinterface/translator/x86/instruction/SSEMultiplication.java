@@ -25,12 +25,13 @@ import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.Operand;
+import generic.InstructionArrayList;
 
 public class SSEMultiplication implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		InstructionLinkedList microOps;
 		microOps = new InstructionLinkedList();

@@ -22,9 +22,8 @@
 package emulatorinterface.translator.x86.instruction;
 
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
-
+import generic.InstructionArrayList;
 
 public class ConditionalMove implements InstructionHandler 
 {
@@ -32,14 +31,14 @@ public class ConditionalMove implements InstructionHandler
 	//conditional move. Currently, we are doing a simple move operation.  
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		//if operand1 = register and operand2 = register/immediate - move
 		if( (operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
 			(operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand() || operand2.isImmediateOperand()) &&
 		    (operand3==null))
 		{
-			instructionLinkedList.appendInstruction(Instruction.getMoveInstruction(operand1, operand2));
+			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1, operand2));
 		}
 		
 		//if operand1 = register and operand2 = memory - load
@@ -47,7 +46,7 @@ public class ConditionalMove implements InstructionHandler
 				 operand2.isMemoryOperand() && 
 				 operand3==null)
 		{
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand2, operand1));
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand2, operand1));
 		}
 		
 		//if operand1 = memory and operand2 = memory - store
@@ -55,7 +54,7 @@ public class ConditionalMove implements InstructionHandler
 				(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
 				(operand3==null))
 		{
-			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand2, operand1));
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand2, operand1));
 		}
 		
 		//TODO I doubt if this is a valid instruction !! Anyways found this in an object-code

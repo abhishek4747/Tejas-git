@@ -23,26 +23,26 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
+import generic.InstructionArrayList;
 
 public class Loop implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		if(operand1.isImmediateOperand() && operand2==null && operand3==null)
 		{
 			Operand counterRegister = Registers.getCounterRegister();
 
 			//cx=cx-1
-			instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction(counterRegister,
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(counterRegister,
 					Operand.getImmediateOperand(), counterRegister));
 			
 			//Perform a conditional jump
 			ConditionalJump conditionalJump = new ConditionalJump();
-			conditionalJump.handle(instructionPointer, operand1, null, null, instructionLinkedList);
+			conditionalJump.handle(instructionPointer, operand1, null, null, instructionArrayList);
 		}
 		
 		else

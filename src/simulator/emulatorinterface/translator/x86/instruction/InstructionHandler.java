@@ -21,13 +21,12 @@
 
 package emulatorinterface.translator.x86.instruction;
 
-
-import generic.InstructionLinkedList;
+import generic.InstructionArrayList;
 import generic.Operand;
 
 public interface InstructionHandler 
 {
 	void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList);
+			InstructionArrayList instructionArrayList);
 }

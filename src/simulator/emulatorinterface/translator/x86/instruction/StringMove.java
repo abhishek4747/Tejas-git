@@ -23,14 +23,14 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
+import generic.InstructionArrayList;
 
 public class StringMove implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		Operand sourceLocation, destinationLocation;
 		
@@ -44,10 +44,10 @@ public class StringMove implements InstructionHandler
 			
 			//Load the value at the sourceLocation in a temporary register
 			Operand tempRegister = Registers.getTempIntReg();
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
 			
 			//Store the value in tempRegister in destination location
-			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
 		}
 		
 		else if(operand1.isMemoryOperand() && operand2.isMemoryOperand() &&
@@ -58,10 +58,10 @@ public class StringMove implements InstructionHandler
 			
 			//Load the value at the sourceLocation in a temporary register
 			Operand tempRegister = Registers.getTempIntReg();
-			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
 			
 			//Store the value in tempRegister in destination location
-			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
 		}
 		
 		else

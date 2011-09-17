@@ -23,15 +23,14 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import generic.Operand;
-import generic.InstructionLinkedList;
 import generic.Instruction;
-
+import generic.InstructionArrayList;
 
 public class UnconditionalJump implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) 
 		   &&  operand2==null && operand3==null)
@@ -42,7 +41,7 @@ public class UnconditionalJump implements InstructionHandler
 			{
 				//far jump : jumpLocation = [operand1]
 				jumpLocation = OperandTranslator.getLocationToStoreValue(operand1);
-				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1,	jumpLocation));
+				instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1,	jumpLocation));
 			}
 			else
 			{
@@ -54,7 +53,7 @@ public class UnconditionalJump implements InstructionHandler
 			//jump to this location
 			Instruction jumpInstruction = Instruction.getUnconditionalJumpInstruction(jumpLocation);
 			jumpInstruction.setBranchTaken(true);
-			instructionLinkedList.appendInstruction(jumpInstruction);
+			instructionArrayList.appendInstruction(jumpInstruction);
 		}
 		else
 		{

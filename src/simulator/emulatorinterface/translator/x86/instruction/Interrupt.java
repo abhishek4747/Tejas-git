@@ -21,20 +21,19 @@
 
 package emulatorinterface.translator.x86.instruction;
 
-
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
+import generic.InstructionArrayList;
 
 public class Interrupt implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionLinkedList instructionLinkedList)
+			InstructionArrayList instructionArrayList)
 	{
 		if(operand1.isImmediateOperand() && operand2==null && operand3==null)
 		{
-			instructionLinkedList.appendInstruction(Instruction.getInterruptInstruction(operand1));
+			instructionArrayList.appendInstruction(Instruction.getInterruptInstruction(operand1));
 		}
 		else
 		{

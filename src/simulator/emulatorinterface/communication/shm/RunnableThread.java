@@ -14,7 +14,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.InstructionLinkedList_x;
+import generic.InstructionArrayList;
 import generic.InstructionLinkedList;
 import generic.NewEventQueue;
 import generic.OperationType;
@@ -187,7 +187,7 @@ public class RunnableThread implements Runnable {
 						//TODO This instructionList must be provided to raj's code
 						Newmain.instructionCount ++;
 						
-						InstructionLinkedList_x fusedInstructions = null;
+						InstructionLinkedList fusedInstructions = null;
 						fusedInstructions = ObjParser.translateInstruction(pold.ip, dynamicInstructionBuffer[emuid]);
 						fusedInstructions=null;
 						

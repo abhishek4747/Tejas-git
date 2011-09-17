@@ -23,13 +23,13 @@ package generic;
 
 import java.util.ArrayList;
 
-public class InstructionLinkedList_x 
+public class InstructionArrayList 
 {
 	private ArrayList<Instruction> instructionArrayList;
 	//SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
-	public InstructionLinkedList_x()
+	public InstructionArrayList()
 	{
 		instructionArrayList = new ArrayList<Instruction>();
 		//syncObject = new SynchronizationObject();
