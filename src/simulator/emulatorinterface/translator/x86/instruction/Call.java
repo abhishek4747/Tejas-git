@@ -22,7 +22,7 @@
 package emulatorinterface.translator.x86.instruction;
 
 
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 import misc.Error;;
 
@@ -35,18 +35,18 @@ import misc.Error;;
 public class Call implements InstructionHandler 
 {
 	public void handle(long instructionPointer, Operand operand1,
-			Operand operand2, Operand operand3, MicroOpsList microOpsList)	
+			Operand operand2, Operand operand3, InstructionLinkedList instructionLinkedList)	
 	{
 		//push the next instruction pointer on to the stack
 		//TODO Check if the NEXT_INSTRUCTION can be computed
 		Operand nextInstruction = Operand.getImmediateOperand();
-		new Push().handle(instructionPointer, nextInstruction, null, null, microOpsList);
+		new Push().handle(instructionPointer, nextInstruction, null, null, instructionLinkedList);
 		
 		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() ||  operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) 
 		   &&  operand2==null  &&   operand3==null)
 		{
 			//Unconditional jump to a new location
-			(new UnconditionalJump()).handle(instructionPointer, operand1, null, null, microOpsList);
+			(new UnconditionalJump()).handle(instructionPointer, operand1, null, null, instructionLinkedList);
 		}
 		
 		else

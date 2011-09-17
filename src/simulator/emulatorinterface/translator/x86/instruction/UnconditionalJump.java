@@ -23,7 +23,7 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Instruction;
 
 
@@ -31,7 +31,7 @@ public class UnconditionalJump implements InstructionHandler
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
 		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) 
 		   &&  operand2==null && operand3==null)
@@ -42,19 +42,19 @@ public class UnconditionalJump implements InstructionHandler
 			{
 				//far jump : jumpLocation = [operand1]
 				jumpLocation = OperandTranslator.getLocationToStoreValue(operand1);
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(operand1,	jumpLocation));
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1,	jumpLocation));
 			}
 			else
 			{
 				//near jump : jumpLocation = instruction-pointer + operand1
 				jumpLocation = operand1;
-				//microOpsList.appendInstruction(Instruction.getIntALUInstruction(Registers.getInstructionPointer(), operand1, jumpLocation));
+				//instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction(Registers.getInstructionPointer(), operand1, jumpLocation));
 			}
 
 			//jump to this location
 			Instruction jumpInstruction = Instruction.getUnconditionalJumpInstruction(jumpLocation);
 			jumpInstruction.setBranchTaken(true);
-			microOpsList.appendInstruction(jumpInstruction);
+			instructionLinkedList.appendInstruction(jumpInstruction);
 		}
 		else
 		{

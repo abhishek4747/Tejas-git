@@ -30,8 +30,8 @@ import emulatorinterface.translator.x86.instruction.InstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
+import generic.InstructionLinkedList_x;
 import generic.InstructionLinkedList;
-import generic.MicroOpsList;
 import generic.InstructionTable;
 import generic.Operand;
 import generic.PartialDecodedInstruction;
@@ -63,7 +63,7 @@ public class ObjParser
 	public static long dynamicNotHandled = 0;
 	
 	private static InstructionTable instructionTable = null;
-	private static MicroOpsList microOpsList = null;
+	private static InstructionLinkedList instructionLinkedList = null;
 	
 	/**
 	* This method translates a static instruction to dynamic instruction.
@@ -97,7 +97,7 @@ public class ObjParser
 		String operation;
 		String operand1, operand2, operand3;
 		
-		microOpsList = new MicroOpsList();
+		instructionLinkedList = new InstructionLinkedList();
 		
 		long lineNumber = 0;
 		int microOpsIndex = 0;
@@ -138,7 +138,7 @@ public class ObjParser
 			microOpsIndex = riscifyInstruction( instructionPointer, 
 					instructionPrefix, operation, 
 					operand1, operand2, operand3, 
-					instructionClassTable, microOpsList);
+					instructionClassTable, instructionLinkedList);
 
 			// add instruction's index into the hash-table
 			instructionTable.addInstruction(instructionPointer, microOpsIndex);
@@ -150,15 +150,15 @@ public class ObjParser
 		
 		//System.out.print("\n\tProgram statically parsed.\n");
 		//System.out.print("\n\tIts microOps list ...\n");
-		//microOpsList.printList();
+		//instructionLinkedList.printList();
 	}
 
 	private static int riscifyInstruction(
 			long instructionPointer, String instructionPrefix, String operation, 
 			String operand1Str, String operand2Str, String operand3Str, 
-			InstructionClassTable instructionClassTable, MicroOpsList microOpsList) 
+			InstructionClassTable instructionClassTable, InstructionLinkedList instructionLinkedList) 
 	{
-		int microOpsIndex = microOpsList.length();
+		int microOpsIndex = instructionLinkedList.length();
 		
 		//Determine the instruction class for this instruction
 		InstructionClass instructionClass;
@@ -170,9 +170,9 @@ public class ObjParser
 		Registers.noOfIntTempRegs = 0;
 		Registers.noOfFloatTempRegs = 0;
 		
-		operand1 = OperandTranslator.simplifyOperand(operand1Str, microOpsList);
-		operand2 = OperandTranslator.simplifyOperand(operand2Str, microOpsList);
-		operand3 = OperandTranslator.simplifyOperand(operand3Str, microOpsList);
+		operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionLinkedList);
+		operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionLinkedList);
+		operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionLinkedList);
 		
 		
 		// Obtain a handler for this instruction
@@ -182,13 +182,13 @@ public class ObjParser
 		// Handle the instruction
 		if(handler!=null)
 		{
-			handler.handle(instructionPointer, operand1, operand2, operand3, microOpsList);
+			handler.handle(instructionPointer, operand1, operand2, operand3, instructionLinkedList);
 		}
 		
 		//now set the ip of all converted instructions to instructionPointer
-		for(int i=microOpsIndex; i<microOpsList.length(); i++)
+		for(int i=microOpsIndex; i<instructionLinkedList.length(); i++)
 		{
-			microOpsList.setProgramCounter(i, instructionPointer);
+			instructionLinkedList.setProgramCounter(i, instructionPointer);
 		}
 		
 		return microOpsIndex;
@@ -334,14 +334,14 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 
-	public static InstructionLinkedList translateInstruction(
+	public static InstructionLinkedList_x translateInstruction(
 			long startInstructionPointer,
 			DynamicInstructionBuffer dynamicInstructionBuffer)
 	{
 		int microOpIndex;
 		Instruction microOp;
 		VisaHandler visaHandler;
-		InstructionLinkedList instructionLinkedList = new InstructionLinkedList();
+		InstructionLinkedList_x instructionLinkedList_x = new InstructionLinkedList_x();
 
 //		dynamicInstructionBuffer.printBuffer();
 		System.out.print("\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer) + "\n");
@@ -355,10 +355,10 @@ public class ObjParser
 			{
 				// if this instruction was never a part of the executable, just clear buffer and exit.
 				dynamicInstructionBuffer.clearBuffer();
-				return instructionLinkedList;
+				return instructionLinkedList_x;
 			}
 			
-			else if(microOpsList.get(microOpIndex).getProgramCounter()!=startInstructionPointer)
+			else if(instructionLinkedList.get(microOpIndex).getProgramCounter()!=startInstructionPointer)
 			{
 				// if the starting instructions was part of the executable but not decoded, 
 				// then gobble all the instructions with this ip and allign the startInstruction pointer 
@@ -367,7 +367,7 @@ public class ObjParser
 				
 				// go to the next microOpIndex and set startInstructionPointer = microOps ip.
 				microOpIndex++;
-				startInstructionPointer = microOpsList.get(microOpIndex).getProgramCounter();
+				startInstructionPointer = instructionLinkedList.get(microOpIndex).getProgramCounter();
 			}
 			
 			else
@@ -381,7 +381,7 @@ public class ObjParser
 		// main translate loop.
 		while(true)
 		{
-			microOp = microOpsList.get(microOpIndex); 
+			microOp = instructionLinkedList.get(microOpIndex); 
 			if(microOp==null)
 			{break;}
 			
@@ -389,7 +389,7 @@ public class ObjParser
 			
 			microOpIndexBefore = microOpIndex;     //store microOpIndex
 			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOp, dynamicInstructionBuffer); //handle
-			instructionLinkedList.appendInstruction(microOpsList.get(microOpIndexBefore)); //append microOp
+			instructionLinkedList_x.appendInstruction(instructionLinkedList.get(microOpIndexBefore)); //append microOp
 			
 			if(microOpIndex != -1)
 			{
@@ -397,14 +397,14 @@ public class ObjParser
 			}
 			else
 			{
-				instructionLinkedList.removeInstructionFromTail(microOpsList.get(microOpIndexBefore).getProgramCounter());
+				instructionLinkedList_x.removeInstructionFromTail(instructionLinkedList.get(microOpIndexBefore).getProgramCounter());
 				break;
 			}
 		}
 		
 		dynamicInstructionBuffer.clearBuffer();
 		
-		instructionLinkedList.printList();
-		return instructionLinkedList;
+		instructionLinkedList_x.printList();
+		return instructionLinkedList_x;
 	}
 }

@@ -23,13 +23,13 @@ package emulatorinterface.translator.x86.instruction;
 
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 public class LoadEffectiveAddress implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
 		//Effective address is of the form [a+b]
 		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() ) && 
@@ -38,13 +38,13 @@ public class LoadEffectiveAddress implements InstructionHandler
 			if(operand2.getMemoryLocationSecondOperand()==null)
 			{
 				//If b is invalid operand, operand1 = a
-				microOpsList.appendInstruction(Instruction.getMoveInstruction(operand1, 
+				instructionLinkedList.appendInstruction(Instruction.getMoveInstruction(operand1, 
 						operand2.getMemoryLocationFirstOperand()));
 			}
 			else
 			{
 				//operand1=a+b
-				microOpsList.appendInstruction(Instruction.getIntALUInstruction(operand2.getMemoryLocationFirstOperand(),
+				instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction(operand2.getMemoryLocationFirstOperand(),
 						operand2.getMemoryLocationSecondOperand(), operand1));
 			}
 		}

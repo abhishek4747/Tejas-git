@@ -23,14 +23,14 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 
 public class StringCompare implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
 		Operand sourceLocation;
 		Operand destinationLocation;
@@ -46,19 +46,19 @@ public class StringCompare implements InstructionHandler
 			
 			//Load the value at the sourceLocation in a temporary register
 			Operand sourceIndex = Registers.getTempIntReg();
-			microOpsList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, sourceIndex));
+			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, sourceIndex));
 			
 			
 			//Load the value at the destination Location in a temporary register
 			Operand destinationIndex = Registers.getTempIntReg();
-			microOpsList.appendInstruction(Instruction.getLoadInstruction(destinationLocation, destinationIndex));
+			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(destinationLocation, destinationIndex));
 
 			//Perform compare operation
 			IntegerALUExplicitDestination integerALUExplicitDestination = 
 						new IntegerALUExplicitDestination();
 			
 			integerALUExplicitDestination.handle(instructionPointer, sourceIndex, 
-					destinationIndex, null, microOpsList);
+					destinationIndex, null, instructionLinkedList);
 		}
 		
 		
@@ -70,18 +70,18 @@ public class StringCompare implements InstructionHandler
 			
 			//Load the value at the sourceLocation in a temporary register
 			Operand sourceIndex = Registers.getTempIntReg();
-			microOpsList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, sourceIndex));
+			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, sourceIndex));
 			
 			//Load the value at the destination Location in a temporary register
 			Operand destinationIndex = Registers.getTempIntReg();
-			microOpsList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, destinationIndex));
+			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, destinationIndex));
 
 			//Perform compare operation
 			IntegerALUExplicitDestination integerALUExplicitDestination = 
 						new IntegerALUExplicitDestination();
 			
 			integerALUExplicitDestination.handle(instructionPointer, sourceIndex, 
-					destinationIndex, null, microOpsList);
+					destinationIndex, null, instructionLinkedList);
 		}
 		
 		else

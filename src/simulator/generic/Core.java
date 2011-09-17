@@ -38,7 +38,7 @@ public class Core extends SimulationElement{
 	
 	private int core_number;
 	private int no_of_threads;
-	private MicroOpsList[] incomingInstructionLists;
+	private InstructionLinkedList[] incomingInstructionLists;
 
 	private int[] threadIDs;
 	
@@ -46,7 +46,7 @@ public class Core extends SimulationElement{
 	
 	private int noOfInstructionsExecuted;
 
-	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, MicroOpsList[] incomingInstructionLists,
+	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionLinkedList[] incomingInstructionLists,
 					int[] threadIDs)
 	{
 		super(1, new Time_t(-1), new Time_t(-1), SystemConfig.core[core_number].frequency);			//TODO frequency from config file
@@ -248,7 +248,7 @@ public class Core extends SimulationElement{
 		return threadIDs;
 	}
 
-	public MicroOpsList getIncomingInstructions(int threadID) {
+	public InstructionLinkedList getIncomingInstructions(int threadID) {
 		int index = -1;
 		for(int i = 0; i < no_of_threads; i++)
 		{
@@ -307,11 +307,11 @@ public class Core extends SimulationElement{
 	{
 		this.noOfInstructionsExecuted++;
 	}
-	public MicroOpsList[] getIncomingInstructionLists() {
+	public InstructionLinkedList[] getIncomingInstructionLists() {
 		return incomingInstructionLists;
 	}
 
-	public void setIncomingInstructionLists(MicroOpsList[] incomingInstructionLists) {
+	public void setIncomingInstructionLists(InstructionLinkedList[] incomingInstructionLists) {
 		this.incomingInstructionLists = incomingInstructionLists;
 	}
 

@@ -13,7 +13,7 @@ import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.NewEventQueue;
 import generic.Statistics;
 
@@ -73,7 +73,7 @@ public class Newmain {
 				dynamicInstructionBuffer);
 		
 		//connect pipe between instruction translator and pipeline
-		cores[0].setIncomingInstructionLists(new MicroOpsList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
+		cores[0].setIncomingInstructionLists(new InstructionLinkedList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
 		
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores);

@@ -22,19 +22,16 @@
 package generic;
 
 import java.util.ArrayList;
-import java.util.ListIterator;
 
-public class MicroOpsList 
+public class InstructionLinkedList_x 
 {
-	private ArrayList<Instruction> microOpsList;
-	private ListIterator<Instruction> listIterator;
+	private ArrayList<Instruction> instructionArrayList;
 	//SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
-	public MicroOpsList()
+	public InstructionLinkedList_x()
 	{
-		microOpsList = new ArrayList<Instruction>();
-		listIterator = microOpsList.listIterator();
+		instructionArrayList = new ArrayList<Instruction>();
 		//syncObject = new SynchronizationObject();
 		//syncObject2 = new SynchronizationObject();
 	}
@@ -42,74 +39,68 @@ public class MicroOpsList
 	//appends a single instruction to the instruction list
 	public void appendInstruction(Instruction newInstruction)
 	{
-		microOpsList.add(newInstruction);
+		instructionArrayList.add(newInstruction);
 	}
 	
-	//appends a list of instructions to the instruction list
-	public void appendInstruction(MicroOpsList microOpsList)
-	{
-		this.microOpsList.addAll(microOpsList.microOpsList);	
-	}
-
 	public boolean isEmpty()
 	{
-		return microOpsList.isEmpty();
+		return instructionArrayList.isEmpty();
 	}
 	
 	public Instruction get(int index)
 	{
 		// For the last instruction of the file, we will have to return null,
 		// otherwise, we will encounter an Exception.
-		if(index >= microOpsList.size())
+		if(index >= instructionArrayList.size())
 		{
 			return null;
 		}
 		else
 		{
-			return microOpsList.get(index);
+			return instructionArrayList.get(index);
 		}
 	}
 	
 	public void printList() 
 	{
-		for(int i = 0; i< microOpsList.size(); i++)
+		for(int i = 0; i< instructionArrayList.size(); i++)
 		{
-			System.out.print(microOpsList.get(i).toString() + "\n");
+			System.out.print(instructionArrayList.get(i).toString() + "\n");
 		}
 	}
 
-	public Instruction getNextInstruction()
-	{
-		if(listIterator.hasNext())
-		{
-			return listIterator.next(); 
-		}
-		else 
-		{
-			//If the list iterator is well past the last element we return a null
-			return null;
-		}
-	}
+//	public Instruction getNextInstruction()
+//	{
+//		if(listIterator.hasNext())
+//		{
+//			return listIterator.next(); 
+//		}
+//		else 
+//		{
+//			//If the list iterator is well past the last element we return a null
+//			return null;
+//		}
+//	}
 	
 //	public Instruction pollFirst()
 //	{
 //		// FIXME : Need to decide an laternative for this
-//		return microOpsList.pollFirst();
+//		return instructionLinkedList.pollFirst();
 //	}
 
 	public void setProgramCounter(int index, long instructionPointer) 
 	{
-		microOpsList.get(index).setProgramCounter(instructionPointer);
+		instructionArrayList.get(index).setProgramCounter(instructionPointer);
 	}
 	
 	public int getListSize()
 	{
-		return microOpsList.size();
+		return instructionArrayList.size();
 	}
 	
 	public Instruction peekInstructionAt(int position)
 	{
-		return microOpsList.get(position);
+		return instructionArrayList.get(position);
 	}
 	
 //	public SynchronizationObject getSyncObject() {
@@ -118,7 +109,7 @@ public class MicroOpsList
 	
 	public int length()
 	{
-		return microOpsList.size();
+		return instructionArrayList.size();
 	}
 	
 	/*public SynchronizationObject getSyncObject2() {

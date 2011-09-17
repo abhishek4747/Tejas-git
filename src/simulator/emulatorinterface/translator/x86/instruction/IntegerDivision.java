@@ -26,14 +26,14 @@ import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 
 public class IntegerDivision implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList) 
+			InstructionLinkedList instructionLinkedList) 
 	{
 		Operand accumulatorRegister = Registers.getAccumulatorRegister();
 
@@ -48,7 +48,7 @@ public class IntegerDivision implements InstructionHandler
 				dividend = OperandTranslator.getLocationToStoreValue(operand1);
 				
 				//dividend = [operand1]
-				microOpsList.appendInstruction(
+				instructionLinkedList.appendInstruction(
 						Instruction.getLoadInstruction(operand1, dividend));
 			}
 			else
@@ -56,7 +56,7 @@ public class IntegerDivision implements InstructionHandler
 				dividend = operand1;
 			}
 			
-			microOpsList.appendInstruction(Instruction.getIntegerDivisionInstruction
+			instructionLinkedList.appendInstruction(Instruction.getIntegerDivisionInstruction
 					(dividend, accumulatorRegister, accumulatorRegister));
 		}
 

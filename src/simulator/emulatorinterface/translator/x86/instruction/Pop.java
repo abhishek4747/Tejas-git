@@ -25,14 +25,14 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 
 public class Pop implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
 		// Create stack-pointer and [stack-pointer]
 		Operand stackPointer = Registers.getStackPointer();
@@ -46,19 +46,19 @@ public class Pop implements InstructionHandler
 				Operand temporaryIntegerRegister = Registers.getTempIntReg();
 				
 				//stack to temporary-register
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(stackPointerLocation,	temporaryIntegerRegister));
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(stackPointerLocation,	temporaryIntegerRegister));
 				
 				//temporary-register to memory
-				microOpsList.appendInstruction(Instruction.getStoreInstruction(operand1, temporaryIntegerRegister));
+				instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand1, temporaryIntegerRegister));
 			}
 			else
 			{
 				//stack to operand1 directly
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(stackPointerLocation,	operand1));
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(stackPointerLocation,	operand1));
 			}
 			
 			//stack-pointer = stack-pointer - 4
-			microOpsList.appendInstruction(Instruction.getIntALUInstruction(stackPointer, Operand.getImmediateOperand(), stackPointer));
+			instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction(stackPointer, Operand.getImmediateOperand(), stackPointer));
 		}
 		else
 		{

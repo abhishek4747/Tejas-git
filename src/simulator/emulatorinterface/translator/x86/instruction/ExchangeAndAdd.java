@@ -21,21 +21,21 @@
 
 package emulatorinterface.translator.x86.instruction;
 
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 
 public class ExchangeAndAdd implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
 		//TODO Check if the add should be performed before exchange ??
 		Exchange exchange = new Exchange();
-		exchange.handle(instructionPointer, operand1, operand2, operand3, microOpsList);
+		exchange.handle(instructionPointer, operand1, operand2, operand3, instructionLinkedList);
 
 		//Perhaps the order will now change.
 		IntegerALUImplicitDestination addOperation = new IntegerALUImplicitDestination();
-		addOperation.handle(instructionPointer, operand2, operand1, operand3, microOpsList);
+		addOperation.handle(instructionPointer, operand2, operand1, operand3, instructionLinkedList);
 	}
 }

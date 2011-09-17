@@ -25,14 +25,14 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import generic.Instruction;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 
 public class ShiftOperationThreeOperand implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList) 
+			InstructionLinkedList instructionLinkedList) 
 	{
 		if(
 		   (operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
@@ -49,12 +49,12 @@ public class ShiftOperationThreeOperand implements InstructionHandler
 				destination = operand1;
 			}
 			
-			microOpsList.appendInstruction(Instruction.getIntALUInstruction(
+			instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction(
 					operand2, operand3, destination));
 			
 			if(operand1.isMemoryOperand())
 			{
-				microOpsList.appendInstruction(Instruction.getStoreInstruction(operand1, destination));
+				instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand1, destination));
 			}
 		}
 		else

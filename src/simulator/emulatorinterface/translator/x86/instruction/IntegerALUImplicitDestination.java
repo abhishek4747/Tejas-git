@@ -26,7 +26,7 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 
 
@@ -34,7 +34,7 @@ public class IntegerALUImplicitDestination implements InstructionHandler
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
 		if(
 		(operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
@@ -48,7 +48,7 @@ public class IntegerALUImplicitDestination implements InstructionHandler
 			if(operand1.isMemoryOperand())
 			{
 				operand1ValueOperand = OperandTranslator.getLocationToStoreValue(operand1);
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(operand1, operand1ValueOperand));
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1, operand1ValueOperand));
 			}
 			else
 			{
@@ -60,7 +60,7 @@ public class IntegerALUImplicitDestination implements InstructionHandler
 			if(operand2.isMemoryOperand())
 			{
 				operand2ValueOperand = OperandTranslator.getLocationToStoreValue(operand2);
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(operand2, operand2ValueOperand));
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand2, operand2ValueOperand));
 			}
 			else
 			{
@@ -68,14 +68,14 @@ public class IntegerALUImplicitDestination implements InstructionHandler
 			}
 
 			//Perform integer alu operation
-			microOpsList.appendInstruction(Instruction.getIntALUInstruction(operand2ValueOperand, 
+			instructionLinkedList.appendInstruction(Instruction.getIntALUInstruction(operand2ValueOperand, 
 					operand1ValueOperand, operand1ValueOperand));
 
 			
 			//If operand1 is a memory operand, then perform a store operation too
 			if(operand1.isMemoryOperand())
 			{
-				microOpsList.appendInstruction(Instruction.getStoreInstruction(operand1, operand1ValueOperand));
+				instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand1, operand1ValueOperand));
 			}
 		}
 		

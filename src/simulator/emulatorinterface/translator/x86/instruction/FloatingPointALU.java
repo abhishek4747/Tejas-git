@@ -25,14 +25,14 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 
 public class FloatingPointALU implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList) 
+			InstructionLinkedList instructionLinkedList) 
 	{
 		//If no operand is provided to the function, then st(0)
 		//and st(1) are the implicit operands
@@ -41,7 +41,7 @@ public class FloatingPointALU implements InstructionHandler
 			Operand st0 = Registers.getTopFPRegister();
 			Operand st1 = Registers.getSecondTopFPRegister();
 			
-			microOpsList.appendInstruction(Instruction.getFloatingPointALU(st1, st0, st0));
+			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(st1, st0, st0));
 		}
 		
 		//If there is a single operand to the function, then the other implicit 
@@ -50,7 +50,7 @@ public class FloatingPointALU implements InstructionHandler
 				operand2==null	&& operand3==null)
 		{
 			Operand st0 = Registers.getTopFPRegister();
-			microOpsList.appendInstruction(Instruction.getFloatingPointALU(operand1, st0, st0));
+			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(operand1, st0, st0));
 		}
 		
 		//If the only operand is from memory, first fetch the value from the memory into a
@@ -65,17 +65,17 @@ public class FloatingPointALU implements InstructionHandler
 			tempFloatRegister=Registers.getTempFloatReg();
 			
 			//tempFloatRegister = [operand1]
-			microOpsList.appendInstruction(Instruction.getLoadInstruction(operand1, tempFloatRegister));
+			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1, tempFloatRegister));
 			
 			//st(0) = st(0) + tempFloatRegister
-			microOpsList.appendInstruction(Instruction.getFloatingPointALU(tempFloatRegister, st0, st0));
+			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(tempFloatRegister, st0, st0));
 		}
 		
 		//If there are two operands, both must be floating-point registers.
 		else if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand() &&
 				operand3==null)
 		{
-			microOpsList.appendInstruction(Instruction.getFloatingPointALU(operand1,
+			instructionLinkedList.appendInstruction(Instruction.getFloatingPointALU(operand1,
 					operand2, operand1));
 		}
 		

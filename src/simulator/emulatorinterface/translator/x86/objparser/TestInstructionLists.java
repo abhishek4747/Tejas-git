@@ -1,18 +1,18 @@
 package emulatorinterface.translator.x86.objparser;
 
 import generic.Instruction;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 
 public class TestInstructionLists {
 	
-	static MicroOpsList microOpsList;
+	static InstructionLinkedList instructionLinkedList;
 	
-	public static MicroOpsList testList1()
+	public static InstructionLinkedList testList1()
 	{
-		microOpsList = new MicroOpsList();
+		instructionLinkedList = new InstructionLinkedList();
 		
 		Instruction newInst;
 		for(int i = 0; i < 100; i++)
@@ -22,16 +22,16 @@ public class TestInstructionLists {
 					new Operand(OperandType.integerRegister, i%16),
 					new Operand(OperandType.integerRegister, (i+1)%16) );
 			
-			microOpsList.appendInstruction(newInst);
+			instructionLinkedList.appendInstruction(newInst);
 		}
 		
-		return microOpsList;
+		return instructionLinkedList;
 		
 	}
 	
-	public static MicroOpsList testList2()
+	public static InstructionLinkedList testList2()
 	{
-		microOpsList = new MicroOpsList();
+		instructionLinkedList = new InstructionLinkedList();
 		
 		Instruction newInst;
 		for(OperationType type : OperationType.values())
@@ -43,7 +43,7 @@ public class TestInstructionLists {
 						new Operand(OperandType.integerRegister, 3*i+1),
 						new Operand(OperandType.integerRegister, 3*i+2) );
 				
-				microOpsList.appendInstruction(newInst);
+				instructionLinkedList.appendInstruction(newInst);
 			}
 			
 			if(type == OperationType.floatDiv)
@@ -52,7 +52,7 @@ public class TestInstructionLists {
 			}
 		}
 		
-		return microOpsList;
+		return instructionLinkedList;
 		
 	}
 

@@ -23,27 +23,27 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 
 public class FloatingPointExchange implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList) 
+			InstructionLinkedList instructionLinkedList) 
 	{
 		if(operand1==null && operand2==null	&& operand3==null)
 		{
 			Operand st0 = Registers.getTopFPRegister();
 			Operand st1 = Registers.getSecondTopFPRegister();
-			microOpsList.appendInstruction(Instruction.getExchangeInstruction(st0, st1));
+			instructionLinkedList.appendInstruction(Instruction.getExchangeInstruction(st0, st1));
 		}
 		
 		else if(operand1.isFloatRegisterOperand() && 
 				operand2==null && operand3==null)
 		{
 			Operand st0 = Registers.getTopFPRegister();
-			microOpsList.appendInstruction(Instruction.getExchangeInstruction(st0, operand1));
+			instructionLinkedList.appendInstruction(Instruction.getExchangeInstruction(st0, operand1));
 		}
 		
 		else

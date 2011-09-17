@@ -25,13 +25,13 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 public class FloatingPointStore implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList) 
+			InstructionLinkedList instructionLinkedList) 
 	{
 		if(operand1.isMemoryOperand() && 
 				operand2==null	&& operand3==null)
@@ -40,7 +40,7 @@ public class FloatingPointStore implements InstructionHandler
 			//may be some more work needs to be done
 			Operand st0 = Registers.getTopFPRegister(); 
 			
-			microOpsList.appendInstruction(Instruction.getStoreInstruction(operand1, 
+			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(operand1, 
 					st0));
 		}
 		
@@ -49,7 +49,7 @@ public class FloatingPointStore implements InstructionHandler
 		{
 			//TODO Pop operation at present requires just a single move operation
 			//may be some more work needs to be done
-			microOpsList.appendInstruction(Instruction.getMoveInstruction(
+			instructionLinkedList.appendInstruction(Instruction.getMoveInstruction(
 					operand1, Registers.getTopFPRegister()));
 		}
 		

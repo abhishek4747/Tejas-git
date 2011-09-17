@@ -23,17 +23,17 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 
 public class SSEDivision implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
-		MicroOpsList microOps;
-		microOps = new MicroOpsList();
+		InstructionLinkedList microOps;
+		microOps = new InstructionLinkedList();
 		
 		if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand() &&
 				operand3==null)

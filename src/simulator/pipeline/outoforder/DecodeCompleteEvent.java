@@ -1,7 +1,7 @@
 package pipeline.outoforder;
 
 import config.SimulationConfig;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.Core;
@@ -48,7 +48,7 @@ public class DecodeCompleteEvent extends NewEvent {
 	public void readDecodePipe()
 	{
 		Instruction newInstruction;		
-		MicroOpsList inputToPipeline = core.getIncomingInstructions(threadID);
+		InstructionLinkedList inputToPipeline = core.getIncomingInstructions(threadID);
 		
 		for(int i = 0; i < core.getDecodeWidth(); i++)
 		{

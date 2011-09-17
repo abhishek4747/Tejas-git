@@ -26,21 +26,21 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 
 public class FloatingPointLoadConstant implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList) 
+			InstructionLinkedList instructionLinkedList) 
 	{
 		if( operand1==null && operand2==null && operand3==null) 
 		{
 			//if the operation has no operand, then 
 			//source operand is implicitly an immediate value
 			//and destination operand is top of FP register stack
-			microOpsList.appendInstruction(Instruction.getMoveInstruction(Registers.getTopFPRegister(), 
+			instructionLinkedList.appendInstruction(Instruction.getMoveInstruction(Registers.getTopFPRegister(), 
 					Operand.getImmediateOperand()));
 		}
 		else

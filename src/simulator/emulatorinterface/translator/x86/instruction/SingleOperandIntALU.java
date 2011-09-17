@@ -24,15 +24,15 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 public class SingleOperandIntALU implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)	
+			InstructionLinkedList instructionLinkedList)	
 	{
-		MicroOpsList microOps = new MicroOpsList();
+		InstructionLinkedList microOps = new InstructionLinkedList();
 		
 		if(
 		(operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&

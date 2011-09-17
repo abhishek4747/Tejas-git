@@ -23,14 +23,14 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 import generic.Operand;
 
 public class StringMove implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
 		Operand sourceLocation, destinationLocation;
 		
@@ -44,10 +44,10 @@ public class StringMove implements InstructionHandler
 			
 			//Load the value at the sourceLocation in a temporary register
 			Operand tempRegister = Registers.getTempIntReg();
-			microOpsList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
+			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
 			
 			//Store the value in tempRegister in destination location
-			microOpsList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
+			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
 		}
 		
 		else if(operand1.isMemoryOperand() && operand2.isMemoryOperand() &&
@@ -58,10 +58,10 @@ public class StringMove implements InstructionHandler
 			
 			//Load the value at the sourceLocation in a temporary register
 			Operand tempRegister = Registers.getTempIntReg();
-			microOpsList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
+			instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, tempRegister));
 			
 			//Store the value in tempRegister in destination location
-			microOpsList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
+			instructionLinkedList.appendInstruction(Instruction.getStoreInstruction(destinationLocation, tempRegister));
 		}
 		
 		else

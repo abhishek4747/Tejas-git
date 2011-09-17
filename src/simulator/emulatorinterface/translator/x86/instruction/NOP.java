@@ -23,15 +23,15 @@ package emulatorinterface.translator.x86.instruction;
 
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 public class NOP implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList)
+			InstructionLinkedList instructionLinkedList)
 	{
-		MicroOpsList microOps = new MicroOpsList();
+		InstructionLinkedList microOps = new InstructionLinkedList();
 		
 		if(operand1==null && operand2==null && operand3==null)
 		{

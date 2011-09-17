@@ -26,14 +26,14 @@ import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
-import generic.MicroOpsList;
+import generic.InstructionLinkedList;
 
 
 public class IntegerMultiplication implements InstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			MicroOpsList microOpsList) 
+			InstructionLinkedList instructionLinkedList) 
 	{
 		Operand accumulatorRegister = Registers.getAccumulatorRegister();
 		Operand multiplier;
@@ -48,7 +48,7 @@ public class IntegerMultiplication implements InstructionHandler
 			if(operand1.isMemoryOperand())
 			{
 				multiplier = OperandTranslator.getLocationToStoreValue(operand1);
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(operand1,	multiplier));				
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand1,	multiplier));				
 			}
 			else
 			{
@@ -56,7 +56,7 @@ public class IntegerMultiplication implements InstructionHandler
 			}
 			
 			
-			microOpsList.appendInstruction(Instruction.getIntegerMultiplicationInstruction
+			instructionLinkedList.appendInstruction(Instruction.getIntegerMultiplicationInstruction
 					(accumulatorRegister, multiplier, accumulatorRegister));
 		}
 
@@ -71,7 +71,7 @@ public class IntegerMultiplication implements InstructionHandler
 			if(operand2.isMemoryOperand())
 			{
 				multiplier = OperandTranslator.getLocationToStoreValue(operand2);
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(operand2, multiplier));				
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand2, multiplier));				
 			}
 
 			else
@@ -80,7 +80,7 @@ public class IntegerMultiplication implements InstructionHandler
 			}
 			
 			//perform multiplication operation and store the result in operand1
-			microOpsList.appendInstruction(Instruction.getIntegerMultiplicationInstruction
+			instructionLinkedList.appendInstruction(Instruction.getIntegerMultiplicationInstruction
 					(multiplicand, multiplier, multiplicand));
 		}
 		
@@ -98,14 +98,14 @@ public class IntegerMultiplication implements InstructionHandler
 			if(operand2.isMemoryOperand())
 			{
 				multiplicand = OperandTranslator.getLocationToStoreValue(operand2);
-				microOpsList.appendInstruction(Instruction.getLoadInstruction(operand2, multiplicand));				
+				instructionLinkedList.appendInstruction(Instruction.getLoadInstruction(operand2, multiplicand));				
 			}
 			else
 			{
 				multiplicand = operand2;
 			}
 
-			microOpsList.appendInstruction(Instruction.getIntegerMultiplicationInstruction(
+			instructionLinkedList.appendInstruction(Instruction.getIntegerMultiplicationInstruction(
 					multiplicand, multiplier, operand1));
 		}
 		
