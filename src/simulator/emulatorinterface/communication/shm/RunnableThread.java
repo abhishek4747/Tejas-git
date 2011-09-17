@@ -189,8 +189,7 @@ public class RunnableThread implements Runnable {
 						
 						InstructionLinkedList fusedInstructions = null;
 						fusedInstructions = ObjParser.translateInstruction(pold.ip, dynamicInstructionBuffer[emuid]);
-						fusedInstructions=null;
-						
+												
 						
 						if(fusedInstructions != null && pipelineDone == false)
 						{
