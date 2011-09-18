@@ -189,7 +189,8 @@ public class RunnableThread implements Runnable {
 						
 						InstructionLinkedList fusedInstructions = null;
 						fusedInstructions = ObjParser.translateInstruction(pold.ip, dynamicInstructionBuffer[emuid]);
-												
+//						dynamicInstructionBuffer[emuid].clearBuffer(); // gobble all micro-ops
+//						fusedInstructions=null;
 						
 						if(fusedInstructions != null && pipelineDone == false)
 						{
@@ -327,7 +328,7 @@ public class RunnableThread implements Runnable {
 				break;
 			}
 		}
-		
+//		System.out.println("invallid operation received");
 		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
 		inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
 		

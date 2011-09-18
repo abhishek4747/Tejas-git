@@ -308,11 +308,11 @@ public class ReorderBufferEntry {
 		this.associatedIWEntry = associatedIWEntry;
 	}
 	
-	protected LSQEntry getLsqEntry() {
+	public LSQEntry getLsqEntry() {
 		return lsqEntry;
 	}
 
-	protected void setLsqEntry(LSQEntry lsqEntry) {
+	public void setLsqEntry(LSQEntry lsqEntry) {
 		this.lsqEntry = lsqEntry;
 	}
 

@@ -85,6 +85,7 @@ public class NewMainMemAccessEvent extends NewEvent
 			{
 				//TODO : If we have to simulate the write timings also, then the code will come here
 				//Just to tell the requesting things that the write is completed
+				Core.outstandingMemRequests--;
 			}
 		}
 /*		else if (AccessSource == MainMemAccessSource.CoherentCache)//If the access is for a coherent cache (the access if below the bus)

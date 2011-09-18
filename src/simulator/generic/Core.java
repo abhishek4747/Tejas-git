@@ -1,9 +1,12 @@
 package generic;
 
 import pipeline.branchpredictor.TournamentPredictor;
+//import pipeline.perfect.ExecutionEnginePerfect;
+//import pipeline.perfect.PerformDecodeEventPerfect;
+//import pipeline.perfect.PerformCommitsEventPerfect;
 import pipeline.outoforder.ExecutionEngine;
-import pipeline.outoforder.PerformCommitsEvent;
 import pipeline.outoforder.PerformDecodeEvent;
+import pipeline.outoforder.PerformCommitsEvent;
 import config.CoreConfig;
 import config.SystemConfig;
 
@@ -14,10 +17,14 @@ import config.SystemConfig;
  */
 
 public class Core extends SimulationElement{
+
+	public static int outstandingMemRequests = 0;	//TODO To remove this after testing of perfect pipeline
 	
 	//long clock;
 	ExecutionEngine execEngine;
 	NewEventQueue eventQueue;
+	
+	public boolean perfectPipeline = false;
 	
 	//core parameters
 	private int decodeWidth;
@@ -107,7 +114,9 @@ public class Core extends SimulationElement{
 	{
 		//set up initial events in the queue
 		eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime(), this, 0));
-		eventQueue.addEvent(new PerformCommitsEvent(GlobalClock.getCurrentTime(), this));
+//TODO commented only for perfect pipeline		
+		if (perfectPipeline == false)
+			eventQueue.addEvent(new PerformCommitsEvent(GlobalClock.getCurrentTime(), this));
 	}
 	
 	/*public void work()

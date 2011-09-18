@@ -89,7 +89,7 @@ public class NewCacheAccessEvent extends NewEvent
 																lsqIndex));
 				}	
 */
-				
+				//If the cache level is Write-through
 				if (processingCache.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 				{
 					//Handle in any case (Whether requesting element is LSQ or cache)
@@ -111,7 +111,12 @@ public class NewCacheAccessEvent extends NewEvent
 																		null, 
 																		0, //tieBreaker,
 																		request)));
-				}	
+				}
+				else
+				{
+					Core.outstandingMemRequests--;
+				}
+					
 			}
 		}
 		

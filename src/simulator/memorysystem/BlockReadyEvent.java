@@ -191,7 +191,11 @@ public class BlockReadyEvent extends NewEvent
 																		0, //tieBreaker,
 																		new CacheRequestPacket(RequestType.MEM_WRITE,
 																							outstandingRequestList.get(0).address))));
-				}			
+				}
+				else
+				{
+					Core.outstandingMemRequests--;
+				}
 			}
 			else
 			{
@@ -218,6 +222,12 @@ public class BlockReadyEvent extends NewEvent
 									-1,
 									receivingLSQ.containingMemSys.core,
 									this.getEventTime().getTime()));
+			
+			//For perfect pipeline
+			else if (lsqEntry.getRobEntry() == null)
+			{
+				Core.outstandingMemRequests--;
+			}
 		}/*
 		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
 		{

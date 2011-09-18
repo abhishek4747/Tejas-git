@@ -1,5 +1,6 @@
 package pipeline.outoforder;
 
+import pipeline.perfect.DecodeCompleteEventPerfect;
 import generic.Core;
 import generic.GlobalClock;
 import generic.SimulationElement;
@@ -25,11 +26,19 @@ public class DecodeLogic extends SimulationElement {
 	{
 		//decode completion of decodeWidth number of instructions scheduled
 		
-		core.getEventQueue().addEvent(
-				new DecodeCompleteEvent(
+		if (core.perfectPipeline == false)
+			core.getEventQueue().addEvent(
+					new DecodeCompleteEvent(
 						core,
 						threadID,
 						GlobalClock.getCurrentTime() + core.getDecodeTime()*core.getStepSize()
 						));
+		else
+			core.getEventQueue().addEvent(
+					new DecodeCompleteEventPerfect(
+							core,
+							threadID,
+							GlobalClock.getCurrentTime()
+							));
 	}
 }

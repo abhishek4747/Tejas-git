@@ -80,6 +80,7 @@ public class LSQ extends SimulationElement
 			lsqueue[index] = entry;
 			tail = incrementQ(tail);
 			this.curSize++;
+//			System.out.println(curSize);
 			return entry;
 		//}
 		//else return QUEUE_FULL; // -1 signifies that the queue is full
@@ -113,9 +114,9 @@ public class LSQ extends SimulationElement
 			LSQEntry tmpEntry = lsqueue[tmpIndex];
 			if (tmpEntry.getType() == LSQEntry.LSQEntryType.STORE)
 			{
-				if (tmpEntry.getAddr() == entry.getAddr())
+				if (tmpEntry.isValid())
 				{
-					if (tmpEntry.isValid())
+					if (tmpEntry.getAddr() == entry.getAddr())
 					{
 						// Successfully forwarded the value
 						entry.setForwarded(true);
@@ -124,11 +125,16 @@ public class LSQ extends SimulationElement
 											-1,
 											containingMemSys.core,
 											GlobalClock.getCurrentTime()));
+						//For perfect pipeline
+//						else if (entry.getRobEntry() == null)
+//						{
+//							Core.outstandingMemRequests--;
+//						}
 						return true;
 					}
-					else
-						break;
 				}
+				else
+					break;
 			}
 			if(tmpIndex == head)
 				break;
@@ -157,12 +163,18 @@ public class LSQ extends SimulationElement
 					if (tmpEntry.isValid() && !tmpEntry.isForwarded())
 					{
 						tmpEntry.setForwarded(true);
-						if (!tmpEntry.getRobEntry().getExecuted())
+						if (tmpEntry.getRobEntry() != null && !tmpEntry.getRobEntry().getExecuted())
 							containingMemSys.core.getEventQueue().addEvent(
 								new ExecutionCompleteEvent(tmpEntry.getRobEntry(),
 										-1,
 										containingMemSys.core,
 										GlobalClock.getCurrentTime()));
+						
+						//For perfect pipeline
+//						else if (tmpEntry.getRobEntry() == null)
+//						{
+//							Core.outstandingMemRequests--;
+//						}
 						NoOfForwards++;
 					}
 				}
@@ -180,10 +192,15 @@ public class LSQ extends SimulationElement
 
 	
 	//Only used by the perfect pipeline
-	public void processROBCommitForPerfectPipeline(NewEventQueue newEventQueue)
+	public boolean processROBCommitForPerfectPipeline(NewEventQueue newEventQueue)
 	{
-		while (lsqueue[head].getType() == LSQEntryType.STORE ||
-				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true))
+		if (!(lsqueue[head].getType() == LSQEntryType.STORE ||
+				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))
+			return true;
+		
+		while ((lsqueue[head].getType() == LSQEntryType.STORE ||
+				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)) &&
+				curSize > 0)
 		{
 			LSQEntry entry = lsqueue[head];
 			
@@ -203,18 +220,16 @@ public class LSQ extends SimulationElement
 																entry, 
 																0, //tieBreaker,
 																request)));
-				
-				this.head = this.incrementQ(this.head);
-				this.curSize--;
 			}
-			
-			//If it is a LOAD which has received its value
-			else if (entry.isForwarded())
-			{
-				this.head = this.incrementQ(this.head);
-				this.curSize--;
-			}
+			else
+				Core.outstandingMemRequests--;
+	
+			this.head = this.incrementQ(this.head);
+			this.curSize--;
+//			System.out.println(curSize);
+			//containingMemSys.core.getExecEngine().outstandingMemRequests--;
 		}
+		return false;
 	}
 
 	

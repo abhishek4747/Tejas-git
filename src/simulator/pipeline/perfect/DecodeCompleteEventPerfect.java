@@ -1,7 +1,12 @@
 package pipeline.perfect;
 
+import pipeline.outoforder.*;
+import memorysystem.LSQ;
+import memorysystem.CacheRequestPacket;
 import memorysystem.LSQAddressReadyEvent;
 import memorysystem.LSQEntry;
+import memorysystem.NewCacheAccessEvent;
+import memorysystem.LSQEntry.LSQEntryType;
 import generic.InstructionLinkedList;
 import generic.GlobalClock;
 import generic.NewEvent;
@@ -13,6 +18,7 @@ import generic.OperandType;
 import generic.OperationType;
 import generic.PortRequestEvent;
 import generic.RequestType;
+import generic.Statistics;
 import generic.Time_t;
 
 /**
@@ -52,15 +58,18 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 		Instruction newInstruction;		
 		InstructionLinkedList inputToPipeline = core.getIncomingInstructions(threadID);
 		
-		for(int i = 0; i < core.getDecodeWidth(); i++)
+//		for(int i = 0; i < core.getDecodeWidth(); i++)
+		//while (Core.outstandingMemRequests < 200 && !inputToPipeline.isEmpty())
+		while (true)
 		{
-			if(//core.getExecEngine().getReorderBuffer().isFull() == false && 
-					//if head of instructionList is a load/store and LSQ is not full TODO && 
-					core.getExecEngine().isStallDecode1() == false)
+//			if(core.getExecEngine().getReorderBuffer().isFull() == false
+//					//&& if head of instructionList is a load/store and LSQ is not full TODO
+//					&& core.getExecEngine().getInstructionWindow().isFull() == false
+//					&& core.getExecEngine().isStallDecode1() == false)
 			{
 				if(inputToPipeline.getListSize() == 0)
 				{
-					System.out.println("this shouldn't be happening");
+//					System.out.println("this shouldn't be happening");
 					break;
 				}
 				
@@ -76,7 +85,12 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 					{
 						if(newInstruction.getOperationType() == OperationType.inValid)
 						{
+//							System.out.println("invallid operation received");
 							core.getExecEngine().setDecodePipeEmpty(threadID, true);
+							core.getExecEngine().setAllPipesEmpty(true);
+							core.getExecEngine().setExecutionComplete(true);
+							setTimingStatistics();			
+							setPerCoreMemorySystemStatistics();
 							break;
 						}
 						//to detach memory system
@@ -86,7 +100,8 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 							i--;
 							continue;
 						}*/
-						makeLSQRequest(newInstruction);
+						addLSQEntries(newInstruction);
+						Core.outstandingMemRequests++;
 					}
 					else
 					{
@@ -94,17 +109,21 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 						break;
 					}
 				}
+				else if (this.core.getExecEngine().coreMemSys.getLsqueue().isFull() && 
+						this.core.getExecEngine().coreMemSys.getLsqueue().processROBCommitForPerfectPipeline(this.eventQueue))
+					break;
 			}
 		}
+		this.core.getExecEngine().coreMemSys.getLsqueue().processROBCommitForPerfectPipeline(this.eventQueue);
 	}
 	
-	public void makeLSQRequest(Instruction newInstruction)
+	public void addLSQEntries(Instruction newInstruction)
 	{
 		if(newInstruction != null &&
 				newInstruction.getOperationType() != OperationType.nop &&
 				newInstruction.getOperationType() != OperationType.inValid)
 		{			
-//			ReorderBufferEntryPerfect newROBEntry = core.getExecEngine()
+//			ReorderBufferEntry newROBEntry = core.getExecEngine()
 //				.getReorderBuffer().addInstructionToROB(newInstruction, threadID);
 			
 			//TODO if load or store, make entry in LSQ
@@ -117,11 +136,11 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 				else
 					isLoad = false;
 					
-				LSQEntry lsqEntry = this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
+//				newROBEntry.setLsqEntry(
+				LSQEntry lsqEntry =	this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
 									newInstruction.getSourceOperand1().getValue(), null);
 				
-				//TODO add event to indicate address ready
-				core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
+				this.eventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
 						1, //noOfSlots,
 						new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
 															null, //Requesting Element
@@ -129,343 +148,37 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 															0, //tieBreaker,
 															RequestType.TLB_ADDRESS_READY,
 															lsqEntry)));
+				
+				
 			}
-		}
-	}
-/*	
-	public void makeROBEntries(Instruction newInstruction)
-	{
-		if(newInstruction != null &&
-				newInstruction.getOperationType() != OperationType.nop &&
-				newInstruction.getOperationType() != OperationType.inValid)
-		{			
-			ReorderBufferEntryPerfect newROBEntry = core.getExecEngine()
-				.getReorderBuffer().addInstructionToROB(newInstruction, threadID);
-			
-			//TODO if load or store, make entry in LSQ
-			if(newInstruction.getOperationType() == OperationType.load ||
-					newInstruction.getOperationType() == OperationType.store)
-			{
-				boolean isLoad;
-				if (newInstruction.getOperationType() == OperationType.load)
-					isLoad = true;
-				else
-					isLoad = false;
-					
-				newROBEntry.setLsqEntry(this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
-									newROBEntry.getInstruction().getSourceOperand1().getValue(), newROBEntry));
-			}
-			
+//			System.out.println("I must print");
 			//perform renaming			
-			processOperand1(newROBEntry);
-			processOperand2(newROBEntry);			
-			processDestOperand(newROBEntry);
+//			processOperand1(newROBEntry);
+//			processOperand2(newROBEntry);			
+//			processDestOperand(newROBEntry);
 		}
+		else
+			System.out.println("Printing ends");
 	}
 
-	private void processOperand1(ReorderBufferEntryPerfect reorderBufferEntry)
+	public void setTimingStatistics()
 	{
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
-		if(tempOpnd == null)
-		{
-			reorderBufferEntry.setOperand1PhyReg1(-1);
-			reorderBufferEntry.setOperand1PhyReg2(-1);
-			return;
-		}
-		
-		int archReg = (int) tempOpnd.getValue();
-		if(tempOpnd.getOperandType() == OperandType.integerRegister)
-		{
-			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
-			reorderBufferEntry.setOperand1PhyReg2(-1);
-		}
-		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
-		{
-			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-			reorderBufferEntry.setOperand1PhyReg2(-1);
-		}
-		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
-		{
-			reorderBufferEntry.setOperand1PhyReg1(archReg);
-			reorderBufferEntry.setOperand1PhyReg2(-1);
-		}
-		else if(tempOpnd.getOperandType() == OperandType.memory)
-		{
-			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
-			Operand memLocOpnd2 = tempOpnd.getMemoryLocationSecondOperand();
-			
-			//processing memoryLocationFirstOperand
-			if(memLocOpnd1 == null)
-			{
-				reorderBufferEntry.setOperand1PhyReg1(-1);
-			}
-			else
-			{
-				archReg = (int)memLocOpnd1.getValue();
-				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg1(archReg);
-				}
-				else
-				{
-					reorderBufferEntry.setOperand1PhyReg1(-1);
-				}
-			}
-			
-			//processing memoryLocationSecondOperand
-			if(memLocOpnd2 == null)
-			{
-				reorderBufferEntry.setOperand1PhyReg2(-1);
-			}
-			else
-			{
-				archReg = (int)memLocOpnd2.getValue();
-				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg2(archReg);
-				}
-				else
-				{
-					reorderBufferEntry.setOperand1PhyReg2(-1);
-				}
-			}
-		}
-		else
-		{
-			reorderBufferEntry.setOperand1PhyReg1(-1);
-			reorderBufferEntry.setOperand1PhyReg2(-1);
-		}
+		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
+		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
+		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
 	}
 	
-	private void processOperand2(ReorderBufferEntryPerfect reorderBufferEntry)
+	public void setPerCoreMemorySystemStatistics()
 	{
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
-		if(tempOpnd == null)
-		{
-			reorderBufferEntry.setOperand2PhyReg1(-1);
-			reorderBufferEntry.setOperand2PhyReg2(-1);
-			return;
-		}
-		
-		int archReg = (int) tempOpnd.getValue();
-		if(tempOpnd.getOperandType() == OperandType.integerRegister)
-		{
-			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
-			reorderBufferEntry.setOperand2PhyReg2(-1);
-		}
-		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
-		{
-			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-			reorderBufferEntry.setOperand2PhyReg2(-1);
-		}
-		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
-		{
-			reorderBufferEntry.setOperand2PhyReg1(archReg);
-			reorderBufferEntry.setOperand2PhyReg2(-1);
-		}
-		else if(tempOpnd.getOperandType() == OperandType.memory)
-		{
-			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
-			Operand memLocOpnd2 = tempOpnd.getMemoryLocationSecondOperand();
-			
-			//processing memoryLocationFirstOperand
-			if(memLocOpnd1 == null)
-			{
-				reorderBufferEntry.setOperand2PhyReg1(-1);
-			}
-			else
-			{
-				archReg = (int)memLocOpnd1.getValue();
-				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg1(archReg);
-				}
-				else
-				{
-					reorderBufferEntry.setOperand2PhyReg1(-1);
-				}
-			}
-			
-			//processing memoryLocationSecondOperand
-			if(memLocOpnd2 == null)
-			{
-				reorderBufferEntry.setOperand2PhyReg2(-1);
-			}
-			else
-			{
-				archReg = (int)memLocOpnd2.getValue();
-				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg2(archReg);
-				}
-				else
-				{
-					reorderBufferEntry.setOperand2PhyReg2(-1);
-				}
-			}
-		}
-		else
-		{
-			reorderBufferEntry.setOperand2PhyReg1(-1);
-			reorderBufferEntry.setOperand2PhyReg2(-1);
-		}
+		Statistics.setNoOfMemRequests(core.getExecEngine().coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(core.getExecEngine().coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(core.getExecEngine().coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfValueForwards(core.getExecEngine().coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
+		Statistics.setNoOfTLBRequests(core.getExecEngine().coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(core.getExecEngine().coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(core.getExecEngine().coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(core.getExecEngine().coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(core.getExecEngine().coreMemSys.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(core.getExecEngine().coreMemSys.getL1Cache().misses, core.getCore_number());
 	}
-	
-	private void processDestOperand(ReorderBufferEntryPerfect reorderBufferEntry)
-	{
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
-		if(tempOpnd == null)
-		{
-			this.eventQueue.addEvent(
-					new RenameCompleteEvent(
-							core,
-							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
-							));
-			return;
-		}
-		
-		OperandType tempOpndType = tempOpnd.getOperandType(); 
-		
-		if(tempOpndType != OperandType.integerRegister &&
-				tempOpndType != OperandType.floatRegister &&
-				tempOpndType != OperandType.machineSpecificRegister)
-		{
-			this.eventQueue.addEvent(
-					new RenameCompleteEvent(
-							core,
-							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
-							));
-		}		
-		else
-		{
-			if(tempOpndType == OperandType.machineSpecificRegister)
-			{
-				handleMSR(reorderBufferEntry);				
-			}			
-			else
-			{
-				handleIntFloat(reorderBufferEntry);				
-			}
-		}
-	}
-	
-	void handleMSR(ReorderBufferEntryPerfect reorderBufferEntry)
-	{
-		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
-		
-		int destPhyReg = (int) tempOpnd.getValue();
-		reorderBufferEntry.setPhysicalDestinationRegister(destPhyReg);
-		
-		if(tempRF.getValueValid(destPhyReg) == true)
-		{
-			//destination MSR available
-			
-			tempRF.setProducerROBEntry(reorderBufferEntry, destPhyReg);
-			tempRF.setValueValid(false, destPhyReg);
-			
-			this.eventQueue.addEvent(
-					new RenameCompleteEvent(
-							core,
-							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
-							));
-		}
-		
-		else
-		{
-			//schedule AllocateDestinationRegisterEvent
-			long regReadyTime = tempRF.getProducerROBEntry((int) tempOpnd.getValue()).getReadyAtTime();
-			this.eventQueue.addEvent(
-					new AllocateDestinationRegisterEvent(
-							reorderBufferEntry,
-							null,
-							core,
-							regReadyTime
-							));
-			//stall decode because physical register for destination was not allocated
-			core.getExecEngine().setStallDecode1(true);
-		}
-	}
-	
-	void handleIntFloat(ReorderBufferEntryPerfect reorderBufferEntry)
-	{
-		RenameTable tempRN;
-		OperandType tempOpndType = reorderBufferEntry.getInstruction().
-									getDestinationOperand().getOperandType();
-		if(tempOpndType == OperandType.integerRegister)
-		{
-			tempRN = core.getExecEngine().getIntegerRenameTable();
-		}
-		else
-		{
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
-		}
-		
-		int r = tempRN.allocatePhysicalRegister(threadID, (int) reorderBufferEntry.getInstruction().getDestinationOperand().getValue());
-		if(r >= 0)
-		{
-			//physical register found
-			
-			reorderBufferEntry.setPhysicalDestinationRegister(r);
-			tempRN.setValueValid(false, r);
-			tempRN.setProducerROBEntry(reorderBufferEntry, r);
-			
-			this.eventQueue.addEvent(
-					new RenameCompleteEvent(
-							core,
-							reorderBufferEntry,
-							GlobalClock.getCurrentTime() + core.getRenamingTime()*core.getStepSize()
-							));
-		}
-		else
-		{
-			//look for a physical register in the next clock cycle
-			//schedule a AllocateDestinationRegisterEvent at time current_clock+1
-			this.eventQueue.addEvent(
-					new AllocateDestinationRegisterEvent(
-							reorderBufferEntry,
-							tempRN,
-							core,
-							GlobalClock.getCurrentTime()+core.getStepSize()
-							));
-			//stall decode because physical register for destination was not allocated
-			core.getExecEngine().setStallDecode1(true);
-		}
-	}
-	*/
 }

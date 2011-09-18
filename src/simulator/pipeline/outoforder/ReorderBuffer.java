@@ -246,7 +246,10 @@ public class ReorderBuffer extends SimulationElement{
 	
 	void handleBranchMisprediction()
 	{
-		System.out.println("branch mispredicted");
+		if(SimulationConfig.debugMode)
+		{
+			System.out.println("branch mispredicted");
+		}
 		/*
 		//remove all entries from ROB				
 		ROB.removeAll(null);
@@ -433,6 +436,103 @@ public class ReorderBuffer extends SimulationElement{
 		else
 		{
 			return (reorderBufferEntry.pos - head + MaxROBSize);
+		}
+	}
+	
+	public void performCommitsForPerfectPipeline()
+	{	
+		int tieBreaker = 0;
+		while(true)
+		{
+			if(head == -1)
+			{
+				if(core.getExecEngine().isAllPipesEmpty() == true)
+				{
+					//if ROB is empty, and decode pipe is empty, that means execution is complete
+					core.getExecEngine().setExecutionComplete(true);
+				}
+				break;
+			}
+			
+			ReorderBufferEntry first = ROB[head];
+			
+//			if(first.isWriteBackDone() == true)
+//			{
+				//if branch, then if branch prediction correct
+//				if(first.getInstruction().getOperationType() != OperationType.branch ||
+//						first.getInstruction().getOperationType() == OperationType.branch &&
+//						core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
+//							== first.getInstruction().isBranchTaken())		
+//				{
+					//add to available list
+					//update checkpoint
+					//note : if values are involved, a checkpoint of
+					//       the machine specific register file must also be implemented TODO
+					
+					//increment number of instructions executed
+					core.incrementNoOfInstructionsExecuted();
+					
+//					if(first.getInstruction().getDestinationOperand() != null)
+//					{
+//						if(first.getInstruction().getDestinationOperand().getOperandType()
+//								== OperandType.integerRegister)
+//						{
+//							updateIntegerRenameTable(first);
+//						}
+//						else if(first.getInstruction().getDestinationOperand().getOperandType() == OperandType.floatRegister)
+//						{
+//							updateFloatRenameTable(first);
+//						}
+//					}
+					
+					//System.out.println("committed : " +GlobalClock.getCurrentTime() + first.getInstruction().getOperationType());
+					
+					//TODO Signal LSQ for committing the Instruction at the queue head
+					if(first.getInstruction().getOperationType() == OperationType.load ||
+							first.getInstruction().getOperationType() == OperationType.store)
+					{
+						core.getEventQueue().addEvent(new PortRequestEvent((GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker, 
+								1, //noOfSlots,
+								new LSQCommitEventFromROB(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(),
+																			this,
+																			core.getExecEngine().coreMemSys.getLsqueue(), 
+																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
+																			RequestType.LSQ_COMMIT, 
+																			first.getLsqEntry())));
+						first.getLsqEntry().setRemoved(true);
+					}
+					
+					ROB[head].setValid(false);
+					if(head == tail)
+					{
+						head = -1;
+						tail = -1;
+					}
+					else
+					{
+						head = (head+1)%MaxROBSize;
+					}
+					
+//				}
+//				else
+//				{
+//					handleBranchMisprediction();
+//				}
+				
+//				if(first.getInstruction().getOperationType() == OperationType.branch)
+//				{
+//					core.getBranchPredictor().Train(
+//													first.getInstruction().getProgramCounter(),
+//													first.getInstruction().isBranchTaken(),
+//													core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
+//													);
+//				}
+//			}
+//			else
+//			{
+//				break;
+//			}
+			tieBreaker++;
 		}
 	}
 

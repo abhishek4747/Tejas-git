@@ -344,7 +344,7 @@ public class ObjParser
 		InstructionLinkedList instructionLinkedList = new InstructionLinkedList();
 
 //		dynamicInstructionBuffer.printBuffer();
-		System.out.print("\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer) + "\n");
+//		System.out.print("\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer) + "\n");
 		
 		// traverse dynamicInstruction Buffer to go to a known instruction
 		while(true)
@@ -393,7 +393,7 @@ public class ObjParser
 			
 			if(microOpIndex != -1)
 			{
-				//System.out.print("microOp(" + microOpIndex + ") : " + microOp + "\n");
+//				System.out.print("microOp(" + microOpIndex + ") : " + microOp + "\n");
 			}
 			else
 			{
@@ -404,7 +404,7 @@ public class ObjParser
 		
 		dynamicInstructionBuffer.clearBuffer();
 		
-		instructionLinkedList.printList();
+//		instructionLinkedList.printList();
 		return instructionLinkedList;
 	}
 }

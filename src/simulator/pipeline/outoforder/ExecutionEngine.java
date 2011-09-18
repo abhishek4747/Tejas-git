@@ -37,6 +37,7 @@ public class ExecutionEngine {
 	private boolean isExecutionComplete;		//TRUE indicates end of simulation
 	private boolean isDecodePipeEmpty[];
 	private boolean allPipesEmpty;
+	
 
 	public ExecutionEngine(Core containingCore)
 	{
