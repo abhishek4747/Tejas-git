@@ -57,48 +57,53 @@ public class DynamicInstructionBuffer
 	 * value
 	 */
 
-	public void configurePackets(Packet packet, int tid2, int tidEmu) 
+	public void configurePackets(Vector<Packet> vectorPacket,
+			int tid2, int tidEmu) 
 	{
+		Packet p;
 		Vector<Packet> memReadAddr = new Vector<Packet>();
-		Vector<Packet> memWriteAddr= new Vector<Packet>();
+		Vector<Packet> memWriteAddr = new Vector<Packet>();
 		Packet branchPacket = null;
 
-		long ip = packet.ip;
+		long ip = vectorPacket.elementAt(0).ip;
 		
-		assert (ip == packet.ip) : "all instruction pointers not matching";
-		switch (packet.value) 
+		for (int i = 0; i < vectorPacket.size(); i++) 
 		{
-			case (-1):
-				break;
-			
-			case (0):
-				assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
-				break;
+			p = vectorPacket.elementAt(i);
+			assert (ip == p.ip) : "all instruction pointers not matching";
+			switch (p.value) 
+			{
+				case (-1):
+					break;
 				
-			case (1):
-				assert (false) : "The value is reserved for locks";
-				break;
-				
-			case (2):
-				memReadAddr.add(packet);
-				break;
-				
-			case (3):
-				memWriteAddr.add(packet);
-				break;
-				
-			case (4):
-				branchPacket = packet;
-				break;
-				
-			case (5):
-				branchPacket = packet;
-				break;
-				
-			default:
-				assert (false) : "error in configuring packets";
+				case (0):
+					assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
+					break;
+					
+				case (1):
+					assert (false) : "The value is reserved for locks";
+					break;
+					
+				case (2):
+					memReadAddr.add(p);
+					break;
+					
+				case (3):
+					memWriteAddr.add(p);
+					break;
+					
+				case (4):
+					branchPacket = p;
+					break;
+					
+				case (5):
+					branchPacket = p;
+					break;
+					
+				default:
+					assert (false) : "error in configuring packets";
+			}
 		}
-
 		
 		if(!memReadAddr.isEmpty())
 		{

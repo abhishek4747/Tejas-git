@@ -4,7 +4,9 @@
 
 package emulatorinterface.communication.shm;
 
+
 import java.util.Vector;
+import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.Newmain;
 import emulatorinterface.communication.Packet;
@@ -12,6 +14,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
+import generic.InstructionArrayList;
 import generic.InstructionLinkedList;
 import generic.NewEventQueue;
 import generic.OperationType;
@@ -81,14 +84,10 @@ public class RunnableThread implements Runnable {
 	 * in the PIN (in case of unclean termination). Although the problem is easily fixable.
 	 */
 	public void run() {
-		long qqq_count=0;
 		
-//		Vector<Packet> vectorPacket = new Vector<Packet>();
-//		Packet pold = new Packet();
-//		Packet pnew;
-		
-		Packet qqq_packet;
-		
+		Vector<Packet> vectorPacket = new Vector<Packet>();
+		Packet pold = new Packet();
+		Packet pnew;
 		boolean allover = false;
 		int tid_emu = -1;
 		boolean emulatorStarted = false;
@@ -103,9 +102,10 @@ public class RunnableThread implements Runnable {
 		int noOfFusedInstructions = 0;
 		
 		DynamicInstructionBuffer[] dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
-		for (int i=0; i<EMUTHREADS; i++)
+		//FIXME: Hack - added for 50 thread only. 50 must be replaced by MAX_THREADS
+		for (long i=0; i<50; i++)
 		{
-			dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
+			dynamicInstructionBuffer[0] = new DynamicInstructionBuffer();
 		}
 		
 		//FIXME:
@@ -119,7 +119,12 @@ public class RunnableThread implements Runnable {
 		// start gets reinitialized when the program actually starts
 		long start = System.currentTimeMillis();
 		
-	
+		// keep on looping till there is something to read. iterates on the emulator threads from
+		// which it has to read.
+		long noOfInstr = 0;
+		boolean toExit = false;
+		
+		InstructionLinkedList bufferedInstructions = null;
 		
 		while(true && breakLoop==false)
 		{
@@ -130,14 +135,14 @@ public class RunnableThread implements Runnable {
 				
 				if (overstatus[emuid]) continue;
 				int queue_size, numReads=0,v=0;
-				
+
 				// get the number of packets to read. 'continue' and read from some
 				//other thread if there is nothing.
 				SharedMem.get_lock(tid_emu,ibuf, COUNT);
 				queue_size = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT,COUNT);
 				SharedMem.release_lock(tid_emu,ibuf, COUNT);
 				numReads = queue_size;
-				if(numReads == 0)
+				if(numReads == 0)	
 				{
 					continue;
 				}
@@ -164,31 +169,28 @@ public class RunnableThread implements Runnable {
 				// in a vector and passed to the DynamicInstructionBuffer which then processes it.
 				for(int i=0 ; (i < numReads)  && (breakLoop==false); i++ ) 
 				{
-//qqq				pnew = SharedMem.shmread(tid_emu,ibuf,(cons_ptr[emuid] + i) %COUNT,COUNT );
-					qqq_packet = SharedMem.shmread(tid_emu,ibuf,(cons_ptr[emuid] + i) %COUNT,COUNT );
-					
-//qqq				v = pnew.value;
-					v=qqq_packet.value;
-					
+					pnew = SharedMem.shmread(tid_emu,ibuf,(cons_ptr[emuid] + i) %COUNT,COUNT );
+					v = pnew.value;
 					read_count ++;
 					sum += v;
-//qqq				if (pnew.ip == pold.ip || isFirstPacket[emuid]) {
-//qqq					if (isFirstPacket[emuid]) pold = pnew;
-//qqq					vectorPacket.add(pnew);
-//qqq				}
-//qqq				else
-//qqq				{
+					if (pnew.ip == pold.ip || isFirstPacket[emuid]) {
+						if (isFirstPacket[emuid]) pold = pnew;
+						vectorPacket.add(pnew);
+					}
+					else 
+					{
 						(SharedMem.numInstructions[tid])++;
 						
 						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
-						dynamicInstructionBuffer[emuid].configurePackets(qqq_packet, tid, tid_emu);
+						dynamicInstructionBuffer[emuid].configurePackets(vectorPacket, tid, tid_emu);
 						
+						//TODO This instructionList must be provided to raj's code
 						Newmain.instructionCount ++;
 						
 						InstructionLinkedList fusedInstructions = null;
-						fusedInstructions = ObjParser.translateInstruction(qqq_packet.ip, dynamicInstructionBuffer[emuid]);
-						qqq_count += fusedInstructions.getListSize();
-						fusedInstructions=null;
+						fusedInstructions = ObjParser.translateInstruction(pold.ip, dynamicInstructionBuffer[emuid]);
+//						dynamicInstructionBuffer[emuid].clearBuffer(); // gobble all micro-ops
+//						fusedInstructions=null;
 						
 						if(fusedInstructions != null && pipelineDone == false)
 						{
@@ -261,12 +263,11 @@ public class RunnableThread implements Runnable {
 							
 						}
 						
-//qqq					pold = pnew;
-//qqq					vectorPacket.clear();
-//qqq					vectorPacket.add(pold);
-//qqq				}
-				if (isFirstPacket[emuid]) 
-					isFirstPacket[emuid] = false;
+						pold = pnew;
+						vectorPacket.clear();
+						vectorPacket.add(pold);
+					}
+					if (isFirstPacket[emuid]) isFirstPacket[emuid] = false;
 				}
 
 				// update the consumer pointer, queue_size.
@@ -353,13 +354,64 @@ public class RunnableThread implements Runnable {
 		Statistics.setDataRead(dataRead*20, tid);
 		Statistics.setNumInstructions(SharedMem.numInstructions[tid], tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
-	
-		System.out.print("\n\tqqq_count = " + qqq_count + "\n");
 		
 		SharedMem.free.release();
 	}
 
-	
+	private DynamicInstruction configurePackets(Vector<Packet> vectorPacket,
+			int tid2, int tidEmu) 
+	{
+		Packet p;
+		Vector<Long> memReadAddr = new Vector<Long>();
+		Vector<Long> memWriteAddr = new Vector<Long>();
+		Vector<Long> srcRegs = new Vector<Long>();
+		Vector<Long> dstRegs = new Vector<Long>();
+
+		long ip = vectorPacket.elementAt(0).ip;
+		boolean taken = false;
+		long branchTargetAddress = 0;
+		for (int i = 0; i < vectorPacket.size(); i++) {
+			p = vectorPacket.elementAt(i);
+			assert (ip == p.ip) : "all instruction pointers not matching";
+			switch (p.value) {
+			case (-1):
+				break;
+			case (0):
+				assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
+				break;
+			case (1):
+				assert (false) : "The value is reserved for locks";
+				break;
+			case (2):
+				memReadAddr.add(p.tgt);
+				break;
+			case (3):
+				memWriteAddr.add(p.tgt);
+				break;
+			case (4):
+				taken = true;
+				branchTargetAddress = p.tgt;
+				break;
+			case (5):
+				taken = false;
+				branchTargetAddress = p.tgt;
+				break;
+			case (6):
+				srcRegs.add(p.tgt);
+				break;
+			case (7):
+				dstRegs.add(p.tgt);
+				break;
+			default:
+				assert (false) : "error in configuring packets";
+			}
+		}
+
+		 return new DynamicInstruction(ip, tidEmu, taken,
+				branchTargetAddress, memReadAddr, memWriteAddr, srcRegs,
+				dstRegs);
+	}
+
 	public InstructionLinkedList getInputToPipeline() {
 		return inputToPipeline;
 	}
