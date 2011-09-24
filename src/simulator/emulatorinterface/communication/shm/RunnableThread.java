@@ -81,6 +81,7 @@ public class RunnableThread implements Runnable {
 	 * in the PIN (in case of unclean termination). Although the problem is easily fixable.
 	 */
 	public void run() {
+		long qqq_count=0;
 		
 //		Vector<Packet> vectorPacket = new Vector<Packet>();
 //		Packet pold = new Packet();
@@ -110,10 +111,10 @@ public class RunnableThread implements Runnable {
 		//FIXME:
 		boolean breakLoop = false;
 		
-//		boolean isFirstPacket[] = new boolean[EMUTHREADS];
-//		for (int i=0; i<EMUTHREADS; i++) {
-//			isFirstPacket[i] = true;
-//		}
+		boolean isFirstPacket[] = new boolean[EMUTHREADS];
+		for (int i=0; i<EMUTHREADS; i++) {
+			isFirstPacket[i] = true;
+		}
 		
 		// start gets reinitialized when the program actually starts
 		long start = System.currentTimeMillis();
@@ -155,9 +156,9 @@ public class RunnableThread implements Runnable {
 					SharedMem.started[tid]=true;
 				}
 				
-//qqq			if (isFirstPacket[emuid]) {
+				if (isFirstPacket[emuid]) {
 					emuThreadStartStatus[emuid]=true;
-//qqq			}
+				}
 				
 				// Read the entries. The packets belonging to the same instruction are added
 				// in a vector and passed to the DynamicInstructionBuffer which then processes it.
@@ -186,6 +187,7 @@ public class RunnableThread implements Runnable {
 						
 						InstructionLinkedList fusedInstructions = null;
 						fusedInstructions = ObjParser.translateInstruction(qqq_packet.ip, dynamicInstructionBuffer[emuid]);
+						qqq_count += fusedInstructions.getListSize();
 						fusedInstructions=null;
 						
 						if(fusedInstructions != null && pipelineDone == false)
@@ -263,7 +265,8 @@ public class RunnableThread implements Runnable {
 //qqq					vectorPacket.clear();
 //qqq					vectorPacket.add(pold);
 //qqq				}
-//qqq				if (isFirstPacket[emuid]) isFirstPacket[emuid] = false;
+				if (isFirstPacket[emuid]) 
+					isFirstPacket[emuid] = false;
 				}
 
 				// update the consumer pointer, queue_size.
@@ -350,6 +353,8 @@ public class RunnableThread implements Runnable {
 		Statistics.setDataRead(dataRead*20, tid);
 		Statistics.setNumInstructions(SharedMem.numInstructions[tid], tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
+	
+		System.out.print("\n\tqqq_count = " + qqq_count + "\n");
 		
 		SharedMem.free.release();
 	}
