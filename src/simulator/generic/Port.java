@@ -4,16 +4,16 @@ public class Port
 {
 	private int noOfPorts;
 
-	//occupancy defines the number of clockCycles it takes for one completion 
-	//of a single transfer on the port.
+	//occupancy defines the number of clockCycles needed for  
+	//a single transfer on the port.
 	private Time_t occupancy;
 	private Time_t[] portBusyUntil;
 	
-	//NOTE : all notions of time is in terms of GlobalClock cycles
+	//NOTE : Time is in terms of GlobalClock cycles
 	
 	public Port(int noOfPorts, Time_t occupancy)
 	{
-		//initialize no. of ports and the occupancy.
+		//initialise no. of ports and the occupancy.
 		this.noOfPorts = noOfPorts;
 		this.occupancy = occupancy;
 		
@@ -36,12 +36,12 @@ public class Port
 		
 		if ((this.noOfPorts == -1) && (this.occupancy.getTime() == -1))
 		{
-			//In case of unlimited ports, return now.
+			//In case of unlimited ports, return current-time.
 			return GlobalClock.getCurrentTime();
 		}
 		else
 		{
-			//else return the most recent available slot.
+			//else return the slot that will be available earliest.
 			long availableSlot = portBusyUntil[0].getTime();
 			for(int i=0; i<noOfPorts; i++)
 			{
@@ -51,6 +51,7 @@ public class Port
 				}
 			}
 			
+			// If all the ports are available, return current-time.
 			if(!(availableSlot > GlobalClock.getCurrentTime()))
 			{
 				availableSlot = GlobalClock.getCurrentTime();
@@ -60,7 +61,7 @@ public class Port
 		}
 	}
 	
-	//returns if any port is available for next n slots.
+	//returns true if any port is available for next n slots.
 	public boolean occupySlots(int noOfSlots, int stepSize)
 	{
 		if(noOfPorts == -1 && (this.occupancy.getTime() == -1))
@@ -79,7 +80,7 @@ public class Port
 				}
 			}
 			
-			//If we reach here, that means nothing was available.
+			//If we reach here, it means nothing was available.
 			//Just return false.
 			return false;
 		}
