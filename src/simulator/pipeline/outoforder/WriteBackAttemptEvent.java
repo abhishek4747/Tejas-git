@@ -24,7 +24,7 @@ public class WriteBackAttemptEvent extends NewEvent {
 								int whichWBFlag,
 								long eventTime)
 	{
-		super(new Time_t(eventTime), null, null, 0, RequestType.WRITEBACK_ATTEMPT);
+		super(new Time_t(eventTime), null, null, core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry), RequestType.WRITEBACK_ATTEMPT);
 		
 		this.core = core;
 		this.tempRF = tempRF;

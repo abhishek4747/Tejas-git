@@ -11,6 +11,7 @@ import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.Newmain;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import emulatorinterface.translator.x86.objparser.TestInstructionLists;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -58,6 +59,8 @@ public class RunnableThread implements Runnable {
 			overstatus[i] = false;
 		}
 		inputToPipeline = new InstructionLinkedList();
+		//inputToPipeline = TestInstructionLists.testList2();			//to simulate pipeline on testList1;
+																	//note :remember to set pipelineDone = true 
 		this.eventQ = eventQ;
 		this.cores = cores;
 		noOfMicroOps = 0;
@@ -198,10 +201,10 @@ public class RunnableThread implements Runnable {
 							//to be commenced
 							if(pipelineCommenced == false && insCtr > cores[0].getDecodeWidth())
 							{
-								for(int i1 = 0; i1 < cores.length; i1++)
+								/*for(int i1 = 0; i1 < cores.length; i1++)
 								{
 									cores[i1].boot();
-								}
+								}*/
 								pipelineCommenced = true;
 								GlobalClock.setCurrentTime(0);
 								if(subsetSimulation == true) /* - for pipeline of instructions 2000000 - 12000000 - */
@@ -235,7 +238,32 @@ public class RunnableThread implements Runnable {
 							
 							for(int i2 = 0; i2 < listSize/cores[0].getDecodeWidth()*cores[0].getStepSize(); i2++)
 							{
+								//perform commits
+								if(i2%cores[0].getStepSize() == 0)
+								{
+									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+									{
+										if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
+										{
+											eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
+										}
+									}
+								}
+								
+								//handle events other than decode, commit
 								eventQ.processEvents();
+								
+								//perform decode
+								if(i2%cores[0].getStepSize() == 0)
+								{
+									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+									{
+										if(eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
+										{
+											eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
+										}
+									}
+								}
 								
 								GlobalClock.incrementClock();
 							}
@@ -244,12 +272,39 @@ public class RunnableThread implements Runnable {
 							if(subsetSimulation == true && insCtr > 10000000)
 							{
 								inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
+								int i2 = 0;
 								
 								while(eventQ.isEmpty() == false)
 								{
+									//perform commits
+									if(i2%cores[0].getStepSize() == 0)
+									{
+										for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+										{
+											if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
+											{
+												eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
+											}
+										}
+									}
+									
+									//handle events other than decode, commit
 									eventQ.processEvents();
 									
+									//perform decode
+									if(i2%cores[0].getStepSize() == 0)
+									{
+										for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+										{
+											if(eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
+											{
+												eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
+											}
+										}
+									}
+									
 									GlobalClock.incrementClock();
+									i2++;
 								}
 								
 								e = System.currentTimeMillis();
@@ -332,11 +387,38 @@ public class RunnableThread implements Runnable {
 		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
 		inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
 		
-		while(eventQ.isEmpty() == false)
+		int i2 = 0;
+		while(!eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete())//TODO all cores connected to this event queue must have completed to exit the loop
 		{
+			//perform commits
+			if(i2%cores[0].getStepSize() == 0)
+			{
+				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+				{
+					if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
+					{
+						eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
+					}
+				}
+			}
+			
+			//handle events other than decode, commit
 			eventQ.processEvents();
 			
+			//perform decode
+			if(i2%cores[0].getStepSize() == 0)
+			{
+				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+				{
+					if(eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
+					{
+						eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
+					}
+				}
+			}
+			
 			GlobalClock.incrementClock();
+			i2++;
 		}
 		
 		long dataRead = 0;

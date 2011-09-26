@@ -36,14 +36,17 @@ public class TestInstructionLists {
 		Instruction newInst;
 		for(OperationType type : OperationType.values())
 		{
-			for(int i = 0; i < 4; i++)
+			if(type != OperationType.inValid)
 			{
-				newInst = new Instruction(type,
-						new Operand(OperandType.integerRegister, 3*i),
-						new Operand(OperandType.integerRegister, 3*i+1),
-						new Operand(OperandType.integerRegister, 3*i+2) );
-				
-				instructionLinkedList.appendInstruction(newInst);
+				for(int i = 0; i < 4; i++)
+				{
+					newInst = new Instruction(type,
+							new Operand(OperandType.integerRegister, 3*i),
+							new Operand(OperandType.integerRegister, 3*i+1),
+							new Operand(OperandType.integerRegister, 3*i+2) );
+					
+					instructionLinkedList.appendInstruction(newInst);
+				}
 			}
 			
 			if(type == OperationType.floatDiv)

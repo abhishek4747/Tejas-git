@@ -32,7 +32,7 @@ public class WriteBackCompleteEvent extends NewEvent {
 									int tempDestPhyReg,
 									long eventTime )
 	{
-		super(new Time_t(eventTime), null, null, 0, RequestType.WRITEBACK_COMPLETE);
+		super(new Time_t(eventTime), null, null, core.getExecEngine().getReorderBuffer().indexOf(reorderBufferEntry), RequestType.WRITEBACK_COMPLETE);
 		
 		this.core = core;
 		this.tempRF = tempRF;

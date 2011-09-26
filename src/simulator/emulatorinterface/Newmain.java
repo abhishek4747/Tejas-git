@@ -65,6 +65,7 @@ public class Newmain {
 		
 		//create cores
 		Core[] cores = initCores(eventQ[0]);
+		eventQ[0].setCoresHandled(cores);
 		
 		// create PIN interface
 		IPCBase ipcBase = new SharedMem(eventQ, cores);

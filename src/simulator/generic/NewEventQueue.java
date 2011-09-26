@@ -5,7 +5,8 @@ import java.util.PriorityQueue;
 public class NewEventQueue 
 {
 	private PriorityQueue<NewEvent> priorityQueue;
-		
+	private Core[] coresHandled;
+
 	public NewEventQueue() 
 	{
 		priorityQueue = new PriorityQueue<NewEvent>(1, new NewEventComparator());
@@ -45,5 +46,13 @@ public class NewEventQueue
 	public boolean isEmpty()
 	{
 		return priorityQueue.isEmpty();
+	}
+		
+	public Core[] getCoresHandled() {
+		return coresHandled;
+	}
+
+	public void setCoresHandled(Core[] coresHandled) {
+		this.coresHandled = coresHandled;
 	}
 }
