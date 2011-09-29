@@ -5,8 +5,6 @@ import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.PerformDecodeEventPerfect;
 //import pipeline.perfect.PerformCommitsEventPerfect;
 import pipeline.outoforder.ExecutionEngine;
-import pipeline.outoforder.PerformDecodeEvent;
-import pipeline.outoforder.PerformCommitsEvent;
 import config.CoreConfig;
 import config.SystemConfig;
 
@@ -110,14 +108,14 @@ public class Core extends SimulationElement{
 		latencies[FunctionalUnitType.memory.ordinal()] = coreConfig.AddressFULatency;
 	}
 	
-	public void boot()
+	/*public void boot()
 	{
 		//set up initial events in the queue
 		eventQueue.addEvent(new PerformDecodeEvent(GlobalClock.getCurrentTime(), this, 0));
 //TODO commented only for perfect pipeline		
 		if (perfectPipeline == false)
 			eventQueue.addEvent(new PerformCommitsEvent(GlobalClock.getCurrentTime(), this));
-	}
+	}*/
 	
 	/*public void work()
 	{

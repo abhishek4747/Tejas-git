@@ -32,14 +32,15 @@ public class ReorderBuffer extends SimulationElement{
 		core = _core;
 		MaxROBSize = core.getReorderBufferSize();
 		ROB = new ReorderBufferEntry[MaxROBSize];
+		
+		this.execEngine = execEngine;
+		
 		for(int i = 0; i < MaxROBSize; i++)
 		{
-			ROB[i] = new ReorderBufferEntry(core, i);
+			ROB[i] = new ReorderBufferEntry(core, i, execEngine);
 		}
 		head = -1;
 		tail = -1;
-		
-		this.execEngine = execEngine;
 	}
 	
 	public boolean isFull()

@@ -50,8 +50,14 @@ public class WakeUpLogic {
 			instruction = ROBEntry.getInstruction();
 			opnd1 = instruction.getSourceOperand1();
 			opnd2 = instruction.getSourceOperand2();
-			opnd1Type = opnd1.getOperandType();
-			opnd2Type = opnd2.getOperandType();
+			if(opnd1 != null)
+				opnd1Type = opnd1.getOperandType();
+			else
+				opnd1Type = null;
+			if(opnd2 != null)
+				opnd2Type = opnd2.getOperandType();
+			else
+				opnd2Type = null;
 			
 			if(ROBEntry.isOperand1Available() == false)
 			{
