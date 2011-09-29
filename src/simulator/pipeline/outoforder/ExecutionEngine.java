@@ -43,9 +43,9 @@ public class ExecutionEngine {
 	{
 		core = containingCore;
 		
-		decoder = new DecodeLogic(core);
-		reorderBuffer = new ReorderBuffer(core);
-		instructionWindow = new InstructionWindow(core);
+		decoder = new DecodeLogic(core, this);
+		reorderBuffer = new ReorderBuffer(core, this);
+		instructionWindow = new InstructionWindow(core, this);
 		integerRegisterFile = new RegisterFile(core, core.getIntegerRegisterFileSize());
 		integerRenameTable = new RenameTable(core.getNIntegerArchitecturalRegisters(), core.getIntegerRegisterFileSize(), integerRegisterFile, core.getNo_of_threads());
 		floatingPointRegisterFile = new RegisterFile(core, core.getFloatingPointRegisterFileSize());

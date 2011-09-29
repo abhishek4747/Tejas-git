@@ -19,15 +19,23 @@ public class IWEntry {
 	Instruction instruction;
 	ReorderBufferEntry associatedROBEntry;
 	
+	ExecutionEngine execEngine;
+	InstructionWindow instructionWindow;
+	OperationType opType;
+	
 	boolean isValid;
 	
 	int pos;
 
-	public IWEntry(Core core, int pos)
+	public IWEntry(Core core, int pos,
+			ExecutionEngine execEngine, InstructionWindow instructionWindow)
 	{
 		this.core = core;
 		this.pos = pos;
 		isValid = false;
+		
+		this.execEngine = execEngine;
+		this.instructionWindow = instructionWindow;
 	}
 	
 	/*
@@ -61,15 +69,15 @@ public class IWEntry {
 		if(associatedROBEntry.isOperand1Available && associatedROBEntry.isOperand2Available)
 		{
 			
-			if(instruction.getOperationType() == OperationType.mov ||
-					instruction.getOperationType() == OperationType.xchg)
+			if(opType == OperationType.mov ||
+					opType == OperationType.xchg)
 			{
 				//no FU required
 				issueMovXchg();
 			}
 			
-			else if(associatedROBEntry.getInstruction().getOperationType() == OperationType.load ||
-					associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
+			else if(opType == OperationType.load ||
+					opType == OperationType.store)
 			{
 				issueLoadStore();
 			}
@@ -89,7 +97,7 @@ public class IWEntry {
 		associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getStepSize());
 		
 		//remove IW entry
-		core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+		instructionWindow.removeFromWindow(this);
 		
 		core.getEventQueue().addEvent(
 				new ExecutionCompleteEvent(
@@ -111,70 +119,46 @@ public class IWEntry {
 	{
 		if(instruction.getSourceOperand2() != null)
 		{
-			long FURequest = 0;	//will be <= 0 if an FU was obtained
-			//will be > 0 otherwise, indicating how long before
-			//	an FU of the type will be available
-
-			FURequest = core.getExecEngine().getFunctionalUnitSet().requestFU(
-				OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()),
-				GlobalClock.getCurrentTime(),
-				core.getStepSize() );
 			
-			if(FURequest <= 0)
+			associatedROBEntry.setIssued(true);
+			if(opType == OperationType.store)
 			{
-				associatedROBEntry.setIssued(true);
-				if(associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
-				{
-					associatedROBEntry.setExecuted(true);
-					associatedROBEntry.setWriteBackDone1(true);
-					associatedROBEntry.setWriteBackDone2(true);
-				}
-				associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
-				associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
-						OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal())*core.getStepSize());
-				
-				//remove IW entry
-				core.getExecEngine().getInstructionWindow().removeFromWindow(this);
-				//TODO add event to indicate address ready
-				core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
-															null, //Requesting Element
-															core.getExecEngine().coreMemSys.getLsqueue(), 
-															0, //tieBreaker,
-															RequestType.TLB_ADDRESS_READY,
-															associatedROBEntry.getLsqEntry())));
+				associatedROBEntry.setExecuted(true);
+				associatedROBEntry.setWriteBackDone1(true);
+				associatedROBEntry.setWriteBackDone2(true);
 			}
+			associatedROBEntry.setFUInstance(0);
+			associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
+					OpTypeToFUTypeMapping.getFUType(opType).ordinal())*core.getStepSize());
 			
-			else
-			{
-				
-				associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
-				OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()) * core.getStepSize());
-				
-				core.getEventQueue().addEvent(
-						new FunctionalUnitAvailableEvent(
-							this.core,
-							this.getAssociatedROBEntry(),
-							FURequest ) );
-			}
+			//remove IW entry
+			instructionWindow.removeFromWindow(this);
+			//TODO add event to indicate address ready
+			core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
+					1, //noOfSlots,
+					new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+														null, //Requesting Element
+														core.getExecEngine().coreMemSys.getLsqueue(), 
+														0, //tieBreaker,
+														RequestType.TLB_ADDRESS_READY,
+														associatedROBEntry.getLsqEntry())));
 
 		}
 		else
 		{
 			associatedROBEntry.setIssued(true);
-			if(associatedROBEntry.getInstruction().getOperationType() == OperationType.store)
+			if(opType == OperationType.store)
 			{
 				associatedROBEntry.setExecuted(true);
 				associatedROBEntry.setWriteBackDone1(true);
 				associatedROBEntry.setWriteBackDone2(true);
 			}
 			
-			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+			instructionWindow.removeFromWindow(this);
 			//TODO add event to indicate address ready
 			core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
 					1, //noOfSlots,
-					new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+					new LSQAddressReadyEvent(execEngine.coreMemSys.getLsqueue().getLatencyDelay(), 
 														null, //Requesting Element
 														core.getExecEngine().coreMemSys.getLsqueue(), 
 														0, //tieBreaker,
@@ -194,8 +178,8 @@ public class IWEntry {
 		//will be > 0 otherwise, indicating how long before
 		//	an FU of the type will be available
 
-		FURequest = core.getExecEngine().getFunctionalUnitSet().requestFU(
-			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()),
+		FURequest = execEngine.getFunctionalUnitSet().requestFU(
+			OpTypeToFUTypeMapping.getFUType(opType),
 			GlobalClock.getCurrentTime(),
 			core.getStepSize() );
 		
@@ -204,10 +188,10 @@ public class IWEntry {
 			associatedROBEntry.setIssued(true);
 			associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
 			associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
-					OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal())*core.getStepSize());
+					OpTypeToFUTypeMapping.getFUType(opType).ordinal())*core.getStepSize());
 			
 			//remove IW entry
-			core.getExecEngine().getInstructionWindow().removeFromWindow(this);
+			instructionWindow.removeFromWindow(this);
 			
 			core.getEventQueue().addEvent(
 				new ExecutionCompleteEvent(
@@ -215,7 +199,7 @@ public class IWEntry {
 						associatedROBEntry.getFUInstance(),
 						core,
 						GlobalClock.getCurrentTime() + core.getLatency(
-								OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()) * core.getStepSize()
+								OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize()
 						) );
 
 			if(SimulationConfig.debugMode)
@@ -228,7 +212,7 @@ public class IWEntry {
 		{
 			
 			associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
-			OpTypeToFUTypeMapping.getFUType(instruction.getOperationType()).ordinal()) * core.getStepSize());
+			OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize());
 			
 			core.getEventQueue().addEvent(
 					new FunctionalUnitAvailableEvent(
@@ -260,6 +244,7 @@ public class IWEntry {
 
 	public void setInstruction(Instruction instruction) {
 		this.instruction = instruction;
+		opType = instruction.getOperationType();
 	}
 
 }

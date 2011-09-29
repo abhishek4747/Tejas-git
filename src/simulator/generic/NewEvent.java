@@ -83,6 +83,11 @@ public abstract class NewEvent
 	{
 		this.priority = requestType.ordinal();
 	}
+	
+	public RequestType getRequestType()
+	{
+		return requestType;
+	}
 
 	//If the event cannot be handled in the current clock-cycle,
 	//then the eventPriority and eventTime will be changed and then 

@@ -4,6 +4,7 @@ import config.SimulationConfig;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
+import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 import generic.PortRequestEvent;
@@ -22,8 +23,10 @@ public class ReorderBuffer extends SimulationElement{
 	
 	int head;
 	int tail;
+	
+	ExecutionEngine execEngine;
 
-	public ReorderBuffer(Core _core)
+	public ReorderBuffer(Core _core, ExecutionEngine execEngine)
 	{
 		super(1, new Time_t(-1), new Time_t(-1), -1);
 		core = _core;
@@ -35,6 +38,8 @@ public class ReorderBuffer extends SimulationElement{
 		}
 		head = -1;
 		tail = -1;
+		
+		this.execEngine = execEngine;
 	}
 	
 	public boolean isFull()
@@ -109,7 +114,7 @@ public class ReorderBuffer extends SimulationElement{
 	{	
 		int tieBreaker = 0;
 		
-		if(core.getExecEngine().isStallDecode2() == true)
+		if(execEngine.isStallDecode2() == true)
 		{
 			return;
 		}
@@ -118,10 +123,10 @@ public class ReorderBuffer extends SimulationElement{
 		{
 			if(head == -1)
 			{
-				if(core.getExecEngine().isAllPipesEmpty() == true)
+				if(execEngine.isAllPipesEmpty() == true)
 				{
 					//if ROB is empty, and decode pipe is empty, that means execution is complete
-					core.getExecEngine().setExecutionComplete(true);
+					execEngine.setExecutionComplete(true);
 					
 					setTimingStatistics();			
 					setPerCoreMemorySystemStatistics();
@@ -130,12 +135,15 @@ public class ReorderBuffer extends SimulationElement{
 			}
 			
 			ReorderBufferEntry first = ROB[head];
+			Instruction firstInstruction = first.getInstruction();
+			OperationType firstOpType = firstInstruction.getOperationType();
+			Operand firstDestOpnd = firstInstruction.getDestinationOperand();
 			
 			if(first.isWriteBackDone() == true)
 			{
 				//if branch, then if branch prediction correct
-				if(first.getInstruction().getOperationType() != OperationType.branch ||
-						first.getInstruction().getOperationType() == OperationType.branch &&
+				if(firstOpType != OperationType.branch ||
+						firstOpType == OperationType.branch &&
 						core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
 							== first.getInstruction().isBranchTaken())		
 				{
@@ -147,14 +155,14 @@ public class ReorderBuffer extends SimulationElement{
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
 					
-					if(first.getInstruction().getDestinationOperand() != null)
+					if(firstDestOpnd != null)
 					{
-						if(first.getInstruction().getDestinationOperand().getOperandType()
-								== OperandType.integerRegister)
+						OperandType firstDestOpndType = firstDestOpnd.getOperandType();
+						if(firstDestOpndType == OperandType.integerRegister)
 						{
 							updateIntegerRenameTable(first);
 						}
-						else if(first.getInstruction().getDestinationOperand().getOperandType() == OperandType.floatRegister)
+						else if(firstDestOpndType == OperandType.floatRegister)
 						{
 							updateFloatRenameTable(first);
 						}
@@ -165,17 +173,14 @@ public class ReorderBuffer extends SimulationElement{
 						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + first.getInstruction());
 					}
 					
-					//System.out.println("committed : " +GlobalClock.getCurrentTime() + first.getInstruction().getOperationType());
-					
-					//TODO Signal LSQ for committing the Instruction at the queue head
-					if(first.getInstruction().getOperationType() == OperationType.load ||
-							first.getInstruction().getOperationType() == OperationType.store)
+					//Signal LSQ for committing the Instruction at the queue head
+					if(firstOpType == OperationType.load || firstOpType == OperationType.store)
 					{
 						core.getEventQueue().addEvent(new PortRequestEvent((GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker, 
 								1, //noOfSlots,
-								new LSQCommitEventFromROB(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(),
+								new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
 																			this,
-																			core.getExecEngine().coreMemSys.getLsqueue(), 
+																			execEngine.coreMemSys.getLsqueue(), 
 																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
 																			RequestType.LSQ_COMMIT, 
 																			first.getLsqEntry())));
@@ -199,7 +204,7 @@ public class ReorderBuffer extends SimulationElement{
 					handleBranchMisprediction();
 				}
 				
-				if(first.getInstruction().getOperationType() == OperationType.branch)
+				if(firstOpType == OperationType.branch)
 				{
 					core.getBranchPredictor().Train(
 													first.getInstruction().getProgramCounter(),
@@ -218,40 +223,44 @@ public class ReorderBuffer extends SimulationElement{
 	
 	void updateIntegerRenameTable(ReorderBufferEntry first)
 	{
+		RenameTable intRenameTable = execEngine.getIntegerRenameTable();
+		int threadID = first.getThreadID();
+		int destReg = (int) first.getInstruction().getDestinationOperand().getValue();
 		//adding current mapping to available list
-		int curPhyReg = core.getExecEngine().getIntegerRenameTable()
-				.getCheckpoint().getMapping(
-						first.getThreadID(),
-						(int) first.getInstruction().getDestinationOperand().getValue());
+		int curPhyReg = intRenameTable.getCheckpoint().getMapping(
+						threadID,
+						destReg);
 		if(curPhyReg != first.getPhysicalDestinationRegister())
 		{
-			core.getExecEngine().getIntegerRenameTable().addToAvailableList(curPhyReg);
+			intRenameTable.addToAvailableList(curPhyReg);
 		}
 		
 		//updating checkpoint
-		core.getExecEngine().getIntegerRenameTable().getCheckpoint().setMapping(
-				first.getThreadID(),
+		intRenameTable.getCheckpoint().setMapping(
+				threadID,
 				first.getPhysicalDestinationRegister(),
-				(int) first.getInstruction().getDestinationOperand().getValue());
+				destReg);
 	}
 	
 	void updateFloatRenameTable(ReorderBufferEntry first)
 	{
+		RenameTable floatRenameTable = execEngine.getFloatingPointRenameTable();
+		int threadID = first.getThreadID();
+		int destReg = (int) first.getInstruction().getDestinationOperand().getValue();
 		//adding current mapping to available list
-		int curPhyReg = core.getExecEngine().getFloatingPointRenameTable()
-				.getCheckpoint().getMapping(
-						first.getThreadID(),
-						(int) first.getInstruction().getDestinationOperand().getValue());
+		int curPhyReg = floatRenameTable.getCheckpoint().getMapping(
+				threadID,
+				destReg);
 		if(curPhyReg != first.getPhysicalDestinationRegister())
 		{
-			core.getExecEngine().getFloatingPointRenameTable().addToAvailableList(curPhyReg);
+			floatRenameTable.addToAvailableList(curPhyReg);
 		}
 		
 		//updating checkpoint
-		core.getExecEngine().getFloatingPointRenameTable().getCheckpoint().setMapping(
-				first.getThreadID(),
+		floatRenameTable.getCheckpoint().setMapping(
+				threadID,
 				first.getPhysicalDestinationRegister(),
-				(int) first.getInstruction().getDestinationOperand().getValue());
+				destReg);
 	}
 	
 	void handleBranchMisprediction()
@@ -260,21 +269,9 @@ public class ReorderBuffer extends SimulationElement{
 		{
 			System.out.println("branch mispredicted");
 		}
-		/*
-		//remove all entries from ROB				
-		ROB.removeAll(null);
 		
-		//remove all entries from Instruction Window
-		core.getExecEngine().getInstructionWindow().flush();
-		
-		//remove all entries from LSQ
-		
-		
-		//roll back rename tables
-		rollBackRenameTables();
-		*/
-		//impose branch misprediction penalty
-		core.getExecEngine().setStallDecode2(true);
+		//impose branch mis-prediction penalty
+		execEngine.setStallDecode2(true);
 		core.getEventQueue().addEvent(
 				new MispredictionPenaltyCompleteEvent(
 						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty()*core.getStepSize(),
@@ -286,79 +283,46 @@ public class ReorderBuffer extends SimulationElement{
 	public void rollBackRenameTables()
 	{
 		int phyReg;
+		RenameTable renameTable;
 		
 		//integer rename table
+		renameTable = execEngine.getIntegerRenameTable();
 		for(int i = 0; i < core.getIntegerRegisterFileSize(); i++)
 		{
-			core.getExecEngine().getIntegerRenameTable().setMappingValid(false, i);
-			core.getExecEngine().getIntegerRenameTable().setValueValid(false, i);
-			core.getExecEngine().getIntegerRenameTable().setProducerROBEntry(null, i);
+			renameTable.setMappingValid(false, i);
+			renameTable.setValueValid(false, i);
+			renameTable.setProducerROBEntry(null, i);
 		}
 		for(int j = 0; j < core.getNo_of_threads(); j++)
 		{
 			for(int i = 0; i < core.getNIntegerArchitecturalRegisters(); i++)
 			{
-				phyReg = core.getExecEngine().getIntegerRenameTable().getCheckpoint().getMapping(j, i);
-				core.getExecEngine().getIntegerRenameTable().setArchReg(j, i, phyReg);
-				core.getExecEngine().getIntegerRenameTable().setMappingValid(true, phyReg);
-				core.getExecEngine().getIntegerRenameTable().setValueValid(true, phyReg);
+				phyReg = renameTable.getCheckpoint().getMapping(j, i);
+				renameTable.setArchReg(j, i, phyReg);
+				renameTable.setMappingValid(true, phyReg);
+				renameTable.setValueValid(true, phyReg);
 			}
 		}
 		
 		//floating point rename table
+		renameTable = execEngine.getFloatingPointRenameTable();
 		for(int i = 0; i < core.getFloatingPointRegisterFileSize(); i++)
 		{
-			core.getExecEngine().getFloatingPointRenameTable().setMappingValid(false, i);
-			core.getExecEngine().getFloatingPointRenameTable().setValueValid(false, i);
-			core.getExecEngine().getFloatingPointRenameTable().setProducerROBEntry(null, i);
+			renameTable.setMappingValid(false, i);
+			renameTable.setValueValid(false, i);
+			renameTable.setProducerROBEntry(null, i);
 		}
 		for(int j = 0; j < core.getNo_of_threads(); j++)
 		{
 			for(int i = 0; i < core.getNFloatingPointArchitecturalRegisters(); i++)
 			{
-				phyReg = core.getExecEngine().getFloatingPointRenameTable().getCheckpoint().getMapping(j, i);
-				core.getExecEngine().getFloatingPointRenameTable().setArchReg(j, i, phyReg);
-				core.getExecEngine().getFloatingPointRenameTable().setMappingValid(true, phyReg);
-				core.getExecEngine().getFloatingPointRenameTable().setValueValid(true, phyReg);
+				phyReg = renameTable.getCheckpoint().getMapping(j, i);
+				renameTable.setArchReg(j, i, phyReg);
+				renameTable.setMappingValid(true, phyReg);
+				renameTable.setValueValid(true, phyReg);
 			}
 		}
 	}
-	
-	/*
-	public void removeInstructionFromROB(ReorderBufferEntry _ROBEntry)
-	{
-		RenameTable tempRN = null;
-		RegisterFile tempRF = null;
-		
-		if(_ROBEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.machineSpecificRegister)
-		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(_ROBEntry.getThreadID());
-		}
-		else if(_ROBEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.integerRegister)
-		{
-			tempRN = core.getExecEngine().getIntegerRenameTable();
-		}
-		else if(_ROBEntry.getInstruction().getDestinationOperand().getOperandType() == OperandType.floatRegister)
-		{
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
-		}
-		
-		int destReg = _ROBEntry.getPhysicalDestinationRegister();
-		
-		if(tempRF != null)
-		{
-			tempRF.setValueValid(true, destReg);
-			tempRF.setProducerROBEntry(null, destReg);
-		}
-		else if(tempRN != null)
-		{
-			tempRN.setValueValid(true, destReg);
-			tempRN.setProducerROBEntry(null, destReg);
-		}
-		
-		ROB.remove(_ROBEntry);
-	}
-	*/
 	
 	public void dump()
 	{
@@ -403,40 +367,6 @@ public class ReorderBuffer extends SimulationElement{
 		System.out.println();
 	}
 	
-	/*
-	public int indexOf(ReorderBufferEntry reorderBufferEntry)
-	{
-		//for(int i = head; i <= tail; i = (i+1)%MaxROBSize)
-		if(head == -1)
-		{
-			return -1;
-		}
-		
-		int i = head;
-		while(true)
-		{
-			if(ROB[i] == reorderBufferEntry)
-			{
-				if(i - head >= 0)
-				{
-					return (i - head);
-				}
-				else
-				{
-					return (i - head + MaxROBSize);
-				}
-			}
-			if(i == tail)
-			{
-				break;
-			}
-			i = (i+1)%MaxROBSize;
-		}
-		System.out.println("index of non-existent ROB entry requested!");
-		return -1;
-	}
-	*/
-	
 	public int indexOf(ReorderBufferEntry reorderBufferEntry)
 	{
 		if(reorderBufferEntry.pos - head >= 0)
@@ -456,10 +386,10 @@ public class ReorderBuffer extends SimulationElement{
 		{
 			if(head == -1)
 			{
-				if(core.getExecEngine().isAllPipesEmpty() == true)
+				if(execEngine.isAllPipesEmpty() == true)
 				{
 					//if ROB is empty, and decode pipe is empty, that means execution is complete
-					core.getExecEngine().setExecutionComplete(true);
+					execEngine.setExecutionComplete(true);
 				}
 				break;
 			}
@@ -503,9 +433,9 @@ public class ReorderBuffer extends SimulationElement{
 					{
 						core.getEventQueue().addEvent(new PortRequestEvent((GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker, 
 								1, //noOfSlots,
-								new LSQCommitEventFromROB(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(),
+								new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
 																			this,
-																			core.getExecEngine().coreMemSys.getLsqueue(), 
+																			execEngine.coreMemSys.getLsqueue(), 
 																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
 																			RequestType.LSQ_COMMIT, 
 																			first.getLsqEntry())));
@@ -557,16 +487,16 @@ public class ReorderBuffer extends SimulationElement{
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(core.getExecEngine().coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(core.getExecEngine().coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(core.getExecEngine().coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfValueForwards(core.getExecEngine().coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
-		Statistics.setNoOfTLBRequests(core.getExecEngine().coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(core.getExecEngine().coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(core.getExecEngine().coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
-		Statistics.setNoOfL1Requests(core.getExecEngine().coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(core.getExecEngine().coreMemSys.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(core.getExecEngine().coreMemSys.getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfMemRequests(execEngine.coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(execEngine.coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(execEngine.coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfValueForwards(execEngine.coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
+		Statistics.setNoOfTLBRequests(execEngine.coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(execEngine.coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(execEngine.coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(execEngine.coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(execEngine.coreMemSys.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(execEngine.coreMemSys.getL1Cache().misses, core.getCore_number());
 	}
 
 }

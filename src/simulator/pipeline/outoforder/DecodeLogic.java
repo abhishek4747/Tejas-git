@@ -25,23 +25,27 @@ public class DecodeLogic extends SimulationElement {
 	int threadID;
 	NewEventQueue eventQueue;
 	
-	public DecodeLogic(Core containingCore)
+	ExecutionEngine execEngine;
+	
+	public DecodeLogic(Core containingCore, ExecutionEngine execEngine)
 	{
 		super(1, new Time_t(-1), new Time_t(-1), -1);
 		core = containingCore;
 		threadID = 0;
 		eventQueue = core.getEventQueue();
+		
+		this.execEngine = execEngine;
 	}
 	
 	public void scheduleDecodeCompletion()
 	{
 		//decode completion of decodeWidth number of instructions scheduled
 		
-		if(core.getExecEngine().isStallDecode1() == false &&
-				core.getExecEngine().isStallDecode2() == false)
+		if(execEngine.isStallDecode1() == false &&
+				execEngine.isStallDecode2() == false)
 		{
 			int ctr = 0;
-			while(core.getExecEngine().isDecodePipeEmpty(threadID) == true
+			while(execEngine.isDecodePipeEmpty(threadID) == true
 					&& ctr < core.getNo_of_threads())
 			{
 				ctr++;
@@ -49,7 +53,7 @@ public class DecodeLogic extends SimulationElement {
 			
 			if(ctr == core.getNo_of_threads())
 			{
-				core.getExecEngine().setAllPipesEmpty(true);
+				execEngine.setAllPipesEmpty(true);
 			}
 			else
 			{
@@ -65,7 +69,7 @@ public class DecodeLogic extends SimulationElement {
 			}
 		}
 		
-		if(core.getExecEngine().isAllPipesEmpty() == false)
+		if(execEngine.isAllPipesEmpty() == false)
 		{
 			threadID = (threadID + 1)%core.getNo_of_threads();			
 		}
@@ -80,12 +84,13 @@ public class DecodeLogic extends SimulationElement {
 		Instruction newInstruction;		
 		InstructionLinkedList inputToPipeline = core.getIncomingInstructions(threadID);
 		
-		for(int i = 0; i < core.getDecodeWidth(); i++)
+		int decodeWidth = core.getDecodeWidth();
+		
+		for(int i = 0; i < decodeWidth; i++)
 		{
-			if(core.getExecEngine().getReorderBuffer().isFull() == false
-					//&& if head of instructionList is a load/store and LSQ is not full TODO
-					&& core.getExecEngine().getInstructionWindow().isFull() == false
-					&& core.getExecEngine().isStallDecode1() == false)
+			if(execEngine.getReorderBuffer().isFull() == false
+					&& execEngine.getInstructionWindow().isFull() == false
+					&& execEngine.isStallDecode1() == false)
 			{
 				if(inputToPipeline.getListSize() == 0)
 				{
@@ -94,18 +99,19 @@ public class DecodeLogic extends SimulationElement {
 				}
 				
 				newInstruction = inputToPipeline.peekInstructionAt(0);
+				OperationType tempOpType = newInstruction.getOperationType();
 				
-				if((newInstruction.getOperationType() != OperationType.load &&
-					newInstruction.getOperationType() != OperationType.store) ||
-					(!this.core.getExecEngine().coreMemSys.getLsqueue().isFull()))
+				if((tempOpType != OperationType.load &&
+					tempOpType != OperationType.store) ||
+					(!this.execEngine.coreMemSys.getLsqueue().isFull()))
 				{
 					newInstruction = inputToPipeline.pollFirst();
 					
 					if(newInstruction != null)
 					{
-						if(newInstruction.getOperationType() == OperationType.inValid)
+						if(tempOpType == OperationType.inValid)
 						{
-							core.getExecEngine().setDecodePipeEmpty(threadID, true);
+							execEngine.setDecodePipeEmpty(threadID, true);
 							break;
 						}
 						//to detach memory system
@@ -133,16 +139,22 @@ public class DecodeLogic extends SimulationElement {
 	
 	public void makeROBEntries(Instruction newInstruction)
 	{
+		OperationType tempOpType = null;
+		if(newInstruction != null)
+		{
+			tempOpType = newInstruction.getOperationType();
+		}
+		
 		if(newInstruction != null &&
-				newInstruction.getOperationType() != OperationType.nop &&
-				newInstruction.getOperationType() != OperationType.inValid)
+				tempOpType != OperationType.nop &&
+				tempOpType != OperationType.inValid)
 		{			
-			ReorderBufferEntry newROBEntry = core.getExecEngine()
-				.getReorderBuffer().addInstructionToROB(newInstruction, threadID);
+			ReorderBufferEntry newROBEntry = execEngine.getReorderBuffer()
+											.addInstructionToROB(newInstruction, threadID);
 			
-			//TODO if load or store, make entry in LSQ
-			if(newInstruction.getOperationType() == OperationType.load ||
-					newInstruction.getOperationType() == OperationType.store)
+			//if load or store, make entry in LSQ
+			if(tempOpType == OperationType.load ||
+					tempOpType == OperationType.store)
 			{
 				boolean isLoad;
 				if (newInstruction.getOperationType() == OperationType.load)
@@ -170,24 +182,25 @@ public class DecodeLogic extends SimulationElement {
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 			return;
 		}
-		
+
+		OperandType tempOpndType = tempOpnd.getOperandType();
 		int archReg = (int) tempOpnd.getValue();
-		if(tempOpnd.getOperandType() == OperandType.integerRegister)
+		if(tempOpndType == OperandType.integerRegister)
 		{
 			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
-		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
+		else if(tempOpndType == OperandType.floatRegister)
 		{
 			reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
-		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+		else if(tempOpndType == OperandType.machineSpecificRegister)
 		{
 			reorderBufferEntry.setOperand1PhyReg1(archReg);
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
-		else if(tempOpnd.getOperandType() == OperandType.memory)
+		else if(tempOpndType == OperandType.memory)
 		{
 			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
 			Operand memLocOpnd2 = tempOpnd.getMemoryLocationSecondOperand();
@@ -200,15 +213,17 @@ public class DecodeLogic extends SimulationElement {
 			else
 			{
 				archReg = (int)memLocOpnd1.getValue();
-				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
+				tempOpndType = memLocOpnd1.getOperandType();
+				
+				if(tempOpndType == OperandType.integerRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
+				else if(tempOpndType == OperandType.floatRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				else if(tempOpndType == OperandType.machineSpecificRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg1(archReg);
 				}
@@ -226,15 +241,17 @@ public class DecodeLogic extends SimulationElement {
 			else
 			{
 				archReg = (int)memLocOpnd2.getValue();
-				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
+				tempOpndType = memLocOpnd2.getOperandType();
+				
+				if(tempOpndType == OperandType.integerRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
+				else if(tempOpndType == OperandType.floatRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
+				else if(tempOpndType == OperandType.machineSpecificRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg2(archReg);
 				}
@@ -254,30 +271,32 @@ public class DecodeLogic extends SimulationElement {
 	private void processOperand2(ReorderBufferEntry reorderBufferEntry)
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
+		
 		if(tempOpnd == null)
 		{
 			reorderBufferEntry.setOperand2PhyReg1(-1);
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 			return;
 		}
-		
+
+		OperandType tempOpndType = tempOpnd.getOperandType();
 		int archReg = (int) tempOpnd.getValue();
-		if(tempOpnd.getOperandType() == OperandType.integerRegister)
+		if(tempOpndType == OperandType.integerRegister)
 		{
 			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
-		else if(tempOpnd.getOperandType() == OperandType.floatRegister)
+		else if(tempOpndType == OperandType.floatRegister)
 		{
 			reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
-		else if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+		else if(tempOpndType == OperandType.machineSpecificRegister)
 		{
 			reorderBufferEntry.setOperand2PhyReg1(archReg);
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
-		else if(tempOpnd.getOperandType() == OperandType.memory)
+		else if(tempOpndType == OperandType.memory)
 		{
 			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
 			Operand memLocOpnd2 = tempOpnd.getMemoryLocationSecondOperand();
@@ -290,15 +309,17 @@ public class DecodeLogic extends SimulationElement {
 			else
 			{
 				archReg = (int)memLocOpnd1.getValue();
-				if(memLocOpnd1.getOperandType() == OperandType.integerRegister)
+				tempOpndType = memLocOpnd1.getOperandType();
+				
+				if(tempOpndType == OperandType.integerRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd1.getOperandType() == OperandType.floatRegister)
+				else if(tempOpndType == OperandType.floatRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg1(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd1.getOperandType() == OperandType.machineSpecificRegister)
+				else if(tempOpndType == OperandType.machineSpecificRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg1(archReg);
 				}
@@ -316,15 +337,17 @@ public class DecodeLogic extends SimulationElement {
 			else
 			{
 				archReg = (int)memLocOpnd2.getValue();
-				if(memLocOpnd2.getOperandType() == OperandType.integerRegister)
+				tempOpndType = memLocOpnd2.getOperandType();
+				
+				if(tempOpndType == OperandType.integerRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd2.getOperandType() == OperandType.floatRegister)
+				else if(tempOpndType == OperandType.floatRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg2(core.getExecEngine().getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(memLocOpnd2.getOperandType() == OperandType.machineSpecificRegister)
+				else if(tempOpndType == OperandType.machineSpecificRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg2(archReg);
 				}
@@ -383,7 +406,7 @@ public class DecodeLogic extends SimulationElement {
 	
 	void handleMSR(ReorderBufferEntry reorderBufferEntry)
 	{
-		RegisterFile tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
+		RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 		
 		int destPhyReg = (int) tempOpnd.getValue();
@@ -416,7 +439,7 @@ public class DecodeLogic extends SimulationElement {
 							regReadyTime
 							));
 			//stall decode because physical register for destination was not allocated
-			core.getExecEngine().setStallDecode1(true);
+			execEngine.setStallDecode1(true);
 		}
 	}
 	
@@ -427,11 +450,11 @@ public class DecodeLogic extends SimulationElement {
 									getDestinationOperand().getOperandType();
 		if(tempOpndType == OperandType.integerRegister)
 		{
-			tempRN = core.getExecEngine().getIntegerRenameTable();
+			tempRN = execEngine.getIntegerRenameTable();
 		}
 		else
 		{
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			tempRN = execEngine.getFloatingPointRenameTable();
 		}
 		
 		int r = tempRN.allocatePhysicalRegister(threadID, (int) reorderBufferEntry.getInstruction().getDestinationOperand().getValue());
@@ -462,7 +485,7 @@ public class DecodeLogic extends SimulationElement {
 							GlobalClock.getCurrentTime()+core.getStepSize()
 							));
 			//stall decode because physical register for destination was not allocated
-			core.getExecEngine().setStallDecode1(true);
+			execEngine.setStallDecode1(true);
 		}
 	}
 	

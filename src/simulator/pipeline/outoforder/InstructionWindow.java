@@ -21,7 +21,7 @@ public class InstructionWindow extends SimulationElement {
 	int availListHead;
 	int availListTail;
 	
-	public InstructionWindow(Core core)
+	public InstructionWindow(Core core, ExecutionEngine executionEngine)
 	{
 		super(1, new Time_t(-1), new Time_t(-1), -1);
 		this.core = core;
@@ -30,7 +30,7 @@ public class InstructionWindow extends SimulationElement {
 		availList = new int[maxIWSize];
 		for(int i = 0; i < maxIWSize; i++)
 		{
-			IW[i] = new IWEntry(core, i);
+			IW[i] = new IWEntry(core, i, executionEngine, this);
 			availList[i] = i;
 		}
 		availListHead = 0;

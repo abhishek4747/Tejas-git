@@ -29,6 +29,10 @@ public class ExecutionCompleteEvent extends NewEvent {
 	Core core;
 	NewEventQueue eventQueue;
 	
+	Instruction instruction;
+	Operand tempDestOpnd;
+	OperandType tempDestOpndType;
+	
 	public ExecutionCompleteEvent(ReorderBufferEntry reorderBufferEntry,
 									int FUInstance,
 									Core core,
@@ -44,6 +48,17 @@ public class ExecutionCompleteEvent extends NewEvent {
 		this.threadID = reorderBufferEntry.getThreadID();
 		this.FUInstance = FUInstance;
 		this.core = core;
+		
+		instruction = reorderBufferEntry.getInstruction();
+		tempDestOpnd = instruction.getDestinationOperand();
+		if(tempDestOpnd != null)
+		{
+			tempDestOpndType = tempDestOpnd.getOperandType();
+		}
+		else
+		{
+			tempDestOpndType = null;
+		}
 	}
 
 	@Override
@@ -76,10 +91,9 @@ public class ExecutionCompleteEvent extends NewEvent {
 		RegisterFile tempRF = null;
 		RenameTable tempRN = null;
 		
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
-		if(tempOpnd == null)
+		if(tempDestOpnd == null)
 		{
-			if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+			if(instruction.getOperationType() == OperationType.xchg)
 			{
 				//doesn't use an FU				
 				reorderBufferEntry.setExecuted(true);
@@ -96,18 +110,17 @@ public class ExecutionCompleteEvent extends NewEvent {
 		
 		else
 		{
-			OperandType tempOpndType = tempOpnd.getOperandType(); 
-			if(tempOpndType == OperandType.machineSpecificRegister)
+			if(tempDestOpndType == OperandType.machineSpecificRegister)
 			{
 				tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 				tempRN = null;
 			}
-			else if(tempOpndType == OperandType.integerRegister)
+			else if(tempDestOpndType == OperandType.integerRegister)
 			{
 				tempRF = core.getExecEngine().getIntegerRegisterFile();
 				tempRN = core.getExecEngine().getIntegerRenameTable();
 			}
-			else if(tempOpndType == OperandType.floatRegister)
+			else if(tempDestOpndType == OperandType.floatRegister)
 			{
 				tempRF = core.getExecEngine().getFloatingPointRegisterFile();
 				tempRN = core.getExecEngine().getFloatingPointRenameTable();
@@ -120,7 +133,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 				return;
 			}
 			
-			if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.mov)
+			if(instruction.getOperationType() == OperationType.mov)
 			{
 				//doesn't use an FU			
 				reorderBufferEntry.setExecuted(true);			
@@ -138,8 +151,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 	{
 		//wakeup waiting IW entries
 		int tempDestPhyReg = reorderBufferEntry.getPhysicalDestinationRegister();
-		OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
-		WakeUpLogic.wakeUpLogic(core, tempOpndType, tempDestPhyReg);
+		WakeUpLogic.wakeUpLogic(core, tempDestOpndType, tempDestPhyReg);
 		
 		//attempt to write-back
 		WriteBackLogic.writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg, core);
@@ -154,18 +166,20 @@ public class ExecutionCompleteEvent extends NewEvent {
 		
 		//operand 1
 		phyReg = reorderBufferEntry.getOperand1PhyReg1();
-		if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
+		OperandType tempOpndType = instruction.getSourceOperand1().getOperandType();
+		
+		if(tempOpndType == OperandType.machineSpecificRegister)
 		{
 			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg);
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.integerRegister)
+		else if(tempOpndType == OperandType.integerRegister)
 		{
 			tempRF = core.getExecEngine().getIntegerRegisterFile();
 			tempRN = core.getExecEngine().getIntegerRenameTable();
 			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg);
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.floatRegister)
+		else if(tempOpndType == OperandType.floatRegister)
 		{
 			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
 			tempRN = core.getExecEngine().getFloatingPointRenameTable();
@@ -181,18 +195,20 @@ public class ExecutionCompleteEvent extends NewEvent {
 		tempRN = null;
 		//operand 2
 		phyReg = reorderBufferEntry.getOperand2PhyReg1();
-		if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
+		tempOpndType = instruction.getSourceOperand2().getOperandType();
+		
+		if(tempOpndType == OperandType.machineSpecificRegister)
 		{
 			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
 			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg);
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
+		else if(tempOpndType == OperandType.integerRegister)
 		{
 			tempRF = core.getExecEngine().getIntegerRegisterFile();
 			tempRN = core.getExecEngine().getIntegerRenameTable();
 			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg);
 		}
-		else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.floatRegister)
+		else if(tempOpndType == OperandType.floatRegister)
 		{
 			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
 			tempRN = core.getExecEngine().getFloatingPointRenameTable();
@@ -208,8 +224,10 @@ public class ExecutionCompleteEvent extends NewEvent {
 	{
 		//check if the execution has completed
 		long time_of_completion = 0;
-		if(reorderBufferEntry.getInstruction().getOperationType() != OperationType.load &&
-				reorderBufferEntry.getInstruction().getOperationType() != OperationType.store)
+		OperationType tempOpType = instruction.getOperationType();
+		
+		if(tempOpType != OperationType.load &&
+				tempOpType != OperationType.store)
 		{
 			time_of_completion = core.getExecEngine().getFunctionalUnitSet().getTimeWhenFUAvailable(
 				OpTypeToFUTypeMapping.getFUType(reorderBufferEntry.getInstruction().getOperationType()),
@@ -228,8 +246,7 @@ public class ExecutionCompleteEvent extends NewEvent {
 			if(tempRF != null || tempRN != null)
 			{
 				//there may some instruction that needs to be woken up
-				OperandType tempOpndType = reorderBufferEntry.getInstruction().getDestinationOperand().getOperandType(); 
-				WakeUpLogic.wakeUpLogic(core, tempOpndType, tempDestPhyReg);
+				WakeUpLogic.wakeUpLogic(core, tempDestOpndType, tempDestPhyReg);
 			}
 			
 			//attempt to write-back

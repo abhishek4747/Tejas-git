@@ -1,6 +1,8 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.Instruction;
+import generic.Operand;
 import generic.OperandType;
 
 import java.util.LinkedList;
@@ -17,6 +19,12 @@ public class WakeUpLogic {
 	{
 		boolean toWakeUp;
 		ReorderBufferEntry ROBEntry;
+		
+		Instruction instruction;
+		Operand opnd1;
+		Operand opnd2;
+		OperandType opnd1Type;
+		OperandType opnd2Type;
 		
 		InstructionWindow instructionWindow = core.getExecEngine().getInstructionWindow();
 		IWEntry[] IW = instructionWindow.getIW();
@@ -39,24 +47,30 @@ public class WakeUpLogic {
 			ROBEntry = IWentry.getAssociatedROBEntry();
 			toWakeUp = false;
 			
+			instruction = ROBEntry.getInstruction();
+			opnd1 = instruction.getSourceOperand1();
+			opnd2 = instruction.getSourceOperand2();
+			opnd1Type = opnd1.getOperandType();
+			opnd2Type = opnd2.getOperandType();
+			
 			if(ROBEntry.isOperand1Available() == false)
 			{
-				if(ROBEntry.getInstruction().getSourceOperand1().getOperandType() == opndType
+				if(opnd1Type == opndType
 						&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
 				{
 					ROBEntry.setOperand1Available(true);
 					toWakeUp = true;
 				}
-				if(ROBEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.memory)
+				if(opnd1Type == OperandType.memory)
 				{
-					if(ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationFirstOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationFirstOperand().getOperandType() == opndType
+					if(opnd1.getMemoryLocationFirstOperand() != null &&
+							opnd1.getMemoryLocationFirstOperand().getOperandType() == opndType
 							&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
 					{
 						ROBEntry.setOperand11Available(true);
 					}
-					if(ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationSecondOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand1().getMemoryLocationSecondOperand().getOperandType() == opndType
+					if(opnd1.getMemoryLocationSecondOperand() != null &&
+							opnd1.getMemoryLocationSecondOperand().getOperandType() == opndType
 							&& ROBEntry.getOperand1PhyReg2() == physicalRegister)
 					{
 						ROBEntry.setOperand12Available(true);
@@ -71,22 +85,22 @@ public class WakeUpLogic {
 			
 			if(ROBEntry.isOperand2Available() == false)
 			{
-				if(ROBEntry.getInstruction().getSourceOperand2().getOperandType() == opndType
+				if(opnd2Type == opndType
 						&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
 				{
 					ROBEntry.setOperand2Available(true);
 					toWakeUp = true;
 				}
-				if(ROBEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.memory)
+				if(opnd2Type == OperandType.memory)
 				{
-					if(ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationFirstOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationFirstOperand().getOperandType() == opndType
+					if(opnd2.getMemoryLocationFirstOperand() != null &&
+							opnd2.getMemoryLocationFirstOperand().getOperandType() == opndType
 							&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
 					{
 						ROBEntry.setOperand21Available(true);
 					}
-					if(ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationSecondOperand() != null &&
-							ROBEntry.getInstruction().getSourceOperand2().getMemoryLocationSecondOperand().getOperandType() == opndType
+					if(opnd2.getMemoryLocationSecondOperand() != null &&
+							opnd2.getMemoryLocationSecondOperand().getOperandType() == opndType
 							&& ROBEntry.getOperand2PhyReg2() == physicalRegister)
 					{
 						ROBEntry.setOperand22Available(true);

@@ -37,42 +37,16 @@ public class ReorderBufferEntry {
 	
 	int pos;
 	
-	public ReorderBufferEntry(Core core, int pos)
+	ExecutionEngine execEngine;
+	
+	public ReorderBufferEntry(Core core, int pos, ExecutionEngine execEngine)
 	{
 		this.core = core;
 		this.pos = pos;
 		isValid = false;
-	}
-
-	/*
-	public ReorderBufferEntry(Core core, Instruction objectsInstruction, int threadID)
-	{
-		this.core = core;
-		instruction = objectsInstruction;
-		this.threadID = threadID;
-		operand1PhyReg1 = -1;
-		operand1PhyReg2 = -1;
-		operand2PhyReg1 = -1;
-		operand2PhyReg2 = -1;
-		physicalDestinationRegister = -1;
-		isRenameDone = false;
-		isIssued = false;
-		FUInstance = -1;
-		isExecuted = false;
-		isWriteBackDone1 = false;
-		isWriteBackDone2 = false;
-		readyAtTime = GlobalClock.getCurrentTime();
-		associatedIWEntry = null;
-
-		isOperand1Available = false;
-		isOperand2Available = false;
-		isOperand11Available = false;
-		isOperand12Available = false;
-		isOperand21Available = false;
-		isOperand22Available = false;
 		
+		this.execEngine = execEngine;
 	}
-	*/
 	
 	public void attemptToWriteBack()
 	{
@@ -100,18 +74,18 @@ public class ReorderBufferEntry {
 				OperandType tempOpndType = tempOpnd.getOperandType(); 
 				if(tempOpndType == OperandType.machineSpecificRegister)
 				{
-					tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
+					tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
 					tempRN = null;
 				}
 				else if(tempOpndType == OperandType.integerRegister)
 				{
-					tempRF = core.getExecEngine().getIntegerRegisterFile();
-					tempRN = core.getExecEngine().getIntegerRenameTable();
+					tempRF = execEngine.getIntegerRegisterFile();
+					tempRN = execEngine.getIntegerRenameTable();
 				}
 				else if(tempOpndType == OperandType.floatRegister)
 				{
-					tempRF = core.getExecEngine().getFloatingPointRegisterFile();
-					tempRN = core.getExecEngine().getFloatingPointRenameTable();
+					tempRF = execEngine.getFloatingPointRegisterFile();
+					tempRN = execEngine.getFloatingPointRenameTable();
 				}
 				else
 				{
@@ -149,17 +123,17 @@ public class ReorderBufferEntry {
 		phyReg = operand1PhyReg1;
 		if(instruction.getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
 		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
+			tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
 		}
 		else if(instruction.getSourceOperand1().getOperandType() == OperandType.integerRegister)
 		{
-			tempRF = core.getExecEngine().getIntegerRegisterFile();
-			tempRN = core.getExecEngine().getIntegerRenameTable();
+			tempRF = execEngine.getIntegerRegisterFile();
+			tempRN = execEngine.getIntegerRenameTable();
 		}
 		else if(instruction.getSourceOperand1().getOperandType() == OperandType.floatRegister)
 		{
-			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			tempRF = execEngine.getFloatingPointRegisterFile();
+			tempRN = execEngine.getFloatingPointRenameTable();
 		}
 		
 		//attempt to write-back
@@ -173,17 +147,17 @@ public class ReorderBufferEntry {
 		phyReg = operand2PhyReg1;
 		if(instruction.getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
 		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
+			tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
 		}
 		else if(instruction.getSourceOperand2().getOperandType() == OperandType.integerRegister)
 		{
-			tempRF = core.getExecEngine().getIntegerRegisterFile();
-			tempRN = core.getExecEngine().getIntegerRenameTable();
+			tempRF = execEngine.getIntegerRegisterFile();
+			tempRN = execEngine.getIntegerRenameTable();
 		}
 		else if(instruction.getSourceOperand2().getOperandType() == OperandType.floatRegister)
 		{
-			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
+			tempRF = execEngine.getFloatingPointRegisterFile();
+			tempRN = execEngine.getFloatingPointRenameTable();
 		}
 		
 		//attempt to write-back
