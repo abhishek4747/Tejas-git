@@ -2,7 +2,9 @@ package generic;
 
 public class Port 
 {
+	private PortType portType;
 	private int noOfPorts;
+	private NewEventQueue newEventQueue;
 
 	//occupancy defines the number of clockCycles needed for  
 	//a single transfer on the port.
@@ -11,25 +13,89 @@ public class Port
 	
 	//NOTE : Time is in terms of GlobalClock cycles
 	
-	public Port(int noOfPorts, Time_t occupancy)
+	public Port(PortType portType, int noOfPorts, Time_t occupancy,
+			NewEventQueue newEventQueue)
 	{
-		//initialise no. of ports and the occupancy.
-		this.noOfPorts = noOfPorts;
-		this.occupancy = occupancy;
+		this.portType = portType;
 		
-		if (noOfPorts > 0)
-			portBusyUntil = new Time_t[noOfPorts];
-				
-		//If the port is an unlimited port, no need for setting timeBusyUntil field.
-		if(!(noOfPorts==-1 && occupancy.getTime() == -1))
+		//initialise no. of ports and the occupancy.
+		if(portType==PortType.Unlimited)
 		{
+			return;
+		}
+		else if(portType!=PortType.Unlimited && 
+				noOfPorts>0 && occupancy.greaterThan(new Time_t(0)))
+		{
+			// For a FCFS or a priority based port, noOfPorts and
+			// occupancy must be non-zero.
+			this.noOfPorts = noOfPorts;
+			this.occupancy = occupancy;
+			
+			//set busy field of all ports to 0
+			portBusyUntil = new Time_t[noOfPorts];
+					
 			for(int i=0; i < noOfPorts; i++)
 			{
-				this.portBusyUntil[i] = new Time_t(GlobalClock.getCurrentTime());
+				this.portBusyUntil[i] = new Time_t(0);
 			}
+		}
+		else
+		{
+			// Display an error for invalid initialization.
+			misc.Error.showErrorAndExit("Invalid initialization of port !!\n" +
+					"port-type=" + portType + " no-of-ports=" + noOfPorts + 
+					" occupancy=" + occupancy);
 		}
 	}
 	
+	public void put(NewEvent newEvent)
+	{
+		//overloaded method.
+		this.put(newEvent, 1);
+	}
+	
+	public void put(NewEvent newEvent, int noOfSlots)
+	{
+		if(this.portType==PortType.Unlimited)
+		{
+			// For an unlimited port, add the event with current-time.
+			newEvent.setEventTime(new Time_t(GlobalClock.getCurrentTime()));
+			newEventQueue.addEvent(newEvent);
+			return;
+		}
+		
+		else if(this.portType==PortType.FirstComeFirstServe)
+		{
+			//else return the slot that will be available earliest.
+			int availableSlotID = 0;
+			for(int i=0; i<noOfPorts; i++)
+			{
+				if(portBusyUntil[i].getTime() < 
+						portBusyUntil[availableSlotID].getTime())
+				{
+					availableSlotID = i;
+				}
+			}
+			
+			// If all the ports are available, return current-time.
+			if(portBusyUntil[availableSlotID].
+					lessThan(new Time_t(GlobalClock.getCurrentTime())))
+			{
+				portBusyUntil[availableSlotID].setTime(GlobalClock.getCurrentTime());
+			}
+			
+			//set the port as busy for occupancy amount of time.
+			portBusyUntil[availableSlotID].add(occupancy);
+			
+			// set the time of the event
+			newEvent.setEventTime(portBusyUntil[availableSlotID]);
+			
+			// add event in the eventQueue
+			newEventQueue.addEvent(newEvent);
+		}
+	}
+	
+	/*
 	//returns the next available slot.
 	public long getNextSlot()
 	{
@@ -86,7 +152,7 @@ public class Port
 		}
 	}
 	
-	/*
+	
 	//returns the next slot without booking anything
 	Time_t calculateNextSlot()
 	{
