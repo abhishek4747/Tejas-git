@@ -23,6 +23,7 @@ public class Port
 		{
 			return;
 		}
+		
 		else if(portType!=PortType.Unlimited && 
 				noOfPorts>0 && occupancy.greaterThan(new Time_t(0)))
 		{
@@ -39,6 +40,7 @@ public class Port
 				this.portBusyUntil[i] = new Time_t(0);
 			}
 		}
+		
 		else
 		{
 			// Display an error for invalid initialization.
@@ -67,28 +69,28 @@ public class Port
 		else if(this.portType==PortType.FirstComeFirstServe)
 		{
 			//else return the slot that will be available earliest.
-			int availableSlotID = 0;
+			int availablePortID = 0;
 			for(int i=0; i<noOfPorts; i++)
 			{
 				if(portBusyUntil[i].getTime() < 
-						portBusyUntil[availableSlotID].getTime())
+						portBusyUntil[availablePortID].getTime())
 				{
-					availableSlotID = i;
+					availablePortID = i;
 				}
 			}
 			
 			// If all the ports are available, return current-time.
-			if(portBusyUntil[availableSlotID].
+			if(portBusyUntil[availablePortID].
 					lessThan(new Time_t(GlobalClock.getCurrentTime())))
 			{
-				portBusyUntil[availableSlotID].setTime(GlobalClock.getCurrentTime());
+				portBusyUntil[availablePortID].setTime(GlobalClock.getCurrentTime());
 			}
 			
 			//set the port as busy for occupancy amount of time.
-			portBusyUntil[availableSlotID].add(occupancy);
+			portBusyUntil[availablePortID].add(occupancy);
 			
 			// set the time of the event
-			newEvent.setEventTime(portBusyUntil[availableSlotID]);
+			newEvent.setEventTime(portBusyUntil[availablePortID]);
 			
 			// add event in the eventQueue
 			newEventQueue.addEvent(newEvent);
