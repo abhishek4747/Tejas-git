@@ -22,13 +22,13 @@ package memorysystem;
 
 import emulatorinterface.Newmain;
 import generic.GlobalClock;
-import generic.NewEvent;
-import generic.NewEventQueue;
+import generic.Event;
+import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
 
-public class TLBAddrSearchEvent extends NewEvent
+public class TLBAddrSearchEvent extends Event
 {
 	long address;
 	LSQEntry lsqEntry;
@@ -45,7 +45,7 @@ public class TLBAddrSearchEvent extends NewEvent
 		this.lsqEntry = lsqEntry;
 	}
 
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		TLB processingTLB = (TLB)(this.getProcessingElement());
 		

@@ -2,9 +2,9 @@ package pipeline.outoforder;
 
 import config.SimulationConfig;
 import generic.GlobalClock;
-import generic.NewEvent;
+import generic.Event;
 import generic.Core;
-import generic.NewEventQueue;
+import generic.EventQueue;
 import generic.Operand;
 import generic.OperandType;
 import generic.RequestType;
@@ -19,13 +19,13 @@ import generic.Time_t;
  *		schedule new AllocateDestinationRegisterEvent at time current_clock+1
  */
 
-public class AllocateDestinationRegisterEvent extends NewEvent {
+public class AllocateDestinationRegisterEvent extends Event {
 	
 	RenameTable renameTable;
 	ReorderBufferEntry reorderBufferEntry;
 	int threadID;
 	Core core;
-	NewEventQueue eventQueue;
+	EventQueue eventQueue;
 	
 	public AllocateDestinationRegisterEvent(ReorderBufferEntry reorderBufferEntry,
 										RenameTable renameTable,
@@ -45,7 +45,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 	}
 
 	//@Override
-	public void handleEvent(NewEventQueue newEventQueue) {
+	public void handleEvent(EventQueue eventQueue) {
 		
 
 		if(SimulationConfig.debugMode)
@@ -53,7 +53,7 @@ public class AllocateDestinationRegisterEvent extends NewEvent {
 			System.out.println("alloc : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
 		}
 		
-		this.eventQueue = newEventQueue;
+		this.eventQueue = eventQueue;
 		
 		OperandType tempOpndType = reorderBufferEntry.getInstruction().
 									getDestinationOperand().getOperandType();		

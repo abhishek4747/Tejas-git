@@ -13,7 +13,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
 import generic.InstructionLinkedList;
-import generic.NewEventQueue;
+import generic.EventQueue;
 import generic.Statistics;
 
 public class Newmain {
@@ -56,11 +56,11 @@ public class Newmain {
 		configureEmulator();
 
 		//create event queue
-		NewEventQueue[] eventQ = new NewEventQueue[1];	//TODO number of queues = number of java threads
+		EventQueue[] eventQ = new EventQueue[1];	//TODO number of queues = number of java threads
 														//number of java threads to be specified/determinable from config file
 		for(int i = 0; i < 1; i++)
 		{
-			eventQ[i] = new NewEventQueue();
+			eventQ[i] = new EventQueue();
 		}
 		
 		//create cores
@@ -186,7 +186,7 @@ public class Newmain {
 	//TODO read a config file
 	//create specified number of cores
 	//map threads to cores
-	static Core[] initCores(NewEventQueue eventQ)
+	static Core[] initCores(EventQueue eventQ)
 	{
 		System.out.println("initializing cores...");
 		

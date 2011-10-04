@@ -2,7 +2,7 @@ package pipeline.outoforder;
 
 import generic.Core;
 import generic.GlobalClock;
-import generic.NewEventQueue;
+import generic.EventQueue;
 
 public class WriteBackLogic {
 	
@@ -14,7 +14,7 @@ public class WriteBackLogic {
 			int tempDestPhyReg,
 			Core core)
 	{
-		NewEventQueue eventQueue = core.getEventQueue();
+		EventQueue eventQueue = core.getEventQueue();
 		
 		if(//reorderBufferEntry.isOperand1Available &&
 				//reorderBufferEntry.isOperand2Available &&

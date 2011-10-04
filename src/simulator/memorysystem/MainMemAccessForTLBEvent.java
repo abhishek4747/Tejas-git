@@ -24,7 +24,7 @@ import emulatorinterface.Newmain;
 import memorysystem.CacheLine.MESI;
 import generic.*;
 
-public class MainMemAccessForTLBEvent extends NewEvent 
+public class MainMemAccessForTLBEvent extends Event 
 {
 	long pageID;
 	
@@ -39,7 +39,7 @@ public class MainMemAccessForTLBEvent extends NewEvent
 	}
 	
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		/*Do nothing for the main memory*/
 		//Add the entry into the TLB

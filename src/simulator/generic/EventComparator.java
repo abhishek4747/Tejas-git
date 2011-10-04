@@ -13,9 +13,9 @@ import java.util.Comparator;
  *      - smaller the tie-breaker, earlier it is scheduled
  */
 
-public class NewEventComparator implements Comparator<NewEvent> 
+public class EventComparator implements Comparator<Event> 
 {
-	public int compare(NewEvent newEvent0, NewEvent newEvent1)
+	public int compare(Event newEvent0, Event newEvent1)
 	{
 		if(newEvent0.getEventTime().getTime() < newEvent1.getEventTime().getTime())
 		{

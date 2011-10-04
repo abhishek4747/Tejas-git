@@ -1,12 +1,12 @@
 package pipeline.outoforder;
 
 import generic.Core;
-import generic.NewEvent;
-import generic.NewEventQueue;
+import generic.Event;
+import generic.EventQueue;
 import generic.RequestType;
 import generic.Time_t;
 
-public class MispredictionPenaltyCompleteEvent extends NewEvent {
+public class MispredictionPenaltyCompleteEvent extends Event {
 	
 	Core core;
 	
@@ -22,7 +22,7 @@ public class MispredictionPenaltyCompleteEvent extends NewEvent {
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue) {
+	public void handleEvent(EventQueue eventQueue) {
 		
 		core.getExecEngine().setStallDecode2(false);
 	}

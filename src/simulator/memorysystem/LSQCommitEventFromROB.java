@@ -24,7 +24,7 @@ import java.util.Stack;
 
 import generic.*;
 
-public class LSQCommitEventFromROB extends NewEvent
+public class LSQCommitEventFromROB extends Event
 {
 	LSQEntry lsqEntry;
 	
@@ -38,7 +38,7 @@ public class LSQCommitEventFromROB extends NewEvent
 		this.lsqEntry = lsqEntry;
 	}
 
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		

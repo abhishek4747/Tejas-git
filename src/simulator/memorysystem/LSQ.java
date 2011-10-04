@@ -50,7 +50,7 @@ public class LSQ extends SimulationElement
 	
 	public static final int INVALID_INDEX = -1;
 
-	public LSQ(PortType portType, int noOfPorts, Time_t occupancy, NewEventQueue newEventQueue,
+	public LSQ(PortType portType, int noOfPorts, Time_t occupancy, EventQueue eventQueue,
 			Time_t latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());
@@ -192,7 +192,7 @@ public class LSQ extends SimulationElement
 
 	
 	//Only used by the perfect pipeline
-	public boolean processROBCommitForPerfectPipeline(NewEventQueue newEventQueue)
+	public boolean processROBCommitForPerfectPipeline(EventQueue eventQueue)
 	{
 		if (!(lsqueue[head].getType() == LSQEntryType.STORE ||
 				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))

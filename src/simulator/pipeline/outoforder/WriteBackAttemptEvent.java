@@ -2,12 +2,12 @@ package pipeline.outoforder;
 
 import generic.Core;
 import generic.GlobalClock;
-import generic.NewEvent;
-import generic.NewEventQueue;
+import generic.Event;
+import generic.EventQueue;
 import generic.RequestType;
 import generic.Time_t;
 
-public class WriteBackAttemptEvent extends NewEvent {
+public class WriteBackAttemptEvent extends Event {
 	
 	Core core;
 	RegisterFile tempRF;
@@ -35,7 +35,7 @@ public class WriteBackAttemptEvent extends NewEvent {
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue) {
+	public void handleEvent(EventQueue eventQueue) {
 		
 		//attempt to write-back
 		long slotAvailableTime = tempRF.getPort().getNextSlot();

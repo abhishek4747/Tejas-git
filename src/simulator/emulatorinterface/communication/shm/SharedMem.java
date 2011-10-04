@@ -15,7 +15,7 @@ import config.SimulationConfig;
 import emulatorinterface.communication.*;
 import emulatorinterface.*;
 import generic.Core;
-import generic.NewEventQueue;
+import generic.EventQueue;
 
 
 public class SharedMem extends  IPCBase
@@ -25,7 +25,7 @@ public class SharedMem extends  IPCBase
 	public static final int COUNT = 1000;
 
 	
-	public SharedMem(NewEventQueue[] eventQ, Core[] cores) 
+	public SharedMem(EventQueue[] eventQ, Core[] cores) 
 	{
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
@@ -166,7 +166,7 @@ public class SharedMem extends  IPCBase
 	RunnableThread [] readerThreads = new RunnableThread[MAXNUMTHREADS];
 	
 	// event queues - one event queue for each java thread
-	NewEventQueue[] eventQ;
+	EventQueue[] eventQ;
 	
 	// cores associated with this java thread
 	Core[] cores;

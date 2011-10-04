@@ -20,9 +20,9 @@
 *****************************************************************************/
 package memorysystem;
 
-import generic.NewEventQueue;
+import generic.EventQueue;
 
 public class MemEventQueue 
 {
-	protected static NewEventQueue newEventQueue = new NewEventQueue();
+	protected static EventQueue eventQueue = new EventQueue();
 }

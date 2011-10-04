@@ -17,7 +17,7 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.InstructionArrayList;
 import generic.InstructionLinkedList;
-import generic.NewEventQueue;
+import generic.EventQueue;
 import generic.OperationType;
 import generic.Statistics;
 
@@ -39,7 +39,7 @@ public class RunnableThread implements Runnable {
 	boolean[] overstatus = new boolean[EMUTHREADS];
 	boolean[] emuThreadStartStatus = new boolean[EMUTHREADS];
 	long noOfMicroOps;
-	NewEventQueue eventQ;
+	EventQueue eventQ;
 	Core[] cores;
 	
 	long noOfInstructionsArrived =0; //For testing purposes
@@ -51,7 +51,7 @@ public class RunnableThread implements Runnable {
 	}
 
 	// initialise a reader thread with the correct thread id and the buffer to write the results in.
-	public RunnableThread(String threadName, int tid1, DynamicInstructionBuffer pp, NewEventQueue eventQ, Core[] cores) {
+	public RunnableThread(String threadName, int tid1, DynamicInstructionBuffer pp, EventQueue eventQ, Core[] cores) {
 		tid =tid1;
 		passPackets = pp;
 		for (int i=0; i<EMUTHREADS; i++) {

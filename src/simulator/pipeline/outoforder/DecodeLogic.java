@@ -6,7 +6,7 @@ import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.InstructionLinkedList;
-import generic.NewEventQueue;
+import generic.EventQueue;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
@@ -23,7 +23,7 @@ public class DecodeLogic extends SimulationElement {
 	//the containing core
 	private Core core;
 	int threadID;
-	NewEventQueue eventQueue;
+	EventQueue eventQueue;
 	
 	ExecutionEngine execEngine;
 	

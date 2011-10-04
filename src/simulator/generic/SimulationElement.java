@@ -12,12 +12,12 @@ public abstract class SimulationElement
 	public SimulationElement(PortType portType,
 								int noOfPorts,
 								Time_t occupancy,
-								NewEventQueue newEventQueue,
+								EventQueue eventQueue,
 								Time_t latency,
 								long frequency	//in MHz
 								)
 	{
-		this.port = new Port(portType, noOfPorts, occupancy, newEventQueue);
+		this.port = new Port(portType, noOfPorts, occupancy, eventQueue);
 		this.latency = latency;
 		this.frequency = frequency;
 	}

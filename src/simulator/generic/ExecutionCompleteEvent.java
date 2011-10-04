@@ -21,13 +21,13 @@ import pipeline.outoforder.WriteBackLogic;
  *	schedule new ExecutionCompleteEvent
  */
 
-public class ExecutionCompleteEvent extends NewEvent {
+public class ExecutionCompleteEvent extends Event {
 	
 	ReorderBufferEntry reorderBufferEntry;
 	int threadID;
 	int FUInstance;
 	Core core;
-	NewEventQueue eventQueue;
+	EventQueue eventQueue;
 	
 	Instruction instruction;
 	Operand tempDestOpnd;
@@ -62,14 +62,14 @@ public class ExecutionCompleteEvent extends NewEvent {
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue) {
+	public void handleEvent(EventQueue eventQueue) {
 
 		if(SimulationConfig.debugMode)
 		{
 			System.out.println("executed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
 		}
 		
-		this.eventQueue = newEventQueue;
+		this.eventQueue = eventQueue;
 		
 		if(reorderBufferEntry.getExecuted() == true)
 		{

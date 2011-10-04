@@ -9,10 +9,10 @@ import memorysystem.NewCacheAccessEvent;
 import memorysystem.LSQEntry.LSQEntryType;
 import generic.InstructionLinkedList;
 import generic.GlobalClock;
-import generic.NewEvent;
+import generic.Event;
 import generic.Core;
 import generic.Instruction;
-import generic.NewEventQueue;
+import generic.EventQueue;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
@@ -28,11 +28,11 @@ import generic.Time_t;
  * note - decode complete event represents decode-width number of instructions
  */
 
-public class DecodeCompleteEventPerfect extends NewEvent {
+public class DecodeCompleteEventPerfect extends Event {
 	
 	Core core;
 	int threadID;
-	NewEventQueue eventQueue;
+	EventQueue eventQueue;
 	
 	public DecodeCompleteEventPerfect(Core core, int threadID, long eventTime)
 	{
@@ -46,9 +46,9 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
-		this.eventQueue = newEventQueue;
+		this.eventQueue = eventQueue;
 		readDecodePipe();
 	}
 	

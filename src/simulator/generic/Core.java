@@ -20,7 +20,7 @@ public class Core extends SimulationElement{
 	
 	//long clock;
 	ExecutionEngine execEngine;
-	NewEventQueue eventQueue;
+	EventQueue eventQueue;
 	
 	public boolean perfectPipeline = false;
 	
@@ -51,7 +51,7 @@ public class Core extends SimulationElement{
 	
 	private int noOfInstructionsExecuted;
 
-	public Core(int core_number, NewEventQueue eventQueue, int no_of_threads, InstructionLinkedList[] incomingInstructionLists,
+	public Core(int core_number, EventQueue eventQueue, int no_of_threads, InstructionLinkedList[] incomingInstructionLists,
 					int[] threadIDs)
 	{
 		super(1, new Time_t(-1), new Time_t(-1), SystemConfig.core[core_number].frequency);			//TODO frequency from config file
@@ -135,11 +135,11 @@ public class Core extends SimulationElement{
 		this.clock++;
 	}*/
 
-	public NewEventQueue getEventQueue() {
+	public EventQueue getEventQueue() {
 		return eventQueue;
 	}
 	
-	public void setEventQueue(NewEventQueue _eventQueue) {
+	public void setEventQueue(EventQueue _eventQueue) {
 		eventQueue = _eventQueue;
 	}
 

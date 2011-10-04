@@ -2,13 +2,13 @@ package pipeline.outoforder;
 
 import memorysystem.LSQAddressReadyEvent;
 import generic.Core;
-import generic.NewEvent;
-import generic.NewEventQueue;
+import generic.Event;
+import generic.EventQueue;
 import generic.OperationType;
 import generic.RequestType;
 import generic.Time_t;
 
-public class LoadAddressComputedEvent extends NewEvent {
+public class LoadAddressComputedEvent extends Event {
 	
 	Core core;
 	ReorderBufferEntry reorderBufferEntry;
@@ -27,7 +27,7 @@ public class LoadAddressComputedEvent extends NewEvent {
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue) {
+	public void handleEvent(EventQueue eventQueue) {
 
 		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.store)
 		{

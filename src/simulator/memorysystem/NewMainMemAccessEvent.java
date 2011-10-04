@@ -23,7 +23,7 @@ package memorysystem;
 import memorysystem.CacheLine.MESI;
 import generic.*;
 
-public class NewMainMemAccessEvent extends NewEvent 
+public class NewMainMemAccessEvent extends Event 
 {
 	long address;
 	RequestType requestType;
@@ -64,7 +64,7 @@ public class NewMainMemAccessEvent extends NewEvent
 */
 	
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		/*Do nothing for the main memory*/
 		if (AccessSourceType == MainMemAccessSource.CacheGeneral)//If the call was from the cache

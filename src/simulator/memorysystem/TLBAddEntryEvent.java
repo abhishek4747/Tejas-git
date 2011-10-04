@@ -23,13 +23,13 @@ package memorysystem;
 import java.util.ArrayList;
 
 import generic.GlobalClock;
-import generic.NewEvent;
-import generic.NewEventQueue;
+import generic.Event;
+import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
 
-public class TLBAddEntryEvent extends NewEvent
+public class TLBAddEntryEvent extends Event
 {
 	long pageID;
 	
@@ -43,7 +43,7 @@ public class TLBAddEntryEvent extends NewEvent
 		this.pageID = pageID;
 	}
 	
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		TLB processingTLB = (TLB)(this.getProcessingElement());
 		

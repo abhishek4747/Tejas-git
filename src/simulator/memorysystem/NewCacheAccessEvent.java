@@ -23,7 +23,7 @@ package memorysystem;
 import generic.*;
 import config.CacheConfig;
 
-public class NewCacheAccessEvent extends NewEvent 
+public class NewCacheAccessEvent extends Event 
 {
 	//int threadID;
 	//LSQEntry lsqEntry;
@@ -53,7 +53,7 @@ public class NewCacheAccessEvent extends NewEvent
 	}
 	
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		//Process the access
 		CacheLine cl = processingCache.processRequest(request);
@@ -77,7 +77,7 @@ public class NewCacheAccessEvent extends NewEvent
 /*				//Tell the LSQ (if this is L1) that write is done
 				if (lsqIndex != LSQ.INVALID_INDEX)
 				{
-					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+					eventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
 																	this.getRequestingElement().getLatency().getTime()), 
 																this.processingCache,
 																this.getRequestingElement(),

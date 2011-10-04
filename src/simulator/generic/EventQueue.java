@@ -2,24 +2,24 @@ package generic;
 
 import java.util.PriorityQueue;
 
-public class NewEventQueue 
+public class EventQueue 
 {
-	private PriorityQueue<NewEvent> priorityQueue;
+	private PriorityQueue<Event> priorityQueue;
 	private Core[] coresHandled;
 
-	public NewEventQueue() 
+	public EventQueue() 
 	{
-		priorityQueue = new PriorityQueue<NewEvent>(1, new NewEventComparator());
+		priorityQueue = new PriorityQueue<Event>(1, new EventComparator());
 	}
 	
-	public void addEvent(NewEvent newEvent)
+	public void addEvent(Event event)
 	{
-		priorityQueue.add(newEvent);
+		priorityQueue.add(event);
 	}
 	
 	public void processEvents()
 	{
-		NewEvent newEvent;
+		Event event;
 		long eventTime;
 		
 		long currentClockTime = GlobalClock.currentTime;
@@ -31,10 +31,10 @@ public class NewEventQueue
 			if (eventTime <= currentClockTime)
 			{
 				//remove the event at the head of the queue.
-				newEvent = priorityQueue.remove();
+				event = priorityQueue.remove();
 				
 				//If the event could not be handled, add it to the queue.
-				newEvent.handleEvent(this);
+				event.handleEvent(this);
 			}
 			else
 			{

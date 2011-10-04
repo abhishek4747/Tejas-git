@@ -44,7 +44,7 @@ public class TLB extends SimulationElement
 	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
 	protected int requestsProcessedThisCycle = 0;
 	
-	public TLB(PortType portType, int noOfPorts, Time_t occupancy, Time_t latency, NewEventQueue newEventQueue,
+	public TLB(PortType portType, int noOfPorts, Time_t occupancy, Time_t latency, EventQueue eventQueue,
 			CoreMemorySystem containingMemSys, int tlbSize) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());

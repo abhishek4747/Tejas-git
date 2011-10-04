@@ -24,7 +24,7 @@ import memorysystem.CacheLine.MESI;
 import memorysystem.LSQEntry.LSQEntryType;
 import generic.*;
 
-public class LSQValidateEvent extends NewEvent
+public class LSQValidateEvent extends Event
 {
 	LSQEntry lsqEntry;
 	long addr;
@@ -39,7 +39,7 @@ public class LSQValidateEvent extends NewEvent
 		this.addr = addr;
 	}
 
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		

@@ -3,12 +3,12 @@ package pipeline.outoforder;
 import config.SimulationConfig;
 import generic.Core;
 import generic.GlobalClock;
-import generic.NewEvent;
-import generic.NewEventQueue;
+import generic.Event;
+import generic.EventQueue;
 import generic.RequestType;
 import generic.Time_t;
 
-public class WriteBackCompleteEvent extends NewEvent {
+public class WriteBackCompleteEvent extends Event {
 	
 	Core core;
 	RegisterFile tempRF;
@@ -43,7 +43,7 @@ public class WriteBackCompleteEvent extends NewEvent {
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue) {
+	public void handleEvent(EventQueue eventQueue) {
 		
 		//update register file, rename table
 		if(tempRN != null)

@@ -32,9 +32,9 @@ import memorysystem.LSQEntry.LSQEntryType;
 
 import generic.Core;
 import generic.GlobalClock;
-import generic.NewEventQueue;
+import generic.EventQueue;
 import generic.Time_t;
-import generic.NewEvent;
+import generic.Event;
 import generic.RequestType;
 import generic.SimulationElement;
 
@@ -43,7 +43,7 @@ import generic.SimulationElement;
  * Used to indicate to a memory element (generally caches) to inform 
  * them that a block has been received for some outstanding request
  */
-public class BlockReadyEvent extends NewEvent
+public class BlockReadyEvent extends Event
 {
 	/**
 	 * Just stores the LSQ entry index if the ready event is for an LSQ.
@@ -65,17 +65,17 @@ public class BlockReadyEvent extends NewEvent
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		if (lsqEntry == null) //The processing element is a Cache
 		{
 			Cache receivingCache = (Cache)(this.getProcessingElement());
-			receiveBlockAtCache(newEventQueue, receivingCache, address);
+			receiveBlockAtCache(eventQueue, receivingCache, address);
 		}
 		else //The processing element is an LSQ
 		{
 			LSQ receivingLSQ = (LSQ)(this.getProcessingElement());
-			receiveBlockAtLSQ(newEventQueue, receivingLSQ);
+			receiveBlockAtLSQ(eventQueue, receivingLSQ);
 		}
 	}
 	
@@ -86,7 +86,7 @@ public class BlockReadyEvent extends NewEvent
 	 * this method is called to process the arrival of block and process all the outstanding requests.
 	 * @param addr : Memory address requested
 	 */
-	protected void receiveBlockAtCache(NewEventQueue newEventQueue,Cache receivingCache, long addr)
+	protected void receiveBlockAtCache(EventQueue eventQueue,Cache receivingCache, long addr)
 	{
 		CacheLine evictedLine = receivingCache.fill(addr);//FIXME : Have to handle whole eviction process
 		if (evictedLine != null)
@@ -151,7 +151,7 @@ public class BlockReadyEvent extends NewEvent
 				if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
 					//(If the requesting element is LSQ)
 					//Generate the event to tell the LSQ
-					newEventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
+					eventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
 																		outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
 															this.getProcessingElement(),
 															outstandingRequestList.get(0).requestingElement, 
@@ -195,7 +195,7 @@ public class BlockReadyEvent extends NewEvent
 		}
 	}
 	
-	protected void receiveBlockAtLSQ(NewEventQueue newEventQueue, LSQ receivingLSQ)
+	protected void receiveBlockAtLSQ(EventQueue eventQueue, LSQ receivingLSQ)
 	{
 		if ((lsqEntry.getType() == LSQEntryType.LOAD) &&
 				!lsqEntry.isRemoved() &&
@@ -205,7 +205,7 @@ public class BlockReadyEvent extends NewEvent
 			
 			//No ports to be used in this event
 			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())
-				newEventQueue.addEvent(new ExecutionCompleteEvent(lsqEntry.getRobEntry(),
+				eventQueue.addEvent(new ExecutionCompleteEvent(lsqEntry.getRobEntry(),
 									-1,
 									receivingLSQ.containingMemSys.core,
 									this.getEventTime().getTime()));

@@ -21,13 +21,13 @@
 package memorysystem;
 
 import generic.GlobalClock;
-import generic.NewEventQueue;
-import generic.NewEvent;
+import generic.EventQueue;
+import generic.Event;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
 
-public class LSQAddressReadyEvent extends NewEvent 
+public class LSQAddressReadyEvent extends Event 
 {
 	LSQEntry lsqEntry;
 	
@@ -42,7 +42,7 @@ public class LSQAddressReadyEvent extends NewEvent
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue)
+	public void handleEvent(EventQueue eventQueue)
 	{
 		LSQ processingLSQ = (LSQ)(this.getProcessingElement());
 		

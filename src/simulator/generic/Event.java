@@ -1,14 +1,14 @@
 package generic;
 
 /*
- * NewEvent class contains the bare-minimum that every event must contain.
+ * Event class contains the bare-minimum that every event must contain.
  * This class must be extended for every RequestType.
  * 
  * The extendedClass would define the requestType and would contain the payLoad 
  * of the request too.This simplifies the code as we now don't have to create a 
  * separate pay-load class for each type of request. 
  */
-public abstract class NewEvent 
+public abstract class Event 
 {
 	private Time_t eventTime;
 	RequestType requestType;
@@ -22,7 +22,7 @@ public abstract class NewEvent
 	//value of tieBreaker wins.
 	private long tieBreaker;
 
-	public NewEvent(Time_t eventTime, SimulationElement requestingElement,
+	public Event(Time_t eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker, RequestType requestType) 
 	{
 		super();
@@ -93,5 +93,5 @@ public abstract class NewEvent
 	//then the eventPriority and eventTime will be changed and then 
 	//the modified event will be added to the eventQueue which is 
 	//now passed as a paramter to this function.
-	public abstract void handleEvent(NewEventQueue newEventQueue);
+	public abstract void handleEvent(EventQueue eventQueue);
 }

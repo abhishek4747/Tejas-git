@@ -3,9 +3,9 @@ package pipeline.outoforder;
 import config.SimulationConfig;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.NewEvent;
+import generic.Event;
 import generic.Core;
-import generic.NewEventQueue;
+import generic.EventQueue;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
@@ -18,12 +18,12 @@ import generic.Time_t;
  * find out if operands are available
  * attempt to issue the instruction		
  */
-public class RenameCompleteEvent extends NewEvent {
+public class RenameCompleteEvent extends Event {
 	
 	ReorderBufferEntry reorderBufferEntry;
 	int threadID;
 	Core core;
-	NewEventQueue eventQueue;
+	EventQueue eventQueue;
 	
 	int ctr = 0;
 	
@@ -49,7 +49,7 @@ public class RenameCompleteEvent extends NewEvent {
 	}
 
 	@Override
-	public void handleEvent(NewEventQueue newEventQueue) {
+	public void handleEvent(EventQueue eventQueue) {
 		
 
 		if(SimulationConfig.debugMode)
@@ -57,7 +57,7 @@ public class RenameCompleteEvent extends NewEvent {
 			System.out.println("rename : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
 		}
 		
-		this.eventQueue = newEventQueue;
+		this.eventQueue = eventQueue;
 		
 		//add to Instruction Window
 		IWEntry newIWEntry = execEngine.getInstructionWindow().addToWindow(
