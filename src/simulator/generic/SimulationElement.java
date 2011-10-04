@@ -5,15 +5,15 @@ public abstract class SimulationElement
 	//a simulation element encapsulates a port.
 	//all the request for the port are ported through simulationElement
 	Port port;
-	protected Time_t latency;
+	protected long latency;
 	long frequency;								//in MHz
 	int stepSize;
 
 	public SimulationElement(PortType portType,
 								int noOfPorts,
-								Time_t occupancy,
+								long occupancy,
 								EventQueue eventQueue,
-								Time_t latency,
+								long latency,
 								long frequency	//in MHz
 								)
 	{
@@ -23,17 +23,17 @@ public abstract class SimulationElement
 	}
 	
 	//To get the time delay(due to latency) to schedule the event 
-	public Time_t getLatencyDelay()
+	public long getLatencyDelay()
 	{
-		return (new Time_t(this.latency.getTime() * this.stepSize));
+		return (this.latency * this.stepSize);
 	}
 	
-	public Time_t getLatency() 
+	public long getLatency() 
 	{
 		return this.latency;
 	}
 	
-	protected void setLatency(Time_t latency) {
+	protected void setLatency(long latency) {
 		this.latency = latency;
 	}
 

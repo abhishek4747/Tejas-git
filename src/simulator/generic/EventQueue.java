@@ -27,14 +27,15 @@ public class EventQueue
 		while(!priorityQueue.isEmpty())
 		{
 			//get the eventTime of the event on the head of the queue.
-			eventTime = priorityQueue.peek().getEventTime().getTime();
+			eventTime = priorityQueue.peek().getEventTime();
 			if (eventTime <= currentClockTime)
 			{
 				//remove the event at the head of the queue.
 				event = priorityQueue.remove();
 				
 				//If the event could not be handled, add it to the queue.
-				event.handleEvent(this);
+				//TODO This is in compliance with the new structure.
+				event.getProcessingElement().handleEvent(event);
 			}
 			else
 			{

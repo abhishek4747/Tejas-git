@@ -8,9 +8,9 @@ package generic;
  * of the request too.This simplifies the code as we now don't have to create a 
  * separate pay-load class for each type of request. 
  */
-public abstract class Event 
+public class Event 
 {
-	private Time_t eventTime;
+	private long eventTime;
 	RequestType requestType;
 	private long priority;
 	
@@ -22,7 +22,7 @@ public abstract class Event
 	//value of tieBreaker wins.
 	private long tieBreaker;
 
-	public Event(Time_t eventTime, SimulationElement requestingElement,
+	public Event(long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker, RequestType requestType) 
 	{
 		super();
@@ -43,7 +43,7 @@ public abstract class Event
 		return 0;
 	}
 
-	public Time_t getEventTime() {
+	public long getEventTime() {
 		return eventTime;
 	}
 
@@ -71,7 +71,7 @@ public abstract class Event
 		return tieBreaker;
 	}
 	
-	public void setEventTime(Time_t eventTime) {
+	public void setEventTime(long eventTime) {
 		this.eventTime = eventTime;
 	}
 
@@ -93,5 +93,6 @@ public abstract class Event
 	//then the eventPriority and eventTime will be changed and then 
 	//the modified event will be added to the eventQueue which is 
 	//now passed as a paramter to this function.
-	public abstract void handleEvent(EventQueue eventQueue);
+	//TODO handleEvent(event)
+	//public abstract void handleEvent(EventQueue eventQueue);
 }
