@@ -61,14 +61,12 @@ public class LSQCommitEventFromROB extends NewEvent
 			//request.setThreadID(0);
 			request.setType(RequestType.MEM_WRITE);
 			request.setAddr(entry.getAddr());
-			newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-					1, //noOfSlots,
-					new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(), //FIXME
+			processingLSQ.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(), //FIXME
 															processingLSQ,
 															processingLSQ.containingMemSys.l1Cache,
 															entry, 
 															0, //tieBreaker,
-															request)));
+															request));
 			
 			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
 			processingLSQ.curSize--;

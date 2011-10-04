@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import generic.PortType;
 import generic.MultiPortingType;
 
 public class CoreConfig 
@@ -28,12 +29,14 @@ public class CoreConfig
 	
 	public int LSQSize;
 	public int LSQLatency;
+	public PortType LSQPortType;
 	public int LSQAccessPorts;
 	public int LSQPortOccupancy;
 	public MultiPortingType LSQMultiportType;
 	
 	public int TLBSize;
 	public int TLBLatency;
+	public PortType TLBPortType;
 	public int TLBAccessPorts;
 	public int TLBPortOccupancy;
 
@@ -47,6 +50,7 @@ public class CoreConfig
 	public int IntArchRegNum;
 	public int FloatArchRegNum;
 	public int MSRegNum;
+	public PortType RegFilePortType;
 	public int RegFilePorts;
 	public int RegFileOccupancy;
 	public int BranchMispredPenalty;

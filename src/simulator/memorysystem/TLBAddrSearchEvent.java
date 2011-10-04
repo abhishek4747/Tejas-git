@@ -24,7 +24,6 @@ import emulatorinterface.Newmain;
 import generic.GlobalClock;
 import generic.NewEvent;
 import generic.NewEventQueue;
-import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Time_t;
@@ -54,15 +53,13 @@ public class TLBAddrSearchEvent extends NewEvent
 		if (processingTLB.searchTLBForPhyAddr(address)) 
 		{
 			//Validate the address in the LSQ right away
-			newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-					1, //noOfSlots,
-					new LSQValidateEvent(this.getRequestingElement().getLatencyDelay(),//FIXME
+			this.getRequestingElement().getPort().put(new LSQValidateEvent(this.getRequestingElement().getLatencyDelay(),//FIXME
 														processingTLB,
 														this.getRequestingElement(), 
 														0, //tieBreaker,
 														RequestType.VALIDATE_LSQ_ENTRY, 
 														lsqEntry, 
-														address)));
+														address));
 		}
 		else
 		{
@@ -71,13 +68,11 @@ public class TLBAddrSearchEvent extends NewEvent
 			
 			if (!alreadyRequested)
 				//Fetch the physical address from from Page table
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker,  
-						1, //noOfSlots,
-						new MainMemAccessForTLBEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME
+				MemorySystem.mainMemPort.put(new MainMemAccessForTLBEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME
 																	this.getProcessingElement(), 
 																	0, //tieBreaker,
 																	TLB.getPageID(address),
-																	RequestType.MAIN_MEM_ACCESS_TLB)));
+																	RequestType.MAIN_MEM_ACCESS_TLB));
 		}
 	}
 }

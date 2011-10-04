@@ -71,15 +71,13 @@ public class NewMainMemAccessEvent extends NewEvent
 		{
 			if (requestType == RequestType.MEM_READ)
 			{
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						new BlockReadyEvent(this.getRequestingElement().getLatencyDelay(), //FIXME
+				this.getRequestingElement().getPort().put(new BlockReadyEvent(this.getRequestingElement().getLatencyDelay(), //FIXME
 															null,
 															this.getRequestingElement(), 
 															0, //tie-breaker
 															RequestType.MEM_BLOCK_READY,
 															address,
-															null)));
+															null));
 			}
 			else if (requestType == RequestType.MEM_WRITE)
 			{

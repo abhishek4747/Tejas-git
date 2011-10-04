@@ -55,14 +55,12 @@ public class LSQValidateEvent extends NewEvent
 				request.setType(RequestType.MEM_READ);
 				request.setAddr(lsqEntry.getAddr()); 
 				//Direct address must not be set as it is pageID in some cases
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(),//FIXME
+				processingLSQ.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(),//FIXME
 															processingLSQ,
 															processingLSQ.containingMemSys.l1Cache,
 															lsqEntry, 
 															0, //tieBreaker,
-															request)));
+															request));
 			}
 		}
 		else //If the LSQ entry is a store

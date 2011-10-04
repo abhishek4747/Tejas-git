@@ -5,7 +5,6 @@ import generic.Core;
 import generic.NewEvent;
 import generic.NewEventQueue;
 import generic.OperationType;
-import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.Time_t;
 
@@ -38,14 +37,12 @@ public class LoadAddressComputedEvent extends NewEvent {
 		}
 		
 		//add event to indicate address ready
-		core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
-				1, //noOfSlots,
-				new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+		core.getExecEngine().coreMemSys.getLsqueue().getPort().put(new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
 													null, //Requesting Element
 													core.getExecEngine().coreMemSys.getLsqueue(), 
 													0, //tieBreaker,
 													RequestType.TLB_ADDRESS_READY,
-													reorderBufferEntry.getLsqEntry())));
+													reorderBufferEntry.getLsqEntry()));
 
 	}
 

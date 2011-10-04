@@ -64,7 +64,7 @@ public class MemorySystem
 		mainMemFrequency = SystemConfig.mainMemoryFrequency;
 		mainMemoryAccessPorts = SystemConfig.mainMemoryAccessPorts;
 		mainMemoryPortOccupancy = new Time_t(SystemConfig.mainMemoryPortOccupancy);
-		mainMemPort = new Port(mainMemoryAccessPorts, mainMemoryPortOccupancy);
+		mainMemPort = new Port(SystemConfig.mainMemPortType, mainMemoryAccessPorts, mainMemoryPortOccupancy);
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;

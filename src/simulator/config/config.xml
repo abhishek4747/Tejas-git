@@ -30,7 +30,7 @@
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<DebugMode>true</DebugMode>					<!--True if debug related printing is desired-->
+		<DebugMode>true</DebugMode>				<!--True if debug related printing is desired-->
 	</Simulation>
 
 	<!--System Parameters-->
@@ -38,8 +38,9 @@
 		<NoOfCores>1</NoOfCores>				<!--Number of cores in the simulated system-->
 		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<MainMemoryFrequency>200</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
-		<MainMemoryAccessPorts>-1</MainMemoryAccessPorts>	<!--Number of access ports in the LSQ-->
-		<MainMemoryPortOccupancy>-1</MainMemoryPortOccupancy>	<!--The occupancy of the LSQ ports (in clock cycles)-->
+		<MainMemoryPortType>UL</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+		<MainMemoryAccessPorts>-1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
+		<MainMemoryPortOccupancy>-1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the BUS used for broadcasting messages for cache coherence-->
 
 		<!--Core Parameters-->
@@ -48,12 +49,14 @@
 
 			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
 			<LSQLatency>1</LSQLatency>			<!--In clock cycles-->
+			<LSQPortType>UL</LSQPortType>			<!--Type of access ports in the LSQ (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
 			<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
 			<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
 
 			<TLBSize>128</TLBSize>				<!--Maximum number of entries in the TLB-->
 			<TLBLatency>4</TLBLatency>			<!--In clock cycles-->
+			<TLBPortType>UL</TLBPortType>			<!--Type of access ports in the TLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 			
@@ -67,6 +70,7 @@
 			<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
 			<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
 			<MSRegNum>64</MSRegNum>				<!--Number of machine specific registers-->
+			<RegFilePortType>UL</RegFilePortType>		<!--Type of access ports in the Reg File (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<RegFilePorts>4</RegFilePorts>			<!--Number of ports in the register file-->
 			<RegFileOccupancy>1</RegFileOccupancy>		<!--Occupancy of the register file ports (in clock cycles)-->
 			<BranchMispredPenalty>50</BranchMispredPenalty>	<!--Branch misprediction penalty-->
@@ -110,6 +114,7 @@
 			<Associativity>8</Associativity>
 			<Size>16</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
+			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
@@ -121,6 +126,7 @@
 			<Associativity>8</Associativity>
 			<Size>2048</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
+			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
@@ -132,6 +138,7 @@
 			<Associativity>8</Associativity>
 			<Size>16384</Size>				<!--In KBs-->
 			<Latency>1</Latency>				<!--In clock cycles-->
+			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->

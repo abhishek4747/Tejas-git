@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import generic.PortType;
 import generic.MultiPortingType;
 
 public class CacheConfig 
@@ -34,6 +35,7 @@ public class CacheConfig
 	public int size;
 	public int latency;
 	
+	public PortType portType;
 	public int accessPorts;
 	public int portOccupancy;
 	public MultiPortingType multiportType;

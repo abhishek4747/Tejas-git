@@ -50,10 +50,10 @@ public class LSQ extends SimulationElement
 	
 	public static final int INVALID_INDEX = -1;
 
-	public LSQ(int noOfPorts, Time_t occupancy, Time_t latency,
-			CoreMemorySystem containingMemSys, int lsqSize) 
+	public LSQ(PortType portType, int noOfPorts, Time_t occupancy, NewEventQueue newEventQueue,
+			Time_t latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
-		super(noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());
+		super(portType, noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());
 		this.containingMemSys = containingMemSys;
 		this.lsqSize = lsqSize;
 		curSize = 0;
@@ -212,14 +212,12 @@ public class LSQ extends SimulationElement
 				//request.setThreadID(0);
 				request.setType(RequestType.MEM_WRITE);
 				request.setAddr(entry.getAddr());
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						new NewCacheAccessEvent(this.containingMemSys.l1Cache.getLatencyDelay(),
+				this.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(this.containingMemSys.l1Cache.getLatencyDelay(),
 																this,
 																this.containingMemSys.l1Cache,
 																entry, 
 																0, //tieBreaker,
-																request)));
+																request));
 			}
 			else
 				Core.outstandingMemRequests--;

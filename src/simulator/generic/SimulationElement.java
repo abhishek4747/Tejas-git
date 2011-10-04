@@ -9,13 +9,15 @@ public abstract class SimulationElement
 	long frequency;								//in MHz
 	int stepSize;
 
-	public SimulationElement(int noOfPorts,
+	public SimulationElement(PortType portType,
+								int noOfPorts,
 								Time_t occupancy,
+								NewEventQueue newEventQueue,
 								Time_t latency,
 								long frequency	//in MHz
 								)
 	{
-		this.port = new Port(noOfPorts, occupancy);
+		this.port = new Port(portType, noOfPorts, occupancy, newEventQueue);
 		this.latency = latency;
 		this.frequency = frequency;
 	}

@@ -22,6 +22,8 @@ package config;
 
 import java.util.Hashtable;
 
+import generic.PortType;
+
 public class SystemConfig 
 {
 	public static int NoOfCores;
@@ -29,6 +31,7 @@ public class SystemConfig
 	public static Hashtable<String, CacheConfig> declaredCaches;
 	public static int mainMemoryLatency;
 	public static long mainMemoryFrequency;
+	public static PortType mainMemPortType;
 	public static int mainMemoryAccessPorts;
 	public static int mainMemoryPortOccupancy;
 	public static int cacheBusLatency;

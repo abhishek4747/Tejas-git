@@ -122,7 +122,8 @@ public class Cache extends SimulationElement
 		
 		public Cache(CacheConfig cacheParameters)
 		{
-			super(cacheParameters.getAccessPorts(), 
+			super(cacheParameters.portType,
+					cacheParameters.getAccessPorts(), 
 					new Time_t(cacheParameters.getPortOccupancy()), 
 					new Time_t(cacheParameters.getLatency()),
 					cacheParameters.operatingFreq);

@@ -16,7 +16,6 @@ import generic.NewEventQueue;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
-import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.Statistics;
 import generic.Time_t;
@@ -140,14 +139,12 @@ public class DecodeCompleteEventPerfect extends NewEvent {
 				LSQEntry lsqEntry =	this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
 									newInstruction.getSourceOperand1().getValue(), null);
 				
-				this.eventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+				core.getExecEngine().coreMemSys.getLsqueue().getPort().put(new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
 															null, //Requesting Element
 															core.getExecEngine().coreMemSys.getLsqueue(), 
 															0, //tieBreaker,
 															RequestType.TLB_ADDRESS_READY,
-															lsqEntry)));
+															lsqEntry));
 				
 				
 			}

@@ -28,6 +28,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.*;
 
+import generic.PortType;
+
 public class XMLParser 
 {
 	private static Document doc;
@@ -128,6 +130,7 @@ public class XMLParser
 		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
+		SystemConfig.mainMemPortType = setPortType(getImmediateString("MainMemoryPortType", systemElmnt));
 		SystemConfig.mainMemoryAccessPorts = Integer.parseInt(getImmediateString("MainMemoryAccessPorts", systemElmnt));
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
@@ -148,12 +151,14 @@ public class XMLParser
 			
 			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", coreElmnt));
 			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", coreElmnt));
+			core.LSQPortType = setPortType(getImmediateString("LSQPortType", coreElmnt));
 			core.LSQAccessPorts = Integer.parseInt(getImmediateString("LSQAccessPorts", coreElmnt));
 			core.LSQPortOccupancy = Integer.parseInt(getImmediateString("LSQPortOccupancy", coreElmnt));
 			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", coreElmnt));
 			
 			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
 			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
+			core.TLBPortType = setPortType(getImmediateString("TLBPortType", coreElmnt));
 			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
 
@@ -167,6 +172,7 @@ public class XMLParser
 			core.IntArchRegNum = Integer.parseInt(getImmediateString("IntArchRegNum", coreElmnt));
 			core.FloatArchRegNum = Integer.parseInt(getImmediateString("FloatArchRegNum", coreElmnt));
 			core.MSRegNum = Integer.parseInt(getImmediateString("MSRegNum", coreElmnt));
+			core.RegFilePortType = setPortType(getImmediateString("RegFilePortType", coreElmnt));
 			core.RegFilePorts = Integer.parseInt(getImmediateString("RegFilePorts", coreElmnt));
 			core.RegFileOccupancy = Integer.parseInt(getImmediateString("RegFileOccupancy", coreElmnt));
 			core.BranchMispredPenalty = Integer.parseInt(getImmediateString("BranchMispredPenalty", coreElmnt));
@@ -252,6 +258,7 @@ public class XMLParser
 		cache.assoc = Integer.parseInt(getImmediateString("Associativity", CacheType));
 		cache.size = Integer.parseInt(getImmediateString("Size", CacheType));
 		cache.latency = Integer.parseInt(getImmediateString("Latency", CacheType));
+		cache.portType = setPortType(getImmediateString("PortType", CacheType));
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
@@ -313,6 +320,23 @@ public class XMLParser
 		else
 		{
 			System.err.println("XML Configuration error : Invalid Multiporting type specified");
+			System.exit(1);
+		}
+		return result;
+	}
+	
+	private static PortType setPortType(String inputStr)
+	{
+		PortType result = null;
+		if (inputStr.equalsIgnoreCase("UL"))
+			result = PortType.Unlimited;
+		else if (inputStr.equalsIgnoreCase("FCFS"))
+			result = PortType.FirstComeFirstServe;
+		else if (inputStr.equalsIgnoreCase("PR"))
+			result = PortType.PriorityBased;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid Port Type type specified");
 			System.exit(1);
 		}
 		return result;

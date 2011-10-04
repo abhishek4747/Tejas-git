@@ -7,7 +7,6 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.ExecutionCompleteEvent;
-import generic.PortRequestEvent;
 import generic.RequestType;
 
 /**
@@ -134,14 +133,12 @@ public class IWEntry {
 			//remove IW entry
 			instructionWindow.removeFromWindow(this);
 			//TODO add event to indicate address ready
-			core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
-					1, //noOfSlots,
-					new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
 														null, //Requesting Element
 														core.getExecEngine().coreMemSys.getLsqueue(), 
 														0, //tieBreaker,
 														RequestType.TLB_ADDRESS_READY,
-														associatedROBEntry.getLsqEntry())));
+														associatedROBEntry.getLsqEntry()));
 
 		}
 		else
@@ -156,14 +153,12 @@ public class IWEntry {
 			
 			instructionWindow.removeFromWindow(this);
 			//TODO add event to indicate address ready
-			core.getEventQueue().addEvent(new PortRequestEvent(0, //tieBreaker, 
-					1, //noOfSlots,
-					new LSQAddressReadyEvent(execEngine.coreMemSys.getLsqueue().getLatencyDelay(), 
+			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(new LSQAddressReadyEvent(execEngine.coreMemSys.getLsqueue().getLatencyDelay(), 
 														null, //Requesting Element
 														core.getExecEngine().coreMemSys.getLsqueue(), 
 														0, //tieBreaker,
 														RequestType.TLB_ADDRESS_READY,
-														associatedROBEntry.getLsqEntry())));
+														associatedROBEntry.getLsqEntry()));
 		}
 
 		if(SimulationConfig.debugMode)

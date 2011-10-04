@@ -7,7 +7,6 @@ import generic.Instruction;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
-import generic.PortRequestEvent;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Statistics;
@@ -177,14 +176,12 @@ public class ReorderBuffer extends SimulationElement{
 					//Signal LSQ for committing the Instruction at the queue head
 					if(firstOpType == OperationType.load || firstOpType == OperationType.store)
 					{
-						core.getEventQueue().addEvent(new PortRequestEvent((GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker, 
-								1, //noOfSlots,
-								new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
+						execEngine.coreMemSys.getLsqueue().getPort().put(new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
 																			this,
 																			execEngine.coreMemSys.getLsqueue(), 
 																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
 																			RequestType.LSQ_COMMIT, 
-																			first.getLsqEntry())));
+																			first.getLsqEntry()));
 						first.getLsqEntry().setRemoved(true);
 					}
 					
@@ -432,14 +429,12 @@ public class ReorderBuffer extends SimulationElement{
 					if(first.getInstruction().getOperationType() == OperationType.load ||
 							first.getInstruction().getOperationType() == OperationType.store)
 					{
-						core.getEventQueue().addEvent(new PortRequestEvent((GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker, 
-								1, //noOfSlots,
-								new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
+						execEngine.coreMemSys.getLsqueue().getPort().put(new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
 																			this,
 																			execEngine.coreMemSys.getLsqueue(), 
 																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
 																			RequestType.LSQ_COMMIT, 
-																			first.getLsqEntry())));
+																			first.getLsqEntry()));
 						first.getLsqEntry().setRemoved(true);
 					}
 					

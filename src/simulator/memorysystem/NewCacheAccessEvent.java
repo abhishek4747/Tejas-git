@@ -64,15 +64,13 @@ public class NewCacheAccessEvent extends NewEvent
 			//Schedule the requesting element to receive the block TODO (for LSQ)
 			if (request.getType() == RequestType.MEM_READ)
 				//Just return the read block
-				newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-						1, //noOfSlots,
-						new BlockReadyEvent(this.getRequestingElement().getLatencyDelay(), 
+				this.getRequestingElement().getPort().put(new BlockReadyEvent(this.getRequestingElement().getLatencyDelay(), 
 															this.processingCache,
 															this.getRequestingElement(),
 															0,//tieBreaker
 															RequestType.MEM_BLOCK_READY,
 															request.getAddr(),
-															lsqEntry)));
+															lsqEntry));
 			else if (request.getType() == RequestType.MEM_WRITE)
 			{
 				//Write the data to the cache block (Do Nothing)
@@ -95,22 +93,18 @@ public class NewCacheAccessEvent extends NewEvent
 					//Handle in any case (Whether requesting element is LSQ or cache)
 					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 					if (processingCache.isLastLevel)
-						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-								1, //noOfSlots,
-								new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
+						MemorySystem.mainMemPort.put(new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
 																		processingCache, 
 																		0, //tieBreaker,
 																		request.getAddr(),
-																		RequestType.MEM_WRITE)));
+																		RequestType.MEM_WRITE));
 					else
-						newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker,
-								1, //noOfSlots,
-								new NewCacheAccessEvent(processingCache.nextLevel.getLatencyDelay(),//FIXME
+						processingCache.nextLevel.getPort().put(new NewCacheAccessEvent(processingCache.nextLevel.getLatencyDelay(),//FIXME
 																		processingCache,
 																		processingCache.nextLevel,
 																		null, 
 																		0, //tieBreaker,
-																		request)));
+																		request));
 				}
 				else
 				{
@@ -135,13 +129,11 @@ public class NewCacheAccessEvent extends NewEvent
 				if (processingCache.isLastLevel)
 				{
 					//FIXME
-					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-							1, //noOfSlots,
-							new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(), //FIXME 
+					MemorySystem.mainMemPort.put(new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(), //FIXME 
 																	processingCache, 
 																	0, //tieBreaker,
 																	request.getAddr(),
-																	RequestType.MEM_READ)));
+																	RequestType.MEM_READ));
 					return;
 				}
 				else
@@ -152,9 +144,7 @@ public class NewCacheAccessEvent extends NewEvent
 					this.processingCache = processingCache.nextLevel;
 					this.lsqEntry = null;
 					this.request.setType(RequestType.MEM_READ);
-					newEventQueue.addEvent(new PortRequestEvent(0, //tieBreaker, 
-							1, //noOfSlots,
-							this));
+					processingCache.nextLevel.getPort().put(this);
 					return;
 				}
 			}
