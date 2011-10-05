@@ -15,13 +15,13 @@ public class Event
 	private long eventTime;
 	RequestType requestType;
 	private long priority;
-	private long memAddress;
+//	private long memAddress;
 	
 	//Element which processes the event.
 	private SimulationElement requestingElement;
 	private SimulationElement processingElement;
 	
-	Object payload;
+	private Object payload;
 
 	//For two events with same eventTime and priority, whichever has lower
 	//value of tieBreaker wins.
@@ -41,6 +41,22 @@ public class Event
 		//this.priority = calculatePriority(requestType);
 		this.priority = requestType.ordinal();
 	}
+	
+	public Event update(long eventTime, SimulationElement requestingElement,
+			SimulationElement processingElement, long tieBreaker, RequestType requestType, Object payload)
+	{
+		this.eventTime = eventTime;
+		this.requestingElement = requestingElement;
+		this.processingElement = processingElement;
+		this.tieBreaker = tieBreaker;
+		this.requestType = requestType;
+		this.payload = payload;
+		
+		//this.priority = calculatePriority(requestType);
+		this.priority = requestType.ordinal();
+		
+		return this;
+	}
 
 	//Converts request-type to priority.
 	private long calculatePriority(RequestType requestType) 
@@ -57,13 +73,13 @@ public class Event
 		return priority;
 	}
 
-	public long getMemAddress() {
-		return memAddress;
-	}
-
-	public void setMemAddress(long memAddress) {
-		this.memAddress = memAddress;
-	}
+//	public long getMemAddress() {
+//		return memAddress;
+//	}
+//
+//	public void setMemAddress(long memAddress) {
+//		this.memAddress = memAddress;
+//	}
 
 	public SimulationElement getRequestingElement() {
 		return requestingElement;
@@ -79,6 +95,14 @@ public class Event
 
 	protected void setProcessingElement(SimulationElement processingElement) {
 		this.processingElement = processingElement;
+	}
+
+	public Object getPayload() {
+		return payload;
+	}
+
+	public void setPayload(Object payload) {
+		this.payload = payload;
 	}
 
 	public long getTieBreaker() {
