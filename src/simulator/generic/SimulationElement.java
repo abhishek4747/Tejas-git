@@ -57,4 +57,7 @@ public abstract class SimulationElement
 	public void setStepSize(int stepSize) {
 		this.stepSize = stepSize;
 	}
+	
+//	public abstract void handleEvent(EventQueue eventQueue);
+	public abstract void handleEvent(Event event);
 }

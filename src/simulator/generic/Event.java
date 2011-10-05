@@ -1,5 +1,7 @@
 package generic;
 
+import memorysystem.MemorySystem;
+
 /*
  * Event class contains the bare-minimum that every event must contain.
  * This class must be extended for every RequestType.
@@ -13,17 +15,20 @@ public class Event
 	private long eventTime;
 	RequestType requestType;
 	private long priority;
+	private long memAddress;
 	
 	//Element which processes the event.
 	private SimulationElement requestingElement;
 	private SimulationElement processingElement;
+	
+	Object payload;
 
 	//For two events with same eventTime and priority, whichever has lower
 	//value of tieBreaker wins.
 	private long tieBreaker;
 
 	public Event(long eventTime, SimulationElement requestingElement,
-			SimulationElement processingElement, long tieBreaker, RequestType requestType) 
+			SimulationElement processingElement, long tieBreaker, RequestType requestType, Object payload) 
 	{
 		super();
 		this.eventTime = eventTime;
@@ -31,6 +36,7 @@ public class Event
 		this.processingElement = processingElement;
 		this.tieBreaker = tieBreaker;
 		this.requestType = requestType;
+		this.payload = payload;
 		
 		//this.priority = calculatePriority(requestType);
 		this.priority = requestType.ordinal();
@@ -49,6 +55,14 @@ public class Event
 
 	public long getPriority() {
 		return priority;
+	}
+
+	public long getMemAddress() {
+		return memAddress;
+	}
+
+	public void setMemAddress(long memAddress) {
+		this.memAddress = memAddress;
 	}
 
 	public SimulationElement getRequestingElement() {
@@ -74,6 +88,10 @@ public class Event
 	public void setEventTime(long eventTime) {
 		this.eventTime = eventTime;
 	}
+	
+	public void addEventTime(long additionTime) {
+		this.setEventTime(this.eventTime + additionTime);
+	}
 
 	public void setPriority(long priority) {
 		this.priority = priority;
@@ -94,5 +112,11 @@ public class Event
 	//the modified event will be added to the eventQueue which is 
 	//now passed as a paramter to this function.
 	//TODO handleEvent(event)
-	//public abstract void handleEvent(EventQueue eventQueue);
+	public void handleEvent(EventQueue eventQueue)
+	{
+		if (processingElement == null)
+			MemorySystem.handleMainMemAccess(this);
+		else
+			processingElement.handleEvent(this);
+	}
 }
