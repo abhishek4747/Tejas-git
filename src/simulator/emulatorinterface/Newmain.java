@@ -76,7 +76,7 @@ public class Newmain {
 		cores[0].setIncomingInstructionLists(new InstructionLinkedList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
 		
 		//Create the memory system
-		MemorySystem.initializeMemSys(cores);
+		MemorySystem.initializeMemSys(cores, eventQ);
 		
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
