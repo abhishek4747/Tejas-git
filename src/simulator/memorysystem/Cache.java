@@ -415,7 +415,7 @@ public class Cache extends SimulationElement
 			RequestType requestType = event.getRequestType();
 			long address;
 			
-			if (this.isFirstLevel)
+			if (this.isFirstLevel && !MemorySystem.bypassLSQ)
 				address = ((LSQEntry)(event.getPayload())).getAddr();
 			else
 				address = (Long)(event.getPayload());

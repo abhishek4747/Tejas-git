@@ -47,7 +47,7 @@ public class MemorySystem
 	static int mainMemoryAccessPorts;
 	static long mainMemoryPortOccupancy;
 	
-	public static boolean bypassLSQ;
+	public static boolean bypassLSQ = false;
 	
 	public static long getMainMemLatencyDelay()
 	{
