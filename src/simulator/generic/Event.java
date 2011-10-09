@@ -138,7 +138,9 @@ public class Event
 	//TODO handleEvent(event)
 	public void handleEvent(EventQueue eventQueue)
 	{
-		if (processingElement == null)
+		if (processingElement == null &&
+				(requestType == RequestType.Main_Mem_Read
+						|| requestType == RequestType.Main_Mem_Write))
 			MemorySystem.handleMainMemAccess(this);
 		else
 			processingElement.handleEvent(this);

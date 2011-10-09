@@ -50,10 +50,10 @@ public class LSQ extends SimulationElement
 	
 	public static final int INVALID_INDEX = -1;
 
-	public LSQ(PortType portType, int noOfPorts, Time_t occupancy, EventQueue eventQueue,
-			Time_t latency, CoreMemorySystem containingMemSys, int lsqSize) 
+	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, 
+			EventQueue eventQueue, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
-		super(portType, noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());
+		super(portType, noOfPorts, occupancy, eventQueue, latency, containingMemSys.core.getFrequency());
 		this.containingMemSys = containingMemSys;
 		this.lsqSize = lsqSize;
 		curSize = 0;
@@ -86,7 +86,7 @@ public class LSQ extends SimulationElement
 		//else return QUEUE_FULL; // -1 signifies that the queue is full
 	}
 
-	public boolean loadValidate(int index, long address)
+	public boolean loadValidate(int index)//, long address)
 	{
 		LSQEntry entry = lsqueue[index];
 		entry.setValid(true);
@@ -143,11 +143,11 @@ public class LSQ extends SimulationElement
 		return false;
 	}
 
-	public void storeValidate(int index, long address)
+	public void storeValidate(int index)//, long address)
 	{
 		LSQEntry entry = lsqueue[index];
 		entry.setValid(true);
-		//storeResolve(index, entry);
+		storeResolve(index, entry);
 	}
 
 	protected void storeResolve(int index, LSQEntry entry)
@@ -192,43 +192,43 @@ public class LSQ extends SimulationElement
 
 	
 	//Only used by the perfect pipeline
-	public boolean processROBCommitForPerfectPipeline(EventQueue eventQueue)
-	{
-		if (!(lsqueue[head].getType() == LSQEntryType.STORE ||
-				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))
-			return true;
-		
-		while ((lsqueue[head].getType() == LSQEntryType.STORE ||
-				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)) &&
-				curSize > 0)
-		{
-			LSQEntry entry = lsqueue[head];
-			
-			// if it is a store, send the request to the cache
-			if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
-			{
-				//TODO Write to the cache
-				CacheRequestPacket request = new CacheRequestPacket();
-				//request.setThreadID(0);
-				request.setType(RequestType.MEM_WRITE);
-				request.setAddr(entry.getAddr());
-				this.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(this.containingMemSys.l1Cache.getLatencyDelay(),
-																this,
-																this.containingMemSys.l1Cache,
-																entry, 
-																0, //tieBreaker,
-																request));
-			}
-			else
-				Core.outstandingMemRequests--;
-	
-			this.head = this.incrementQ(this.head);
-			this.curSize--;
-//			System.out.println(curSize);
-			//containingMemSys.core.getExecEngine().outstandingMemRequests--;
-		}
-		return false;
-	}
+//	public boolean processROBCommitForPerfectPipeline(EventQueue eventQueue)
+//	{
+//		if (!(lsqueue[head].getType() == LSQEntryType.STORE ||
+//				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))
+//			return true;
+//		
+//		while ((lsqueue[head].getType() == LSQEntryType.STORE ||
+//				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)) &&
+//				curSize > 0)
+//		{
+//			LSQEntry entry = lsqueue[head];
+//			
+//			// if it is a store, send the request to the cache
+//			if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
+//			{
+//				//TODO Write to the cache
+//				CacheRequestPacket request = new CacheRequestPacket();
+//				//request.setThreadID(0);
+//				request.setType(RequestType.MEM_WRITE);
+//				request.setAddr(entry.getAddr());
+//				this.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(this.containingMemSys.l1Cache.getLatencyDelay(),
+//																this,
+//																this.containingMemSys.l1Cache,
+//																entry, 
+//																0, //tieBreaker,
+//																request));
+//			}
+//			else
+//				Core.outstandingMemRequests--;
+//	
+//			this.head = this.incrementQ(this.head);
+//			this.curSize--;
+////			System.out.println(curSize);
+//			//containingMemSys.core.getExecEngine().outstandingMemRequests--;
+//		}
+//		return false;
+//	}
 
 	
 	protected int incrementQ(int value)
@@ -260,5 +260,219 @@ public class LSQ extends SimulationElement
 	public void setRemoved(int index)
 	{
 		lsqueue[index].setRemoved(true);
+	}
+	
+	public void handleEvent(Event event)
+	{
+		if (event.getRequestType() == RequestType.Tell_LSQ_Addr_Ready)
+		{
+			handleAddressReady(event);
+		}
+		else if (event.getRequestType() == RequestType.Validate_LSQ_Addr)
+		{
+			handleAddrValidate(event);
+		}
+		else if (event.getRequestType() == RequestType.LSQ_Commit)
+		{
+			handleCommitsFromROB(event);
+		}
+		else if (event.getRequestType() == RequestType.Mem_Response)
+		{
+			handleMemResponse(event);
+		}
+	}
+	
+	public void handleAddressReady(Event event)
+	{
+		LSQEntry lsqEntry = (LSQEntry)(event.getPayload());
+		long virtualAddr = lsqEntry.getAddr();
+//		this.containingMemSys.TLBuffer.getPort().put(new TLBAddrSearchEvent(processingLSQ.containingMemSys.TLBuffer.getLatencyDelay(), //FIXME
+//														processingLSQ,
+//														processingLSQ.containingMemSys.TLBuffer, 
+//														0, //tieBreaker,
+//														RequestType.TLB_SEARCH, 
+//														lsqEntry.getAddr(),
+//														lsqEntry));
+		if (this.containingMemSys.TLBuffer.searchTLBForPhyAddr(virtualAddr))
+		{
+//			//If the LSQ entry is a load
+//			if (lsqEntry.getType() == LSQEntryType.LOAD)
+//			{
+//				//If the value could not be forwarded
+//				if (!(this.loadValidate(lsqEntry.getIndexInQ())))
+//				{
+//					//TODO Read from the cache (CacheAccessEvent)
+////					CacheRequestPacket request = new CacheRequestPacket();
+//					//request.setThreadID(0);
+////					request.setType(RequestType.Cache_Read);
+////					request.setAddr(lsqEntry.getAddr()); 
+//					//Direct address must not be set as it is pageID in some cases
+////					this.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(),//FIXME
+////																processingLSQ,
+////																processingLSQ.containingMemSys.l1Cache,
+////																lsqEntry, 
+////																0, //tieBreaker,
+////																request));
+//					this.containingMemSys.l1Cache.getPort().put(event.update(this.containingMemSys.l1Cache.getLatencyDelay(),
+//																			this,
+//																			this.containingMemSys.l1Cache,
+//																			0,
+//																			RequestType.Cache_Read,
+//																			lsqEntry.getAddr()));
+//				}
+//				this.getPort().put(event.update(MemorySystem.getMainMemLatencyDelay() + this.getLatencyDelay(), requestingElement, processingElement, tieBreaker, requestType, payload));
+//			}
+//			else //If the LSQ entry is a store
+//			{
+//				this.storeValidate(lsqEntry.getIndexInQ());
+//			}
+			this.handleAddrValidate(event);
+		}
+		else
+		{
+			//Fetch the physical address from from Page table
+//			MemorySystem.mainMemPort.put(new MainMemAccessForTLBEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME
+//																this.getProcessingElement(), 
+//																0, //tieBreaker,
+//																TLB.getPageID(address),
+//																RequestType.MAIN_MEM_ACCESS_TLB));
+			//TODO Now, we directly check TLB as a function and schedule a validate event 
+			// assuming a constant delay equal to Main memory latency
+			this.getPort().put(event.update(MemorySystem.mainMemoryLatency,
+											null,
+											this,
+											0,//tieBreaker,
+											RequestType.Validate_LSQ_Addr,
+											lsqEntry));
+		}
+	}
+	
+	public void handleAddrValidate(Event event)
+	{
+		LSQEntry lsqEntry = (LSQEntry)(event.getPayload());
+		
+		//If the LSQ entry is a load
+		if (lsqEntry.getType() == LSQEntryType.LOAD)
+		{
+			//If the value could not be forwarded
+			if (!(this.loadValidate(lsqEntry.getIndexInQ())))
+			{
+				//TODO Read from the cache (CacheAccessEvent)
+//				CacheRequestPacket request = new CacheRequestPacket();
+//				//request.setThreadID(0);
+//				request.setType(RequestType.MEM_READ);
+//				request.setAddr(lsqEntry.getAddr()); 
+				//Direct address must not be set as it is pageID in some cases
+				this.containingMemSys.l1Cache.getPort().put(event.update(this.containingMemSys.l1Cache.getLatencyDelay(),
+																		this,
+																		this.containingMemSys.l1Cache,
+																		0,//tieBreaker,
+																		RequestType.Cache_Read, 
+																		lsqEntry));
+//				processingLSQ.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(),//FIXME
+//															processingLSQ,
+//															processingLSQ.containingMemSys.l1Cache,
+//															lsqEntry, 
+//															0, //tieBreaker,
+//															request));
+			}
+		}
+		else //If the LSQ entry is a store
+		{
+			this.storeValidate(lsqEntry.getIndexInQ());//, addr);
+		}
+	}
+	
+	protected void handleMemResponse(Event event)
+	{
+		LSQEntry lsqEntry = (LSQEntry)(event.getPayload());
+		
+		if ((lsqEntry.getType() == LSQEntryType.LOAD) &&
+				!lsqEntry.isRemoved() &&
+				!lsqEntry.isForwarded())
+		{
+			lsqEntry.setForwarded(true);
+			
+			//No ports to be used in this event
+			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())
+				eventQueue.addEvent(new ExecutionCompleteEvent(lsqEntry.getRobEntry(),
+									-1,
+									receivingLSQ.containingMemSys.core,
+									this.getEventTime().getTime()));
+			
+			//For perfect pipeline
+			else if (lsqEntry.getRobEntry() == null)
+			{
+				Core.outstandingMemRequests--;
+			}
+		}/*
+		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
+		{
+			receivingLSQ.lsqueue[lsqIndex].setStoreCommitted(true);
+			//TODO : Also to increment the head of the queue. Following code is from the LSQCommitEventFromROB
+			/*
+			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
+			processingLSQ.curSize--;
+			//long address = entry.getAddr();
+			*
+			//TODO : Commit the STORE entry in the LSQ and may be generate an event 
+			//to tell the ROB or something
+		}*/
+			
+	}
+	
+	public void handleCommitsFromROB(Event event)
+	{
+//		LSQ processingLSQ = (LSQ)(event.getProcessingElement());
+		LSQEntry lsqEntry = (LSQEntry)(event.getPayload());
+		
+		//Check the error condition
+		if (lsqEntry.getIndexInQ() != this.head)
+		{
+			System.err.println("Error in LSQ :  ROB sent commit for an instruction other than the one at the head");
+			System.exit(1);
+		}
+		
+//TODO : This needs to be moved some place especially for the store when it finally commits()
+		// advance the head of the queue
+		
+		// if it is a store, send the request to the cache
+		if(lsqEntry.getType() == LSQEntry.LSQEntryType.STORE) 
+		{
+			//TODO Write to the cache
+//			CacheRequestPacket request = new CacheRequestPacket();
+//			//request.setThreadID(0);
+//			request.setType(RequestType.MEM_WRITE);
+//			request.setAddr(entry.getAddr());
+			this.containingMemSys.l1Cache.getPort().put(event.update(this.containingMemSys.l1Cache.getLatencyDelay(),
+																	this,
+																	this.containingMemSys.l1Cache,
+																	0,//tieBreaker,
+																	RequestType.Cache_Write,
+																	lsqEntry.getAddr()));
+//			processingLSQ.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(processingLSQ.containingMemSys.l1Cache.getLatencyDelay(), //FIXME
+//															processingLSQ,
+//															processingLSQ.containingMemSys.l1Cache,
+//															entry, 
+//															0, //tieBreaker,
+//															request));
+			
+			this.head = this.incrementQ(this.head);
+			this.curSize--;
+		}
+		
+		//If it is a LOAD which has received its value
+		else if (lsqEntry.isForwarded())
+		{
+			this.head = this.incrementQ(this.head);
+			this.curSize--;
+		}
+		
+		//If it is a LOAD which has not yet received its value
+		else
+		{
+			System.err.println("Error in LSQ " +this.containingMemSys.coreID+ " :  ROB sent commit for a load which has not received its value");
+			System.exit(1);
+		}
 	}
 }

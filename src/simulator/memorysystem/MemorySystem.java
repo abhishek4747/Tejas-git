@@ -24,35 +24,41 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import generic.Port;
+import generic.Event;
 
+import generic.EventQueue;
+
+import generic.Port;
 import generic.Core;
-import generic.Time_t;
+import generic.RequestType;
 
 import config.CacheConfig;
 import config.SystemConfig;
 
-public class MemorySystem 
+
+public class MemorySystem
 {
 	static Core[] cores;
 	static Hashtable<String, Cache> cacheList;
-	public static Time_t mainMemoryLatency;
+	public static long mainMemoryLatency;
 	public static long mainMemFrequency;								//in MHz
 	public static int mainMemStepSize;
 	public static Port mainMemPort;
 	static int mainMemoryAccessPorts;
-	static Time_t mainMemoryPortOccupancy;
+	static long mainMemoryPortOccupancy;
 	
-	public static Time_t getMainMemLatencyDelay()
+	public static boolean bypassLSQ;
+	
+	public static long getMainMemLatencyDelay()
 	{
-		return (new Time_t(mainMemoryLatency.getTime() * mainMemStepSize));
+		return (mainMemoryLatency * mainMemStepSize);
 	}
 	
 	public static Hashtable<String, Cache> getCacheList() {
 		return cacheList;
 	}
 
-	public static void initializeMemSys(Core[] cores)
+	public static void initializeMemSys(Core[] cores, EventQueue[] eventQ)
 	{
 		MemorySystem.cores = cores;
 		
@@ -60,11 +66,11 @@ public class MemorySystem
 		// initialising the memory system
 		
 		//Set up the main memory properties
-		mainMemoryLatency = new Time_t(SystemConfig.mainMemoryLatency);
+		mainMemoryLatency = SystemConfig.mainMemoryLatency;
 		mainMemFrequency = SystemConfig.mainMemoryFrequency;
 		mainMemoryAccessPorts = SystemConfig.mainMemoryAccessPorts;
-		mainMemoryPortOccupancy = new Time_t(SystemConfig.mainMemoryPortOccupancy);
-		mainMemPort = new Port(SystemConfig.mainMemPortType, mainMemoryAccessPorts, mainMemoryPortOccupancy);
+		mainMemoryPortOccupancy = SystemConfig.mainMemoryPortOccupancy;
+		mainMemPort = new Port(SystemConfig.mainMemPortType, mainMemoryAccessPorts, mainMemoryPortOccupancy, eventQ[0]);
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
@@ -80,7 +86,8 @@ public class MemorySystem
 				cacheParameterObj = SystemConfig.declaredCaches.get(cacheName);
 				
 				//Declare the new cache
-				Cache newCache = new Cache(cacheParameterObj);
+				cacheParameterObj.setFirstLevel(false);
+				Cache newCache = new Cache(cacheParameterObj, eventQ[0]);
 				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
@@ -127,7 +134,7 @@ public class MemorySystem
 		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			cores[i].getExecEngine().coreMemSys = new CoreMemorySystem(cores[i]);
+			cores[i].getExecEngine().coreMemSys = new CoreMemorySystem(cores[i], eventQ[0]);
 //			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			
 			//Set the next levels of the L1 cache
@@ -185,6 +192,32 @@ public class MemorySystem
 		{
 			list.get(i).isCoherent = true;
 			propagateCoherencyUpwards(list.get(i).prevLevel);
+		}
+	}
+	
+	public static void handleMainMemAccess(Event event)
+	{
+		if (event.getRequestType() == RequestType.Main_Mem_Read)
+		{
+			event.getRequestingElement().getPort().put(event.update(event.getRequestingElement().getLatencyDelay(),
+																	null,
+																	event.getRequestingElement(),
+																	0,//tieBreaker,
+																	RequestType.Mem_Response,
+																	event.getPayload()));
+//														(this.getRequestingElement().getLatencyDelay(), //FIXME
+//														null,
+//														this.getRequestingElement(), 
+//														0, //tie-breaker
+//														RequestType.MEM_BLOCK_READY,
+//														address,
+//														null));
+		}
+		else if (event.getRequestType() == RequestType.Main_Mem_Write)
+		{
+			//TODO : If we have to simulate the write timings also, then the code will come here
+			//Just to tell the requesting things that the write is completed
+			Core.outstandingMemRequests--;
 		}
 	}
 	

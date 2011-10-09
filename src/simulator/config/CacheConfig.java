@@ -28,6 +28,7 @@ public class CacheConfig
 	public long operatingFreq;
 	
 	public WritePolicy writePolicy;
+	public boolean isFirstLevel;
 	public boolean isLastLevel;
 	public String nextLevel;
 	public int blockSize;
@@ -124,5 +125,13 @@ public class CacheConfig
 
 	protected void setMultiportType(MultiPortingType multiportType) {
 		this.multiportType = multiportType;
+	}
+
+	public boolean isFirstLevel() {
+		return isFirstLevel;
+	}
+
+	public void setFirstLevel(boolean isFirstLevel) {
+		this.isFirstLevel = isFirstLevel;
 	}	
 }

@@ -20,8 +20,8 @@
 *****************************************************************************/
 package memorysystem;
 
+import generic.EventQueue;
 import generic.Core;
-import generic.Time_t;
 import config.SystemConfig;
 import config.CacheConfig;
 
@@ -35,7 +35,7 @@ public class CoreMemorySystem
 	protected TLB TLBuffer;
 	protected LSQ lsqueue;
 	
-	public CoreMemorySystem(Core core)
+	public CoreMemorySystem(Core core, EventQueue eventQ)
 	{
 		this.core = core;
 		this.coreID = core.getCore_number();
@@ -52,20 +52,25 @@ public class CoreMemorySystem
 		//Initialise the  L1 cache
 		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
-		l1Cache = new Cache(cacheParameterObj);
+		cacheParameterObj.setFirstLevel(true);
+		l1Cache = new Cache(cacheParameterObj, eventQ);
 		//l1Cache.nextLevel = l2Cache;
 		
 		//Initialise the TLB
-		TLBuffer = new TLB(SystemConfig.core[coreID].TLBAccessPorts, 
-							new Time_t(SystemConfig.core[coreID].TLBPortOccupancy), 
-							new Time_t(SystemConfig.core[coreID].TLBLatency),
+		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,
+							SystemConfig.core[coreID].TLBAccessPorts, 
+							SystemConfig.core[coreID].TLBPortOccupancy, 
+							SystemConfig.core[coreID].TLBLatency,
+							eventQ,
 							this,
 							SystemConfig.core[coreID].TLBSize);
 		
 		//Initialise the LSQ
-		lsqueue = new LSQ(SystemConfig.core[coreID].LSQAccessPorts, 
-							new Time_t(SystemConfig.core[coreID].LSQPortOccupancy), 
-							new Time_t(SystemConfig.core[coreID].LSQLatency),
+		lsqueue = new LSQ(SystemConfig.core[coreID].LSQPortType,
+		                    SystemConfig.core[coreID].LSQAccessPorts, 
+							SystemConfig.core[coreID].LSQPortOccupancy, 
+							SystemConfig.core[coreID].LSQLatency,
+							eventQ,
 							this, 
 							SystemConfig.core[coreID].LSQSize);
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
