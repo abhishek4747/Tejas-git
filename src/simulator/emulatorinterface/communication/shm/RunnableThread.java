@@ -6,6 +6,8 @@ package emulatorinterface.communication.shm;
 
 
 import java.util.Vector;
+
+import pipeline.outoforder_new_arch.ExecutionEngine;
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.Newmain;
@@ -98,7 +100,7 @@ public class RunnableThread implements Runnable {
 		boolean pipelineDone = false;		/* - set to true to detach pipeline - */
 		
 		boolean subsetSimulation = false;	/* - for pipeline of instructions 2000000 - 12000000 - */
-		boolean memSystemDetach = false;	/* to detach memory system */
+		boolean memSystemDetach = true;	/* to detach memory system */
 		long insCtr = 0;
 		long s = 0, e = 0;
 		
@@ -128,6 +130,9 @@ public class RunnableThread implements Runnable {
 		boolean toExit = false;
 		
 		InstructionLinkedList bufferedInstructions = null;
+		
+		//temporaries
+		ExecutionEngine execEngine;
 		
 		while(true && breakLoop==false)
 		{
@@ -243,27 +248,25 @@ public class RunnableThread implements Runnable {
 								{
 									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 									{
+										execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
 										if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
 										{
-											eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
+											execEngine.getReorderBuffer().performCommits();
 										}
-									}
-								}
-								
-								//handle events other than decode, commit
-								eventQ.processEvents();
-								
-								//perform decode
-								if(i2%cores[0].getStepSize() == 0)
-								{
-									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-									{
-										if(eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
+										if(execEngine.isExecutionComplete() == false)
 										{
-											eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
+											execEngine.getWriteBackLogic().performWriteBack();
+											execEngine.getSelector().performSelect();
+											execEngine.getIWPusher().performIWPush();
+											execEngine.getRenamer().performRename();
+											execEngine.getDecoder().performDecode();
+											execEngine.getFetcher().performFetch();
 										}
 									}
 								}
+								
+								//handle events
+								eventQ.processEvents();
 								
 								GlobalClock.incrementClock();
 							}
@@ -298,7 +301,7 @@ public class RunnableThread implements Runnable {
 										{
 											if(eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
 											{
-												eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
+												//eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
 											}
 										}
 									}
@@ -387,38 +390,52 @@ public class RunnableThread implements Runnable {
 		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
 		inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
 		
-		int i2 = 0;
-		while(!eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete())//TODO all cores connected to this event queue must have completed to exit the loop
+		/*eventQ.getCoresHandled()[0].getExecEngine().getFetcher().setInputToPipeline(
+				new InstructionLinkedList[]{TestInstructionLists.testList2()});
+		*/
+		
+		long i2 = GlobalClock.getCurrentTime();
+		boolean queueComplete = true;		
+		for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+		{
+			queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
+		}
+		
+		while(!queueComplete)
 		{
 			//perform commits
 			if(i2%cores[0].getStepSize() == 0)
 			{
 				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 				{
+					execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
 					if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
 					{
-						eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
+						execEngine.getReorderBuffer().performCommits();
 					}
-				}
-			}
-			
-			//handle events other than decode, commit
-			eventQ.processEvents();
-			
-			//perform decode
-			if(i2%cores[0].getStepSize() == 0)
-			{
-				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-				{
-					if(eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
+					if(execEngine.isExecutionComplete() == false)
 					{
-						eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
+						execEngine.getWriteBackLogic().performWriteBack();
+						execEngine.getSelector().performSelect();
+						execEngine.getIWPusher().performIWPush();
+						execEngine.getRenamer().performRename();
+						execEngine.getDecoder().performDecode();
+						execEngine.getFetcher().performFetch();
 					}
 				}
 			}
+			
+			//handle events
+			eventQ.processEvents();
 			
 			GlobalClock.incrementClock();
 			i2++;
+			
+			queueComplete = true;		
+			for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+			{
+				queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
+			}
 		}
 		
 		long dataRead = 0;

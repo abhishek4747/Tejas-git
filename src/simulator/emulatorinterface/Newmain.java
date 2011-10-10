@@ -74,6 +74,7 @@ public class Newmain {
 		
 		//connect pipe between instruction translator and pipeline
 		cores[0].setIncomingInstructionLists(new InstructionLinkedList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
+		cores[0].getExecEngine().getFetcher().setInputToPipeline(cores[0].getIncomingInstructionLists());
 		
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores, eventQ);
@@ -193,6 +194,7 @@ public class Newmain {
 		Core[] cores = new Core[]{
 								new Core(0,
 										eventQ,
+										1,
 										1,
 										null,
 										new int[]{0})};

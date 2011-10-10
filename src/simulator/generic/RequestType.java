@@ -39,6 +39,7 @@ public enum RequestType {
 	PERFORM_COMMITS,
 	MISPRED_PENALTY_COMPLETE,
 	BOOT_PIPELINE,
+	BROADCAST_1,
 	
 	Tell_LSQ_Addr_Ready,
 	Validate_LSQ_Addr,

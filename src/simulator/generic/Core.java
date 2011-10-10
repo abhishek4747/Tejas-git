@@ -4,7 +4,7 @@ import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.ExecutionEnginePerfect;
 //import pipeline.perfect.PerformDecodeEventPerfect;
 //import pipeline.perfect.PerformCommitsEventPerfect;
-import pipeline.outoforder.ExecutionEngine;
+import pipeline.outoforder_new_arch.ExecutionEngine;
 import config.CoreConfig;
 import config.SystemConfig;
 
@@ -42,7 +42,9 @@ public class Core extends SimulationElement{
 	private int[] latencies;
 	
 	private int core_number;
+	private int no_of_input_pipes;
 	private int no_of_threads;
+
 	private InstructionLinkedList[] incomingInstructionLists;
 
 	private int[] threadIDs;
@@ -51,10 +53,14 @@ public class Core extends SimulationElement{
 	
 	private int noOfInstructionsExecuted;
 
-	public Core(int core_number, EventQueue eventQueue, int no_of_threads, InstructionLinkedList[] incomingInstructionLists,
-					int[] threadIDs)
+	public Core(int core_number,
+			EventQueue eventQueue,
+			int no_of_input_pipes,
+			int no_of_threads,
+			InstructionLinkedList[] incomingInstructionLists,
+			int[] threadIDs)
 	{
-		super(1, new Time_t(-1), new Time_t(-1), SystemConfig.core[core_number].frequency);			//TODO frequency from config file
+		super(PortType.Unlimited, -1, -1, eventQueue, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
 		//clock = 0;
 		
 		initializeCoreParameters(SystemConfig.core[core_number]);
@@ -62,6 +68,7 @@ public class Core extends SimulationElement{
 		//eventQueue = new EventQueue(this);
 		this.core_number = core_number;
 		this.eventQueue = eventQueue;
+		this.no_of_input_pipes = no_of_input_pipes;
 		this.no_of_threads = no_of_threads;
 		this.incomingInstructionLists = incomingInstructionLists;
 		this.threadIDs = threadIDs;
@@ -257,7 +264,7 @@ public class Core extends SimulationElement{
 
 	public InstructionLinkedList getIncomingInstructions(int threadID) {
 		int index = -1;
-		for(int i = 0; i < no_of_threads; i++)
+		for(int i = 0; i < no_of_input_pipes; i++)
 		{
 			if(threadIDs[i] == threadID)
 			{
@@ -274,6 +281,10 @@ public class Core extends SimulationElement{
 		return incomingInstructionLists[index];
 	}
 
+	public int getNo_of_input_pipes() {
+		return no_of_input_pipes;
+	}
+	
 	public int getNo_of_threads() {
 		return no_of_threads;
 	}
@@ -320,6 +331,12 @@ public class Core extends SimulationElement{
 
 	public void setIncomingInstructionLists(InstructionLinkedList[] incomingInstructionLists) {
 		this.incomingInstructionLists = incomingInstructionLists;
+	}
+
+	@Override
+	public void handleEvent(Event event) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

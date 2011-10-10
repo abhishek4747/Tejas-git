@@ -190,6 +190,7 @@ public class XMLParser
 			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", coreElmnt));
 			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", coreElmnt));
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
+			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
 			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
 		
 			//Code for L1 cache configurations for each core

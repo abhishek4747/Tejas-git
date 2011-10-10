@@ -25,6 +25,7 @@ public class TestInstructionLists {
 			instructionLinkedList.appendInstruction(newInst);
 		}
 		
+		instructionLinkedList.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
 		return instructionLinkedList;
 		
 	}
@@ -55,6 +56,7 @@ public class TestInstructionLists {
 			}
 		}
 		
+		instructionLinkedList.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
 		return instructionLinkedList;
 		
 	}
