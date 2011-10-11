@@ -96,6 +96,66 @@ public class SelectLogic extends SimulationElement {
 		performWakeUp();
 	}
 	
+	public void performSelect2()
+	{
+		int wakeUpListCtr = 0;
+		ReorderBuffer ROB = execEngine.getReorderBuffer();
+		IWEntry[] IWEntries = IW.getIW();
+		
+		int i;
+		ReorderBufferEntry ROBEntry;
+		
+		if(ROB.head != -1)
+		{
+			i = ROB.head;
+			do
+			{
+				ROBEntry = ROB.ROB[i];
+				
+				if(ROBEntry.isIssued == false &&
+						ROBEntry.associatedIWEntry != null)
+				{
+					if(ROBEntry.associatedIWEntry.issueInstruction())
+					{
+						//if single cycle operation
+						//find dependent instructions
+						if(core.getLatency(
+								OpTypeToFUTypeMapping.getFUType(
+										ROBEntry.instruction.getOperationType())
+										.ordinal())
+										 == 1 ||
+										 ROBEntry.instruction.getOperationType() == OperationType.mov
+								)
+						{
+							if(ROBEntry.associatedIWEntry.instruction.getDestinationOperand() != null)
+							{
+								destRegOpndType[wakeUpListCtr] = ROBEntry.instruction.getDestinationOperand().getOperandType();
+								destRegPhyReg[wakeUpListCtr] = ROBEntry.getPhysicalDestinationRegister();
+								associatedROBEntries[wakeUpListCtr] = ROBEntry;
+								IWEntryROBIndex[wakeUpListCtr++] = ROB.indexOf(ROBEntry);
+							}
+						}
+						
+						if(IWEntries[i].getInstruction().getOperationType() == OperationType.xchg)
+						{
+							destRegOpndType[wakeUpListCtr] = ROBEntry.instruction.getSourceOperand1().getOperandType();
+							destRegPhyReg[wakeUpListCtr] = ROBEntry.getOperand1PhyReg1();
+							associatedROBEntries[wakeUpListCtr] = ROBEntry;
+							IWEntryROBIndex[wakeUpListCtr++] = ROB.indexOf(ROBEntry);
+							
+							destRegOpndType[wakeUpListCtr] = ROBEntry.instruction.getSourceOperand2().getOperandType();
+							destRegPhyReg[wakeUpListCtr] = ROBEntry.getOperand2PhyReg1();
+							associatedROBEntries[wakeUpListCtr] = ROBEntry;
+							IWEntryROBIndex[wakeUpListCtr++] = ROB.indexOf(ROBEntry);
+						}
+					}
+				}
+				
+				i = (i+1)%ROB.MaxROBSize;
+			}while(i != ROB.tail);
+		}
+	}
+	
 	private void performWakeUp()
 	{
 		for(int i = 0; i < IW.maxIWSize; i++)

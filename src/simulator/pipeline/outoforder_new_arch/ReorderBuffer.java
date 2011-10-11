@@ -19,8 +19,8 @@ public class ReorderBuffer extends SimulationElement{
 	
 	private Core core;
 	
-	private ReorderBufferEntry[] ROB;
-	private int MaxROBSize;
+	ReorderBufferEntry[] ROB;
+	int MaxROBSize;
 	
 	int head;
 	int tail;

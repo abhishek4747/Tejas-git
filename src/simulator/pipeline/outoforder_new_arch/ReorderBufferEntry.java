@@ -11,29 +11,29 @@ import generic.OperationType;
 public class ReorderBufferEntry {
 	
 	private Core core;
-	private boolean isValid;
-	private Instruction instruction;
+	boolean isValid;
+	Instruction instruction;
 	int threadID;
-	private int operand1PhyReg1;
-	private int operand1PhyReg2;
-	private int operand2PhyReg1;
-	private int operand2PhyReg2;
+	int operand1PhyReg1;
+	int operand1PhyReg2;
+	int operand2PhyReg1;
+	int operand2PhyReg2;
 	boolean isOperand1Available;
 	boolean isOperand2Available;
 	boolean isOperand11Available;
 	boolean isOperand12Available;
 	boolean isOperand21Available;
 	boolean isOperand22Available;
-	private int physicalDestinationRegister;
-	private boolean isRenameDone;
-	private boolean isIssued;
-	private int FUInstance;								//which FU has been assigned
-	private boolean isExecuted;
-	private boolean isWriteBackDone1;
-	private boolean isWriteBackDone2;
+	int physicalDestinationRegister;
+	boolean isRenameDone;
+	boolean isIssued;
+	int FUInstance;								//which FU has been assigned
+	boolean isExecuted;
+	boolean isWriteBackDone1;
+	boolean isWriteBackDone2;
 	//private long readyAtTime;							//in terms of GlobalClock cycles
-	private IWEntry associatedIWEntry;
-	private LSQEntry lsqEntry = null; //entry in LSQ
+	IWEntry associatedIWEntry;
+	LSQEntry lsqEntry = null; //entry in LSQ
 	
 	int pos;
 	
