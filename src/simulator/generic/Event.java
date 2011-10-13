@@ -15,20 +15,16 @@ public class Event
 	private long eventTime;
 	RequestType requestType;
 	private long priority;
-//	private long memAddress;
 	
 	//Element which processes the event.
 	private SimulationElement requestingElement;
 	private SimulationElement processingElement;
-	
+
+	// FIXME: Remove this
 	private Object payload;
 
-	//For two events with same eventTime and priority, whichever has lower
-	//value of tieBreaker wins.
-	private long tieBreaker;
-
 	public Event(long eventTime, SimulationElement requestingElement,
-			SimulationElement processingElement, long tieBreaker, RequestType requestType, Object payload) 
+			SimulationElement processingElement, RequestType requestType, Object payload) 
 	{
 		super();
 		this.eventTime = eventTime;
@@ -105,9 +101,6 @@ public class Event
 		this.payload = payload;
 	}
 
-	public long getTieBreaker() {
-		return tieBreaker;
-	}
 	
 	public void setEventTime(long eventTime) {
 		this.eventTime = eventTime;
