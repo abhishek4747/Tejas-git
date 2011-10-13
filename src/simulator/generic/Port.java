@@ -61,7 +61,7 @@ public class Port
 		if(this.portType==PortType.Unlimited)
 		{
 			// For an unlimited port, add the event with current-time.
-			event.addEventTime(GlobalClock.getCurrentTime());
+			event.setEventTime(GlobalClock.getCurrentTime());
 			eventQueue.addEvent(event);
 			return;
 		}
@@ -90,7 +90,7 @@ public class Port
 			portBusyUntil[availablePortID] += occupancy;
 			
 			// set the time of the event
-			event.addEventTime(portBusyUntil[availablePortID]);
+			event.setEventTime(portBusyUntil[availablePortID]);
 			
 			// add event in the eventQueue
 			eventQueue.addEvent(event);

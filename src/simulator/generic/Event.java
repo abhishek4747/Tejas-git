@@ -20,24 +20,17 @@ public class Event
 	private SimulationElement requestingElement;
 	private SimulationElement processingElement;
 
-	// FIXME: Remove this
-	private Object payload;
-
-	public Event(long eventTime, SimulationElement requestingElement,
-			SimulationElement processingElement, RequestType requestType, Object payload) 
+	public Event(SimulationElement requestingElement,
+			SimulationElement processingElement, RequestType requestType) 
 	{
-		super();
-		this.eventTime = eventTime;
+		eventTime = -1; // this should be set by the port
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
-		this.tieBreaker = tieBreaker;
 		this.requestType = requestType;
-		this.payload = payload;
 		
-		//this.priority = calculatePriority(requestType);
 		this.priority = requestType.ordinal();
 	}
-	
+/* NOT REQUIRED	
 	public Event update(long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, long tieBreaker, RequestType requestType, Object payload)
 	{
@@ -53,6 +46,7 @@ public class Event
 		
 		return this;
 	}
+*/
 
 	//Converts request-type to priority.
 	private long calculatePriority(RequestType requestType) 
@@ -68,14 +62,6 @@ public class Event
 	public long getPriority() {
 		return priority;
 	}
-
-//	public long getMemAddress() {
-//		return memAddress;
-//	}
-//
-//	public void setMemAddress(long memAddress) {
-//		this.memAddress = memAddress;
-//	}
 
 	public SimulationElement getRequestingElement() {
 		return requestingElement;
