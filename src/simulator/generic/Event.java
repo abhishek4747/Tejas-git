@@ -10,7 +10,7 @@ import memorysystem.MemorySystem;
  * of the request too.This simplifies the code as we now don't have to create a 
  * separate pay-load class for each type of request. 
  */
-public class Event 
+public abstract class Event 
 {
 	private long eventTime;
 	RequestType requestType;
@@ -30,23 +30,29 @@ public class Event
 		
 		this.priority = requestType.ordinal();
 	}
-/* NOT REQUIRED	
-	public Event update(long eventTime, SimulationElement requestingElement,
-			SimulationElement processingElement, long tieBreaker, RequestType requestType, Object payload)
+
+	public Event(long eventTime, SimulationElement requestingElement,
+			SimulationElement processingElement, RequestType requestType) 
+	{
+		this.eventTime = eventTime; // this should be set by the port
+		this.requestingElement = requestingElement;
+		this.processingElement = processingElement;
+		this.requestType = requestType;
+		
+		this.priority = requestType.ordinal();
+	}
+
+	public void update(long eventTime, SimulationElement requestingElement,
+			SimulationElement processingElement, RequestType requestType)
 	{
 		this.eventTime = eventTime;
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
-		this.tieBreaker = tieBreaker;
 		this.requestType = requestType;
-		this.payload = payload;
 		
 		//this.priority = calculatePriority(requestType);
 		this.priority = requestType.ordinal();
-		
-		return this;
 	}
-*/
 
 	//Converts request-type to priority.
 	private long calculatePriority(RequestType requestType) 
@@ -79,14 +85,6 @@ public class Event
 		this.processingElement = processingElement;
 	}
 
-	public Object getPayload() {
-		return payload;
-	}
-
-	public void setPayload(Object payload) {
-		this.payload = payload;
-	}
-
 	
 	public void setEventTime(long eventTime) {
 		this.eventTime = eventTime;
@@ -117,6 +115,7 @@ public class Event
 	//TODO handleEvent(event)
 	public void handleEvent(EventQueue eventQueue)
 	{
+		// FIXME: Remove 
 		if (processingElement == null &&
 				(requestType == RequestType.Main_Mem_Read
 						|| requestType == RequestType.Main_Mem_Write))
