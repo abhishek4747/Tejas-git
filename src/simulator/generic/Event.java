@@ -42,7 +42,7 @@ public abstract class Event
 		this.priority = requestType.ordinal();
 	}
 
-	public void update(long eventTime, SimulationElement requestingElement,
+	public Event update(long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType)
 	{
 		this.eventTime = eventTime;
@@ -52,6 +52,7 @@ public abstract class Event
 		
 		//this.priority = calculatePriority(requestType);
 		this.priority = requestType.ordinal();
+		return this;
 	}
 
 	//Converts request-type to priority.
