@@ -4,6 +4,7 @@ import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.ExecCompleteEvent;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
@@ -36,8 +37,7 @@ public class ExecutionLogic extends SimulationElement {
 	public void handleEvent(Event event) {
 		// TODO Auto-generated method stub
 		
-		tempEvent = event;		
-		this.reorderBufferEntry = (ReorderBufferEntry)event.getPayload();
+		tempEvent = event;
 		instruction = reorderBufferEntry.getInstruction();
 		threadID = 0;	//TODO instruction.getThreadID()
 		FUInstance = reorderBufferEntry.getFUInstance();
@@ -54,10 +54,12 @@ public class ExecutionLogic extends SimulationElement {
 		
 		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
 		{
+			this.reorderBufferEntry = ((ExecCompleteEvent)event).getROBEntry();
 			handleExecutionCompletion();
 		}
 		else if(event.getRequestType() == RequestType.BROADCAST_1)
 		{
+			this.reorderBufferEntry = ((BroadCast1Event)event).getROBEntry();
 			performBroadCast1();
 		}
 	}

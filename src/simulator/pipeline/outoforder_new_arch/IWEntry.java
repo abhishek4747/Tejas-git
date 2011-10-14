@@ -4,6 +4,7 @@ import config.SimulationConfig;
 //import memorysystem.LSQAddressReadyEvent;
 import generic.Core;
 import generic.Event;
+import generic.ExecCompleteEvent;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
@@ -104,11 +105,11 @@ public class IWEntry {
 		instructionWindow.removeFromWindow(this);
 		
 		core.getEventQueue().addEvent(
-				new Event(
+				new ExecCompleteEvent(
 						GlobalClock.getCurrentTime() + core.getStepSize(),
 						null, 
-						execEngine.getExecuter(), 
-						(long)execEngine.getReorderBuffer().indexOf(associatedROBEntry),
+						execEngine.getExecuter(),
+						
 						RequestType.EXEC_COMPLETE,
 						associatedROBEntry));
 		
@@ -192,22 +193,20 @@ public class IWEntry {
 			instructionWindow.removeFromWindow(this);
 			
 			core.getEventQueue().addEvent(
-					new Event(
+					new BroadCast1Event(
 							GlobalClock.getCurrentTime() + core.getLatency(
 									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize() - 1,
 							null, 
-							execEngine.getExecuter(), 
-							(long)execEngine.getReorderBuffer().indexOf(associatedROBEntry),
+							execEngine.getExecuter(),
 							RequestType.BROADCAST_1,
 							associatedROBEntry));
 			
 			core.getEventQueue().addEvent(
-					new Event(
+					new ExecCompleteEvent(
 							GlobalClock.getCurrentTime() + core.getLatency(
 									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize(),
 							null, 
-							execEngine.getExecuter(), 
-							(long)execEngine.getReorderBuffer().indexOf(associatedROBEntry),
+							execEngine.getExecuter(),
 							RequestType.EXEC_COMPLETE,
 							associatedROBEntry));
 

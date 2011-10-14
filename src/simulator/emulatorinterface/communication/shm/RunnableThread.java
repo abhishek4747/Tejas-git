@@ -243,7 +243,6 @@ public class RunnableThread implements Runnable {
 							
 							for(int i2 = 0; i2 < listSize/cores[0].getDecodeWidth()*cores[0].getStepSize(); i2++)
 							{
-								//perform commits
 								if(i2%cores[0].getStepSize() == 0)
 								{
 									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
@@ -257,6 +256,20 @@ public class RunnableThread implements Runnable {
 										{
 											execEngine.getWriteBackLogic().performWriteBack();
 											execEngine.getSelector().performSelect();
+										}
+									}
+								}
+								
+								//handle events
+								eventQ.processEvents();
+								
+								if(i2%cores[0].getStepSize() == 0)
+								{
+									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+									{
+										execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
+										if(execEngine.isExecutionComplete() == false)
+										{
 											execEngine.getIWPusher().performIWPush();
 											execEngine.getRenamer().performRename();
 											execEngine.getDecoder().performDecode();
@@ -264,9 +277,6 @@ public class RunnableThread implements Runnable {
 										}
 									}
 								}
-								
-								//handle events
-								eventQ.processEvents();
 								
 								GlobalClock.incrementClock();
 							}
@@ -403,7 +413,6 @@ public class RunnableThread implements Runnable {
 		
 		while(!queueComplete)
 		{
-			//perform commits
 			if(i2%cores[0].getStepSize() == 0)
 			{
 				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
@@ -417,6 +426,20 @@ public class RunnableThread implements Runnable {
 					{
 						execEngine.getWriteBackLogic().performWriteBack();
 						execEngine.getSelector().performSelect();
+					}
+				}
+			}
+			
+			//handle events
+			eventQ.processEvents();
+			
+			if(i2%cores[0].getStepSize() == 0)
+			{
+				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+				{
+					execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
+					if(execEngine.isExecutionComplete() == false)
+					{
 						execEngine.getIWPusher().performIWPush();
 						execEngine.getRenamer().performRename();
 						execEngine.getDecoder().performDecode();
@@ -424,9 +447,6 @@ public class RunnableThread implements Runnable {
 					}
 				}
 			}
-			
-			//handle events
-			eventQ.processEvents();
 			
 			GlobalClock.incrementClock();
 			i2++;
