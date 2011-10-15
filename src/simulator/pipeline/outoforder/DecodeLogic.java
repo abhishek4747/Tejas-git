@@ -57,7 +57,7 @@ public class DecodeLogic extends SimulationElement {
 			}
 			else
 			{
-				if (core.perfectPipeline == false)
+				if (core.isPipelineStatistical == false)
 					readDecodePipe();
 				else
 					core.getEventQueue().addEvent(

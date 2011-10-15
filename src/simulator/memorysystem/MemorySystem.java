@@ -24,14 +24,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import generic.Event;
-
-import generic.EventQueue;
-
-import generic.Port;
-import generic.Core;
-import generic.RequestType;
-
+import generic.*;
 import config.CacheConfig;
 import config.SystemConfig;
 
@@ -40,19 +33,9 @@ public class MemorySystem
 {
 	static Core[] cores;
 	static Hashtable<String, Cache> cacheList;
-	public static long mainMemoryLatency;
-	public static long mainMemFrequency;								//in MHz
-	public static int mainMemStepSize;
-	public static Port mainMemPort;
-	static int mainMemoryAccessPorts;
-	static long mainMemoryPortOccupancy;
+	public static MainMemory mainMemory;
 	
 	public static boolean bypassLSQ = false;
-	
-	public static long getMainMemLatencyDelay()
-	{
-		return (mainMemoryLatency * mainMemStepSize);
-	}
 	
 	public static Hashtable<String, Cache> getCacheList() {
 		return cacheList;
@@ -66,11 +49,7 @@ public class MemorySystem
 		// initialising the memory system
 		
 		//Set up the main memory properties
-		mainMemoryLatency = SystemConfig.mainMemoryLatency;
-		mainMemFrequency = SystemConfig.mainMemoryFrequency;
-		mainMemoryAccessPorts = SystemConfig.mainMemoryAccessPorts;
-		mainMemoryPortOccupancy = SystemConfig.mainMemoryPortOccupancy;
-		mainMemPort = new Port(SystemConfig.mainMemPortType, mainMemoryAccessPorts, mainMemoryPortOccupancy, eventQ[0]);
+		mainMemory = new MainMemory(eventQ[0]);
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
@@ -86,7 +65,6 @@ public class MemorySystem
 				cacheParameterObj = SystemConfig.declaredCaches.get(cacheName);
 				
 				//Declare the new cache
-				cacheParameterObj.setFirstLevel(false);
 				Cache newCache = new Cache(cacheParameterObj, eventQ[0]);
 				
 				//Put the newly formed cache into the new list of caches
@@ -192,32 +170,6 @@ public class MemorySystem
 		{
 			list.get(i).isCoherent = true;
 			propagateCoherencyUpwards(list.get(i).prevLevel);
-		}
-	}
-	
-	public static void handleMainMemAccess(Event event)
-	{
-		if (event.getRequestType() == RequestType.Main_Mem_Read)
-		{
-			event.getRequestingElement().getPort().put(event.update(event.getRequestingElement().getLatencyDelay(),
-																	null,
-																	event.getRequestingElement(),
-																	0,//tieBreaker,
-																	RequestType.Mem_Response,
-																	event.getPayload()));
-//														(this.getRequestingElement().getLatencyDelay(), //FIXME
-//														null,
-//														this.getRequestingElement(), 
-//														0, //tie-breaker
-//														RequestType.MEM_BLOCK_READY,
-//														address,
-//														null));
-		}
-		else if (event.getRequestType() == RequestType.Main_Mem_Write)
-		{
-			//TODO : If we have to simulate the write timings also, then the code will come here
-			//Just to tell the requesting things that the write is completed
-			Core.outstandingMemRequests--;
 		}
 	}
 	

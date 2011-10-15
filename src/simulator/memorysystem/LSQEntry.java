@@ -20,7 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
-import pipeline.outoforder.ReorderBufferEntry;
+import pipeline.outoforder_new_arch.ReorderBufferEntry;
 
 
 public class LSQEntry

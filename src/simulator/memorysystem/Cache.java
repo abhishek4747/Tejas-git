@@ -66,12 +66,6 @@ public class Cache extends SimulationElement
 		public int misses;
 		public int evictions;
 		
-//		//For telling that which banks are accessed this cycle (for BANKED multi-port option)
-//		protected ArrayList<Integer> banksAccessedThisCycle = new ArrayList<Integer>();
-		
-//		//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
-//		protected int requestsProcessedThisCycle = 0;
-		
 		public static final long NOT_EVICTED = -1;
 		
 		protected CacheLine access(long addr)
@@ -266,39 +260,6 @@ public class Cache extends SimulationElement
 		}
 		
 		/**
-		 * Tells whether the request of current event can be processed in the current cycle (due to device port availability)
-		 * @param addr : The address to be accessed
-		 * @return A boolean value :TRUE if the request can be processed and FALSE otherwise
-		 */
-/*		protected boolean canServiceRequest(long addr)
-		{
-			//For Genuinely multi-ported elements, if number of requests this cycle has not reached the total number of ports
-			if  ((this.getMultiPortType() == MultiPortingType.GENUINE) && (this.requestsProcessedThisCycle < this.ports))
-			{
-				requestsProcessedThisCycle++;
-				return true;
-			}
-			
-			//For Banked multi-ported elements
-			else if (this.getMultiPortType() == MultiPortingType.BANKED)
-			{
-				/* remove the block size *
-				long tag = addr >>> this.blockSizeBits;
-
-				long lineIndex = tag & numLinesMask;
-				
-				if (!/*NOT*banksAccessedThisCycle.contains(lineIndex/(numLines/(this.ports))))
-				{
-					banksAccessedThisCycle.add((int) (lineIndex/(numLines/(this.ports))));
-					return true;
-				}
-			}
-			
-			//Otherwise
-			return false;
-		}*/
-		
-		/**
 		 * Used when a new request is made to a cache and there is a miss.
 		 * This adds the request to the outstanding requests buffer of the cache
 		 * @param blockAddr : Memory Address requested
@@ -306,10 +267,6 @@ public class Cache extends SimulationElement
 		 * @param requestingElement : Which element made the request. Helpful in backtracking and filling the stack
 		 */
 		protected boolean addOutstandingRequest(Event event, long addr)
-//											long addr, 
-//											RequestType requestType, 
-//											SimulationElement requestingElement,
-//											LSQEntry lsqEntry)
 		{
 			boolean entryAlreadyThere;
 			
@@ -321,6 +278,8 @@ public class Cache extends SimulationElement
 //				missStatusHoldingRegister.put(blockAddr, new ArrayList<CacheMissStatusHoldingRegisterEntry>());
 				missStatusHoldingRegister.put(blockAddr, new ArrayList<Event>());
 			}
+			else if (missStatusHoldingRegister.get(blockAddr).isEmpty())
+				entryAlreadyThere = false;
 			else
 				entryAlreadyThere = true;
 			
@@ -416,9 +375,9 @@ public class Cache extends SimulationElement
 			long address;
 			
 			if (this.isFirstLevel && !MemorySystem.bypassLSQ)
-				address = ((LSQEntry)(event.getPayload())).getAddr();
+				address = ((LSQEntryContainingEvent)(event)).getLsqEntry().getAddr();
 			else
-				address = (Long)(event.getPayload());
+				address = ((AddressCarryingEvent)(event)).getAddress();
 			
 			//Process the access
 			CacheLine cl = this.processRequest(requestType, address);
@@ -429,65 +388,58 @@ public class Cache extends SimulationElement
 				//Schedule the requesting element to receive the block TODO (for LSQ)
 				if (requestType == RequestType.Cache_Read)
 					//Just return the read block
-					requestingElement.getPort().put(event.update(requestingElement.getLatencyDelay(),
-																this,
-																requestingElement,
-																0,//tieBreaker,
-																RequestType.Mem_Response,
-																event.getPayload()));
-//					requestingElement.getPort().put(new BlockReadyEvent(requestingElement.getLatencyDelay(), 
-//																this.processingCache,
-//																this.getRequestingElement(),
-//																0,//tieBreaker
-//																RequestType.MEM_BLOCK_READY,
-//																request.getAddr(),
-//																lsqEntry));
+					requestingElement.getPort().put(
+							event.update(
+									requestingElement.getLatencyDelay(),
+									this,
+									requestingElement,
+									RequestType.Mem_Response));
+				
 				else if (requestType == RequestType.Cache_Write)
 				{
 					//Write the data to the cache block (Do Nothing)
-	/*				//Tell the LSQ (if this is L1) that write is done
-					if (lsqIndex != LSQ.INVALID_INDEX)
-					{
-						eventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
-																		this.getRequestingElement().getLatency().getTime()), 
-																	this.processingCache,
-																	this.getRequestingElement(),
-																	0,//tieBreaker
-																	RequestType.LSQ_WRITE_COMMIT,
-																	request.getAddr(),
-																	lsqIndex));
-					}	
-	*/
+					
 					//If the cache level is Write-through
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 					{
 						//Handle in any case (Whether requesting element is LSQ or cache)
 						//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 						if (this.isLastLevel)
-							MemorySystem.mainMemPort.put(event.update(MemorySystem.getMainMemLatencyDelay(),
-																	this,
-																	null,
-																	0,//tieBreaker,
-																	RequestType.Main_Mem_Write,
-																	address));
-//							MemorySystem.mainMemPort.put(new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
-//																			processingCache, 
-//																			0, //tieBreaker,
-//																			request.getAddr(),
-//																			RequestType.MEM_WRITE));
+						{
+							if (this.isFirstLevel)
+								MemorySystem.mainMemory.getPort().put(
+										new AddressCarryingEvent(
+												MemorySystem.mainMemory.getLatencyDelay(),
+												this,
+												MemorySystem.mainMemory,
+												RequestType.Main_Mem_Write,
+												address));
+							else
+								MemorySystem.mainMemory.getPort().put(
+										event.update(
+												MemorySystem.mainMemory.getLatencyDelay(),
+												this,
+												MemorySystem.mainMemory,
+												RequestType.Main_Mem_Write));
+						}
 						else
-							this.nextLevel.getPort().put(event.update(this.nextLevel.getLatencyDelay(),
-																	this,
-																	this.nextLevel,
-																	0,//tieBreaker,
-																	RequestType.Cache_Write, 
-																	address));
-//							this.nextLevel.getPort().put(new NewCacheAccessEvent(processingCache.nextLevel.getLatencyDelay(),//FIXME
-//																			processingCache,
-//																			processingCache.nextLevel,
-//																			null, 
-//																			0, //tieBreaker,
-//																			request));
+						{
+							if (this.isFirstLevel)
+								this.nextLevel.getPort().put(
+										new AddressCarryingEvent(
+												this.nextLevel.getLatencyDelay(),
+												this,
+												this.nextLevel,
+												RequestType.Cache_Write, 
+												address));
+							else
+								this.nextLevel.getPort().put(
+									event.update(
+											this.nextLevel.getLatencyDelay(),
+											this,
+											this.nextLevel,
+											RequestType.Cache_Write));
+						}
 					}
 					else
 					{
@@ -502,44 +454,31 @@ public class Cache extends SimulationElement
 			{			
 				//Add the request to the outstanding request buffer
 				boolean alreadyRequested = this.addOutstandingRequest(event, address);
-//														address, 
-//														event.getRequestType(), 
-//														this.getRequestingElement(), 
-//														lsqEntry);
 				
 				if (!alreadyRequested)
 				{
 					// access the next level
 					if (this.isLastLevel)
 					{
-						//FIXME
-						MemorySystem.mainMemPort.put(event.update(MemorySystem.getMainMemLatencyDelay(),
-																this, 
-																null, 
-																0,//tieBreaker,
-																RequestType.Main_Mem_Read,
-																address));
-//						MemorySystem.mainMemPort.put(new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(), //FIXME 
-//																		processingCache, 
-//																		0, //tieBreaker,
-//																		request.getAddr(),
-//																		RequestType.MEM_READ));
+						MemorySystem.mainMemory.getPort().put(
+								new AddressCarryingEvent(
+										MemorySystem.mainMemory.getLatencyDelay(),
+										this, 
+										MemorySystem.mainMemory,
+										RequestType.Main_Mem_Read,
+										address));
 						return;
 					}
 					else
 					{
 						//Change the parameters of this event to forward it for scheduling next cache's access
-//						event.setEventTime(processingCache.nextLevel.getLatencyDelay());//FIXME
-//						event.setRequestingElement(processingCache);
-//						event.processingCache = processingCache.nextLevel;
-//						event.lsqEntry = null;
-//						event.request.setType(RequestType.MEM_READ);
-						this.nextLevel.getPort().put(event.update(this.nextLevel.getLatencyDelay(),
-																this, 
-																this.nextLevel,
-																0,//tieBreaker, 
-																RequestType.Cache_Read, 
-																address));
+						this.nextLevel.getPort().put(
+								new AddressCarryingEvent(
+										this.nextLevel.getLatencyDelay(),
+										this, 
+										this.nextLevel,
+										RequestType.Cache_Read, 
+										address));
 						return;
 					}
 				}
@@ -548,25 +487,27 @@ public class Cache extends SimulationElement
 		
 		private void handleMemResponse(Event event)
 		{
-			long addr = (Long)(event.getPayload());
+			long addr = ((AddressCarryingEvent)(event)).getAddress();
 			
-			CacheLine evictedLine = this.fill(addr);//FIXME : Have to handle whole eviction process
+			CacheLine evictedLine = this.fill(addr);
 			if (evictedLine != null)
 			{
 				if (this.isLastLevel)
-					MemorySystem.mainMemPort.put(new Event(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
-															this, 
-															null,
-															0, //tieBreaker,
-															RequestType.Main_Mem_Write,
-															evictedLine.getTag() << this.blockSizeBits));
+					MemorySystem.mainMemory.getPort().put(
+							new AddressCarryingEvent(
+									MemorySystem.mainMemory.getLatencyDelay(),
+									this, 
+									MemorySystem.mainMemory,
+									RequestType.Main_Mem_Write,
+									evictedLine.getTag() << this.blockSizeBits));
 				else
-					this.nextLevel.getPort().put(new Event(this.nextLevel.getLatencyDelay(),//FIXME
-															this,
-															this.nextLevel,
-															0, //tieBreaker,
-															RequestType.Cache_Write,
-															evictedLine.getTag() << this.blockSizeBits));
+					this.nextLevel.getPort().put(
+							new AddressCarryingEvent(
+									this.nextLevel.getLatencyDelay(),
+									this,
+									this.nextLevel,
+									RequestType.Cache_Write,
+									evictedLine.getTag() << this.blockSizeBits));
 			}
 			
 			long blockAddr = addr >>> this.blockSizeBits;
@@ -576,11 +517,10 @@ public class Cache extends SimulationElement
 				System.exit(1);
 			}
 			
-//			ArrayList<CacheMissStatusHoldingRegisterEntry> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
-			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
+			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.get(blockAddr);
 			
 			while (!/*NOT*/outstandingRequestList.isEmpty())
-			{
+			{				
 				if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
 				{
 					//Pass the value to the waiting element
@@ -591,19 +531,11 @@ public class Cache extends SimulationElement
 //					if (!/*NOT*/lsqClass.isInstance(outstandingRequestList.get(0).getRequestingElement()))
 						//Generate the event for the Upper level cache
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
-								outstandingRequestList.get(0).update(outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
-																	this,
-																	outstandingRequestList.get(0).getRequestingElement(),
-																	0,//tieBreaker,
-																	RequestType.Mem_Response,
-																	outstandingRequestList.get(0).getPayload()));
-//								new Event(outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),//FIXME 
-//																this.getProcessingElement(),
-//																outstandingRequestList.get(0).requestingElement, 
-//																0, //tieBreaker
-//																RequestType.MEM_BLOCK_READY,
-//																outstandingRequestList.get(0).address,
-//																outstandingRequestList.get(0).lsqEntry));
+								outstandingRequestList.get(0).update(
+										outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+										this,
+										outstandingRequestList.get(0).getRequestingElement(),
+										RequestType.Mem_Response));
 //					else
 						//Generate the event to tell the LSQ
 //						outstandingRequestList.get(0).getRequestingElement().getPort().put(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatencyDelay(),//FIXME 
@@ -619,56 +551,53 @@ public class Cache extends SimulationElement
 				{
 					//Write the value to the block (Do Nothing)
 					//Pass the value to the waiting element
-		/*			//Create an event (BlockReadyEvent) for the waiting element
-					if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
-						//(If the requesting element is LSQ)
-						//Generate the event to tell the LSQ
-						eventQueue.addEvent(new BlockReadyEvent(new Time_t(GlobalClock.getCurrentTime() +
-																			outstandingRequestList.get(0).requestingElement.getLatency().getTime()),//FIXME 
-																this.getProcessingElement(),
-																outstandingRequestList.get(0).requestingElement, 
-																0, //tieBreaker
-																RequestType.LSQ_WRITE_COMMIT,
-																outstandingRequestList.get(0).address,
-																lsqIndex));
-		*/			
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 					{
 						//Handle in any case (Whether requesting element is LSQ or cache)
 						//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 						long address;
-						if (this.isFirstLevel)
-							address = ((LSQEntry)(outstandingRequestList.get(0).getPayload())).getAddr();
+						if (this.isFirstLevel && !MemorySystem.bypassLSQ)
+							address = ((LSQEntryContainingEvent)(event)).getLsqEntry().getAddr();
 						else
-							address = (Long)(outstandingRequestList.get(0).getPayload());
+							address = ((AddressCarryingEvent)(event)).getAddress();
 							
 						
 						if (this.isLastLevel)
-							MemorySystem.mainMemPort.put(event.update(MemorySystem.getMainMemLatencyDelay(),
-									this,
-									null,
-									0,//tieBreaker,
-									RequestType.Main_Mem_Write,
-									address));
-//							MemorySystem.mainMemPort.put(new NewMainMemAccessEvent(MemorySystem.getMainMemLatencyDelay(),//FIXME :main memory latency is going to come here
-//																			this, 
-//																			0, //tieBreaker,
-//																			outstandingRequestList.get(0).address,
-//																			RequestType.MEM_WRITE));
+						{
+							if (this.isFirstLevel)
+								MemorySystem.mainMemory.getPort().put(
+										new AddressCarryingEvent(
+												MemorySystem.mainMemory.getLatencyDelay(),
+												this,
+												MemorySystem.mainMemory,
+												RequestType.Main_Mem_Write,
+												address));
+							else
+								MemorySystem.mainMemory.getPort().put(
+										event.update(
+												MemorySystem.mainMemory.getLatencyDelay(),
+												this,
+												MemorySystem.mainMemory,
+												RequestType.Main_Mem_Write));
+						}
 						else
-							this.nextLevel.getPort().put(event.update(MemorySystem.getMainMemLatencyDelay(),
-									this,
-									null,
-									0,//tieBreaker,
-									RequestType.Cache_Write,
-									address));
-//							this.nextLevel.getPort().put(new NewCacheAccessEvent(this.nextLevel.getLatencyDelay(),//FIXME
-//																			this,
-//																			receivingCache.nextLevel,
-//																			null, 
-//																			0, //tieBreaker,
-//																			new CacheRequestPacket(RequestType.MEM_WRITE,
-//																								outstandingRequestList.get(0).address)));
+						{
+							if (this.isFirstLevel)
+								this.nextLevel.getPort().put(
+										new AddressCarryingEvent(
+												this.nextLevel.getLatencyDelay(),
+												this,
+												this.nextLevel,
+												RequestType.Cache_Write,
+												address));
+							else
+								this.nextLevel.getPort().put(
+										event.update(
+												this.nextLevel.getLatencyDelay(),
+												this,
+												this.nextLevel,
+												RequestType.Cache_Write));
+						}
 					}
 					else
 					{
@@ -677,7 +606,7 @@ public class Cache extends SimulationElement
 				}
 				else
 				{
-					System.err.println("Memory System Error : A request was of type other than MEM_READ or MEM_WRITE");
+					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write");
 					System.exit(1);
 				}
 				

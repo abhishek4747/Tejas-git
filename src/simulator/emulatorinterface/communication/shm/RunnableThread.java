@@ -248,7 +248,7 @@ public class RunnableThread implements Runnable {
 									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 									{
 										execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-										if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
+										if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false)
 										{
 											execEngine.getReorderBuffer().performCommits();
 										}
@@ -294,7 +294,7 @@ public class RunnableThread implements Runnable {
 									{
 										for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 										{
-											if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
+											if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false)
 											{
 												eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
 											}
@@ -418,7 +418,7 @@ public class RunnableThread implements Runnable {
 				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 				{
 					execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-					if(eventQ.getCoresHandled()[i1].perfectPipeline == false)
+					if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false)
 					{
 						execEngine.getReorderBuffer().performCommits();
 					}

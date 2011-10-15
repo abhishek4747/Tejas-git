@@ -5,6 +5,7 @@ import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.PerformDecodeEventPerfect;
 //import pipeline.perfect.PerformCommitsEventPerfect;
 import pipeline.outoforder_new_arch.ExecutionEngine;
+import pipeline.statistical.StatisticalPipeline;
 import config.CoreConfig;
 import config.SystemConfig;
 
@@ -19,10 +20,11 @@ public class Core extends SimulationElement{
 	public static int outstandingMemRequests = 0;	//TODO To remove this after testing of perfect pipeline
 	
 	//long clock;
+	StatisticalPipeline statisticalPipeline;
 	ExecutionEngine execEngine;
 	EventQueue eventQueue;
 	
-	public boolean perfectPipeline = false;
+	public boolean isPipelineStatistical = false;
 	
 	//core parameters
 	private int decodeWidth;
@@ -331,6 +333,14 @@ public class Core extends SimulationElement{
 
 	public void setIncomingInstructionLists(InstructionLinkedList[] incomingInstructionLists) {
 		this.incomingInstructionLists = incomingInstructionLists;
+	}
+	
+	public StatisticalPipeline getStatisticalPipeline() {
+		return statisticalPipeline;
+	}
+
+	public void setStatisticalPipeline(StatisticalPipeline statisticalPipeline) {
+		this.statisticalPipeline = statisticalPipeline;
 	}
 
 	@Override

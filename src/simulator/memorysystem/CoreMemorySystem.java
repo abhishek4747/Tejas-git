@@ -52,7 +52,6 @@ public class CoreMemorySystem
 		//Initialise the  L1 cache
 		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
-		cacheParameterObj.setFirstLevel(true);
 		l1Cache = new Cache(cacheParameterObj, eventQ);
 		//l1Cache.nextLevel = l2Cache;
 		
