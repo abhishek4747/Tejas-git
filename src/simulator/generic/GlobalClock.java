@@ -46,7 +46,7 @@ public class GlobalClock {
 			}
 			i++;
 		}
-		time_periods[i] = Math.round(100000/MemorySystem.mainMemFrequency);
+		time_periods[i] = Math.round(100000/MemorySystem.mainMemory.getFrequency());
 		if(time_periods[i] < seed)
 		{
 			seed = time_periods[i];
@@ -94,7 +94,7 @@ public class GlobalClock {
 			cache.setStepSize(time_periods[i++]/HCF);
 			//System.out.println(cache.getStepSize());
 		}
-		MemorySystem.mainMemStepSize = time_periods[i]/HCF;
+		MemorySystem.mainMemory.setStepSize(time_periods[i]/HCF);
 		//System.out.println(MemorySystem.mainMemStepSize);
 		
 		stepValue = HCF/100000.0;

@@ -39,18 +39,18 @@ public class EventComparator implements Comparator<Event>
 			}
 			else
 			{
-				if(newEvent0.getTieBreaker() < newEvent1.getTieBreaker())
-				{
-					return -1;
-				}
-				else if(newEvent0.getTieBreaker() > newEvent1.getTieBreaker())
-				{
-					return 1;
-				}
-				else
-				{
+//				if(newEvent0.getTieBreaker() < newEvent1.getTieBreaker())
+//				{
+//					return -1;
+//				}
+//				else if(newEvent0.getTieBreaker() > newEvent1.getTieBreaker())
+//				{
+//					return 1;
+//				}
+//				else
+//				{
 					return 0;
-				}
+//				}
 			}
 		}
 	}
