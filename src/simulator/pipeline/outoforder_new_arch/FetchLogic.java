@@ -57,7 +57,7 @@ public class FetchLogic extends SimulationElement {
 			}
 			else
 			{
-				if (core.perfectPipeline == true)
+				if (core.isPipelineStatistical == true)
 				{
 					//readDecodePipe();
 				}

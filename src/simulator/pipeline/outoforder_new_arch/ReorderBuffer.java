@@ -274,13 +274,13 @@ public class ReorderBuffer extends SimulationElement{
 		execEngine.setToStall5(true);
 		
 		//set event to set tostall5 to false
-		core.getEventQueue().addEvent(
-				new Event(GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty() * core.getStepSize(),
-						null,
-						this,
-						-1,
-						RequestType.MISPRED_PENALTY_COMPLETE,
-						null));
+//		core.getEventQueue().addEvent(
+//				new Event(GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty() * core.getStepSize(),
+//						null,
+//						this,
+//						-1,
+//						RequestType.MISPRED_PENALTY_COMPLETE,
+//						null));
 		
 	}
 	
