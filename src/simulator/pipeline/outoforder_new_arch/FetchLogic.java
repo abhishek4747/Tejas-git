@@ -1,6 +1,5 @@
 package pipeline.outoforder_new_arch;
 
-import pipeline.perfect.DecodeCompleteEventPerfect;
 import generic.Core;
 import generic.Event;
 import generic.Instruction;

@@ -1,5 +1,6 @@
 package pipeline.outoforder_new_arch;
 
+import memorysystem.LSQEntryContainingEvent;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -177,14 +178,14 @@ public class ReorderBuffer extends SimulationElement{
 					//Signal LSQ for committing the Instruction at the queue head
 					if(firstOpType == OperationType.load || firstOpType == OperationType.store)
 					{
-						/*TODO
-						 execEngine.coreMemSys.getLsqueue().getPort().put(new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
+						 execEngine.coreMemSys.getLsqueue().getPort().put(
+								 new LSQEntryContainingEvent(
+										 execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
 																			this,
 																			execEngine.coreMemSys.getLsqueue(), 
-																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
-																			RequestType.LSQ_COMMIT, 
+																			RequestType.LSQ_Commit, 
 																			first.getLsqEntry()));
-						first.getLsqEntry().setRemoved(true);*/
+						first.getLsqEntry().setRemoved(true);
 					}
 					
 					ROB[head].setValid(false);
@@ -274,13 +275,12 @@ public class ReorderBuffer extends SimulationElement{
 		execEngine.setToStall5(true);
 		
 		//set event to set tostall5 to false
-//		core.getEventQueue().addEvent(
-//				new Event(GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty() * core.getStepSize(),
-//						null,
-//						this,
-//						-1,
-//						RequestType.MISPRED_PENALTY_COMPLETE,
-//						null));
+		core.getEventQueue().addEvent(
+				new MispredictionPenaltyCompleteEvent(
+						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty() * core.getStepSize(),
+						null,
+						this,
+						RequestType.MISPRED_PENALTY_COMPLETE));
 		
 	}
 	

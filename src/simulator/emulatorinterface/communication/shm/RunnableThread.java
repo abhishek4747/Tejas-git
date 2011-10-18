@@ -100,7 +100,7 @@ public class RunnableThread implements Runnable {
 		boolean pipelineDone = false;		/* - set to true to detach pipeline - */
 		
 		boolean subsetSimulation = false;	/* - for pipeline of instructions 2000000 - 12000000 - */
-		boolean memSystemDetach = true;	/* to detach memory system */
+		boolean memSystemDetach = false;	/* to detach memory system */
 		long insCtr = 0;
 		long s = 0, e = 0;
 		

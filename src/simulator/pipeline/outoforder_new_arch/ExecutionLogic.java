@@ -38,11 +38,6 @@ public class ExecutionLogic extends SimulationElement {
 		// TODO Auto-generated method stub
 		
 		tempEvent = event;
-		instruction = reorderBufferEntry.getInstruction();
-		threadID = 0;	//TODO instruction.getThreadID()
-		FUInstance = reorderBufferEntry.getFUInstance();
-		eventQueue = core.getEventQueue();
-		tempDestOpnd = instruction.getDestinationOperand();
 		if(tempDestOpnd != null)
 		{
 			tempDestOpndType = tempDestOpnd.getOperandType();
@@ -55,11 +50,22 @@ public class ExecutionLogic extends SimulationElement {
 		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
 		{
 			this.reorderBufferEntry = ((ExecCompleteEvent)event).getROBEntry();
-			handleExecutionCompletion();
 		}
 		else if(event.getRequestType() == RequestType.BROADCAST_1)
 		{
 			this.reorderBufferEntry = ((BroadCast1Event)event).getROBEntry();
+		}
+		instruction = reorderBufferEntry.getInstruction();
+		threadID = 0;	//TODO instruction.getThreadID()
+		FUInstance = reorderBufferEntry.getFUInstance();
+		eventQueue = core.getEventQueue();
+		tempDestOpnd = instruction.getDestinationOperand();
+		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
+		{
+			handleExecutionCompletion();
+		}
+		else if(event.getRequestType() == RequestType.BROADCAST_1)
+		{
 			performBroadCast1();
 		}
 	}

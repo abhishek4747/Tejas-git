@@ -89,8 +89,8 @@ public class DecodeLogic extends SimulationElement {
 					isLoad = false;
 					
 				//TODO
-				//newROBEntry.setLsqEntry(this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
-				//					newROBEntry.getInstruction().getSourceOperand1().getValue(), newROBEntry));
+				newROBEntry.setLsqEntry(this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
+									newROBEntry.getInstruction().getSourceOperand1().getValue(), newROBEntry));
 			}
 			
 			return newROBEntry;
