@@ -45,7 +45,15 @@ public class StatisticalPipeline
 		allPipesEmpty = false;
 	}
 
-
+	public void performCommits()
+	{
+//		if (GlobalClock.getCurrentTime() >= 20000)
+//		{
+//			setExecutionComplete(true);
+//			System.out.println("Exiting....");	
+//		}
+	}
+	
 	protected Core getCore() {
 		return core;
 	}
@@ -135,15 +143,15 @@ public class StatisticalPipeline
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(core.getExecEngine().coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(core.getExecEngine().coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(core.getExecEngine().coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfValueForwards(core.getExecEngine().coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
-		Statistics.setNoOfTLBRequests(core.getExecEngine().coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(core.getExecEngine().coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(core.getExecEngine().coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
-		Statistics.setNoOfL1Requests(core.getExecEngine().coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(core.getExecEngine().coreMemSys.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(core.getExecEngine().coreMemSys.getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfValueForwards(coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
+		Statistics.setNoOfTLBRequests(coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
 	}
 }

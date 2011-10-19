@@ -402,8 +402,6 @@ public class Cache extends SimulationElement
 					//If the cache level is Write-through
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 					{
-						//Handle in any case (Whether requesting element is LSQ or cache)
-						//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 						if (this.isLastLevel)
 						{
 							if (this.isFirstLevel)
@@ -471,7 +469,6 @@ public class Cache extends SimulationElement
 					}
 					else
 					{
-						//Change the parameters of this event to forward it for scheduling next cache's access
 						this.nextLevel.getPort().put(
 								new AddressCarryingEvent(
 										this.nextLevel.getLatencyDelay(),
@@ -524,33 +521,19 @@ public class Cache extends SimulationElement
 				if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
 				{
 					//Pass the value to the waiting element
-					//Create an event (BlockReadyEvent) for the waiting element
-					//Generate the event for the Upper level cache or LSQ
-					Class lsqClass = LSQ.class;
-//					if (outstandingRequestList.get(0).lsqEntry == null)
-//					if (!/*NOT*/lsqClass.isInstance(outstandingRequestList.get(0).getRequestingElement()))
-						//Generate the event for the Upper level cache
-						outstandingRequestList.get(0).getRequestingElement().getPort().put(
-								outstandingRequestList.get(0).update(
-										outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
-										this,
-										outstandingRequestList.get(0).getRequestingElement(),
-										RequestType.Mem_Response));
-//					else
-						//Generate the event to tell the LSQ
-//						outstandingRequestList.get(0).getRequestingElement().getPort().put(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatencyDelay(),//FIXME 
-//																this.getProcessingElement(),
-//																outstandingRequestList.get(0).requestingElement, 
-//																0, //tieBreaker
-//																RequestType.LSQ_LOAD_COMPLETE,
-//																outstandingRequestList.get(0).address,
-//																outstandingRequestList.get(0).lsqEntry));
+					//FIXME : Check the logic before finalizing
+					outstandingRequestList.get(0).getRequestingElement().getPort().put(
+							outstandingRequestList.get(0).update(
+									outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+									this,
+									outstandingRequestList.get(0).getRequestingElement(),
+									RequestType.Mem_Response));
 				}
 				
 				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)
 				{
 					//Write the value to the block (Do Nothing)
-					//Pass the value to the waiting element
+					//Handle further writes for Write through
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 					{
 						//Handle in any case (Whether requesting element is LSQ or cache)

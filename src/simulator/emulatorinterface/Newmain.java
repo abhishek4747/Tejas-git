@@ -74,7 +74,11 @@ public class Newmain {
 		
 		//connect pipe between instruction translator and pipeline
 		cores[0].setIncomingInstructionLists(new InstructionLinkedList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
-		cores[0].getExecEngine().getFetcher().setInputToPipeline(cores[0].getIncomingInstructionLists());
+		
+		if (cores[0].isPipelineStatistical)
+			cores[0].getStatisticalPipeline().getFetcher().setInputToPipeline(cores[0].getIncomingInstructionLists());
+		else
+			cores[0].getExecEngine().getFetcher().setInputToPipeline(cores[0].getIncomingInstructionLists());
 		
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores, eventQ);

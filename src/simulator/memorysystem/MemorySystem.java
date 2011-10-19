@@ -112,16 +112,21 @@ public class MemorySystem
 		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			cores[i].getExecEngine().coreMemSys = new CoreMemorySystem(cores[i], eventQ[0]);
+			CoreMemorySystem coreMemSys = new CoreMemorySystem(cores[i], eventQ[0]);
+			
+			if (cores[i].isPipelineStatistical)
+				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
+			else
+				cores[i].getExecEngine().coreMemSys = coreMemSys;
 //			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			
 			//Set the next levels of the L1 cache
-			if (cores[i].getExecEngine().coreMemSys.l1Cache.isLastLevel == true) //If this is the last level, don't set anything
+			if (coreMemSys.l1Cache.isLastLevel == true) //If this is the last level, don't set anything
 			{
 				continue;
 			}
 			
-			String nextLevelName = cores[i].getExecEngine().coreMemSys.l1Cache.nextLevelName;
+			String nextLevelName = coreMemSys.l1Cache.nextLevelName;
 			
 			if (nextLevelName.isEmpty())
 			{
@@ -132,8 +137,8 @@ public class MemorySystem
 			if (cacheList.containsKey(nextLevelName)) 
 			{
 				//Point the cache to its next level
-				cores[i].getExecEngine().coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
-				cores[i].getExecEngine().coreMemSys.l1Cache.nextLevel.prevLevel.add(cores[i].getExecEngine().coreMemSys.l1Cache);
+				coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
+				coreMemSys.l1Cache.nextLevel.prevLevel.add(coreMemSys.l1Cache);
 			}
 			else
 			{

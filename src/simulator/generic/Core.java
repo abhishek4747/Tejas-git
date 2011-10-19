@@ -74,7 +74,12 @@ public class Core extends SimulationElement{
 		this.no_of_threads = no_of_threads;
 		this.incomingInstructionLists = incomingInstructionLists;
 		this.threadIDs = threadIDs;
-		this.execEngine = new ExecutionEngine(this);
+		
+		if (isPipelineStatistical)
+			this.statisticalPipeline = new StatisticalPipeline(this);
+		else
+			this.execEngine = new ExecutionEngine(this);
+		
 		this.branchPredictor = new TournamentPredictor();
 		this.noOfInstructionsExecuted = 0;
 	}

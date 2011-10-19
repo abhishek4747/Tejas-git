@@ -3,6 +3,8 @@ package generic;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import memorysystem.CoreMemorySystem;
+
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import config.SystemConfig;
@@ -82,9 +84,16 @@ public class GlobalClock {
 		for(i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			cores[i].setStepSize(time_periods[i]/HCF);
-			cores[i].getExecEngine().coreMemSys.getL1Cache().setStepSize(cores[i].getStepSize());
-			cores[i].getExecEngine().coreMemSys.getLsqueue().setStepSize(cores[i].getStepSize());
-			cores[i].getExecEngine().coreMemSys.getTLBuffer().setStepSize(cores[i].getStepSize());
+			CoreMemorySystem coreMemSys;
+			
+			if (cores[i].isPipelineStatistical)
+				coreMemSys = cores[i].getStatisticalPipeline().coreMemSys;
+			else
+				coreMemSys = cores[i].getExecEngine().coreMemSys;
+			
+			coreMemSys.getL1Cache().setStepSize(cores[i].getStepSize());
+			coreMemSys.getLsqueue().setStepSize(cores[i].getStepSize());
+			coreMemSys.getTLBuffer().setStepSize(cores[i].getStepSize());
 			//System.out.println(cores[i].getStepSize());
 		}
 		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)

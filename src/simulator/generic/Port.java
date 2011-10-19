@@ -17,6 +17,7 @@ public class Port
 			EventQueue eventQueue)
 	{
 		this.portType = portType;
+		this.eventQueue = eventQueue;
 		
 		//initialise no. of ports and the occupancy.
 		if(portType==PortType.Unlimited)

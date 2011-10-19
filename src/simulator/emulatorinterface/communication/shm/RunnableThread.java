@@ -8,6 +8,7 @@ package emulatorinterface.communication.shm;
 import java.util.Vector;
 
 import pipeline.outoforder_new_arch.ExecutionEngine;
+import pipeline.statistical.StatisticalPipeline;
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.Newmain;
@@ -133,6 +134,7 @@ public class RunnableThread implements Runnable {
 		
 		//temporaries
 		ExecutionEngine execEngine;
+		StatisticalPipeline statPipeline;
 		
 		while(true && breakLoop==false)
 		{
@@ -247,15 +249,24 @@ public class RunnableThread implements Runnable {
 								{
 									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 									{
-										execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-										if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false)
+										if (!eventQ.getCoresHandled()[i1].isPipelineStatistical)
 										{
+											execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
 											execEngine.getReorderBuffer().performCommits();
+											if(execEngine.isExecutionComplete() == false)
+											{
+												execEngine.getWriteBackLogic().performWriteBack();
+												execEngine.getSelector().performSelect();
+											}
 										}
-										if(execEngine.isExecutionComplete() == false)
+										else //Statistical Pipeline
 										{
-											execEngine.getWriteBackLogic().performWriteBack();
-											execEngine.getSelector().performSelect();
+											statPipeline = eventQ.getCoresHandled()[i1].getStatisticalPipeline();
+											statPipeline.performCommits();
+											if (statPipeline.isExecutionComplete() == false)
+											{
+												statPipeline.getFetcher().performFetch();
+											}
 										}
 									}
 								}
@@ -265,7 +276,8 @@ public class RunnableThread implements Runnable {
 								
 								if(i2%cores[0].getStepSize() == 0)
 								{
-									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+									for(int i1 = 0; i1 < eventQ.getCoresHandled().length 
+										&& !eventQ.getCoresHandled()[i1].isPipelineStatistical; i1++)
 									{
 										execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
 										if(execEngine.isExecutionComplete() == false)
@@ -298,6 +310,10 @@ public class RunnableThread implements Runnable {
 											{
 												eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
 											}
+											else
+											{
+												eventQ.getCoresHandled()[i1].getStatisticalPipeline().performCommits();
+											}
 										}
 									}
 									
@@ -309,7 +325,8 @@ public class RunnableThread implements Runnable {
 									{
 										for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 										{
-											if(eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
+											if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false
+													&& eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
 											{
 												//eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
 											}
@@ -408,7 +425,10 @@ public class RunnableThread implements Runnable {
 		boolean queueComplete = true;		
 		for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 		{
-			queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
+			if (eventQ.getCoresHandled()[i1].isPipelineStatistical)
+				queueComplete = queueComplete && eventQ.getCoresHandled()[0].getStatisticalPipeline().isExecutionComplete();
+			else
+				queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
 		}
 		
 		while(!queueComplete)
@@ -417,15 +437,24 @@ public class RunnableThread implements Runnable {
 			{
 				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 				{
-					execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-					if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false)
+					if (!eventQ.getCoresHandled()[i1].isPipelineStatistical)
 					{
+						execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
 						execEngine.getReorderBuffer().performCommits();
+						if(execEngine.isExecutionComplete() == false)
+						{
+							execEngine.getWriteBackLogic().performWriteBack();
+							execEngine.getSelector().performSelect();
+						}
 					}
-					if(execEngine.isExecutionComplete() == false)
+					else //Statistical Pipeline
 					{
-						execEngine.getWriteBackLogic().performWriteBack();
-						execEngine.getSelector().performSelect();
+						statPipeline = eventQ.getCoresHandled()[i1].getStatisticalPipeline();
+						statPipeline.performCommits();
+						if (statPipeline.isExecutionComplete() == false)
+						{
+							statPipeline.getFetcher().performFetch();
+						}
 					}
 				}
 			}
@@ -435,7 +464,8 @@ public class RunnableThread implements Runnable {
 			
 			if(i2%cores[0].getStepSize() == 0)
 			{
-				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
+				for(int i1 = 0; i1 < eventQ.getCoresHandled().length
+					&& !eventQ.getCoresHandled()[i1].isPipelineStatistical; i1++)
 				{
 					execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
 					if(execEngine.isExecutionComplete() == false)
@@ -454,7 +484,10 @@ public class RunnableThread implements Runnable {
 			queueComplete = true;		
 			for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
 			{
-				queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
+				if (eventQ.getCoresHandled()[i1].isPipelineStatistical)
+					queueComplete = queueComplete && eventQ.getCoresHandled()[0].getStatisticalPipeline().isExecutionComplete();
+				else
+					queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
 			}
 		}
 		

@@ -43,12 +43,6 @@ public class LSQ extends SimulationElement
 	public int NoOfSt = 0;
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
 	
-	//For telling that what addresses are processed this cycle (for BANKED multi-port option)
-	protected ArrayList<Integer> banksAccessedThisCycle = new ArrayList<Integer>();
-	
-	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
-	protected int requestsProcessedThisCycle = 0;
-	
 	public static final int INVALID_INDEX = -1;
 
 	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, 
@@ -63,28 +57,24 @@ public class LSQ extends SimulationElement
 
 	public LSQEntry addEntry(boolean isLoad, long address, ReorderBufferEntry robEntry) //To be accessed at the time of allocating the entry
 	{
-		//if (curSize < lsqSize)
-		//{
-			noOfMemRequests++;
-			LSQEntry.LSQEntryType type = (isLoad) ? LSQEntry.LSQEntryType.LOAD 
-					: LSQEntry.LSQEntryType.STORE;
-			
-			if (isLoad)
-				NoOfLd++;
-			else
-				NoOfSt++;
-			
-			LSQEntry entry = new LSQEntry(type, robEntry);
-			int index = tail;
-			entry.setAddr(address);
-			entry.setIndexInQ(index);
-			lsqueue[index] = entry;
-			tail = incrementQ(tail);
-			this.curSize++;
-//			System.out.println(curSize);
-			return entry;
-		//}
-		//else return QUEUE_FULL; // -1 signifies that the queue is full
+		noOfMemRequests++;
+		LSQEntry.LSQEntryType type = (isLoad) ? LSQEntry.LSQEntryType.LOAD 
+				: LSQEntry.LSQEntryType.STORE;
+		
+		if (isLoad)
+			NoOfLd++;
+		else
+			NoOfSt++;
+		
+		LSQEntry entry = new LSQEntry(type, robEntry);
+		int index = tail;
+		entry.setAddr(address);
+		entry.setIndexInQ(index);
+		lsqueue[index] = entry;
+		tail = incrementQ(tail);
+		this.curSize++;
+//		System.out.println(curSize);
+		return entry;
 	}
 
 	public boolean loadValidate(int index, Event event)//, long address)
@@ -333,7 +323,7 @@ public class LSQ extends SimulationElement
 		}
 		else //If the LSQ entry is a store
 		{
-			this.storeValidate(lsqEntry.getIndexInQ());//, addr);
+			this.storeValidate(lsqEntry.getIndexInQ());
 		}
 	}
 	
@@ -388,7 +378,6 @@ public class LSQ extends SimulationElement
 			System.exit(1);
 		}
 		
-//TODO : This needs to be moved some place especially for the store when it finally commits()
 		// advance the head of the queue
 		
 		// if it is a store, send the request to the cache
