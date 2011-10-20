@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import emulatorinterface.DynamicInstruction;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.ApplicationThreads.appThread;
-import generic.InstructionList;
+import generic.InstructionArrayList;
+import generic.InstructionLinkedList;
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
@@ -27,7 +28,7 @@ public class RunnableThread implements Runnable, Encoding {
 	int[] cons_ptr = new int[EMUTHREADS]; // consumer pointers
 	long[] tot_cons = new long[EMUTHREADS]; // total consumed data
 
-	InstructionList inputToPipeline;
+	InstructionLinkedList inputToPipeline;
 
 	public RunnableThread() {
 	}
@@ -38,7 +39,7 @@ public class RunnableThread implements Runnable, Encoding {
 		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
 			threads.add(i,new appThread());
 		}
-		inputToPipeline = new InstructionList();
+		inputToPipeline = new InstructionLinkedList();
 		this.tid = tid1;
 		runner = new Thread(this, threadName);
 		// System.out.println(runner.getName());
@@ -305,7 +306,7 @@ public class RunnableThread implements Runnable, Encoding {
 				memReadAddr, memWriteAddr, srcRegs, dstRegs);
 	}
 
-	public InstructionList getInputToPipeline() {
+	public InstructionLinkedList getInputToPipeline() {
 		return inputToPipeline;
 	}
 }

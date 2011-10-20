@@ -12,8 +12,9 @@
 package emulatorinterface.communication;
 
 import emulatorinterface.*;
+import emulatorinterface.communication.shm.RunnableThread;
 
-public class IPCBase {
+public abstract class IPCBase {
 
 	// Must ensure that MAXNUMTHREADS*EMUTHREADS == MaxNumThreads on the PIN side
 	public static final int MAXNUMTHREADS = 1;
@@ -42,7 +43,7 @@ public class IPCBase {
 	// is passed which is filled by the reader threads.
 	public void createReaders(){}
 	
-	public Object[] getReaderThreads() {return null;}
+	public RunnableThread[] getReaderThreads(){return null;};
 
 	// The main thread waits for the finish of reader threads and returns total number of 
 	// instructions read

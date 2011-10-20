@@ -18,10 +18,10 @@ import generic.Statistics;
 
 public class Newmain {
 	public static long start, end;
-	public static long instructionCount = 0;public static int handled=0;
+	public static long instructionCount = 0;
+	public static int handled=0;
 	public static int notHandled=0;
 	public static Object syncObject = new Object();
-	public static Time_t mainMemoryLatency;
 	public static Process process;
 
 	public static void main(String[] arguments) throws Exception 
@@ -46,9 +46,7 @@ public class Newmain {
 		XMLParser.parse();
 
 		// Create a hash-table for the static representation of the executable
-		InstructionTable instructionTable;
-		instructionTable = ObjParser
-				.buildStaticInstructionTable(executableFile);
+		ObjParser.buildStaticInstructionTable(executableFile);
 
 		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
@@ -69,7 +67,7 @@ public class Newmain {
 		eventQ[0].setCoresHandled(cores);
 		
 		// create PIN interface
-		IPCBase ipcBase = new SharedMem(eventQ, cores);
+		IPCBase ipcBase = new SharedMem();
 		Process process = createPINinterface(ipcBase, executableArguments,
 				dynamicInstructionBuffer);
 		
@@ -111,10 +109,6 @@ public class Newmain {
 			Statistics.setNoOfL2Misses(cache.misses);
 		}
 
-		// returns the number of instructions. and waits on a semaphore for
-		// finishing of reader threads
-		long icount = ipcBase.doExpectedWaitForSelf();
-		
 		end = System.currentTimeMillis();
 		Statistics.setTime(end - start);
 		
@@ -181,7 +175,7 @@ public class Newmain {
 			misc.Error
 					.showErrorAndExit("\n\tCorrect path for pin or tool or executable not specified !!");
 
-		ipcBase.createReaders(dynamicInstructionBuffer);
+		ipcBase.createReaders();
 
 		return process;
 	}

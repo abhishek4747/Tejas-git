@@ -27,15 +27,12 @@ public class SharedMem extends  IPCBase
 	public static InstructionTable insTable;
 	public static GlobalTable glTable;
 	
-	public SharedMem(EventQueue[] eventQ, Core[] cores) 
+	public SharedMem() 
 	{
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
-		insTable = instructionTable;
 		glTable = new GlobalTable();
-		this.eventQ = eventQ;
-		this.cores = cores;
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
 		shmid = shmget((COUNT+5)*MAXNUMTHREADS*EMUTHREADS, SimulationConfig.MapJavaCores);
 		shmAddress = shmat(shmid);
@@ -68,7 +65,7 @@ public class SharedMem extends  IPCBase
 			termination[i]=false;
 			started[i]=false;
 			numInstructions[i]=0;
-			readerThreads[i] = new RunnableThread(name,i,passPackets, eventQ[i], cores);
+			readerThreads[i] = new RunnableThread(name,i);
 			//TODO not all cores are assigned to each thread
 			//when the mechanism to tie threads to cores is in place
 			//this has to be changed
@@ -172,9 +169,6 @@ public class SharedMem extends  IPCBase
 	
 	// the reader threads. Each thread reads from EMUTHREADS
 	RunnableThread [] readerThreads = new RunnableThread[MAXNUMTHREADS];
-	
-	// event queues - one event queue for each java thread
-	EventQueue[] eventQ;
 	
 	// cores associated with this java thread
 	Core[] cores;
