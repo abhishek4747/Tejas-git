@@ -18,9 +18,11 @@ import generic.Statistics;
 
 public class Newmain {
 	public static long start, end;
-	public static long instructionCount = 0;
-	//public static Object syncObject = new Object();
-	//public static Object syncObject2 = new Object();
+	public static long instructionCount = 0;public static int handled=0;
+	public static int notHandled=0;
+	public static Object syncObject = new Object();
+	public static Time_t mainMemoryLatency;
+	public static Process process;
 
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -44,10 +46,9 @@ public class Newmain {
 		XMLParser.parse();
 
 		// Create a hash-table for the static representation of the executable
-		ObjParser.buildStaticInstructionTable(executableFile);
-		
-//		// No need to run the complete program.
-//		System.exit(0);
+		InstructionTable instructionTable;
+		instructionTable = ObjParser
+				.buildStaticInstructionTable(executableFile);
 
 		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
@@ -109,6 +110,10 @@ public class Newmain {
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
 		}
+
+		// returns the number of instructions. and waits on a semaphore for
+		// finishing of reader threads
+		long icount = ipcBase.doExpectedWaitForSelf();
 		
 		end = System.currentTimeMillis();
 		Statistics.setTime(end - start);

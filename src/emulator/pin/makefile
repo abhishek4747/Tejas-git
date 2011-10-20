@@ -10,6 +10,7 @@ TARGET_COMPILER?=gnu
 ifeq ($(TARGET_COMPILER),gnu)
 	include makefile.gnu.config
 	CXXFLAGS ?= -Wall -Werror -Wno-unknown-pragmas $(DBG) $(OPT)
+	PIN_LIBS += -lrt
 endif
 
 ##############################################################
@@ -19,7 +20,7 @@ endif
 ##############################################################
 
 
-TOOL_ROOTS = PgmInstrumentor
+TOOL_ROOTS = PgmInstrumentor  prelimcausalityTool causalityTool
 
 # Tools which are built specially, e.g. with more than one source file.
 # As well as being defined here they need specific build rules for the tool.
@@ -89,7 +90,7 @@ CEXEC = shmem.o mmap.o network.o pipe.o
 PINLINK = $(patsubst %.o,$(MYOBJDIR)%.o,$(CEXEC))
 cppside: $(PINLINK)
 
-$(MYOBJDIR)%.o: %.cc %.h IPCBase.h common.h $(MYOBJDIR)make-directory
+$(MYOBJDIR)%.o: %.cc %.h IPCBase.h common.h encoding.h $(MYOBJDIR)make-directory
 	g++ -c $< -o $@
 ##############################################################
 #

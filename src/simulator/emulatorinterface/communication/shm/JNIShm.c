@@ -18,6 +18,10 @@
 #include <stdint.h>
 #include "../common.h"
 
+// TODO these could be saved to avoid calling again and again,or do multiple reads to avoid
+// multiple JNI calls.
+jclass cls;
+jmethodID constr;
 
 /*
  * shmget a shared memory area using the keys from common.h. Creates
@@ -27,7 +31,6 @@
 */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 (JNIEnv * env, jobject jobj, jint size1, jlong coremap) {
-
 	uint64_t mask = coremap;
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
@@ -61,7 +64,6 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 // returns the pointer of the segment.
 JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmat 
 (JNIEnv * env, jobject jobj, jint shmid) {
-
 	packet *shm;
 	if ((shm = (packet *)shmat(shmid, NULL, 0)) == (packet *) -1) {
 		perror("shmat");
@@ -107,11 +109,9 @@ JNIEXPORT jobject JNICALL Java_emulatorinterface_communication_shm_SharedMem_shm
 	packet *addr;
 	addr=(packet *)(intptr_t)pointer;
 
-	// TODO these could be saved to avoid calling again and again
-	jclass cls;
 	cls = (*env)->FindClass(env,"emulatorinterface/communication/Packet");
-	jmethodID constr;
 	constr = (*env)->GetMethodID(env,cls,"<init>","(JIJ)V");
+
 	jvalue args[3];
 	addr = &(addr[tid*(NUMINTS+5)+index]);
 	args[0].j = (*addr).ip;

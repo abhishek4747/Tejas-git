@@ -20,6 +20,10 @@ public class PartialDecodedInstruction {
 		this.operand3 = operand3;
 	}
 
+	public PartialDecodedInstruction() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public Object getInstructionClass() {
 		return instructionClass;
 	}

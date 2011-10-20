@@ -15,7 +15,7 @@ import config.SimulationConfig;
 import emulatorinterface.communication.*;
 import emulatorinterface.*;
 import generic.Core;
-import generic.EventQueue;
+import generic.InstructionTable;
 
 
 public class SharedMem extends  IPCBase
@@ -24,17 +24,21 @@ public class SharedMem extends  IPCBase
 	// Must ensure that this is same as COUNT in IPCBase.h
 	public static final int COUNT = 1000;
 
+	public static InstructionTable insTable;
+	public static GlobalTable glTable;
 	
 	public SharedMem(EventQueue[] eventQ, Core[] cores) 
 	{
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
+		insTable = instructionTable;
+		glTable = new GlobalTable();
 		this.eventQ = eventQ;
 		this.cores = cores;
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
 		shmid = shmget((COUNT+5)*MAXNUMTHREADS*EMUTHREADS, SimulationConfig.MapJavaCores);
-		ibuf = shmat(shmid);
+		shmAddress = shmat(shmid);
 	}
 	
 	public Process startPIN(String cmd) throws Exception {
@@ -104,10 +108,14 @@ public class SharedMem extends  IPCBase
 	}
 
 	public void finish(){
-		shmd(ibuf);
+		shmd(shmAddress);
 		shmdel(shmid);
 	}
 
+	public static void cleanup() {
+		shmd(shmAddress);
+		shmdel(shmid);
+	}
 	// calls shmget function and returns the shmid. Only 1 big segment is created and is indexed
 	// by the threads id. Also pass the core mapping read from config.xml
 	native int shmget(int size, long coremap);
@@ -176,7 +184,7 @@ public class SharedMem extends  IPCBase
 	static boolean[] started=new boolean[MAXNUMTHREADS];
 	
 	// address of shared memory segment attached. should be of type 'long' to ensure for 64bit
-	static long ibuf;
+	static long shmAddress;
 	static int shmid;
 	
 	// number of instructions read by each of the threads

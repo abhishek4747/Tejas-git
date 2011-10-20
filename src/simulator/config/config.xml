@@ -24,74 +24,45 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/moksh/workspace/BhartiSim/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/prathmesh/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/prathmesh/Eclipse_Projects/BhartiSim/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 	</Simulation>
 
 	<!--System Parameters-->
 	<System>
-		<NoOfCores>1</NoOfCores>				<!--Number of cores in the simulated system-->
-		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
-		<MainMemoryFrequency>200</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
-		<MainMemoryPortType>UL</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-		<MainMemoryAccessPorts>-1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
-		<MainMemoryPortOccupancy>-1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
-		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the BUS used for broadcasting messages for cache coherence-->
+		<NoOfCores>16</NoOfCores>
+		<MainMemoryLatency>5</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
+		<CacheBusLatency>1</CacheBusLatency>				<!--Latency of the BUS used for broadcasting messages for cache coherence-->
 
 		<!--Core Parameters-->
 		<Core>
-			<CoreFrequency>3600</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
+			<ROBSize>256</ROBSize>				<!--Maximum number of entries in the ROB-->
 
 			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
-			<LSQLatency>1</LSQLatency>			<!--In clock cycles-->
-			<LSQPortType>UL</LSQPortType>			<!--Type of access ports in the LSQ (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
-			<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
+			<LSQLatency>2</LSQLatency>			<!--In clock cycles-->
+			<LSQAccessPorts>2</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
+			<LSQPortOccupancy>2</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
 			<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
 
-			<TLBSize>128</TLBSize>				<!--Maximum number of entries in the TLB-->
-			<TLBLatency>4</TLBLatency>			<!--In clock cycles-->
-			<TLBPortType>UL</TLBPortType>			<!--Type of access ports in the TLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
-			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
-			
-			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
-			<DecodeTime>1</DecodeTime>			<!--Instruction decode time-->
-			<RenamingTime>2</RenamingTime>			<!--Renaming Time-->
-			<ROBSize>128</ROBSize>				<!--Maximum number of entries in the ROB-->
-			<IWSize>128</IWSize>				<!--Maximum number of entries in the Instruction Window-->
-			<IntRegFileSize>128</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
-			<FloatRegFileSize>128</FloatRegFileSize>	<!--Maximum number of entries in the Floating point register file-->
-			<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
-			<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
-			<MSRegNum>64</MSRegNum>				<!--Number of machine specific registers-->
-			<RegFilePortType>UL</RegFilePortType>		<!--Type of access ports in the Reg File (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<RegFilePorts>4</RegFilePorts>			<!--Number of ports in the register file-->
-			<RegFileOccupancy>1</RegFileOccupancy>		<!--Occupancy of the register file ports (in clock cycles)-->
-			<BranchMispredPenalty>50</BranchMispredPenalty>	<!--Branch misprediction penalty-->
+			<TLBSize>256</TLBSize>				<!--Maximum number of entries in the TLB-->
+			<TLBLatency>2</TLBLatency>			<!--In clock cycles-->
+			<TLBAccessPorts>2</TLBAccessPorts>		<!--Number of access ports in the TLB-->
+			<TLBPortOccupancy>2</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 	
-			<IntALUNum>4</IntALUNum>			<!--Number of Integer ALUs-->
-			<IntMulNum>1</IntMulNum>			<!--Number of Integer Multipliers-->
-			<IntDivNum>1</IntDivNum>			<!--Number of Integer Dividers-->
-			<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
-			<FloatMulNum>1</FloatMulNum>			<!--Number of Floating Point Multipliers-->
-			<FloatDivNum>1</FloatDivNum>			<!--Number of Floating Point Dividers-->
-			<AddressFUNum>4</AddressFUNum>
-			<AcceleratedFUNum>4</AcceleratedFUNum>
-			
-			<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
-			<IntMulLatency>4</IntMulLatency>		<!--Latency of Integer Multipliers-->
-			<IntDivLatency>8</IntDivLatency>		<!--Latency of Integer Dividers-->
-			<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
-			<FloatMulLatency>8</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
-			<FloatDivLatency>16</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
-			<AddressFULatency>1</AddressFULatency>
-			<AcceleratedFULatency>1</AcceleratedFULatency>
+			<IntALUNum>5</IntALUNum>			<!--Number of Integer ALUs-->
+			<IntMulNum>5</IntMulNum>			<!--Number of Integer Multipliers-->
+			<IntDivNum>5</IntDivNum>			<!--Number of Integer Dividers-->
+	
+			<FloatALUNum>5</FloatALUNum>			<!--Number of Floating Point ALUs-->
+			<FloatMulNum>5</FloatMulNum>			<!--Number of Floating Point Multipliers-->
+			<FloatDivNum>5</FloatDivNum>			<!--Number of Floating Point Dividers-->
+	
+			<NumPhyIntReg>5</NumPhyIntReg>			<!--Number of physical Integer registers-->
+			<NumPhyFloatReg>5</NumPhyFloatReg>		<!--Number of physical Floating point registers-->
 			
 			<!--Specify only the L1 (immediately next to the core) cache of the core here-->
 			<L1Cache type = "Type1" nextLevel = "L2"/>
@@ -99,8 +70,8 @@
 			<!--L3Cache type = "Type3"/-->
 		</Core>
 
-		<!--Specify the caches other than the L1 caches after this-->
-		<Cache name = "L2" type = "Type2" nextLevel = "" frequency = "2000"/>
+		<!--Specify the caches other the L1 caches after this-->
+		<Cache name = "L2" type = "Type2" nextLevel = ""/>
 
 		<CoherenceEnforcingCache>L2</CoherenceEnforcingCache>	<!--NAME of the cache whose immediate upper caches are coherent-->
 	</System>
@@ -110,25 +81,23 @@
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
-			<Associativity>8</Associativity>
-			<Size>16</Size>					<!--In KBs-->
-			<Latency>2</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<BlockSize>32</BlockSize>			<!--In bytes-->
+			<Associativity>2</Associativity>
+			<Size>64</Size>					<!--In KBs-->
+			<Latency>3</Latency>				<!--In clock cycles-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>128</BlockSize>			<!--In bytes-->
-			<Associativity>8</Associativity>
-			<Size>2048</Size>				<!--In KBs-->
-			<Latency>22</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<Associativity>4</Associativity>
+			<Size>8192</Size>				<!--In KBs-->
+			<Latency>4</Latency>				<!--In clock cycles-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 		</Type2>
 		<Type3>
@@ -137,8 +106,7 @@
 			<BlockSize>256</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
 			<Size>16384</Size>				<!--In KBs-->
-			<Latency>1</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<Latency>5</Latency>				<!--In clock cycles-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->

@@ -16,11 +16,14 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-	Contributors:  Prathmesh Kallurkar
+	Contributors:  Prathmesh Kallurkar, Abhishek Sagar
 *****************************************************************************/
 
 package misc;
 
+import emulatorinterface.Newmain;
+import emulatorinterface.communication.IPCBase;
+import emulatorinterface.communication.shm.SharedMem;
 import generic.Operand;
 
 public class Error 
@@ -31,6 +34,14 @@ public class Error
 		System.exit(0);
 	}
 
+	public static void shutDown(String message) 
+	{
+		Newmain.process.destroy();
+		SharedMem.cleanup();
+		System.out.print(message);
+		System.exit(0);
+	}
+	
 	public static void invalidOperation(String operation, Operand operand1, 
 			Operand operand2, Operand operand3)
 	{

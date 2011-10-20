@@ -21,7 +21,7 @@
 
 package emulatorinterface;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class DynamicInstruction {
 
@@ -32,19 +32,19 @@ public class DynamicInstruction {
 	private boolean branchTaken;
 	private long branchTargetAddress;
 
-	private Vector<Long> memoryReadAddress;
-	private Vector<Long> memoryWriteAddress;
+	private ArrayList<Long> memoryReadAddress;
+	private ArrayList<Long> memoryWriteAddress;
 
-	private Vector<Long> sourceRegisters;
-	private Vector<Long> destinationRegister;
+	private ArrayList<Long> sourceRegisters;
+	private ArrayList<Long> destinationRegister;
 
 	public DynamicInstruction() {
 	}
 
 	public DynamicInstruction(long instructionPointer, int threadId,
 			boolean branchTaken, long branchTargetAddress,
-			Vector<Long> memoryReadAddress, Vector<Long> memoryWriteAddress,
-			Vector<Long> sourceRegisters, Vector<Long> destinationRegister) {
+			ArrayList<Long> memoryReadAddress, ArrayList<Long> memoryWriteAddress,
+			ArrayList<Long> sourceRegisters, ArrayList<Long> destinationRegister) {
 		super();
 		this.instructionPointer = instructionPointer;
 		this.threadId = threadId;
@@ -88,35 +88,35 @@ public class DynamicInstruction {
 		this.branchTargetAddress = branchTargetAddress;
 	}
 
-	public Vector<Long> getMemoryReadAddress() {
+	public ArrayList<Long> getMemoryReadAddress() {
 		return memoryReadAddress;
 	}
 
-	public void setMemoryReadAddress(Vector<Long> memoryReadAddress) {
+	public void setMemoryReadAddress(ArrayList<Long> memoryReadAddress) {
 		this.memoryReadAddress = memoryReadAddress;
 	}
 
-	public Vector<Long> getMemoryWriteAddress() {
+	public ArrayList<Long> getMemoryWriteAddress() {
 		return memoryWriteAddress;
 	}
 
-	public void setMemoryWriteAddress(Vector<Long> memoryWriteAddress) {
+	public void setMemoryWriteAddress(ArrayList<Long> memoryWriteAddress) {
 		this.memoryWriteAddress = memoryWriteAddress;
 	}
 
-	public Vector<Long> getSourceRegisters() {
+	public ArrayList<Long> getSourceRegisters() {
 		return sourceRegisters;
 	}
 
-	public void setSourceRegisters(Vector<Long> sourceRegisters) {
+	public void setSourceRegisters(ArrayList<Long> sourceRegisters) {
 		this.sourceRegisters = sourceRegisters;
 	}
 
-	public Vector<Long> getDestinationRegister() {
+	public ArrayList<Long> getDestinationRegister() {
 		return destinationRegister;
 	}
 
-	public void setDestinationRegister(Vector<Long> destinationRegister) {
+	public void setDestinationRegister(ArrayList<Long> destinationRegister) {
 		this.destinationRegister = destinationRegister;
 	}
 

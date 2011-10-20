@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #define ftokpath	("/tmp")
-#define ftok_id	(4)
+#define ftok_id	(6)
 
 //NOTE We have not included the parameters size and maxnumthreads here as they are
 //needed by the java file too. So, to change these values update IPCBase.h

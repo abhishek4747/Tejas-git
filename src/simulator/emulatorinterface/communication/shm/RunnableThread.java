@@ -4,567 +4,308 @@
 
 package emulatorinterface.communication.shm;
 
+import static emulatorinterface.communication.shm.ApplicationThreads.threads;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
-import pipeline.outoforder_new_arch.ExecutionEngine;
-import pipeline.statistical.StatisticalPipeline;
 import emulatorinterface.DynamicInstruction;
-import emulatorinterface.DynamicInstructionBuffer;
-import emulatorinterface.Newmain;
 import emulatorinterface.communication.Packet;
-import emulatorinterface.translator.x86.objparser.ObjParser;
-import emulatorinterface.translator.x86.objparser.TestInstructionLists;
-import generic.Core;
-import generic.GlobalClock;
-import generic.Instruction;
-import generic.InstructionArrayList;
-import generic.InstructionLinkedList;
-import generic.EventQueue;
-import generic.OperationType;
-import generic.Statistics;
-
+import emulatorinterface.communication.shm.ApplicationThreads.appThread;
+import generic.InstructionList;
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
  */
-public class RunnableThread implements Runnable {
+public class RunnableThread implements Runnable, Encoding {
 
 	Thread runner;
 	int tid;
-	int read_count=0;
-	long sum=0;	//checksum
-	long ibuf = SharedMem.ibuf;	//shared memory address
-	int COUNT = SharedMem.COUNT;	// COUNT of packets per thread
+	long sum = 0; // checksum
+	long shmAddress = SharedMem.shmAddress; // shared memory address
+	int COUNT = SharedMem.COUNT; // COUNT of packets per thread
 	int EMUTHREADS = SharedMem.EMUTHREADS;
-	int[] cons_ptr = new int[EMUTHREADS];	//consumer pointers
-	long[] tot_cons = new long[EMUTHREADS];	// total consumed data
-	boolean[] overstatus = new boolean[EMUTHREADS];
-	boolean[] emuThreadStartStatus = new boolean[EMUTHREADS];
-	long noOfMicroOps;
-	EventQueue eventQ;
-	Core[] cores;
-	
-	long noOfInstructionsArrived =0; //For testing purposes
+	int[] cons_ptr = new int[EMUTHREADS]; // consumer pointers
+	long[] tot_cons = new long[EMUTHREADS]; // total consumed data
 
-	DynamicInstructionBuffer passPackets;
-	InstructionLinkedList inputToPipeline;
+	InstructionList inputToPipeline;
 
 	public RunnableThread() {
 	}
 
-	// initialise a reader thread with the correct thread id and the buffer to write the results in.
-	public RunnableThread(String threadName, int tid1, DynamicInstructionBuffer pp, EventQueue eventQ, Core[] cores) {
-		tid =tid1;
-		passPackets = pp;
-		for (int i=0; i<EMUTHREADS; i++) {
-			emuThreadStartStatus[i] = false;
-			overstatus[i] = false;
+	// initialise a reader thread with the correct thread id and the buffer to
+	// write the results in.
+	public RunnableThread(String threadName, int tid1) {
+		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
+			threads.add(i,new appThread());
 		}
-		inputToPipeline = new InstructionLinkedList();
-		//inputToPipeline = TestInstructionLists.testList2();			//to simulate pipeline on testList1;
-																	//note :remember to set pipelineDone = true 
-		this.eventQ = eventQ;
-		this.cores = cores;
-		noOfMicroOps = 0;
+		inputToPipeline = new InstructionList();
+		this.tid = tid1;
 		runner = new Thread(this, threadName);
-		//System.out.println(runner.getName());
-		runner.start(); //Start the thread.
+		// System.out.println(runner.getName());
+		runner.start(); // Start the thread.
 	}
 
-	// returns true if all the emulator threads from which I was reading have finished
+	private boolean expectingHalt(int tidEmu) {
+		return threads.get(tidEmu).haltStates.size()!=0;
+	}
+
+	// returns true if all the emulator threads from which I was reading have
+	// finished
 	boolean emuThreadsFinished() {
 		boolean ret = true;
-		for (int i=0; i<EMUTHREADS; i++) {
-			if (emuThreadStartStatus[i]==true && overstatus[i]==false) {
+		int start=tid*EMUTHREADS;
+		appThread thread;
+		for (int i = start; i < start+EMUTHREADS; i++) {
+			thread = threads.get(i);
+			if (thread.started == true
+					&& thread.finished == false) {
 				return false;
 			}
 		}
 		return ret;
 	}
 
-	/* This keeps on reading from the appropriate index in the shared memory till it gets a -1
-	 * after which it stops.
-	 * NOTE this depends on each thread calling threadFini() which might not be
-	 * the case. This function will break if the threads which started do not call threadfini
-	 * in the PIN (in case of unclean termination). Although the problem is easily fixable.
+	/*
+	 * This keeps on reading from the appropriate index in the shared memory
+	 * till it gets a -1 after which it stops. NOTE this depends on each thread
+	 * calling threadFini() which might not be the case. This function will
+	 * break if the threads which started do not call threadfini in the PIN (in
+	 * case of unclean termination). Although the problem is easily fixable.
 	 */
 	public void run() {
-		
-		Vector<Packet> vectorPacket = new Vector<Packet>();
-		Packet pold = new Packet();
-		Packet pnew;
+		ArrayList<ArrayList<Packet>> listPacketsList = new ArrayList<ArrayList<Packet>>();
+		ArrayList<Packet> listPackets;
+		Packet[] poldList = new Packet[EMUTHREADS];
+		Packet pold;
+		Packet pnew = new Packet();
 		boolean allover = false;
-		int tid_emu = -1;
 		boolean emulatorStarted = false;
-		boolean pipelineCommenced = false;
-		boolean pipelineDone = false;		/* - set to true to detach pipeline - */
-		
-		boolean subsetSimulation = false;	/* - for pipeline of instructions 2000000 - 12000000 - */
-		boolean memSystemDetach = false;	/* to detach memory system */
-		long insCtr = 0;
-		long s = 0, e = 0;
-		
-		int noOfFusedInstructions = 0;
-		
-		DynamicInstructionBuffer[] dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
-		//FIXME: Hack - added for 50 thread only. 50 must be replaced by MAX_THREADS
-		for (long i=0; i<50; i++)
-		{
-			dynamicInstructionBuffer[0] = new DynamicInstructionBuffer();
-		}
-		
-		//FIXME:
-		boolean breakLoop = false;
-		
+
 		boolean isFirstPacket[] = new boolean[EMUTHREADS];
-		for (int i=0; i<EMUTHREADS; i++) {
+		for (int i = 0; i < EMUTHREADS; i++) {
 			isFirstPacket[i] = true;
+			listPacketsList.add(i, new ArrayList<Packet>());
+			poldList[i] = new Packet();
 		}
-		
+
 		// start gets reinitialized when the program actually starts
 		long start = System.currentTimeMillis();
-		
-		// keep on looping till there is something to read. iterates on the emulator threads from
-		// which it has to read.
-		long noOfInstr = 0;
-		boolean toExit = false;
-		
-		InstructionLinkedList bufferedInstructions = null;
-		
-		//temporaries
-		ExecutionEngine execEngine;
-		StatisticalPipeline statPipeline;
-		
-		while(true && breakLoop==false)
-		{
-			for (int emuid=0; (emuid < EMUTHREADS) & (breakLoop==false); emuid++) 
-			{
-				
-				tid_emu = tid*EMUTHREADS+emuid;	// the actual tid of a PIN thread, from which I will read now
-				
-				if (overstatus[emuid]) continue;
-				int queue_size, numReads=0,v=0;
+		appThread thread;
+		// keep on looping till there is something to read. iterates on the
+		// emulator threads from which it has to read.
+		// tid is java thread id
+		// tidEmu is the local notion of pin threads for the current java thread
+		// tid_emu is the actual tid of a pin thread
+		while (true) {
+			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+				int tidApp = tid * EMUTHREADS + tidEmu;
+				thread = threads.get(tidApp);
+				if (thread.halted || thread.finished)
+					continue;
+				listPackets = listPacketsList.get(tidEmu);
+				pold = poldList[tidEmu];
 
-				// get the number of packets to read. 'continue' and read from some
-				//other thread if there is nothing.
-				SharedMem.get_lock(tid_emu,ibuf, COUNT);
-				queue_size = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT,COUNT);
-				SharedMem.release_lock(tid_emu,ibuf, COUNT);
+				int queue_size, numReads = 0, v = 0;
+
+				// get the number of packets to read. 'continue' and read from
+				// some other thread if there is nothing.
+				SharedMem.get_lock(tidApp, shmAddress, COUNT);
+				queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
+						COUNT);
+				SharedMem.release_lock(tidApp, shmAddress, COUNT);
 				numReads = queue_size;
-				if(numReads == 0)	
-				{
+				if (numReads == 0) {
 					continue;
 				}
-				
-				// If java thread itself is terminated then break out from this for loop.
-				// also update the variable allover so that I can break from the while loop also.
-				if (SharedMem.termination[tid]==true) {
+
+				// If java thread itself is terminated then break out from this
+				// for loop. also update the variable allover so that I can 
+				// break from the while loop also.
+				if (SharedMem.termination[tid] == true) {
 					allover = true;
 					break;
 				}
-				
+
 				// need to do this only the first time
 				if (!emulatorStarted) {
-					emulatorStarted=true;
+					emulatorStarted = true;
 					start = System.currentTimeMillis();
-					SharedMem.started[tid]=true;
-				}
-				
-				if (isFirstPacket[emuid]) {
-					emuThreadStartStatus[emuid]=true;
-				}
-				
-				// Read the entries. The packets belonging to the same instruction are added
-				// in a vector and passed to the DynamicInstructionBuffer which then processes it.
-				for(int i=0 ; (i < numReads)  && (breakLoop==false); i++ ) 
-				{
-					pnew = SharedMem.shmread(tid_emu,ibuf,(cons_ptr[emuid] + i) %COUNT,COUNT );
-					v = pnew.value;
-					read_count ++;
-					sum += v;
-					if (pnew.ip == pold.ip || isFirstPacket[emuid]) {
-						if (isFirstPacket[emuid]) pold = pnew;
-						vectorPacket.add(pnew);
-					}
-					else 
-					{
-						(SharedMem.numInstructions[tid])++;
-						
-						//passPackets.configurePackets(vectorPacket,tid,tid_emu);
-						dynamicInstructionBuffer[emuid].configurePackets(vectorPacket, tid, tid_emu);
-						
-						//TODO This instructionList must be provided to raj's code
-						Newmain.instructionCount ++;
-						
-						InstructionLinkedList fusedInstructions = null;
-						fusedInstructions = ObjParser.translateInstruction(pold.ip, dynamicInstructionBuffer[emuid]);
-//						dynamicInstructionBuffer[emuid].clearBuffer(); // gobble all micro-ops
-//						fusedInstructions=null;
-						
-						if(fusedInstructions != null && pipelineDone == false)
-						{
-							//if this is the first instruction, then pipeline needs
-							//to be commenced
-							if(pipelineCommenced == false && insCtr > cores[0].getDecodeWidth())
-							{
-								/*for(int i1 = 0; i1 < cores.length; i1++)
-								{
-									cores[i1].boot();
-								}*/
-								pipelineCommenced = true;
-								GlobalClock.setCurrentTime(0);
-								if(subsetSimulation == true) /* - for pipeline of instructions 2000000 - 12000000 - */
-								{
-									s = System.currentTimeMillis();
-								}
-							}
-							
-							noOfFusedInstructions += fusedInstructions.getListSize();
-							
-							long listSize;
-							
-							//add fused instructions to the input to the pipeline
-							/* - for pipeline of instructions 2000000 - 12000000 - */
-							if(subsetSimulation == false || noOfMicroOps > 2000000 && insCtr < 10000000)
-							{
-								for(int i3 = 0; i3 < fusedInstructions.getListSize(); i3++)
-								{
-									/* - to disconnect memory system - */
-									if(memSystemDetach == false ||
-											fusedInstructions.peekInstructionAt(i3).getOperationType() != OperationType.load &&
-											fusedInstructions.peekInstructionAt(i3).getOperationType() != OperationType.store)
-									{
-										inputToPipeline.appendInstruction(fusedInstructions.peekInstructionAt(i3));
-										insCtr++;
-									}
-								}
-							}
-							
-							listSize = inputToPipeline.getListSize();
-							
-							for(int i2 = 0; i2 < listSize/cores[0].getDecodeWidth()*cores[0].getStepSize(); i2++)
-							{
-								if(i2%cores[0].getStepSize() == 0)
-								{
-									for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-									{
-										if (!eventQ.getCoresHandled()[i1].isPipelineStatistical)
-										{
-											execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-											execEngine.getReorderBuffer().performCommits();
-											if(execEngine.isExecutionComplete() == false)
-											{
-												execEngine.getWriteBackLogic().performWriteBack();
-												execEngine.getSelector().performSelect();
-											}
-										}
-										else //Statistical Pipeline
-										{
-											statPipeline = eventQ.getCoresHandled()[i1].getStatisticalPipeline();
-											statPipeline.performCommits();
-											if (statPipeline.isExecutionComplete() == false)
-											{
-												statPipeline.getFetcher().performFetch();
-											}
-										}
-									}
-								}
-								
-								//handle events
-								eventQ.processEvents();
-								
-								if(i2%cores[0].getStepSize() == 0)
-								{
-									for(int i1 = 0; i1 < eventQ.getCoresHandled().length 
-										&& !eventQ.getCoresHandled()[i1].isPipelineStatistical; i1++)
-									{
-										execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-										if(execEngine.isExecutionComplete() == false)
-										{
-											execEngine.getIWPusher().performIWPush();
-											execEngine.getRenamer().performRename();
-											execEngine.getDecoder().performDecode();
-											execEngine.getFetcher().performFetch();
-										}
-									}
-								}
-								
-								GlobalClock.incrementClock();
-							}
-							
-							/* - for pipeline of instructions 2000000 - 12000000 - */
-							if(subsetSimulation == true && insCtr > 10000000)
-							{
-								inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
-								int i2 = 0;
-								
-								while(eventQ.isEmpty() == false)
-								{
-									//perform commits
-									if(i2%cores[0].getStepSize() == 0)
-									{
-										for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-										{
-											if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false)
-											{
-												eventQ.getCoresHandled()[i1].getExecEngine().getReorderBuffer().performCommits();
-											}
-											else
-											{
-												eventQ.getCoresHandled()[i1].getStatisticalPipeline().performCommits();
-											}
-										}
-									}
-									
-									//handle events other than decode, commit
-									eventQ.processEvents();
-									
-									//perform decode
-									if(i2%cores[0].getStepSize() == 0)
-									{
-										for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-										{
-											if(eventQ.getCoresHandled()[i1].isPipelineStatistical == false
-													&& eventQ.getCoresHandled()[i1].getExecEngine().isExecutionComplete() == false)
-											{
-												//eventQ.getCoresHandled()[i1].getExecEngine().getDecoder().scheduleDecodeCompletion();
-											}
-										}
-									}
-									
-									GlobalClock.incrementClock();
-									i2++;
-								}
-								
-								e = System.currentTimeMillis();
-								long t = e - s;
-								System.out.println("time for 10000000 microps = " + t);
-								Statistics.setSubsetTime(t);
-								pipelineDone = true;
-							}
-							
-							noOfMicroOps += fusedInstructions.getListSize();
-							
-						}
-						
-						pold = pnew;
-						vectorPacket.clear();
-						vectorPacket.add(pold);
-					}
-					if (isFirstPacket[emuid]) isFirstPacket[emuid] = false;
+					SharedMem.started[tid] = true;
 				}
 
-				// update the consumer pointer, queue_size.
-				cons_ptr[emuid] = (cons_ptr[emuid] + numReads) % COUNT;
-				SharedMem.get_lock(tid_emu,ibuf, COUNT);
-				queue_size = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT,COUNT);
-				queue_size -= numReads;
-				
-				// some error checking
-				tot_cons[emuid] += numReads;
-				long tot_prod = SharedMem.shmreadvalue(tid_emu,ibuf,COUNT+4,COUNT);
-				
-//				if (SharedMem.numInstructions[tid] > 50000000)
-//				{
-//					toExit = true;
-//					break;
-//				}
-				
-				/*if(tot_cons[emuid] > tot_prod) {
-					System.out.println("tot_prod = " + tot_prod + " tot_cons = " + tot_cons[emuid] + " v = " + v);
-					System.exit(1);
-				}*/
-				if(queue_size < 0) 
-				{
-					System.out.println("queue less than 0");
-					System.exit(1);
+				if (isFirstPacket[tidEmu]) {
+					thread.started = true;
 				}
-				
-				//update queue_size
-				SharedMem.shmwrite(tid_emu,ibuf,COUNT,queue_size,COUNT);
-				SharedMem.release_lock(tid_emu,ibuf, COUNT);
+
+				// Read the entries
+				for (int i = 0; i < numReads; i++) {
+					pnew = SharedMem.shmread(tidApp, shmAddress,
+							(cons_ptr[tidEmu] + i) % COUNT, COUNT);
+					if (handleSynch(pnew, tidApp))
+						continue;
+					v = processPacket(listPackets, pold, pnew, tidApp,
+							isFirstPacket[tidEmu]);
+				}
+				// update the consumer pointer, queue_size.
+				cons_ptr[tidEmu] = (cons_ptr[tidEmu] + numReads) % COUNT;
+				SharedMem.get_lock(tidApp, shmAddress, COUNT);
+				queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
+						COUNT);
+				queue_size -= numReads;
+
+				errorCheck(tidApp, tidEmu, queue_size, numReads, v);
+
+				// update queue_size
+				SharedMem
+						.shmwrite(tidApp, shmAddress, COUNT, queue_size, COUNT);
+				SharedMem.release_lock(tidApp, shmAddress, COUNT);
 
 				// if we read -1, this means this emulator thread finished.
-				if(v == -1) {
-					//System.out.println(emuid+" pin thread got -1");
-					overstatus[emuid]=true;
-					}
-				
-				if (SharedMem.termination[tid]==true) {
+				if (v == -1) {
+					System.out.println(tidApp+" pin thread got -1");
+					thread.finished = true;
+				}
+
+				if (SharedMem.termination[tid] == true) {
 					allover = true;
 					break;
 				}
 			}
-//			if (toExit)
-//				break;
-			
-			// this runnable thread can be stopped in two ways. Either the emulator threads from 
-			// which it was supposed to read never started(none of them) so it has to be 
-			// signalled by the main thread. When this happens 'allover' becomes 'true' and it
-			// breaks out from the loop. The second situation is that all the emulator threads
-			// which started have now finished, so probably this thread should now terminate.
+
+			// this runnable thread can be stopped in two ways. Either the
+			// emulator threads from which it was supposed to read never
+			// started(none of them) so it has to be signalled by the main
+			// thread. When this happens 'allover' becomes 'true' and it
+			// breaks out from the loop. The second situation is that all the
+			// emulator threads which started have now finished, so probably
+			// this thread should now terminate.
 			// The second condition handles this situation.
 			// NOTE this ugly state management cannot be avoided unless we use
-			// some kind of a signalling mechanism between the emulator and simulator(TODO).
+			// some kind of a signalling mechanism between the emulator and
+			// simulator(TODO).
 			// Although this should handle most of the cases.
 			if (allover || (emulatorStarted && emuThreadsFinished())) {
-				SharedMem.termination[tid]=true;
+				SharedMem.termination[tid] = true;
 				break;
 			}
 		}
-//		System.out.println("invallid operation received");
-		//this instruction is a MARKER that indicates end of the stream - used by the pipeline logic
-		inputToPipeline.appendInstruction(new Instruction(OperationType.inValid, null, null, null));
-		
-		/*eventQ.getCoresHandled()[0].getExecEngine().getFetcher().setInputToPipeline(
-				new InstructionLinkedList[]{TestInstructionLists.testList2()});
-		*/
-		
-		long i2 = GlobalClock.getCurrentTime();
-		boolean queueComplete = true;		
-		for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-		{
-			if (eventQ.getCoresHandled()[i1].isPipelineStatistical)
-				queueComplete = queueComplete && eventQ.getCoresHandled()[0].getStatisticalPipeline().isExecutionComplete();
-			else
-				queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
-		}
-		
-		while(!queueComplete)
-		{
-			if(i2%cores[0].getStepSize() == 0)
-			{
-				for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-				{
-					if (!eventQ.getCoresHandled()[i1].isPipelineStatistical)
-					{
-						execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-						execEngine.getReorderBuffer().performCommits();
-						if(execEngine.isExecutionComplete() == false)
-						{
-							execEngine.getWriteBackLogic().performWriteBack();
-							execEngine.getSelector().performSelect();
-						}
-					}
-					else //Statistical Pipeline
-					{
-						statPipeline = eventQ.getCoresHandled()[i1].getStatisticalPipeline();
-						statPipeline.performCommits();
-						if (statPipeline.isExecutionComplete() == false)
-						{
-							statPipeline.getFetcher().performFetch();
-						}
-					}
-				}
-			}
-			
-			//handle events
-			eventQ.processEvents();
-			
-			if(i2%cores[0].getStepSize() == 0)
-			{
-				for(int i1 = 0; i1 < eventQ.getCoresHandled().length
-					&& !eventQ.getCoresHandled()[i1].isPipelineStatistical; i1++)
-				{
-					execEngine = eventQ.getCoresHandled()[i1].getExecEngine();
-					if(execEngine.isExecutionComplete() == false)
-					{
-						execEngine.getIWPusher().performIWPush();
-						execEngine.getRenamer().performRename();
-						execEngine.getDecoder().performDecode();
-						execEngine.getFetcher().performFetch();
-					}
-				}
-			}
-			
-			GlobalClock.incrementClock();
-			i2++;
-			
-			queueComplete = true;		
-			for(int i1 = 0; i1 < eventQ.getCoresHandled().length; i1++)
-			{
-				if (eventQ.getCoresHandled()[i1].isPipelineStatistical)
-					queueComplete = queueComplete && eventQ.getCoresHandled()[0].getStatisticalPipeline().isExecutionComplete();
-				else
-					queueComplete = queueComplete && eventQ.getCoresHandled()[0].getExecEngine().isExecutionComplete();
-			}
-		}
-		
+
 		long dataRead = 0;
-		for (int i=0; i<EMUTHREADS; i++) {
-			dataRead+=tot_cons[i];
-		}		
+		for (int i = 0; i < EMUTHREADS; i++) {
+			dataRead += tot_cons[i];
+		}
 		long timeTaken = System.currentTimeMillis() - start;
-		System.out.println("\nThread"+tid+" Bytes-"+dataRead*20
-				+" instructions-"+SharedMem.numInstructions[tid]
-				+" microops-"+noOfMicroOps
-				+" time-"+timeTaken+" MBPS-"+
-				(double)(dataRead*24)/(double)timeTaken/1000.0+" KIPS-"+
-				(double)SharedMem.numInstructions[tid]/(double)timeTaken + "\n");
-		
-		Statistics.setDataRead(dataRead*20, tid);
-		Statistics.setNumInstructions(SharedMem.numInstructions[tid], tid);
-		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
-		
+		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
+				+ " instructions-" + SharedMem.numInstructions[tid] + " time-"
+				+ timeTaken + " MBPS-" + (double) (dataRead * 24)
+				/ (double) timeTaken / 1000.0 + " KIPS-"
+				+ (double) SharedMem.numInstructions[tid] / (double) timeTaken
+				+ "checksum " + sum + "\n");
+
 		SharedMem.free.release();
 	}
 
-	private DynamicInstruction configurePackets(Vector<Packet> vectorPacket,
-			int tid2, int tidEmu) 
-	{
-		Packet p;
-		Vector<Long> memReadAddr = new Vector<Long>();
-		Vector<Long> memWriteAddr = new Vector<Long>();
-		Vector<Long> srcRegs = new Vector<Long>();
-		Vector<Long> dstRegs = new Vector<Long>();
+	private int processPacket(ArrayList<Packet> listPackets, Packet pold,
+			Packet pnew, int appTid, boolean isFirstPacket) {
+		int v;
+		v = pnew.value;
+		sum += v;
+		if (pnew.ip == pold.ip || isFirstPacket) {
+			if (isFirstPacket)
+				pold = pnew;
+			listPackets.add(pnew);
+		} else {
+			(SharedMem.numInstructions[tid])++;
+			DynamicInstruction dynamicInstruction = configurePackets(
+					listPackets, tid, appTid);
+			pold = pnew;
+			listPackets.clear();
+			listPackets.add(pold);
+		}
+		if (isFirstPacket)
+			isFirstPacket = false;
+		return v;
+	}
 
-		long ip = vectorPacket.elementAt(0).ip;
+	private void errorCheck(int tid_emu, int emuid, int queue_size,
+			int numReads, int v) {
+		// some error checking
+		tot_cons[emuid] += numReads;
+		int tot_prod = SharedMem.shmreadvalue(tid_emu, shmAddress, COUNT + 4,
+				COUNT);
+		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
+		if (tot_cons[emuid] > tot_prod) {
+			System.out.println("numReads" + numReads + " queue_size"
+					+ queue_size + " ip");
+			System.out.println("tot_prod=" + tot_prod + " tot_cons="
+					+ tot_cons[emuid] + " v=" + v + " emuid" + emuid);
+			System.exit(1);
+		}
+		if (queue_size < 0) {
+			System.out.println("queue less than 0");
+			System.exit(1);
+		}
+	}
+
+	// false if the packet is not for synchronization. else true
+	private boolean handleSynch(Packet p, int appTid) {
+		if (p.value <= SYNCHSTART || p.value >= SYNCHEND)
+			return false;
+		SharedMem.glTable.update(p.tgt, appTid, p.ip, p.value);
+		//TODO also inject a SYNCH instruction here
+		return true;
+	}
+
+	private DynamicInstruction configurePackets(ArrayList<Packet> listPackets,
+			int tid2, int tidEmu) {
+		Packet p;
+		ArrayList<Long> memReadAddr = new ArrayList<Long>();
+		ArrayList<Long> memWriteAddr = new ArrayList<Long>();
+		ArrayList<Long> srcRegs = new ArrayList<Long>();
+		ArrayList<Long> dstRegs = new ArrayList<Long>();
+
+		long ip = listPackets.get(0).ip;
 		boolean taken = false;
 		long branchTargetAddress = 0;
-		for (int i = 0; i < vectorPacket.size(); i++) {
-			p = vectorPacket.elementAt(i);
-			assert (ip == p.ip) : "all instruction pointers not matching";
+		for (int i = 0; i < listPackets.size(); i++) {
+			p = listPackets.get(i);
+			if (ip != p.ip)
+				misc.Error.shutDown("IP mismatch " + ip + " " + p.ip + " " + i
+						+ " " + listPackets.size());
 			switch (p.value) {
 			case (-1):
 				break;
-			case (0):
-				assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
-				break;
-			case (1):
-				assert (false) : "The value is reserved for locks";
-				break;
-			case (2):
+			case (MEMREAD):
 				memReadAddr.add(p.tgt);
 				break;
-			case (3):
+			case (MEMWRITE):
 				memWriteAddr.add(p.tgt);
 				break;
-			case (4):
+			case (TAKEN):
 				taken = true;
 				branchTargetAddress = p.tgt;
 				break;
-			case (5):
+			case (NOTTAKEN):
 				taken = false;
 				branchTargetAddress = p.tgt;
 				break;
-			case (6):
+			case (REGREAD):
 				srcRegs.add(p.tgt);
 				break;
-			case (7):
+			case (REGWRITE):
 				dstRegs.add(p.tgt);
 				break;
 			default:
-				assert (false) : "error in configuring packets";
+				misc.Error.shutDown("error in configuring packets" + p.value
+						+ " size" + listPackets.size());
 			}
 		}
 
-		 return new DynamicInstruction(ip, tidEmu, taken,
-				branchTargetAddress, memReadAddr, memWriteAddr, srcRegs,
-				dstRegs);
+		return new DynamicInstruction(ip, tidEmu, taken, branchTargetAddress,
+				memReadAddr, memWriteAddr, srcRegs, dstRegs);
 	}
 
-	public InstructionLinkedList getInputToPipeline() {
+	public InstructionList getInputToPipeline() {
 		return inputToPipeline;
 	}
 }

@@ -12,7 +12,6 @@
 package emulatorinterface.communication;
 
 import emulatorinterface.*;
-import emulatorinterface.communication.shm.RunnableThread;
 
 public class IPCBase {
 
@@ -41,9 +40,9 @@ public class IPCBase {
 
 	// Create Reader threads in java. A queue for returning information about the instruction
 	// is passed which is filled by the reader threads.
-	public void createReaders(DynamicInstructionBuffer passPackets){}
+	public void createReaders(){}
 	
-	public RunnableThread[] getReaderThreads() {return null;}
+	public Object[] getReaderThreads() {return null;}
 
 	// The main thread waits for the finish of reader threads and returns total number of 
 	// instructions read
@@ -54,5 +53,6 @@ public class IPCBase {
 	public void doWaitForPIN(Process p) throws Exception{}
 
 	// Free buffers, free memory , deallocate any stuff.
-	public void finish(){}
+	public void finish(){
+	}
 }

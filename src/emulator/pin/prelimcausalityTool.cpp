@@ -12,15 +12,14 @@
 #include <sched.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-
+#include <time.h>
+#include <sys/timeb.h>
 
 #include "IPCBase.h"
 #include "shmem.h"
 
-#define COUNT	(1000)
+#include "encoding.h"
 
-#define locQ	(50)
-#define QSIZE	(locQ*sizeof(packet))
 
 #ifdef _LP64
 #define MASK 0xffffffffffffffff
@@ -30,13 +29,25 @@
 
 // Defining  command line arguments
 KNOB<UINT64>   KnobLong(KNOB_MODE_WRITEONCE,       "pintool",
-    "map", "1", "Maps");
+		"map", "1", "Maps");
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
 UINT64 checkSum = 0;
-
 IPC::IPCBase *tst;
+
+
+// needs -lrt (real-time lib)
+// 1970-01-01 epoch UTC time, 1 nanosecond resolution
+uint64_t ClockGetTime()
+{
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000LL + (uint64_t)ts.tv_nsec;
+}
+
+#define cmp(a)	(rtn_name->find(a) != string::npos)
+
 
 VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v)
 {
@@ -47,107 +58,103 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v)
 	ReleaseLock(&lock);
 	ASSERT(numThreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
 
-	tst->onThread_start(threadid);
+	/*tst->onThread_start(threadid);*/
 }
 
 VOID ThreadFini(THREADID tid,const CONTEXT *ctxt, INT32 flags, VOID *v)
 {
-	while (tst->onThread_finish(tid)==-1) {
+/*	while (tst->onThread_finish(tid)==-1) {
 		PIN_Yield();
-	}
+	}*/
 }
 
-// Pass a memory read record
+//Pass a memory read record
 VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 {
-		checkSum+=2;
-		uint64_t nip = MASK & (uint64_t)ip;
-		uint64_t naddr = MASK & (uint64_t)addr;
-		while (tst->analysisFn(tid,nip,2,naddr)== -1) {
-			PIN_Yield();
-		}
+	checkSum+=MEMREAD;
+/*	uint64_t nip = MASK & (uint64_t)ip;
+	uint64_t naddr = MASK & (uint64_t)addr;
+	while (tst->analysisFn(tid,nip,MEMREAD,naddr)== -1) {
+		PIN_Yield();
+	}*/
 }
 
 // Pass a memory write record
 VOID RecordMemWrite(THREADID tid,VOID * ip, VOID * addr)
 {
-		checkSum+=3;
-		uint64_t nip = MASK & (uint64_t)ip;
-		uint64_t naddr = MASK & (uint64_t)addr;
-		while(tst->analysisFn(tid,nip,3,naddr)== -1) {
-			PIN_Yield();
-		}
+	checkSum+=MEMWRITE;
+/*	uint64_t nip = MASK & (uint64_t)ip;
+	uint64_t naddr = MASK & (uint64_t)addr;
+	while(tst->analysisFn(tid,nip,MEMWRITE,naddr)== -1) {
+		PIN_Yield();
+	}*/
 }
 
 VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 {
-	uint64_t nip = MASK & (uint64_t)ip;
+	checkSum = taken ? TAKEN : NOTTAKEN;
+/*	uint64_t nip = MASK & (uint64_t)ip;
 	uint64_t ntadr = MASK & (uint64_t)tadr;
-		if (taken) {
-			checkSum+=4;
-			while (tst->analysisFn(tid,nip,4,ntadr)==-1) {
-				PIN_Yield();
-			}
-		}
-		else {
-			checkSum+=5;
-			while (tst->analysisFn(tid,nip,5,ntadr)==-1) {
-				PIN_Yield();
-			}
-		}
-}
-
-VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
-{
-		checkSum+=6;
-		uint64_t nip = MASK & (uint64_t)ip;
-		uint64_t _nreg = MASK & (uint64_t)_reg;
-		while (tst->analysisFn(tid,nip,6,_nreg)== -1) {
+	if (taken) {
+		while (tst->analysisFn(tid,nip,TAKEN,ntadr)==-1) {
 			PIN_Yield();
 		}
-}
-
-
-VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
-{
-
-		checkSum+=7;
-		uint64_t nip = MASK & (uint64_t)ip;
-		uint64_t _nreg = MASK & (uint64_t)_reg;
-		while (tst->analysisFn(tid,nip,7,_nreg)== -1) {
+	}
+	else {
+		while (tst->analysisFn(tid,nip,NOTTAKEN,ntadr)==-1) {
 			PIN_Yield();
 		}
+	}*/
 }
+
+//VOID FunEntry(ADDRINT first_arg, const string * name, THREADID threadid)
+VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID threadid)
+{
+
+
+    GetLock(&lock, threadid+1);
+    printf("%d enters in %d with first arg %p    --%llu \n",threadid,encode,(void *)first_arg,ClockGetTime());
+    //TraceFile << threadid <<" enter "<< *name << "(" << first_arg << ")" << endl;
+    ReleaseLock(&lock);
+
+
+	checkSum+=encode;
+
+	/*uint64_t uarg = MASK & (uint64_t)first_arg;
+	while (tst->analysisFn(threadid,ClockGetTime(),encode,uarg)== -1) {
+		PIN_Yield();
+	}*/
+}
+
+VOID FunExit(ADDRINT *ret, UINT32 encode, THREADID threadid)
+{
+
+
+    GetLock(&lock, threadid+1);
+    printf("%d exits from %d with return value %p   --%llu\n",threadid,encode,(void *)ret,ClockGetTime());
+    //TraceFile << threadid <<" exit "<< *name << " returns " << ret << endl;
+    ReleaseLock(&lock);
+
+
+	checkSum+=encode;
+/*	uint64_t uret = MASK & (uint64_t)ret;
+	while (tst->analysisFn(threadid,ClockGetTime(),encode,uret)== -1) {
+		PIN_Yield();
+	}*/
+
+}
+
 
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v)
 {
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
-/*
-	UINT32 maxWregs = INS_MaxNumWRegs(ins);
-		UINT32 maxRregs = INS_MaxNumRRegs(ins);
-
-		for(UINT32 i=0; i< maxWregs; i++) {
-			REG x = REG_FullRegName(INS_RegW(ins, i));
-			if (REG_is_gr(x) || x == REG_EFLAGS)
-				INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RegValWrite,IARG_THREAD_ID, IARG_INST_PTR, IARG_REG_VALUE,x,IARG_END);
-		}
-		for(UINT32 i=0; i< maxRregs; i++) {
-			REG x = REG_FullRegName(INS_RegR(ins, i));
-			if (REG_is_gr(x) || x == REG_EFLAGS)
-				INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RegValRead,IARG_THREAD_ID, IARG_INST_PTR, IARG_REG_VALUE,x,IARG_END);
-		}
-*/
-
 
 	if (INS_IsBranchOrCall(ins))//INS_IsIndirectBranchOrCall(ins))
 	{
 		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)BrnFun, IARG_THREAD_ID, IARG_BRANCH_TARGET_ADDR, IARG_BRANCH_TAKEN, IARG_INST_PTR, IARG_END);
 	}
-	/*   if (INS_HasFallThrough(ins))//INS_IsIndirectBranchOrCall(ins))
-     {
- 	INS_InsertCall(ins, IPOINT_AFTER, (AFUNPTR)BrnFun, IARG_BRANCH_TARGET_ADDR, IARG_BRANCH_TAKEN, IARG_INST_PTR, IARG_END);
-     } */
+
 	// Iterate over each memory operand of the instruction.
 	for (UINT32 memOp = 0; memOp < memOperands; memOp++)
 	{
@@ -174,6 +181,42 @@ VOID Instruction(INS ins, VOID *v)
 		}
 	}
 }
+
+//if (RTN_Valid(rtn) && RtnMatchesName(RTN_Name(rtn), name))
+
+// This is a routine level instrumentation
+VOID FlagRtn(RTN rtn, VOID* v)
+{
+	RTN_Open(rtn);
+	const string* rtn_name = new string(RTN_Name(rtn));
+	INT32 encode;
+
+	if (cmp("pthread_cond_broadcast")) encode = BCAST;
+	else if (cmp("pthread_cond_signal")) encode = SIGNAL;
+	else if (cmp("pthread_mutex_lock")) encode = LOCK;
+	else if (cmp("pthread_mutex_unlock_")) encode = UNLOCK; //pthread_mutex_unlock is just a wrapper
+	else if (cmp("pthread_join")) encode = JOIN;
+	else if (cmp("pthread_cond_wait")) encode = CONDWAIT;
+	else if (cmp("pthread_barrier_wait")) encode = BARRIERWAIT;
+	else encode = -1;
+
+	if (encode != -1 && RTN_Valid(rtn)) {
+		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR)FunEntry,
+				IARG_FUNCARG_ENTRYPOINT_VALUE,0,
+				IARG_UINT32,encode,
+				IARG_THREAD_ID,
+				IARG_END);
+
+		RTN_InsertCall(rtn, IPOINT_AFTER, (AFUNPTR)FunExit,
+				IARG_FUNCRET_EXITPOINT_VALUE,
+				IARG_UINT32,encode+1,
+				IARG_THREAD_ID,
+				IARG_END);
+
+	}
+	RTN_Close(rtn);
+}
+
 
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
@@ -208,16 +251,22 @@ int main(int argc, char * argv[])
 		perror("sched_setaffinity");
 	}
 
+	PIN_InitSymbols();
 	// Initialize pin
 	if (PIN_Init(argc, argv)) return Usage();
 
 	tst = new IPC::Shm ();
+
 	PIN_AddThreadStartFunction(ThreadStart, 0);
 
 	// Register Instruction to be called to instrument instructions
 	INS_AddInstrumentFunction(Instruction, 0);
 
+	// Register ThreadFini to be called when a thread exits
 	PIN_AddThreadFiniFunction(ThreadFini, 0);
+
+	// Register FlagRtn whenever you get a routine
+	RTN_AddInstrumentFunction(FlagRtn, 0);
 
 	// Register Fini to be called when the application exits
 	PIN_AddFiniFunction(Fini, 0);

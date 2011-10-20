@@ -7,6 +7,8 @@
 #include <sys/msg.h>
 #include <errno.h>
 
+#include <sys/syscall.h>
+#include <unistd.h>
 
 namespace IPC
 {
@@ -130,6 +132,12 @@ Shm::shmwrite (int tid, int last)
 	THREAD_DATA *myData = &tldata[tid];
 	packet* shmem = myData->shm;
 
+/*	if (myData->tot_prod > 2000000000) {
+	printf("before sum %llu tid%d ostid%d pid%d someip%llu\n",
+			myData->sum,tid,syscall(__NR_gettid),getpid(),myData->tlq[myData->out].ip);
+	fflush(stdout);
+	}*/
+
 	get_lock(shmem);
 	queue_size = shmem[COUNT].value;
 	release_lock(shmem);
@@ -168,7 +176,9 @@ Shm::shmwrite (int tid, int last)
 	get_lock(shmem);
 	queue_size = shmem[COUNT].value;
 	queue_size += numWrite;
+
 	myData->tot_prod += numWrite;
+
 	if(queue_size > COUNT)
 		{
 			printf("gadbad ho gayi!!\n");
@@ -178,6 +188,9 @@ Shm::shmwrite (int tid, int last)
 
 	shmem[COUNT].value = queue_size;
 	shmem[COUNT+4].value = myData->tot_prod;
+
+
+
 	release_lock(shmem);
 
 	return 0;
