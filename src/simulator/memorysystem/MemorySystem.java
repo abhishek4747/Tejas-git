@@ -41,7 +41,7 @@ public class MemorySystem
 		return cacheList;
 	}
 
-	public static void initializeMemSys(Core[] cores, EventQueue[] eventQ)
+	public static void initializeMemSys(Core[] cores, EventQueue eventQ)
 	{
 		MemorySystem.cores = cores;
 		
@@ -49,7 +49,7 @@ public class MemorySystem
 		// initialising the memory system
 		
 		//Set up the main memory properties
-		mainMemory = new MainMemory(eventQ[0]);
+		mainMemory = new MainMemory(eventQ);
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
@@ -65,7 +65,7 @@ public class MemorySystem
 				cacheParameterObj = SystemConfig.declaredCaches.get(cacheName);
 				
 				//Declare the new cache
-				Cache newCache = new Cache(cacheParameterObj, eventQ[0]);
+				Cache newCache = new Cache(cacheParameterObj, eventQ);
 				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
@@ -112,7 +112,7 @@ public class MemorySystem
 		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			CoreMemorySystem coreMemSys = new CoreMemorySystem(cores[i], eventQ[0]);
+			CoreMemorySystem coreMemSys = new CoreMemorySystem(cores[i], eventQ);
 			
 			if (cores[i].isPipelineStatistical)
 				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;

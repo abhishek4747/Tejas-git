@@ -47,8 +47,6 @@ public class Core extends SimulationElement{
 	private int no_of_input_pipes;
 	private int no_of_threads;
 
-	private InstructionLinkedList[] incomingInstructionLists;
-
 	private int[] threadIDs;
 	
 	private TournamentPredictor branchPredictor;
@@ -72,7 +70,6 @@ public class Core extends SimulationElement{
 		this.eventQueue = eventQueue;
 		this.no_of_input_pipes = no_of_input_pipes;
 		this.no_of_threads = no_of_threads;
-		this.incomingInstructionLists = incomingInstructionLists;
 		this.threadIDs = threadIDs;
 		
 		if (isPipelineStatistical)
@@ -269,25 +266,6 @@ public class Core extends SimulationElement{
 		return threadIDs;
 	}
 
-	public InstructionLinkedList getIncomingInstructions(int threadID) {
-		int index = -1;
-		for(int i = 0; i < no_of_input_pipes; i++)
-		{
-			if(threadIDs[i] == threadID)
-			{
-				index = i;
-				break;
-			}
-		}
-		
-		if(threadID == -1 || index == -1)
-		{
-			misc.Error.showErrorAndExit("threadID of -1");
-		}
-		
-		return incomingInstructionLists[index];
-	}
-
 	public int getNo_of_input_pipes() {
 		return no_of_input_pipes;
 	}
@@ -331,13 +309,6 @@ public class Core extends SimulationElement{
 	public void incrementNoOfInstructionsExecuted()
 	{
 		this.noOfInstructionsExecuted++;
-	}
-	public InstructionLinkedList[] getIncomingInstructionLists() {
-		return incomingInstructionLists;
-	}
-
-	public void setIncomingInstructionLists(InstructionLinkedList[] incomingInstructionLists) {
-		this.incomingInstructionLists = incomingInstructionLists;
 	}
 	
 	public StatisticalPipeline getStatisticalPipeline() {

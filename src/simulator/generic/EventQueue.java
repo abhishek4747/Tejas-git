@@ -5,7 +5,6 @@ import java.util.PriorityQueue;
 public class EventQueue 
 {
 	private PriorityQueue<Event> priorityQueue;
-	private Core[] coresHandled;
 
 	public EventQueue() 
 	{
@@ -47,13 +46,5 @@ public class EventQueue
 	public boolean isEmpty()
 	{
 		return priorityQueue.isEmpty();
-	}
-		
-	public Core[] getCoresHandled() {
-		return coresHandled;
-	}
-
-	public void setCoresHandled(Core[] coresHandled) {
-		this.coresHandled = coresHandled;
 	}
 }
