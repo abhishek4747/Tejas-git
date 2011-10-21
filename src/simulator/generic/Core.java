@@ -54,7 +54,7 @@ public class Core extends SimulationElement{
 	
 	private int noOfInstructionsExecuted;
 	
-	private PipelineInterface pipelineInterface;
+	private pipeline.PipelineInterface pipelineInterface;
 
 	public Core(int core_number,
 			int no_of_input_pipes,
@@ -328,7 +328,7 @@ public class Core extends SimulationElement{
 		
 	}
 
-	public PipelineInterface getPipelineInterface() {
+	public pipeline.PipelineInterface getPipelineInterface() {
 		return pipelineInterface;
 	}
 
