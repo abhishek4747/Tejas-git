@@ -5,6 +5,7 @@ import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.PerformDecodeEventPerfect;
 //import pipeline.perfect.PerformCommitsEventPerfect;
 import pipeline.outoforder_new_arch.ExecutionEngine;
+import pipeline.outoforder_new_arch.PipelineInterface;
 import pipeline.statistical.StatisticalPipeline;
 import config.CoreConfig;
 import config.SystemConfig;
@@ -52,22 +53,22 @@ public class Core extends SimulationElement{
 	private TournamentPredictor branchPredictor;
 	
 	private int noOfInstructionsExecuted;
+	
+	private PipelineInterface pipelineInterface;
 
 	public Core(int core_number,
-			EventQueue eventQueue,
 			int no_of_input_pipes,
 			int no_of_threads,
 			InstructionLinkedList[] incomingInstructionLists,
 			int[] threadIDs)
 	{
-		super(PortType.Unlimited, -1, -1, eventQueue, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
-		//clock = 0;
+		super(PortType.Unlimited, -1, -1, null, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
+		
+		this.eventQueue = new EventQueue();
 		
 		initializeCoreParameters(SystemConfig.core[core_number]);
 		
-		//eventQueue = new EventQueue(this);
 		this.core_number = core_number;
-		this.eventQueue = eventQueue;
 		this.no_of_input_pipes = no_of_input_pipes;
 		this.no_of_threads = no_of_threads;
 		this.threadIDs = threadIDs;
@@ -79,6 +80,8 @@ public class Core extends SimulationElement{
 		
 		this.branchPredictor = new TournamentPredictor();
 		this.noOfInstructionsExecuted = 0;
+		
+		this.pipelineInterface = new PipelineInterface(this, eventQueue);
 	}
 
 	private void initializeCoreParameters(CoreConfig coreConfig)
@@ -323,6 +326,14 @@ public class Core extends SimulationElement{
 	public void handleEvent(Event event) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public PipelineInterface getPipelineInterface() {
+		return pipelineInterface;
+	}
+
+	public void setPipelineInterface(PipelineInterface pipelineInterface) {
+		this.pipelineInterface = pipelineInterface;
 	}
 
 }

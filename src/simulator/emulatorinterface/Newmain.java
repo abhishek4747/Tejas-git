@@ -55,8 +55,8 @@ public class Newmain {
 		configureEmulator();
 
 		//create event queue
-		EventQueue[] eventQ = new EventQueue[1];	//TODO number of queues = number of java threads
-														//number of java threads to be specified/determinable from config file
+		EventQueue[] eventQ = new EventQueue[1];	//TODO number of queues = number of cores
+														//number of cores to be specified/determinable from config file
 		for(int i = 0; i < 1; i++)
 		{
 			eventQ[i] = new EventQueue();
@@ -64,23 +64,29 @@ public class Newmain {
 		
 		//create cores
 		Core[] cores = initCores(eventQ[0]);
-		eventQ[0].setCoresHandled(cores);
+		
+		//create the buffers between the translation logic and the pipeline logic
+		InstructionLinkedList[] inputsToPipeline;
+		inputsToPipeline = new InstructionLinkedList[1];
+		for(int i = 0; i < 1; i++)					//TODO number of pipelines = number of cores
+													//mapping of application threads to cores to be read from config file
+													//currently application thread i runs on core i
+		{
+			inputsToPipeline[i] = new InstructionLinkedList();
+			
+			if (cores[i].isPipelineStatistical)
+				cores[i].getStatisticalPipeline().getFetcher().setInputToPipeline(new InstructionLinkedList[]{inputsToPipeline[i]});
+			else
+				cores[i].getExecEngine().getFetcher().setInputToPipeline(new InstructionLinkedList[]{inputsToPipeline[i]});
+		}
 		
 		// create PIN interface
 		IPCBase ipcBase = new SharedMem();
 		Process process = createPINinterface(ipcBase, executableArguments,
 				dynamicInstructionBuffer);
 		
-		//connect pipe between instruction translator and pipeline
-		cores[0].setIncomingInstructionLists(new InstructionLinkedList[]{ipcBase.getReaderThreads()[0].getInputToPipeline()});
-		
-		if (cores[0].isPipelineStatistical)
-			cores[0].getStatisticalPipeline().getFetcher().setInputToPipeline(cores[0].getIncomingInstructionLists());
-		else
-			cores[0].getExecEngine().getFetcher().setInputToPipeline(cores[0].getIncomingInstructionLists());
-		
 		//Create the memory system
-		MemorySystem.initializeMemSys(cores, eventQ);
+		MemorySystem.initializeMemSys(cores, eventQ[0]); //TODO mem sys need not know eventQ during initialisation
 		
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
@@ -196,7 +202,6 @@ public class Newmain {
 		
 		Core[] cores = new Core[]{
 								new Core(0,
-										eventQ,
 										1,
 										1,
 										null,
