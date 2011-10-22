@@ -16,13 +16,13 @@ public class FetchEngine extends SimulationElement
 	
 	StatisticalPipeline pipeline;
 	
-	private Instruction[] fetchBuffer;
+//	private Instruction[] fetchBuffer;
 	int fetchWidth;
 	int inputPipeToReadNext;
 	InstructionLinkedList[] inputToPipeline;
 	
 	public CoreMemorySystem coreMemSys;
-	
+	LoadStoreUnit loadStoreUnit;
 	private boolean toStall;
 	
 	private boolean isExecutionComplete;		//TRUE indicates end of simulation
@@ -34,13 +34,14 @@ public class FetchEngine extends SimulationElement
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.pipeline = pipeline;
-		fetchBuffer = pipeline.getFetchBuffer();
+//		fetchBuffer = pipeline.getFetchBuffer();
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
 		
 		isExecutionComplete = false;
 		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
 		allPipesEmpty = false;
+		loadStoreUnit = new LoadStoreUnit();
 	}
 	
 	/*
@@ -74,17 +75,42 @@ public class FetchEngine extends SimulationElement
 				}
 				else
 				{
-					for(int i = 0; i < fetchWidth; i++)
+					boolean dontFetchMore = false;
+					for(int i = 0; i < fetchWidth && dontFetchMore == false; i++)
 					{
+						dontFetchMore = false;
 						newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
 						if(newInstruction.getOperationType() == OperationType.inValid)
 						{
 							setInputPipeEmpty(inputPipeToReadNext, true);
 							break;
 						}
+						else if (newInstruction.getOperationType() == OperationType.load
+								|| newInstruction.getOperationType() == OperationType.store)
+						{
+							if (core.getStatisticalPipeline().coreMemSys.getLsqueue().isFull())
+								dontFetchMore = true;
+							else
+							{
+								//Poll the instruction
+								newInstruction = inputToPipeline[inputPipeToReadNext].pollFirst();
+	
+								if (newInstruction.getOperationType() == OperationType.load)
+								{
+									if (DelayGenerator.forwardingDecision())
+										//Schedule load address ready after some time
+										DelayGenerator.scheduleAddressReady(newInstruction, core);
+								}
+								else
+								{
+									//Schedule store address ready after some time
+									DelayGenerator.scheduleAddressReady(newInstruction, core);
+								}
+							}
+						}
 						else
 						{
-							fetchBuffer[i] = inputToPipeline[inputPipeToReadNext].pollFirst();
+							inputToPipeline[inputPipeToReadNext].pollFirst();
 						}
 					}
 				}

@@ -19,7 +19,7 @@ public class StatisticalPipeline
 	
 	//components of the execution engine
 	private FetchEngine fetcher;
-	private Instruction[] fetchBuffer;
+//	private Instruction[] fetchBuffer;
 	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
 	public CoreMemorySystem coreMemSys;
 	
@@ -36,7 +36,7 @@ public class StatisticalPipeline
 	{
 		core = containingCore;
 				
-		fetchBuffer = new Instruction[core.getDecodeWidth()];
+//		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchEngine(core, this);
 		
 		toStall = false;
@@ -74,14 +74,14 @@ public class StatisticalPipeline
 	}
 
 
-	protected Instruction[] getFetchBuffer() {
-		return fetchBuffer;
-	}
-
-
-	protected void setFetchBuffer(Instruction[] fetchBuffer) {
-		this.fetchBuffer = fetchBuffer;
-	}
+//	protected Instruction[] getFetchBuffer() {
+//		return fetchBuffer;
+//	}
+//
+//
+//	protected void setFetchBuffer(Instruction[] fetchBuffer) {
+//		this.fetchBuffer = fetchBuffer;
+//	}
 
 
 	protected CoreMemorySystem getCoreMemSys() {
