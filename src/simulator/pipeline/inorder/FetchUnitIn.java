@@ -34,7 +34,7 @@ public class FetchUnitIn extends SimulationElement{
 
 		if(this.stall==0){
 			if(fetchFillCount > 0){
-				core.getInorderPipeline().getIfIdLatch().setInstruction(fetchBuffer[fetchBufferIndex]);
+				core.getExecutionEngineIn().getIfIdLatch().setInstruction(fetchBuffer[fetchBufferIndex]);
 				fetchFillCount--;			//TODO synchronize this ? with fetch buffer filling
 				fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
 			}
@@ -55,6 +55,9 @@ public class FetchUnitIn extends SimulationElement{
 	}
 	public void decrementStall(int _stall){
 		this.stall -= _stall;
+	}
+	public void setStall(int _stall){
+		this.stall = _stall;
 	}
 
 	@Override

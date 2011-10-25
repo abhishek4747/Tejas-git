@@ -19,6 +19,7 @@ public class StageLatch {
 	private OperationType operationType;
 	private boolean LoadFlag;
 	private int stallCount;
+	private boolean memDone;
 	
 	public StageLatch(Core _core){
 		this.core = _core;
@@ -32,6 +33,7 @@ public class StageLatch {
 		this.operationType=null;
 		this.LoadFlag=false;
 		this.stallCount=0;
+		this.memDone=true;
 	}
 
 	public boolean getBusy(){
@@ -63,6 +65,9 @@ public class StageLatch {
 	}
 	public int getStallCount(){
 		return this.stallCount;
+	}
+	public boolean getMemDone(){
+		return this.memDone;
 	}
 	
 	public void setBusy(boolean _busy){
@@ -97,5 +102,11 @@ public class StageLatch {
 	}
 	public void decrementStallCount(){
 		this.stallCount--;
+	}
+	public void setStallCount(int count){
+		this.stallCount = count;
+	}
+	public void setMemDone(boolean val){
+		this.memDone=val;
 	}
 }

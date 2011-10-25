@@ -23,10 +23,10 @@ public class DecodeUnitIn extends SimulationElement{
 
 	public void performDecode(){
 		Instruction ins;
-		StageLatch ifIdLatch = this.core.getInorderPipeline().getIfIdLatch();
+		StageLatch ifIdLatch = this.core.getExecutionEngineIn().getIfIdLatch();
 		ins = ifIdLatch.getInstruction();
 		if(ins!=null){
-			StageLatch idExLatch = this.core.getInorderPipeline().getIdExLatch(); 
+			StageLatch idExLatch = this.core.getExecutionEngineIn().getIdExLatch(); 
 			
 			//	stall pipeline if data hazard detected
 			//if ifIdLatch has stall count > 0 then it means there was a stall introduced in the last cycle,
@@ -46,7 +46,7 @@ public class DecodeUnitIn extends SimulationElement{
 //			}
 
 			if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
-				core.getFetchUnitIn().incrementStall(1);
+				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
 				idExLatch.setInstruction(null);
 				idExLatch.setIn1(null);
 				idExLatch.setIn2(null);			
@@ -69,7 +69,7 @@ public class DecodeUnitIn extends SimulationElement{
 			if(core.getBranchPredictor().predict(ins.getProgramCounter()) != ins.isBranchTaken()){
 				//Branch mis predicted
 				//stall pipeline for appropriate cycles
-				core.getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
+				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
 				//Set stall complete event to continue the pipeline
 //				core.getEventQueue().addEvent(
 //				new MispredictionPenaltyCompleteEventIn(

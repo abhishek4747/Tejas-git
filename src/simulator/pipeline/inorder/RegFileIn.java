@@ -16,7 +16,7 @@ public class RegFileIn extends SimulationElement{
 	}
 	public void fetchOperands(){
 		//TODO check for load hazard
-		StageLatch idExLatch = this.core.getInorderPipeline().getIdExLatch();
+		StageLatch idExLatch = this.core.getExecutionEngineIn().getIdExLatch();
 		if(idExLatch.getOperationType()==OperationType.load){
 			//set the load flag in the idexlatch so that next time when 
 			//decode unit checks for data hazards it stalls the pipeline appropriately

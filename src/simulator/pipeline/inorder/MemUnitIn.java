@@ -18,10 +18,16 @@ public class MemUnitIn extends SimulationElement{
 	}
 	
 	public void performMemEvent(){
-		Instruction ins = core.getInorderPipeline().getExMemLatch().getInstruction();
-		StageLatch memWbLatch = core.getInorderPipeline().getMemWbLatch();
-		StageLatch exMemLatch = core.getInorderPipeline().getExMemLatch();
+		Instruction ins = core.getExecutionEngineIn().getExMemLatch().getInstruction();
+		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
+		StageLatch exMemLatch = core.getExecutionEngineIn().getExMemLatch();
 //		if(exMemLatch.getStallCount()>0){
+
+		drainEventQueue();
+		if(!exMemLatch.getMemDone()){
+			core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
+		}
+		else{
 			if(ins!=null){
 				memWbLatch.setInstruction(ins);
 				memWbLatch.setIn1(exMemLatch.getIn1());
@@ -29,6 +35,7 @@ public class MemUnitIn extends SimulationElement{
 				memWbLatch.setOut1(exMemLatch.getOut1());
 				memWbLatch.setOperationType(exMemLatch.getOperationType());
 			}
+		}
 //		}
 //		else{
 //			exMemLatch.decrementStallCount();
@@ -37,9 +44,13 @@ public class MemUnitIn extends SimulationElement{
 		
 	}
 
+	private void drainEventQueue(){
+		eventQueue.processEvents();		
+	}
 	@Override
 	public void handleEvent(Event event) {
 		// TODO Auto-generated method stub
-		
+		core.getExecutionEngineIn().getFetchUnitIn().setStall(0);
+		core.getExecutionEngineIn().getExMemLatch().setMemDone(true);
 	}
 }
