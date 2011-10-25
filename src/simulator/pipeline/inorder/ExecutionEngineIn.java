@@ -13,7 +13,7 @@ public class ExecutionEngineIn {
 	private ExecUnitIn execUnitIn;
 	private MemUnitIn memUnitIn;
 	private WriteBackUnitIn writeBackUnitIn;
-	
+	private boolean executionComplete;
 	private CoreMemorySystem coreMemorySystem;
 
 	public ExecutionEngineIn(Core _core){
@@ -29,7 +29,7 @@ public class ExecutionEngineIn {
 		this.setExecUnitIn(new ExecUnitIn(core));
 		this.setMemUnitIn(new MemUnitIn(core));
 		this.setWriteBackUnitIn(new WriteBackUnitIn(core));
-		
+		this.executionComplete=false;
 
 	}
 
@@ -72,6 +72,9 @@ public class ExecutionEngineIn {
 	public void setCoreMemorySystem(CoreMemorySystem coreMemSys){
 		this.coreMemorySystem=coreMemSys;
 	}
+	public void setExecutionComplete(boolean execComplete){
+		this.executionComplete=execComplete;
+	}
 	public StageLatch getIfIdLatch(){
 		return this.ifId;
 	}
@@ -89,5 +92,8 @@ public class ExecutionEngineIn {
 	}
 	public CoreMemorySystem getCoreMemorySystem(){
 		return this.coreMemorySystem;
+	}
+	public boolean getExecutionComplete(){
+		return this.executionComplete;
 	}
 }

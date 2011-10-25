@@ -43,6 +43,7 @@ public class ExecUnitIn extends SimulationElement{
 			if(idExLatch.getOperationType()==OperationType.load){
 				exMemLatch.setMemDone(false);
 				//Schedule a mem read event now so that it can be completed in the mem stage
+				//TODO this.getPort() ?? Is this correct ??
 				this.getPort().put(new AddressCarryingEvent(1,
 						core.getExecutionEngineIn().getMemUnitIn(),
 						core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
@@ -53,6 +54,7 @@ public class ExecUnitIn extends SimulationElement{
 			else if(idExLatch.getOperationType()==OperationType.store){
 				exMemLatch.setMemDone(false);
 				//Schedule a mem read event now so that it can be completed in the mem stage
+				//TODO this.getPort() ?? Is this correct ??
 				this.getPort().put(new AddressCarryingEvent(1,
 						core.getExecutionEngineIn().getMemUnitIn(),
 						core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
