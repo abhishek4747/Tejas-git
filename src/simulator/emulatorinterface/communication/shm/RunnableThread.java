@@ -8,7 +8,10 @@ import static emulatorinterface.communication.shm.ApplicationThreads.threads;
 
 import java.util.ArrayList;
 
+import config.SimulationConfig;
+
 import emulatorinterface.DynamicInstruction;
+import emulatorinterface.communication.IPCBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.ApplicationThreads.appThread;
 import generic.InstructionArrayList;
@@ -29,18 +32,19 @@ public class RunnableThread implements Runnable, Encoding {
 	long[] tot_cons = new long[EMUTHREADS]; // total consumed data
 
 	InstructionLinkedList inputToPipeline;
-
+	IPCBase ipcType;
 	public RunnableThread() {
 	}
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
-	public RunnableThread(String threadName, int tid1) {
+	public RunnableThread(String threadName, int tid1, IPCBase ipcType) {
 		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
 			threads.add(i,new appThread());
 		}
 		inputToPipeline = new InstructionLinkedList();
 		this.tid = tid1;
+		this.ipcType = ipcType;
 		runner = new Thread(this, threadName);
 		// System.out.println(runner.getName());
 		runner.start(); // Start the thread.
@@ -74,6 +78,10 @@ public class RunnableThread implements Runnable, Encoding {
 	 * case of unclean termination). Although the problem is easily fixable.
 	 */
 	public void run() {
+		
+		if (SimulationConfig.debugMode) 
+			System.out.println("-- in runnable thread run "+this.tid);
+		
 		ArrayList<ArrayList<Packet>> listPacketsList = new ArrayList<ArrayList<Packet>>();
 		ArrayList<Packet> listPackets;
 		Packet[] poldList = new Packet[EMUTHREADS];
@@ -99,6 +107,10 @@ public class RunnableThread implements Runnable, Encoding {
 		// tid_emu is the actual tid of a pin thread
 		while (true) {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+				
+				if (SimulationConfig.debugMode) 
+					System.out.println("--tidEmu "+tidEmu);
+				
 				int tidApp = tid * EMUTHREADS + tidEmu;
 				thread = threads.get(tidApp);
 				if (thread.halted || thread.finished)
@@ -272,7 +284,7 @@ public class RunnableThread implements Runnable, Encoding {
 			p = listPackets.get(i);
 			if (ip != p.ip)
 				misc.Error.shutDown("IP mismatch " + ip + " " + p.ip + " " + i
-						+ " " + listPackets.size());
+						+ " " + listPackets.size(),ipcType);
 			switch (p.value) {
 			case (-1):
 				break;
@@ -298,7 +310,7 @@ public class RunnableThread implements Runnable, Encoding {
 				break;
 			default:
 				misc.Error.shutDown("error in configuring packets" + p.value
-						+ " size" + listPackets.size());
+						+ " size" + listPackets.size(),ipcType);
 			}
 		}
 

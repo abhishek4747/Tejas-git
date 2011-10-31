@@ -34,10 +34,10 @@ public class Error
 		System.exit(0);
 	}
 
-	public static void shutDown(String message) 
+	public static void shutDown(String message, IPCBase type) 
 	{
 		Newmain.process.destroy();
-		SharedMem.cleanup();
+		type.finish();
 		System.out.print(message);
 		System.exit(0);
 	}

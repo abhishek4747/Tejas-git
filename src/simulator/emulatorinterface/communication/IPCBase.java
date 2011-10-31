@@ -41,7 +41,7 @@ public abstract class IPCBase {
 
 	// Create Reader threads in java. A queue for returning information about the instruction
 	// is passed which is filled by the reader threads.
-	public void createReaders(){}
+	public void createReaders(DynamicInstructionBuffer dib){}
 	
 	public RunnableThread[] getReaderThreads(){return null;};
 
@@ -54,6 +54,5 @@ public abstract class IPCBase {
 	public void doWaitForPIN(Process p) throws Exception{}
 
 	// Free buffers, free memory , deallocate any stuff.
-	public void finish(){
-	}
+	public void finish(){}
 }

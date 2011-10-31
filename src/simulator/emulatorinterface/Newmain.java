@@ -168,7 +168,6 @@ public class Newmain {
 						+ SimulationConfig.MapEmuCores + " -- ";
 		cmd += executableArguments;
 
-
 		Process process = null;
 		try {
 			process = ipcBase.startPIN(cmd);
@@ -181,7 +180,8 @@ public class Newmain {
 			misc.Error
 					.showErrorAndExit("\n\tCorrect path for pin or tool or executable not specified !!");
 
-		ipcBase.createReaders();
+		//TODO should pass an array of these buffers..!!
+		ipcBase.createReaders(dynamicInstructionBuffer);
 
 		return process;
 	}

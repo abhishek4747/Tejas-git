@@ -8,8 +8,10 @@ public final class GlobalTable implements Encoding {
 	
 	private HashMap<Long, SynchPrimitive> synchTable;
 	private HashMap<Integer, ThreadState> stateTable;
-
-	public GlobalTable() {
+	private IPCBase ipcType;
+	
+	public GlobalTable(IPCBase ipcType) {
+		this.ipcType = ipcType;
 		this.synchTable = new HashMap<Long, SynchPrimitive>();
 		this.stateTable = new HashMap<Integer, ThreadState>();
 	}
@@ -51,7 +53,7 @@ public final class GlobalTable implements Encoding {
 			s = synchTable.get(addressSynchItem);
 		else
 			s = synchTable.put(addressSynchItem, new SynchPrimitive(
-					addressSynchItem, thread, time, encoding));
+					addressSynchItem, thread, time, encoding,ipcType));
 		
 		switch (encoding) {
 		case (BCAST):

@@ -22,10 +22,12 @@ public class SynchPrimitive implements Encoding{
 
 	ArrayList<synchTypes> entries;
 	long address;
+	IPCBase ipcType;
 
- 	public SynchPrimitive(long addressSynchItem, int thread, long time, int encoding) {
+ 	public SynchPrimitive(long addressSynchItem, int thread, long time, int encoding,IPCBase ipcType) {
 		this.address = addressSynchItem;
 		this.entries = new ArrayList<synchTypes>();
+		this.ipcType = ipcType;
 		entries.add(new synchTypes(thread, time, encoding));
 	}
 
@@ -41,7 +43,7 @@ public class SynchPrimitive implements Encoding{
 				for (synchTypes exit : entries) {
 					// if a wait exit after
 					if (exit.encoding==CONDWAIT+1 && exit.time>time && exit.thread==entry.thread) {
-						if (done) misc.Error.shutDown("Duplicate entry in sigEnter");
+						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = exit.thread;
 						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;
@@ -72,7 +74,7 @@ public class SynchPrimitive implements Encoding{
 				for (synchTypes sig : entries) {
 					// if a signal by some other thread found
 					if (sig.encoding==SIGNAL && sig.time<time && sig.time>entry.time) {
-						if (done) misc.Error.shutDown("Duplicate entry in sigEnter");
+						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = sig.thread;
 						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;
@@ -102,7 +104,7 @@ public class SynchPrimitive implements Encoding{
 				for (synchTypes exit : entries) {
 					// if a lock exit after
 					if (exit.encoding==LOCK+1 && exit.time>time && exit.thread==entry.thread) {
-						if (done) misc.Error.shutDown("Duplicate entry in sigEnter");
+						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = exit.thread;
 						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;
@@ -133,7 +135,7 @@ public class SynchPrimitive implements Encoding{
 				for (synchTypes unlock : entries) {
 					// if an unlock by some other thread found
 					if (unlock.encoding==UNLOCK && unlock.time<time && unlock.time>entry.time) {
-						if (done) misc.Error.shutDown("Duplicate entry in sigEnter");
+						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = unlock.thread;
 						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;

@@ -32,7 +32,7 @@ public class SharedMem extends  IPCBase
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
-		glTable = new GlobalTable();
+		glTable = new GlobalTable(this);
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
 		shmid = shmget((COUNT+5)*MAXNUMTHREADS*EMUTHREADS, SimulationConfig.MapJavaCores);
 		shmAddress = shmat(shmid);
@@ -59,13 +59,17 @@ public class SharedMem extends  IPCBase
 	// TODO should pass an array of DynamicInstructionBuffer if multiple such buffers are needed
 	// for multiple threads. This side of the code is generic and can handle the case very easily.
 	public void createReaders(DynamicInstructionBuffer passPackets) {
+		
+		if (SimulationConfig.debugMode) 
+			System.out.println("-- SharedMem creating readers");
+		
 		String name;
 		for (int i=0; i<MAXNUMTHREADS; i++){
 			name = "thread"+Integer.toString(i);
 			termination[i]=false;
 			started[i]=false;
 			numInstructions[i]=0;
-			readerThreads[i] = new RunnableThread(name,i);
+			readerThreads[i] = new RunnableThread(name,i,this);
 			//TODO not all cores are assigned to each thread
 			//when the mechanism to tie threads to cores is in place
 			//this has to be changed
@@ -109,7 +113,7 @@ public class SharedMem extends  IPCBase
 		shmdel(shmid);
 	}
 
-	public static void cleanup() {
+	public void cleanup() {
 		shmd(shmAddress);
 		shmdel(shmid);
 	}
