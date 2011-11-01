@@ -14,6 +14,7 @@ import emulatorinterface.ApplicationThreads.appThread;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
+import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.InstructionLinkedList;
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
@@ -31,6 +32,10 @@ public class RunnableThread implements Runnable, Encoding {
 
 	InstructionLinkedList inputToPipeline;
 	IpcBase ipcType;
+	
+	// QQQ re-arrange packets for use by translate instruction.
+	DynamicInstructionBuffer dynamicInstructionBuffer;
+	
 	public RunnableThread() {
 	}
 
@@ -239,8 +244,15 @@ public class RunnableThread implements Runnable, Encoding {
 			listPackets.add(pnew);
 		} else {
 			(ipcType.numInstructions[tid])++;
-			DynamicInstruction dynamicInstruction = configurePackets(
-					listPackets, tid, appTid);
+			
+			// QQQ Using local buffer to store packets
+			this.dynamicInstructionBuffer.configurePackets(listPackets);
+			
+			// QQQ translate instructions
+			// TODO is pold.ip the startInstructionPointer ???
+			this.inputToPipeline.appendInstruction(ObjParser.translateInstruction(pold.ip, 
+					dynamicInstructionBuffer));
+			
 			//TODO
 			// translate Instruction append fusedInstructions to Runnable's ipTo pipe
 			pold = pnew;

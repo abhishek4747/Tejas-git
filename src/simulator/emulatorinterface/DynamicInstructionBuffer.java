@@ -21,6 +21,7 @@
 
 package emulatorinterface;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
@@ -57,19 +58,20 @@ public class DynamicInstructionBuffer
 	 * value
 	 */
 
-	public void configurePackets(Vector<Packet> vectorPacket,
-			int tid2, int tidEmu) 
+	// QQQ Configure packets doesn't take tidEmu or anything now.
+	// packets read from ArrayList rather than a vector.
+	public void configurePackets(ArrayList<Packet> arrayListPacket) 
 	{
 		Packet p;
 		Vector<Packet> memReadAddr = new Vector<Packet>();
 		Vector<Packet> memWriteAddr = new Vector<Packet>();
 		Packet branchPacket = null;
 
-		long ip = vectorPacket.elementAt(0).ip;
+		long ip = arrayListPacket.get(0).ip;
 		
-		for (int i = 0; i < vectorPacket.size(); i++) 
+		for (int i = 0; i < arrayListPacket.size(); i++) 
 		{
-			p = vectorPacket.elementAt(i);
+			p = arrayListPacket.get(i);
 			assert (ip == p.ip) : "all instruction pointers not matching";
 			switch (p.value) 
 			{

@@ -41,9 +41,16 @@ public class InstructionLinkedList
 	}
 
 	//appends a single instruction to the instruction list
-	public void appendInstruction(Instruction newInstruction)
+	public void appendInstruction(Instruction instruction)
 	{
-		instructionLinkedList.add(newInstruction);
+		instructionLinkedList.add(instruction);
+	}
+	
+	// appends multiple instructions at the end of InstructionLinkedList
+	public void appendInstruction(InstructionLinkedList instructionLinkedList)
+	{
+		this.instructionLinkedList.
+					addAll(instructionLinkedList.instructionLinkedList);
 	}
 	
 	public boolean isEmpty()
