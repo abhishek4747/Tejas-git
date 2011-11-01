@@ -179,7 +179,7 @@ public class TLB extends SimulationElement
 		return tlbRequests;
 	}
 
-	public void handleEvent(Event event)
+	public void handleEvent(EventQueue eventQ, Event event)
 	{
 		
 	}

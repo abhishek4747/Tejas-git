@@ -114,6 +114,7 @@ public class LSQ extends SimulationElement
 						if (entry.getRobEntry() != null && !entry.getRobEntry().getExecuted())
 							containingMemSys.core.getEventQueue().addEvent(
 									new ExecCompleteEvent(
+											containingMemSys.core.getEventQueue(),
 											GlobalClock.getCurrentTime(),
 											null,
 											containingMemSys.core.getExecEngine().getExecuter(),
@@ -160,6 +161,7 @@ public class LSQ extends SimulationElement
 						if (tmpEntry.getRobEntry() != null && !tmpEntry.getRobEntry().getExecuted())
 							containingMemSys.core.getEventQueue().addEvent(
 									new ExecCompleteEvent(
+											containingMemSys.core.getEventQueue(),
 											GlobalClock.getCurrentTime(),
 											null,
 											containingMemSys.core.getExecEngine().getExecuter(),
@@ -258,34 +260,34 @@ public class LSQ extends SimulationElement
 		lsqueue[index].setRemoved(true);
 	}
 	
-	public void handleEvent(Event event)
+	public void handleEvent(EventQueue eventQ, Event event)
 	{
 		if (event.getRequestType() == RequestType.Tell_LSQ_Addr_Ready)
 		{
-			handleAddressReady(event);
+			handleAddressReady(eventQ, event);
 		}
 		else if (event.getRequestType() == RequestType.Validate_LSQ_Addr)
 		{
-			handleAddrValidate(event);
+			handleAddrValidate(eventQ, event);
 		}
 		else if (event.getRequestType() == RequestType.LSQ_Commit)
 		{
-			handleCommitsFromROB(event);
+			handleCommitsFromROB(eventQ, event);
 		}
 		else if (event.getRequestType() == RequestType.Mem_Response)
 		{
-			handleMemResponse(event);
+			handleMemResponse(eventQ, event);
 		}
 	}
 	
-	public void handleAddressReady(Event event)
+	public void handleAddressReady(EventQueue eventQ, Event event)
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		long virtualAddr = lsqEntry.getAddr();
 		
 		if (this.containingMemSys.TLBuffer.searchTLBForPhyAddr(virtualAddr))
 		{
-			this.handleAddrValidate(event);
+			this.handleAddrValidate(eventQ, event);
 		}
 		else
 		{
@@ -294,6 +296,7 @@ public class LSQ extends SimulationElement
 			// assuming a constant delay equal to Main memory latency
 			this.getPort().put(
 					event.update(
+							eventQ,
 							MemorySystem.mainMemory.getLatencyDelay(),
 							null,
 							this,
@@ -301,7 +304,7 @@ public class LSQ extends SimulationElement
 		}
 	}
 	
-	public void handleAddrValidate(Event event)
+	public void handleAddrValidate(EventQueue eventQ, Event event)
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
@@ -315,6 +318,7 @@ public class LSQ extends SimulationElement
 				//Direct address must not be set as it is pageID in some cases
 				this.containingMemSys.l1Cache.getPort().put(
 						event.update(
+								eventQ,
 								this.containingMemSys.l1Cache.getLatencyDelay(),
 								this,
 								this.containingMemSys.l1Cache,
@@ -327,7 +331,7 @@ public class LSQ extends SimulationElement
 		}
 	}
 	
-	protected void handleMemResponse(Event event)
+	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
@@ -340,6 +344,7 @@ public class LSQ extends SimulationElement
 			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())
 				containingMemSys.core.getEventQueue().addEvent(
 						new ExecCompleteEvent(
+								containingMemSys.core.getEventQueue(),
 								GlobalClock.getCurrentTime(),
 								null,
 								containingMemSys.core.getExecEngine().getExecuter(),
@@ -367,7 +372,7 @@ public class LSQ extends SimulationElement
 			
 	}
 	
-	public void handleCommitsFromROB(Event event)
+	public void handleCommitsFromROB(EventQueue eventQ, Event event)
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
@@ -386,6 +391,7 @@ public class LSQ extends SimulationElement
 			//TODO Write to the cache
 			this.containingMemSys.l1Cache.getPort().put(
 					event.update(
+							eventQ,
 							this.containingMemSys.l1Cache.getLatencyDelay(),
 							this,
 							this.containingMemSys.l1Cache,

@@ -193,11 +193,21 @@ public class XMLParser
 			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
 			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
 		
-			//Code for L1 cache configurations for each core
+			//Code for instruction cache configurations for each core
+			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
+			Element iCacheElmnt = (Element) iCacheList.item(0);
+			String cacheType = iCacheElmnt.getAttribute("type");
+			Element typeElmnt = searchLibraryForItem(cacheType);
+			core.iCache.isFirstLevel = true;
+			setCacheProperties(typeElmnt, core.iCache);
+			core.iCache.nextLevel = iCacheElmnt.getAttribute("nextLevel");
+			core.iCache.operatingFreq = core.frequency;
+			
+			//Code for L1 Data cache configurations for each core
 			NodeList l1CacheList = coreElmnt.getElementsByTagName("L1Cache");
 			Element l1Elmnt = (Element) l1CacheList.item(0);
-			String cacheType = l1Elmnt.getAttribute("type");
-			Element typeElmnt = searchLibraryForItem(cacheType);
+			cacheType = l1Elmnt.getAttribute("type");
+			typeElmnt = searchLibraryForItem(cacheType);
 			core.l1Cache.isFirstLevel = true;
 			setCacheProperties(typeElmnt, core.l1Cache);
 			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");

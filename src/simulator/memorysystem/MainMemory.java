@@ -20,12 +20,13 @@ public class MainMemory extends SimulationElement
 		// TODO Auto-generated constructor stub
 	}
 	
-	public void handleEvent(Event event)
+	public void handleEvent(EventQueue eventQ, Event event)
 	{
 		if (event.getRequestType() == RequestType.Main_Mem_Read)
 		{
 			event.getRequestingElement().getPort().put(
 					event.update(
+							eventQ,
 							event.getRequestingElement().getLatencyDelay(),
 							null,
 							event.getRequestingElement(),

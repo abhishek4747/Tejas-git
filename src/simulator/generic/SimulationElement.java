@@ -59,5 +59,5 @@ public abstract class SimulationElement
 	}
 	
 //	public abstract void handleEvent(EventQueue eventQueue);
-	public abstract void handleEvent(Event event);
+	public abstract void handleEvent(EventQueue eventQ, Event event);
 }

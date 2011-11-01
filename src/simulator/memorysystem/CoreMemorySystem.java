@@ -29,6 +29,7 @@ public class CoreMemorySystem
 {
 	protected int coreID;
 	protected Core core;
+	protected Cache iCache;
 	protected Cache l1Cache;
 	//protected Cache l2Cache;
 	//protected Cache l3Cache;
@@ -49,11 +50,14 @@ public class CoreMemorySystem
 		//l2Cache = new Cache(cacheParameterObj, this); 
 		//l2Cache.nextLevel = l3Cache;
 		
-		//Initialise the  L1 cache
+		//Initialise the  instruction cache
 		CacheConfig cacheParameterObj;
+		cacheParameterObj = SystemConfig.core[coreID].iCache;
+		iCache = new InstructionCache(cacheParameterObj, eventQ);
+		
+		//Initialise the  L1 cache
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
 		l1Cache = new Cache(cacheParameterObj, eventQ);
-		//l1Cache.nextLevel = l2Cache;
 		
 		//Initialise the TLB
 		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,
@@ -119,5 +123,9 @@ public class CoreMemorySystem
 
 	public TLB getTLBuffer() {
 		return TLBuffer;
+	}
+
+	public Cache getiCache() {
+		return iCache;
 	}
 }

@@ -1,6 +1,7 @@
 package memorysystem;
 
 import generic.Event;
+import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 
@@ -8,19 +9,19 @@ public class LSQEntryContainingEvent extends Event
 {
 	private LSQEntry lsqEntry;
 	
-	public LSQEntryContainingEvent(long eventTime, SimulationElement requestingElement,
+	public LSQEntryContainingEvent(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, LSQEntry lsqEntry) {
-		super(eventTime, requestingElement, processingElement,
+		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType);
 		this.lsqEntry = lsqEntry;
 	}
 	
-	public void updateEvent(long eventTime, SimulationElement requestingElement,
+	public void updateEvent(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, LSQEntry lsqEntry) {
 		this.lsqEntry = lsqEntry;
-		this.update(eventTime, requestingElement, processingElement, requestType);
+		this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
 	}
 
 	public LSQEntry getLsqEntry() {

@@ -120,13 +120,39 @@ public class MemorySystem
 				cores[i].getExecEngine().coreMemSys = coreMemSys;
 //			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			
-			//Set the next levels of the L1 cache
+			//Set the next levels of the instruction cache
+			if (coreMemSys.iCache.isLastLevel == true) //If this is the last level, don't set anything
+			{
+				continue;
+			}
+			
+			String nextLevelName = coreMemSys.iCache.nextLevelName;
+			
+			if (nextLevelName.isEmpty())
+			{
+				System.err.println("Memory system configuration error : The iCache is not last level but the next level is not specified");
+				System.exit(1);
+			}
+				
+			if (cacheList.containsKey(nextLevelName)) 
+			{
+				//Point the cache to its next level
+				coreMemSys.iCache.nextLevel = cacheList.get(nextLevelName);
+				coreMemSys.iCache.nextLevel.prevLevel.add(coreMemSys.iCache);
+			}
+			else
+			{
+				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
+				System.exit(1);
+			}
+			
+			//Set the next levels of the L1 data cache
 			if (coreMemSys.l1Cache.isLastLevel == true) //If this is the last level, don't set anything
 			{
 				continue;
 			}
 			
-			String nextLevelName = coreMemSys.l1Cache.nextLevelName;
+			nextLevelName = coreMemSys.l1Cache.nextLevelName;
 			
 			if (nextLevelName.isEmpty())
 			{

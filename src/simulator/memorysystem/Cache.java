@@ -32,7 +32,7 @@ import generic.*;
 public class Cache extends SimulationElement
 {
 		/* cache parameters */
-		//CoreMemorySystem containingMemSys;
+		CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
 		protected int blockSizeBits; // in bits
 		protected int assoc;
@@ -359,16 +359,16 @@ public class Cache extends SimulationElement
 			}
 		}*/
 		
-		public void handleEvent(Event event)
+		public void handleEvent(EventQueue eventQ, Event event)
 		{
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write)
-				handleAccess(event);
+				handleAccess(eventQ, event);
 			else if (event.getRequestType() == RequestType.Mem_Response)
-				handleMemResponse(event);
+				handleMemResponse(eventQ, event);
 		}
 		
-		private void handleAccess(Event event)
+		private void handleAccess(EventQueue eventQ, Event event)
 		{
 			SimulationElement requestingElement = event.getRequestingElement();
 			RequestType requestType = event.getRequestType();
@@ -390,6 +390,7 @@ public class Cache extends SimulationElement
 					//Just return the read block
 					requestingElement.getPort().put(
 							event.update(
+									eventQ,
 									requestingElement.getLatencyDelay(),
 									this,
 									requestingElement,
@@ -407,6 +408,7 @@ public class Cache extends SimulationElement
 							if (this.isFirstLevel)
 								MemorySystem.mainMemory.getPort().put(
 										new AddressCarryingEvent(
+												eventQ,
 												MemorySystem.mainMemory.getLatencyDelay(),
 												this,
 												MemorySystem.mainMemory,
@@ -415,6 +417,7 @@ public class Cache extends SimulationElement
 							else
 								MemorySystem.mainMemory.getPort().put(
 										event.update(
+												eventQ,
 												MemorySystem.mainMemory.getLatencyDelay(),
 												this,
 												MemorySystem.mainMemory,
@@ -425,6 +428,7 @@ public class Cache extends SimulationElement
 							if (this.isFirstLevel)
 								this.nextLevel.getPort().put(
 										new AddressCarryingEvent(
+												eventQ,
 												this.nextLevel.getLatencyDelay(),
 												this,
 												this.nextLevel,
@@ -433,6 +437,7 @@ public class Cache extends SimulationElement
 							else
 								this.nextLevel.getPort().put(
 									event.update(
+											eventQ,
 											this.nextLevel.getLatencyDelay(),
 											this,
 											this.nextLevel,
@@ -460,6 +465,7 @@ public class Cache extends SimulationElement
 					{
 						MemorySystem.mainMemory.getPort().put(
 								new AddressCarryingEvent(
+										eventQ,
 										MemorySystem.mainMemory.getLatencyDelay(),
 										this, 
 										MemorySystem.mainMemory,
@@ -471,6 +477,7 @@ public class Cache extends SimulationElement
 					{
 						this.nextLevel.getPort().put(
 								new AddressCarryingEvent(
+										eventQ,
 										this.nextLevel.getLatencyDelay(),
 										this, 
 										this.nextLevel,
@@ -482,7 +489,7 @@ public class Cache extends SimulationElement
 			}
 		}
 		
-		private void handleMemResponse(Event event)
+		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{
 			long addr = ((AddressCarryingEvent)(event)).getAddress();
 			
@@ -492,6 +499,7 @@ public class Cache extends SimulationElement
 				if (this.isLastLevel)
 					MemorySystem.mainMemory.getPort().put(
 							new AddressCarryingEvent(
+									eventQ,
 									MemorySystem.mainMemory.getLatencyDelay(),
 									this, 
 									MemorySystem.mainMemory,
@@ -500,6 +508,7 @@ public class Cache extends SimulationElement
 				else
 					this.nextLevel.getPort().put(
 							new AddressCarryingEvent(
+									eventQ,
 									this.nextLevel.getLatencyDelay(),
 									this,
 									this.nextLevel,
@@ -524,6 +533,7 @@ public class Cache extends SimulationElement
 					//FIXME : Check the logic before finalizing
 					outstandingRequestList.get(0).getRequestingElement().getPort().put(
 							outstandingRequestList.get(0).update(
+									eventQ,
 									outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 									this,
 									outstandingRequestList.get(0).getRequestingElement(),
@@ -550,6 +560,7 @@ public class Cache extends SimulationElement
 							if (this.isFirstLevel)
 								MemorySystem.mainMemory.getPort().put(
 										new AddressCarryingEvent(
+												eventQ,
 												MemorySystem.mainMemory.getLatencyDelay(),
 												this,
 												MemorySystem.mainMemory,
@@ -558,6 +569,7 @@ public class Cache extends SimulationElement
 							else
 								MemorySystem.mainMemory.getPort().put(
 										event.update(
+												eventQ,
 												MemorySystem.mainMemory.getLatencyDelay(),
 												this,
 												MemorySystem.mainMemory,
@@ -568,6 +580,7 @@ public class Cache extends SimulationElement
 							if (this.isFirstLevel)
 								this.nextLevel.getPort().put(
 										new AddressCarryingEvent(
+												eventQ,
 												this.nextLevel.getLatencyDelay(),
 												this,
 												this.nextLevel,
@@ -576,6 +589,7 @@ public class Cache extends SimulationElement
 							else
 								this.nextLevel.getPort().put(
 										event.update(
+												eventQ,
 												this.nextLevel.getLatencyDelay(),
 												this,
 												this.nextLevel,

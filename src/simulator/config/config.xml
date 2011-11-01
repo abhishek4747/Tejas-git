@@ -24,8 +24,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/kapil/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/kapil/workspace/BhartiSim/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/moksh/workspace/BhartiSim/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -93,7 +93,8 @@
 			<AddressFULatency>1</AddressFULatency>
 			<AcceleratedFULatency>1</AcceleratedFULatency>
 			
-			<!--Specify only the L1 (immediately next to the core) cache of the core here-->
+			<!--Specify only the iCache and L1 (immediately next to the core) cache of the core here-->
+			<iCache type = "Type0" nextLevel = "L2"/>
 			<L1Cache type = "Type1" nextLevel = "L2"/>
 			<!--L2Cache type = "Type2"/-->
 			<!--L3Cache type = "Type3"/-->
@@ -107,6 +108,18 @@
 
 	<!--Give all the library elements here-->
 	<Library>
+		<Type0>
+			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<Associativity>8</Associativity>
+			<Size>16</Size>					<!--In KBs-->
+			<Latency>2</Latency>				<!--In clock cycles-->
+			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->

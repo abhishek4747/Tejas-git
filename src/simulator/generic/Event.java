@@ -13,6 +13,7 @@ import memorysystem.MemorySystem;
 public abstract class Event 
 {
 	private long eventTime;
+	private EventQueue eventQ;
 	RequestType requestType;
 	private long priority;
 	
@@ -20,10 +21,11 @@ public abstract class Event
 	private SimulationElement requestingElement;
 	private SimulationElement processingElement;
 
-	public Event(SimulationElement requestingElement,
+	public Event(EventQueue eventQ, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType) 
 	{
 		eventTime = -1; // this should be set by the port
+		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
 		this.requestType = requestType;
@@ -31,10 +33,11 @@ public abstract class Event
 		this.priority = requestType.ordinal();
 	}
 
-	public Event(long eventTime, SimulationElement requestingElement,
+	public Event(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType) 
 	{
 		this.eventTime = eventTime; // this should be set by the port
+		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
 		this.requestType = requestType;
@@ -42,10 +45,11 @@ public abstract class Event
 		this.priority = requestType.ordinal();
 	}
 
-	public Event update(long eventTime, SimulationElement requestingElement,
+	public Event update(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType)
 	{
 		this.eventTime = eventTime;
+		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
 		this.requestType = requestType;
@@ -99,6 +103,10 @@ public abstract class Event
 		this.priority = priority;
 	}
 	
+	public EventQueue getEventQ() {
+		return eventQ;
+	}
+
 	public void resetPriority(RequestType requestType)
 	{
 		this.priority = requestType.ordinal();
@@ -114,8 +122,8 @@ public abstract class Event
 	//the modified event will be added to the eventQueue which is 
 	//now passed as a paramter to this function.
 	//TODO handleEvent(event)
-	public void handleEvent(EventQueue eventQueue)
+	public void handleEvent(EventQueue eventQ)
 	{
-			processingElement.handleEvent(this);
+			processingElement.handleEvent(eventQ, this);
 	}
 }

@@ -71,6 +71,7 @@ public class CoreConfig
 	public int FloatDivLatency;
 	public int AddressFULatency;
 	
+	public CacheConfig iCache = new CacheConfig();
 	public CacheConfig l1Cache = new CacheConfig();
 	public CacheConfig l2Cache = new CacheConfig();
 	public CacheConfig l3Cache = new CacheConfig();

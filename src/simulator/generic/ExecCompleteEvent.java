@@ -6,13 +6,14 @@ public class ExecCompleteEvent extends Event {
 	
 	ReorderBufferEntry ROBEntry;
 
-	public ExecCompleteEvent(long eventTime,
+	public ExecCompleteEvent(EventQueue eventQ,
+			long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType,
 			ReorderBufferEntry ROBEntry)
 	{
-		super(eventTime, requestingElement, processingElement, requestType);
+		super(eventQ, eventTime, requestingElement, processingElement, requestType);
 		
 		this.ROBEntry = ROBEntry;
 	}

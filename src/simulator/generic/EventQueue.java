@@ -34,7 +34,7 @@ public class EventQueue
 				
 				//If the event could not be handled, add it to the queue.
 				//TODO This is in compliance with the new structure.
-				event.getProcessingElement().handleEvent(event);
+				event.getProcessingElement().handleEvent(this, event);
 			}
 			else
 			{

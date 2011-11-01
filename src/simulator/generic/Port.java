@@ -4,7 +4,6 @@ public class Port
 {
 	private PortType portType;
 	private int noOfPorts;
-	private EventQueue eventQueue;
 
 	//occupancy defines the number of clockCycles needed for  
 	//a single transfer on the port.
@@ -17,7 +16,6 @@ public class Port
 			EventQueue eventQueue)
 	{
 		this.portType = portType;
-		this.eventQueue = eventQueue;
 		
 		//initialise no. of ports and the occupancy.
 		if(portType==PortType.Unlimited)
@@ -63,7 +61,7 @@ public class Port
 		{
 			// For an unlimited port, add the event with current-time.
 			event.addEventTime(GlobalClock.getCurrentTime());
-			eventQueue.addEvent(event);
+			event.getEventQ().addEvent(event);
 			return;
 		}
 		
@@ -94,7 +92,7 @@ public class Port
 			event.addEventTime(portBusyUntil[availablePortID]);
 			
 			// add event in the eventQueue
-			eventQueue.addEvent(event);
+			event.getEventQ().addEvent(event);
 		}
 	}
 }
