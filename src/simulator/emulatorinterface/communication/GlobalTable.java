@@ -8,9 +8,9 @@ public final class GlobalTable implements Encoding {
 	
 	private HashMap<Long, SynchPrimitive> synchTable;
 	private HashMap<Integer, ThreadState> stateTable;
-	private IPCBase ipcType;
+	private IpcBase ipcType;
 	
-	public GlobalTable(IPCBase ipcType) {
+	public GlobalTable(IpcBase ipcType) {
 		this.ipcType = ipcType;
 		this.synchTable = new HashMap<Long, SynchPrimitive>();
 		this.stateTable = new HashMap<Integer, ThreadState>();

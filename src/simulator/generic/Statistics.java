@@ -8,7 +8,7 @@ import java.util.Calendar;
 import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.Newmain;
-import emulatorinterface.communication.IPCBase;
+import emulatorinterface.communication.IpcBase;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 
 public class Statistics {
@@ -43,7 +43,7 @@ public class Statistics {
 			outputFileWriter.write("[Translator Statistics]\n");
 			outputFileWriter.write("\n");
 			
-			for(int i = 0; i < IPCBase.MAXNUMTHREADS; i++)
+			for(int i = 0; i < IpcBase.MAXNUMTHREADS; i++)
 			{
 				outputFileWriter.write("Java thread\t=\t" + i + "\n");
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
@@ -234,9 +234,9 @@ public class Statistics {
 
 	public static void initStatistics()
 	{		
-		dataRead = new long[IPCBase.MAXNUMTHREADS];
-		numInstructions = new long[IPCBase.MAXNUMTHREADS];
-		noOfMicroOps = new long[IPCBase.MAXNUMTHREADS];
+		dataRead = new long[IpcBase.MAXNUMTHREADS];
+		numInstructions = new long[IpcBase.MAXNUMTHREADS];
+		noOfMicroOps = new long[IpcBase.MAXNUMTHREADS];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
 		coreFrequencies = new long[SystemConfig.NoOfCores];

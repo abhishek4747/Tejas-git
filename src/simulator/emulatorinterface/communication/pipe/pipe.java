@@ -3,7 +3,7 @@ package emulatorinterface.communication.pipe;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
 
-public class pipe extends IPCBase
+public class pipe extends IpcBase
 {
 	public pipe(){
 		System.out.println("dummy constructor");
@@ -23,7 +23,7 @@ public class pipe extends IPCBase
 		}
 	}
 
-	public void createReaders(DynamicInstructionBuffer passPackets) {
+	public void createRunnables(DynamicInstructionBuffer passPackets) {
 		System.out.println("creat readers");
 	}
 
@@ -40,4 +40,16 @@ public class pipe extends IPCBase
 		System.out.println("finish");
 	}
 
+	// returns the numberOfPackets which are currently there in the stream for tidApp
+	public int numPackets(int tidApp){return -1;}
+	
+	// fetch one packet for tidApp from index
+	public Packet fetchOnePacket(int tidApp, int index ){ return null;}
+	
+	public int update(int tidApp, int numReads){ return -1;}
+	// The main thread waits for the finish of reader threads and returns total number of 
+	// instructions read
+	
+	// return the total packets produced by PIN till now
+	public int totalProduced(int tidApp){ return -1;}
 }

@@ -22,9 +22,9 @@ public class SynchPrimitive implements Encoding{
 
 	ArrayList<synchTypes> entries;
 	long address;
-	IPCBase ipcType;
+	IpcBase ipcType;
 
- 	public SynchPrimitive(long addressSynchItem, int thread, long time, int encoding,IPCBase ipcType) {
+ 	public SynchPrimitive(long addressSynchItem, int thread, long time, int encoding,IpcBase ipcType) {
 		this.address = addressSynchItem;
 		this.entries = new ArrayList<synchTypes>();
 		this.ipcType = ipcType;

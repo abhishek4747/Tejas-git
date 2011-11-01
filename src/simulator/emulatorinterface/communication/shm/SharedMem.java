@@ -18,15 +18,9 @@ import generic.Core;
 import generic.InstructionTable;
 
 
-public class SharedMem extends  IPCBase
+public class SharedMem extends  IpcBase
 {
 
-	// Must ensure that this is same as COUNT in IPCBase.h
-	public static final int COUNT = 1000;
-
-	public static InstructionTable insTable;
-	public static GlobalTable glTable;
-	
 	public SharedMem() 
 	{
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
@@ -58,7 +52,7 @@ public class SharedMem extends  IPCBase
 	// with the profiling information of the instruction.
 	// TODO should pass an array of DynamicInstructionBuffer if multiple such buffers are needed
 	// for multiple threads. This side of the code is generic and can handle the case very easily.
-	public void createReaders(DynamicInstructionBuffer passPackets) {
+	public void createRunnables(DynamicInstructionBuffer passPackets) {
 		
 		if (SimulationConfig.debugMode) 
 			System.out.println("-- SharedMem creating readers");
@@ -99,7 +93,10 @@ public class SharedMem extends  IPCBase
 		return totalInstructions;
 	}
 	
-	
+	public Packet fetchOnePacket(int tidApp, int index ) {
+		return shmread(tidApp, shmAddress,
+				index % COUNT, COUNT);
+	}
 	public void doWaitForPIN(Process p) throws Exception{
 		try {
 			p.waitFor();
@@ -107,7 +104,24 @@ public class SharedMem extends  IPCBase
 
 		}
 	}
+	public int update(int tidApp, int numReads){
+		get_lock(tidApp, shmAddress, COUNT);
+		int queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
+				COUNT);
+		queue_size -= numReads;
 
+		// update queue_size
+		SharedMem
+				.shmwrite(tidApp, shmAddress, COUNT, queue_size, COUNT);
+		SharedMem.release_lock(tidApp, shmAddress, COUNT);
+		
+		return queue_size;
+	}
+	
+	public int totalProduced (int tidApp){
+		return shmreadvalue(tidApp, shmAddress, COUNT + 4,
+				COUNT);
+	}
 	public void finish(){
 		shmd(shmAddress);
 		shmdel(shmid);
@@ -164,32 +178,25 @@ public class SharedMem extends  IPCBase
 		shmwrite(tid,pointer, NUMINTS+2,0,NUMINTS);
 	}
 
+	public int numPackets(int tidApp) {
+		get_lock(tidApp, shmAddress, COUNT);
+		int size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
+				COUNT);
+		release_lock(tidApp, shmAddress, COUNT);
+		return size;
+	}
 	// loads the library which contains the implementation of these native functions. The name of
 	// the library should match in the makefile.
 	static { System.loadLibrary("shmlib"); }
 
-	// to maintain synchronization between main thread and the reader threads
-	static final Semaphore free = new Semaphore(0, true);
-	
 	// the reader threads. Each thread reads from EMUTHREADS
 	RunnableThread [] readerThreads = new RunnableThread[MAXNUMTHREADS];
 	
 	// cores associated with this java thread
 	Core[] cores;
 
-	// state management for reader threads
-	static boolean[] termination=new boolean[MAXNUMTHREADS];
-	static boolean[] started=new boolean[MAXNUMTHREADS];
-	
 	// address of shared memory segment attached. should be of type 'long' to ensure for 64bit
 	static long shmAddress;
 	static int shmid;
 	
-	// number of instructions read by each of the threads
-	static long[] numInstructions = new long[MAXNUMTHREADS];
-	
-	public RunnableThread[] getReaderThreads() {
-		return readerThreads;
-	}
-
 }

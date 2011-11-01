@@ -3,7 +3,7 @@ import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
 
 
-public class network extends IPCBase
+public class network// extends IpcBase
 {
 
 	public network(){
@@ -24,7 +24,7 @@ public class network extends IPCBase
 		}
 	}
 
-	public void createReaders(DynamicInstructionBuffer passPackets) {
+	public void createRunnables(DynamicInstructionBuffer passPackets) {
 		System.out.println("creat readers");
 	}
 

@@ -4,7 +4,7 @@ import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
 
 
-public class mmap extends IPCBase
+public class mmap //extends IpcBase
 {
 	static int t;
 
@@ -27,7 +27,7 @@ public class mmap extends IPCBase
 		}
 	}
 	
-	public void createReaders(DynamicInstructionBuffer passPackets) {
+	public void createRunnables(DynamicInstructionBuffer passPackets) {
 		System.out.println("creat readers");
 		t++;
 	}

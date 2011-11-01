@@ -81,7 +81,7 @@ public class Newmain {
 		}
 		
 		// create PIN interface
-		IPCBase ipcBase = new SharedMem();
+		IpcBase ipcBase = new SharedMem();
 		Process process = createPINinterface(ipcBase, executableArguments,
 				dynamicInstructionBuffer);
 		
@@ -155,7 +155,7 @@ public class Newmain {
 
 	}
 
-	private static Process createPINinterface(IPCBase ipcBase,
+	private static Process createPINinterface(IpcBase ipcBase,
 			String executableArguments,
 			DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
@@ -181,7 +181,7 @@ public class Newmain {
 					.showErrorAndExit("\n\tCorrect path for pin or tool or executable not specified !!");
 
 		//TODO should pass an array of these buffers..!!
-		ipcBase.createReaders(dynamicInstructionBuffer);
+		ipcBase.createRunnables(dynamicInstructionBuffer);
 
 		return process;
 	}

@@ -22,7 +22,7 @@
 package misc;
 
 import emulatorinterface.Newmain;
-import emulatorinterface.communication.IPCBase;
+import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.SharedMem;
 import generic.Operand;
 
@@ -34,7 +34,7 @@ public class Error
 		System.exit(0);
 	}
 
-	public static void shutDown(String message, IPCBase type) 
+	public static void shutDown(String message, IpcBase type) 
 	{
 		Newmain.process.destroy();
 		type.finish();

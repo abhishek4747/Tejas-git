@@ -1,6 +1,8 @@
-package emulatorinterface.communication.shm;
+package emulatorinterface;
 
 import java.util.ArrayList;
+
+import emulatorinterface.communication.shm.SharedMem;
 
 public class ApplicationThreads {
 
