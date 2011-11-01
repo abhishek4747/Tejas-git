@@ -122,6 +122,11 @@ public class RunnableThread implements Runnable, Encoding {
 
 				// get the number of packets to read. 'continue' and read from
 				// some other thread if there is nothing.
+
+				/*** BEGIN replace with function NumberOfPackets ***/
+				/*** ALL THAT YOU NEED ARE FIVE FUNCTIONS ***/
+				/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
+
 				SharedMem.get_lock(tidApp, shmAddress, COUNT);
 				queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
 						COUNT);
@@ -130,14 +135,17 @@ public class RunnableThread implements Runnable, Encoding {
 				if (numReads == 0) {
 					continue;
 				}
+				/*** END ****/
 
 				// If java thread itself is terminated then break out from this
 				// for loop. also update the variable allover so that I can 
-				// break from the while loop also.
+				// break from$the while loop also.
+				/*** BEGIN replace with umbella.termination***/
 				if (SharedMem.termination[tid] == true) {
 					allover = true;
 					break;
 				}
+				/**** END ***/
 
 				// need to do this only the first time
 				if (!emulatorStarted) {
@@ -152,6 +160,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 				// Read the entries
 				for (int i = 0; i < numReads; i++) {
+					// fetchPacket()
 					pnew = SharedMem.shmread(tidApp, shmAddress,
 							(cons_ptr[tidEmu] + i) % COUNT, COUNT);
 					if (handleSynch(pnew, tidApp))
@@ -160,6 +169,7 @@ public class RunnableThread implements Runnable, Encoding {
 							isFirstPacket[tidEmu]);
 				}
 				// update the consumer pointer, queue_size.
+				// add a function : update queue_size
 				cons_ptr[tidEmu] = (cons_ptr[tidEmu] + numReads) % COUNT;
 				SharedMem.get_lock(tidApp, shmAddress, COUNT);
 				queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
