@@ -241,6 +241,8 @@ public class RunnableThread implements Runnable, Encoding {
 			(ipcType.numInstructions[tid])++;
 			DynamicInstruction dynamicInstruction = configurePackets(
 					listPackets, tid, appTid);
+			//TODO
+			// translate Instruction append fusedInstructions to Runnable's ipTo pipe
 			pold = pnew;
 			listPackets.clear();
 			listPackets.add(pold);
@@ -258,55 +260,6 @@ public class RunnableThread implements Runnable, Encoding {
 		IpcBase.glTable.update(p.tgt, appTid, p.ip, p.value);
 		//TODO also inject a SYNCH instruction here
 		return true;
-	}
-
-	private DynamicInstruction configurePackets(ArrayList<Packet> listPackets,
-			int tid2, int tidEmu) {
-		Packet p;
-		ArrayList<Long> memReadAddr = new ArrayList<Long>();
-		ArrayList<Long> memWriteAddr = new ArrayList<Long>();
-		ArrayList<Long> srcRegs = new ArrayList<Long>();
-		ArrayList<Long> dstRegs = new ArrayList<Long>();
-
-		long ip = listPackets.get(0).ip;
-		boolean taken = false;
-		long branchTargetAddress = 0;
-		for (int i = 0; i < listPackets.size(); i++) {
-			p = listPackets.get(i);
-			if (ip != p.ip)
-				misc.Error.shutDown("IP mismatch " + ip + " " + p.ip + " " + i
-						+ " " + listPackets.size(),ipcType);
-			switch (p.value) {
-			case (-1):
-				break;
-			case (MEMREAD):
-				memReadAddr.add(p.tgt);
-				break;
-			case (MEMWRITE):
-				memWriteAddr.add(p.tgt);
-				break;
-			case (TAKEN):
-				taken = true;
-				branchTargetAddress = p.tgt;
-				break;
-			case (NOTTAKEN):
-				taken = false;
-				branchTargetAddress = p.tgt;
-				break;
-			case (REGREAD):
-				srcRegs.add(p.tgt);
-				break;
-			case (REGWRITE):
-				dstRegs.add(p.tgt);
-				break;
-			default:
-				misc.Error.shutDown("error in configuring packets" + p.value
-						+ " size" + listPackets.size(),ipcType);
-			}
-		}
-
-		return new DynamicInstruction(ip, tidEmu, taken, branchTargetAddress,
-				memReadAddr, memWriteAddr, srcRegs, dstRegs);
 	}
 
 	public InstructionLinkedList getInputToPipeline() {

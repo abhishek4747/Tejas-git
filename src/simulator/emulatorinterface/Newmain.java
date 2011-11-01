@@ -48,9 +48,9 @@ public class Newmain {
 		// Create a hash-table for the static representation of the executable
 		ObjParser.buildStaticInstructionTable(executableFile);
 
-		// Create a new dynamic instruction buffer
+/*		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
-
+*/
 		// configure the emulator
 		configureEmulator();
 
@@ -82,8 +82,7 @@ public class Newmain {
 		
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
-		Process process = createPINinterface(ipcBase, executableArguments,
-				dynamicInstructionBuffer);
+		Process process = createPINinterface(ipcBase, executableArguments);
 		
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores, eventQ[0]); //TODO mem sys need not know eventQ during initialisation
@@ -156,8 +155,7 @@ public class Newmain {
 	}
 
 	private static Process createPINinterface(IpcBase ipcBase,
-			String executableArguments,
-			DynamicInstructionBuffer dynamicInstructionBuffer) 
+			String executableArguments) 
 	{
 
 		// Creating command for PIN tool.
@@ -180,8 +178,8 @@ public class Newmain {
 			misc.Error
 					.showErrorAndExit("\n\tCorrect path for pin or tool or executable not specified !!");
 
-		//TODO should pass an array of these buffers..!!
-		ipcBase.createRunnables(dynamicInstructionBuffer);
+		//TODO .create.!! global creation of runnables 
+		ipcBase.createRunnables();
 
 		return process;
 	}

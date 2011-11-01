@@ -58,9 +58,7 @@ public abstract class IpcBase {
 
 	// Create Runnable threads in java. A queue for returning information about the instruction
 	// is passed which is filled by the reading from PIN.
-	public void createRunnables(DynamicInstructionBuffer dib){
-		System.out.println("Implement createRunnables in the IPC mechanism");
-	}
+	public abstract void createRunnables();
 	
 	/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
 	public RunnableThread[] getRunnableThreads(){

@@ -52,7 +52,7 @@ public class SharedMem extends  IpcBase
 	// with the profiling information of the instruction.
 	// TODO should pass an array of DynamicInstructionBuffer if multiple such buffers are needed
 	// for multiple threads. This side of the code is generic and can handle the case very easily.
-	public void createRunnables(DynamicInstructionBuffer passPackets) {
+	public void createRunnables() {
 		
 		if (SimulationConfig.debugMode) 
 			System.out.println("-- SharedMem creating readers");
