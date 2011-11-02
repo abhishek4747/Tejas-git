@@ -163,12 +163,14 @@ public class IWEntry {
 			
 			instructionWindow.removeFromWindow(this);
 			//TODO add event to indicate address ready
-			//core.getExecEngine().coreMemSys.getLsqueue().getPort().put(new LSQAddressReadyEvent(execEngine.coreMemSys.getLsqueue().getLatencyDelay(), 
-			//											null, //Requesting Element
-			//											core.getExecEngine().coreMemSys.getLsqueue(), 
-			//											0, //tieBreaker,
-			//											RequestType.TLB_ADDRESS_READY,
-			//											associatedROBEntry.getLsqEntry()));
+			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(
+					new LSQEntryContainingEvent(
+						core.getEventQueue(),
+						core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+						null, //Requesting Element
+						core.getExecEngine().coreMemSys.getLsqueue(), 
+						RequestType.Tell_LSQ_Addr_Ready,
+						associatedROBEntry.getLsqEntry()));
 		}
 
 		if(SimulationConfig.debugMode)
