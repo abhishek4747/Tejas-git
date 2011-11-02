@@ -4,6 +4,14 @@ import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.ExecutionEnginePerfect;
 //import pipeline.perfect.PerformDecodeEventPerfect;
 //import pipeline.perfect.PerformCommitsEventPerfect;
+import pipeline.inorder.DecodeUnitIn;
+import pipeline.inorder.ExecUnitIn;
+import pipeline.inorder.ExecutionEngineIn;
+import pipeline.inorder.FetchUnitIn;
+import pipeline.inorder.InorderPipeline;
+import pipeline.inorder.MemUnitIn;
+import pipeline.inorder.RegFileIn;
+import pipeline.inorder.WriteBackUnitIn;
 import pipeline.outoforder_new_arch.ExecutionEngine;
 import pipeline.outoforder_new_arch.PipelineInterface;
 import pipeline.statistical.StatisticalPipeline;
@@ -24,8 +32,10 @@ public class Core extends SimulationElement{
 	StatisticalPipeline statisticalPipeline;
 	ExecutionEngine execEngine;
 	EventQueue eventQueue;
+	ExecutionEngineIn execEngineIn;
 	
 	public boolean isPipelineStatistical = false;
+	public boolean isPipelineInorder = true;
 	
 	//core parameters
 	private int decodeWidth;
@@ -56,6 +66,10 @@ public class Core extends SimulationElement{
 	
 	private pipeline.PipelineInterface pipelineInterface;
 
+
+	private InorderPipeline inorderPipeline;
+
+	
 	public Core(int core_number,
 			int no_of_input_pipes,
 			int no_of_threads,
@@ -82,6 +96,9 @@ public class Core extends SimulationElement{
 		this.noOfInstructionsExecuted = 0;
 		
 		this.pipelineInterface = new PipelineInterface(this, eventQueue);
+		
+		this.execEngineIn = new ExecutionEngineIn(this);
+		this.inorderPipeline = new InorderPipeline(this,eventQueue);
 	}
 
 	private void initializeCoreParameters(CoreConfig coreConfig)
@@ -321,6 +338,16 @@ public class Core extends SimulationElement{
 	public void setStatisticalPipeline(StatisticalPipeline statisticalPipeline) {
 		this.statisticalPipeline = statisticalPipeline;
 	}
+	
+
+	public InorderPipeline getInorderPipeline(){
+		return this.inorderPipeline;
+	}
+	
+	public ExecutionEngineIn getExecutionEngineIn(){
+		return this.execEngineIn;
+	}
+
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
@@ -331,7 +358,9 @@ public class Core extends SimulationElement{
 	public pipeline.PipelineInterface getPipelineInterface() {
 		return pipelineInterface;
 	}
-
+	public void setInorderPipeline(InorderPipeline _inorderPipeline){
+		this.inorderPipeline = _inorderPipeline;
+	}
 	public void setPipelineInterface(PipelineInterface pipelineInterface) {
 		this.pipelineInterface = pipelineInterface;
 	}
