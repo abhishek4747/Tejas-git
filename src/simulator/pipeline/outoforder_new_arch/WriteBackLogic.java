@@ -3,6 +3,7 @@ package pipeline.outoforder_new_arch;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
+import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Operand;
 import generic.OperationType;
@@ -24,7 +25,7 @@ public class WriteBackLogic extends SimulationElement {
 	}
 
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 
 	}

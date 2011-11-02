@@ -1,6 +1,5 @@
 package pipeline.outoforder_new_arch;
 
-import pipeline.statistical.StatisticalPipeline;
 import generic.Core;
 import generic.EventQueue;
 
@@ -18,21 +17,17 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 	@Override
 	public void oneCycleOperation() {
 		
-		ExecutionEngine execEngine;
-		StatisticalPipeline statPipeline;
+		ExecutionEngine execEngine;		
 		
-		
-		if (!core.isPipelineStatistical)
+		execEngine = core.getExecEngine();
+		execEngine.getReorderBuffer().performCommits();
+		if(execEngine.isExecutionComplete() == false)
 		{
-			execEngine = core.getExecEngine();
-			execEngine.getReorderBuffer().performCommits();
-			if(execEngine.isExecutionComplete() == false)
-			{
-				execEngine.getWriteBackLogic().performWriteBack();
-				execEngine.getSelector().performSelect();
-			}
+			execEngine.getWriteBackLogic().performWriteBack();
+			execEngine.getSelector().performSelect();
 		}
-		else //Statistical Pipeline
+		
+		/*else //Statistical Pipeline
 		{
 			statPipeline = core.getStatisticalPipeline();
 			statPipeline.performCommits();
@@ -40,21 +35,18 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			{
 				statPipeline.getFetcher().performFetch();
 			}
-		}
+		}*/
 		
 		//handle events
 		eventQ.processEvents();
 		
-		if(!core.isPipelineStatistical)
+		execEngine = core.getExecEngine();
+		if(execEngine.isExecutionComplete() == false)
 		{
-			execEngine = core.getExecEngine();
-			if(execEngine.isExecutionComplete() == false)
-			{
-				execEngine.getIWPusher().performIWPush();
-				execEngine.getRenamer().performRename();
-				execEngine.getDecoder().performDecode();
-				execEngine.getFetcher().performFetch();
-			}
+			execEngine.getIWPusher().performIWPush();
+			execEngine.getRenamer().performRename();
+			execEngine.getDecoder().performDecode();
+			execEngine.getFetcher().performFetch();
 		}
 		
 	}
@@ -77,10 +69,10 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 	@Override
 	public boolean isExecutionComplete() {
 		
-		if (core.isPipelineStatistical)
+		/*if (core.isPipelineStatistical)
             return core.getStatisticalPipeline().isExecutionComplete();
-        else
-            return core.getExecEngine().isExecutionComplete();
+        else*/
+        return core.getExecEngine().isExecutionComplete();
 		
 		
 	}

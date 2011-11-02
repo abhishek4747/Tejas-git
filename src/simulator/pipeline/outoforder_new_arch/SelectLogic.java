@@ -2,6 +2,7 @@ package pipeline.outoforder_new_arch;
 
 import generic.Core;
 import generic.Event;
+import generic.EventQueue;
 import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
@@ -176,7 +177,7 @@ public class SelectLogic extends SimulationElement {
 	}
 
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		
 	}

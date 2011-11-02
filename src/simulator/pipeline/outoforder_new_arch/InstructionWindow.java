@@ -2,6 +2,7 @@ package pipeline.outoforder_new_arch;
 
 import generic.Core;
 import generic.Event;
+import generic.EventQueue;
 import generic.PortType;
 import generic.SimulationElement;
 
@@ -138,7 +139,7 @@ public class InstructionWindow extends SimulationElement {
 	}
 
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -180,11 +180,12 @@ public class ReorderBuffer extends SimulationElement{
 					{
 						 execEngine.coreMemSys.getLsqueue().getPort().put(
 								 new LSQEntryContainingEvent(
-										 execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
-																			this,
-																			execEngine.coreMemSys.getLsqueue(), 
-																			RequestType.LSQ_Commit, 
-																			first.getLsqEntry()));
+										core.getEventQueue(),
+										execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
+										this,
+										execEngine.coreMemSys.getLsqueue(), 
+										RequestType.LSQ_Commit, 
+										first.getLsqEntry()));
 						first.getLsqEntry().setRemoved(true);
 					}
 					
@@ -504,7 +505,7 @@ public class ReorderBuffer extends SimulationElement{
 	}
 
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		
 		if(event.getRequestType() == RequestType.MISPRED_PENALTY_COMPLETE)
 		{

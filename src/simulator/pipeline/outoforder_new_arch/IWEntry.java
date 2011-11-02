@@ -107,6 +107,7 @@ public class IWEntry {
 		
 		core.getEventQueue().addEvent(
 				new ExecCompleteEvent(
+						null,
 						GlobalClock.getCurrentTime() + core.getStepSize(),
 						null, 
 						execEngine.getExecuter(),
@@ -142,11 +143,12 @@ public class IWEntry {
 			//TODO add event to indicate address ready
 			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(
 					new LSQEntryContainingEvent(
+							core.getEventQueue(),
 							core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
-														null, //Requesting Element
-														core.getExecEngine().coreMemSys.getLsqueue(), 
-														RequestType.Tell_LSQ_Addr_Ready,
-														associatedROBEntry.getLsqEntry()));
+							null, //Requesting Element
+							core.getExecEngine().coreMemSys.getLsqueue(), 
+							RequestType.Tell_LSQ_Addr_Ready,
+							associatedROBEntry.getLsqEntry()));
 
 		}
 		else
@@ -205,6 +207,7 @@ public class IWEntry {
 			
 			core.getEventQueue().addEvent(
 					new ExecCompleteEvent(
+							null,
 							GlobalClock.getCurrentTime() + core.getLatency(
 									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize(),
 							null, 

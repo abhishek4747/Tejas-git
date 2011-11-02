@@ -3,6 +3,7 @@ package pipeline.outoforder_new_arch;
 import pipeline.outoforder_new_arch.ReorderBufferEntry;
 import generic.Core;
 import generic.Event;
+import generic.EventQueue;
 import generic.Instruction;
 import generic.OperationType;
 import generic.PortType;
@@ -100,7 +101,7 @@ public class DecodeLogic extends SimulationElement {
 	}
 
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		
 	}

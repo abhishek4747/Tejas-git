@@ -9,7 +9,7 @@ public class MispredictionPenaltyCompleteEvent extends Event {
 	public MispredictionPenaltyCompleteEvent(long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType) {
-		super(eventTime, requestingElement, processingElement, requestType);
+		super(null, eventTime, requestingElement, processingElement, requestType);
 	}
 
 }
