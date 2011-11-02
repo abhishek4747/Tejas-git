@@ -55,6 +55,7 @@ public class RunnableThread implements Runnable, Encoding {
 			threads.add(i,new appThread());
 		}
 		
+		dynamicInstructionBuffer = new DynamicInstructionBuffer();
 		inputToPipeline = new InstructionLinkedList[1];
 		inputToPipeline[0] = new InstructionLinkedList();
 		//TODO multiple cores per runnable thread
@@ -179,6 +180,8 @@ public class RunnableThread implements Runnable, Encoding {
 						continue;
 					v = processPacket(listPackets, pold, pnew, tidApp,
 							isFirstPacket[tidEmu]);
+					if (isFirstPacket[tidEmu])
+						isFirstPacket[tidEmu] = false;
 				}
 				
 				int n = inputToPipeline[0].getListSize()/decodeWidth[0];
@@ -298,16 +301,14 @@ public class RunnableThread implements Runnable, Encoding {
 			this.dynamicInstructionBuffer.configurePackets(listPackets);
 			
 			// QQQ translate instructions
-			// TODO is pold.ip the startInstructionPointer ???
-			this.inputToPipeline[0].appendInstruction(ObjParser.translateInstruction(pold.ip, 
+			this.inputToPipeline[0].appendInstruction(ObjParser.translateInstruction(listPackets.get(0).ip, 
 					dynamicInstructionBuffer));
 
 			pold = pnew;
 			listPackets.clear();
 			listPackets.add(pold);
 		}
-		if (isFirstPacket)
-			isFirstPacket = false;
+		
 		return v;
 	}
 
