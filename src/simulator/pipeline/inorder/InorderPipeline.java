@@ -1,24 +1,26 @@
 package pipeline.inorder;
 
+import pipeline.PipelineInterface;
 import generic.Core;
+import generic.EventQueue;
 
-public class InorderPipeline {
+public class InorderPipeline implements PipelineInterface{
 	Core core;
+	EventQueue eventQ;
 	
-	public InorderPipeline(Core _core){
+	public InorderPipeline(Core _core, EventQueue eventQ){
 		this.core = _core;
-
+		this.eventQ = eventQ;
 	}
 	
-	public void startPipeline(){
-
-		while(true){
-			writeback();
-			mem();
-			exec();
-			decode();
-			fetch();
-		}
+	public void oneCycleOperation(){
+//		while(!core.getExecutionEngineIn().getExecutionComplete()){
+		writeback();
+		mem();
+		exec();
+		decode();
+		fetch();
+//		}
 	}
 	
 	public void writeback(){
