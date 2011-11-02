@@ -25,7 +25,7 @@ public class Newmain {
 	public static Process process;
 
 	// the reader threads. Each thread reads from EMUTHREADS
-	RunnableThread [] readerThreads;
+	public static RunnableThread [] runners = new RunnableThread[IpcBase.MAXNUMTHREADS];;
 	
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -69,7 +69,7 @@ public class Newmain {
 		Core[] cores = initCores(eventQ[0]);
 		
 		//create the buffers between the translation logic and the pipeline logic
-		InstructionLinkedList[] inputsToPipeline;
+		/*InstructionLinkedList[] inputsToPipeline;
 		inputsToPipeline = new InstructionLinkedList[1];
 		for(int i = 0; i < 1; i++)					//TODO number of pipelines = number of cores
 													//mapping of application threads to cores to be read from config file
@@ -82,14 +82,18 @@ public class Newmain {
 			else
 				cores[i].getExecEngine().getFetcher().setInputToPipeline(new InstructionLinkedList[]{inputsToPipeline[i]});
 		}
-		
+		*/
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
 		Process process = createPINinterface(ipcBase, executableArguments);
 		
 		// Create runnable threads. Each thread reads from EMUTHREADS
-		RunnableThread [] runners = new RunnableThread[IpcBase.MAXNUMTHREADS];
-		
+		String name;
+		for (int i=0; i<IpcBase.MAXNUMTHREADS; i++){
+			name = "thread"+Integer.toString(i);
+			runners[i] = new RunnableThread(name,i, ipcBase, cores);
+		}
+
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores, eventQ[0]); //TODO mem sys need not know eventQ during initialisation
 		

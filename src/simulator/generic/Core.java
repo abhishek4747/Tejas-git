@@ -364,5 +364,13 @@ public class Core extends SimulationElement{
 	public void setPipelineInterface(PipelineInterface pipelineInterface) {
 		this.pipelineInterface = pipelineInterface;
 	}
+	
+	public void setInputToPipeline(InstructionLinkedList[] inputsToPipeline)
+	{
+		if (this.isPipelineStatistical)
+			this.getStatisticalPipeline().getFetcher().setInputToPipeline(inputsToPipeline);
+		else
+			this.getExecEngine().getFetcher().setInputToPipeline(inputsToPipeline);
+	}
 
 }

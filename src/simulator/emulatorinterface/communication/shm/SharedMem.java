@@ -51,7 +51,7 @@ public class SharedMem extends  IpcBase
 	public void initIpc() {
 		
 		if (SimulationConfig.debugMode) 
-			System.out.println("-- SharedMem creating readers");
+			System.out.println("-- SharedMem initialising");
 		
 		String name;
 		for (int i=0; i<MAXNUMTHREADS; i++){

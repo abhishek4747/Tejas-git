@@ -74,4 +74,15 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		this.eventQ = eventQ;
 	}
 
+	@Override
+	public boolean isExecutionComplete() {
+		
+		if (core.isPipelineStatistical)
+            return core.getStatisticalPipeline().isExecutionComplete();
+        else
+            return core.getExecEngine().isExecutionComplete();
+		
+		
+	}
+
 }

@@ -8,6 +8,8 @@ import static emulatorinterface.ApplicationThreads.threads;
 
 import java.util.ArrayList;
 
+import pipeline.PipelineInterface;
+
 import config.SimulationConfig;
 
 import emulatorinterface.ApplicationThreads.appThread;
@@ -15,7 +17,11 @@ import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import generic.Core;
+import generic.GlobalClock;
+import generic.Instruction;
 import generic.InstructionLinkedList;
+import generic.OperationType;
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
@@ -30,26 +36,42 @@ public class RunnableThread implements Runnable, Encoding {
 	int[] cons_ptr = new int[EMUTHREADS]; // consumer pointers
 	long[] tot_cons = new long[EMUTHREADS]; // total consumed data
 
-	InstructionLinkedList inputToPipeline;
+	InstructionLinkedList[] inputToPipeline;
 	IpcBase ipcType;
 	
 	// QQQ re-arrange packets for use by translate instruction.
 	DynamicInstructionBuffer dynamicInstructionBuffer;
+	
+	int[] decodeWidth;
+	PipelineInterface[] pipelineInterfaces;
 	
 	public RunnableThread() {
 	}
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
-	public RunnableThread(String threadName, int tid1, IpcBase ipcType) {
+	public RunnableThread(String threadName, int tid1, IpcBase ipcType, Core[] cores) {
 		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
 			threads.add(i,new appThread());
 		}
-		inputToPipeline = new InstructionLinkedList();
+		
+		inputToPipeline = new InstructionLinkedList[1];
+		inputToPipeline[0] = new InstructionLinkedList();
+		//TODO multiple cores per runnable thread
+		cores[0].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[0]});
+		decodeWidth = new int[1];
+		decodeWidth[0] = cores[0].getDecodeWidth();
+		pipelineInterfaces = new PipelineInterface[1];
+		for(int i = 0; i < 1; i++)
+		{
+			pipelineInterfaces[i] = cores[i].getPipelineInterface();
+		}
+		
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		runner = new Thread(this, threadName);
-		// System.out.println(runner.getName());
+		if (SimulationConfig.debugMode) 
+			System.out.println("--  starting java thread"+runner.getName());
 		runner.start(); // Start the thread.
 	}
 
@@ -111,9 +133,6 @@ public class RunnableThread implements Runnable, Encoding {
 		while (true) {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 				
-				if (SimulationConfig.debugMode) 
-					System.out.println("--tidEmu "+tidEmu);
-				
 				int tidApp = tid * EMUTHREADS + tidEmu;
 				thread = threads.get(tidApp);
 				if (thread.halted || thread.finished)
@@ -161,6 +180,14 @@ public class RunnableThread implements Runnable, Encoding {
 					v = processPacket(listPackets, pold, pnew, tidApp,
 							isFirstPacket[tidEmu]);
 				}
+				
+				int n = inputToPipeline[0].getListSize()/decodeWidth[0];
+				for (int i=0; i< n; i++)
+				{
+					pipelineInterfaces[0].oneCycleOperation();
+					GlobalClock.incrementClock();
+				}
+				
 				// update the consumer pointer, queue_size.
 				// add a function : update queue_size
 				cons_ptr[tidEmu] = (cons_ptr[tidEmu] + numReads) % COUNT;
@@ -198,6 +225,28 @@ public class RunnableThread implements Runnable, Encoding {
 				break;
 			}
 		}
+		
+		this.inputToPipeline[0].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+		
+		boolean queueComplete;    //queueComplete is true when all cores have completed
+        
+        while(true)
+        {
+            queueComplete = true;        
+            for(int i = 0; i < 1; i++)
+            {
+                queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
+            }
+            if(queueComplete == true)
+            {
+                    break;
+            }
+
+            pipelineInterfaces[0].oneCycleOperation();
+            
+            GlobalClock.incrementClock();
+        }
+
 
 		long dataRead = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
@@ -250,7 +299,7 @@ public class RunnableThread implements Runnable, Encoding {
 			
 			// QQQ translate instructions
 			// TODO is pold.ip the startInstructionPointer ???
-			this.inputToPipeline.appendInstruction(ObjParser.translateInstruction(pold.ip, 
+			this.inputToPipeline[0].appendInstruction(ObjParser.translateInstruction(pold.ip, 
 					dynamicInstructionBuffer));
 
 			pold = pnew;
@@ -270,9 +319,5 @@ public class RunnableThread implements Runnable, Encoding {
 		IpcBase.glTable.update(p.tgt, appTid, p.ip, p.value);
 		//TODO also inject a SYNCH instruction here
 		return true;
-	}
-
-	public InstructionLinkedList getInputToPipeline() {
-		return inputToPipeline;
 	}
 }
