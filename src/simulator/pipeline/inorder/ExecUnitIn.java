@@ -44,22 +44,28 @@ public class ExecUnitIn extends SimulationElement{
 				exMemLatch.setMemDone(false);
 				//Schedule a mem read event now so that it can be completed in the mem stage
 				//TODO this.getPort() ?? Is this correct ??
-				this.getPort().put(new AddressCarryingEvent(1,
-						core.getExecutionEngineIn().getMemUnitIn(),
-						core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
-						RequestType.Cache_Read,
-						ins.getSourceOperand1().getValue()));
+				this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getPort().put(
+						new AddressCarryingEvent(
+								this.eventQueue,
+								this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getLatencyDelay(),
+								core.getExecutionEngineIn().getMemUnitIn(),
+								core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
+								RequestType.Cache_Read,
+								ins.getSourceOperand1().getValue()));
 				
 			}
 			else if(idExLatch.getOperationType()==OperationType.store){
 				exMemLatch.setMemDone(false);
 				//Schedule a mem read event now so that it can be completed in the mem stage
 				//TODO this.getPort() ?? Is this correct ??
-				this.getPort().put(new AddressCarryingEvent(1,
-						core.getExecutionEngineIn().getMemUnitIn(),
-						core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
-						RequestType.Cache_Write,
-						ins.getSourceOperand1().getValue()));
+				this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getPort().put(
+						new AddressCarryingEvent(
+								this.eventQueue,
+								this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getLatencyDelay(),
+								core.getExecutionEngineIn().getMemUnitIn(),
+								core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
+								RequestType.Cache_Write,
+								ins.getSourceOperand1().getValue()));
 				
 			}
 			else{
