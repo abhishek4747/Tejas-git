@@ -29,6 +29,7 @@ public class MemUnitIn extends SimulationElement{
 		}
 		else{
 			if(ins!=null){
+				System.out.println("Mem stage");
 				memWbLatch.setInstruction(ins);
 				memWbLatch.setIn1(exMemLatch.getIn1());
 				memWbLatch.setIn2(exMemLatch.getIn2());

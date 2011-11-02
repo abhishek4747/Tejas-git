@@ -42,4 +42,10 @@ public class InorderPipeline implements PipelineInterface{
 	public void fetch(){
 		core.getExecutionEngineIn().getFetchUnitIn().performFetch();
 	}
+
+	@Override
+	public boolean isExecutionComplete() {
+		// TODO Auto-generated method stub
+		return core.getExecutionEngineIn().getExecutionComplete();
+	}
 }

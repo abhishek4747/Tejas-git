@@ -58,6 +58,7 @@ public class FetchUnitIn extends SimulationElement{
 
 	}
 	public void performFetch(){
+
 //		StageLatch wbDoneLatch = core.getInorderPipeline().getWbDoneLatch();
 //		StageLatch ifIdLatch = core.getInorderPipeline().getIfIdLatch();
 
