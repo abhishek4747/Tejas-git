@@ -2,6 +2,7 @@ package pipeline.inorder;
 
 import generic.Core;
 import generic.Event;
+import generic.EventQueue;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -25,8 +26,9 @@ public class RegFileIn extends SimulationElement{
 		else
 			idExLatch.setLoadFlag(false);
 	}
+
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		
 	}

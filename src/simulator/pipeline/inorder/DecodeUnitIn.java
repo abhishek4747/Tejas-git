@@ -3,6 +3,7 @@ package pipeline.inorder;
 import pipeline.outoforder.MispredictionPenaltyCompleteEvent;
 import generic.Core;
 import generic.Event;
+import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
@@ -87,8 +88,9 @@ public class DecodeUnitIn extends SimulationElement{
 			return false;
 	}
 
+
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		
 	}

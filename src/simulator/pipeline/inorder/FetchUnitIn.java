@@ -3,6 +3,7 @@ package pipeline.inorder;
 
 import generic.Core;
 import generic.Event;
+import generic.EventQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
@@ -80,8 +81,9 @@ public class FetchUnitIn extends SimulationElement{
 	public void setInputToPipeline(InstructionLinkedList inpList){
 		this.inputToPipeline = inpList;
 	}
+
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -68,8 +68,10 @@ public class ExecUnitIn extends SimulationElement{
 					
 	}
 
+
+
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -47,10 +47,12 @@ public class MemUnitIn extends SimulationElement{
 	private void drainEventQueue(){
 		eventQueue.processEvents();		
 	}
+
 	@Override
-	public void handleEvent(Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		core.getExecutionEngineIn().getFetchUnitIn().setStall(0);
 		core.getExecutionEngineIn().getExMemLatch().setMemDone(true);
+		
 	}
 }
