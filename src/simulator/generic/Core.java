@@ -35,7 +35,7 @@ public class Core extends SimulationElement{
 	ExecutionEngineIn execEngineIn;
 	
 	public boolean isPipelineStatistical = false;
-	public boolean isPipelineInorder = true;
+	public boolean isPipelineInorder = false;
 	
 	//core parameters
 	private int decodeWidth;
@@ -67,7 +67,7 @@ public class Core extends SimulationElement{
 	private pipeline.PipelineInterface pipelineInterface;
 
 
-	private InorderPipeline inorderPipeline;
+//	private InorderPipeline inorderPipeline;
 
 	
 	public Core(int core_number,
@@ -95,10 +95,14 @@ public class Core extends SimulationElement{
 		this.branchPredictor = new TournamentPredictor();
 		this.noOfInstructionsExecuted = 0;
 		
-		this.pipelineInterface = new PipelineInterface(this, eventQueue);
+		if(this.isPipelineInorder)
+			this.pipelineInterface = new InorderPipeline(this, eventQueue);
+		else
+			this.pipelineInterface = new PipelineInterface(this, eventQueue);
+
 		
 		this.execEngineIn = new ExecutionEngineIn(this);
-		this.inorderPipeline = new InorderPipeline(this,eventQueue);
+//		this.inorderPipeline = new InorderPipeline(this,eventQueue);
 	}
 
 	private void initializeCoreParameters(CoreConfig coreConfig)
@@ -340,9 +344,9 @@ public class Core extends SimulationElement{
 	}
 	
 
-	public InorderPipeline getInorderPipeline(){
-		return this.inorderPipeline;
-	}
+//	public InorderPipeline getInorderPipeline(){
+//		return this.inorderPipeline;
+//	}
 	
 	public ExecutionEngineIn getExecutionEngineIn(){
 		return this.execEngineIn;
@@ -358,19 +362,24 @@ public class Core extends SimulationElement{
 	public pipeline.PipelineInterface getPipelineInterface() {
 		return pipelineInterface;
 	}
-	public void setInorderPipeline(InorderPipeline _inorderPipeline){
-		this.inorderPipeline = _inorderPipeline;
-	}
+//	public void setInorderPipeline(InorderPipeline _inorderPipeline){
+//		this.inorderPipeline = _inorderPipeline;
+//	}
 	public void setPipelineInterface(PipelineInterface pipelineInterface) {
 		this.pipelineInterface = pipelineInterface;
 	}
 	
 	public void setInputToPipeline(InstructionLinkedList[] inputsToPipeline)
 	{
-		if (this.isPipelineStatistical)
-			this.getStatisticalPipeline().getFetcher().setInputToPipeline(inputsToPipeline);
+		if(this.isPipelineInorder)
+			this.getExecutionEngineIn().getFetchUnitIn().setInputToPipeline(inputsToPipeline[0]);
 		else
-			this.getExecEngine().getFetcher().setInputToPipeline(inputsToPipeline);
+			if (this.isPipelineStatistical)
+				this.getStatisticalPipeline().getFetcher().setInputToPipeline(inputsToPipeline);
+			else
+				this.getExecEngine().getFetcher().setInputToPipeline(inputsToPipeline);
+
+			
 	}
 
 }
