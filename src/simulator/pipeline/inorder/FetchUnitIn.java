@@ -1,6 +1,7 @@
 package pipeline.inorder;
 
 
+import memorysystem.AddressCarryingEvent;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -8,6 +9,7 @@ import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.PortType;
+import generic.RequestType;
 import generic.SimulationElement;
 
 public class FetchUnitIn extends SimulationElement{
@@ -18,14 +20,16 @@ public class FetchUnitIn extends SimulationElement{
 	private int fetchBufferIndex;	//Index to first instruction to be popped out of fetch buffer
 	private int stall;
 	InstructionLinkedList inputToPipeline;
+	EventQueue eventQueue;
 
-	public FetchUnitIn(Core core) {
+	public FetchUnitIn(Core core, EventQueue eventQueue) {
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.fetchBuffer = new Instruction[4];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;
 		this.stall = 0;
+		this.eventQueue = eventQueue;
 	}
 	
 	public void fillFetchBuffer(){
@@ -40,6 +44,15 @@ public class FetchUnitIn extends SimulationElement{
 			else
 			{
 				fetchBuffer[i] = inputToPipeline.pollFirst();
+				this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getPort().put(
+						new AddressCarryingEvent(
+								this.eventQueue,
+								this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getLatencyDelay(),
+								core.getExecutionEngineIn().getDecodeUnitIn(),//TODO add handle fun in getdecodeunit
+								core.getExecutionEngineIn().getCoreMemorySystem().getiCache(),//TODO FIXME 
+								RequestType.Cache_Read,
+								fetchBuffer[i].getProgramCounter())); /*What address to send ??*/
+				fetchFillCount++;
 			}
 		}
 
@@ -55,9 +68,10 @@ public class FetchUnitIn extends SimulationElement{
 				fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
 			}
 			else{
+				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
 //				wbDoneLatch.decrementStallCount();
 //				ifIdLatch.incrementStallCount();
-				decrementStall(1);
+//				decrementStall(1);
 //				core.getInorderPipeline().getIfIdLatch().setInstruction(null);
 			}
 		}

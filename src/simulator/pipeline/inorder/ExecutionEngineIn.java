@@ -23,7 +23,7 @@ public class ExecutionEngineIn {
 		this.exMem = new StageLatch(_core);
 		this.memWb = new StageLatch(_core);
 		this.wbDone = new StageLatch(_core);
-		this.setFetchUnitIn(new FetchUnitIn(core));
+		this.setFetchUnitIn(new FetchUnitIn(core,core.getEventQueue()));
 		this.setDecodeUnitIn(new DecodeUnitIn(core));
 		this.setRegFileIn(new RegFileIn(core));
 		this.setExecUnitIn(new ExecUnitIn(core));
