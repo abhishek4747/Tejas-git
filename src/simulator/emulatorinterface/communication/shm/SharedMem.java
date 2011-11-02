@@ -48,11 +48,7 @@ public class SharedMem extends  IpcBase
 		}
 	}
 	
-	// Creates the reader threads. Takes DynamicInstructionBuffer as the argument  and fills it
-	// with the profiling information of the instruction.
-	// TODO should pass an array of DynamicInstructionBuffer if multiple such buffers are needed
-	// for multiple threads. This side of the code is generic and can handle the case very easily.
-	public void createRunnables() {
+	public void initIpc() {
 		
 		if (SimulationConfig.debugMode) 
 			System.out.println("-- SharedMem creating readers");
@@ -63,7 +59,6 @@ public class SharedMem extends  IpcBase
 			termination[i]=false;
 			started[i]=false;
 			numInstructions[i]=0;
-			readerThreads[i] = new RunnableThread(name,i,this);
 			//TODO not all cores are assigned to each thread
 			//when the mechanism to tie threads to cores is in place
 			//this has to be changed
@@ -189,9 +184,6 @@ public class SharedMem extends  IpcBase
 	// the library should match in the makefile.
 	static { System.loadLibrary("shmlib"); }
 
-	// the reader threads. Each thread reads from EMUTHREADS
-	RunnableThread [] readerThreads = new RunnableThread[MAXNUMTHREADS];
-	
 	// cores associated with this java thread
 	Core[] cores;
 

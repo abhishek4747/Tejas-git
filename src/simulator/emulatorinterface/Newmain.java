@@ -24,6 +24,9 @@ public class Newmain {
 	public static Object syncObject = new Object();
 	public static Process process;
 
+	// the reader threads. Each thread reads from EMUTHREADS
+	RunnableThread [] readerThreads;
+	
 	public static void main(String[] arguments) throws Exception 
 	{
 		String executableArguments=" ";
@@ -83,6 +86,9 @@ public class Newmain {
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
 		Process process = createPINinterface(ipcBase, executableArguments);
+		
+		// Create runnable threads. Each thread reads from EMUTHREADS
+		RunnableThread [] runners = new RunnableThread[IpcBase.MAXNUMTHREADS];
 		
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores, eventQ[0]); //TODO mem sys need not know eventQ during initialisation
@@ -179,7 +185,7 @@ public class Newmain {
 					.showErrorAndExit("\n\tCorrect path for pin or tool or executable not specified !!");
 
 		//TODO .create.!! global creation of runnables 
-		ipcBase.createRunnables();
+		ipcBase.initIpc();
 
 		return process;
 	}

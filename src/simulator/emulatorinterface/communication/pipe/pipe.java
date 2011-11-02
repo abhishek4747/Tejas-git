@@ -3,7 +3,7 @@ package emulatorinterface.communication.pipe;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
 
-public class pipe extends IpcBase
+public class pipe// extends IpcBase
 {
 	public pipe(){
 		System.out.println("dummy constructor");

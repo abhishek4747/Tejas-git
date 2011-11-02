@@ -252,9 +252,7 @@ public class RunnableThread implements Runnable, Encoding {
 			// TODO is pold.ip the startInstructionPointer ???
 			this.inputToPipeline.appendInstruction(ObjParser.translateInstruction(pold.ip, 
 					dynamicInstructionBuffer));
-			
-			//TODO
-			// translate Instruction append fusedInstructions to Runnable's ipTo pipe
+
 			pold = pnew;
 			listPackets.clear();
 			listPackets.add(pold);

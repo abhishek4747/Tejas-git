@@ -19,6 +19,7 @@ import generic.InstructionTable;
 public abstract class IpcBase {
 
 	// Must ensure that MAXNUMTHREADS*EMUTHREADS == MaxNumThreads on the PIN side
+	// Do not move it to config file unless you can satisfy the first constraint
 	public static final int MAXNUMTHREADS = 1;
 	public static final int EMUTHREADS = 32; 
 	// Must ensure that this is same as COUNT in IPCBase.h
@@ -56,9 +57,8 @@ public abstract class IpcBase {
 		}
 	}
 
-	// Create Runnable threads in java. A queue for returning information about the instruction
-	// is passed which is filled by the reading from PIN.
-	public abstract void createRunnables();
+	public abstract void initIpc();
+	
 	
 	/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
 	public RunnableThread[] getRunnableThreads(){
