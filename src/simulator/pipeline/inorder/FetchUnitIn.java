@@ -1,7 +1,6 @@
 package pipeline.inorder;
 
 
-import memorysystem.AddressCarryingEvent;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -44,14 +43,17 @@ public class FetchUnitIn extends SimulationElement{
 			else
 			{
 				fetchBuffer[i] = inputToPipeline.pollFirst();
-				this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getPort().put(
-						new AddressCarryingEvent(
-								this.eventQueue,
-								this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getLatencyDelay(),
-								core.getExecutionEngineIn().getDecodeUnitIn(),//TODO add handle fun in getdecodeunit
-								core.getExecutionEngineIn().getCoreMemorySystem().getiCache(),//TODO FIXME 
-								RequestType.Cache_Read,
-								fetchBuffer[i].getProgramCounter())); /*What address to send ??*/
+//				this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getPort().put(
+//						new AddressCarryingEvent(
+//								this.eventQueue,
+//								this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getLatencyDelay(),
+//								core.getExecutionEngineIn().getDecodeUnitIn(),//TODO add handle fun in getdecodeunit
+//								core.getExecutionEngineIn().getCoreMemorySystem().getiCache(),//TODO FIXME 
+//								RequestType.Cache_Read,
+//								fetchBuffer[i].getProgramCounter())); /*What address to send ??*/
+				this.core.getExecutionEngineIn().getCoreMemorySystem().issueRequestToInstrCache(
+						core.getExecutionEngineIn().getDecodeUnitIn(), 
+						fetchBuffer[i].getProgramCounter());
 				fetchFillCount++;
 			}
 		}

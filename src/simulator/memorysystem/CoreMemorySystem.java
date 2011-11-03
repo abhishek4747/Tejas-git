@@ -20,8 +20,11 @@
 *****************************************************************************/
 package memorysystem;
 
+import pipeline.outoforder_new_arch.ReorderBufferEntry;
+import generic.SimulationElement;
 import generic.EventQueue;
 import generic.Core;
+import generic.RequestType;
 import config.SystemConfig;
 import config.CacheConfig;
 
@@ -78,40 +81,68 @@ public class CoreMemorySystem
 							SystemConfig.core[coreID].LSQSize);
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
 	}
-/*	
-	public void read(long addr)
+	
+	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
 	{
-		//Allocate the LSQ entry
-		MemEventQueue.eventQueue.add(new LSQAddEvent(this, 
-																	true, 
-																	addr, 
-																	MemEventQueue.clock + lsqueue.getLatency()));
-		
-		//TLBuffer.getPhyAddrPage(addr);
-		//MemEventQueue.eventQueue.add(new TLBAccessEvent(this, addr, 25));
-		//CacheRequestPacket request = new CacheRequestPacket();
-		//request.tid = coreID;
-		//request.setType(CacheRequestPacket.readWrite.READ);
-		//request.setAddr(addr);
-		//l1Cache.processEntry(request);
+		if (!MemorySystem.bypassLSQ)
+			robEntry.setLsqEntry(lsqueue.addEntry(isLoad, address, robEntry));
 	}
 	
-	public void write(long addr)
+	//To issue the request to LSQ
+	public void issueRequestToLSQ(SimulationElement requestingElement, 
+											ReorderBufferEntry robEntry)
 	{
-		//Allocate the LSQ entry
-		MemEventQueue.eventQueue.add(new LSQAddEvent(this, 
-																	false, 
-																	addr, 
-																	MemEventQueue.clock + lsqueue.getLatency()));
-		
-		//TLBuffer.getPhyAddrPage(addr);
-		//CacheRequestPacket request = new CacheRequestPacket();
-		//request.tid = coreID;
-		//request.setType(CacheRequestPacket.readWrite.WRITE);
-		//request.setAddr(addr);
-		//l1Cache.processEntry(request);
+		lsqueue.getPort().put(
+				new LSQEntryContainingEvent(
+						core.getEventQueue(),
+						lsqueue.getLatencyDelay(), 
+						requestingElement, //Requesting Element
+						lsqueue, 
+						RequestType.Tell_LSQ_Addr_Ready,
+						robEntry.getLsqEntry()));
 	}
-	*/
+	
+	//To commit Store in LSQ
+	public void issueLSQStoreCommit(ReorderBufferEntry robEntry)
+	{
+		lsqueue.getPort().put(
+				 new LSQEntryContainingEvent(
+						core.getEventQueue(),
+						lsqueue.getLatencyDelay(),
+						null,
+						lsqueue, 
+						RequestType.LSQ_Commit, 
+						robEntry.getLsqEntry()));
+	}
+	
+	//To issue the request directly to L1 cache
+	public void issueRequestToL1Cache(SimulationElement requestingElement, 
+											RequestType requestType, 
+											long address)
+	{
+		l1Cache.getPort().put(
+				new AddressCarryingEvent(
+						core.getEventQueue(),
+						l1Cache.getLatencyDelay(),
+						requestingElement, 
+						l1Cache,
+						requestType, 
+						address));
+	}
+	
+	//To issue the request to instruction cache
+	public void issueRequestToInstrCache(SimulationElement requestingElement,
+											long address)
+	{
+		iCache.getPort().put(
+				new AddressCarryingEvent(
+						core.getEventQueue(),
+						iCache.getLatencyDelay(),
+						requestingElement, 
+						iCache,
+						RequestType.Cache_Read, 
+						address));
+	}
 
 	public LSQ getLsqueue() {
 		return lsqueue;

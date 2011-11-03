@@ -534,7 +534,7 @@ public class Cache extends SimulationElement
 					outstandingRequestList.get(0).getRequestingElement().getPort().put(
 							outstandingRequestList.get(0).update(
 									eventQ,
-									outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+									0, //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 									this,
 									outstandingRequestList.get(0).getRequestingElement(),
 									RequestType.Mem_Response));

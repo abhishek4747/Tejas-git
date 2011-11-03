@@ -178,14 +178,15 @@ public class ReorderBuffer extends SimulationElement{
 					//Signal LSQ for committing the Instruction at the queue head
 					if(firstOpType == OperationType.load || firstOpType == OperationType.store)
 					{
-						 execEngine.coreMemSys.getLsqueue().getPort().put(
-								 new LSQEntryContainingEvent(
-										core.getEventQueue(),
-										execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
-										this,
-										execEngine.coreMemSys.getLsqueue(), 
-										RequestType.LSQ_Commit, 
-										first.getLsqEntry()));
+//						 execEngine.coreMemSys.getLsqueue().getPort().put(
+//								 new LSQEntryContainingEvent(
+//										core.getEventQueue(),
+//										execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
+//										this,
+//										execEngine.coreMemSys.getLsqueue(), 
+//										RequestType.LSQ_Commit, 
+//										first.getLsqEntry()));
+						execEngine.coreMemSys.issueLSQStoreCommit(first);
 						first.getLsqEntry().setRemoved(true);
 					}
 					
