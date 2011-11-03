@@ -79,7 +79,7 @@ public class TLB extends SimulationElement
 		{
 			tlbMisses++;
 			//Fetch the TLB entry from Main memory through the event TLBAddrSearchEvent
-			//addTLBEntry(pageID);
+			addTLBEntry(pageID);
 			//return pageID;
 			isEntryFoundInTLB = false;
 		}
