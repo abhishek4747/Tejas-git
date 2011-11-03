@@ -377,11 +377,11 @@ public class LSQ extends SimulationElement
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
 		//Check the error condition
-		if (lsqEntry.getIndexInQ() != this.head)
-		{
-			System.err.println("Error in LSQ :  ROB sent commit for an instruction other than the one at the head");
-			System.exit(1);
-		}
+//		if (lsqEntry.getIndexInQ() != this.head)
+//		{
+//			System.err.println("Error in LSQ :  ROB sent commit for an instruction other than the one at the head");
+//			System.exit(1);
+//		}
 		
 		// advance the head of the queue
 		
