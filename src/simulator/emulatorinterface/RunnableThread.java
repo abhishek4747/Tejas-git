@@ -43,6 +43,7 @@ public class RunnableThread implements Runnable, Encoding {
 	DynamicInstructionBuffer dynamicInstructionBuffer;
 	
 	int[] decodeWidth;
+	int[] stepSize;
 	PipelineInterface[] pipelineInterfaces;
 	
 	public RunnableThread() {
@@ -62,6 +63,8 @@ public class RunnableThread implements Runnable, Encoding {
 		cores[0].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[0]});
 		decodeWidth = new int[1];
 		decodeWidth[0] = cores[0].getDecodeWidth();
+		stepSize = new int[1];
+		stepSize[0] = cores[0].getStepSize();
 		pipelineInterfaces = new PipelineInterface[1];
 		for(int i = 0; i < 1; i++)
 		{
@@ -184,7 +187,7 @@ public class RunnableThread implements Runnable, Encoding {
 						isFirstPacket[tidEmu] = false;
 				}
 				
-				int n = inputToPipeline[0].getListSize()/decodeWidth[0];
+				int n = inputToPipeline[0].getListSize()/decodeWidth[0] * stepSize[0];
 				for (int i=0; i< n; i++)
 				{
 					pipelineInterfaces[0].oneCycleOperation();
