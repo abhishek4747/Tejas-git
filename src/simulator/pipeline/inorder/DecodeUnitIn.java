@@ -25,9 +25,10 @@ public class DecodeUnitIn extends SimulationElement{
 	public void performDecode(){
 		Instruction ins;
 		StageLatch ifIdLatch = this.core.getExecutionEngineIn().getIfIdLatch();
+		StageLatch idExLatch = this.core.getExecutionEngineIn().getIdExLatch(); 
+
 		ins = ifIdLatch.getInstruction();
 		if(ins!=null){
-			StageLatch idExLatch = this.core.getExecutionEngineIn().getIdExLatch(); 
 			
 			//	stall pipeline if data hazard detected
 			//if ifIdLatch has stall count > 0 then it means there was a stall introduced in the last cycle,
@@ -45,7 +46,6 @@ public class DecodeUnitIn extends SimulationElement{
 //			else{
 //				ifIdLatch.decrementStallCount();
 //			}
-
 			if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
 				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
 				idExLatch.setInstruction(null);
@@ -55,36 +55,47 @@ public class DecodeUnitIn extends SimulationElement{
 				idExLatch.setOperationType(null);
 			}
 			else{
+				System.out.println("Decode");
 				idExLatch.setInstruction(ins);
 				idExLatch.setIn1(ins.getSourceOperand1());
 				idExLatch.setIn2(ins.getSourceOperand2());			
 				idExLatch.setOut1(ins.getDestinationOperand());
 				idExLatch.setOperationType(ins.getOperationType());
 			}
-			if(ins.getOperationType()==OperationType.branch) 
+			if(ins.getOperationType()==OperationType.branch){ 
 				core.getBranchPredictor().Train(
 						ins.getProgramCounter(),
 						ins.isBranchTaken(),
 						core.getBranchPredictor().predict(ins.getProgramCounter())
 						);
-			if(core.getBranchPredictor().predict(ins.getProgramCounter()) != ins.isBranchTaken()){
+				if(core.getBranchPredictor().predict(ins.getProgramCounter()) != ins.isBranchTaken()){
 				//Branch mis predicted
 				//stall pipeline for appropriate cycles
-				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
+				//TODO correct the following:
+//				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
+					core.getExecutionEngineIn().getFetchUnitIn().incrementStall(2);
 				//Set stall complete event to continue the pipeline
 //				core.getEventQueue().addEvent(
 //				new MispredictionPenaltyCompleteEventIn(
 //						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty()*core.getStepSize(),
 //						core)
 //				);
+				}
 			}
+		}
+		else{
+			idExLatch.setInstruction(null);
 		}
 		
 	}
 	private boolean checkDataHazard(Instruction ins, Operand destOp){
-		if(destOp.equals(ins.getDestinationOperand()))
-			return true;
-		else 
+		if(destOp!=null){
+			if(destOp.equals(ins.getDestinationOperand()))
+				return true;
+			else 
+				return false;
+		}
+		else
 			return false;
 	}
 

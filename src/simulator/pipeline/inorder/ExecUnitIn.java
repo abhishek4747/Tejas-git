@@ -32,13 +32,14 @@ public class ExecUnitIn extends SimulationElement{
 				exMemLatch.setIn2(idExLatch.getIn2());
 				exMemLatch.setOut1(idExLatch.getOut1());
 				exMemLatch.setOperationType(idExLatch.getOperationType());
-			}
+			
 //		}
 //		else{
 //			idExLatch.decrementStallCount();
 //			exMemLatch.incrementStallCount();
 //		}
-			if(idExLatch.getOperationType()==OperationType.load){
+				
+/*			if(idExLatch.getOperationType()==OperationType.load){
 				exMemLatch.setMemDone(false);
 				//Schedule a mem read event now so that it can be completed in the mem stage
 				//TODO this.getPort() ?? Is this correct ??
@@ -77,7 +78,12 @@ public class ExecUnitIn extends SimulationElement{
 				
 			}
 			else{
-				exMemLatch.setMemDone(true);
+*/				exMemLatch.setMemDone(true);
+System.out.println("Execute");
+//			}
+			}
+			else{
+				exMemLatch.setInstruction(null);
 			}
 					
 	}

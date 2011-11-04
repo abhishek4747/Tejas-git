@@ -20,6 +20,7 @@ public class InorderPipeline implements PipelineInterface{
 		exec();
 		decode();
 		fetch();
+//		System.out.println(core.getNoOfInstructionsExecuted());
 //		}
 	}
 	
@@ -46,6 +47,9 @@ public class InorderPipeline implements PipelineInterface{
 	@Override
 	public boolean isExecutionComplete() {
 		// TODO Auto-generated method stub
-		return core.getExecutionEngineIn().getExecutionComplete();
+		boolean ret=false;
+		if(core.getNoOfInstructionsExecuted()>100000)
+			ret=true;
+		return core.getExecutionEngineIn().getExecutionComplete() || ret;
 	}
 }

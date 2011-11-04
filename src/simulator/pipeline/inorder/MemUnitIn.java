@@ -24,18 +24,22 @@ public class MemUnitIn extends SimulationElement{
 //		if(exMemLatch.getStallCount()>0){
 
 		drainEventQueue();
-		if(!exMemLatch.getMemDone()){
-			core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
+		if(ins!=null){
+			if(!exMemLatch.getMemDone()){
+				core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
+			}
+			else{
+	
+System.out.println("Mem stage");
+					memWbLatch.setInstruction(ins);
+					memWbLatch.setIn1(exMemLatch.getIn1());
+					memWbLatch.setIn2(exMemLatch.getIn2());
+					memWbLatch.setOut1(exMemLatch.getOut1());
+					memWbLatch.setOperationType(exMemLatch.getOperationType());
+			}
 		}
 		else{
-			if(ins!=null){
-				System.out.println("Mem stage");
-				memWbLatch.setInstruction(ins);
-				memWbLatch.setIn1(exMemLatch.getIn1());
-				memWbLatch.setIn2(exMemLatch.getIn2());
-				memWbLatch.setOut1(exMemLatch.getOut1());
-				memWbLatch.setOperationType(exMemLatch.getOperationType());
-			}
+			memWbLatch.setInstruction(null);
 		}
 //		}
 //		else{
