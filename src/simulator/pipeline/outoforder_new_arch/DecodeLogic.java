@@ -46,7 +46,7 @@ public class DecodeLogic extends SimulationElement {
 		{
 			for(int i = 0; i < decodeWidth; i++)
 			{
-				if(ROB.isFull())
+				if(ROB.isFull() || execEngine.coreMemSys.getLsqueue().isFull())
 				{
 					execEngine.setToStall4(true);
 					break;
