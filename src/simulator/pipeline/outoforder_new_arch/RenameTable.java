@@ -123,7 +123,13 @@ public class RenameTable extends SimulationElement{
 		this.threadID[newPhyReg] = threadID;
 		this.mappingValid[newPhyReg] = true;
 		this.valueValid[newPhyReg] = false;
+		this.mappingValid[this.archToPhyMapping[threadID][archReg]] = false;		
+		if(this.valueValid[this.archToPhyMapping[threadID][archReg]] == true)
+		{
+			addToAvailableList(this.archToPhyMapping[threadID][archReg]);
+		}
 		this.archToPhyMapping[threadID][archReg] = newPhyReg;
+		
 		return newPhyReg;
 	}
 

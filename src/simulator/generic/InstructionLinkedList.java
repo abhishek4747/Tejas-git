@@ -115,6 +115,11 @@ public class InstructionLinkedList
 		return instructionLinkedList.size();
 	}
 	
+	public void removeInstructionAt(int i)
+	{
+		instructionLinkedList.remove(i);
+	}
+	
 	/*public SynchronizationObject getSyncObject2() {
 		return syncObject2;
 	}*/

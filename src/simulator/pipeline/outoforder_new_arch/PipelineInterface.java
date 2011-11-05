@@ -2,11 +2,13 @@ package pipeline.outoforder_new_arch;
 
 import generic.Core;
 import generic.EventQueue;
+import generic.GlobalClock;
 
 public class PipelineInterface implements pipeline.PipelineInterface {
 	
 	Core core;
 	EventQueue eventQ;
+	int coreStepSize;
 	
 	public PipelineInterface(Core core, EventQueue eventQ)
 	{
@@ -21,7 +23,10 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		
 		execEngine = core.getExecEngine();
 		execEngine.getReorderBuffer().performCommits();
-		if(execEngine.isExecutionComplete() == false)
+		
+		long currentTime = GlobalClock.getCurrentTime();
+		coreStepSize = core.getStepSize();
+		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getWriteBackLogic().performWriteBack();
 			execEngine.getSelector().performSelect();
@@ -41,7 +46,7 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		eventQ.processEvents();
 		
 		execEngine = core.getExecEngine();
-		if(execEngine.isExecutionComplete() == false)
+		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getIWPusher().performIWPush();
 			execEngine.getRenamer().performRename();
@@ -75,6 +80,16 @@ public class PipelineInterface implements pipeline.PipelineInterface {
         return core.getExecEngine().isExecutionComplete();
 		
 		
+	}
+	
+	public void setcoreStepSize(int stepSize)
+	{
+		this.coreStepSize = stepSize;
+	}
+	
+	public int getCoreStepSize()
+	{
+		return coreStepSize;
 	}
 
 }

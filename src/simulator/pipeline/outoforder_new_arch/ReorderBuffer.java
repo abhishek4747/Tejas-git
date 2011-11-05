@@ -93,6 +93,7 @@ public class ReorderBuffer extends SimulationElement{
 			newReorderBufferEntry.setOperand2PhyReg1(-1);
 			newReorderBufferEntry.setOperand2PhyReg2(-1);
 			newReorderBufferEntry.setPhysicalDestinationRegister(-1);
+			newReorderBufferEntry.setRenameDone(false);
 			newReorderBufferEntry.setIssued(false);
 			newReorderBufferEntry.setFUInstance(-1);
 			newReorderBufferEntry.setExecuted(false);

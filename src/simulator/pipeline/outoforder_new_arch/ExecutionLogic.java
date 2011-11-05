@@ -25,6 +25,7 @@ public class ExecutionLogic extends SimulationElement {
 	OperandType tempDestOpndType;
 	ReorderBufferEntry reorderBufferEntry;
 	Event tempEvent;
+	ReorderBuffer ROB;
 	
 	public ExecutionLogic(Core core)
 	{
@@ -35,17 +36,9 @@ public class ExecutionLogic extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
+				
 		tempEvent = event;
-		if(tempDestOpnd != null)
-		{
-			tempDestOpndType = tempDestOpnd.getOperandType();
-		}
-		else
-		{
-			tempDestOpndType = null;
-		}
+		ROB = core.getExecEngine().getReorderBuffer();
 		
 		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
 		{
@@ -60,6 +53,14 @@ public class ExecutionLogic extends SimulationElement {
 		FUInstance = reorderBufferEntry.getFUInstance();
 		eventQueue = core.getEventQueue();
 		tempDestOpnd = instruction.getDestinationOperand();
+		if(tempDestOpnd != null)
+		{
+			tempDestOpndType = tempDestOpnd.getOperandType();
+		}
+		else
+		{
+			tempDestOpndType = null;
+		}
 		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
 		{
 			handleExecutionCompletion();
@@ -87,7 +88,7 @@ public class ExecutionLogic extends SimulationElement {
 		if(reorderBufferEntry.getIssued() == false)
 		{
 			System.out.println("not yet issued, but execution complete");
-			return;
+			//return;
 		}
 		/*
 		if(core.getCoreMode() == CoreMode.CheckerSMT)
@@ -95,20 +96,16 @@ public class ExecutionLogic extends SimulationElement {
 			System.out.println("exec\n" + reorderBufferEntry);
 		}*/
 		
-		RegisterFile tempRF = null;
-		RenameTable tempRN = null;
-		
 		if(tempDestOpnd == null)
 		{
 			if(instruction.getOperationType() == OperationType.xchg)
 			{
 				//doesn't use an FU				
 				reorderBufferEntry.setExecuted(true);
-				writeBackForXchg();
+				wakeUpForXchg();
 			}
 			else
 			{
-				//writeBackForOthers(tempRF, tempRN);
 				reorderBufferEntry.setExecuted(true);
 				reorderBufferEntry.setWriteBackDone1(true);
 				reorderBufferEntry.setWriteBackDone2(true);
@@ -117,58 +114,30 @@ public class ExecutionLogic extends SimulationElement {
 		
 		else
 		{
-			if(tempDestOpndType == OperandType.machineSpecificRegister)
-			{
-				tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
-				tempRN = null;
-			}
-			else if(tempDestOpndType == OperandType.integerRegister)
-			{
-				tempRF = core.getExecEngine().getIntegerRegisterFile();
-				tempRN = core.getExecEngine().getIntegerRenameTable();
-			}
-			else if(tempDestOpndType == OperandType.floatRegister)
-			{
-				tempRF = core.getExecEngine().getFloatingPointRegisterFile();
-				tempRN = core.getExecEngine().getFloatingPointRenameTable();
-			}
-			else
-			{
-				reorderBufferEntry.setExecuted(true);
-				reorderBufferEntry.setWriteBackDone1(true);
-				reorderBufferEntry.setWriteBackDone2(true);
-				return;
-			}
-			
 			if(instruction.getOperationType() == OperationType.mov)
 			{
 				//doesn't use an FU			
 				reorderBufferEntry.setExecuted(true);			
-				writeBackForMov(tempRF, tempRN);
+				wakeUpForMov();
 			}		
 			else
 			{
-				writeBackForOthers(tempRF, tempRN);
+				wakeUpForOthers();
 			}
 		}
 		
 	}
 	
-	void writeBackForMov(RegisterFile tempRF, RenameTable tempRN)
+	void wakeUpForMov()
 	{
-		//wakeup waiting IW entries
+		//wake up waiting IW entries
 		int tempDestPhyReg = reorderBufferEntry.getPhysicalDestinationRegister();
-		WakeUpLogic.wakeUpLogic(core, tempDestOpndType, tempDestPhyReg, reorderBufferEntry.threadID, -1);
-		
-		//attempt to write-back
-		//WriteBackLogic.writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg, core);
+		WakeUpLogic.wakeUpLogic(core, tempDestOpndType, tempDestPhyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		
 	}
 	
-	void writeBackForXchg()
+	void wakeUpForXchg()
 	{
-		RegisterFile tempRF = null;
-		RenameTable tempRN = null;
 		int phyReg;
 		
 		//operand 1
@@ -177,98 +146,62 @@ public class ExecutionLogic extends SimulationElement {
 		
 		if(tempOpndType == OperandType.machineSpecificRegister)
 		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
-			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg, reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
 		else if(tempOpndType == OperandType.integerRegister)
 		{
-			tempRF = core.getExecEngine().getIntegerRegisterFile();
-			tempRN = core.getExecEngine().getIntegerRenameTable();
-			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg, reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
 		else if(tempOpndType == OperandType.floatRegister)
 		{
-			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
-			WakeUpLogic.wakeUpLogic(core, OperandType.floatRegister, phyReg, reorderBufferEntry.threadID, -1);
-		}
-		
-		//attempt to write-back
-		//WriteBackLogic.writeBack(reorderBufferEntry, 1, tempRF, tempRN, phyReg, core);
+			WakeUpLogic.wakeUpLogic(core, OperandType.floatRegister, phyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
+		}	
 		
 		
-		
-		tempRF = null;
-		tempRN = null;
 		//operand 2
 		phyReg = reorderBufferEntry.getOperand2PhyReg1();
 		tempOpndType = instruction.getSourceOperand2().getOperandType();
 		
 		if(tempOpndType == OperandType.machineSpecificRegister)
 		{
-			tempRF = core.getExecEngine().getMachineSpecificRegisterFile(threadID);
-			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg, reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, OperandType.machineSpecificRegister, phyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
 		else if(tempOpndType == OperandType.integerRegister)
 		{
-			tempRF = core.getExecEngine().getIntegerRegisterFile();
-			tempRN = core.getExecEngine().getIntegerRenameTable();
-			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg, reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, OperandType.integerRegister, phyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
 		else if(tempOpndType == OperandType.floatRegister)
 		{
-			tempRF = core.getExecEngine().getFloatingPointRegisterFile();
-			tempRN = core.getExecEngine().getFloatingPointRenameTable();
-			WakeUpLogic.wakeUpLogic(core, OperandType.floatRegister, phyReg, reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, OperandType.floatRegister, phyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
-		
-		//attempt to write-back
-		//WriteBackLogic.writeBack(reorderBufferEntry, 2, tempRF, tempRN, phyReg, core);
 		
 	}
 	
-	void writeBackForOthers(RegisterFile tempRF, RenameTable tempRN)
+	void wakeUpForOthers()
 	{
-		//check if the execution has completed
-		long time_of_completion = 0;
-		OperationType tempOpType = instruction.getOperationType();
-		
-		if(tempOpType != OperationType.load &&
-				tempOpType != OperationType.store)
-		{
-			time_of_completion = core.getExecEngine().getFunctionalUnitSet().getTimeWhenFUAvailable(
-				OpTypeToFUTypeMapping.getFUType(reorderBufferEntry.getInstruction().getOperationType()),
-				FUInstance );
-		}
-		
-		//execution complete
 		reorderBufferEntry.setExecuted(true);
 		
 		int tempDestPhyReg = reorderBufferEntry.getPhysicalDestinationRegister();
+		
 		//wakeup waiting IW entries
-		if(tempRF != null || tempRN != null)
+		if(tempDestOpnd != null)
 		{
 			//there may some instruction that needs to be woken up
-			WakeUpLogic.wakeUpLogic(core, tempDestOpndType, tempDestPhyReg, reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, tempDestOpndType, tempDestPhyReg, reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
-		
-		//attempt to write-back
-		//WriteBackLogic.writeBack(reorderBufferEntry, 3, tempRF, tempRN, tempDestPhyReg, core);
 	}
 	
 	void performBroadCast1()
 	{
 		if(tempDestOpnd != null)
 		{
-			WakeUpLogic.wakeUpLogic(core, tempDestOpndType, reorderBufferEntry.getPhysicalDestinationRegister(), reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, tempDestOpndType, reorderBufferEntry.getPhysicalDestinationRegister(), reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
 		else if(instruction.getOperationType() == OperationType.xchg)
 		{
-			WakeUpLogic.wakeUpLogic(core, instruction.getSourceOperand1().getOperandType(), reorderBufferEntry.getOperand1PhyReg1(), reorderBufferEntry.threadID, -1);
-			WakeUpLogic.wakeUpLogic(core, instruction.getSourceOperand2().getOperandType(), reorderBufferEntry.getOperand2PhyReg1(), reorderBufferEntry.threadID, -1);
+			WakeUpLogic.wakeUpLogic(core, instruction.getSourceOperand1().getOperandType(), reorderBufferEntry.getOperand1PhyReg1(), reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
+			WakeUpLogic.wakeUpLogic(core, instruction.getSourceOperand2().getOperandType(), reorderBufferEntry.getOperand2PhyReg1(), reorderBufferEntry.threadID, (reorderBufferEntry.pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(reorderBufferEntry) + 1) % ROB.MaxROBSize);
 		}
 	}
 	
-
-
 }

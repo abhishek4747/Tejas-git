@@ -1,9 +1,11 @@
 package pipeline.outoforder_new_arch;
 
+import config.SimulationConfig;
 import pipeline.outoforder_new_arch.ReorderBufferEntry;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.PortType;
@@ -50,11 +52,19 @@ public class DecodeLogic extends SimulationElement {
 					break;
 				}
 				
-				if(fetchBuffer[i] != null)
+				if(fetchBuffer[i] != null
+						&& fetchBuffer[i].getOperationType() != OperationType.interrupt
+						//&& fetchBuffer[i].getOperationType() != OperationType.store
+						)
 				{
 					newROBEntry = makeROBEntries(fetchBuffer[i]);
 					decodeBuffer[i] = newROBEntry;
 					fetchBuffer[i] = null;
+					
+					if(SimulationConfig.debugMode)
+					{
+						System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + fetchBuffer[i]);
+					}
 				}
 				
 				execEngine.setToStall4(false);
@@ -90,9 +100,8 @@ public class DecodeLogic extends SimulationElement {
 					isLoad = false;
 					
 				//TODO
-				this.core.getExecEngine().coreMemSys.allocateLSQEntry(isLoad, 
-						newROBEntry.getInstruction().getSourceOperand1().getValue(),
-						newROBEntry);
+				newROBEntry.setLsqEntry(this.core.getExecEngine().coreMemSys.getLsqueue().addEntry(isLoad, 
+									newROBEntry.getInstruction().getSourceOperand1().getValue(), newROBEntry));
 			}
 			
 			return newROBEntry;

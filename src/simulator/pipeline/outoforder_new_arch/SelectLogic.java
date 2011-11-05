@@ -29,10 +29,10 @@ public class SelectLogic extends SimulationElement {
 		this.execEngine = execEngine;
 		IW = execEngine.getInstructionWindow();
 		
-		destRegOpndType = new OperandType[IW.maxIWSize];
-		destRegPhyReg = new int[IW.maxIWSize];
-		IWEntryROBIndex = new int[IW.maxIWSize];
-		associatedROBEntries = new ReorderBufferEntry[IW.maxIWSize];
+		destRegOpndType = new OperandType[2*IW.maxIWSize];//2*IW.maxIWSize because all instructions in window could be xchgs - each requiring two wake-ups
+		destRegPhyReg = new int[2*IW.maxIWSize];
+		IWEntryROBIndex = new int[2*IW.maxIWSize];
+		associatedROBEntries = new ReorderBufferEntry[2*IW.maxIWSize];
 		for(int i = 0; i < IW.maxIWSize; i++)
 		{
 			destRegOpndType[i] = OperandType.inValid;
@@ -42,6 +42,15 @@ public class SelectLogic extends SimulationElement {
 		}
 	}
 	
+	/*
+	 * all ready instructions' issue are attempted
+	 * the dependent instructions of all those instructions issued,
+	 * 		whose latency is a single cycle, are queued up for early awakening
+	 * 		so that in the next cycle they may be considered for execution
+	 * important - all issues must be attempted first; only then must awakening be done
+	 * 		this is because an awakened instruction is a
+	 * 		candidate for issue only in the next cycle 
+	 */
 	public void performSelect()
 	{
 		int wakeUpListCtr = 0;

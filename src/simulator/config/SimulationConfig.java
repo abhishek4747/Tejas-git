@@ -30,4 +30,5 @@ public class SimulationConfig
 	public static String PinInstrumentor;
 	public static String outputFileName;
 	public static boolean debugMode;
+	public static boolean detachMemSys;
 }

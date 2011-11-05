@@ -381,5 +381,11 @@ public class Core extends SimulationElement{
 
 			
 	}
+	
+	public void setStepSize(int stepSize)
+	{
+		this.stepSize = stepSize;
+		this.pipelineInterface.setcoreStepSize(stepSize);
+	}
 
 }

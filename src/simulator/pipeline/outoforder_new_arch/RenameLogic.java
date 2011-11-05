@@ -1,8 +1,10 @@
 package pipeline.outoforder_new_arch;
 
+import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
 import generic.OperandType;
@@ -64,7 +66,13 @@ public class RenameLogic extends SimulationElement {
 						
 						renameBuffer[i] = decodeBuffer[i];
 						decodeBuffer[i] = null;
+						reorderBufferEntry.isRenameDone = true;
 						execEngine.setToStall2(false);
+						
+						if(SimulationConfig.debugMode)
+						{
+							System.out.println("renamed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
+						}
 					}
 					else
 					{

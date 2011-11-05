@@ -38,7 +38,7 @@ public class XMLParser
 	{ 
 		try 
 		{
-			File file = new File("src/simulator/config/config.xml");
+			File file = new File("src/simulator/config/config.xml.template");
 			DocumentBuilderFactory DBFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder DBuilder = DBFactory.newDocumentBuilder();
 			doc = DBuilder.parse(file);
@@ -115,6 +115,15 @@ public class XMLParser
 		else
 		{
 			SimulationConfig.debugMode = false;
+		}
+		if(getImmediateString("DetachMemSys", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("DetachMemSys", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.detachMemSys = true;
+		}
+		else
+		{
+			SimulationConfig.detachMemSys = false;
 		}
 	}
 	

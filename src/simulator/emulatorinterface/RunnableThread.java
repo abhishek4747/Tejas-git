@@ -17,6 +17,7 @@ import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import emulatorinterface.translator.x86.objparser.TestInstructionLists;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -170,6 +171,7 @@ public class RunnableThread implements Runnable, Encoding {
 					emulatorStarted = true;
 					start = System.currentTimeMillis();
 					ipcType.started[tid] = true;
+					stepSize[0] = pipelineInterfaces[0].getCoreStepSize();//TODO all cores
 				}
 
 				if (isFirstPacket[tidEmu]) {
@@ -188,7 +190,7 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 				
 				int n = inputToPipeline[0].getListSize()/decodeWidth[0] * stepSize[0];
-				for (int i=0; i< n; i++)
+				for (int i1=0; i1< n; i1++)
 				{
 					pipelineInterfaces[0].oneCycleOperation();
 					GlobalClock.incrementClock();
@@ -233,7 +235,7 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 		
 		this.inputToPipeline[0].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
-		
+		//this.inputToPipeline[0].appendInstruction(TestInstructionLists.testList2());
 		boolean queueComplete;    //queueComplete is true when all cores have completed
         
         while(true)
@@ -304,8 +306,23 @@ public class RunnableThread implements Runnable, Encoding {
 			this.dynamicInstructionBuffer.configurePackets(listPackets);
 			
 			// QQQ translate instructions
-			this.inputToPipeline[0].appendInstruction(ObjParser.translateInstruction(listPackets.get(0).ip, 
-					dynamicInstructionBuffer));
+			InstructionLinkedList tempList = ObjParser.translateInstruction(listPackets.get(0).ip, 
+					dynamicInstructionBuffer);
+			
+			/*if(SimulationConfig.detachMemSys)	TODO
+			{
+				for(int i = 0; i < tempList.getListSize(); i++)
+				{
+					if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
+							tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
+					{
+						tempList.removeInstructionAt(i);
+						i--;
+					}
+				}
+			}*/
+			
+			this.inputToPipeline[0].appendInstruction(tempList);
 
 			pold = pnew;
 			listPackets.clear();

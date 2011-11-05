@@ -87,7 +87,7 @@ public class IWEntry {
 				return true;
 			}
 			
-			else
+			else 
 			{
 				return issueOthers();
 			}
@@ -187,6 +187,18 @@ public class IWEntry {
 	
 	boolean issueOthers()
 	{
+		
+		if(associatedROBEntry.instruction.getOperationType() == OperationType.interrupt)
+		{
+			associatedROBEntry.setIssued(true);
+			associatedROBEntry.setFUInstance(0);
+			
+			//remove IW entry
+			instructionWindow.removeFromWindow(this);
+			
+			return true;
+		}
+		
 		long FURequest = 0;	//will be <= 0 if an FU was obtained
 		//will be > 0 otherwise, indicating how long before
 		//	an FU of the type will be available (not used in new arch)
@@ -206,8 +218,8 @@ public class IWEntry {
 			
 			core.getEventQueue().addEvent(
 					new BroadCast1Event(
-							GlobalClock.getCurrentTime() + core.getLatency(
-									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize() - 1,
+							GlobalClock.getCurrentTime() + (core.getLatency(
+									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) - 1) * core.getStepSize(),
 							null, 
 							execEngine.getExecuter(),
 							RequestType.BROADCAST_1,
