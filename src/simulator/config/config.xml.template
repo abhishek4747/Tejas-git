@@ -24,13 +24,14 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/kapil/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/kapil/workspace/BhartiSim/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/raj/Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/raj/workspace/BhartiSim/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
+		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
 	</Simulation>
 
 	<!--System Parameters-->
