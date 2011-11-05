@@ -38,7 +38,7 @@ public class XMLParser
 	{ 
 		try 
 		{
-			File file = new File("src/simulator/config/config.xml.template");
+			File file = new File("src/simulator/config/config.xml");
 			DocumentBuilderFactory DBFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder DBuilder = DBFactory.newDocumentBuilder();
 			doc = DBuilder.parse(file);
