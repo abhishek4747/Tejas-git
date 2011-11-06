@@ -23,7 +23,6 @@ public class WriteBackUnitIn extends SimulationElement{
 //		}
 		if(memWbLatch.getInstruction()!=null){
 			core.incrementNoOfInstructionsExecuted();
-System.out.println("WB");
 		}
 	}
 

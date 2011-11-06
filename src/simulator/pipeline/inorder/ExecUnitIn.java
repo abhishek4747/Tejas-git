@@ -27,6 +27,7 @@ public class ExecUnitIn extends SimulationElement{
 		StageLatch idExLatch = core.getExecutionEngineIn().getIdExLatch();
 //		if(idExLatch.getStallCount()>0){
 			if(ins!=null){
+				//TODO Account for multicycle operations.
 				exMemLatch.setInstruction(ins);
 				exMemLatch.setIn1(idExLatch.getIn1());
 				exMemLatch.setIn2(idExLatch.getIn2());
@@ -39,47 +40,31 @@ public class ExecUnitIn extends SimulationElement{
 //			exMemLatch.incrementStallCount();
 //		}
 				
-/*			if(idExLatch.getOperationType()==OperationType.load){
-				exMemLatch.setMemDone(false);
-				//Schedule a mem read event now so that it can be completed in the mem stage
-				//TODO this.getPort() ?? Is this correct ??
-
-//				this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getPort().put(
-//						new AddressCarryingEvent(
-//								this.eventQueue,
-//								this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getLatencyDelay(),
-//								core.getExecutionEngineIn().getMemUnitIn(),
-//								core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
-//								RequestType.Cache_Read,
-//								ins.getSourceOperand1().getValue()));
-				this.core.getExecutionEngineIn().getCoreMemorySystem().issueRequestToL1Cache(
-						core.getExecutionEngineIn().getMemUnitIn(),
-						RequestType.Cache_Read,
-						ins.getSourceOperand1().getValue());
-
-			}
-			else if(idExLatch.getOperationType()==OperationType.store){
-				exMemLatch.setMemDone(false);
-				//Schedule a mem read event now so that it can be completed in the mem stage
-
-//				this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getPort().put(
-//						new AddressCarryingEvent(
-//								this.eventQueue,
-//								this.core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache().getLatencyDelay(),
-//								core.getExecutionEngineIn().getMemUnitIn(),
-//								core.getExecutionEngineIn().getCoreMemorySystem().getL1Cache(),//TODO FIXME 
-//								RequestType.Cache_Write,
-//								ins.getSourceOperand1().getValue()));
-				this.core.getExecutionEngineIn().getCoreMemorySystem().issueRequestToL1Cache(
-						core.getExecutionEngineIn().getMemUnitIn(),
-						RequestType.Cache_Write,
-						ins.getSourceOperand1().getValue());
-
-				
-			}
-			else{
-*/				exMemLatch.setMemDone(true);
-System.out.println("Execute");
+//			if(idExLatch.getOperationType()==OperationType.load){
+//				exMemLatch.setMemDone(false);
+//				//Schedule a mem read event now so that it can be completed in the mem stage
+//				//TODO this.getPort() ?? Is this correct ??
+//
+//				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+//						core.getExecutionEngineIn().getMemUnitIn(),
+//						RequestType.Cache_Read,
+//						ins.getSourceOperand1().getValue());
+//
+//			}
+//			else if(idExLatch.getOperationType()==OperationType.store){
+//				exMemLatch.setMemDone(false);
+//				//Schedule a mem read event now so that it can be completed in the mem stage
+//
+//				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+//						core.getExecutionEngineIn().getMemUnitIn(),
+//						RequestType.Cache_Write,
+//						ins.getSourceOperand1().getValue());
+//
+//
+//				
+//			}
+//			else{
+				exMemLatch.setMemDone(true);
 //			}
 			}
 			else{

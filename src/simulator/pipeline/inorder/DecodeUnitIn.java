@@ -30,32 +30,11 @@ public class DecodeUnitIn extends SimulationElement{
 		ins = ifIdLatch.getInstruction();
 		if(ins!=null){
 			
-			//	stall pipeline if data hazard detected
-			//if ifIdLatch has stall count > 0 then it means there was a stall introduced in the last cycle,
-			//so no need to introduce fresh stall
-//			if(ifIdLatch.getStallCount()==0 && checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
-////				idExLatch.incrementStallCount();
-//				core.getFetchUnitIn().setStall(true);
-//				//Set stall complete event to continue the pipeline
-//				core.getEventQueue().addEvent(
-//				new MispredictionPenaltyCompleteEventIn(
-//						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty()*core.getStepSize(),
-//						core)
-//				);
-//			}
-//			else{
-//				ifIdLatch.decrementStallCount();
-//			}
 			if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
 				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
-				idExLatch.setInstruction(null);
-				idExLatch.setIn1(null);
-				idExLatch.setIn2(null);			
-				idExLatch.setOut1(null);
-				idExLatch.setOperationType(null);
+
 			}
 			else{
-				System.out.println("Decode");
 				idExLatch.setInstruction(ins);
 				idExLatch.setIn1(ins.getSourceOperand1());
 				idExLatch.setIn2(ins.getSourceOperand2());			
@@ -74,12 +53,6 @@ public class DecodeUnitIn extends SimulationElement{
 				//TODO correct the following:
 //				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
 					core.getExecutionEngineIn().getFetchUnitIn().incrementStall(2);
-				//Set stall complete event to continue the pipeline
-//				core.getEventQueue().addEvent(
-//				new MispredictionPenaltyCompleteEventIn(
-//						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty()*core.getStepSize(),
-//						core)
-//				);
 				}
 			}
 		}
@@ -90,7 +63,8 @@ public class DecodeUnitIn extends SimulationElement{
 	}
 	private boolean checkDataHazard(Instruction ins, Operand destOp){
 		if(destOp!=null){
-			if(destOp.equals(ins.getDestinationOperand()))
+			//TODO check the following way of comparing the two operands
+			if(destOp.equals(ins.getSourceOperand1()) || destOp.equals(ins.getSourceOperand1()))
 				return true;
 			else 
 				return false;

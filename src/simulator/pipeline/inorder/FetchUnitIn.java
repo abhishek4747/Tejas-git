@@ -18,6 +18,7 @@ public class FetchUnitIn extends SimulationElement{
 	private int fetchFillCount;	//Number of instructions in the fetch buffer
 	private int fetchBufferIndex;	//Index to first instruction to be popped out of fetch buffer
 	private int stall;
+	private boolean sleep;		//The boolean to stall the pipeline when a sync request is received
 	InstructionLinkedList inputToPipeline;
 	EventQueue eventQueue;
 
@@ -30,15 +31,19 @@ public class FetchUnitIn extends SimulationElement{
 		this.fetchBufferCapacity=4;
 		this.stall = 0;
 		this.eventQueue = eventQueue;
+		this.sleep=false;
 	}
 	
 	public void fillFetchBuffer(){
 //System.out.println("inside fill fetch buffer "+inputToPipeline.getListSize());
 		//TODO Request iCache for instructions
+		if(inputToPipeline.isEmpty())
+			return;
 		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
 	
 		for(int i=fetchBufferIndex;fetchFillCount<fetchBufferCapacity;i = (i+1)%fetchBufferCapacity){
 			if(newInstruction.getOperationType() == OperationType.inValid){
+				System.out.println("Total instructions = "+core.getNoOfInstructionsExecuted());
 				core.getExecutionEngineIn().setExecutionComplete(true);
 				break;
 			}
@@ -46,20 +51,24 @@ public class FetchUnitIn extends SimulationElement{
 			{	
 				fetchBuffer[i] = inputToPipeline.pollFirst();
 
-				newInstruction = inputToPipeline.peekInstructionAt(0);
+				if(!inputToPipeline.isEmpty())
+					newInstruction = inputToPipeline.peekInstructionAt(0);
+				else
+					break;
 /*				this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getPort().put(
 						new AddressCarryingEvent(
 								this.eventQueue,
 								this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getLatencyDelay(),
-								core.getExecutionEngineIn().getDecodeUnitIn(),//TODO add handle fun in getdecodeunit
-								core.getExecutionEngineIn().getCoreMemorySystem().getiCache(),//TODO FIXME 
+								core.getExecutionEngineIn().getDecodeUnitIn(),
+								core.getExecutionEngineIn().getCoreMemorySystem().getiCache(), 
 								RequestType.Cache_Read,
 								fetchBuffer[i].getProgramCounter())); //What address to send ??
 */
+				//TODO add handle fun in getdecodeunit. What happens if icache miss ? stalls not taken account for right now.
 
-//				this.core.getExecutionEngineIn().getCoreMemorySystem().issueRequestToInstrCache(
-//						core.getExecutionEngineIn().getDecodeUnitIn(), 
-//						fetchBuffer[i].getProgramCounter());
+				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
+						core.getExecutionEngineIn().getDecodeUnitIn(), 
+						fetchBuffer[i].getProgramCounter());
 
 				fetchFillCount++;
 			}
@@ -71,14 +80,19 @@ public class FetchUnitIn extends SimulationElement{
 
 //		StageLatch wbDoneLatch = core.getInorderPipeline().getWbDoneLatch();
 //		StageLatch ifIdLatch = core.getInorderPipeline().getIfIdLatch();
-System.out.println(this.stall+" "+fetchFillCount+" "+fetchBufferIndex);
-
-//		if(!core.getExecutionEngineIn().getExecutionComplete()){
-		if(this.stall==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+		Instruction ins;
+		if(!this.sleep && this.stall==0 && !core.getExecutionEngineIn().getExecutionComplete()){
 			if(fetchFillCount > 0){
-				core.getExecutionEngineIn().getIfIdLatch().setInstruction(fetchBuffer[fetchBufferIndex]);
-				fetchFillCount--;			//TODO synchronize this ? with fetch buffer filling
-				fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
+				ins = fetchBuffer[fetchBufferIndex];
+				if(ins.getOperationType()==OperationType.sync){
+					sleepThePipeline();
+				}
+				else{
+					core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
+					fetchFillCount--;			
+					fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
+				}
+				
 			}
 			else{
 				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
@@ -106,6 +120,16 @@ System.out.println(this.stall+" "+fetchFillCount+" "+fetchBufferIndex);
 	public void setStall(int _stall){
 		this.stall = _stall;
 	}
+	public void setSleep(boolean _sleep){
+		this.sleep=_sleep;
+	}
+	public boolean getSleep(){
+		return this.sleep;
+	}
+	public void sleepThePipeline(){
+		this.sleep=true;
+	}
+	
 	public InstructionLinkedList getInputToPipeline(){
 		return this.inputToPipeline;
 	}
@@ -116,6 +140,8 @@ System.out.println(this.stall+" "+fetchFillCount+" "+fetchBufferIndex);
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
+		//This should be called when the pipeline needs to wake up
+		this.sleep=false;
 		
 	}
 

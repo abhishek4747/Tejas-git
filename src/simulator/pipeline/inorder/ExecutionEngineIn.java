@@ -14,7 +14,7 @@ public class ExecutionEngineIn {
 	private MemUnitIn memUnitIn;
 	private WriteBackUnitIn writeBackUnitIn;
 	private boolean executionComplete;
-	private CoreMemorySystem coreMemorySystem;
+	public CoreMemorySystem coreMemorySystem;
 
 	public ExecutionEngineIn(Core _core){
 		this.core = _core;
@@ -69,9 +69,9 @@ public class ExecutionEngineIn {
 	public void setWriteBackUnitIn(WriteBackUnitIn _wbUnitIn){
 		this.writeBackUnitIn = _wbUnitIn;
 	}
-	public void setCoreMemorySystem(CoreMemorySystem coreMemSys){
-		this.coreMemorySystem=coreMemSys;
-	}
+//	public void setCoreMemorySystem(CoreMemorySystem coreMemSys){
+//		this.coreMemorySystem=coreMemSys;
+//	}
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
 	}
@@ -90,9 +90,9 @@ public class ExecutionEngineIn {
 	public StageLatch getWbDoneLatch(){
 		return this.wbDone;
 	}
-	public CoreMemorySystem getCoreMemorySystem(){
-		return this.coreMemorySystem;
-	}
+//	public CoreMemorySystem getCoreMemorySystem(){
+//		return this.coreMemorySystem;
+//	}
 	public boolean getExecutionComplete(){
 		return this.executionComplete;
 	}

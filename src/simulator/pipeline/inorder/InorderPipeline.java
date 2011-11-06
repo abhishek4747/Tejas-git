@@ -14,14 +14,12 @@ public class InorderPipeline implements PipelineInterface{
 	}
 	
 	public void oneCycleOperation(){
-//		while(!core.getExecutionEngineIn().getExecutionComplete()){
 		writeback();
 		mem();
 		exec();
 		decode();
 		fetch();
-//		System.out.println(core.getNoOfInstructionsExecuted());
-//		}
+//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
 	}
 	
 	public void writeback(){
@@ -47,9 +45,6 @@ public class InorderPipeline implements PipelineInterface{
 	@Override
 	public boolean isExecutionComplete() {
 		// TODO Auto-generated method stub
-		boolean ret=false;
-		if(core.getNoOfInstructionsExecuted()>100000)
-			ret=true;
-		return core.getExecutionEngineIn().getExecutionComplete() || ret;
-	}
+		return (core.getExecutionEngineIn().getExecutionComplete());
+		}
 }
