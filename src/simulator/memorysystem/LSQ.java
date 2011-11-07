@@ -302,7 +302,7 @@ public class LSQ extends SimulationElement
 			this.getPort().put(
 					event.update(
 							eventQ,
-							GlobalClock.getCurrentTime() + MemorySystem.mainMemory.getLatencyDelay(),
+							MemorySystem.mainMemory.getLatencyDelay(),
 							null,
 							this,
 							RequestType.Validate_LSQ_Addr));

@@ -178,37 +178,6 @@ public class CoreMemorySystemTest
 				if (request == null)
 					return;
 				
-				/*//Code added for LSQ on top of cache
-				if (entry.type ==  CacheRequestPacket.READ)
-				{
-					NoOfLd++;
-					index = lsq1.addEntry(true, entry.addr);
-					while (index == LSQ.QUEUE_FULL)
-					{
-						randomIndex = generator.nextInt(3);
-						if (randomIndex == 1)
-							lsq1.processROBCommit(lsq1.head);
-						index = lsq1.addEntry(true, entry.addr);
-					}
-					lsq1.loadValidate(index, entry.addr);
-				}
-				else if (entry.type ==  CacheRequestPacket.WRITE)
-				{
-					index = lsq1.addEntry(false, entry.addr);
-					while (index == LSQ.QUEUE_FULL)
-					{
-						randomIndex = generator.nextInt(3);
-						if (randomIndex == 1)
-							lsq1.processROBCommit(lsq1.head);
-						index = lsq1.addEntry(false, entry.addr);
-					}
-					lsq1.storeValidate(index, entry.addr);
-				}
-				randomIndex = generator.nextInt(2);
-				if ((randomIndex == 1)&&(lsq1.curSize != 0))
-					lsq1.processROBCommit(lsq1.head);
-				//Code added for LSQ on top of cache ENDS*/
-				
 				//processEntry(request);
 				if (request.getType() == MemoryAccessType.READ)
 					Global.memSys[request.getThreadID()].read(request.getAddr());
