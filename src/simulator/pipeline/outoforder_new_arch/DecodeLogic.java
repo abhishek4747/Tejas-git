@@ -46,7 +46,7 @@ public class DecodeLogic extends SimulationElement {
 		{
 			for(int i = 0; i < decodeWidth; i++)
 			{
-				if(ROB.isFull() || execEngine.coreMemSys.getLsqueue().isFull())
+				if(ROB.isFull())
 				{
 					execEngine.setToStall4(true);
 					break;
@@ -57,6 +57,16 @@ public class DecodeLogic extends SimulationElement {
 						//&& fetchBuffer[i].getOperationType() != OperationType.store
 						)
 				{
+					if(fetchBuffer[i].getOperationType() == OperationType.load ||
+							fetchBuffer[i].getOperationType() == OperationType.store)
+					{
+						if(execEngine.coreMemSys.getLsqueue().isFull())
+						{
+							execEngine.setToStall4(true);
+							break;
+						}
+					}
+					
 					newROBEntry = makeROBEntries(fetchBuffer[i]);
 					decodeBuffer[i] = newROBEntry;
 					fetchBuffer[i] = null;
@@ -112,7 +122,6 @@ public class DecodeLogic extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
 		
 	}
 

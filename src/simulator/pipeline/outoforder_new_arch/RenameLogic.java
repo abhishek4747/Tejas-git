@@ -450,7 +450,7 @@ public class RenameLogic extends SimulationElement {
 			}
 			else
 			{
-				reorderBufferEntry.setOperand1Available(false);
+				//reorderBufferEntry.setOperand1Available(false);
 				
 				if(opndAvailable[0] == true)
 				{
@@ -458,7 +458,7 @@ public class RenameLogic extends SimulationElement {
 				}
 				else
 				{
-					reorderBufferEntry.setOperand11Available(false);
+					//reorderBufferEntry.setOperand11Available(false);
 				}
 				
 				if(opndAvailable[1] == true)
@@ -467,7 +467,7 @@ public class RenameLogic extends SimulationElement {
 				}
 				else
 				{
-					reorderBufferEntry.setOperand12Available(false);
+					//reorderBufferEntry.setOperand12Available(false);
 				}
 			}
 		}
@@ -550,7 +550,7 @@ public class RenameLogic extends SimulationElement {
 			}
 			else
 			{
-				reorderBufferEntry.setOperand2Available(false);
+				//reorderBufferEntry.setOperand2Available(false);
 				
 				if(opndAvailable[0] == true)
 				{
@@ -558,7 +558,7 @@ public class RenameLogic extends SimulationElement {
 				}
 				else
 				{
-					reorderBufferEntry.setOperand21Available(false);
+					//reorderBufferEntry.setOperand21Available(false);
 				}
 				
 				if(opndAvailable[1] == false)
@@ -567,7 +567,7 @@ public class RenameLogic extends SimulationElement {
 				}
 				else
 				{
-					reorderBufferEntry.setOperand22Available(false);
+					//reorderBufferEntry.setOperand22Available(false);
 				}
 			}
 		}
@@ -575,7 +575,6 @@ public class RenameLogic extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
 		
 	}
 	

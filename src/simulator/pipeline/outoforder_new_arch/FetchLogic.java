@@ -66,6 +66,12 @@ public class FetchLogic extends SimulationElement {
 					for(int i = 0; i < fetchWidth; i++)
 					{
 						newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
+						
+						if(newInstruction == null)
+						{
+							System.out.println("number of instructions fetched < width");
+						}
+						
 						if(newInstruction.getOperationType() == OperationType.inValid)
 						{
 							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
@@ -88,7 +94,6 @@ public class FetchLogic extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
 		
 	}
 	

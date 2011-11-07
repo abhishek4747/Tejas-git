@@ -79,9 +79,11 @@ public class ExecutionLogic extends SimulationElement {
 			System.out.println("executed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
 		}
 		
-		if(reorderBufferEntry.getExecuted() == true)
+		if(reorderBufferEntry.getExecuted() == true ||
+				reorderBufferEntry.isRenameDone == false ||
+				reorderBufferEntry.isIssued == false)
 		{
-			System.out.println("already executed!");
+			System.out.println("cannot complete execution of this instruction");
 			return;
 		}
 		

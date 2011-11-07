@@ -43,11 +43,12 @@ public class IWPushLogic extends SimulationElement {
 				}
 				else
 				{
+					if(renameBuffer[i].isRenameDone == false)
+					{
+						System.out.println("cannot push an instruction that hasn't been renamed");
+					}
 					//add to IW
 					IW.addToWindow(renameBuffer[i]);
-					
-					//set rename done flag
-					renameBuffer[i].setRenameDone(true);
 					
 					renameBuffer[i] = null;
 					execEngine.setToStall1(false);

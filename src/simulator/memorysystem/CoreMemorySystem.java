@@ -92,6 +92,14 @@ public class CoreMemorySystem
 	public void issueRequestToLSQ(SimulationElement requestingElement, 
 											ReorderBufferEntry robEntry)
 	{
+		if(robEntry.isOperand1Available() == false ||
+						robEntry.isOperand2Available() == false ||
+						robEntry.getAssociatedIWEntry() == null ||
+						robEntry.getIssued() == false)
+		{
+			System.out.println("attempting to validate the address of a load/store that hasn't been issued");
+		}
+		
 		lsqueue.getPort().put(
 				new LSQEntryContainingEvent(
 						core.getEventQueue(),

@@ -189,7 +189,7 @@ public class RunnableThread implements Runnable, Encoding {
 						isFirstPacket[tidEmu] = false;
 				}
 				
-				int n = inputToPipeline[0].getListSize()/decodeWidth[0] * stepSize[0];
+				int n = inputToPipeline[0].getListSize()/decodeWidth[0] * pipelineInterfaces[0].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)
 				{
 					pipelineInterfaces[0].oneCycleOperation();
@@ -309,7 +309,7 @@ public class RunnableThread implements Runnable, Encoding {
 			InstructionLinkedList tempList = ObjParser.translateInstruction(listPackets.get(0).ip, 
 					dynamicInstructionBuffer);
 			
-			/*if(SimulationConfig.detachMemSys)	TODO
+			if(SimulationConfig.detachMemSys == true)	//TODO
 			{
 				for(int i = 0; i < tempList.getListSize(); i++)
 				{
@@ -320,7 +320,7 @@ public class RunnableThread implements Runnable, Encoding {
 						i--;
 					}
 				}
-			}*/
+			}
 			
 			this.inputToPipeline[0].appendInstruction(tempList);
 

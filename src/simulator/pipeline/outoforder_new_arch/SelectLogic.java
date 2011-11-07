@@ -110,7 +110,6 @@ public class SelectLogic extends SimulationElement {
 	{
 		int wakeUpListCtr = 0;
 		ReorderBuffer ROB = execEngine.getReorderBuffer();
-		IWEntry[] IWEntries = IW.getIW();
 		
 		int i;
 		ReorderBufferEntry ROBEntry;
@@ -146,7 +145,7 @@ public class SelectLogic extends SimulationElement {
 							}
 						}
 						
-						if(IWEntries[i].getInstruction().getOperationType() == OperationType.xchg)
+						if(ROBEntry.instruction.getOperationType() == OperationType.xchg)
 						{
 							destRegOpndType[wakeUpListCtr] = ROBEntry.instruction.getSourceOperand1().getOperandType();
 							destRegPhyReg[wakeUpListCtr] = ROBEntry.getOperand1PhyReg1();

@@ -285,6 +285,11 @@ public class LSQ extends SimulationElement
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		long virtualAddr = lsqEntry.getAddr();
 		
+		if(lsqEntry.getRobEntry().getIssued() == false)
+		{
+			System.out.println("validating a load/store that hasn't been issued");
+		}
+		
 		if (this.containingMemSys.TLBuffer.searchTLBForPhyAddr(virtualAddr))
 		{
 			this.handleAddrValidate(eventQ, event);
@@ -297,7 +302,7 @@ public class LSQ extends SimulationElement
 			this.getPort().put(
 					event.update(
 							eventQ,
-							MemorySystem.mainMemory.getLatencyDelay(),
+							GlobalClock.getCurrentTime() + MemorySystem.mainMemory.getLatencyDelay(),
 							null,
 							this,
 							RequestType.Validate_LSQ_Addr));
@@ -307,6 +312,11 @@ public class LSQ extends SimulationElement
 	public void handleAddrValidate(EventQueue eventQ, Event event)
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
+		
+		if(lsqEntry.getRobEntry().getIssued() == false)
+		{
+			System.out.println("validating a load/store that hasn't been issued");
+		}
 		
 		//If the LSQ entry is a load
 		if (lsqEntry.getType() == LSQEntryType.LOAD)

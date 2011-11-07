@@ -63,6 +63,12 @@ public class IWEntry {
 	//			schedule an FUAvailableEvent
 	public boolean issueInstruction()
 	{
+		if(associatedROBEntry.isRenameDone == false ||
+				associatedROBEntry.isExecuted == true)
+		{
+			System.out.println("cannot issue this instruction");
+		}
+		
 		if(associatedROBEntry.getIssued() == true)
 		{
 			System.out.println("already issued!");
@@ -126,8 +132,8 @@ public class IWEntry {
 	
 	void issueLoadStore()
 	{
-		if(instruction.getSourceOperand2() != null)
-		{
+		//if(instruction.getSourceOperand2() != null)
+		//{
 			
 			associatedROBEntry.setIssued(true);
 			if(opType == OperationType.store)
@@ -149,12 +155,21 @@ public class IWEntry {
 //							core.getExecEngine().coreMemSys.getLsqueue(), 
 //							RequestType.Tell_LSQ_Addr_Ready,
 //							associatedROBEntry.getLsqEntry()));
+			if(associatedROBEntry.lsqEntry.isValid() == true)
+			{
+				System.out.println("attempting to issue a load/store.. address is already valid");
+			}
+			
+			if(associatedROBEntry.lsqEntry.isForwarded() == true)
+			{
+				System.out.println("attempting to issue a load/store.. value forwarded is already valid");
+			}
 			core.getExecEngine().coreMemSys.issueRequestToLSQ(
 					null, 
 					associatedROBEntry);
 
-		}
-		else
+		//}
+		/*else
 		{
 			associatedROBEntry.setIssued(true);
 			if(opType == OperationType.store)
@@ -177,7 +192,7 @@ public class IWEntry {
 			core.getExecEngine().coreMemSys.issueRequestToLSQ(
 					null, 
 					associatedROBEntry);
-		}
+		}*/
 
 		if(SimulationConfig.debugMode)
 		{

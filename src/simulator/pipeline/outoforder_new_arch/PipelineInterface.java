@@ -29,7 +29,7 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getWriteBackLogic().performWriteBack();
-			execEngine.getSelector().performSelect();
+			execEngine.getSelector().performSelect2();
 		}
 		
 		/*else //Statistical Pipeline
