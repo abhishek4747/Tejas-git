@@ -1,4 +1,4 @@
-package emulatorinterface.communication;
+package emulatorinterface;
 
 import java.util.ArrayList;
 

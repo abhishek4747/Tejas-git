@@ -1,7 +1,8 @@
-package emulatorinterface.communication;
+package emulatorinterface;
 
 import java.util.ArrayList;
 
+import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.Encoding;
 import emulatorinterface.communication.shm.SharedMem;
 

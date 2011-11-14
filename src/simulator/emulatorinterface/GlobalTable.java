@@ -1,7 +1,8 @@
-package emulatorinterface.communication;
+package emulatorinterface;
 
 import java.util.HashMap;
 
+import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.Encoding;
 
 public final class GlobalTable implements Encoding {

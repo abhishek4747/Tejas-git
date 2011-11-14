@@ -26,10 +26,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
 import emulatorinterface.communication.Packet;
+import emulatorinterface.communication.shm.Encoding;
 import generic.BranchInstr;
 
 
-public class DynamicInstructionBuffer 
+public class DynamicInstructionBuffer implements Encoding
 {
 	private Queue<Vector<Packet>> memReadQueue = null;
 	private Queue<Vector<Packet>> memWriteQueue = null;
@@ -42,21 +43,6 @@ public class DynamicInstructionBuffer
 		memWriteQueue = new LinkedList<Vector<Packet>>();
 		branchQueue = new LinkedList<Packet>();
 	}
-
-	/*
-	 * This is a static encoding scheme to convert from Packets used in IPC
-	 * between simulator and emulator to convert to the bigger
-	 * DynamicInstruction to save bandwidth in IPC. The encoding scheme employed
-	 * depends on the "value" field of the packet class. The scheme is mentioned
-	 * as follows: a value of 1 - means that the thread has finished 0 - used in
-	 * case of Peterson lock management in shared memory and mmap mechanisms 1 -
-	 * -do- 2 - means a "memory read" and the "tgt" field of "Packet" contains
-	 * the corresponding address 3 - means a "memory write" and "tgt" field has
-	 * the address 4 - means "branch taken" with "tgt" as the target address 5 -
-	 * means "branch not taken" with "tgt" as the target address 6 - means "tgt"
-	 * has a source register value 7 - means "tgt" has a destination register
-	 * value
-	 */
 
 	// QQQ Configure packets doesn't take tidEmu or anything now.
 	// packets read from ArrayList rather than a vector.
@@ -79,31 +65,32 @@ public class DynamicInstructionBuffer
 					break;
 				
 				case (0):
-					assert (false) : "The value is reserved for locks. Most probable cause is a bad read";
+					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
 					break;
 					
 				case (1):
-					assert (false) : "The value is reserved for locks";
+					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
 					break;
 					
-				case (2):
+				case (MEMREAD):
 					memReadAddr.add(p);
 					break;
 					
-				case (3):
+				case (MEMWRITE):
 					memWriteAddr.add(p);
 					break;
 					
-				case (4):
+				case (TAKEN):
 					branchPacket = p;
 					break;
 					
-				case (5):
+				case (NOTTAKEN):
 					branchPacket = p;
 					break;
 					
 				default:
-					assert (false) : "error in configuring packets";
+					misc.Error.showErrorAndExit("error in configuring packets"+p.value);
+					
 			}
 		}
 		
