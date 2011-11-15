@@ -6,5 +6,5 @@ public interface PipelineInterface {
 	public boolean isExecutionComplete();
 	public void setcoreStepSize(int stepSize);
 	public int getCoreStepSize();
-
+	public void resumePipeline();
 }

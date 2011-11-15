@@ -76,7 +76,7 @@ public class Core extends SimulationElement{
 			InstructionLinkedList[] incomingInstructionLists,
 			int[] threadIDs)
 	{
-		super(PortType.Unlimited, -1, -1, null, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
+		super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
 		
 		this.eventQueue = new EventQueue();
 		

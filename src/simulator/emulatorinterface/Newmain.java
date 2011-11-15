@@ -57,16 +57,9 @@ public class Newmain {
 		// configure the emulator
 		configureEmulator();
 
-		//create event queue
-		EventQueue[] eventQ = new EventQueue[1];	//TODO number of queues = number of cores
-														//number of cores to be specified/determinable from config file
-		for(int i = 0; i < 1; i++)
-		{
-			eventQ[i] = new EventQueue();
-		}
 		
 		//create cores
-		Core[] cores = initCores(eventQ[0]);
+		Core[] cores = initCores();
 		
 		//create the buffers between the translation logic and the pipeline logic
 		/*InstructionLinkedList[] inputsToPipeline;
@@ -95,7 +88,7 @@ public class Newmain {
 		}
 
 		//Create the memory system
-		MemorySystem.initializeMemSys(cores, eventQ[0]); //TODO mem sys need not know eventQ during initialisation
+		MemorySystem.initializeMemSys(cores); //TODO mem sys need not know eventQ during initialisation
 		
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
@@ -203,17 +196,18 @@ public class Newmain {
 	//TODO read a config file
 	//create specified number of cores
 	//map threads to cores
-	static Core[] initCores(EventQueue eventQ)
+	static Core[] initCores()
 	{
 		System.out.println("initializing cores...");
 		
-		Core[] cores = new Core[]{
-								new Core(0,
-										1,
-										1,
-										null,
-										new int[]{0})};
-		
+		Core[] cores = new Core[IpcBase.EMUTHREADS];
+		for (int i=0; i<IpcBase.EMUTHREADS; i++) {
+			cores[i] = new Core(0,
+							1,
+							1,
+							null,
+							new int[]{0});
+		}
 		return cores;
 	}
 

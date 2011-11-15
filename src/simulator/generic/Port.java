@@ -12,8 +12,7 @@ public class Port
 	
 	//NOTE : Time is in terms of GlobalClock cycles
 	
-	public Port(PortType portType, int noOfPorts, long occupancy,
-			EventQueue eventQueue)
+	public Port(PortType portType, int noOfPorts, long occupancy)
 	{
 		this.portType = portType;
 		

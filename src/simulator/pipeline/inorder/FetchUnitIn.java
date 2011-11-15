@@ -23,7 +23,7 @@ public class FetchUnitIn extends SimulationElement{
 	EventQueue eventQueue;
 
 	public FetchUnitIn(Core core, EventQueue eventQueue) {
-		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.fetchBuffer = new Instruction[4];
 		this.fetchFillCount=0;
@@ -136,12 +136,15 @@ public class FetchUnitIn extends SimulationElement{
 	public void setInputToPipeline(InstructionLinkedList inpList){
 		this.inputToPipeline = inpList;
 	}
+	public void resumePipeline(){
+		this.sleep=false;
+	}
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		//This should be called when the pipeline needs to wake up
-		this.sleep=false;
+//		this.sleep=false;
 		
 	}
 

@@ -61,4 +61,11 @@ public class InorderPipeline implements PipelineInterface{
 		// TODO Auto-generated method stub
 		this.coreStepSize=stepSize;
 	}
+
+	@Override
+	public void resumePipeline() {
+		core.getExecutionEngineIn().getFetchUnitIn().resumePipeline();
+		// TODO Auto-generated method stub
+		
+	}
 }

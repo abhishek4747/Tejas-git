@@ -53,26 +53,28 @@ public class RunnableThread implements Runnable, Encoding {
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
 	public RunnableThread(String threadName, int tid1, IpcBase ipcType, Core[] cores) {
-		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
-			applicationThreads.add(i,new appThread());
-		}
 		
 		dynamicInstructionBuffer = new DynamicInstructionBuffer();
-		inputToPipeline = new InstructionLinkedList[1];
-		inputToPipeline[0] = new InstructionLinkedList();
-		//TODO multiple cores per runnable thread
-		cores[0].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[0]});
-		decodeWidth = new int[1];
-		if(cores[0].isPipelineInorder)
-			decodeWidth[0] = 1;
-		else
-			decodeWidth[0] = cores[0].getDecodeWidth();
-		stepSize = new int[1];
-		stepSize[0] = cores[0].getStepSize();
-		pipelineInterfaces = new PipelineInterface[1];
-		for(int i = 0; i < 1; i++)
+		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
+		decodeWidth = new int[EMUTHREADS];
+		stepSize = new int[EMUTHREADS];
+		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
+		for(int i = 0; i < EMUTHREADS; i++)
 		{
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
+			inputToPipeline[i] = new InstructionLinkedList();
+			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
+			
+			if(cores[i].isPipelineInorder)
+				decodeWidth[i] = 1;
+			else
+				decodeWidth[i] = cores[i].getDecodeWidth();
+			
+			stepSize[i] = cores[i].getStepSize();
+		}
+
+		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
+			applicationThreads.add(i,new appThread());
 		}
 		
 		this.tid = tid1;
@@ -188,11 +190,11 @@ public class RunnableThread implements Runnable, Encoding {
 						isFirstPacket[tidEmu] = false;
 				}
 
-				int n = inputToPipeline[0].getListSize()/decodeWidth[0] * pipelineInterfaces[0].getCoreStepSize();
+				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)
 
 				{
-					pipelineInterfaces[0].oneCycleOperation();
+					pipelineInterfaces[tidEmu].oneCycleOperation();
 					GlobalClock.incrementClock();
 
 				}
@@ -235,7 +237,8 @@ public class RunnableThread implements Runnable, Encoding {
 			}
 		}
 		
-		this.inputToPipeline[0].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+		for (int i=0; i<EMUTHREADS; i++)
+		this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 
 		//this.inputToPipeline[0].appendInstruction(TestInstructionLists.testList2());
 
@@ -245,7 +248,7 @@ public class RunnableThread implements Runnable, Encoding {
         {
  //System.out.println("Pin completed ");
             queueComplete = true;        
-            for(int i = 0; i < 1; i++)
+            for(int i = 0; i < EMUTHREADS; i++)
             {
 
                 queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
@@ -255,7 +258,9 @@ public class RunnableThread implements Runnable, Encoding {
                     break;
             }
 
-            pipelineInterfaces[0].oneCycleOperation();
+            for (int i=0; i<EMUTHREADS; i++) {
+            	pipelineInterfaces[i].oneCycleOperation();
+            }
             
             GlobalClock.incrementClock();
         }
@@ -343,6 +348,7 @@ public class RunnableThread implements Runnable, Encoding {
 			return false;
 		IpcBase.glTable.update(p.tgt, appTid, p.ip, p.value);
 		//TODO also inject a SYNCH instruction here
+		
 		return true;
 	}
 }
