@@ -114,11 +114,18 @@ public class MemorySystem
 		{
 			CoreMemorySystem coreMemSys = new CoreMemorySystem(cores[i], eventQ);
 			
-			if (cores[i].isPipelineStatistical)
-				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
-			else
-				cores[i].getExecEngine().coreMemSys = coreMemSys;
-//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
+//			if(cores[i].isPipelineInorder){
+				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
+//			}
+//			else{
+				if (cores[i].isPipelineStatistical)
+					cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
+				else
+					cores[i].getExecEngine().coreMemSys = coreMemSys;
+			
+//			}
+			
+			//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			
 			//Set the next levels of the instruction cache
 			if (coreMemSys.iCache.isLastLevel == true) //If this is the last level, don't set anything
