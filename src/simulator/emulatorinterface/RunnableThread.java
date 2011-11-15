@@ -4,7 +4,7 @@
 
 package emulatorinterface;
 
-import static emulatorinterface.ApplicationThreads.threads;
+import static emulatorinterface.ApplicationThreads.applicationThreads;
 
 import java.util.ArrayList;
 
@@ -34,8 +34,8 @@ public class RunnableThread implements Runnable, Encoding {
 	long sum = 0; // checksum
 	int COUNT = IpcBase.COUNT; // COUNT of packets per thread
 	int EMUTHREADS = IpcBase.EMUTHREADS;
-	int[] cons_ptr = new int[EMUTHREADS]; // consumer pointers
-	long[] tot_cons = new long[EMUTHREADS]; // total consumed data
+	int[] readerLocation = new int[EMUTHREADS]; // consumer pointers
+	long[] totalRead = new long[EMUTHREADS]; // total consumed data
 
 	InstructionLinkedList[] inputToPipeline;
 	IpcBase ipcType;
@@ -54,7 +54,7 @@ public class RunnableThread implements Runnable, Encoding {
 	// write the results in.
 	public RunnableThread(String threadName, int tid1, IpcBase ipcType, Core[] cores) {
 		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
-			threads.add(i,new appThread());
+			applicationThreads.add(i,new appThread());
 		}
 		
 		dynamicInstructionBuffer = new DynamicInstructionBuffer();
@@ -83,9 +83,6 @@ public class RunnableThread implements Runnable, Encoding {
 		runner.start(); // Start the thread.
 	}
 
-	private boolean expectingHalt(int tidEmu) {
-		return threads.get(tidEmu).haltStates.size()!=0;
-	}
 
 	// returns true if all the emulator threads from which I was reading have
 	// finished
@@ -94,7 +91,7 @@ public class RunnableThread implements Runnable, Encoding {
 		int start=tid*EMUTHREADS;
 		appThread thread;
 		for (int i = start; i < start+EMUTHREADS; i++) {
-			thread = threads.get(i);
+			thread = applicationThreads.get(i);
 			if (thread.started == true
 					&& thread.finished == false) {
 				return false;
@@ -115,10 +112,9 @@ public class RunnableThread implements Runnable, Encoding {
 		if (SimulationConfig.debugMode) 
 			System.out.println("-- in runnable thread run "+this.tid);
 		
-		ArrayList<ArrayList<Packet>> listPacketsList = new ArrayList<ArrayList<Packet>>();
-		ArrayList<Packet> listPackets;
+		ArrayList<ArrayList<Packet>> listPackets = new ArrayList<ArrayList<Packet>>();
+		ArrayList<Packet> packets;
 		Packet[] poldList = new Packet[EMUTHREADS];
-		Packet pold;
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
@@ -126,7 +122,7 @@ public class RunnableThread implements Runnable, Encoding {
 		boolean isFirstPacket[] = new boolean[EMUTHREADS];
 		for (int i = 0; i < EMUTHREADS; i++) {
 			isFirstPacket[i] = true;
-			listPacketsList.add(i, new ArrayList<Packet>());
+			listPackets.add(i, new ArrayList<Packet>());
 			poldList[i] = new Packet();
 		}
 
@@ -142,11 +138,10 @@ public class RunnableThread implements Runnable, Encoding {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 				
 				int tidApp = tid * EMUTHREADS + tidEmu;
-				thread = threads.get(tidApp);
+				thread = applicationThreads.get(tidApp);
 				if (thread.halted || thread.finished)
 					continue;
-				listPackets = listPacketsList.get(tidEmu);
-				pold = poldList[tidEmu];
+				packets = listPackets.get(tidEmu);
 
 				int queue_size, numReads = 0, v = 0;
 
@@ -183,11 +178,12 @@ public class RunnableThread implements Runnable, Encoding {
 
 				// Read the entries
 				for (int i = 0; i < numReads; i++) {
-					pnew = ipcType.fetchOnePacket(tidApp, cons_ptr[tidEmu]+i);
+					pnew = ipcType.fetchOnePacket(tidApp, readerLocation[tidEmu]+i);
 					if (handleSynch(pnew, tidApp))
 						continue;
-					v = processPacket(listPackets, pold, pnew, tidApp,
-							isFirstPacket[tidEmu]);
+					v = pnew.value;
+					processPacket(packets, poldList, pnew, tidEmu,
+							isFirstPacket);
 					if (isFirstPacket[tidEmu])
 						isFirstPacket[tidEmu] = false;
 				}
@@ -203,7 +199,7 @@ public class RunnableThread implements Runnable, Encoding {
 				
 				// update the consumer pointer, queue_size.
 				// add a function : update queue_size
-				cons_ptr[tidEmu] = (cons_ptr[tidEmu] + numReads) % COUNT;
+				readerLocation[tidEmu] = (readerLocation[tidEmu] + numReads) % COUNT;
 
 				queue_size = ipcType.update(tidApp, numReads);
 
@@ -267,7 +263,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 		long dataRead = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
-			dataRead += tot_cons[i];
+			dataRead += totalRead[i];
 		}
 		long timeTaken = System.currentTimeMillis() - start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
@@ -283,14 +279,14 @@ public class RunnableThread implements Runnable, Encoding {
 	private void errorCheck(int tidApp, int emuid, int queue_size,
 			int numReads, int v) {
 		// some error checking
-		tot_cons[emuid] += numReads;
+		totalRead[emuid] += numReads;
 		int tot_prod = ipcType.totalProduced(tidApp);
 		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
-		if (tot_cons[emuid] > tot_prod) {
+		if (totalRead[emuid] > tot_prod) {
 			System.out.println("numReads" + numReads + " queue_size"
 					+ queue_size + " ip");
 			System.out.println("tot_prod=" + tot_prod + " tot_cons="
-					+ tot_cons[emuid] + " v=" + v + " emuid" + emuid);
+					+ totalRead[emuid] + " v=" + v + " emuid" + emuid);
 			System.exit(1);
 		}
 		if (queue_size < 0) {
@@ -299,14 +295,12 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 	}
 	
-	private int processPacket(ArrayList<Packet> listPackets, Packet pold,
-			Packet pnew, int appTid, boolean isFirstPacket) {
-		int v;
-		v = pnew.value;
-		sum += v;
-		if (pnew.ip == pold.ip || isFirstPacket) {
-			if (isFirstPacket)
-				pold = pnew;
+	private void processPacket(ArrayList<Packet> listPackets, Packet[] poldList,
+			Packet pnew, int tidEmu, boolean[] isFirstPacket) {
+		sum += pnew.value;
+		if (pnew.ip == poldList[tidEmu].ip || isFirstPacket[tidEmu]) {
+			if (isFirstPacket[tidEmu])
+				poldList[tidEmu] = pnew;
 			listPackets.add(pnew);
 		} else {
 			(ipcType.numInstructions[tid])++;
@@ -334,13 +328,12 @@ public class RunnableThread implements Runnable, Encoding {
 			
 			this.inputToPipeline[0].appendInstruction(tempList);
 
+			poldList[tidEmu] = pnew;
 
-			pold = pnew;
 			listPackets.clear();
-			listPackets.add(pold);
+			listPackets.add(poldList[tidEmu]);
 		}
 		
-		return v;
 	}
 
 

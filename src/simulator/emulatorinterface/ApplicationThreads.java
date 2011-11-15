@@ -2,7 +2,7 @@ package emulatorinterface;
 
 import java.util.ArrayList;
 
-import emulatorinterface.communication.shm.SharedMem;
+import emulatorinterface.communication.IpcBase;
 
 public class ApplicationThreads {
 
@@ -18,19 +18,19 @@ public class ApplicationThreads {
 	
 	static class appThread {
 		appThread () {
-			haltStates = new ArrayList<haltState>();
+//			haltStates = new ArrayList<haltState>();
 			finished = false;
 			started = false;
 			halted = false;
 		}
-		ArrayList<haltState> haltStates;
+//		ArrayList<haltState> haltStates;
 		boolean finished;
 		boolean started;
 		boolean halted;
 	}
 
 	
-	static int MaxApplicationThreads = SharedMem.EMUTHREADS * SharedMem.MAXNUMTHREADS;
-	static ArrayList<appThread> threads = new ArrayList<appThread>(MaxApplicationThreads);
+	static int MaxApplicationThreads = IpcBase.EMUTHREADS * IpcBase.MAXNUMTHREADS;
+	static ArrayList<appThread> applicationThreads = new ArrayList<appThread>(MaxApplicationThreads);
 	
 }

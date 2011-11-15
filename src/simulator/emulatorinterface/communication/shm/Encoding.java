@@ -11,6 +11,7 @@ public interface Encoding {
 	static final int REGREAD = 6;
 	static final int REGWRITE = 7;
 
+	// synchronization values should be between SYNCHSTART AND SYNCHEND
 	static final int SYNCHSTART = 9;
 	static final int BCAST = 10;
 	static final int SIGNAL = 12;
