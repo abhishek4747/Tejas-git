@@ -26,6 +26,7 @@ import memorysystem.LSQEntry.LSQEntryType;
 
 import pipeline.outoforder_new_arch.OpTypeToFUTypeMapping;
 import pipeline.outoforder_new_arch.ReorderBufferEntry;
+import pipeline.statistical.DelayGenerator;
 
 import generic.*;
 
@@ -45,10 +46,9 @@ public class LSQ extends SimulationElement
 	
 	public static final int INVALID_INDEX = -1;
 
-	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, 
-			EventQueue eventQueue, CoreMemorySystem containingMemSys, int lsqSize) 
+	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
-		super(portType, noOfPorts, occupancy, eventQueue, latency, containingMemSys.core.getFrequency());
+		super(portType, noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());
 		this.containingMemSys = containingMemSys;
 		this.lsqSize = lsqSize;
 		curSize = 0;
@@ -112,14 +112,7 @@ public class LSQ extends SimulationElement
 						// Successfully forwarded the value
 						entry.setForwarded(true);
 						if (entry.getRobEntry() != null && !entry.getRobEntry().getExecuted())
-							containingMemSys.core.getEventQueue().addEvent(
-									new ExecCompleteEvent(
-											containingMemSys.core.getEventQueue(),
-											GlobalClock.getCurrentTime(),
-											null,
-											containingMemSys.core.getExecEngine().getExecuter(),
-											RequestType.EXEC_COMPLETE,
-											entry.getRobEntry()));
+							sendExecComplete(entry.getRobEntry());
 						//For perfect pipeline
 //						else if (entry.getRobEntry() == null)
 //						{
@@ -159,14 +152,7 @@ public class LSQ extends SimulationElement
 					{
 						tmpEntry.setForwarded(true);
 						if (tmpEntry.getRobEntry() != null && !tmpEntry.getRobEntry().getExecuted())
-							containingMemSys.core.getEventQueue().addEvent(
-									new ExecCompleteEvent(
-											containingMemSys.core.getEventQueue(),
-											GlobalClock.getCurrentTime(),
-											null,
-											containingMemSys.core.getExecEngine().getExecuter(),
-											RequestType.EXEC_COMPLETE,
-											tmpEntry.getRobEntry()));
+							sendExecComplete(tmpEntry.getRobEntry());
 						
 						//For perfect pipeline
 //						else if (tmpEntry.getRobEntry() == null)
@@ -351,15 +337,8 @@ public class LSQ extends SimulationElement
 		{
 			lsqEntry.setForwarded(true);
 			
-			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())
-				containingMemSys.core.getEventQueue().addEvent(
-						new ExecCompleteEvent(
-								containingMemSys.core.getEventQueue(),
-								GlobalClock.getCurrentTime(),
-								null,
-								containingMemSys.core.getExecEngine().getExecuter(),
-								RequestType.EXEC_COMPLETE,
-								lsqEntry.getRobEntry()));
+			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())	
+				sendExecComplete(lsqEntry.getRobEntry());
 			
 			//For perfect pipeline
 			else if (lsqEntry.getRobEntry() == null)
@@ -425,4 +404,20 @@ public class LSQ extends SimulationElement
 			System.exit(1);
 		}
 	}
+	
+	public void sendExecComplete(ReorderBufferEntry robEntry)
+	{
+		if (!containingMemSys.core.isPipelineStatistical)
+			containingMemSys.core.getEventQueue().addEvent(
+					new ExecCompleteEvent(
+							containingMemSys.core.getEventQueue(),
+							GlobalClock.getCurrentTime(),
+							null,
+							containingMemSys.core.getExecEngine().getExecuter(),
+							RequestType.EXEC_COMPLETE,
+							robEntry));
+		else
+			DelayGenerator.insCountOut++;
+	}
+	
 }

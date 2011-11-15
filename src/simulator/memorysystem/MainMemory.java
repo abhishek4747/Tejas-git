@@ -9,11 +9,10 @@ import generic.RequestType;
 
 public class MainMemory extends SimulationElement
 {
-	public MainMemory(EventQueue eventQueue) {
+	public MainMemory() {
 		super(SystemConfig.mainMemPortType,
 				SystemConfig.mainMemoryAccessPorts,
 				SystemConfig.mainMemoryPortOccupancy,
-				eventQueue,
 				SystemConfig.mainMemoryLatency,
 				SystemConfig.mainMemoryFrequency
 				);

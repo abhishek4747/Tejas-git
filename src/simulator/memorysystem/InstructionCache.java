@@ -2,6 +2,8 @@ package memorysystem;
 
 import java.util.ArrayList;
 
+import pipeline.statistical.DelayGenerator;
+
 import generic.Event;
 import generic.EventQueue;
 import generic.ExecCompleteEvent;
@@ -11,8 +13,8 @@ import config.CacheConfig;
 
 public class InstructionCache extends Cache
 {	
-	public InstructionCache(CacheConfig cacheParameters, EventQueue eventQ) {
-		super(cacheParameters, eventQ);
+	public InstructionCache(CacheConfig cacheParameters) {
+		super(cacheParameters);
 	}
 	
 	@Override
@@ -35,14 +37,17 @@ public class InstructionCache extends Cache
 			{
 				//Pass the value to the waiting element
 				//TODO Add the EXEC_COMPLETE_EVENT
-				eventQ.addEvent(
-						new ExecCompleteEvent(
-								containingMemSys.core.getEventQueue(),
-								GlobalClock.getCurrentTime(),
-								null,
-								containingMemSys.core.getExecEngine().getFetcher(),
-								RequestType.EXEC_COMPLETE,
-								null));
+				if (!containingMemSys.core.isPipelineStatistical)
+					eventQ.addEvent(
+							new ExecCompleteEvent(
+									containingMemSys.core.getEventQueue(),
+									GlobalClock.getCurrentTime(),
+									null,
+									containingMemSys.core.getExecEngine().getFetcher(),
+									RequestType.EXEC_COMPLETE,
+									null));
+				else
+					DelayGenerator.insCountOut++;
 			}
 			else
 			{

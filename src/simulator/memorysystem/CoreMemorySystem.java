@@ -39,7 +39,7 @@ public class CoreMemorySystem
 	protected TLB TLBuffer;
 	protected LSQ lsqueue;
 	
-	public CoreMemorySystem(Core core, EventQueue eventQ)
+	public CoreMemorySystem(Core core)
 	{
 		this.core = core;
 		this.coreID = core.getCore_number();
@@ -56,18 +56,17 @@ public class CoreMemorySystem
 		//Initialise the  instruction cache
 		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].iCache;
-		iCache = new InstructionCache(cacheParameterObj, eventQ);
+		iCache = new InstructionCache(cacheParameterObj);
 		
 		//Initialise the  L1 cache
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
-		l1Cache = new Cache(cacheParameterObj, eventQ);
+		l1Cache = new Cache(cacheParameterObj);
 		
 		//Initialise the TLB
 		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,
 							SystemConfig.core[coreID].TLBAccessPorts, 
 							SystemConfig.core[coreID].TLBPortOccupancy, 
 							SystemConfig.core[coreID].TLBLatency,
-							eventQ,
 							this,
 							SystemConfig.core[coreID].TLBSize);
 		
@@ -76,7 +75,6 @@ public class CoreMemorySystem
 		                    SystemConfig.core[coreID].LSQAccessPorts, 
 							SystemConfig.core[coreID].LSQPortOccupancy, 
 							SystemConfig.core[coreID].LSQLatency,
-							eventQ,
 							this, 
 							SystemConfig.core[coreID].LSQSize);
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);

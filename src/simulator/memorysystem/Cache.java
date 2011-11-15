@@ -117,12 +117,11 @@ public class Cache extends SimulationElement
 			return (int)(totSize / (long)(blockSize));
 		}
 		
-		public Cache(CacheConfig cacheParameters, EventQueue eventQ)
+		public Cache(CacheConfig cacheParameters)
 		{
 			super(cacheParameters.portType,
 					cacheParameters.getAccessPorts(), 
 					cacheParameters.getPortOccupancy(),
-					eventQ,
 					cacheParameters.getLatency(),
 					cacheParameters.operatingFreq);
 			
