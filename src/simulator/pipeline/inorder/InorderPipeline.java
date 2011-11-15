@@ -7,6 +7,7 @@ import generic.EventQueue;
 public class InorderPipeline implements PipelineInterface{
 	Core core;
 	EventQueue eventQ;
+	int coreStepSize;
 	
 	public InorderPipeline(Core _core, EventQueue eventQ){
 		this.core = _core;
@@ -14,6 +15,7 @@ public class InorderPipeline implements PipelineInterface{
 	}
 	
 	public void oneCycleOperation(){
+		coreStepSize = core.getStepSize();
 		writeback();
 		mem();
 		exec();
@@ -47,4 +49,16 @@ public class InorderPipeline implements PipelineInterface{
 		// TODO Auto-generated method stub
 		return (core.getExecutionEngineIn().getExecutionComplete());
 		}
+
+	@Override
+	public int getCoreStepSize() {
+		// TODO Auto-generated method stub
+		return coreStepSize;
+	}
+
+	@Override
+	public void setcoreStepSize(int stepSize) {
+		// TODO Auto-generated method stub
+		this.coreStepSize=stepSize;
+	}
 }

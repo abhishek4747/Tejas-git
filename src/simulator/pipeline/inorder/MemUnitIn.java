@@ -21,8 +21,6 @@ public class MemUnitIn extends SimulationElement{
 		Instruction ins = core.getExecutionEngineIn().getExMemLatch().getInstruction();
 		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
 		StageLatch exMemLatch = core.getExecutionEngineIn().getExMemLatch();
-//		if(exMemLatch.getStallCount()>0){
-
 		drainEventQueue();
 		if(ins!=null){
 			if(!exMemLatch.getMemDone()){
@@ -39,12 +37,6 @@ public class MemUnitIn extends SimulationElement{
 		else{
 			memWbLatch.setInstruction(null);
 		}
-//		}
-//		else{
-//			exMemLatch.decrementStallCount();
-//			memWbLatch.incrementStallCount();
-//		}
-		
 	}
 
 	private void drainEventQueue(){
