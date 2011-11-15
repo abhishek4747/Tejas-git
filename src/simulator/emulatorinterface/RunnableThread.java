@@ -63,7 +63,10 @@ public class RunnableThread implements Runnable, Encoding {
 		//TODO multiple cores per runnable thread
 		cores[0].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[0]});
 		decodeWidth = new int[1];
-		decodeWidth[0] = cores[0].getDecodeWidth();
+		if(cores[0].isPipelineInorder)
+			decodeWidth[0] = 1;
+		else
+			decodeWidth[0] = cores[0].getDecodeWidth();
 		stepSize = new int[1];
 		stepSize[0] = cores[0].getStepSize();
 		pipelineInterfaces = new PipelineInterface[1];
@@ -188,12 +191,14 @@ public class RunnableThread implements Runnable, Encoding {
 					if (isFirstPacket[tidEmu])
 						isFirstPacket[tidEmu] = false;
 				}
-				
+
 				int n = inputToPipeline[0].getListSize()/decodeWidth[0] * pipelineInterfaces[0].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)
+
 				{
 					pipelineInterfaces[0].oneCycleOperation();
 					GlobalClock.incrementClock();
+
 				}
 				
 				// update the consumer pointer, queue_size.
@@ -235,14 +240,18 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 		
 		this.inputToPipeline[0].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+
 		//this.inputToPipeline[0].appendInstruction(TestInstructionLists.testList2());
+
 		boolean queueComplete;    //queueComplete is true when all cores have completed
         
         while(true)
         {
+ //System.out.println("Pin completed ");
             queueComplete = true;        
             for(int i = 0; i < 1; i++)
             {
+
                 queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
             }
             if(queueComplete == true)
@@ -306,6 +315,7 @@ public class RunnableThread implements Runnable, Encoding {
 			this.dynamicInstructionBuffer.configurePackets(listPackets);
 			
 			// QQQ translate instructions
+
 			InstructionLinkedList tempList = ObjParser.translateInstruction(listPackets.get(0).ip, 
 					dynamicInstructionBuffer);
 			
@@ -323,6 +333,7 @@ public class RunnableThread implements Runnable, Encoding {
 			}
 			
 			this.inputToPipeline[0].appendInstruction(tempList);
+
 
 			pold = pnew;
 			listPackets.clear();
