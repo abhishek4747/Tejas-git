@@ -110,7 +110,6 @@ public class Newmain {
 		long icount = ipcBase.doExpectedWaitForSelf();
 		ipcBase.doWaitForPIN(process);
 		ipcBase.finish();
-		
 		reportStatistics();
 		
 		//set memory statistics for levels L2 and below
