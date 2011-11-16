@@ -372,7 +372,7 @@ public class Core extends SimulationElement{
 	public void setInputToPipeline(InstructionLinkedList[] inputsToPipeline)
 	{
 		if(this.isPipelineInorder){
-			System.out.println("Input to pipeline is set");			
+			//System.out.println("Input to pipeline is set");			
 			this.getExecutionEngineIn().getFetchUnitIn().setInputToPipeline(inputsToPipeline[0]);
 		}
 		else

@@ -21,6 +21,7 @@ public class FetchUnitIn extends SimulationElement{
 	private boolean sleep;		//The boolean to stall the pipeline when a sync request is received
 	InstructionLinkedList inputToPipeline;
 	EventQueue eventQueue;
+	int syncCount;
 
 	public FetchUnitIn(Core core, EventQueue eventQueue) {
 		super(PortType.Unlimited, -1, -1, -1, -1);
@@ -32,6 +33,7 @@ public class FetchUnitIn extends SimulationElement{
 		this.stall = 0;
 		this.eventQueue = eventQueue;
 		this.sleep=false;
+		this.syncCount=0;
 	}
 	
 	public void fillFetchBuffer(){
@@ -40,10 +42,10 @@ public class FetchUnitIn extends SimulationElement{
 		if(inputToPipeline.isEmpty())
 			return;
 		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
-	
+//System.out.println(fetchFillCount);	
 		for(int i=fetchBufferIndex;fetchFillCount<fetchBufferCapacity;i = (i+1)%fetchBufferCapacity){
 			if(newInstruction.getOperationType() == OperationType.inValid){
-				System.out.println("Total instructions = "+core.getNoOfInstructionsExecuted());
+//System.out.println("sleep= "+sleep+" Total instructions = "+core.getNoOfInstructionsExecuted());
 				core.getExecutionEngineIn().setExecutionComplete(true);
 				break;
 			}
@@ -76,7 +78,8 @@ public class FetchUnitIn extends SimulationElement{
 
 	}
 	public void performFetch(){
-		fillFetchBuffer();
+		if(!core.getExecutionEngineIn().getExecutionComplete())
+			fillFetchBuffer();
 
 //		StageLatch wbDoneLatch = core.getInorderPipeline().getWbDoneLatch();
 //		StageLatch ifIdLatch = core.getInorderPipeline().getIfIdLatch();
@@ -85,14 +88,19 @@ public class FetchUnitIn extends SimulationElement{
 			if(fetchFillCount > 0){
 				ins = fetchBuffer[fetchBufferIndex];
 				if(ins.getOperationType()==OperationType.sync){
-					sleepThePipeline();
+					if(this.syncCount>0){
+						this.syncCount--;
+					}
+					else{
+						core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
+						sleepThePipeline();
+						return;
+					}
 				}
-				else{
-					core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
-					fetchFillCount--;			
-					fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
-				}
-				
+				core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
+				fetchFillCount--;			
+				fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
+			
 			}
 			else{
 				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
@@ -127,6 +135,8 @@ public class FetchUnitIn extends SimulationElement{
 		return this.sleep;
 	}
 	public void sleepThePipeline(){
+		//System.out.println("sleeping ..!!");
+		this.syncCount--;
 		this.sleep=true;
 	}
 	
@@ -137,6 +147,7 @@ public class FetchUnitIn extends SimulationElement{
 		this.inputToPipeline = inpList;
 	}
 	public void resumePipeline(){
+		this.syncCount++;
 		this.sleep=false;
 	}
 

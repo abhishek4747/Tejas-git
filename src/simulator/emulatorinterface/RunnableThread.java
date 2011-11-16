@@ -195,7 +195,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 				{
 					pipelineInterfaces[tidEmu].oneCycleOperation();
-					GlobalClock.incrementClock();
+//					GlobalClock.incrementClock();
 
 				}
 				
@@ -331,7 +331,7 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 			}
 			
-			this.inputToPipeline[0].appendInstruction(tempList);
+			this.inputToPipeline[tidEmu].appendInstruction(tempList);
 
 			poldList[tidEmu] = pnew;
 
@@ -346,9 +346,13 @@ public class RunnableThread implements Runnable, Encoding {
 	private boolean handleSynch(Packet p, int appTid) {
 		if (p.value <= SYNCHSTART || p.value >= SYNCHEND)
 			return false;
+		sum += p.value;
 		IpcBase.glTable.update(p.tgt, appTid, p.ip, p.value);
-		//TODO also inject a SYNCH instruction here
-		
+//		sleepPipeline(this.inputToPipeline[appTid]);
 		return true;
+	}
+	
+	private void sleepPipeline(InstructionLinkedList input){
+		input.appendInstruction(new Instruction(OperationType.sync,null, null, null));
 	}
 }
