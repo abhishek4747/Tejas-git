@@ -180,9 +180,7 @@ public class Newmain {
 			misc.Error
 					.showErrorAndExit("\n\tCorrect path for pin or tool or executable not specified !!");
 
-		//TODO .create.!! global creation of runnables 
 		ipcBase.initIpc();
-
 		return process;
 	}
 

@@ -2,21 +2,38 @@ package emulatorinterface;
 
 import java.util.ArrayList;
 
-class StateType {
-	public StateType(int interactingThread2, long address2) {
-		this.interactingThread = interactingThread2;
-		this.address = address2;
-	}
-	int interactingThread;
-	long address; //  address of the synchronization primitive
-}
 
 public class ThreadState {
 
-	public ThreadState(int interactingThread, long address) {
-		state.add(new StateType(interactingThread, address));
+	ArrayList<Integer> tentativeInteractors;
+	long timeSinceSlept;
+	long address;
+	
+	public ThreadState(ArrayList<Integer> tentativeInteractors,
+			long time, long address) {
+		super();
+		this.tentativeInteractors = tentativeInteractors;
+		this.timeSinceSlept = time;
+		this.address = address;
 	}
 
-	ArrayList<StateType> state;
+	public ArrayList<Integer> getTentativeInteractors() {
+		return tentativeInteractors;
+	}
+
+	public void setTentativeInteractors(ArrayList<Integer> tentativeInteractors) {
+		this.tentativeInteractors = tentativeInteractors;
+	}
+
+	public long getTime() {
+		return timeSinceSlept;
+	}
+
+	public void setTime(long time) {
+		this.timeSinceSlept = time;
+	}
+	
+	
+
 	
 }

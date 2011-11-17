@@ -1,23 +1,27 @@
 package emulatorinterface;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.Encoding;
 
 public final class GlobalTable implements Encoding {
-	
-	private HashMap<Long, SynchPrimitive> synchTable;
-	private HashMap<Integer, ThreadState> stateTable;
+
+	private Hashtable<Long, SynchPrimitive> synchTable;
+//	private Hashtable<Integer, ThreadState> stateTable;
 	private IpcBase ipcType;
-	
+
 	public GlobalTable(IpcBase ipcType) {
 		this.ipcType = ipcType;
-		this.synchTable = new HashMap<Long, SynchPrimitive>();
-		this.stateTable = new HashMap<Integer, ThreadState>();
-	}
+		this.synchTable = new Hashtable();
+		/*this.stateTable = (HashMap<Integer, ThreadState>) Collections
+				.synchronizedMap(new HashMap<Integer, ThreadState>());
+*/	}
 
-	// Updates the thread states for both the threads
+/*	// Updates the thread states for both the threads
 	public void updateThreadState(int thread, int interactingThread,
 			long address) {
 		helperupdateThreadState(thread, interactingThread, address);
@@ -44,44 +48,50 @@ public final class GlobalTable implements Encoding {
 			curr.state.add(new StateType(interactingThread, address));
 			System.out.println("Inserted");
 		}
-	}
+	}*/
 
-
-	public void update(long addressSynchItem, int thread, long time,
+	public int update(long addressSynchItem, int thread, long time,
 			int encoding) {
 		SynchPrimitive s;
 		if (synchTable.containsKey(addressSynchItem))
-			s = synchTable.get(addressSynchItem);
-		else
-			s = synchTable.put(addressSynchItem, new SynchPrimitive(
-					addressSynchItem, thread, time, encoding,ipcType));
-		
+			s = (SynchPrimitive)synchTable.get(addressSynchItem);
+		else {
+			s = new SynchPrimitive(
+					addressSynchItem, thread, time, encoding, ipcType);
+				synchTable.put(addressSynchItem, s);
+		}
+
+		int threadToResume=-1;
 		switch (encoding) {
 		case (BCAST):
+			//TODO
 			break;
 		case (SIGNAL):
-			s.sigEnter(thread, time, encoding);
+			threadToResume = s.sigEnter(thread, time, encoding);
 			break;
 		case (LOCK):
-			s.lockEnter(thread, time, encoding);
+			threadToResume = s.lockEnter(thread, time, encoding);
 			break;
 		case (UNLOCK):
-			s.unlockEnter(thread, time, encoding);
+			threadToResume = s.unlockEnter(thread, time, encoding);
 			break;
 		case (JOIN):
+			//TODO
 			break;
 		case (CONDWAIT):
-			s.waitEnter(thread, time, encoding);
+			threadToResume = s.waitEnter(thread, time, encoding);
 			break;
 		case (BARRIERWAIT):
+			//TODO
 			break;
 		case (BCAST + 1):
+			// TODO
 			break;
 		case (SIGNAL + 1):
 			// ignore
 			break;
 		case (LOCK + 1):
-			s.lockExit(thread, time, encoding);
+			threadToResume = s.lockExit(thread, time, encoding);
 			break;
 		case (UNLOCK + 1):
 			// ignore
@@ -89,11 +99,13 @@ public final class GlobalTable implements Encoding {
 		case (JOIN + 1):
 			break;
 		case (CONDWAIT + 1):
-			s.waitExit(thread, time, encoding);
+			threadToResume = s.waitExit(thread, time, encoding);
 			break;
 		case (BARRIERWAIT + 1):
 			break;
 		}
+		
+		return threadToResume;
 	}
 
 }

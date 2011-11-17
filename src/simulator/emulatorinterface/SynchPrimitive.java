@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.Encoding;
-import emulatorinterface.communication.shm.SharedMem;
 
 class synchTypes {
 	
@@ -35,9 +34,10 @@ public class SynchPrimitive implements Encoding{
 	// FIXME What if the SYNCH instruction corresponding to this signal reaches to pipeline and its corresponding wait_exit has not yet been seen in the runnable
  	// thread. This SYNCH will then get ignored (cant be avoided as there could be an arbitrary signal without any corresponding wait). Even if I stop ignoring
  	// here the problem is still there in LOCK & UNLOCK.
- 	void sigEnter(int thread, long time, int encoding) {
+ 	int sigEnter(int thread, long time, int encoding) {
  		boolean done=false;
  		int interactingThread = -1;
+ 		synchTypes toBeRemoved1=null, toBeRemoved2=null;
  		for (synchTypes entry : entries) {
  			// if a wait enter before
 			if (entry.encoding==CONDWAIT && entry.time<time) {
@@ -46,29 +46,38 @@ public class SynchPrimitive implements Encoding{
 					if (exit.encoding==CONDWAIT+1 && exit.time>time && exit.thread==entry.thread) {
 						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = exit.thread;
-						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
+						//IpcBase.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;
-						entries.remove(entry);
-						entries.remove(exit);
+						toBeRemoved1 = entry;
+						toBeRemoved2 = exit;
 						break;
 					}
 				}
 			}
+			if (done) break;
 		}
  		
  		if (!done) {
  			entries.add(new synchTypes(thread, time, encoding));
- 			SharedMem.glTable.updateThreadState(thread, -1, address);
+ 			//IpcBase.glTable.updateThreadState(thread, -1, address);
  		}
+ 		else {
+ 			entries.remove(toBeRemoved1);
+ 			entries.remove(toBeRemoved2);
+ 		}
+ 		
+ 		return interactingThread;
  	}
  	
- 	void waitEnter(int thread, long time, int encoding) {
+ 	int waitEnter(int thread, long time, int encoding) {
  			entries.add(new synchTypes(thread, time, encoding));
+ 			return -1;
  	}
  	
- 	void waitExit(int thread, long time, int encoding) {
+ 	int waitExit(int thread, long time, int encoding) {
  		boolean done=false;
  		int interactingThread = -1;
+ 		synchTypes toBeRemoved1=null, toBeRemoved2=null;
  		for (synchTypes entry : entries) {
  			// if this thread entered
 			if (entry.encoding==CONDWAIT && entry.time<time && entry.thread == thread) {
@@ -77,28 +86,35 @@ public class SynchPrimitive implements Encoding{
 					if (sig.encoding==SIGNAL && sig.time<time && sig.time>entry.time) {
 						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = sig.thread;
-						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
+						//IpcBase.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;
-						entries.remove(entry);
-						entries.remove(sig);
+						toBeRemoved1 = entry;
+						toBeRemoved2 = sig;
 						break;
 					}
 				}
 			}
+			if (done) break;
 		}
  		
  		if (!done) {
  			entries.add(new synchTypes(thread, time, encoding));
- 			SharedMem.glTable.updateThreadState(thread, -1, address);
+ 			//IpcBase.glTable.updateThreadState(thread, -1, address);
  		}
+ 		else {
+ 			entries.remove(toBeRemoved1);
+ 			entries.remove(toBeRemoved2);
+ 		}
+ 		return interactingThread;
  	}
 
  	//TODO this turned out to be exact same code after the modification
  	// so instead remove this function and make a generic function for both
  	// sigEnter and unlockEnter
- 	void unlockEnter (int thread, long time, int encoding) {
+ 	int unlockEnter (int thread, long time, int encoding) {
  		boolean done=false;
  		int interactingThread = -1;
+ 		synchTypes toBeRemoved1=null, toBeRemoved2=null;
  		for (synchTypes entry : entries) {
  			// if a lock enter before
 			if (entry.encoding==LOCK && entry.time<time) {
@@ -107,51 +123,69 @@ public class SynchPrimitive implements Encoding{
 					if (exit.encoding==LOCK+1 && exit.time>time && exit.thread==entry.thread) {
 						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = exit.thread;
-						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
+						//IpcBase.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;
-						entries.remove(entry);
-						entries.remove(exit);
+						toBeRemoved1 = entry;
+						toBeRemoved2 = exit;
 						break;
 					}
 				}
+				// if code reaches here and done was false 
+				// means that a lock enter was seen but its lock exit hasnt come yet
+				// It may or maynot come which will be decided by its Timer packet.
+				// Also it may reach here multiple number of times. So this thread will
+				// TimedWait on all of those threads.
 			}
+			if (done) break;
 		}
  		
  		if (!done) {
  			entries.add(new synchTypes(thread, time, encoding));
- 			SharedMem.glTable.updateThreadState(thread, -1, address);
- 		} 		
+ 			//IpcBase.glTable.updateThreadState(thread, -1, address);
+ 		}
+ 		else {
+ 			entries.remove(toBeRemoved1);
+ 			entries.remove(toBeRemoved2);
+ 		}
+ 		return interactingThread;
  	}
 
- 	void lockEnter (int thread, long time, int encoding) {
+ 	int lockEnter (int thread, long time, int encoding) {
  		entries.add(new synchTypes(thread, time, encoding));
+ 		return -1;
  	}
  	
- 	void lockExit (int thread, long time, int encoding) {
+ 	int lockExit (int thread, long time, int encoding) {
  		boolean done=false;
  		int interactingThread = -1;
+ 		synchTypes toBeRemoved1=null, toBeRemoved2=null;
  		for (synchTypes entry : entries) {
  			// if this thread entered
 			if (entry.encoding==LOCK && entry.time<time && entry.thread == thread) {
 				for (synchTypes unlock : entries) {
 					// if an unlock by some other thread found
 					if (unlock.encoding==UNLOCK && unlock.time<time && unlock.time>entry.time) {
-						if (done) misc.Error.shutDown("Duplicate entry in sigEnter",ipcType);
 						interactingThread = unlock.thread;
-						SharedMem.glTable.updateThreadState(thread, interactingThread, address);
+						//IpcBase.glTable.updateThreadState(thread, interactingThread, address);
 						done = true;
-						entries.remove(entry);
-						entries.remove(unlock);
+						toBeRemoved1 = entry;
+						toBeRemoved2 = unlock;
 						break;
 					}
 				}
 			}
+			if (done) break;
 		}
  		
  		if (!done) {
  			entries.add(new synchTypes(thread, time, encoding));
- 			SharedMem.glTable.updateThreadState(thread, -1, address);
+ 			//IpcBase.glTable.updateThreadState(thread, -1, address);
  		}
+ 		else {
+ 			entries.remove(toBeRemoved1);
+ 			entries.remove(toBeRemoved2);
+ 		}
+ 		return interactingThread;
  	}
  	
 }

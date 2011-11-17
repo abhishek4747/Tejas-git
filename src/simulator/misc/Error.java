@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------------------------------------------
 
 	Contributors:  Prathmesh Kallurkar, Abhishek Sagar
-*****************************************************************************/
+ *****************************************************************************/
 
 package misc;
 
@@ -36,12 +36,17 @@ public class Error
 
 	public static void shutDown(String message, IpcBase type) 
 	{
-		Newmain.process.destroy();
-		type.finish();
-		System.out.print(message);
-		System.exit(0);
+		try {
+			Newmain.process.destroy();
+		}
+		finally{
+			type.finish();
+			System.out.print(message);
+			System.exit(0);
+		}
+
 	}
-	
+
 	public static void invalidOperation(String operation, Operand operand1, 
 			Operand operand2, Operand operand3)
 	{
@@ -51,7 +56,7 @@ public class Error
 		System.out.print("\tOperand3 : " + operand3);
 		System.exit(0);
 	}
-	
+
 	public static void invalidOperand(String operandString)
 	{
 		System.out.print("\n\tInvalid operand string : " + operandString + ".");

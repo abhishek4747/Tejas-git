@@ -3,16 +3,9 @@
  */
 
 package emulatorinterface;
-
-import static emulatorinterface.ApplicationThreads.applicationThreads;
-
 import java.util.ArrayList;
-
 import pipeline.PipelineInterface;
-
 import config.SimulationConfig;
-
-import emulatorinterface.ApplicationThreads.appThread;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
@@ -29,14 +22,11 @@ import generic.OperationType;
  */
 public class RunnableThread implements Runnable, Encoding {
 
-	Thread runner;
 	int tid;
 	long sum = 0; // checksum
-	int COUNT = IpcBase.COUNT; // COUNT of packets per thread
 	int EMUTHREADS = IpcBase.EMUTHREADS;
-	int[] readerLocation = new int[EMUTHREADS]; // consumer pointers
-	long[] totalRead = new long[EMUTHREADS]; // total consumed data
-
+	
+	ThreadParams[] applicationThreads = new ThreadParams[EMUTHREADS];
 	InstructionLinkedList[] inputToPipeline;
 	IpcBase ipcType;
 	
@@ -61,6 +51,8 @@ public class RunnableThread implements Runnable, Encoding {
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
 		for(int i = 0; i < EMUTHREADS; i++)
 		{
+			applicationThreads[i] = new ThreadParams();
+			
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
 			inputToPipeline[i] = new InstructionLinkedList();
 			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
@@ -73,16 +65,11 @@ public class RunnableThread implements Runnable, Encoding {
 			stepSize[i] = cores[i].getStepSize();
 		}
 
-		for (int i = tid1 * EMUTHREADS; i < (tid1 + 1) * EMUTHREADS; i++) {
-			applicationThreads.add(i,new appThread());
-		}
-		
 		this.tid = tid1;
 		this.ipcType = ipcType;
-		runner = new Thread(this, threadName);
+		(new Thread(this, threadName)).start();
 		if (SimulationConfig.debugMode) 
-			System.out.println("--  starting java thread"+runner.getName());
-		runner.start(); // Start the thread.
+			System.out.println("--  starting java thread"+this.tid);
 	}
 
 
@@ -90,10 +77,8 @@ public class RunnableThread implements Runnable, Encoding {
 	// finished
 	boolean emuThreadsFinished() {
 		boolean ret = true;
-		int start=tid*EMUTHREADS;
-		appThread thread;
-		for (int i = start; i < start+EMUTHREADS; i++) {
-			thread = applicationThreads.get(i);
+		for (int i = 0; i < EMUTHREADS; i++) {
+			ThreadParams thread = applicationThreads[i];
 			if (thread.started == true
 					&& thread.finished == false) {
 				return false;
@@ -114,46 +99,31 @@ public class RunnableThread implements Runnable, Encoding {
 		if (SimulationConfig.debugMode) 
 			System.out.println("-- in runnable thread run "+this.tid);
 		
-		ArrayList<ArrayList<Packet>> listPackets = new ArrayList<ArrayList<Packet>>();
-		ArrayList<Packet> packets;
-		Packet[] poldList = new Packet[EMUTHREADS];
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
 
-		boolean isFirstPacket[] = new boolean[EMUTHREADS];
-		for (int i = 0; i < EMUTHREADS; i++) {
-			isFirstPacket[i] = true;
-			listPackets.add(i, new ArrayList<Packet>());
-			poldList[i] = new Packet();
-		}
-
 		// start gets reinitialized when the program actually starts
 		long start = System.currentTimeMillis();
-		appThread thread;
+		ThreadParams thread;
 		// keep on looping till there is something to read. iterates on the
 		// emulator threads from which it has to read.
 		// tid is java thread id
 		// tidEmu is the local notion of pin threads for the current java thread
-		// tid_emu/tidApp is the actual tid of a pin thread
+		// tidApp is the actual tid of a pin thread
 		while (true) {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-				
-				int tidApp = tid * EMUTHREADS + tidEmu;
-				thread = applicationThreads.get(tidApp);
+				thread = applicationThreads[tidEmu];
 				if (thread.halted || thread.finished)
 					continue;
-				packets = listPackets.get(tidEmu);
-
+				int tidApp = tid * EMUTHREADS + tidEmu;
 				int queue_size, numReads = 0, v = 0;
 
 				// get the number of packets to read. 'continue' and read from
 				// some other thread if there is nothing.
 
-				/*** ALL THAT YOU NEED ARE FIVE FUNCTIONS ***/
 				/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
-				numReads = ipcType.numPackets(tidApp);
-				if (numReads == 0) {
+				if ((numReads = ipcType.numPackets(tidApp)) == 0) {
 					continue;
 				}
 
@@ -171,42 +141,31 @@ public class RunnableThread implements Runnable, Encoding {
 					emulatorStarted = true;
 					start = System.currentTimeMillis();
 					ipcType.started[tid] = true;
-					stepSize[0] = pipelineInterfaces[0].getCoreStepSize();//TODO all cores
+					for (int i = 0; i < EMUTHREADS; i++) {
+						stepSize[i] = pipelineInterfaces[i].getCoreStepSize();
+					}
 				}
 
-				if (isFirstPacket[tidEmu]) {
-					thread.started = true;
-				}
-
+				thread.checkStarted();
+				
 				// Read the entries
 				for (int i = 0; i < numReads; i++) {
-					pnew = ipcType.fetchOnePacket(tidApp, readerLocation[tidEmu]+i);
-					if (handleSynch(pnew, tidApp))
-						continue;
+					pnew = ipcType.fetchOnePacket(tidApp, thread.readerLocation+i);					
 					v = pnew.value;
-					processPacket(packets, poldList, pnew, tidEmu,
-							isFirstPacket);
-					if (isFirstPacket[tidEmu])
-						isFirstPacket[tidEmu] = false;
+					processPacket(thread, pnew,tidEmu);
+					thread.checkFirstPacket();
 				}
 
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
-				for (int i1=0; i1< n; i1++)
-
-				{
+				for (int i1=0; i1< n; i1++)	{
 					pipelineInterfaces[tidEmu].oneCycleOperation();
 //					GlobalClock.incrementClock();
-
 				}
-				
-				// update the consumer pointer, queue_size.
-				// add a function : update queue_size
-				readerLocation[tidEmu] = (readerLocation[tidEmu] + numReads) % COUNT;
 
+				thread.updateReaderLocation(numReads);
 				queue_size = ipcType.update(tidApp, numReads);
-
 				errorCheck(tidApp, tidEmu, queue_size, numReads, v);
-				
+
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
 					System.out.println(tidApp+" pin thread got -1");
@@ -268,7 +227,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 		long dataRead = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
-			dataRead += totalRead[i];
+			dataRead += applicationThreads[i].totalRead;
 		}
 		long timeTaken = System.currentTimeMillis() - start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
@@ -284,14 +243,15 @@ public class RunnableThread implements Runnable, Encoding {
 	private void errorCheck(int tidApp, int emuid, int queue_size,
 			int numReads, int v) {
 		// some error checking
-		totalRead[emuid] += numReads;
-		int tot_prod = ipcType.totalProduced(tidApp);
+		long totalRead = applicationThreads[emuid].totalRead;
+		totalRead += numReads;
+		int totalProduced = ipcType.totalProduced(tidApp);
 		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
-		if (totalRead[emuid] > tot_prod) {
+		if (totalRead > totalProduced) {
 			System.out.println("numReads" + numReads + " queue_size"
 					+ queue_size + " ip");
-			System.out.println("tot_prod=" + tot_prod + " tot_cons="
-					+ totalRead[emuid] + " v=" + v + " emuid" + emuid);
+			System.out.println("tot_prod=" + totalProduced + " tot_cons="
+					+ totalRead + " v=" + v + " emuid" + emuid);
 			System.exit(1);
 		}
 		if (queue_size < 0) {
@@ -300,22 +260,20 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 	}
 	
-	private void processPacket(ArrayList<Packet> listPackets, Packet[] poldList,
-			Packet pnew, int tidEmu, boolean[] isFirstPacket) {
+	private void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
+		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
-		if (pnew.ip == poldList[tidEmu].ip || isFirstPacket[tidEmu]) {
-			if (isFirstPacket[tidEmu])
-				poldList[tidEmu] = pnew;
-			listPackets.add(pnew);
+		//if (pnew.value >= SYNCHSTART || pnew.value <= SYNCHEND) return;
+		if (pnew.value == TIMER) { tryResumeOnWaitingPipelines(thread,tidApp, pnew.ip); return;}
+		if (pnew.ip == thread.pold.ip || thread.isFirstPacket) {
+			if (thread.isFirstPacket)
+				thread.pold = pnew;
+			thread.packets.add(pnew);
 		} else {
+			if (thread.pold.value<=SYNCHSTART || thread.pold.value>=SYNCHEND) {
 			(ipcType.numInstructions[tid])++;
-			
-			// QQQ Using local buffer to store packets
-			this.dynamicInstructionBuffer.configurePackets(listPackets);
-			
-			// QQQ translate instructions
-
-			InstructionLinkedList tempList = ObjParser.translateInstruction(listPackets.get(0).ip, 
+			this.dynamicInstructionBuffer.configurePackets(thread.packets);
+			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
 					dynamicInstructionBuffer);
 			
 			if(SimulationConfig.detachMemSys == true)	//TODO
@@ -333,26 +291,46 @@ public class RunnableThread implements Runnable, Encoding {
 			
 			this.inputToPipeline[tidEmu].appendInstruction(tempList);
 
-			poldList[tidEmu] = pnew;
-
-			listPackets.clear();
-			listPackets.add(poldList[tidEmu]);
+			}
+			if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
+				int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
+				if (threadToResume != -1) {
+					resumePipeline(threadToResume);
+				}
+				else {
+					sleepPipeline(tidApp);
+				}
+				
+			}
+			thread.pold = pnew;
+			thread.packets.clear();
+			thread.packets.add(thread.pold);
 		}
 		
 	}
-
-
-	// false if the packet is not for synchronization. else true
-	private boolean handleSynch(Packet p, int appTid) {
-		if (p.value <= SYNCHSTART || p.value >= SYNCHEND)
-			return false;
-		sum += p.value;
-		IpcBase.glTable.update(p.tgt, appTid, p.ip, p.value);
-//		sleepPipeline(this.inputToPipeline[appTid]);
-		return true;
-	}
 	
-	private void sleepPipeline(InstructionLinkedList input){
-		input.appendInstruction(new Instruction(OperationType.sync,null, null, null));
+	private void tryResumeOnWaitingPipelines(ThreadParams thread,int tidApp, long time) {
+		// TODO Auto-generated method stub
+		thread.lastTimerseen = time;
+		System.out.println("trying to wake on timerwaiting threads");
+		// update timerStatus of ThreadParams
+		// iterate over threads and see if any thread on a timed wait
+		// we get a thread which is TimedWaiting on thread tidApp[] at t1
+		// if t1 > time and not waiting on any other then resume(Its tentative wait was false)
+		// this thread else keep waiting.
+		
+		//for(t : allThreads){for(ts: t.threadState){
+		//					if (thread exists in ts.tentativeInteractors) then doSomething();
+		//					else ignore();}}
+		
+	}
+
+	private void sleepPipeline(int tidApp){
+		System.out.println(tidApp+" pipeline is sleeping");
+		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
+	}
+	private void resumePipeline(int tidApp){
+		System.out.println(tidApp+" pipeline is resuming");
+		this.pipelineInterfaces[tidApp].resumePipeline();
 	}
 }
