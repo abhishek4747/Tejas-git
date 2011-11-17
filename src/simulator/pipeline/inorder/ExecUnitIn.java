@@ -45,10 +45,10 @@ public class ExecUnitIn extends SimulationElement{
 //				//Schedule a mem read event now so that it can be completed in the mem stage
 //				//TODO this.getPort() ?? Is this correct ??
 //
-//				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-//						core.getExecutionEngineIn().getMemUnitIn(),
-//						RequestType.Cache_Read,
-//						ins.getSourceOperand1().getValue());
+				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+						core.getExecutionEngineIn().getMemUnitIn(),
+						RequestType.Cache_Read,
+						ins.getSourceOperand1().getValue());
 //
 //			}
 //			else if(idExLatch.getOperationType()==OperationType.store){

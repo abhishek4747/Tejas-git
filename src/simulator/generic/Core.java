@@ -34,7 +34,7 @@ public class Core extends SimulationElement{
 	EventQueue eventQueue;
 	ExecutionEngineIn execEngineIn;
 	
-	public boolean isPipelineStatistical = false;
+	public boolean isPipelineStatistical = true;
 	public boolean isPipelineInorder = true;
 	
 	//core parameters
