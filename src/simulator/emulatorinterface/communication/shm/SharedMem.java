@@ -28,7 +28,7 @@ public class SharedMem extends  IpcBase
 		// needed for lock management, queue size etc. For details look common.h
 		glTable = new GlobalTable(this);
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
-		shmid = shmget((COUNT+5)*MAXNUMTHREADS*EMUTHREADS, SimulationConfig.MapJavaCores);
+		shmid = shmget((COUNT+5)*MaxNumJavaThreads*EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores);
 		shmAddress = shmat(shmid);
 	}
 	
@@ -54,7 +54,7 @@ public class SharedMem extends  IpcBase
 			System.out.println("-- SharedMem initialising");
 		
 		String name;
-		for (int i=0; i<MAXNUMTHREADS; i++){
+		for (int i=0; i<MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
 			termination[i]=false;
 			started[i]=false;
@@ -71,7 +71,7 @@ public class SharedMem extends  IpcBase
 		free.acquire();	
 		
 		// if any thread has started and not finished then wait.
-		for (int i=0; i<MAXNUMTHREADS; i++) {
+		for (int i=0; i<MaxNumJavaThreads; i++) {
 			if (started[i] && !termination[i]) {
 				free.acquire();
 			}
@@ -80,7 +80,7 @@ public class SharedMem extends  IpcBase
 		long totalInstructions = 0;
 		
 		//inform threads which have not started about finish
-		for (int i=0; i<MAXNUMTHREADS; i++) {
+		for (int i=0; i<MaxNumJavaThreads; i++) {
 			if (started[i]==false) termination[i]=true;
 			totalInstructions += numInstructions[i];
 		}

@@ -20,17 +20,17 @@ public abstract class IpcBase {
 
 	// Must ensure that MAXNUMTHREADS*EMUTHREADS == MaxNumThreads on the PIN side
 	// Do not move it to config file unless you can satisfy the first constraint
-	public static final int MAXNUMTHREADS = 1;
-	public static final int EMUTHREADS = 32; 
+	public static final int MaxNumJavaThreads = 1;
+	public static final int EmuThreadsPerJavaThread = 32; 
 	// Must ensure that this is same as COUNT in IPCBase.h
 	public static final int COUNT = 1000;
 
 	// state management for reader threads
-	public boolean[] termination=new boolean[MAXNUMTHREADS];
-	public boolean[] started=new boolean[MAXNUMTHREADS];
+	public boolean[] termination=new boolean[MaxNumJavaThreads];
+	public boolean[] started=new boolean[MaxNumJavaThreads];
 	
 	// number of instructions read by each of the threads
-	public long[] numInstructions = new long[MAXNUMTHREADS];
+	public long[] numInstructions = new long[MaxNumJavaThreads];
 	
 	// to maintain synchronization between main thread and the reader threads
 	public static final Semaphore free = new Semaphore(0, true);

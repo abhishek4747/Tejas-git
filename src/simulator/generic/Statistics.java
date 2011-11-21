@@ -43,7 +43,7 @@ public class Statistics {
 			outputFileWriter.write("[Translator Statistics]\n");
 			outputFileWriter.write("\n");
 			
-			for(int i = 0; i < IpcBase.MAXNUMTHREADS; i++)
+			for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
 			{
 				outputFileWriter.write("Java thread\t=\t" + i + "\n");
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
@@ -234,9 +234,9 @@ public class Statistics {
 
 	public static void initStatistics()
 	{		
-		dataRead = new long[IpcBase.MAXNUMTHREADS];
-		numInstructions = new long[IpcBase.MAXNUMTHREADS];
-		noOfMicroOps = new long[IpcBase.MAXNUMTHREADS];
+		dataRead = new long[IpcBase.MaxNumJavaThreads];
+		numInstructions = new long[IpcBase.MaxNumJavaThreads];
+		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
 		coreFrequencies = new long[SystemConfig.NoOfCores];

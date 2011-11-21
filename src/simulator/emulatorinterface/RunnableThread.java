@@ -3,14 +3,14 @@
  */
 
 package emulatorinterface;
-import java.util.ArrayList;
+import java.util.Hashtable;
+
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
 import emulatorinterface.translator.x86.objparser.ObjParser;
-import emulatorinterface.translator.x86.objparser.TestInstructionLists;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -24,26 +24,29 @@ public class RunnableThread implements Runnable, Encoding {
 
 	int tid;
 	long sum = 0; // checksum
-	int EMUTHREADS = IpcBase.EMUTHREADS;
-	
-	ThreadParams[] applicationThreads = new ThreadParams[EMUTHREADS];
+	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
+
+	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
+
+	//inputToPipeline should be in IpcBase and not here as pipelines from other RunnableThreads
+	// will need to interact.
 	InstructionLinkedList[] inputToPipeline;
 	IpcBase ipcType;
-	
+
 	// QQQ re-arrange packets for use by translate instruction.
 	DynamicInstructionBuffer dynamicInstructionBuffer;
-	
+
 	int[] decodeWidth;
 	int[] stepSize;
 	PipelineInterface[] pipelineInterfaces;
-	
+
 	public RunnableThread() {
 	}
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
 	public RunnableThread(String threadName, int tid1, IpcBase ipcType, Core[] cores) {
-		
+
 		dynamicInstructionBuffer = new DynamicInstructionBuffer();
 		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
 		decodeWidth = new int[EMUTHREADS];
@@ -51,17 +54,20 @@ public class RunnableThread implements Runnable, Encoding {
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
 		for(int i = 0; i < EMUTHREADS; i++)
 		{
-			applicationThreads[i] = new ThreadParams();
-			
+			int id = tid1*IpcBase.EmuThreadsPerJavaThread+i;
+			IpcBase.glTable.getStateTable().put(id, new ThreadState(id));
+			threadParams[i] = new ThreadParams();
+
+			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
 			inputToPipeline[i] = new InstructionLinkedList();
 			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
-			
+
 			if(cores[i].isPipelineInorder)
 				decodeWidth[i] = 1;
 			else
 				decodeWidth[i] = cores[i].getDecodeWidth();
-			
+
 			stepSize[i] = cores[i].getStepSize();
 		}
 
@@ -78,7 +84,7 @@ public class RunnableThread implements Runnable, Encoding {
 	boolean emuThreadsFinished() {
 		boolean ret = true;
 		for (int i = 0; i < EMUTHREADS; i++) {
-			ThreadParams thread = applicationThreads[i];
+			ThreadParams thread = threadParams[i];
 			if (thread.started == true
 					&& thread.finished == false) {
 				return false;
@@ -95,10 +101,10 @@ public class RunnableThread implements Runnable, Encoding {
 	 * case of unclean termination). Although the problem is easily fixable.
 	 */
 	public void run() {
-		
+
 		if (SimulationConfig.debugMode) 
 			System.out.println("-- in runnable thread run "+this.tid);
-		
+
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
@@ -113,7 +119,7 @@ public class RunnableThread implements Runnable, Encoding {
 		// tidApp is the actual tid of a pin thread
 		while (true) {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-				thread = applicationThreads[tidEmu];
+				thread = threadParams[tidEmu];
 				if (thread.halted || thread.finished)
 					continue;
 				int tidApp = tid * EMUTHREADS + tidEmu;
@@ -147,19 +153,18 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 
 				thread.checkStarted();
-				
+
 				// Read the entries
 				for (int i = 0; i < numReads; i++) {
 					pnew = ipcType.fetchOnePacket(tidApp, thread.readerLocation+i);					
 					v = pnew.value;
 					processPacket(thread, pnew,tidEmu);
-					thread.checkFirstPacket();
 				}
 
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)	{
 					pipelineInterfaces[tidEmu].oneCycleOperation();
-//					GlobalClock.incrementClock();
+					//					GlobalClock.incrementClock();
 				}
 
 				thread.updateReaderLocation(numReads);
@@ -195,39 +200,39 @@ public class RunnableThread implements Runnable, Encoding {
 				break;
 			}
 		}
-		
+
 		for (int i=0; i<EMUTHREADS; i++)
-		this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+			this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 
 		//this.inputToPipeline[0].appendInstruction(TestInstructionLists.testList2());
 
 		boolean queueComplete;    //queueComplete is true when all cores have completed
-        
-        while(true)
-        {
- //System.out.println("Pin completed ");
-            queueComplete = true;        
-            for(int i = 0; i < EMUTHREADS; i++)
-            {
 
-                queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
-            }
-            if(queueComplete == true)
-            {
-                    break;
-            }
+		while(true)
+		{
+			//System.out.println("Pin completed ");
+			queueComplete = true;        
+			for(int i = 0; i < EMUTHREADS; i++)
+			{
 
-            for (int i=0; i<EMUTHREADS; i++) {
-            	pipelineInterfaces[i].oneCycleOperation();
-            }
-            
-            GlobalClock.incrementClock();
-        }
+				queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
+			}
+			if(queueComplete == true)
+			{
+				break;
+			}
+
+			for (int i=0; i<EMUTHREADS; i++) {
+				pipelineInterfaces[i].oneCycleOperation();
+			}
+
+			GlobalClock.incrementClock();
+		}
 
 
 		long dataRead = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
-			dataRead += applicationThreads[i].totalRead;
+			dataRead += threadParams[i].totalRead;
 		}
 		long timeTaken = System.currentTimeMillis() - start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
@@ -243,7 +248,7 @@ public class RunnableThread implements Runnable, Encoding {
 	private void errorCheck(int tidApp, int emuid, int queue_size,
 			int numReads, int v) {
 		// some error checking
-		long totalRead = applicationThreads[emuid].totalRead;
+		long totalRead = threadParams[emuid].totalRead;
 		totalRead += numReads;
 		int totalProduced = ipcType.totalProduced(tidApp);
 		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
@@ -259,78 +264,101 @@ public class RunnableThread implements Runnable, Encoding {
 			System.exit(1);
 		}
 	}
-	
+
 	private void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
 		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
 		//if (pnew.value >= SYNCHSTART || pnew.value <= SYNCHEND) return;
-		if (pnew.value == TIMER) { tryResumeOnWaitingPipelines(thread,tidApp, pnew.ip); return;}
-		if (pnew.ip == thread.pold.ip || thread.isFirstPacket) {
-			if (thread.isFirstPacket)
-				thread.pold = pnew;
+		if (pnew.value == TIMER) {
+			tryResumeOnWaitingPipelines(tidApp, pnew.ip); 
+			return;
+		}
+		if (thread.isFirstPacket) {
+			thread.pold = pnew;
+			thread.isFirstPacket=false;
+		}
+		if (pnew.ip == thread.pold.ip) {
 			thread.packets.add(pnew);
 		} else {
 			if (thread.pold.value<=SYNCHSTART || thread.pold.value>=SYNCHEND) {
-			(ipcType.numInstructions[tid])++;
-			this.dynamicInstructionBuffer.configurePackets(thread.packets);
-			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-					dynamicInstructionBuffer);
-			
-			if(SimulationConfig.detachMemSys == true)	//TODO
-			{
-				for(int i = 0; i < tempList.getListSize(); i++)
+				(ipcType.numInstructions[tid])++;
+				this.dynamicInstructionBuffer.configurePackets(thread.packets);
+				InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
+						dynamicInstructionBuffer);
+
+				if(SimulationConfig.detachMemSys == true)	//TODO
 				{
-					if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
-							tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
+					for(int i = 0; i < tempList.getListSize(); i++)
 					{
-						tempList.removeInstructionAt(i);
-						i--;
+						if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
+								tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
+						{
+							tempList.removeInstructionAt(i);
+							i--;
+						}
 					}
 				}
-			}
-			
-			this.inputToPipeline[tidEmu].appendInstruction(tempList);
+
+				this.inputToPipeline[tidEmu].appendInstruction(tempList);
 
 			}
 			if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
 				int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
-				if (threadToResume != -1) {
-					resumePipeline(threadToResume);
+				if (threadToResume == -2) {
+					//ignored. Not yet handled
 				}
 				else {
-					sleepPipeline(tidApp);
+					if (threadToResume != -1) {
+						resumePipeline(threadToResume,tidApp,pnew.value);
+					}
+					else {
+						sleepPipeline(tidApp,pnew.value);
+					}
 				}
-				
 			}
 			thread.pold = pnew;
 			thread.packets.clear();
 			thread.packets.add(thread.pold);
 		}
-		
-	}
-	
-	private void tryResumeOnWaitingPipelines(ThreadParams thread,int tidApp, long time) {
-		// TODO Auto-generated method stub
-		thread.lastTimerseen = time;
-		System.out.println("trying to wake on timerwaiting threads");
-		// update timerStatus of ThreadParams
-		// iterate over threads and see if any thread on a timed wait
-		// we get a thread which is TimedWaiting on thread tidApp[] at t1
-		// if t1 > time and not waiting on any other then resume(Its tentative wait was false)
-		// this thread else keep waiting.
-		
-		//for(t : allThreads){for(ts: t.threadState){
-		//					if (thread exists in ts.tentativeInteractors) then doSomething();
-		//					else ignore();}}
-		
+
 	}
 
-	private void sleepPipeline(int tidApp){
+	private void tryResumeOnWaitingPipelines(int signaller, long time) {
+		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable.getStateTable();
+		ThreadState signallingThread = stateTable.get(signaller);
+		signallingThread.lastTimerseen = time;
+
+		for (PerAddressInfo pai : signallingThread.addressMap.values()) {
+			for (int waiter : pai.probableInteractors) {
+				ThreadState waiterThread = stateTable.get(waiter);
+				if (waiterThread.timedWait) {
+					//					synchronized (IpcBase.glTable.getStateTable()) { //TODO if multiple RunnableThreads
+					if (time>=waiterThread.timeSlept(pai.address)) {
+						//Remove dependencies from both sides.
+						pai.probableInteractors.remove(waiter);
+						waiterThread.removeDep(signaller);
+						// removeDep updates timedWait if needed
+						if (!waiterThread.timedWait) resumePipeline(waiter,signaller,TIMER);
+					}
+					//					}
+				}
+			}
+		}
+	}
+
+	private void sleepPipeline(int tidApp, int encoding){
 		System.out.println(tidApp+" pipeline is sleeping");
+		if (encoding ==LOCK+1 || encoding==CONDWAIT+1) {
+			// do not sleep at exits as they are already sleeping at the enters.
+			// TODO add more here. as you handle more and more cases
+		}
+		else 
 		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
 	}
-	private void resumePipeline(int tidApp){
+	private void resumePipeline(int tidApp,int self, int encoding){
 		System.out.println(tidApp+" pipeline is resuming");
+		if (encoding==LOCK+1 || encoding==CONDWAIT+1)
+			this.pipelineInterfaces[self].resumePipeline();
 		this.pipelineInterfaces[tidApp].resumePipeline();
 	}
 }

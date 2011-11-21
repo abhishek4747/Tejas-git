@@ -179,18 +179,8 @@ Shm::shmwrite (int tid, int last)
 
 	myData->tot_prod += numWrite;
 
-	if(queue_size > COUNT)
-		{
-			printf("gadbad ho gayi!!\n");
-			fflush(stdout);
-			exit(1);
-		}
-
 	shmem[COUNT].value = queue_size;
 	shmem[COUNT+4].value = myData->tot_prod;
-
-
-
 	release_lock(shmem);
 
 	return 0;

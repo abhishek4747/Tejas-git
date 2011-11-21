@@ -25,7 +25,7 @@ public class Newmain {
 	public static Process process;
 
 	// the reader threads. Each thread reads from EMUTHREADS
-	public static RunnableThread [] runners = new RunnableThread[IpcBase.MAXNUMTHREADS];;
+	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];;
 	
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -82,7 +82,7 @@ public class Newmain {
 		
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		String name;
-		for (int i=0; i<IpcBase.MAXNUMTHREADS; i++){
+		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
 			runners[i] = new RunnableThread(name,i, ipcBase, cores);
 		}
@@ -198,8 +198,8 @@ public class Newmain {
 	{
 		System.out.println("initializing cores...");
 		
-		Core[] cores = new Core[IpcBase.EMUTHREADS];
-		for (int i=0; i<IpcBase.EMUTHREADS; i++) {
+		Core[] cores = new Core[IpcBase.EmuThreadsPerJavaThread];
+		for (int i=0; i<IpcBase.EmuThreadsPerJavaThread; i++) {
 			cores[i] = new Core(0,
 							1,
 							1,

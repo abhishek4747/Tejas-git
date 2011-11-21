@@ -17,22 +17,15 @@ public class ThreadParams {
 	boolean isFirstPacket = true;
 	ArrayList<Packet> packets=new ArrayList<Packet>();
 	
-	long lastTimerseen=0;
-	 // for each distinct address a thread should have a threadState
-	ArrayList<ThreadState> threadState = new ArrayList<ThreadState>();
 	
 	public void checkStarted() {
 		if (this.isFirstPacket) {
 			this.started = true;
 		}
 	}
-	public void checkFirstPacket() {
-		if (this.isFirstPacket)
-			this.isFirstPacket = false;
-	}
+
 	public void updateReaderLocation(int numReads) {
 		this.readerLocation = (this.readerLocation + numReads) % IpcBase.COUNT;
-
 	}
 
 }

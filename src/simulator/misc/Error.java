@@ -22,8 +22,6 @@
 package misc;
 
 import emulatorinterface.Newmain;
-import emulatorinterface.communication.IpcBase;
-import emulatorinterface.communication.shm.SharedMem;
 import generic.Operand;
 
 public class Error 
@@ -34,13 +32,12 @@ public class Error
 		System.exit(0);
 	}
 
-	public static void shutDown(String message, IpcBase type) 
+	public static void shutDown(String message) 
 	{
 		try {
 			Newmain.process.destroy();
 		}
 		finally{
-			type.finish();
 			System.out.print(message);
 			System.exit(0);
 		}

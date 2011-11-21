@@ -49,11 +49,11 @@ uint64_t ClockGetTime() {
 
 void sendTimerPacket(int tid) {
 	if ((countPacket[tid]++ % PacketEpoch)==0){
-	}
 	countPacket[tid]=0;
 	uint64_t time = ClockGetTime();
 	while (tst->analysisFn(tid, time, TIMER, 0) == -1) {
 			PIN_Yield();
+	}
 	}
 }
 
