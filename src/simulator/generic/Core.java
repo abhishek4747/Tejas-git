@@ -34,8 +34,8 @@ public class Core extends SimulationElement{
 	EventQueue eventQueue;
 	ExecutionEngineIn execEngineIn;
 	
-	public boolean isPipelineStatistical = true;
-	public boolean isPipelineInorder = true;
+	public boolean isPipelineStatistical = false;
+	public boolean isPipelineInorder = false;
 	
 	//core parameters
 	private int decodeWidth;

@@ -19,13 +19,19 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 	@Override
 	public void oneCycleOperation() {
 		
-		ExecutionEngine execEngine;		
+		coreStepSize = core.getStepSize();
+		if(coreStepSize == 0)
+		{
+			//this core has been initialised, but has no pipeline running on it
+			return;
+		}
+		
+		ExecutionEngine execEngine;
 		
 		execEngine = core.getExecEngine();
 		execEngine.getReorderBuffer().performCommits();
 		
 		long currentTime = GlobalClock.getCurrentTime();
-		coreStepSize = core.getStepSize();
 		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getWriteBackLogic().performWriteBack();
@@ -90,6 +96,12 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 	public int getCoreStepSize()
 	{
 		return coreStepSize;
+	}
+
+	@Override
+	public void resumePipeline() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

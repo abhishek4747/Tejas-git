@@ -161,10 +161,12 @@ public class RunnableThread implements Runnable, Encoding {
 					processPacket(thread, pnew,tidEmu);
 				}
 
+				boolean out_of_order_pipeline_present = true;
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)	{
 					pipelineInterfaces[tidEmu].oneCycleOperation();
-					//					GlobalClock.incrementClock();
+					if(out_of_order_pipeline_present)
+						GlobalClock.incrementClock();
 				}
 
 				thread.updateReaderLocation(numReads);
