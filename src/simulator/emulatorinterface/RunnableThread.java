@@ -5,7 +5,7 @@
 package emulatorinterface;
 import java.util.Hashtable;
 import java.util.Iterator;
-
+import org.apache.log4j.Logger;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.IpcBase;
@@ -23,6 +23,7 @@ import generic.OperationType;
  */
 public class RunnableThread implements Runnable, Encoding {
 
+    private static final Logger logger = Logger.getLogger(RunnableThread.class);
 	int tid;
 	long sum = 0; // checksum
 	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
@@ -75,8 +76,7 @@ public class RunnableThread implements Runnable, Encoding {
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
-		if (SimulationConfig.debugMode) 
-			System.out.println("--  starting java thread"+this.tid);
+		logger.info("--  starting java thread"+this.tid);
 	}
 
 
@@ -103,8 +103,7 @@ public class RunnableThread implements Runnable, Encoding {
 	 */
 	public void run() {
 
-		if (SimulationConfig.debugMode) 
-			System.out.println("-- in runnable thread run "+this.tid);
+		logger.info("-- in runnable thread run "+this.tid);
 
 		Packet pnew = new Packet();
 		boolean allover = false;
@@ -175,7 +174,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
-					System.out.println(tidApp+" pin thread got -1");
+					logger.info(tidApp+" pin thread got -1");
 					thread.finished = true;
 				}
 
