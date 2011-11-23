@@ -5,6 +5,7 @@ import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import misc.Error;
 import config.SimulationConfig;
+import config.SystemConfig;
 import config.XMLParser;
 import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
@@ -79,6 +80,12 @@ public class Newmain {
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
 		Process process = createPINinterface(ipcBase, executableArguments);
+
+		//Create the memory system
+		MemorySystem.initializeMemSys(cores); //TODO mem sys need not know eventQ during initialisation
+		
+		//different core components may work at different frequencies
+		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		String name;
@@ -86,12 +93,6 @@ public class Newmain {
 			name = "thread"+Integer.toString(i);
 			runners[i] = new RunnableThread(name,i, ipcBase, cores);
 		}
-
-		//Create the memory system
-		MemorySystem.initializeMemSys(cores); //TODO mem sys need not know eventQ during initialisation
-		
-		//different core components may work at different frequencies
-		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
 		//set up statistics module
 		Statistics.initStatistics();
@@ -205,6 +206,15 @@ public class Newmain {
 							1,
 							null,
 							new int[]{0});
+		}
+		for(int i = SystemConfig.NoOfCores; i<IpcBase.EmuThreadsPerJavaThread; i++)
+		{
+			if (cores[i].isPipelineStatistical)
+				cores[i].getStatisticalPipeline().setExecutionComplete(true);
+			else if (cores[i].isPipelineInorder)
+				cores[i].getExecutionEngineIn().setExecutionComplete(true);
+			else
+				cores[i].getExecEngine().setExecutionComplete(true);
 		}
 		return cores;
 	}
