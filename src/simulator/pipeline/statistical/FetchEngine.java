@@ -1,5 +1,6 @@
 package pipeline.statistical;
 
+import generic.EventQueue;
 import memorysystem.CoreMemorySystem;
 import generic.Core;
 import generic.Event;
@@ -69,14 +70,14 @@ public class FetchEngine extends SimulationElement
 			}
 			else
 			{
-				if (core.isPipelineStatistical == true)
+				if (!(core.isPipelineStatistical == true))
 				{
 					//readDecodePipe();
 				}
 				else
 				{
 					boolean dontFetchMore = false;
-					for(int i = 0; i < fetchWidth && dontFetchMore == false; i++)
+					for(int i = 0; i < fetchWidth && dontFetchMore == false && !inputToPipeline[inputPipeToReadNext].isEmpty(); i++)
 					{
 						dontFetchMore = false;
 						newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
@@ -119,14 +120,14 @@ public class FetchEngine extends SimulationElement
 		
 		if(isAllPipesEmpty() == false)
 		{
-			inputPipeToReadNext = (inputPipeToReadNext + 1)%core.getNo_of_input_pipes();			
+			inputPipeToReadNext = (inputPipeToReadNext + 1)%core.getNo_of_input_pipes();	
+			pipeline.setAllPipesEmpty(true);
 		}
 	}
 
 	@Override
-	public void handleEvent(Event event) {
-		// TODO Auto-generated method stub
-		
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub		
 	}
 	
 	public boolean isInputPipeEmpty(int threadIndex) {

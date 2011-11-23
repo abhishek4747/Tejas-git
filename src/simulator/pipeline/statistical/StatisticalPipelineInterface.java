@@ -3,12 +3,13 @@ package pipeline.statistical;
 import generic.Core;
 import generic.EventQueue;
 
-public class PipelineInterface implements pipeline.PipelineInterface {
+public class StatisticalPipelineInterface implements pipeline.PipelineInterface {
 	
 	Core core;
 	EventQueue eventQ;
+	int coreStepSize;
 	
-	public PipelineInterface(Core core, EventQueue eventQ)
+	public StatisticalPipelineInterface(Core core, EventQueue eventQ)
 	{
 		this.core = core;
 		this.eventQ = eventQ;
@@ -43,6 +44,32 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 
 	public void setEventQ(EventQueue eventQ) {
 		this.eventQ = eventQ;
+	}
+	
+	@Override
+	public boolean isExecutionComplete() {
+		
+		/*if (core.isPipelineStatistical)
+            return core.getStatisticalPipeline().isExecutionComplete();
+        else*/
+        return core.getStatisticalPipeline().isExecutionComplete();
+		
+		
+	}
+	
+	public void setcoreStepSize(int stepSize)
+	{
+		this.coreStepSize = stepSize;
+	}
+	
+	public int getCoreStepSize()
+	{
+		return coreStepSize;
+	}
+	
+	public void resumePipeline()
+	{
+		
 	}
 
 }

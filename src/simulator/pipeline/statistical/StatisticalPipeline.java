@@ -1,9 +1,14 @@
 package pipeline.statistical;
 
+import pipeline.outoforder_new_arch.ReorderBufferEntry;
+import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
+import generic.Operand;
+import generic.OperandType;
+import generic.OperationType;
 import generic.Statistics;
 
 public class StatisticalPipeline 
@@ -47,11 +52,15 @@ public class StatisticalPipeline
 
 	public void performCommits()
 	{
-//		if (GlobalClock.getCurrentTime() >= 20000)
-//		{
-//			setExecutionComplete(true);
-//			System.out.println("Exiting....");	
-//		}
+		coreMemSys.getLsqueue().processROBCommitForStatisticalPipeline(core.getEventQueue());
+		if(this.isAllPipesEmpty() == true && coreMemSys.getLsqueue().isEmpty())
+		{
+			this.setExecutionComplete(true);
+			
+			setTimingStatistics();			
+			setPerCoreMemorySystemStatistics();
+		}
+//		core.incrementNoOfInstructionsExecuted();
 	}
 	
 	protected Core getCore() {
@@ -109,7 +118,7 @@ public class StatisticalPipeline
 	}
 
 
-	protected void setExecutionComplete(boolean isExecutionComplete) {
+	public void setExecutionComplete(boolean isExecutionComplete) {
 		this.isExecutionComplete = isExecutionComplete;
 	}
 

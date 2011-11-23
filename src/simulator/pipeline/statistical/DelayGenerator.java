@@ -13,12 +13,16 @@ import memorysystem.LSQEntryContainingEvent;
 
 public class DelayGenerator 
 {
+	public static long insCountIn = 0;
+	public static long insCountOut = 0;
+	
+	static Random randomNumberGenerator = new Random();
 	//Simulate the load-forwarding
 	public static boolean forwardingDecision()
 	{
 		boolean toIssue = true;
 		
-		Random randomNumberGenerator = new Random();
+//		Random randomNumberGenerator = new Random();
 		if (randomNumberGenerator.nextInt(100) <= 20)
 			toIssue = false;
 		
@@ -28,6 +32,7 @@ public class DelayGenerator
 	//Schedule the instruction for a later point of time
 	public static void scheduleAddressReady(Instruction instruction, Core core)
 	{
+		insCountIn++;
 		//TODO Schedule LD/ST instructions at a later point of time, based on a random number
 		LSQ lsqueue = core.getStatisticalPipeline().coreMemSys.getLsqueue();
 		
@@ -41,10 +46,19 @@ public class DelayGenerator
 		
 		lsqueue.getPort().put(
 				new LSQEntryContainingEvent(
-						lsqueue.getLatencyDelay(), //FIXME : Add some delay
+						core.getEventQueue(),
+						lsqueue.getLatencyDelay() + getRandomDelay(), //FIXME : Add some delay
 						null,
 						lsqueue,
 						RequestType.Tell_LSQ_Addr_Ready,
 						lsqEntry));
+	}
+	
+	public static int getRandomDelay()
+	{
+		int delay = 0;
+		
+//		Random randomNumberGenerator = new Random();
+		return randomNumberGenerator.nextInt(10);
 	}
 }
