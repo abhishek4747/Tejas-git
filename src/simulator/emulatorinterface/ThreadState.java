@@ -1,15 +1,16 @@
 package emulatorinterface;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 class PerAddressInfo {
 
-	ArrayList<Integer> probableInteractors;
+	LinkedList<Integer> probableInteractors;
 	long timeSinceSlept;
 	long address;
 
-	public PerAddressInfo(ArrayList<Integer> tentativeInteractors,
+	public PerAddressInfo(LinkedList<Integer> tentativeInteractors,
 			long time,long address) {
 		super();
 		this.probableInteractors = tentativeInteractors;
@@ -17,11 +18,11 @@ class PerAddressInfo {
 		this.address = address;
 	}
 
-	public ArrayList<Integer> getTentativeInteractors() {
+	public LinkedList<Integer> getTentativeInteractors() {
 		return probableInteractors;
 	}
 
-	public void setTentativeInteractors(ArrayList<Integer> tentativeInteractors) {
+	public void setTentativeInteractors(LinkedList<Integer> tentativeInteractors) {
 		this.probableInteractors = tentativeInteractors;
 	}
 
@@ -39,7 +40,7 @@ class PerAddressInfo {
 
 public class ThreadState {
 	int threadIndex;
-	long lastTimerseen=0;
+	long lastTimerseen=(long)-1>>>1;
 	boolean timedWait=false;
 	HashMap <Long,PerAddressInfo> addressMap = new HashMap<Long,PerAddressInfo>();
 	
@@ -48,10 +49,12 @@ public class ThreadState {
 	}
 	
 	public void removeDep(int tidApp) {
-		for (PerAddressInfo pai : addressMap.values()) {
+		//for (PerAddressInfo pai : addressMap.values()) {
+		for (Iterator<PerAddressInfo> iter = addressMap.values().iterator(); iter.hasNext();) {
+			PerAddressInfo pai = (PerAddressInfo) iter.next();
 			pai.probableInteractors.remove((Integer)tidApp);
 			if (pai.probableInteractors.size()==0) {
-				addressMap.remove(pai);
+				iter.remove();
 			}
 		}
 		if (addressMap.size()==0) {
@@ -64,7 +67,7 @@ public class ThreadState {
 			if ((opai = this.addressMap.get(address)) != null) {
 				opai.probableInteractors.add(thread);
 			} else {
-				ArrayList<Integer> th = new ArrayList<Integer>();
+				LinkedList<Integer> th = new LinkedList<Integer>();
 				th.add(thread);
 				this.addressMap.put(address,
 						new PerAddressInfo(th, time, address));

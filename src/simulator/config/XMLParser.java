@@ -125,6 +125,26 @@ public class XMLParser
 		{
 			SimulationConfig.detachMemSys = false;
 		}
+		
+		if(getImmediateString("StatisticalPipeline", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("StatisticalPipeline", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.isPipelineStatistical = true;
+		}
+		else 
+		{
+			SimulationConfig.isPipelineStatistical = false;
+		}
+		
+		if(getImmediateString("InorderPipeline", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("InorderPipeline", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.isPipelineInorder = true;
+		}
+		else 
+		{
+			SimulationConfig.isPipelineInorder = false;
+		}
 	}
 	
 	private static void setSystemParameters()

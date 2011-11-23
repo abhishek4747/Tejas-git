@@ -4,6 +4,7 @@
 
 package emulatorinterface;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
@@ -161,11 +162,10 @@ public class RunnableThread implements Runnable, Encoding {
 					processPacket(thread, pnew,tidEmu);
 				}
 
-				boolean out_of_order_pipeline_present = true;
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)	{
 					pipelineInterfaces[tidEmu].oneCycleOperation();
-					if(out_of_order_pipeline_present)
+					if(!SimulationConfig.isPipelineInorder)
 						GlobalClock.incrementClock();
 				}
 
@@ -307,14 +307,14 @@ public class RunnableThread implements Runnable, Encoding {
 			if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
 				int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
 				if (threadToResume == -2) {
-					//ignored. Not yet handled
+					//Means nobody sleeps, nobody resumes.
 				}
 				else {
 					if (threadToResume != -1) {
-						resumePipeline(threadToResume,tidApp,pnew.value);
+						resumePipeline(threadToResume,pnew.value);
 					}
 					else {
-						sleepPipeline(tidApp,pnew.value);
+						sleepPipeline(tidApp,threadToResume,pnew.value);
 					}
 				}
 			}
@@ -331,16 +331,17 @@ public class RunnableThread implements Runnable, Encoding {
 		signallingThread.lastTimerseen = time;
 
 		for (PerAddressInfo pai : signallingThread.addressMap.values()) {
-			for (int waiter : pai.probableInteractors) {
+			for (Iterator<Integer> iter = pai.probableInteractors.iterator(); iter.hasNext();) {
+				int waiter = (Integer)iter.next();
 				ThreadState waiterThread = stateTable.get(waiter);
 				if (waiterThread.timedWait) {
 					//					synchronized (IpcBase.glTable.getStateTable()) { //TODO if multiple RunnableThreads
 					if (time>=waiterThread.timeSlept(pai.address)) {
 						//Remove dependencies from both sides.
-						pai.probableInteractors.remove(waiter);
+						iter.remove();
 						waiterThread.removeDep(signaller);
 						// removeDep updates timedWait if needed
-						if (!waiterThread.timedWait) resumePipeline(waiter,signaller,TIMER);
+						if (!waiterThread.timedWait) resumePipeline(waiter,TIMER);
 					}
 					//					}
 				}
@@ -348,19 +349,20 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 	}
 
-	private void sleepPipeline(int tidApp, int encoding){
-		System.out.println(tidApp+" pipeline is sleeping");
+	private void sleepPipeline(int tidApp, int threadToResume, int encoding){
 		if (encoding ==LOCK+1 || encoding==CONDWAIT+1) {
 			// do not sleep at exits as they are already sleeping at the enters.
 			// TODO add more here. as you handle more and more cases
+			return;
 		}
-		else 
-		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
+		else {
+			System.out.println(tidApp+" pipeline is sleeping");
+			this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
+		}
 	}
-	private void resumePipeline(int tidApp,int self, int encoding){
+	private void resumePipeline(int tidApp, int encoding){
+		// TODO remove entries from synchTable
 		System.out.println(tidApp+" pipeline is resuming");
-		if (encoding==LOCK+1 || encoding==CONDWAIT+1)
-			this.pipelineInterfaces[self].resumePipeline();
 		this.pipelineInterfaces[tidApp].resumePipeline();
 	}
 }

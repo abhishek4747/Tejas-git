@@ -16,6 +16,7 @@ import pipeline.outoforder_new_arch.ExecutionEngine;
 import pipeline.outoforder_new_arch.PipelineInterface;
 import pipeline.statistical.StatisticalPipeline;
 import config.CoreConfig;
+import config.SimulationConfig;
 import config.SystemConfig;
 
 /**
@@ -34,8 +35,8 @@ public class Core extends SimulationElement{
 	EventQueue eventQueue;
 	ExecutionEngineIn execEngineIn;
 	
-	public boolean isPipelineStatistical = false;
-	public boolean isPipelineInorder = false;
+	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
+	public boolean isPipelineInorder = SimulationConfig.isPipelineInorder;
 	
 	//core parameters
 	private int decodeWidth;

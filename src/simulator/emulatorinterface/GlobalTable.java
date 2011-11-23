@@ -1,6 +1,8 @@
 package emulatorinterface;
 
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.Encoding;
@@ -20,7 +22,6 @@ public final class GlobalTable implements Encoding {
 	public Hashtable<Integer, ThreadState> getStateTable() {
 		return stateTable;
 	}
-
 
 	public void setStateTable(Hashtable<Integer, ThreadState> stateTable) {
 		this.stateTable = stateTable;
