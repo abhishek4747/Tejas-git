@@ -150,6 +150,11 @@ public class ReorderBuffer extends SimulationElement{
 			
 			if(first.isWriteBackDone() == true)
 			{
+				//if store, and if store not yet validated
+				if(firstOpType == OperationType.store && !first.lsqEntry.isValid())
+				{
+					break;
+				}
 				//if branch, then if branch prediction correct
 				if(firstOpType != OperationType.branch ||
 						firstOpType == OperationType.branch &&
@@ -193,6 +198,8 @@ public class ReorderBuffer extends SimulationElement{
 //										execEngine.coreMemSys.getLsqueue(), 
 //										RequestType.LSQ_Commit, 
 //										first.getLsqEntry()));
+						if (!first.lsqEntry.isValid())
+							System.out.println("The committed entry is not valid");
 						execEngine.coreMemSys.issueLSQStoreCommit(first);
 						first.getLsqEntry().setRemoved(true);
 					}
@@ -393,103 +400,6 @@ public class ReorderBuffer extends SimulationElement{
 			return (reorderBufferEntry.pos - head + MaxROBSize);
 		}
 	}
-	
-	public void performCommitsForPerfectPipeline()
-	{	
-		int tieBreaker = 0;
-		while(true)
-		{
-			if(head == -1)
-			{
-				if(execEngine.isAllPipesEmpty() == true)
-				{
-					//if ROB is empty, and decode pipe is empty, that means execution is complete
-					execEngine.setExecutionComplete(true);
-				}
-				break;
-			}
-			
-			ReorderBufferEntry first = ROB[head];
-			
-//			if(first.isWriteBackDone() == true)
-//			{
-				//if branch, then if branch prediction correct
-//				if(first.getInstruction().getOperationType() != OperationType.branch ||
-//						first.getInstruction().getOperationType() == OperationType.branch &&
-//						core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
-//							== first.getInstruction().isBranchTaken())		
-//				{
-					//add to available list
-					//update checkpoint
-					//note : if values are involved, a checkpoint of
-					//       the machine specific register file must also be implemented TODO
-					
-					//increment number of instructions executed
-					core.incrementNoOfInstructionsExecuted();
-					
-//					if(first.getInstruction().getDestinationOperand() != null)
-//					{
-//						if(first.getInstruction().getDestinationOperand().getOperandType()
-//								== OperandType.integerRegister)
-//						{
-//							updateIntegerRenameTable(first);
-//						}
-//						else if(first.getInstruction().getDestinationOperand().getOperandType() == OperandType.floatRegister)
-//						{
-//							updateFloatRenameTable(first);
-//						}
-//					}
-					
-					//System.out.println("committed : " +GlobalClock.getCurrentTime() + first.getInstruction().getOperationType());
-					
-					if(first.getInstruction().getOperationType() == OperationType.load ||
-							first.getInstruction().getOperationType() == OperationType.store)
-					{
-						/*TODO
-						execEngine.coreMemSys.getLsqueue().getPort().put(new LSQCommitEventFromROB(execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
-																			this,
-																			execEngine.coreMemSys.getLsqueue(), 
-																			(GlobalClock.getCurrentTime() * 1000) + tieBreaker, //tieBreaker,
-																			RequestType.LSQ_COMMIT, 
-																			first.getLsqEntry()));
-						first.getLsqEntry().setRemoved(true);*/
-					}
-					
-					ROB[head].setValid(false);
-					if(head == tail)
-					{
-						head = -1;
-						tail = -1;
-					}
-					else
-					{
-						head = (head+1)%MaxROBSize;
-					}
-					
-//				}
-//				else
-//				{
-//					handleBranchMisprediction();
-//				}
-				
-//				if(first.getInstruction().getOperationType() == OperationType.branch)
-//				{
-//					core.getBranchPredictor().Train(
-//													first.getInstruction().getProgramCounter(),
-//													first.getInstruction().isBranchTaken(),
-//													core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
-//													);
-//				}
-//			}
-//			else
-//			{
-//				break;
-//			}
-			tieBreaker++;
-		}
-	}
-	
-
 	
 	public void setTimingStatistics()
 	{

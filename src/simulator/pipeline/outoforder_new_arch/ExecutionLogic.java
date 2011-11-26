@@ -181,6 +181,17 @@ public class ExecutionLogic extends SimulationElement {
 	
 	void wakeUpForOthers()
 	{
+		if(reorderBufferEntry.instruction.getOperationType() == OperationType.load)
+		{
+			if(reorderBufferEntry.lsqEntry.isValid() == false)
+			{
+				System.out.println("invalid load has completed execution");
+			}
+			if(reorderBufferEntry.lsqEntry.isForwarded() == false)
+			{
+				System.out.println("unforwarded load has completed execution");
+			}
+		}
 		reorderBufferEntry.setExecuted(true);
 		
 		int tempDestPhyReg = reorderBufferEntry.getPhysicalDestinationRegister();

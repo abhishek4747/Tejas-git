@@ -77,11 +77,16 @@ public class LSQ extends SimulationElement
 		return entry;
 	}
 
-	public boolean loadValidate(int index, Event event)//, long address)
+	public boolean loadValidate(LSQEntry entry/*int index*/, Event event)//, long address)
 	{
-		LSQEntry entry = lsqueue[index];
+//		LSQEntry entry = lsqueue[index];
+		
+		//Test check
+		if (lsqueue[entry.getIndexInQ()] != entry)
+			System.out.println(" Entry index and actual entry dont match : LOAD" + entry.getIndexInQ());
+		
 		entry.setValid(true);
-		boolean couldForward = loadResolve(index, entry, event);
+		boolean couldForward = loadResolve(entry.getIndexInQ(), entry, event);
 		if(couldForward) 
 		{
 			NoOfForwards++;
@@ -95,7 +100,7 @@ public class LSQ extends SimulationElement
 	{
 		int tmpIndex;
 		
-		if (index == head)
+		if (entry.getIndexInQ() == head)
 			return false;
 		else
 			tmpIndex = decrementQ(index);
@@ -109,6 +114,10 @@ public class LSQ extends SimulationElement
 				{
 					if (tmpEntry.getAddr() == entry.getAddr())
 					{
+						//TODO Test check
+						if (!entry.isValid())
+							System.err.println(" 01 Invalid entry forwarded");
+						
 						// Successfully forwarded the value
 						entry.setForwarded(true);
 						if (entry.getRobEntry() != null && !entry.getRobEntry().getExecuted())
@@ -131,11 +140,16 @@ public class LSQ extends SimulationElement
 		return false;
 	}
 
-	public void storeValidate(int index)//, long address)
+	public void storeValidate(LSQEntry entry/*int index*/)//, long address)
 	{
-		LSQEntry entry = lsqueue[index];
+//		LSQEntry entry = lsqueue[index];
+
+		//Test check
+		if (lsqueue[entry.getIndexInQ()] != entry)
+			System.out.println(" Entry index and actual entry dont match : STORE" + entry.getIndexInQ());
+		
 		entry.setValid(true);
-		storeResolve(index, entry);
+		storeResolve(entry.getIndexInQ(), entry);
 	}
 
 	protected void storeResolve(int index, LSQEntry entry)
@@ -150,6 +164,10 @@ public class LSQ extends SimulationElement
 				{
 					if (tmpEntry.isValid() && !tmpEntry.isForwarded())
 					{
+						//TODO Test check
+						if (!tmpEntry.isValid())
+							System.err.println(" 02 Invalid entry forwarded");
+						
 						tmpEntry.setForwarded(true);
 						if (tmpEntry.getRobEntry() != null && !tmpEntry.getRobEntry().getExecuted())
 							sendExecComplete(tmpEntry.getRobEntry());
@@ -175,44 +193,41 @@ public class LSQ extends SimulationElement
 	}
 
 	
-	//Only used by the perfect pipeline
-//	public boolean processROBCommitForPerfectPipeline(EventQueue eventQueue)
-//	{
+	//Only used by the statistical pipeline
+	public void processROBCommitForStatisticalPipeline(EventQueue eventQueue)
+	{
 //		if (!(lsqueue[head].getType() == LSQEntryType.STORE ||
 //				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))
 //			return true;
-//		
-//		while ((lsqueue[head].getType() == LSQEntryType.STORE ||
-//				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)) &&
-//				curSize > 0)
-//		{
-//			LSQEntry entry = lsqueue[head];
-//			
-//			// if it is a store, send the request to the cache
-//			if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
-//			{
-//				//TODO Write to the cache
-//				CacheRequestPacket request = new CacheRequestPacket();
-//				//request.setThreadID(0);
-//				request.setType(RequestType.MEM_WRITE);
-//				request.setAddr(entry.getAddr());
-//				this.containingMemSys.l1Cache.getPort().put(new NewCacheAccessEvent(this.containingMemSys.l1Cache.getLatencyDelay(),
-//																this,
-//																this.containingMemSys.l1Cache,
-//																entry, 
-//																0, //tieBreaker,
-//																request));
-//			}
-//			else
-//				Core.outstandingMemRequests--;
-//	
-//			this.head = this.incrementQ(this.head);
-//			this.curSize--;
-////			System.out.println(curSize);
-//			//containingMemSys.core.getExecEngine().outstandingMemRequests--;
-//		}
+		
+		while (curSize > 0 && ((lsqueue[head].getType() == LSQEntryType.STORE && lsqueue[head].isValid())||
+				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))
+		{
+			LSQEntry entry = lsqueue[head];
+			
+			// if it is a store, send the request to the cache
+			if(entry.getType() == LSQEntry.LSQEntryType.STORE) 
+			{
+				//TODO Write to the cache
+				this.containingMemSys.l1Cache.getPort().put(
+						new LSQEntryContainingEvent(
+								eventQueue,
+								this.containingMemSys.l1Cache.getLatencyDelay(),
+								this,
+								this.containingMemSys.l1Cache,
+								RequestType.Cache_Write,
+								entry));
+			}
+			else
+				Core.outstandingMemRequests--;
+	
+			this.head = this.incrementQ(this.head);
+			this.curSize--;
+//			System.out.println(curSize);
+			//containingMemSys.core.getExecEngine().outstandingMemRequests--;
+		}
 //		return false;
-//	}
+	}
 
 	
 	protected int incrementQ(int value)
@@ -227,6 +242,14 @@ public class LSQ extends SimulationElement
 		else if (value == 0)
 			value = lsqSize - 1;
 		return value;
+	}
+	
+	public boolean isEmpty()
+	{
+		if (curSize == 0)
+			return true;
+		else 
+			return false;
 	}
 	
 	public boolean isFull()
@@ -271,10 +294,10 @@ public class LSQ extends SimulationElement
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		long virtualAddr = lsqEntry.getAddr();
 		
-		if(lsqEntry.getRobEntry().getIssued() == false)
-		{
-			System.out.println("validating a load/store that hasn't been issued");
-		}
+//		if(lsqEntry.getRobEntry().getIssued() == false)
+//		{
+//			System.out.println("validating a load/store that hasn't been issued");
+//		}
 		
 		if (this.containingMemSys.TLBuffer.searchTLBForPhyAddr(virtualAddr))
 		{
@@ -299,16 +322,16 @@ public class LSQ extends SimulationElement
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
-		if(lsqEntry.getRobEntry().getIssued() == false)
-		{
-			System.out.println("validating a load/store that hasn't been issued");
-		}
+//		if(lsqEntry.getRobEntry().getIssued() == false)
+//		{
+//			System.out.println("validating a load/store that hasn't been issued");
+//		}
 		
 		//If the LSQ entry is a load
 		if (lsqEntry.getType() == LSQEntryType.LOAD)
 		{
 			//If the value could not be forwarded
-			if (!(this.loadValidate(lsqEntry.getIndexInQ(), event)))
+			if (!(this.loadValidate(lsqEntry/*.getIndexInQ()*/, event)))
 			{
 				//TODO Read from the cache (CacheAccessEvent)
 				//Direct address must not be set as it is pageID in some cases
@@ -323,7 +346,7 @@ public class LSQ extends SimulationElement
 		}
 		else //If the LSQ entry is a store
 		{
-			this.storeValidate(lsqEntry.getIndexInQ());
+			this.storeValidate(lsqEntry);
 		}
 	}
 	
@@ -335,16 +358,21 @@ public class LSQ extends SimulationElement
 				!lsqEntry.isRemoved() &&
 				!lsqEntry.isForwarded())
 		{
+			
+			//TODO Test check
+			if (!lsqEntry.isValid())
+				System.err.println(" 03 Invalid entry forwarded");
+			
 			lsqEntry.setForwarded(true);
 			
 			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())	
 				sendExecComplete(lsqEntry.getRobEntry());
 			
-			//For perfect pipeline
-			else if (lsqEntry.getRobEntry() == null)
-			{
-				Core.outstandingMemRequests--;
-			}
+//			//For perfect pipeline
+//			else if (lsqEntry.getRobEntry() == null)
+//			{
+//				Core.outstandingMemRequests--;
+//			}
 		}/*
 		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
 		{

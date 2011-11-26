@@ -47,13 +47,15 @@ public class StatisticalPipeline
 		toStall = false;
 		isExecutionComplete = false;
 		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
+		for (int i = 0; i < isInputPipeEmpty.length; i++)
+			isInputPipeEmpty[i] = false;
 		allPipesEmpty = false;
 	}
 
 	public void performCommits()
 	{
 		coreMemSys.getLsqueue().processROBCommitForStatisticalPipeline(core.getEventQueue());
-		if(this.isAllPipesEmpty() == true && coreMemSys.getLsqueue().isEmpty())
+		if(this.isAllPipesEmpty() && coreMemSys.getLsqueue().isEmpty())
 		{
 			this.setExecutionComplete(true);
 			
@@ -123,13 +125,12 @@ public class StatisticalPipeline
 	}
 
 
-	protected boolean[] getIsInputPipeEmpty() {
-		return isInputPipeEmpty;
+	public boolean isInputPipeEmpty(int threadIndex) {
+		return isInputPipeEmpty[threadIndex];
 	}
 
-
-	protected void setIsInputPipeEmpty(boolean[] isInputPipeEmpty) {
-		this.isInputPipeEmpty = isInputPipeEmpty;
+	public void setInputPipeEmpty(int threadIndex, boolean isInputPipeEmpty) {
+		this.isInputPipeEmpty[threadIndex] = isInputPipeEmpty;
 	}
 
 
@@ -152,6 +153,8 @@ public class StatisticalPipeline
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
+		System.out.println("Number of fake forwards : " + DelayGenerator.numFwded);
+		System.out.println("Number of total loads : " + DelayGenerator.totalIns);
 		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
 		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
 		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());

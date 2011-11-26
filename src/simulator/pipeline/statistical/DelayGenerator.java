@@ -15,16 +15,21 @@ public class DelayGenerator
 {
 	public static long insCountIn = 0;
 	public static long insCountOut = 0;
+	public static int totalIns = 0;
+	public static int numFwded = 0;
 	
 	static Random randomNumberGenerator = new Random();
 	//Simulate the load-forwarding
 	public static boolean forwardingDecision()
 	{
 		boolean toIssue = true;
-		
+		totalIns++;
 //		Random randomNumberGenerator = new Random();
 		if (randomNumberGenerator.nextInt(100) <= 20)
+		{
 			toIssue = false;
+			numFwded++;
+		}
 		
 		return toIssue;
 	}

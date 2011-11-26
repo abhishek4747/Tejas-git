@@ -90,7 +90,7 @@ public class Statistics {
 				outputFileWriter.write("core\t\t=\t" + i + "\n");
 				outputFileWriter.write("instructions executed\t=\t" + numCoreInstructions[i] + "\n");
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)numCoreInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
+				outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
 				outputFileWriter.write("IPC\t\t=\t" + (double)numInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
 				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
@@ -208,7 +208,8 @@ public class Statistics {
 			long totalNumInstructions = 0;
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
-				totalNumMicroOps += numCoreInstructions[i];
+				totalNumMicroOps += noOfMicroOps[i];
+//				totalNumMicroOps += numCoreInstructions[i];
 				totalNumInstructions += numInstructions[i];
 			}
 			if(subsetTime != 0)

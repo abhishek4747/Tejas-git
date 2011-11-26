@@ -5,7 +5,7 @@
 package emulatorinterface;
 import java.util.Hashtable;
 import java.util.Iterator;
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.IpcBase;
@@ -17,13 +17,14 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
+import generic.Statistics;
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
  */
 public class RunnableThread implements Runnable, Encoding {
 
-    private static final Logger logger = Logger.getLogger(RunnableThread.class);
+//    private static final Logger logger = Logger.getLogger(RunnableThread.class);
 	int tid;
 	long sum = 0; // checksum
 	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
@@ -40,6 +41,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 	int[] decodeWidth;
 	int[] stepSize;
+	int noOfMicroOps = 0;
 	PipelineInterface[] pipelineInterfaces;
 
 	public RunnableThread() {
@@ -76,7 +78,7 @@ public class RunnableThread implements Runnable, Encoding {
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
-		logger.info("--  starting java thread"+this.tid);
+//		logger.info("--  starting java thread"+this.tid);
 	}
 
 
@@ -103,14 +105,14 @@ public class RunnableThread implements Runnable, Encoding {
 	 */
 	public void run() {
 
-		logger.info("-- in runnable thread run "+this.tid);
+//		logger.info("-- in runnable thread run "+this.tid);
 
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
 
 		// start gets reinitialized when the program actually starts
-		long start = System.currentTimeMillis();
+		Newmain.start = System.currentTimeMillis();
 		ThreadParams thread;
 		// keep on looping till there is something to read. iterates on the
 		// emulator threads from which it has to read.
@@ -145,7 +147,7 @@ public class RunnableThread implements Runnable, Encoding {
 				// need to do this only the first time
 				if (!emulatorStarted) {
 					emulatorStarted = true;
-					start = System.currentTimeMillis();
+					Newmain.start = System.currentTimeMillis();
 					ipcType.started[tid] = true;
 					for (int i = 0; i < EMUTHREADS; i++) {
 						stepSize[i] = pipelineInterfaces[i].getCoreStepSize();
@@ -174,7 +176,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
-					logger.info(tidApp+" pin thread got -1");
+//					logger.info(tidApp+" pin thread got -1");
 					thread.finished = true;
 				}
 
@@ -235,13 +237,17 @@ public class RunnableThread implements Runnable, Encoding {
 		for (int i = 0; i < EMUTHREADS; i++) {
 			dataRead += threadParams[i].totalRead;
 		}
-		long timeTaken = System.currentTimeMillis() - start;
+		long timeTaken = System.currentTimeMillis() - Newmain.start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
 				+ " instructions-" + ipcType.numInstructions[tid] + " time-"
 				+ timeTaken + " MBPS-" + (double) (dataRead * 24)
 				/ (double) timeTaken / 1000.0 + " KIPS-"
 				+ (double) ipcType.numInstructions[tid] / (double) timeTaken
 				+ "checksum " + sum + "\n");
+
+		Statistics.setDataRead(dataRead, tid);
+		Statistics.setNumInstructions(ipcType.numInstructions[tid], tid);
+		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
 
 		IpcBase.free.release();
 	}
@@ -286,6 +292,7 @@ public class RunnableThread implements Runnable, Encoding {
 				this.dynamicInstructionBuffer.configurePackets(thread.packets);
 				InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
 						dynamicInstructionBuffer);
+				noOfMicroOps = noOfMicroOps + tempList.length();
 
 				if(SimulationConfig.detachMemSys == true)	//TODO
 				{

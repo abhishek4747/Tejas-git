@@ -22,13 +22,13 @@ public class FetchEngine extends SimulationElement
 	int inputPipeToReadNext;
 	InstructionLinkedList[] inputToPipeline;
 	
-	public CoreMemorySystem coreMemSys;
+//	public CoreMemorySystem coreMemSys;
 	LoadStoreUnit loadStoreUnit;
-	private boolean toStall;
+//	private boolean toStall;
 	
-	private boolean isExecutionComplete;		//TRUE indicates end of simulation
-	private boolean isInputPipeEmpty[];
-	private boolean allPipesEmpty;
+//	private boolean isExecutionComplete;		//TRUE indicates end of simulation
+//	private boolean isInputPipeEmpty[];
+//	private boolean allPipesEmpty;
 
 	public FetchEngine(Core core, StatisticalPipeline pipeline)
 	{
@@ -39,9 +39,9 @@ public class FetchEngine extends SimulationElement
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
 		
-		isExecutionComplete = false;
-		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
-		allPipesEmpty = false;
+//		isExecutionComplete = false;
+//		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
+//		allPipesEmpty = false;
 		loadStoreUnit = new LoadStoreUnit();
 	}
 	
@@ -55,10 +55,10 @@ public class FetchEngine extends SimulationElement
 	{
 		Instruction newInstruction;
 		
-		if(!toStall)
-		{
+//		if(!toStall)
+//		{
 			int ctr = 0;
-			while(isInputPipeEmpty(inputPipeToReadNext) == true
+			while(pipeline.isInputPipeEmpty(inputPipeToReadNext) == true
 					&& ctr < core.getNo_of_input_pipes())
 			{
 				ctr++;
@@ -66,12 +66,13 @@ public class FetchEngine extends SimulationElement
 			
 			if(ctr == core.getNo_of_input_pipes())
 			{
-				setAllPipesEmpty(true);
+				pipeline.setAllPipesEmpty(true);
 			}
 			else
 			{
-				if (!(core.isPipelineStatistical == true))
+				if (!core.isPipelineStatistical)
 				{
+					System.err.println("Statistical pipeline not activated but its code entered");
 					//readDecodePipe();
 				}
 				else
@@ -79,11 +80,11 @@ public class FetchEngine extends SimulationElement
 					boolean dontFetchMore = false;
 					for(int i = 0; i < fetchWidth && dontFetchMore == false && !inputToPipeline[inputPipeToReadNext].isEmpty(); i++)
 					{
-						dontFetchMore = false;
+//						dontFetchMore = false;
 						newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
 						if(newInstruction.getOperationType() == OperationType.inValid)
 						{
-							setInputPipeEmpty(inputPipeToReadNext, true);
+							pipeline.setInputPipeEmpty(inputPipeToReadNext, true);
 							break;
 						}
 						else if (newInstruction.getOperationType() == OperationType.load
@@ -116,12 +117,11 @@ public class FetchEngine extends SimulationElement
 					}
 				}
 			}
-		}
+//		}
 		
-		if(isAllPipesEmpty() == false)
+		if(pipeline.isAllPipesEmpty() == false)
 		{
 			inputPipeToReadNext = (inputPipeToReadNext + 1)%core.getNo_of_input_pipes();	
-			pipeline.setAllPipesEmpty(true);
 		}
 	}
 
@@ -130,21 +130,21 @@ public class FetchEngine extends SimulationElement
 		// TODO Auto-generated method stub		
 	}
 	
-	public boolean isInputPipeEmpty(int threadIndex) {
-		return isInputPipeEmpty[threadIndex];
-	}
-
-	public void setInputPipeEmpty(int threadIndex, boolean isInputPipeEmpty) {
-		this.isInputPipeEmpty[threadIndex] = isInputPipeEmpty;
-	}
-
-	public boolean isAllPipesEmpty() {
-		return allPipesEmpty;
-	}
-
-	public void setAllPipesEmpty(boolean allPipesEmpty) {
-		this.allPipesEmpty = allPipesEmpty;
-	}
+//	public boolean isInputPipeEmpty(int threadIndex) {
+//		return isInputPipeEmpty[threadIndex];
+//	}
+//
+//	public void setInputPipeEmpty(int threadIndex, boolean isInputPipeEmpty) {
+//		this.isInputPipeEmpty[threadIndex] = isInputPipeEmpty;
+//	}
+//
+//	public boolean isAllPipesEmpty() {
+//		return allPipesEmpty;
+//	}
+//
+//	public void setAllPipesEmpty(boolean allPipesEmpty) {
+//		this.allPipesEmpty = allPipesEmpty;
+//	}
 	
 	public InstructionLinkedList[] getInputToPipeline() {
 		return inputToPipeline;
@@ -153,13 +153,13 @@ public class FetchEngine extends SimulationElement
 	public void setInputToPipeline(InstructionLinkedList[] inputToPipeline) {
 		this.inputToPipeline = inputToPipeline;
 	}
-
-	public boolean isToStall() {
-		return toStall;
-	}
-
-	public void setToStall(boolean toStall) {
-		this.toStall = toStall;
-	}
+//
+//	public boolean isToStall() {
+//		return toStall;
+//	}
+//
+//	public void setToStall(boolean toStall) {
+//		this.toStall = toStall;
+//	}
 
 }

@@ -63,15 +63,20 @@ public class LSQEntry
 	}
 
 	public void setValid(boolean valid) {
+		
+		if(this.valid == true && valid == true)
+		{
+			System.out.println("entry already valid");
+		}
 		this.valid = valid;
 		
-		if(valid == true &&
-				(robEntry.isOperand1Available() == false ||
-						robEntry.isOperand2Available() == false ||
-						robEntry.getIssued() == false))
-		{
-			System.out.println("i'm setting valid to true, even before the core has issued the load/store");
-		}
+//		if(valid == true &&
+//				(robEntry.isOperand1Available() == false ||
+//						robEntry.isOperand2Available() == false ||
+//						robEntry.getIssued() == false))
+//		{
+//			System.out.println("i'm setting valid to true, even before the core has issued the load/store");
+//		}
 	}
 
 	public boolean isForwarded() {
@@ -79,15 +84,21 @@ public class LSQEntry
 	}
 
 	public void setForwarded(boolean forwarded) {
+		
+		if(this.forwarded == true && forwarded == true)
+		{
+			System.out.println("entry already forwarded");
+		}
+		
 		this.forwarded = forwarded;
 		
-		if(forwarded == true &&
-				(robEntry.isOperand1Available() == false ||
-						robEntry.isOperand2Available() == false ||
-						robEntry.getIssued() == false))
-		{
-			System.out.println("i'm setting forwarded to true, even before the core has issued the load/store");
-		}
+//		if(forwarded == true &&
+//				(robEntry.isOperand1Available() == false ||
+//						robEntry.isOperand2Available() == false ||
+//						robEntry.getIssued() == false))
+//		{
+//			System.out.println("i'm setting forwarded to true, even before the core has issued the load/store");
+//		}
 	}
 	
 	protected boolean isRemoved() {

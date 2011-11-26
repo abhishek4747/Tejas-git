@@ -21,9 +21,9 @@ public class StatisticalPipelineInterface implements pipeline.PipelineInterface 
 		StatisticalPipeline statPipeline;
 		
 		statPipeline = core.getStatisticalPipeline();
-		statPipeline.performCommits();
-		if (statPipeline.isExecutionComplete() == false)
+		if (!statPipeline.isExecutionComplete())
 		{
+			statPipeline.performCommits();
 			statPipeline.getFetcher().performFetch();
 		}
 		

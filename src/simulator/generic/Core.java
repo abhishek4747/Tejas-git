@@ -15,6 +15,7 @@ import pipeline.inorder.WriteBackUnitIn;
 import pipeline.outoforder_new_arch.ExecutionEngine;
 import pipeline.outoforder_new_arch.PipelineInterface;
 import pipeline.statistical.StatisticalPipeline;
+import pipeline.statistical.StatisticalPipelineInterface;
 import config.CoreConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
@@ -96,7 +97,9 @@ public class Core extends SimulationElement{
 		this.branchPredictor = new TournamentPredictor();
 		this.noOfInstructionsExecuted = 0;
 		
-		if(this.isPipelineInorder)
+		if (this.isPipelineStatistical)
+			this.pipelineInterface = new StatisticalPipelineInterface(this, eventQueue);
+		else if(this.isPipelineInorder)
 			this.pipelineInterface = new InorderPipeline(this, eventQueue);
 		else
 			this.pipelineInterface = new PipelineInterface(this, eventQueue);
