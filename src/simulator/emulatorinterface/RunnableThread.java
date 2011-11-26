@@ -5,7 +5,7 @@
 package emulatorinterface;
 import java.util.Hashtable;
 import java.util.Iterator;
-//import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.IpcBase;
@@ -24,7 +24,7 @@ import generic.Statistics;
  */
 public class RunnableThread implements Runnable, Encoding {
 
-//    private static final Logger logger = Logger.getLogger(RunnableThread.class);
+    private static final Logger logger = Logger.getLogger(RunnableThread.class);
 	int tid;
 	long sum = 0; // checksum
 	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
@@ -78,7 +78,7 @@ public class RunnableThread implements Runnable, Encoding {
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
-//		logger.info("--  starting java thread"+this.tid);
+		logger.info("--  starting java thread"+this.tid);
 	}
 
 
