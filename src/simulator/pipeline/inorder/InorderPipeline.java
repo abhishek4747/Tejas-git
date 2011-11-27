@@ -3,6 +3,8 @@ package pipeline.inorder;
 import pipeline.PipelineInterface;
 import generic.Core;
 import generic.EventQueue;
+import generic.GlobalClock;
+import generic.Statistics;
 
 public class InorderPipeline implements PipelineInterface{
 	Core core;
@@ -68,4 +70,6 @@ public class InorderPipeline implements PipelineInterface{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
 }

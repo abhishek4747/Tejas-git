@@ -2,6 +2,8 @@ package pipeline.inorder;
 
 import memorysystem.CoreMemorySystem;
 import generic.Core;
+import generic.GlobalClock;
+import generic.Statistics;
 
 public class ExecutionEngineIn {
 	
@@ -95,5 +97,28 @@ public class ExecutionEngineIn {
 //	}
 	public boolean getExecutionComplete(){
 		return this.executionComplete;
+	}
+	
+	public void setTimingStatistics()
+	{
+		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
+		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
+		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
+	}
+	
+	public void setPerCoreMemorySystemStatistics()
+	{
+		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfValueForwards(coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
+		Statistics.setNoOfTLBRequests(coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(coreMemSys.getICache().misses, core.getCore_number());
+		Statistics.setNoOfL1Hits(coreMemSys.getICache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
 	}
 }

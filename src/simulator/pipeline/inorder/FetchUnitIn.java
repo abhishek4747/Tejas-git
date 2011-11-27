@@ -68,10 +68,10 @@ public class FetchUnitIn extends SimulationElement{
 */
 				//TODO add handle fun in getdecodeunit. What happens if icache miss ? stalls not taken account for right now.
 
-/*				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
+				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getDecodeUnitIn(), 
 						fetchBuffer[i].getProgramCounter());
-*/
+
 				fetchFillCount++;
 			}
 		}

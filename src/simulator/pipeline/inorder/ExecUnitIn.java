@@ -40,25 +40,25 @@ public class ExecUnitIn extends SimulationElement{
 //			exMemLatch.incrementStallCount();
 //		}
 				
-//			if(idExLatch.getOperationType()==OperationType.load){
-//				exMemLatch.setMemDone(false);
-//				//Schedule a mem read event now so that it can be completed in the mem stage
-//				//TODO this.getPort() ?? Is this correct ??
-//
-//				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-//						core.getExecutionEngineIn().getMemUnitIn(),
-//						RequestType.Cache_Read,
-//						ins.getSourceOperand1().getValue());
-//
-//			}
-//			else if(idExLatch.getOperationType()==OperationType.store){
-//				exMemLatch.setMemDone(false);
-//				//Schedule a mem read event now so that it can be completed in the mem stage
-//
-//				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-//						core.getExecutionEngineIn().getMemUnitIn(),
-//						RequestType.Cache_Write,
-//						ins.getSourceOperand1().getValue());
+			if(idExLatch.getOperationType()==OperationType.load){
+				exMemLatch.setMemDone(false);
+				//Schedule a mem read event now so that it can be completed in the mem stage
+				//TODO this.getPort() ?? Is this correct ??
+
+				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+						core.getExecutionEngineIn().getMemUnitIn(),
+						RequestType.Cache_Read,
+						ins.getSourceOperand1().getValue());
+
+			}
+			else if(idExLatch.getOperationType()==OperationType.store){
+				exMemLatch.setMemDone(false);
+				//Schedule a mem read event now so that it can be completed in the mem stage
+
+				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+						core.getExecutionEngineIn().getMemUnitIn(),
+						RequestType.Cache_Write,
+						ins.getSourceOperand1().getValue());
 //
 //
 //				
@@ -70,7 +70,7 @@ public class ExecUnitIn extends SimulationElement{
 			else{
 				exMemLatch.setInstruction(null);
 			}
-					
+		}
 	}
 
 
