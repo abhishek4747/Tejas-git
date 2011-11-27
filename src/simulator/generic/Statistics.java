@@ -121,6 +121,9 @@ public class Statistics {
 	static long noOfL2Requests;
 	static long noOfL2Hits;
 	static long noOfL2Misses;
+	static long noOfIRequests[];
+	static long noOfIHits[];
+	static long noOfIMisses[];
 	
 	public static void printMemorySystemStatistics()
 	{
@@ -153,10 +156,16 @@ public class Statistics {
 				outputFileWriter.write("L1 Requests\t=\t" + noOfL1Requests[i] + "\n");
 				outputFileWriter.write("L1 Hits\t\t=\t" + noOfL1Hits[i] + "\n");
 				outputFileWriter.write("L1 Misses\t=\t" + noOfL1Misses[i] + "\n");
+				outputFileWriter.write("I Requests\t=\t" + noOfIRequests[i] + "\n");
+				outputFileWriter.write("I Hits\t\t=\t" + noOfIHits[i] + "\n");
+				outputFileWriter.write("I Misses\t=\t" + noOfIMisses[i] + "\n");
 				if (noOfL1Requests[i] != 0)
 				{
 					outputFileWriter.write("L1 Hit-Rate\t=\t" + (float)(noOfL1Hits[i])/noOfL1Requests[i] + "\n");
 					outputFileWriter.write("L1 Miss-Rate\t=\t" + (float)(noOfL1Misses[i])/noOfL1Requests[i] + "\n");
+					outputFileWriter.write("I Hit-Rate\t=\t" + (float)(noOfIHits[i])/noOfIRequests[i] + "\n");
+					outputFileWriter.write("I Miss-Rate\t=\t" + (float)(noOfIMisses[i])/noOfIRequests[i] + "\n");
+				
 				}
 				outputFileWriter.write("\n");
 			}
@@ -253,6 +262,10 @@ public class Statistics {
 		noOfL1Requests = new long[SystemConfig.NoOfCores];
 		noOfL1Hits = new long[SystemConfig.NoOfCores];
 		noOfL1Misses = new long[SystemConfig.NoOfCores];
+		noOfIRequests = new long[SystemConfig.NoOfCores];
+		noOfIHits = new long[SystemConfig.NoOfCores];
+		noOfIMisses = new long[SystemConfig.NoOfCores];
+		
 	}	
 	
 	public static void openStream()
@@ -379,6 +392,12 @@ public class Statistics {
 	public static void setNoOfL1Misses(long noOfL1Misses, int core) {
 		Statistics.noOfL1Misses[core] = noOfL1Misses;
 	}
+	public static void setNoOfIHits(long noOfIHits, int core) {
+		Statistics.noOfIHits[core] = noOfIHits;
+	}
+	public static void setNoOfIMisses(long noOfIMisses, int core) {
+		Statistics.noOfIMisses[core] = noOfIMisses;
+	}
 
 	public static void setNoOfL2Hits(long noOfL2Hits) {
 		Statistics.noOfL2Hits = noOfL2Hits;
@@ -399,7 +418,9 @@ public class Statistics {
 	public static void setNoOfL1Requests(long noOfL1Requests, int core) {
 		Statistics.noOfL1Requests[core] = noOfL1Requests;
 	}
-	
+	public static void setNoOfIRequests(long noOfIRequests, int core) {
+		Statistics.noOfIRequests[core] = noOfIRequests;
+	}
 	public static long getTime() {
 		return Statistics.time;
 	}
