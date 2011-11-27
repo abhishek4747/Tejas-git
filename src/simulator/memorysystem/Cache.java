@@ -117,13 +117,15 @@ public class Cache extends SimulationElement
 			return (int)(totSize / (long)(blockSize));
 		}
 		
-		public Cache(CacheConfig cacheParameters)
+		public Cache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
 		{
 			super(cacheParameters.portType,
 					cacheParameters.getAccessPorts(), 
 					cacheParameters.getPortOccupancy(),
 					cacheParameters.getLatency(),
 					cacheParameters.operatingFreq);
+			
+			this.containingMemSys = containingMemSys;
 			
 			// set the parameters
 			this.blockSize = cacheParameters.getBlockSize();

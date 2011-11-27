@@ -13,8 +13,8 @@ import config.CacheConfig;
 
 public class InstructionCache extends Cache
 {	
-	public InstructionCache(CacheConfig cacheParameters) {
-		super(cacheParameters);
+	public InstructionCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) {
+		super(cacheParameters, containingMemSys);
 	}
 	
 	@Override
@@ -41,7 +41,7 @@ public class InstructionCache extends Cache
 					if (!containingMemSys.core.isPipelineInorder)
 						eventQ.addEvent(
 								new ExecCompleteEvent(
-										containingMemSys.core.getEventQueue(),
+										eventQ,
 										GlobalClock.getCurrentTime(),
 										null,
 										containingMemSys.core.getExecEngine().getFetcher(),
@@ -50,7 +50,7 @@ public class InstructionCache extends Cache
 					else
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								new ExecCompleteEvent(
-										containingMemSys.core.getEventQueue(),
+										eventQ,
 										GlobalClock.getCurrentTime(),
 										null,
 										outstandingRequestList.get(0).getRequestingElement(),

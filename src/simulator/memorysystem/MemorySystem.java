@@ -69,7 +69,7 @@ public class MemorySystem
 				cacheParameterObj = SystemConfig.declaredCaches.get(cacheName);
 				
 				//Declare the new cache
-				Cache newCache = new Cache(cacheParameterObj);
+				Cache newCache = new Cache(cacheParameterObj, null);
 				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);

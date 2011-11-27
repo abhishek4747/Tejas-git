@@ -56,11 +56,11 @@ public class CoreMemorySystem
 		//Initialise the  instruction cache
 		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].iCache;
-		iCache = new InstructionCache(cacheParameterObj);
+		iCache = new InstructionCache(cacheParameterObj, this);
 		
 		//Initialise the  L1 cache
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
-		l1Cache = new Cache(cacheParameterObj);
+		l1Cache = new Cache(cacheParameterObj, this);
 		
 		//Initialise the TLB
 		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,
