@@ -26,6 +26,7 @@ import java.util.Hashtable;
 
 import generic.*;
 import config.CacheConfig;
+import config.SimulationConfig;
 import config.SystemConfig;
 
 
@@ -50,6 +51,9 @@ public class MemorySystem
 		
 		//Set up the main memory properties
 		mainMemory = new MainMemory();
+		
+		if (SimulationConfig.isPipelineInorder)
+			bypassLSQ = true;
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;

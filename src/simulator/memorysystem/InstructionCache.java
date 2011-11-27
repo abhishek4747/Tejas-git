@@ -38,14 +38,24 @@ public class InstructionCache extends Cache
 				//Pass the value to the waiting element
 				//TODO Add the EXEC_COMPLETE_EVENT
 				if (!containingMemSys.core.isPipelineStatistical)
-					eventQ.addEvent(
-							new ExecCompleteEvent(
-									containingMemSys.core.getEventQueue(),
-									GlobalClock.getCurrentTime(),
-									null,
-									containingMemSys.core.getExecEngine().getFetcher(),
-									RequestType.EXEC_COMPLETE,
-									null));
+					if (!containingMemSys.core.isPipelineInorder)
+						eventQ.addEvent(
+								new ExecCompleteEvent(
+										containingMemSys.core.getEventQueue(),
+										GlobalClock.getCurrentTime(),
+										null,
+										containingMemSys.core.getExecEngine().getFetcher(),
+										RequestType.EXEC_COMPLETE,
+										null));
+					else
+						outstandingRequestList.get(0).getRequestingElement().getPort().put(
+								new ExecCompleteEvent(
+										containingMemSys.core.getEventQueue(),
+										GlobalClock.getCurrentTime(),
+										null,
+										outstandingRequestList.get(0).getRequestingElement(),
+										RequestType.EXEC_COMPLETE,
+										null));
 				else
 					DelayGenerator.insCountOut++;
 			}

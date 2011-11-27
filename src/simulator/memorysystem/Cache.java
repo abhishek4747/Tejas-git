@@ -530,13 +530,24 @@ public class Cache extends SimulationElement
 				{
 					//Pass the value to the waiting element
 					//FIXME : Check the logic before finalizing
-					outstandingRequestList.get(0).getRequestingElement().getPort().put(
-							outstandingRequestList.get(0).update(
-									eventQ,
-									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
-									this,
-									outstandingRequestList.get(0).getRequestingElement(),
-									RequestType.Mem_Response));
+					if ((!this.isFirstLevel) || (!MemorySystem.bypassLSQ))
+						outstandingRequestList.get(0).getRequestingElement().getPort().put(
+								outstandingRequestList.get(0).update(
+										eventQ,
+										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+										this,
+										outstandingRequestList.get(0).getRequestingElement(),
+										RequestType.Mem_Response));
+					else if (containingMemSys.core.isPipelineInorder)
+						//TODO Return the call to Inorder pipeline
+						outstandingRequestList.get(0).getRequestingElement().getPort().put(
+								new ExecCompleteEvent(
+										containingMemSys.core.getEventQueue(),
+										GlobalClock.getCurrentTime(),
+										null,
+										outstandingRequestList.get(0).getRequestingElement(),
+										RequestType.EXEC_COMPLETE,
+										null));
 				}
 				
 				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)

@@ -95,7 +95,7 @@ public class TLB extends SimulationElement
 	
 	//Just have to provide the full address.
 	//The pageID is calculated within
-	protected void addTLBEntry(long pageID)
+	private void addTLBEntry(long pageID)
 	{
 		long addressForTLB = pageID << Global.PAGE_OFFSET_BITS;
 		
@@ -150,22 +150,22 @@ public class TLB extends SimulationElement
 	 * @param pageID : pageID requested
 	 * @return Whether the entry was already there or not
 	 */
-	protected boolean addOutstandingRequest(long pageID, LSQEntry lsqEntry)
-	{
-		boolean entryAlreadyThere;
-		
-		if (!/*NOT*/missStatusHoldingRegister.containsKey(pageID))
-		{
-			entryAlreadyThere = false;
-			missStatusHoldingRegister.put(pageID, new ArrayList<LSQEntry>());
-		}
-		else
-			entryAlreadyThere = true;
-		
-		missStatusHoldingRegister.get(pageID).add(lsqEntry);
-		
-		return entryAlreadyThere;
-	}
+//	protected boolean addOutstandingRequest(long pageID, LSQEntry lsqEntry)
+//	{
+//		boolean entryAlreadyThere;
+//		
+//		if (!/*NOT*/missStatusHoldingRegister.containsKey(pageID))
+//		{
+//			entryAlreadyThere = false;
+//			missStatusHoldingRegister.put(pageID, new ArrayList<LSQEntry>());
+//		}
+//		else
+//			entryAlreadyThere = true;
+//		
+//		missStatusHoldingRegister.get(pageID).add(lsqEntry);
+//		
+//		return entryAlreadyThere;
+//	}
 	
 	public int getTlbHits() {
 		return tlbHits;
