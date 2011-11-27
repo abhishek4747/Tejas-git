@@ -78,7 +78,11 @@ public class RunnableThread implements Runnable, Encoding {
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
-		logger.info("--  starting java thread"+this.tid);
+
+		System.out.println("--  starting java thread"+this.tid);
+//		logger.info("--  starting java thread"+this.tid);
+//		logger.info("--  starting java thread"+this.tid);
+
 	}
 
 
@@ -105,6 +109,8 @@ public class RunnableThread implements Runnable, Encoding {
 	 */
 	public void run() {
 
+		System.out.println("-- in runnable thread run "+this.tid);
+//		logger.info("-- in runnable thread run "+this.tid);
 //		logger.info("-- in runnable thread run "+this.tid);
 
 		Packet pnew = new Packet();
@@ -176,6 +182,8 @@ public class RunnableThread implements Runnable, Encoding {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
+					System.out.println(tidApp+" pin thread got -1");
+//					logger.info(tidApp+" pin thread got -1");
 //					logger.info(tidApp+" pin thread got -1");
 					thread.finished = true;
 				}
@@ -231,7 +239,10 @@ public class RunnableThread implements Runnable, Encoding {
 
 			GlobalClock.incrementClock();
 		}
-
+		for (int i=0; i<EMUTHREADS; i++) {
+			pipelineInterfaces[i].getCore().getExecutionEngineIn().setTimingStatistics();
+			pipelineInterfaces[i].getCore().getExecutionEngineIn().setPerCoreMemorySystemStatistics();
+		}
 
 		long dataRead = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
