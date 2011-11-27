@@ -40,41 +40,39 @@ public class ExecUnitIn extends SimulationElement{
 //			exMemLatch.incrementStallCount();
 //		}
 				
-			if(idExLatch.getOperationType()==OperationType.load){
-				exMemLatch.setMemDone(false);
-				//Schedule a mem read event now so that it can be completed in the mem stage
-				//TODO this.getPort() ?? Is this correct ??
-
-				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-						core.getExecutionEngineIn().getMemUnitIn(),
-						RequestType.Cache_Read,
-						ins.getSourceOperand1().getValue());
-
-			}
-			else if(idExLatch.getOperationType()==OperationType.store){
-				exMemLatch.setMemDone(false);
-				//Schedule a mem read event now so that it can be completed in the mem stage
-
-				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-						core.getExecutionEngineIn().getMemUnitIn(),
-						RequestType.Cache_Write,
-						ins.getSourceOperand1().getValue());
-//
-//
-//				
-//			}
-//			else{
-				exMemLatch.setMemDone(true);
-//			}
+				if(idExLatch.getOperationType()==OperationType.load){
+					core.getExecutionEngineIn().updateNoOfLd(1);
+					core.getExecutionEngineIn().updateNoOfMemRequests(1);
+					exMemLatch.setMemDone(false);
+					//Schedule a mem read event now so that it can be completed in the mem stage
+					//TODO this.getPort() ?? Is this correct ??
+	
+					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							core.getExecutionEngineIn().getMemUnitIn(),
+							RequestType.Cache_Read,
+							ins.getSourceOperand1().getValue());
+	
+	
+				}
+				else if(idExLatch.getOperationType()==OperationType.store){
+					core.getExecutionEngineIn().updateNoOfSt(1);
+					core.getExecutionEngineIn().updateNoOfMemRequests(1);
+					exMemLatch.setMemDone(false);
+					//Schedule a mem read event now so that it can be completed in the mem stage
+	
+					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							core.getExecutionEngineIn().getMemUnitIn(),
+							RequestType.Cache_Write,
+							ins.getSourceOperand1().getValue());
+				}
+				else{
+					exMemLatch.setMemDone(true);
+				}
 			}
 			else{
 				exMemLatch.setInstruction(null);
 			}
 		}
-	}
-
-
-
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub

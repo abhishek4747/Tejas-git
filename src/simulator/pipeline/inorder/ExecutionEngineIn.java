@@ -17,6 +17,9 @@ public class ExecutionEngineIn {
 	private WriteBackUnitIn writeBackUnitIn;
 	private boolean executionComplete;
 	public CoreMemorySystem coreMemorySystem;
+	private int noOfMemRequests;
+	private int noOfLd;
+	private int noOfSt;
 
 	public ExecutionEngineIn(Core _core){
 		this.core = _core;
@@ -108,17 +111,50 @@ public class ExecutionEngineIn {
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfValueForwards(coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
-		Statistics.setNoOfTLBRequests(coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
-		Statistics.setNoOfL1Requests(coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(coreMemSys.getICache().misses, core.getCore_number());
-		Statistics.setNoOfL1Hits(coreMemSys.getICache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfMemRequests(core.getExecutionEngineIn().getNoOfMemRequests(), core.getCore_number());
+		Statistics.setNoOfLoads(core.getExecutionEngineIn().getNoOfLd(), core.getCore_number());
+		Statistics.setNoOfStores(core.getExecutionEngineIn().getNoOfSt(), core.getCore_number());
+//		Statistics.setNoOfMemRequests(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().noOfMemRequests, core.getCore_number());
+//		Statistics.setNoOfLoads(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().NoOfLd, core.getCore_number());
+//		Statistics.setNoOfStores(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().NoOfSt, core.getCore_number());
+//		Statistics.setNoOfValueForwards(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().NoOfForwards, core.getCore_number());
+//		Statistics.setNoOfTLBRequests(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
+//		Statistics.setNoOfTLBHits(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
+//		Statistics.setNoOfTLBMisses(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(core.getExecutionEngineIn().coreMemorySystem.getiCache().misses, core.getCore_number());
+		Statistics.setNoOfL1Hits(core.getExecutionEngineIn().coreMemorySystem.getiCache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().misses, core.getCore_number());
+	}
+
+	private long getNoOfSt() {
+		// TODO Auto-generated method stub
+		return noOfSt;
+	}
+
+	private long getNoOfLd() {
+		// TODO Auto-generated method stub
+		return noOfLd;
+	}
+
+	private long getNoOfMemRequests() {
+		// TODO Auto-generated method stub
+		return noOfMemRequests;
+	}
+
+	public void updateNoOfLd(int i) {
+		// TODO Auto-generated method stub
+		this.noOfLd += i;
+	}
+
+	public void updateNoOfMemRequests(int i) {
+		// TODO Auto-generated method stub
+		this.noOfMemRequests += i;
+	}
+
+	public void updateNoOfSt(int i) {
+		// TODO Auto-generated method stub
+		this.noOfSt += i;
 	}
 }

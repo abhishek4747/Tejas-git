@@ -70,6 +70,12 @@ public class InorderPipeline implements PipelineInterface{
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public Core getCore() {
+		// TODO Auto-generated method stub
+		return core;
+	}
 	
 	
 }
