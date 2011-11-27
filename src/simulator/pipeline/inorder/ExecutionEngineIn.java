@@ -123,9 +123,10 @@ public class ExecutionEngineIn {
 //		Statistics.setNoOfTLBMisses(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
 		Statistics.setNoOfL1Requests(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfL1Hits(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(core.getExecutionEngineIn().coreMemorySystem.getiCache().misses, core.getCore_number());
-		Statistics.setNoOfL1Hits(core.getExecutionEngineIn().coreMemorySystem.getiCache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfIRequests(core.getExecutionEngineIn().coreMemorySystem.getiCache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfIHits(core.getExecutionEngineIn().coreMemorySystem.getiCache().hits, core.getCore_number());
+		Statistics.setNoOfIMisses(core.getExecutionEngineIn().coreMemorySystem.getiCache().misses, core.getCore_number());
 	}
 
 	private long getNoOfSt() {
