@@ -8,6 +8,7 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
+import config.SystemConfig;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
@@ -172,7 +173,7 @@ public class RunnableThread implements Runnable, Encoding {
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)	{
 					pipelineInterfaces[tidEmu].oneCycleOperation();
-					if(!SimulationConfig.isPipelineInorder)
+//					if(!SimulationConfig.isPipelineInorder)
 						GlobalClock.incrementClock();
 				}
 
@@ -239,7 +240,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 			GlobalClock.incrementClock();
 		}
-		for (int i=0; i<EMUTHREADS; i++) {
+		for (int i=0; i<SystemConfig.NoOfCores; i++) {
 			pipelineInterfaces[i].getCore().getExecutionEngineIn().setTimingStatistics();
 			pipelineInterfaces[i].getCore().getExecutionEngineIn().setPerCoreMemorySystemStatistics();
 		}
