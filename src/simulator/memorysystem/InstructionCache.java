@@ -22,6 +22,29 @@ public class InstructionCache extends Cache
 	{
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
 		
+		CacheLine evictedLine = this.fill(addr);
+		if (evictedLine != null)
+		{
+			if (this.isLastLevel)
+				MemorySystem.mainMemory.getPort().put(
+						new AddressCarryingEvent(
+								eventQ,
+								MemorySystem.mainMemory.getLatencyDelay(),
+								this, 
+								MemorySystem.mainMemory,
+								RequestType.Main_Mem_Write,
+								evictedLine.getTag() << this.blockSizeBits));
+			else
+				this.nextLevel.getPort().put(
+						new AddressCarryingEvent(
+								eventQ,
+								this.nextLevel.getLatencyDelay(),
+								this,
+								this.nextLevel,
+								RequestType.Cache_Write,
+								evictedLine.getTag() << this.blockSizeBits));
+		}
+		
 		long blockAddr = addr >>> this.blockSizeBits;
 		if (!/*NOT*/this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
