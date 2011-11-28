@@ -1,8 +1,9 @@
 package emulatorinterface;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
+
+import org.apache.log4j.Logger;
 
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.Encoding;
@@ -23,6 +24,8 @@ class synchTypes {
 
 public class SynchPrimitive implements Encoding {
 
+	private static final Logger logger = Logger.getLogger(SynchPrimitive.class);
+	
 	LinkedList<synchTypes> entries;
 	long address;
 
@@ -125,11 +128,10 @@ public class SynchPrimitive implements Encoding {
 					// if a lock exit after
 					if (exit.encoding == LOCK + 1 && exit.time > time
 							&& exit.thread == entry.thread) {
+						System.out.println(this.address+"  "+thread+" unlockenter, got lockenter and lockexit from "+exit.thread);
 						if (done)
 							misc.Error.shutDown("Duplicate entry in sigEnter");
 						interactingThread = exit.thread;
-						// IpcBase.glTable.updateThreadState(thread,
-						// interactingThread, address);
 						done = true;
 						toBeRemoved1 = entry;
 						toBeRemoved2 = exit;
@@ -148,7 +150,6 @@ public class SynchPrimitive implements Encoding {
 		}
 
 		if (!done) {
-			entries.add(new synchTypes(thread, time, encoding));
 			
 			//May never get a corresponding lockenter lockexit
 			//so do a timed wait.
@@ -159,15 +160,19 @@ public class SynchPrimitive implements Encoding {
 			LinkedList<Integer> others = new LinkedList<Integer>();
 			// add dependencies bothways
 			for (ThreadState otherThreads : stateTable.values()) {
-				if (otherThreads.lastTimerseen < time) {
+				if (otherThreads.lastTimerseen < time && otherThreads.threadIndex!=thread) {
 					otherThreads.addDep(address, time, thread);
 					others.add(otherThreads.threadIndex);
 				}
 			}
 			if (others.size()!=0) {
+				System.out.println(this.address+"  "+thread+" unlockenter, going on a timedWait on "+others.size()+" threads");
+				IpcBase.glTable.getStateTable().get((Integer)thread).countTimedSleep++;
 				ts.addressMap.put(address, new PerAddressInfo(others, time, address));
+				entries.add(new synchTypes(thread, time, encoding));
 			}
 			else {
+				System.out.println(this.address+"  "+thread+" unlockenter, no TimedWait ");
 				interactingThread = -2;// means nobody sleeps/resumes
 				stateTable.get(thread).addressMap.remove(address);
 			}
@@ -179,6 +184,7 @@ public class SynchPrimitive implements Encoding {
 	}
 
 	int lockEnter(int thread, long time, int encoding) {
+		System.out.println(this.address+"  "+thread+" lockenter");
 		entries.add(new synchTypes(thread, time, encoding));
 		return -1;
 	}
@@ -194,10 +200,9 @@ public class SynchPrimitive implements Encoding {
 				for (synchTypes unlock : entries) {
 					// if an unlock by some other thread found
 					if (unlock.encoding == UNLOCK && unlock.time < time
-							&& unlock.time > entry.time) {
+							&& unlock.time > entry.time && unlock.thread!=thread) {
+						System.out.println(this.address+"  "+thread+" lockexit, got unlock dep on "+unlock.thread);
 						interactingThread = unlock.thread;
-						// IpcBase.glTable.updateThreadState(thread,
-						// interactingThread, address);
 						done = true;
 						toBeRemoved1 = entry;
 						toBeRemoved2 = unlock;
@@ -207,8 +212,6 @@ public class SynchPrimitive implements Encoding {
 						stateTable.get(interactingThread).addressMap
 						.remove(address);
 						stateTable.get(thread).addressMap.remove(address);
-
-						System.out.println("this lockex got unlock");
 						break;
 					}
 				}
@@ -218,7 +221,6 @@ public class SynchPrimitive implements Encoding {
 		}
 
 		if (!done) {
-			entries.add(new synchTypes(thread, time, encoding));
 			// lock enter and lock exit seen but no unlock enter. so
 			// wait till others pass its time
 			Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable
@@ -228,18 +230,21 @@ public class SynchPrimitive implements Encoding {
 			LinkedList<Integer> others = new LinkedList<Integer>();
 			// add dependencies bothways
 			for (ThreadState otherThreads : stateTable.values()) {
-				if (otherThreads.lastTimerseen < time) {
+				if (otherThreads.lastTimerseen < time && otherThreads.threadIndex!=thread) {
 					otherThreads.addDep(address, time, thread);
 					others.add(otherThreads.threadIndex);
 				}
 			}
 			if (others.size()!=0) {
-				System.out.println("this lockex is timedWaiting on "+others.size()+"threads");
+				entries.add(new synchTypes(thread, time, encoding));
+				System.out.println(this.address+"  "+thread+" lockexit, timedWait on "+others.size()+" threads");
+				IpcBase.glTable.getStateTable().get((Integer)thread).countTimedSleep++;
+				
 				ts.addressMap.put(address, new PerAddressInfo(others, time, address));
 				interactingThread = -2; // lockenter has already caused the pipeline to sleep
 			}
 			else {
-				System.out.println("this lockex is not timedWaiting");
+				System.out.println(this.address+"  "+thread+" lockexit, no TimedWait");
 				interactingThread = thread;
 				ts.addressMap.remove(address);
 			}

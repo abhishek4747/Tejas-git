@@ -89,10 +89,15 @@ public class FetchUnitIn extends SimulationElement{
 			if(fetchFillCount > 0){
 				ins = fetchBuffer[fetchBufferIndex];
 				if(ins.getOperationType()==OperationType.sync){
+					fetchFillCount--;			
+					fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
+					ins = fetchBuffer[fetchBufferIndex];
+//System.out.println("Inside Inorder :: Sync Encountered");
 					if(this.syncCount>0){
 						this.syncCount--;
 					}
 					else{
+//System.out.println("Inside Inorder :: Sleeping the pipeline");
 						core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
 						sleepThePipeline();
 						return;
@@ -148,6 +153,7 @@ public class FetchUnitIn extends SimulationElement{
 		this.inputToPipeline = inpList;
 	}
 	public void resumePipeline(){
+//System.out.println("Inside Inorder :: Resuming the pipeline");
 		this.syncCount++;
 		this.sleep=false;
 	}

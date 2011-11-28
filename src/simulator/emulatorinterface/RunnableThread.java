@@ -8,7 +8,6 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
-import config.SystemConfig;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
@@ -25,7 +24,6 @@ import generic.Statistics;
  */
 public class RunnableThread implements Runnable, Encoding {
 
-    private static final Logger logger = Logger.getLogger(RunnableThread.class);
 	int tid;
 	long sum = 0; // checksum
 	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
@@ -79,11 +77,7 @@ public class RunnableThread implements Runnable, Encoding {
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
-
 		System.out.println("--  starting java thread"+this.tid);
-//		logger.info("--  starting java thread"+this.tid);
-//		logger.info("--  starting java thread"+this.tid);
-
 	}
 
 
@@ -110,9 +104,7 @@ public class RunnableThread implements Runnable, Encoding {
 	 */
 	public void run() {
 
-		System.out.println("-- in runnable thread run "+this.tid);
-//		logger.info("-- in runnable thread run "+this.tid);
-//		logger.info("-- in runnable thread run "+this.tid);
+		//		System.out.println("-- in runnable thread run "+this.tid);
 
 		Packet pnew = new Packet();
 		boolean allover = false;
@@ -173,7 +165,7 @@ public class RunnableThread implements Runnable, Encoding {
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				for (int i1=0; i1< n; i1++)	{
 					pipelineInterfaces[tidEmu].oneCycleOperation();
-//					if(!SimulationConfig.isPipelineInorder)
+					if(!SimulationConfig.isPipelineInorder)
 						GlobalClock.incrementClock();
 				}
 
@@ -183,10 +175,10 @@ public class RunnableThread implements Runnable, Encoding {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
-					System.out.println(tidApp+" pin thread got -1");
-//					logger.info(tidApp+" pin thread got -1");
-//					logger.info(tidApp+" pin thread got -1");
-					thread.finished = true;
+					this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+					IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = (long)-1>>>1;
+				//					System.out.println(tidApp+" pin thread got -1");
+				thread.finished = true;
 				}
 
 				if (ipcType.termination[tid] == true) {
@@ -234,16 +226,15 @@ public class RunnableThread implements Runnable, Encoding {
 				break;
 			}
 
+			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+pipelineInterfaces[1].isExecutionComplete());
 			for (int i=0; i<EMUTHREADS; i++) {
 				pipelineInterfaces[i].oneCycleOperation();
 			}
 
-			GlobalClock.incrementClock();
+			if(!SimulationConfig.isPipelineInorder)
+				GlobalClock.incrementClock();
 		}
-		for (int i=0; i<SystemConfig.NoOfCores; i++) {
-			pipelineInterfaces[i].getCore().getExecutionEngineIn().setTimingStatistics();
-			pipelineInterfaces[i].getCore().getExecutionEngineIn().setPerCoreMemorySystemStatistics();
-		}
+
 
 		long dataRead = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
@@ -329,10 +320,11 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 				else {
 					if (threadToResume != -1) {
-						resumePipeline(threadToResume,pnew.value);
+						System.out.println(threadToResume+" pipeline is resuming by "+tidApp);
+						resumePipeline(threadToResume,pnew.value,tidApp);
 					}
 					else {
-						sleepPipeline(tidApp,threadToResume,pnew.value);
+						sleepPipeline(tidApp,pnew.value);
 					}
 				}
 			}
@@ -353,21 +345,27 @@ public class RunnableThread implements Runnable, Encoding {
 				int waiter = (Integer)iter.next();
 				ThreadState waiterThread = stateTable.get(waiter);
 				if (waiterThread.timedWait) {
-					//					synchronized (IpcBase.glTable.getStateTable()) { //TODO if multiple RunnableThreads
+					//TODO if multiple RunnableThreads then this should be synchronised
 					if (time>=waiterThread.timeSlept(pai.address)) {
 						//Remove dependencies from both sides.
 						iter.remove();
 						waiterThread.removeDep(signaller);
 						// removeDep updates timedWait if needed
-						if (!waiterThread.timedWait) resumePipeline(waiter,TIMER);
+						if (!waiterThread.timedWait) {
+							//TODOthis means waiter got released from a timedWait by a timer and not by synchPrimitive.
+							//this means that in the synchTable somewhere there is a stale entry of their lockExit
+							// or unlockEnter. which needs to removed.
+							// flushSynchTable();
+							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller);
+							resumePipeline(waiter,TIMER,-1);
+						}
 					}
-					//					}
 				}
 			}
 		}
 	}
 
-	private void sleepPipeline(int tidApp, int threadToResume, int encoding){
+	private void sleepPipeline(int tidApp, int encoding){
 		if (encoding ==LOCK+1 || encoding==CONDWAIT+1) {
 			// do not sleep at exits as they are already sleeping at the enters.
 			// TODO add more here. as you handle more and more cases
@@ -378,9 +376,17 @@ public class RunnableThread implements Runnable, Encoding {
 			this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
 		}
 	}
-	private void resumePipeline(int tidApp, int encoding){
-		// TODO remove entries from synchTable
-		System.out.println(tidApp+" pipeline is resuming");
-		this.pipelineInterfaces[tidApp].resumePipeline();
+
+	private void resumePipeline(int tidToResume, int encoding, int selfTid){
+		if ((encoding ==LOCK+1 || encoding==CONDWAIT+1) && tidToResume!=selfTid) {
+			// if lockexits or waitexits then should wakeup itself also.as the corresponding enters caused sleep.
+			// TODO add more here. as you handle more and more cases
+			this.pipelineInterfaces[selfTid].resumePipeline();
+		}
+		int numResumes = 1;
+		if (encoding==TIMER) numResumes=IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep;
+		for (int i=0; i<numResumes; i++)
+			this.pipelineInterfaces[tidToResume].resumePipeline();
+
 	}
 }

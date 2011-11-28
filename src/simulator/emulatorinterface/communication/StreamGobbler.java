@@ -10,7 +10,12 @@ package emulatorinterface.communication;
 
 import java.io.*;
 
+import org.apache.log4j.Logger;
+
+import emulatorinterface.SynchPrimitive;
+
 public class StreamGobbler implements Runnable {
+	private static final Logger logger = Logger.getLogger(SynchPrimitive.class);
 
 	String name;	//Threads name (stdin or stderr)
 	InputStream is;
@@ -34,13 +39,13 @@ public class StreamGobbler implements Runnable {
 			while (true) {
 				String s = br.readLine ();
 				if (s == null) break;
-				System.out.println ("[" + name + "] " + s);
+				System.out.println("[" + name + "] " + s);
 			}
 
 			is.close ();
 
 		} catch (Exception ex) {
-			System.out.println ("Problem reading stream " + name + "... :" + ex);
+			logger.error("Problem reading stream " + name + "... :" + ex);
 			ex.printStackTrace ();
 		}
 	}

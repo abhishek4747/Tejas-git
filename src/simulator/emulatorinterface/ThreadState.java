@@ -40,6 +40,7 @@ class PerAddressInfo {
 
 public class ThreadState {
 	int threadIndex;
+	int countTimedSleep=0;
 	long lastTimerseen=(long)-1>>>1;
 	boolean timedWait=false;
 	HashMap <Long,PerAddressInfo> addressMap = new HashMap<Long,PerAddressInfo>();
@@ -58,6 +59,7 @@ public class ThreadState {
 			}
 		}
 		if (addressMap.size()==0) {
+			//synchTableFlush();
 			timedWait=false;
 		}
 	}

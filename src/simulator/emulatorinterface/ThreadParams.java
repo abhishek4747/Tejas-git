@@ -10,7 +10,7 @@ public class ThreadParams {
 	boolean finished;
 	boolean started;
 	boolean halted;
-
+	
 	int readerLocation;
 	long totalRead;
 	Packet pold = new Packet();
