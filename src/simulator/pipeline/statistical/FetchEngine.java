@@ -23,7 +23,7 @@ public class FetchEngine extends SimulationElement
 	InstructionLinkedList[] inputToPipeline;
 	
 //	public CoreMemorySystem coreMemSys;
-	LoadStoreUnit loadStoreUnit;
+//	LoadStoreUnit loadStoreUnit;
 //	private boolean toStall;
 	
 //	private boolean isExecutionComplete;		//TRUE indicates end of simulation
@@ -42,7 +42,7 @@ public class FetchEngine extends SimulationElement
 //		isExecutionComplete = false;
 //		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
 //		allPipesEmpty = false;
-		loadStoreUnit = new LoadStoreUnit();
+//		loadStoreUnit = new LoadStoreUnit();
 	}
 	
 	/*
@@ -87,6 +87,9 @@ public class FetchEngine extends SimulationElement
 							pipeline.setInputPipeEmpty(inputPipeToReadNext, true);
 							break;
 						}
+						
+						//Comment the whole 'else if' condition for FULL GOBBLE mode
+						
 						else if (newInstruction.getOperationType() == OperationType.load
 								|| newInstruction.getOperationType() == OperationType.store)
 						{
@@ -99,7 +102,7 @@ public class FetchEngine extends SimulationElement
 	
 								if (newInstruction.getOperationType() == OperationType.load)
 								{
-									if (DelayGenerator.forwardingDecision())
+								if (DelayGenerator.forwardingDecision())
 										//Schedule load address ready after some time
 										DelayGenerator.scheduleAddressReady(newInstruction, core);
 								}

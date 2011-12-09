@@ -12,13 +12,7 @@ import generic.OperationType;
 import generic.Statistics;
 
 public class StatisticalPipeline 
-{
-	//TODO Drain the event queue
-	
-	//TODO Send them to LD/ST unit only if you have free slots
-	
-	//TODO call fetch and delay generator (Don't fetch if PMQ > threshold)
-	
+{	
 	//the containing core
 	private Core core;
 	
@@ -153,8 +147,6 @@ public class StatisticalPipeline
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		System.out.println("Number of fake forwards : " + DelayGenerator.numFwded);
-		System.out.println("Number of total loads : " + DelayGenerator.totalIns);
 		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
 		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
 		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());

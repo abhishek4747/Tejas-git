@@ -24,7 +24,8 @@ public class DelayGenerator
 	{
 		boolean toIssue = true;
 		totalIns++;
-//		Random randomNumberGenerator = new Random();
+		
+		//Comment if all instructions have to be issued
 		if (randomNumberGenerator.nextInt(100) <= 20)
 		{
 			toIssue = false;
