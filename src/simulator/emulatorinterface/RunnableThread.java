@@ -278,7 +278,23 @@ public class RunnableThread implements Runnable, Encoding {
 	private void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
 		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
-		//if (pnew.value >= SYNCHSTART || pnew.value <= SYNCHEND) return;
+
+		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
+			int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
+			if (threadToResume == -2) {
+				//Means nobody sleeps, nobody resumes.
+			}
+			else {
+				if (threadToResume != -1) {
+					System.out.println(threadToResume+" pipeline is resuming by "+tidApp);
+					resumePipeline(threadToResume,pnew.value,tidApp);
+				}
+				else {
+					sleepPipeline(tidApp,pnew.value);
+				}
+			}
+			return;
+		}
 		if (pnew.value == TIMER) {
 			tryResumeOnWaitingPipelines(tidApp, pnew.ip); 
 			return;
@@ -290,44 +306,27 @@ public class RunnableThread implements Runnable, Encoding {
 		if (pnew.ip == thread.pold.ip) {
 			thread.packets.add(pnew);
 		} else {
-			if (thread.pold.value<=SYNCHSTART || thread.pold.value>=SYNCHEND) {
-				(ipcType.numInstructions[tid])++;
-				this.dynamicInstructionBuffer.configurePackets(thread.packets);
-				InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-						dynamicInstructionBuffer);
-				noOfMicroOps = noOfMicroOps + tempList.length();
+			(ipcType.numInstructions[tid])++;
+			this.dynamicInstructionBuffer.configurePackets(thread.packets);
+			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
+					dynamicInstructionBuffer);
+			noOfMicroOps = noOfMicroOps + tempList.length();
 
-				if(SimulationConfig.detachMemSys == true)	//TODO
+			if(SimulationConfig.detachMemSys == true)	//TODO
+			{
+				for(int i = 0; i < tempList.getListSize(); i++)
 				{
-					for(int i = 0; i < tempList.getListSize(); i++)
+					if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
+							tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
 					{
-						if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
-								tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
-						{
-							tempList.removeInstructionAt(i);
-							i--;
-						}
-					}
-				}
-
-				this.inputToPipeline[tidEmu].appendInstruction(tempList);
-
-			}
-			if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
-				int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
-				if (threadToResume == -2) {
-					//Means nobody sleeps, nobody resumes.
-				}
-				else {
-					if (threadToResume != -1) {
-						System.out.println(threadToResume+" pipeline is resuming by "+tidApp);
-						resumePipeline(threadToResume,pnew.value,tidApp);
-					}
-					else {
-						sleepPipeline(tidApp,pnew.value);
+						tempList.removeInstructionAt(i);
+						i--;
 					}
 				}
 			}
+
+			this.inputToPipeline[tidEmu].appendInstruction(tempList);
+
 			thread.pold = pnew;
 			thread.packets.clear();
 			thread.packets.add(thread.pold);

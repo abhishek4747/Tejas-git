@@ -28,6 +28,9 @@ public final class GlobalTable implements Encoding {
 	}
 
 
+	// returns -2 if no thread needs to be slept/resumed.
+	// returns -1 if 'this' thread needs to sleep
+	// o/w returns otherThreadsId which will now resume
 	public int update(long addressSynchItem, int thread, long time,
 			int encoding) {
 		SynchPrimitive s;

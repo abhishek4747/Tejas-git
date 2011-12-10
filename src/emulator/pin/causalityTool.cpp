@@ -47,13 +47,19 @@ uint64_t ClockGetTime() {
 	return (uint64_t) ts.tv_sec * 1000000000LL + (uint64_t) ts.tv_nsec;
 }
 
-void sendTimerPacket(int tid) {
-	if ((countPacket[tid]++ % PacketEpoch)==0){
-	countPacket[tid]=0;
-	uint64_t time = ClockGetTime();
-	while (tst->analysisFn(tid, time, TIMER, 0) == -1) {
+// this compulsory is true if it is entering some function
+// so that even if halts we have a timer packet here.
+void sendTimerPacket(int tid, bool compulsory) {
+	if ((countPacket[tid]++ % PacketEpoch)==0 || compulsory){
+		GetLock(&lock, tid + 1);
+		checkSum +=TIMER;
+		ReleaseLock(&lock);
+
+		countPacket[tid]=0;
+		uint64_t time = ClockGetTime();
+		while (tst->analysisFn(tid, time, TIMER, 0) == -1) {
 			PIN_Yield();
-	}
+		}
 	}
 }
 
@@ -73,38 +79,6 @@ void deActivate(int tid, ADDRINT addr) {
 bool hasEntered(int tid, ADDRINT addr) {
 	return (curSynchVar[tid] == addr);
 }
-/*#define cmp(a)	(RtnMatchesName(RTN_Name(rtn), a))
- static bool RtnMatchesName(const string &rtn_name, const string &name) {
- //name.size() > 0;
- size_t pos = rtn_name.find(name);
- if (pos == string::npos) {
- return false;
- }
- if (pos == 0 && name.size() == rtn_name.size()) {
- //  Printf("Full match: %s %s\n", rtn_name.c_str(), name.c_str());
- return true;
- }
- // match MyFuncName@123
- if (pos == 0 && name.size() < rtn_name.size()
- && rtn_name[name.size()] == '@') {
- //  Printf("Versioned match: %s %s\n", rtn_name.c_str(), name.c_str());
- return true;
- }
- // match _MyFuncName@123
- if (pos == 1 && rtn_name[0] == '_' && name.size() < rtn_name.size()
- && rtn_name[name.size() + 1] == '@') {
- // Printf("Versioned match: %s %s\n", rtn_name.c_str(), name.c_str());
- return true;
- }
- // match __MyFuncName***
- if (pos == 2 && rtn_name[0] == '_' &&rtn_name[1] == '_' && name.size()+2 == rtn_name.size()) {
- // Printf("Versioned match: %s %s\n", rtn_name.c_str(), name.c_str());
- return true;
- }
- printf("%s    %s\n", rtn_name.c_str(), name.c_str());
- fflush(stdout);
- return false;
- }*/
 
 VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	GetLock(&lock, threadid + 1);
@@ -129,9 +103,12 @@ VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
 	if (!isActive(tid))
 		return;
 
-	sendTimerPacket(tid);
+	sendTimerPacket(tid,false);
 
-	checkSum += MEMREAD;
+	GetLock(&lock, tid + 1);
+	checkSum +=MEMREAD;
+	ReleaseLock(&lock);
+
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t naddr = MASK & (uint64_t) addr;
 	while (tst->analysisFn(tid, nip, MEMREAD, naddr) == -1) {
@@ -144,9 +121,12 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 	if (!isActive(tid))
 		return;
 
-	sendTimerPacket(tid);
+	sendTimerPacket(tid,false);
 
-	checkSum += MEMWRITE;
+	GetLock(&lock, tid + 1);
+	checkSum +=MEMWRITE;
+	ReleaseLock(&lock);
+
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t naddr = MASK & (uint64_t) addr;
 	while (tst->analysisFn(tid, nip, MEMWRITE, naddr) == -1) {
@@ -158,17 +138,22 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 	if (!isActive(tid))
 		return;
 
-	sendTimerPacket(tid);
+	sendTimerPacket(tid,false);
 
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t ntadr = MASK & (uint64_t) tadr;
 	if (taken) {
-		checkSum += TAKEN;
+		GetLock(&lock, tid + 1);
+		checkSum +=TAKEN;
+		ReleaseLock(&lock);
+
 		while (tst->analysisFn(tid, nip, TAKEN, ntadr) == -1) {
 			PIN_Yield();
 		}
 	} else {
-		checkSum += NOTTAKEN;
+		GetLock(&lock, tid + 1);
+		checkSum +=NOTTAKEN;
+		ReleaseLock(&lock);
 		while (tst->analysisFn(tid, nip, NOTTAKEN, ntadr) == -1) {
 			PIN_Yield();
 		}
@@ -179,14 +164,14 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
 	if (!isActive(tid)) {
-//		printf("tid %d could not register %d entry as not active\n", tid,
-//				encode);
-//		fflush(stdout);
+		//		printf("tid %d could not register %d entry as not active\n", tid,
+		//				encode);
+		//		fflush(stdout);
 		return;
 	}
 	deActivate(tid, first_arg);
 
-	sendTimerPacket(tid);
+	sendTimerPacket(tid,true);
 
 	if (encode == LOCK || encode == UNLOCK) {
 		char *temp = findType(encode);
@@ -198,7 +183,10 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	}
 	//TraceFile << threadid <<" enter "<< *name << "(" << first_arg << ")" << endl;
 
-	checkSum += encode;
+	GetLock(&lock, tid + 1);
+	checkSum +=encode;
+	ReleaseLock(&lock);
+
 	uint64_t uarg = MASK & (uint64_t) first_arg;
 	while (tst->analysisFn(tid, time, encode, uarg) == -1) {
 		PIN_Yield();
@@ -208,15 +196,15 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
 	if (!isActive(tid) && !hasEntered(tid,first_arg)) {
-//		printf("tid %d could not register %d exit as not active\n", tid,
-//				encode);
-//		fflush(stdout);
+		//		printf("tid %d could not register %d exit as not active\n", tid,
+		//				encode);
+		//		fflush(stdout);
 		return;
 	}
 
 	reActivate(tid);
 
-	sendTimerPacket(tid);
+	sendTimerPacket(tid,false);
 
 	if (encode == LOCK+1) {
 		char* temp = findType(encode);
@@ -227,7 +215,10 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 		ReleaseLock(&lock);
 	}
 
-	checkSum += encode;
+	GetLock(&lock, tid + 1);
+	checkSum +=encode;
+	ReleaseLock(&lock);
+
 	uint64_t uarg = MASK & (uint64_t) first_arg;
 	while (tst->analysisFn(tid, time, encode, uarg) == -1) {
 		PIN_Yield();
