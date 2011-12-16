@@ -29,11 +29,11 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		ExecutionEngine execEngine;
 		
 		execEngine = core.getExecEngine();
-		execEngine.getReorderBuffer().performCommits();
 		
 		long currentTime = GlobalClock.getCurrentTime();
 		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
 		{
+			execEngine.getReorderBuffer().performCommits();
 			execEngine.getWriteBackLogic().performWriteBack();
 			execEngine.getSelector().performSelect2();
 		}

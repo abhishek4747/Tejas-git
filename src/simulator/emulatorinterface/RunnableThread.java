@@ -3,6 +3,7 @@
  */
 
 package emulatorinterface;
+import java.security.MessageDigest;
 import java.util.Hashtable;
 import java.util.Iterator;
 import org.apache.log4j.Logger;
@@ -42,6 +43,8 @@ public class RunnableThread implements Runnable, Encoding {
 	int[] stepSize;
 	int noOfMicroOps = 0;
 	PipelineInterface[] pipelineInterfaces;
+	
+	MessageDigest md5;
 
 	public RunnableThread() {
 	}
@@ -72,6 +75,15 @@ public class RunnableThread implements Runnable, Encoding {
 				decodeWidth[i] = cores[i].getDecodeWidth();
 
 			stepSize[i] = cores[i].getStepSize();
+		}
+
+		try
+		{
+			md5 = MessageDigest.getInstance("SHA");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
 		}
 
 		this.tid = tid1;
@@ -247,6 +259,8 @@ public class RunnableThread implements Runnable, Encoding {
 				/ (double) timeTaken / 1000.0 + " KIPS-"
 				+ (double) ipcType.numInstructions[tid] / (double) timeTaken
 				+ "checksum " + sum + "\n");
+		
+		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 
 		Statistics.setDataRead(dataRead, tid);
 		Statistics.setNumInstructions(ipcType.numInstructions[tid], tid);
@@ -278,23 +292,7 @@ public class RunnableThread implements Runnable, Encoding {
 	private void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
 		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
-
-		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
-			int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
-			if (threadToResume == -2) {
-				//Means nobody sleeps, nobody resumes.
-			}
-			else {
-				if (threadToResume != -1) {
-					System.out.println(threadToResume+" pipeline is resuming by "+tidApp);
-					resumePipeline(threadToResume,pnew.value,tidApp);
-				}
-				else {
-					sleepPipeline(tidApp,pnew.value);
-				}
-			}
-			return;
-		}
+		//if (pnew.value >= SYNCHSTART || pnew.value <= SYNCHEND) return;
 		if (pnew.value == TIMER) {
 			tryResumeOnWaitingPipelines(tidApp, pnew.ip); 
 			return;
@@ -306,32 +304,93 @@ public class RunnableThread implements Runnable, Encoding {
 		if (pnew.ip == thread.pold.ip) {
 			thread.packets.add(pnew);
 		} else {
-			(ipcType.numInstructions[tid])++;
-			this.dynamicInstructionBuffer.configurePackets(thread.packets);
-			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-					dynamicInstructionBuffer);
-			noOfMicroOps = noOfMicroOps + tempList.length();
+			if (thread.pold.value<=SYNCHSTART || thread.pold.value>=SYNCHEND) {
+				(ipcType.numInstructions[tid])++;
+				this.dynamicInstructionBuffer.configurePackets(thread.packets);
+				InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
+						dynamicInstructionBuffer);
+				noOfMicroOps = noOfMicroOps + tempList.length();
 
-			if(SimulationConfig.detachMemSys == true)	//TODO
-			{
+				if(SimulationConfig.detachMemSys == true)	//TODO
+				{
+					for(int i = 0; i < tempList.getListSize(); i++)
+					{
+						if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
+								tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
+						{
+							tempList.removeInstructionAt(i);
+							i--;
+						}
+					}
+				}
+
+				this.inputToPipeline[tidEmu].appendInstruction(tempList);
+				
+				//compute hash
+				StringBuilder sb = new StringBuilder();				
 				for(int i = 0; i < tempList.getListSize(); i++)
 				{
-					if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
-							tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
-					{
-						tempList.removeInstructionAt(i);
-						i--;
+					sb.append(tempList.peekInstructionAt(i).getProgramCounter());
+					sb.append(tempList.peekInstructionAt(i).getOperationType());
+					//System.out.println(tempList.peekInstructionAt(i).getProgramCounter()
+					//		+ "\t;\t" + tempList.peekInstructionAt(i).getOperationType());
+				}
+				if(tempList.getListSize() > 0)
+				{
+					//System.out.println(sb);
+					md5.update(sb.toString().getBytes());
+				}
+				
+				if(noOfMicroOps%1000000 == 0 && tempList.getListSize() > 0)
+				//if(tempList.getListSize() > 0)
+				{
+					try {
+						System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
+					} catch (Exception e) {
+						System.out.println("clone or digest failed");
+						e.printStackTrace();
+					}
+				}
+
+			}
+			if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
+				int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
+				if (threadToResume == -2) {
+					//Means nobody sleeps, nobody resumes.
+				}
+				else {
+					if (threadToResume != -1) {
+						System.out.println(threadToResume+" pipeline is resuming by "+tidApp);
+						resumePipeline(threadToResume,pnew.value,tidApp);
+					}
+					else {
+						sleepPipeline(tidApp,pnew.value);
 					}
 				}
 			}
-
-			this.inputToPipeline[tidEmu].appendInstruction(tempList);
-
 			thread.pold = pnew;
 			thread.packets.clear();
 			thread.packets.add(thread.pold);
 		}
 
+	}
+	
+	private String makeDigest()
+	{
+		byte messageDigest[] = md5.digest();
+        StringBuffer hexString = new StringBuffer();
+
+        for (int i = 0; i < messageDigest.length; i++)
+        {
+            String hex = Integer.toHexString(0xFF & messageDigest[i]);
+            if (hex.length() == 1)
+            {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        
+        return hexString.toString();
 	}
 
 	private void tryResumeOnWaitingPipelines(int signaller, long time) {
