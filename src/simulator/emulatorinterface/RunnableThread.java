@@ -402,22 +402,26 @@ public class RunnableThread implements Runnable, Encoding {
 			for (Iterator<Integer> iter = pai.probableInteractors.iterator(); iter.hasNext();) {
 				int waiter = (Integer)iter.next();
 				ThreadState waiterThread = stateTable.get(waiter);
-				if (waiterThread.timedWait) {
+				if (waiterThread.isOntimedWaitAt(pai.address)) {
 					//TODO if multiple RunnableThreads then this should be synchronised
 					if (time>=waiterThread.timeSlept(pai.address)) {
 						//Remove dependencies from both sides.
 						iter.remove();
 						waiterThread.removeDep(signaller);
-						// removeDep updates timedWait if needed
-						if (!waiterThread.timedWait) {
+						if (!waiterThread.isOntimedWait()) {
 							//TODOthis means waiter got released from a timedWait by a timer and not by synchPrimitive.
-							//this means that in the synchTable somewhere there is a stale entry of their lockExit
+							//this means that in the synchTable somewhere there is a stale entry of their lockEnter/Exit
 							// or unlockEnter. which needs to removed.
 							// flushSynchTable();
 							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller);
 							resumePipeline(waiter,TIMER,-1);
 						}
 					}
+				}
+				else {
+					// this means that the thread was not timedWait anymore as it got served by the synchronization
+					// it was waiting for.
+					iter.remove();
 				}
 			}
 		}

@@ -51,8 +51,8 @@ public class SynchPrimitive implements Encoding {
 		if (others.size()!=0) {
 			System.out.println(this.address+"  "+thread+" `"+encoding+"`, going on a timedWait on "+others.size()+" threads");
 			IpcBase.glTable.getStateTable().get((Integer)thread).countTimedSleep++;
-			ts.timedWait = true;
-			ts.addressMap.put(address, new PerAddressInfo(others, time, address));
+			//ts.timedWait = true;
+			ts.addressMap.put(address, new PerAddressInfo(others, time, address,true));
 			entries.add(new synchTypes(thread, time, encoding));
 		}
 		else {

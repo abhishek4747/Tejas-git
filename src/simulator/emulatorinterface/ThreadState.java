@@ -9,13 +9,16 @@ class PerAddressInfo {
 	LinkedList<Integer> probableInteractors;
 	long timeSinceSlept;
 	long address;
+	boolean timedWait=false;
+
 
 	public PerAddressInfo(LinkedList<Integer> tentativeInteractors,
-			long time,long address) {
+			long time,long address,boolean timedWait) {
 		super();
 		this.probableInteractors = tentativeInteractors;
 		this.timeSinceSlept = time;
 		this.address = address;
+		this.timedWait = timedWait;
 	}
 
 	public LinkedList<Integer> getTentativeInteractors() {
@@ -42,13 +45,17 @@ public class ThreadState {
 	int threadIndex;
 	int countTimedSleep=0;
 	long lastTimerseen=(long)-1>>>1;
-	boolean timedWait=false;
+	//boolean timedWait=false;
 	HashMap <Long,PerAddressInfo> addressMap = new HashMap<Long,PerAddressInfo>();
-	
+
 	public ThreadState(int tid){
 		this.threadIndex = tid;
 	}
-	
+
+	public void removeDep(long address) {
+		addressMap.remove((Long)address);
+	}
+
 	public void removeDep(int tidApp) {
 		//for (PerAddressInfo pai : addressMap.values()) {
 		for (Iterator<PerAddressInfo> iter = addressMap.values().iterator(); iter.hasNext();) {
@@ -58,27 +65,36 @@ public class ThreadState {
 				iter.remove();
 			}
 		}
-		if (addressMap.size()==0) {
-			//synchTableFlush();
-			timedWait=false;
-		}
 	}
-	
+
 	public void addDep(long address, long time, int thread) {
-			PerAddressInfo opai;
-			if ((opai = this.addressMap.get(address)) != null) {
-				opai.probableInteractors.add(thread);
-				//opai.timeSinceSlept = time;
-			} else {
-				LinkedList<Integer> th = new LinkedList<Integer>();
-				th.add(thread);
-				this.addressMap.put(address,
-						new PerAddressInfo(th, -1, address));
-			}
+		PerAddressInfo opai;
+		if ((opai = this.addressMap.get(address)) != null) {
+			opai.probableInteractors.add(thread);
+			//opai.timeSinceSlept = time;
+		} else {
+			LinkedList<Integer> th = new LinkedList<Integer>();
+			th.add(thread);
+			this.addressMap.put(address,
+					new PerAddressInfo(th, -1, address, false));
+		}
 
 	}
 	public long timeSlept(long address) {
 		return addressMap.get(address).timeSinceSlept;
 	}
-	
-}
+
+	public boolean isOntimedWait() {
+		boolean ret = false;
+		for (PerAddressInfo pai : addressMap.values()) {
+			ret = ret || pai.timedWait;
+		}
+		return ret;
+	}
+
+	public boolean isOntimedWaitAt(long address) {
+		if (addressMap.get(address) == null) return false;
+		else return addressMap.get(address).timedWait;
+	}
+
+	}
