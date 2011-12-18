@@ -23,4 +23,5 @@ public interface Encoding {
 	static final int CONDWAIT = 20;
 	static final int BARRIERWAIT = 22;
 	static final int SYNCHEND = 24;
+	
 }

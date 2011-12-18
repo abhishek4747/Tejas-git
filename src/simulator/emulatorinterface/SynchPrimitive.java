@@ -40,7 +40,6 @@ public class SynchPrimitive implements Encoding {
 		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable
 		.getStateTable();
 		ThreadState ts = stateTable.get(thread);
-		ts.timedWait = true;
 		LinkedList<Integer> others = new LinkedList<Integer>();
 		// add dependencies bothways
 		for (ThreadState otherThreads : stateTable.values()) {
@@ -50,13 +49,14 @@ public class SynchPrimitive implements Encoding {
 			}
 		}
 		if (others.size()!=0) {
-			System.out.println(this.address+"  "+thread+" unlockenter, going on a timedWait on "+others.size()+" threads");
+			System.out.println(this.address+"  "+thread+" `"+encoding+"`, going on a timedWait on "+others.size()+" threads");
 			IpcBase.glTable.getStateTable().get((Integer)thread).countTimedSleep++;
+			ts.timedWait = true;
 			ts.addressMap.put(address, new PerAddressInfo(others, time, address));
 			entries.add(new synchTypes(thread, time, encoding));
 		}
 		else {
-			System.out.println(this.address+"  "+thread+" unlockenter, no TimedWait ");
+			System.out.println(this.address+"  "+thread+" `"+encoding+"`, no TimedWait ");
 			ts.addressMap.remove(address);
 		}
 		return others.size();

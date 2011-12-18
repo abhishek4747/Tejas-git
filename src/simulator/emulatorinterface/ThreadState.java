@@ -68,12 +68,12 @@ public class ThreadState {
 			PerAddressInfo opai;
 			if ((opai = this.addressMap.get(address)) != null) {
 				opai.probableInteractors.add(thread);
-				opai.timeSinceSlept = time;
+				//opai.timeSinceSlept = time;
 			} else {
 				LinkedList<Integer> th = new LinkedList<Integer>();
 				th.add(thread);
 				this.addressMap.put(address,
-						new PerAddressInfo(th, time, address));
+						new PerAddressInfo(th, -1, address));
 			}
 
 	}
