@@ -43,7 +43,7 @@ public class RunnableThread implements Runnable, Encoding {
 	int[] stepSize;
 	int noOfMicroOps = 0;
 	PipelineInterface[] pipelineInterfaces;
-	
+
 	MessageDigest md5;
 
 	public RunnableThread() {
@@ -220,10 +220,14 @@ public class RunnableThread implements Runnable, Encoding {
 		for (int i=0; i<EMUTHREADS; i++)
 			this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 
-		//this.inputToPipeline[0].appendInstruction(TestInstructionLists.testList2());
+		for (int i=0; i<EMUTHREADS; i++) {
+			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
+				System.out.println("not completed for "+i);
+				resumePipelineTimer(i);
+			}
+		}
 
 		boolean queueComplete;    //queueComplete is true when all cores have completed
-
 		while(true)
 		{
 			//System.out.println("Pin completed ");
@@ -259,7 +263,7 @@ public class RunnableThread implements Runnable, Encoding {
 				/ (double) timeTaken / 1000.0 + " KIPS-"
 				+ (double) ipcType.numInstructions[tid] / (double) timeTaken
 				+ "checksum " + sum + "\n");
-		
+
 		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 
 		Statistics.setDataRead(dataRead, tid);
@@ -325,7 +329,7 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
-				
+
 				//compute hash
 				StringBuilder sb = new StringBuilder();				
 				for(int i = 0; i < tempList.getListSize(); i++)
@@ -340,9 +344,9 @@ public class RunnableThread implements Runnable, Encoding {
 					//System.out.println(sb);
 					md5.update(sb.toString().getBytes());
 				}
-				
+
 				if(noOfMicroOps%1000000 == 0 && tempList.getListSize() > 0)
-				//if(tempList.getListSize() > 0)
+					//if(tempList.getListSize() > 0)
 				{
 					try {
 						System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
@@ -354,19 +358,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 			}
 			if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
-				int threadToResume = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
-				if (threadToResume == -2) {
-					//Means nobody sleeps, nobody resumes.
-				}
-				else {
-					if (threadToResume != -1) {
-						System.out.println(threadToResume+" pipeline is resuming by "+tidApp);
-						resumePipeline(threadToResume,pnew.value,tidApp);
-					}
-					else {
-						sleepPipeline(tidApp,pnew.value);
-					}
-				}
+				resumeSleep(IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value));
 			}
 			thread.pold = pnew;
 			thread.packets.clear();
@@ -374,27 +366,28 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 
 	}
-	
+
 	private String makeDigest()
 	{
 		byte messageDigest[] = md5.digest();
-        StringBuffer hexString = new StringBuffer();
+		StringBuffer hexString = new StringBuffer();
 
-        for (int i = 0; i < messageDigest.length; i++)
-        {
-            String hex = Integer.toHexString(0xFF & messageDigest[i]);
-            if (hex.length() == 1)
-            {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        
-        return hexString.toString();
+		for (int i = 0; i < messageDigest.length; i++)
+		{
+			String hex = Integer.toHexString(0xFF & messageDigest[i]);
+			if (hex.length() == 1)
+			{
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+
+		return hexString.toString();
 	}
 
 	private void tryResumeOnWaitingPipelines(int signaller, long time) {
 		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable.getStateTable();
+		Hashtable<Long, SynchPrimitive> synchTable = IpcBase.glTable.getSynchTable();
 		ThreadState signallingThread = stateTable.get(signaller);
 		signallingThread.lastTimerseen = time;
 
@@ -413,8 +406,21 @@ public class RunnableThread implements Runnable, Encoding {
 							//this means that in the synchTable somewhere there is a stale entry of their lockEnter/Exit
 							// or unlockEnter. which needs to removed.
 							// flushSynchTable();
-							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller);
-							resumePipeline(waiter,TIMER,-1);
+							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller
+									+" num of Times"+stateTable.get(waiter).countTimedSleep);
+							resumePipelineTimer(waiter);
+							PerAddressInfo p = waiterThread.addressMap.get(pai.address);
+							if (p!=null) {
+								if (p.on_broadcast) {
+									resumeSleep(synchTable.get(pai.address).broadcastResume(p.broadcastTime,waiter));
+									p.on_broadcast = false;
+									p.broadcastTime = Long.MAX_VALUE;
+								}
+								else if (p.on_barrier) {
+									resumeSleep(synchTable.get(pai.address).barrierResume());
+									p.on_barrier = false;
+								}
+							}
 						}
 					}
 				}
@@ -427,26 +433,21 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 	}
 
-	private void sleepPipeline(int tidApp, int encoding){
-		if (encoding ==LOCK+1 || encoding==CONDWAIT+1) {
-			// do not sleep at exits as they are already sleeping at the enters.
-			// TODO add more here. as you handle more and more cases
-			return;
+	private void resumeSleep(ResumeSleep update) {
+		for (int i=0; i<update.getNumResumers(); i++) {
+			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
 		}
-		else {
-			System.out.println(tidApp+" pipeline is sleeping");
-			this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
+		for (int i=0; i<update.getNumSleepers(); i++) {
+			this.inputToPipeline[update.sleep.get(i)].appendInstruction(new Instruction(OperationType.sync,null, null, null));
 		}
 	}
 
-	private void resumePipeline(int tidToResume, int encoding, int selfTid){
-		if ((encoding ==LOCK+1 || encoding==CONDWAIT+1) && tidToResume!=selfTid) {
-			// if lockexits or waitexits then should wakeup itself also.as the corresponding enters caused sleep.
-			// TODO add more here. as you handle more and more cases
-			this.pipelineInterfaces[selfTid].resumePipeline();
-		}
-		int numResumes = 1;
-		if (encoding==TIMER) numResumes=IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep;
+	private void sleepPipeline(int tidApp, int encoding) {
+		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
+	}
+
+	private void resumePipelineTimer(int tidToResume) {
+		int numResumes=IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep;
 		for (int i=0; i<numResumes; i++)
 			this.pipelineInterfaces[tidToResume].resumePipeline();
 

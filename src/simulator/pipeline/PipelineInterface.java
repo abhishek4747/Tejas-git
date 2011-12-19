@@ -10,4 +10,5 @@ public interface PipelineInterface {
 	public int getCoreStepSize();
 	public void resumePipeline();
 	public Core getCore();
+	public boolean isSleeping();
 }

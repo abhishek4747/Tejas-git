@@ -73,4 +73,9 @@ public class InorderPipeline implements PipelineInterface{
 	public Core getCore() {
 		return core;
 	}
+
+	@Override
+	public boolean isSleeping() {
+		return core.getExecutionEngineIn().getFetchUnitIn().getSleep();
+	}
 }

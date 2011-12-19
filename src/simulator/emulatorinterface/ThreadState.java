@@ -10,13 +10,15 @@ class PerAddressInfo {
 	long timeSinceSlept;
 	long address;
 	boolean timedWait=false;
-
+	boolean on_broadcast = false;
+	long broadcastTime = Long.MAX_VALUE;
+	boolean on_barrier = false;
 
 	public PerAddressInfo(LinkedList<Integer> tentativeInteractors,
-			long time,long address,boolean timedWait) {
+			long timeSinceSlept,long address,boolean timedWait) {
 		super();
 		this.probableInteractors = tentativeInteractors;
-		this.timeSinceSlept = time;
+		this.timeSinceSlept = timeSinceSlept;
 		this.address = address;
 		this.timedWait = timedWait;
 	}
