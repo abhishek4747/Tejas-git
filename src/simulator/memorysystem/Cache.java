@@ -31,6 +31,11 @@ import generic.*;
 
 public class Cache extends SimulationElement
 {
+		public static enum CacheType{
+			L1,
+			iCache,
+			Lower
+		}
 		/* cache parameters */
 		CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
@@ -46,7 +51,9 @@ public class Cache extends SimulationElement
 		
 		protected boolean enforcesCoherence = false; //The cache which is shared between the coherent cache level
 		protected boolean isCoherent = false; //Tells whether the level is coherent or not
-		protected boolean isFirstLevel = false;
+		
+//		protected boolean isFirstLevel = false;
+		protected CacheType levelFromTop; 
 		protected boolean isLastLevel; //Tells whether there are any more levels of cache
 		protected CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
 		
@@ -136,7 +143,7 @@ public class Cache extends SimulationElement
 			this.numLines = getNumLines();
 			
 			this.writePolicy = cacheParameters.getWritePolicy();
-			this.isFirstLevel = cacheParameters.isFirstLevel();
+			this.levelFromTop = cacheParameters.getLevelFromTop();
 			this.isLastLevel = cacheParameters.isLastLevel();
 			this.nextLevelName = cacheParameters.getNextLevel();
 			
@@ -364,9 +371,9 @@ public class Cache extends SimulationElement
 		{
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write)
-				handleAccess(eventQ, event);
+				this.handleAccess(eventQ, event);
 			else if (event.getRequestType() == RequestType.Mem_Response)
-				handleMemResponse(eventQ, event);
+				this.handleMemResponse(eventQ, event);
 		}
 		
 		private void handleAccess(EventQueue eventQ, Event event)
@@ -375,7 +382,7 @@ public class Cache extends SimulationElement
 			RequestType requestType = event.getRequestType();
 			long address;
 			
-			if (this.isFirstLevel && !MemorySystem.bypassLSQ)
+			if (this.levelFromTop == CacheType.L1 && !MemorySystem.bypassLSQ)
 				address = ((LSQEntryContainingEvent)(event)).getLsqEntry().getAddr();
 			else
 				address = ((AddressCarryingEvent)(event)).getAddress();
@@ -406,7 +413,7 @@ public class Cache extends SimulationElement
 					{
 						if (this.isLastLevel)
 						{
-							if (this.isFirstLevel)
+							if (this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
 								MemorySystem.mainMemory.getPort().put(
 										new AddressCarryingEvent(
 												eventQ,
@@ -426,7 +433,7 @@ public class Cache extends SimulationElement
 						}
 						else
 						{
-							if (this.isFirstLevel)
+							if (this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
 								this.nextLevel.getPort().put(
 										new AddressCarryingEvent(
 												eventQ,
@@ -532,7 +539,7 @@ public class Cache extends SimulationElement
 				{
 					//Pass the value to the waiting element
 					//FIXME : Check the logic before finalizing
-					if ((!this.isFirstLevel) || (!MemorySystem.bypassLSQ))
+					if (this.levelFromTop != CacheType.L1 || (!MemorySystem.bypassLSQ))
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								outstandingRequestList.get(0).update(
 										eventQ,
@@ -545,7 +552,7 @@ public class Cache extends SimulationElement
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								new ExecCompleteEvent(
 										containingMemSys.core.getEventQueue(),
-										GlobalClock.getCurrentTime(),
+										0,
 										null,
 										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.EXEC_COMPLETE,
@@ -561,7 +568,7 @@ public class Cache extends SimulationElement
 						//Handle in any case (Whether requesting element is LSQ or cache)
 						//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
 						long address;
-						if (this.isFirstLevel && !MemorySystem.bypassLSQ)
+						if (this.levelFromTop == CacheType.L1 && !MemorySystem.bypassLSQ)
 							address = ((LSQEntryContainingEvent)(event)).getLsqEntry().getAddr();
 						else
 							address = ((AddressCarryingEvent)(event)).getAddress();
@@ -569,7 +576,7 @@ public class Cache extends SimulationElement
 						
 						if (this.isLastLevel)
 						{
-							if (this.isFirstLevel)
+							if (this.levelFromTop == CacheType.L1)
 								MemorySystem.mainMemory.getPort().put(
 										new AddressCarryingEvent(
 												eventQ,
@@ -589,7 +596,7 @@ public class Cache extends SimulationElement
 						}
 						else
 						{
-							if (this.isFirstLevel)
+							if (this.levelFromTop == CacheType.L1)
 								this.nextLevel.getPort().put(
 										new AddressCarryingEvent(
 												eventQ,

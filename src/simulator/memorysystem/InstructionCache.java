@@ -63,22 +63,20 @@ public class InstructionCache extends Cache
 				if (!containingMemSys.core.isPipelineStatistical)
 					if (!containingMemSys.core.isPipelineInorder)
 						eventQ.addEvent(
-								new ExecCompleteEvent(
+								outstandingRequestList.get(0).update(
 										eventQ,
 										GlobalClock.getCurrentTime(),
-										null,
+										this,
 										containingMemSys.core.getExecEngine().getFetcher(),
-										RequestType.EXEC_COMPLETE,
-										null));
+										RequestType.Mem_Response));
 					else
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
-								new ExecCompleteEvent(
+								outstandingRequestList.get(0).update(
 										eventQ,
-										GlobalClock.getCurrentTime(),
-										null,
+										0,
+										this,
 										outstandingRequestList.get(0).getRequestingElement(),
-										RequestType.EXEC_COMPLETE,
-										null));
+										RequestType.Mem_Response));
 				else
 					DelayGenerator.insCountOut++;
 			}

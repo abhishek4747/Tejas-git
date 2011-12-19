@@ -26,6 +26,10 @@ import java.io.File;
 import java.util.Hashtable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import memorysystem.Cache;
+import memorysystem.Cache.CacheType;
+
 import org.w3c.dom.*;
 
 import generic.PortType;
@@ -227,7 +231,8 @@ public class XMLParser
 			Element iCacheElmnt = (Element) iCacheList.item(0);
 			String cacheType = iCacheElmnt.getAttribute("type");
 			Element typeElmnt = searchLibraryForItem(cacheType);
-			core.iCache.isFirstLevel = true;
+//			core.iCache.isFirstLevel = true;
+			core.iCache.levelFromTop = CacheType.iCache;
 			setCacheProperties(typeElmnt, core.iCache);
 			core.iCache.nextLevel = iCacheElmnt.getAttribute("nextLevel");
 			core.iCache.operatingFreq = core.frequency;
@@ -237,7 +242,8 @@ public class XMLParser
 			Element l1Elmnt = (Element) l1CacheList.item(0);
 			cacheType = l1Elmnt.getAttribute("type");
 			typeElmnt = searchLibraryForItem(cacheType);
-			core.l1Cache.isFirstLevel = true;
+//			core.l1Cache.isFirstLevel = true;
+			core.l1Cache.levelFromTop = CacheType.L1;
 			setCacheProperties(typeElmnt, core.l1Cache);
 			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
 			core.l1Cache.operatingFreq = core.frequency;
@@ -268,7 +274,8 @@ public class XMLParser
 			if (!(SystemConfig.declaredCaches.containsKey(cacheName)))	//If the identically named cache is not already present
 			{
 				CacheConfig newCacheConfigEntry = new CacheConfig();
-				newCacheConfigEntry.isFirstLevel = false;
+//				newCacheConfigEntry.isFirstLevel = false;
+				newCacheConfigEntry.levelFromTop = Cache.CacheType.Lower;
 				String cacheType = cacheElmnt.getAttribute("type");
 				Element cacheTypeElmnt = searchLibraryForItem(cacheType);
 				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);

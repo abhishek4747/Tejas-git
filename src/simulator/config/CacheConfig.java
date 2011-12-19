@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import memorysystem.Cache;
 import generic.PortType;
 import generic.MultiPortingType;
 
@@ -28,7 +29,8 @@ public class CacheConfig
 	public long operatingFreq;
 	
 	public WritePolicy writePolicy;
-	public boolean isFirstLevel;
+//	public boolean isFirstLevel;
+	public Cache.CacheType levelFromTop;
 	public boolean isLastLevel;
 	public String nextLevel;
 	public int blockSize;
@@ -127,11 +129,21 @@ public class CacheConfig
 		this.multiportType = multiportType;
 	}
 
-	public boolean isFirstLevel() {
-		return isFirstLevel;
+	public Cache.CacheType getLevelFromTop() {
+		return levelFromTop;
 	}
 
-	public void setFirstLevel(boolean isFirstLevel) {
-		this.isFirstLevel = isFirstLevel;
-	}	
+	protected void setLevelFromTop(Cache.CacheType levelFromTop) {
+		this.levelFromTop = levelFromTop;
+	}
+
+//	public boolean isFirstLevel() {
+//		return isFirstLevel;
+//	}
+//
+//	public void setFirstLevel(boolean isFirstLevel) {
+//		this.isFirstLevel = isFirstLevel;
+//	}	
+	
+	
 }

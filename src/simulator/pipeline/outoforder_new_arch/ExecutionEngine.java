@@ -15,6 +15,7 @@ public class ExecutionEngine {
 	private Core core;
 	
 	//components of the execution engine
+	private ICacheBuffer iCacheBuffer;
 	private FetchLogic fetcher;
 	private Instruction[] fetchBuffer;
 	private DecodeLogic decoder;
@@ -83,6 +84,7 @@ public class ExecutionEngine {
 													core.getAllLatencies());
 		
 		
+		iCacheBuffer = new ICacheBuffer(core.getDecodeWidth());
 		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchLogic(core, this);
 		decodeBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
@@ -119,6 +121,10 @@ public class ExecutionEngine {
 			}
 		}
 	}*/
+
+	public ICacheBuffer getiCacheBuffer() {
+		return iCacheBuffer;
+	}
 
 	public Core getCore() {
 		return core;
