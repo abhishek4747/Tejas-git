@@ -32,7 +32,7 @@ KNOB<UINT64> KnobLong(KNOB_MODE_WRITEONCE, "pintool", "map", "1", "Maps");
 PIN_LOCK lock;
 INT32 numThreads = 0;
 UINT64 checkSum = 0;
-IPC::IPCBase *tst;
+//IPC::IPCBase *tst;
 bool pumpingStatus[MaxNumThreads];
 ADDRINT curSynchVar[MaxNumThreads];
 
@@ -56,15 +56,16 @@ void sendTimerPacket(int tid, bool compulsory) {
 		ReleaseLock(&lock);
 
 		countPacket[tid]=0;
-		uint64_t time = ClockGetTime();
+		/*uint64_t time = ClockGetTime();
 		while (tst->analysisFn(tid, time, TIMER, 0) == -1) {
 			PIN_Yield();
-		}
+		}*/
 	}
 }
 
 #define cmp(a)	(rtn_name->find(a) != string::npos)
 
+/*
 bool isActive(int tid) {
 	return pumpingStatus[tid];
 }
@@ -79,6 +80,7 @@ void deActivate(int tid, ADDRINT addr) {
 bool hasEntered(int tid, ADDRINT addr) {
 	return (curSynchVar[tid] == addr);
 }
+*/
 
 VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	GetLock(&lock, threadid + 1);
@@ -89,19 +91,21 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	ASSERT(numThreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
 
 	pumpingStatus[numThreads - 1] = true;
-	tst->onThread_start(threadid);
+	/*tst->onThread_start(threadid);*/
 }
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
-	while (tst->onThread_finish(tid) == -1) {
+	/*while (tst->onThread_finish(tid) == -1) {
 		PIN_Yield();
-	}
+	}*/
 }
 
 //Pass a memory read record
 VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
+/*
 	if (!isActive(tid))
 		return;
+*/
 
 	sendTimerPacket(tid,false);
 
@@ -109,17 +113,19 @@ VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
 	checkSum +=MEMREAD;
 	ReleaseLock(&lock);
 
-	uint64_t nip = MASK & (uint64_t) ip;
+	/*uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t naddr = MASK & (uint64_t) addr;
 	while (tst->analysisFn(tid, nip, MEMREAD, naddr) == -1) {
 		PIN_Yield();
 	}
-}
+*/}
 
 // Pass a memory write record
 VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
+/*
 	if (!isActive(tid))
 		return;
+*/
 
 	sendTimerPacket(tid,false);
 
@@ -127,19 +133,24 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 	checkSum +=MEMWRITE;
 	ReleaseLock(&lock);
 
+/*
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t naddr = MASK & (uint64_t) addr;
 	while (tst->analysisFn(tid, nip, MEMWRITE, naddr) == -1) {
 		PIN_Yield();
 	}
+*/
 }
 
 VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
+/*
 	if (!isActive(tid))
 		return;
+*/
 
 	sendTimerPacket(tid,false);
 
+/*
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t ntadr = MASK & (uint64_t) tadr;
 	if (taken) {
@@ -158,57 +169,63 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 			PIN_Yield();
 		}
 	}
+*/
 }
 
 //VOID FunEntry(ADDRINT first_arg, const string * name, THREADID threadid)
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
+/*
 	if (!isActive(tid)) {
 		//		printf("tid %d could not register %d entry as not active\n", tid,
 		//				encode);
 		//		fflush(stdout);
 		return;
 	}
-	deActivate(tid, first_arg);
+*/
+//	deActivate(tid, first_arg);
 
 	sendTimerPacket(tid,true);
-/*
-
-	if (encode == LOCK || encode == UNLOCK) {
+	if (encode==CONDWAIT || encode==SIGNAL){//(encode == LOCK || encode == UNLOCK) {
 		char *temp = findType(encode);
+
 		GetLock(&lock, tid + 1);
 		printf("%d %s with first arg %p    --%llu \n", tid, temp,
 				(void *) first_arg, time);
 		fflush(stdout);
 		ReleaseLock(&lock);
 	}
-*/
 
 	GetLock(&lock, tid + 1);
 	checkSum +=encode;
 	ReleaseLock(&lock);
 
+/*
 	uint64_t uarg = MASK & (uint64_t) first_arg;
 	while (tst->analysisFn(tid, time, encode, uarg) == -1) {
 		PIN_Yield();
 	}
+*/
 }
 
 VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
-	uint64_t time = ClockGetTime();
+//	uint64_t time = ClockGetTime();
+/*
 	if (!isActive(tid) && !hasEntered(tid,first_arg)) {
 		//		printf("tid %d could not register %d exit as not active\n", tid,
 		//				encode);
 		//		fflush(stdout);
 		return;
 	}
+*/
 
-	reActivate(tid);
+//	reActivate(tid);
 
 	sendTimerPacket(tid,false);
 
+
 /*
-	if (encode == LOCK+1) {
+	if (true){//(encode == LOCK+1) {
 		char* temp = findType(encode);
 		GetLock(&lock, tid + 1);
 		printf("%d %s with first arg %p   --%llu\n", tid, temp,
@@ -218,14 +235,17 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	}
 */
 
+
 	GetLock(&lock, tid + 1);
 	checkSum +=encode;
 	ReleaseLock(&lock);
 
+/*
 	uint64_t uarg = MASK & (uint64_t) first_arg;
 	while (tst->analysisFn(tid, time, encode, uarg) == -1) {
 		PIN_Yield();
 	}
+*/
 
 }
 
@@ -299,7 +319,7 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v) {
 	printf("checkSum is %lld\n", checkSum);
-	tst->unload();
+/*	tst->unload();*/
 }
 
 /* ===================================================================== */
@@ -331,7 +351,7 @@ int main(int argc, char * argv[]) {
 	if (PIN_Init(argc, argv))
 		return Usage();
 
-	tst = new IPC::Shm();
+/*	tst = new IPC::Shm();*/
 
 	PIN_AddThreadStartFunction(ThreadStart, 0);
 

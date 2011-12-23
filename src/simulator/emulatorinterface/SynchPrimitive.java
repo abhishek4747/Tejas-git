@@ -28,7 +28,7 @@ class synchTypes {
 public class SynchPrimitive implements Encoding {
 
 	private static final Logger logger = Logger.getLogger(SynchPrimitive.class);
-	
+	private static final boolean debugMode = false; 
 	LinkedList<synchTypes> entries;
 	long address;
 
@@ -52,18 +52,20 @@ public class SynchPrimitive implements Encoding {
 			}
 		}
 		if (others.size()!=0) {
-			System.out.println(this.address+"  "+thread+" `"+encoding+"`, going on a timedWait on "+others.size()+" threads");
+			if(debugMode)	
+				System.out.println(this.address+"  "+thread+" `"+encoding+"`, going on a timedWait on "+others.size()+" threads");
 			stateTable.get((Integer)thread).countTimedSleep++;
 			ts.addressMap.put(address, new PerAddressInfo(others, time, address,true));
 			entries.add(new synchTypes(thread, time, encoding));
 		}
 		else {
-			System.out.println(this.address+"  "+thread+" `"+encoding+"`, no TimedWait ");
+			if(debugMode)
+				System.out.println(this.address+"  "+thread+" `"+encoding+"`, no TimedWait ");
 			ts.addressMap.remove(address);
 		}
 		return others.size();
 	}
-	
+
 	ResumeSleep sigEnter(int thread, long time, int encoding) {
 		boolean done = false;
 		int interactingThread = -1;
@@ -75,7 +77,8 @@ public class SynchPrimitive implements Encoding {
 					// if a wait exit after
 					if (exit.encoding == CONDWAIT + 1 && exit.time > time
 							&& exit.thread == entry.thread) {
-						System.out.println(this.address+" "+thread+" sigenter, got waitenter & exit from "+exit.thread);
+						if(debugMode)
+							System.out.println(this.address+" "+thread+" sigenter, got waitenter & exit from "+exit.thread);
 						if (done)
 							misc.Error.shutDown("Duplicate entry in sigEnter");
 						interactingThread = exit.thread;
@@ -96,7 +99,7 @@ public class SynchPrimitive implements Encoding {
 		if (!done) {
 			int otherThreads = putOnTimedWait(thread, time, encoding);
 			if (otherThreads==0) {
-				System.out.println("Spurious signal received. Too Bad !!");
+				System.out.println("SynchPrimitive: Spurious signal received");
 				interactingThread = -2; // means nobody sleeps/resumes
 			}
 		} else {
@@ -114,7 +117,7 @@ public class SynchPrimitive implements Encoding {
 	}
 
 	ResumeSleep waitEnter(int thread, long time, int encoding) {
-		System.out.println(this.address+" "+" waitEnter");
+		//System.out.println(this.address+" "+" waitEnter");
 		entries.add(new synchTypes(thread, time, encoding));
 		ResumeSleep ret = new ResumeSleep();
 		ret.addSleeper(thread);
@@ -135,12 +138,13 @@ public class SynchPrimitive implements Encoding {
 							&& sig.time > entry.time && sig.thread!=thread) {
 						if (done)
 							misc.Error.shutDown("Duplicate entry in wEx");
-						System.out.println(this.address+"  "+thread+" waitexit, got signal dep on "+sig.thread);
+						if(debugMode)
+							System.out.println(this.address+"  "+thread+" waitexit, got signal dep on "+sig.thread);
 						interactingThread = sig.thread;
 						done = true;
 						toBeRemoved1 = entry;
 						toBeRemoved2 = sig;
-						
+
 						Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable
 						.getStateTable();
 						stateTable.get(interactingThread).addressMap
@@ -164,7 +168,7 @@ public class SynchPrimitive implements Encoding {
 			entries.remove(toBeRemoved1);
 			if (toBeRemoved2!=null) entries.remove(toBeRemoved2);
 		}
-		
+
 		ResumeSleep ret = new ResumeSleep();
 		if (interactingThread==-1) ret.addSleeper(thread);
 		else if (interactingThread==-2) {}
@@ -186,7 +190,8 @@ public class SynchPrimitive implements Encoding {
 					// if a lock exit after
 					if (exit.encoding == LOCK + 1 && exit.time > time
 							&& exit.thread == entry.thread) {
-						System.out.println(this.address+"  "+thread+" unlockenter, got lockenter and lockexit from "+exit.thread);
+						if(debugMode)
+							System.out.println(this.address+"  "+thread+" unlockenter, got lockenter and lockexit from "+exit.thread);
 						if (done)
 							misc.Error.shutDown("Duplicate entry in unlockEnter");
 						interactingThread = exit.thread;
@@ -212,12 +217,12 @@ public class SynchPrimitive implements Encoding {
 			//so do a timed wait.
 			int otherThreads = putOnTimedWait(thread, time, encoding);
 			if (otherThreads==0) interactingThread = -2;// means nobody sleeps/resumes
-		
+
 		} else {
 			entries.remove(toBeRemoved1);
 			entries.remove(toBeRemoved2);
 		}
-		
+
 		ResumeSleep ret = new ResumeSleep();
 		if (interactingThread==-1) ret.addSleeper(thread);
 		else if (interactingThread==-2) {}
@@ -228,7 +233,7 @@ public class SynchPrimitive implements Encoding {
 	}
 
 	ResumeSleep lockEnter(int thread, long time, int encoding) {
-		System.out.println(this.address+"  "+thread+" lockenter");
+		if(debugMode) System.out.println(this.address+"  "+thread+" lockenter");
 		entries.add(new synchTypes(thread, time, encoding));
 		ResumeSleep ret = new ResumeSleep();
 		ret.addSleeper(thread);
@@ -247,7 +252,8 @@ public class SynchPrimitive implements Encoding {
 					// if an unlock by some other thread found
 					if (unlock.encoding == UNLOCK && unlock.time < time
 							&& unlock.time > entry.time && unlock.thread!=thread) {
-						System.out.println(this.address+"  "+thread+" lockexit, got unlock dep on "+unlock.thread);
+						if(debugMode) 
+							System.out.println(this.address+"  "+thread+" lockexit, got unlock dep on "+unlock.thread);
 						interactingThread = unlock.thread;
 						done = true;
 						toBeRemoved1 = entry;
@@ -276,11 +282,13 @@ public class SynchPrimitive implements Encoding {
 			entries.remove(toBeRemoved1);
 			if(toBeRemoved2!=null) entries.remove(toBeRemoved2);
 		}
-		
+
 		ResumeSleep ret = new ResumeSleep();
 		if (interactingThread==-1) ret.addSleeper(thread);
 		else if (interactingThread==-2) {}
-		else if (interactingThread==thread){}
+		else if (interactingThread==thread){
+			ret.addResumer(thread);
+		}
 		else {
 			ret.addResumer(interactingThread);
 			ret.addResumer(thread);
@@ -290,14 +298,20 @@ public class SynchPrimitive implements Encoding {
 
 	//check if "waitenter before" and "waitexit after/or not available"
 	ResumeSleep broadcastResume(long broadcastTime, int thread) {
-		ResumeSleep ret = new ResumeSleep(); 
+		ResumeSleep ret = new ResumeSleep();
+		ArrayList<synchTypes> toBeRemoved = new ArrayList<synchTypes>();
 		for (synchTypes entry : entries) {
+			if (entry.encoding == BCAST && entry.thread==thread) {
+				ret.addResumer(entry.thread);
+				toBeRemoved.add(entry);
+			}
 			boolean exitPresent = false;
 			if (entry.encoding == CONDWAIT && entry.time<broadcastTime && entry.thread!=thread) {
 				for (synchTypes exit : entries) {
 					if (exit.encoding == CONDWAIT+1 && exit.time>broadcastTime && exit.thread==entry.thread) {
 						// resume these thread
 						ret.addResumer(exit.thread);
+						toBeRemoved.add(entry);
 					}
 					if (exit.encoding == CONDWAIT+1 && exit.time>entry.time) {
 						exitPresent = true;
@@ -307,13 +321,19 @@ public class SynchPrimitive implements Encoding {
 				if (!exitPresent) {
 					//no exit, ONLY enter, resume these as well
 					ret.addResumer(entry.thread);
+					toBeRemoved.add(entry);
 				}
 			}
+		}
+		for(synchTypes rem : toBeRemoved) {
+			entries.remove(rem);
 		}
 		return ret;
 	}
 
 	ResumeSleep broadcastEnter(int thread, long time, int encoding) {
+		if(debugMode)
+			System.out.println(this.address+"  "+thread+" broadcastenter");
 		ResumeSleep ret = new ResumeSleep(); 
 		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable.getStateTable();
 		if (putOnTimedWait(thread, time, encoding)==0) {
@@ -331,7 +351,7 @@ public class SynchPrimitive implements Encoding {
 					}
 				}
 			}
-			
+
 			stateTable.get(thread).addressMap.remove(address);
 			for (synchTypes t : toBeRemoved) {
 				entries.remove(t);
@@ -347,20 +367,23 @@ public class SynchPrimitive implements Encoding {
 		}
 		return ret;
 	}
-	
+
 	public ResumeSleep barrierEnter(int thread, long time, int encoding) {
-		System.out.println(this.address+"  "+thread+" barrierenter");
+		if(debugMode)
+			System.out.println(this.address+"  "+thread+" barrierenter");
 		entries.add(new synchTypes(thread, time, encoding));
 		ResumeSleep ret = new ResumeSleep();
 		ret.addSleeper(thread);
 		return ret;
 	}
-	
+
 	public ResumeSleep barrierExit(int thread, long time, int encoding) {
+		if(debugMode)
+			System.out.println(this.address+"  "+thread+" barrierexit");
 		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable.getStateTable();
-		 ResumeSleep ret = new ResumeSleep();
-		 if (putOnTimedWait(thread, time, encoding)==0) {
-			 ArrayList<synchTypes> toBeRemoved = new ArrayList<synchTypes>();
+		ResumeSleep ret = new ResumeSleep();
+		if (putOnTimedWait(thread, time, encoding)==0) {
+			ArrayList<synchTypes> toBeRemoved = new ArrayList<synchTypes>();
 			for (synchTypes entry : entries ) {
 				if (entry.encoding==BARRIERWAIT) {
 					ret.addResumer(entry.thread);
@@ -368,17 +391,17 @@ public class SynchPrimitive implements Encoding {
 					toBeRemoved.add(entry);
 				}
 			}
-			
+
 			stateTable.get(thread).addressMap.remove(address);
 			for (synchTypes t : toBeRemoved) {
 				entries.remove(t);
 			}
-		 }
-		 else {
-			 PerAddressInfo p = stateTable.get(thread).addressMap.get(address);
-			 p.on_barrier = true;
-		 }
-		 return ret;
+		}
+		else {
+			PerAddressInfo p = stateTable.get(thread).addressMap.get(address);
+			p.on_barrier = true;
+		}
+		return ret;
 	}
 
 	public ResumeSleep barrierResume() {
@@ -390,7 +413,7 @@ public class SynchPrimitive implements Encoding {
 				toBeRemoved.add(entry);
 			}
 		}
-		
+
 		for(synchTypes t : toBeRemoved) {
 			entries.remove(t);
 		}

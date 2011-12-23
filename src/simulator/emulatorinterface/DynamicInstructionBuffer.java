@@ -58,7 +58,7 @@ public class DynamicInstructionBuffer implements Encoding
 		for (int i = 0; i < arrayListPacket.size(); i++) 
 		{
 			p = arrayListPacket.get(i);
-			assert (ip == p.ip) : "all instruction pointers not matching";
+			if (ip != p.ip) misc.Error.showErrorAndExit("configurePackets screwed"+ip+" "+p.ip);
 			switch (p.value) 
 			{
 				case (-1):
@@ -190,14 +190,15 @@ public class DynamicInstructionBuffer implements Encoding
 								
 				return writeAddessList;
 			}
-			else
+			//TODO Prathmesh to handle for this corner case
+			/*else
 			{
 				System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.get(0).ip) + "\n");
 
 				System.exit(0);
-			}
+			}*/
 		}
 		
 		return null;

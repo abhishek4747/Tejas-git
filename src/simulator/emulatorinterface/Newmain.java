@@ -93,9 +93,9 @@ public class Newmain {
 			name = "thread"+Integer.toString(i);
 			runners[i] = new RunnableThread(name,i, ipcBase, cores);
 		}
-		
 		//set up statistics module
 		Statistics.initStatistics();
+		Statistics.setExecutable(executableFile);
 		// Call these functions at last
 		// returns the number of instructions. and waits on a semaphore for
 		// finishing of reader threads

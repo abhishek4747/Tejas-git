@@ -6,7 +6,6 @@ package emulatorinterface;
 import java.security.MessageDigest;
 import java.util.Hashtable;
 import java.util.Iterator;
-import org.apache.log4j.Logger;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.IpcBase;
@@ -44,7 +43,7 @@ public class RunnableThread implements Runnable, Encoding {
 	int noOfMicroOps = 0;
 	PipelineInterface[] pipelineInterfaces;
 
-	MessageDigest md5;
+//	MessageDigest md5;
 
 	public RunnableThread() {
 	}
@@ -77,7 +76,7 @@ public class RunnableThread implements Runnable, Encoding {
 			stepSize[i] = cores[i].getStepSize();
 		}
 
-		try
+/*		try
 		{
 			md5 = MessageDigest.getInstance("SHA");
 		}
@@ -85,7 +84,7 @@ public class RunnableThread implements Runnable, Encoding {
 		{
 			e.printStackTrace();
 		}
-
+*/
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
@@ -188,7 +187,7 @@ public class RunnableThread implements Runnable, Encoding {
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
 					this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
-					IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = (long)-1>>>1;
+					IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
 				//					System.out.println(tidApp+" pin thread got -1");
 				thread.finished = true;
 				}
@@ -264,7 +263,7 @@ public class RunnableThread implements Runnable, Encoding {
 				+ (double) ipcType.numInstructions[tid] / (double) timeTaken
 				+ "checksum " + sum + "\n");
 
-		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
+//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 
 		Statistics.setDataRead(dataRead, tid);
 		Statistics.setNumInstructions(ipcType.numInstructions[tid], tid);
@@ -296,9 +295,12 @@ public class RunnableThread implements Runnable, Encoding {
 	private void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
 		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
-		//if (pnew.value >= SYNCHSTART || pnew.value <= SYNCHEND) return;
 		if (pnew.value == TIMER) {
 			tryResumeOnWaitingPipelines(tidApp, pnew.ip); 
+			return;
+		}
+		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
+			resumeSleep(IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value));
 			return;
 		}
 		if (thread.isFirstPacket) {
@@ -308,58 +310,47 @@ public class RunnableThread implements Runnable, Encoding {
 		if (pnew.ip == thread.pold.ip) {
 			thread.packets.add(pnew);
 		} else {
-			if (thread.pold.value<=SYNCHSTART || thread.pold.value>=SYNCHEND) {
-				(ipcType.numInstructions[tid])++;
-				this.dynamicInstructionBuffer.configurePackets(thread.packets);
-				InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-						dynamicInstructionBuffer);
-				noOfMicroOps = noOfMicroOps + tempList.length();
+			(ipcType.numInstructions[tid])++;
+			this.dynamicInstructionBuffer.configurePackets(thread.packets);
+			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
+					dynamicInstructionBuffer);
+			noOfMicroOps = noOfMicroOps + tempList.length();
 
-				if(SimulationConfig.detachMemSys == true)	//TODO
-				{
-					for(int i = 0; i < tempList.getListSize(); i++)
-					{
-						if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
-								tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
-						{
-							tempList.removeInstructionAt(i);
-							i--;
-						}
-					}
-				}
-
-				this.inputToPipeline[tidEmu].appendInstruction(tempList);
-
-				//compute hash
-				StringBuilder sb = new StringBuilder();				
+			if(SimulationConfig.detachMemSys == true)	//TODO
+			{
 				for(int i = 0; i < tempList.getListSize(); i++)
 				{
-					sb.append(tempList.peekInstructionAt(i).getProgramCounter());
-					sb.append(tempList.peekInstructionAt(i).getOperationType());
-					//System.out.println(tempList.peekInstructionAt(i).getProgramCounter()
-					//		+ "\t;\t" + tempList.peekInstructionAt(i).getOperationType());
-				}
-				if(tempList.getListSize() > 0)
-				{
-					//System.out.println(sb);
-					md5.update(sb.toString().getBytes());
-				}
-
-				if(noOfMicroOps%1000000 == 0 && tempList.getListSize() > 0)
-					//if(tempList.getListSize() > 0)
-				{
-					try {
-						System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
-					} catch (Exception e) {
-						System.out.println("clone or digest failed");
-						e.printStackTrace();
+					if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
+							tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
+					{
+						tempList.removeInstructionAt(i);
+						i--;
 					}
 				}
+			}
 
+			this.inputToPipeline[tidEmu].appendInstruction(tempList);
+
+/*			//compute hash
+			StringBuilder sb = new StringBuilder();				
+			for(int i = 0; i < tempList.getListSize(); i++)
+			{
+				sb.append(tempList.peekInstructionAt(i).getProgramCounter());
+				sb.append(tempList.peekInstructionAt(i).getOperationType());
+				//System.out.println(tempList.peekInstructionAt(i).getProgramCounter()
+				//		+ "\t;\t" + tempList.peekInstructionAt(i).getOperationType());
 			}
-			if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
-				resumeSleep(IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value));
+
+  			if(tempList.getListSize() > 0)
+			{
+				//System.out.println(sb);
+				md5.update(sb.toString().getBytes());
 			}
+*/
+			if(noOfMicroOps%1000000 == 0 && tempList.getListSize() > 0)
+					System.out.println("number of micro-ops = " + noOfMicroOps);
+	
+
 			thread.pold = pnew;
 			thread.packets.clear();
 			thread.packets.add(thread.pold);
@@ -367,7 +358,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 	}
 
-	private String makeDigest()
+/*	private String makeDigest()
 	{
 		byte messageDigest[] = md5.digest();
 		StringBuffer hexString = new StringBuffer();
@@ -384,7 +375,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 		return hexString.toString();
 	}
-
+*/
 	private void tryResumeOnWaitingPipelines(int signaller, long time) {
 		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable.getStateTable();
 		Hashtable<Long, SynchPrimitive> synchTable = IpcBase.glTable.getSynchTable();
@@ -406,21 +397,21 @@ public class RunnableThread implements Runnable, Encoding {
 							//this means that in the synchTable somewhere there is a stale entry of their lockEnter/Exit
 							// or unlockEnter. which needs to removed.
 							// flushSynchTable();
-							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller
+							/*							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller
 									+" num of Times"+stateTable.get(waiter).countTimedSleep);
-							resumePipelineTimer(waiter);
-							PerAddressInfo p = waiterThread.addressMap.get(pai.address);
-							if (p!=null) {
-								if (p.on_broadcast) {
-									resumeSleep(synchTable.get(pai.address).broadcastResume(p.broadcastTime,waiter));
-									p.on_broadcast = false;
-									p.broadcastTime = Long.MAX_VALUE;
-								}
-								else if (p.on_barrier) {
-									resumeSleep(synchTable.get(pai.address).barrierResume());
-									p.on_barrier = false;
-								}
-							}
+							 */							resumePipelineTimer(waiter);
+							 PerAddressInfo p = waiterThread.addressMap.get(pai.address);
+							 if (p!=null) {
+								 if (p.on_broadcast) {
+									 resumeSleep(synchTable.get(pai.address).broadcastResume(p.broadcastTime,waiter));
+									 p.on_broadcast = false;
+									 p.broadcastTime = Long.MAX_VALUE;
+								 }
+								 else if (p.on_barrier) {
+									 resumeSleep(synchTable.get(pai.address).barrierResume());
+									 p.on_barrier = false;
+								 }
+							 }
 						}
 					}
 				}
@@ -442,6 +433,8 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 	}
 
+	
+	@SuppressWarnings("unused")
 	private void sleepPipeline(int tidApp, int encoding) {
 		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));
 	}

@@ -17,10 +17,27 @@ public class Statistics {
 	
 	
 	
-	
+	static String benchmark;
 	public static void printSystemConfig()
 	{
 		//read config.xml and write to output file
+		try
+		{
+			outputFileWriter.write("[Configuration]\n");
+			outputFileWriter.write("\n");
+			outputFileWriter.write("ToolName: "+SimulationConfig.PinInstrumentor+"\n");
+			outputFileWriter.write("Benchmark: "+benchmark+"\n");
+			outputFileWriter.write("Pipeline: ");
+			if (SimulationConfig.isPipelineInorder)
+				outputFileWriter.write("Inorder Pipeline\n");
+			else if (SimulationConfig.isPipelineStatistical)
+				outputFileWriter.write("Statistical Pipeline\n");
+			else outputFileWriter.write("OutOrder Pipeline\n");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -435,5 +452,9 @@ public class Statistics {
 
 	public static void setSubsetTime(long subsetTime) {
 		Statistics.subsetTime = subsetTime;
+	}
+
+	public static void setExecutable(String executableFile) {
+		Statistics.benchmark = executableFile;
 	}
 }
