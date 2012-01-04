@@ -30,17 +30,18 @@ public class RunnableThread implements Runnable, Encoding {
 
 	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
-	//inputToPipeline should be in IpcBase and not here as pipelines from other RunnableThreads
-	// will need to interact.
 	InstructionLinkedList[] inputToPipeline;
 	IpcBase ipcType;
 
 	// QQQ re-arrange packets for use by translate instruction.
-	DynamicInstructionBuffer dynamicInstructionBuffer;
+	DynamicInstructionBuffer[] dynamicInstructionBuffer;
 
 	int[] decodeWidth;
 	int[] stepSize;
-	int noOfMicroOps = 0;
+	long[] noOfMicroOps;
+	long[] numInstructions;
+	//FIXME PipelineInterface should be in IpcBase and not here as pipelines from other RunnableThreads
+	// will need to interact.
 	PipelineInterface[] pipelineInterfaces;
 
 //	MessageDigest md5;
@@ -52,10 +53,12 @@ public class RunnableThread implements Runnable, Encoding {
 	// write the results in.
 	public RunnableThread(String threadName, int tid1, IpcBase ipcType, Core[] cores) {
 
-		dynamicInstructionBuffer = new DynamicInstructionBuffer();
+		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
 		decodeWidth = new int[EMUTHREADS];
 		stepSize = new int[EMUTHREADS];
+		noOfMicroOps = new long[EMUTHREADS];
+		numInstructions = new long[EMUTHREADS];
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
 		for(int i = 0; i < EMUTHREADS; i++)
 		{
@@ -66,6 +69,7 @@ public class RunnableThread implements Runnable, Encoding {
 			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
 			inputToPipeline[i] = new InstructionLinkedList();
+			dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
 			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
 
 			if(cores[i].isPipelineInorder)
@@ -196,10 +200,11 @@ public class RunnableThread implements Runnable, Encoding {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 				thread = threadParams[tidEmu];
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
-				//FIXME what if core not started
-				if( n<minN)
+	//FIXME what if core not started
+				if(thread.started && n!=0 &&  n<minN)
 					minN=n;
-			}	
+			}
+			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
 			for (int i1=0; i1< minN; i1++)	{
 				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 					pipelineInterfaces[tidEmu].oneCycleOperation();
@@ -251,31 +256,44 @@ public class RunnableThread implements Runnable, Encoding {
 			}
 
 			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+pipelineInterfaces[1].isExecutionComplete());
-			for (int i=0; i<EMUTHREADS; i++) {
-				pipelineInterfaces[i].oneCycleOperation();
+			int maxN=0;
+			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+				thread = threadParams[tidEmu];
+				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
+				//FIXME what if core not started
+				if( n>maxN)
+					maxN=n;
+			}	
+			for (int i1=0; i1< maxN; i1++)	{
+				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+					pipelineInterfaces[tidEmu].oneCycleOperation();
+				}
+				GlobalClock.incrementClock();
 			}
 
-			if(!SimulationConfig.isPipelineInorder)
-				GlobalClock.incrementClock();
 		}
 
 
 		long dataRead = 0;
+		long totNumIns = 0;
+		long totMicroOps = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
+			totMicroOps += noOfMicroOps[i];
 			dataRead += threadParams[i].totalRead;
+			totNumIns += numInstructions[i];
 		}
 		long timeTaken = System.currentTimeMillis() - Newmain.start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
-				+ " instructions-" + ipcType.numInstructions[tid] + " time-"
-				+ timeTaken + " MBPS-" + (double) (dataRead * 24)
-				/ (double) timeTaken / 1000.0 + " KIPS-"
-				+ (double) ipcType.numInstructions[tid] / (double) timeTaken
+				+ " instructions-" + numInstructions[tid] + " MBPS-" + (double) (dataRead * 24)
+				/ (double) timeTaken / 1000.0 +" time-"
+				+ timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
+				+" KIPS-" + (double) totNumIns / (double) timeTaken
 				+ "checksum " + sum + "\n");
 
 //		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 
 		Statistics.setDataRead(dataRead, tid);
-		Statistics.setNumInstructions(ipcType.numInstructions[tid], tid);
+		Statistics.setNumInstructions(numInstructions, tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
 
 		IpcBase.free.release();
@@ -284,8 +302,8 @@ public class RunnableThread implements Runnable, Encoding {
 	private void errorCheck(int tidApp, int emuid, int queue_size,
 			int numReads, int v) {
 		// some error checking
+		threadParams[emuid].totalRead += numReads;
 		long totalRead = threadParams[emuid].totalRead;
-		totalRead += numReads;
 		int totalProduced = ipcType.totalProduced(tidApp);
 		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
 		if (totalRead > totalProduced) {
@@ -319,11 +337,11 @@ public class RunnableThread implements Runnable, Encoding {
 		if (pnew.ip == thread.pold.ip) {
 			thread.packets.add(pnew);
 		} else {
-			(ipcType.numInstructions[tid])++;
-			this.dynamicInstructionBuffer.configurePackets(thread.packets);
+			(numInstructions[tidEmu])++;
+			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
 			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-					dynamicInstructionBuffer);
-			noOfMicroOps = noOfMicroOps + tempList.length();
+					dynamicInstructionBuffer[tidEmu]);
+			noOfMicroOps[tidEmu] += tempList.length();
 
 			if(SimulationConfig.detachMemSys == true)	//TODO
 			{
@@ -356,9 +374,9 @@ public class RunnableThread implements Runnable, Encoding {
 				md5.update(sb.toString().getBytes());
 			}
 */
-			if(noOfMicroOps > 1000000  && tempList.getListSize() > 0) {
-					System.out.println("number of micro-ops = " + noOfMicroOps);
-					noOfMicroOps = 0;
+			if(noOfMicroOps[tidEmu] > 1000000  && tempList.getListSize() > 0) {
+					System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+					noOfMicroOps[tidEmu] = 0;
 			}
 	
 

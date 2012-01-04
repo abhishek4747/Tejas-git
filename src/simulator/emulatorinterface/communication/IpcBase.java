@@ -29,9 +29,9 @@ public abstract class IpcBase {
 	public boolean[] termination=new boolean[MaxNumJavaThreads];
 	public boolean[] started=new boolean[MaxNumJavaThreads];
 	
-	// number of instructions read by each of the threads
+/*	// number of instructions read by each of the threads
 	public long[] numInstructions = new long[MaxNumJavaThreads];
-	
+*/	
 	// to maintain synchronization between main thread and the reader threads
 	public static final Semaphore free = new Semaphore(0, true);
 	
