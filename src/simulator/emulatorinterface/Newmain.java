@@ -201,12 +201,13 @@ public class Newmain {
 		
 		Core[] cores = new Core[IpcBase.EmuThreadsPerJavaThread];
 		for (int i=0; i<IpcBase.EmuThreadsPerJavaThread; i++) {
-			cores[i] = new Core(0,
+			cores[i] = new Core(i,
 							1,
 							1,
 							null,
 							new int[]{0});
 		}
+		//TODO wont work in case of multiple runnable threads
 		for(int i = SystemConfig.NoOfCores; i<IpcBase.EmuThreadsPerJavaThread; i++)
 		{
 			if (cores[i].isPipelineStatistical)

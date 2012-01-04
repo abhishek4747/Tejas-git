@@ -3,6 +3,7 @@ package pipeline.inorder;
 import pipeline.PipelineInterface;
 import generic.Core;
 import generic.EventQueue;
+import generic.GlobalClock;
 
 public class InorderPipeline implements PipelineInterface{
 	Core core;
@@ -16,14 +17,22 @@ public class InorderPipeline implements PipelineInterface{
 	
 	public void oneCycleOperation(){
 		coreStepSize = core.getStepSize();
-		writeback();
-		mem();
-		exec();
-		decode();
-		fetch();
-//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
+		long currentTime = GlobalClock.getCurrentTime();
+		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+			writeback();
+			mem();
+			exec();
+			decode();
+			fetch();
+		}
+		drainEventQueue();
+
+		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
 	}
-	
+
+	private void drainEventQueue(){
+		eventQ.processEvents();		
+	}
 	public void writeback(){
 		core.getExecutionEngineIn().getWriteBackUnitIn().performWriteBack();		
 	}

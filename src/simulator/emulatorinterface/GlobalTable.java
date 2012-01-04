@@ -89,6 +89,7 @@ public final class GlobalTable implements Encoding {
 			break;
 		case (BARRIERWAIT):
 			ret = s.barrierEnter(thread, time, encoding);
+			System.out.println(thread+"  barrier enter");
 			break;
 		case (BCAST + 1):
 			// TODO
@@ -109,6 +110,7 @@ public final class GlobalTable implements Encoding {
 			break;
 		case (BARRIERWAIT + 1):
 			ret = s.barrierExit(thread, time, encoding);
+			System.out.println(thread+"  barrier exit");
 			break;
 		}
 		

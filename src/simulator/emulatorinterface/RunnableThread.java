@@ -173,12 +173,7 @@ public class RunnableThread implements Runnable, Encoding {
 					processPacket(thread, pnew,tidEmu);
 				}
 
-				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
-				for (int i1=0; i1< n; i1++)	{
-					pipelineInterfaces[tidEmu].oneCycleOperation();
-					if(!SimulationConfig.isPipelineInorder)
-						GlobalClock.incrementClock();
-				}
+			
 
 				thread.updateReaderLocation(numReads);
 				queue_size = ipcType.update(tidApp, numReads);
@@ -196,6 +191,20 @@ public class RunnableThread implements Runnable, Encoding {
 					allover = true;
 					break;
 				}
+			}
+			int minN=Integer.MAX_VALUE;
+			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+				thread = threadParams[tidEmu];
+				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
+				//FIXME what if core not started
+				if( n<minN)
+					minN=n;
+			}	
+			for (int i1=0; i1< minN; i1++)	{
+				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+					pipelineInterfaces[tidEmu].oneCycleOperation();
+				}
+				GlobalClock.incrementClock();
 			}
 
 			// this runnable thread can be stopped in two ways. Either the
@@ -347,8 +356,10 @@ public class RunnableThread implements Runnable, Encoding {
 				md5.update(sb.toString().getBytes());
 			}
 */
-			if(noOfMicroOps%1000000 == 0 && tempList.getListSize() > 0)
+			if(noOfMicroOps > 1000000  && tempList.getListSize() > 0) {
 					System.out.println("number of micro-ops = " + noOfMicroOps);
+					noOfMicroOps = 0;
+			}
 	
 
 			thread.pold = pnew;
