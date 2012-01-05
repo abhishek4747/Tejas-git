@@ -187,7 +187,7 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 
 	sendTimerPacket(tid,true);
 	if (true){//(encode == LOCK || encode == UNLOCK) {
-		char *temp = findType(encode);
+		const char *temp = findType(encode);
 
 		GetLock(&lock, tid + 1);
 		printf("%d %s with first arg %p    --%llu \n", tid, temp,

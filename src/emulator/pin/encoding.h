@@ -18,7 +18,7 @@
 #define	BARRIERWAIT	22
 
 
-char* findType(int type){
+const char* findType(int type){
 	switch(type) {
 	case(MEMREAD) :
 			return "MEMREAD";
