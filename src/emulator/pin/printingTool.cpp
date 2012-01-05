@@ -186,7 +186,7 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 //	deActivate(tid, first_arg);
 
 	sendTimerPacket(tid,true);
-	if (encode==CONDWAIT || encode==SIGNAL){//(encode == LOCK || encode == UNLOCK) {
+	if (true){//(encode == LOCK || encode == UNLOCK) {
 		char *temp = findType(encode);
 
 		GetLock(&lock, tid + 1);

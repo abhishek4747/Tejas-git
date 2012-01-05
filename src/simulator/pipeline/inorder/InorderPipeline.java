@@ -1,9 +1,11 @@
 package pipeline.inorder;
 
+import memorysystem.CoreMemorySystem;
 import pipeline.PipelineInterface;
 import generic.Core;
 import generic.EventQueue;
 import generic.GlobalClock;
+import generic.Statistics;
 
 public class InorderPipeline implements PipelineInterface{
 	Core core;
@@ -18,7 +20,9 @@ public class InorderPipeline implements PipelineInterface{
 	public void oneCycleOperation(){
 		coreStepSize = core.getStepSize();
 		long currentTime = GlobalClock.getCurrentTime();
-		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+/*if(core.getCore_number()==1)
+	System.out.println(" exec complete "+core.getExecutionEngineIn().getExecutionComplete());
+*/		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
 			writeback();
 			mem();
 			exec();
@@ -26,7 +30,10 @@ public class InorderPipeline implements PipelineInterface{
 			fetch();
 		}
 		drainEventQueue();
-
+		if(core.getExecutionEngineIn().getExecutionComplete()){
+			setTimingStatistics();			
+			setPerCoreMemorySystemStatistics();
+		}
 		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
 	}
 
@@ -87,4 +94,25 @@ public class InorderPipeline implements PipelineInterface{
 	public boolean isSleeping() {
 		return core.getExecutionEngineIn().getFetchUnitIn().getSleep();
 	}
+	public void setTimingStatistics()
+	{
+		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
+		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
+		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
+	}
+	
+	public void setPerCoreMemorySystemStatistics()
+	{
+		CoreMemorySystem coreMemSys = core.getExecutionEngineIn().coreMemorySystem;
+		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfL1Requests(coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfIRequests(coreMemSys.getiCache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfIHits(coreMemSys.getiCache().hits, core.getCore_number());
+		Statistics.setNoOfIMisses(coreMemSys.getiCache().misses, core.getCore_number());
+	}
+
 }

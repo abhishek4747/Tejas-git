@@ -104,4 +104,10 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		
 	}
 
+	@Override
+	public boolean isSleeping() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

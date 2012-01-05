@@ -44,7 +44,7 @@ public class RunnableThread implements Runnable, Encoding {
 	// will need to interact.
 	PipelineInterface[] pipelineInterfaces;
 
-//	MessageDigest md5;
+	//	MessageDigest md5;
 
 	public RunnableThread() {
 	}
@@ -80,7 +80,7 @@ public class RunnableThread implements Runnable, Encoding {
 			stepSize[i] = cores[i].getStepSize();
 		}
 
-/*		try
+		/*		try
 		{
 			md5 = MessageDigest.getInstance("SHA");
 		}
@@ -88,7 +88,7 @@ public class RunnableThread implements Runnable, Encoding {
 		{
 			e.printStackTrace();
 		}
-*/
+		 */
 		this.tid = tid1;
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
@@ -120,7 +120,7 @@ public class RunnableThread implements Runnable, Encoding {
 	public void run() {
 
 		//		System.out.println("-- in runnable thread run "+this.tid);
-
+int extraCycles=0;
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
@@ -177,7 +177,7 @@ public class RunnableThread implements Runnable, Encoding {
 					processPacket(thread, pnew,tidEmu);
 				}
 
-			
+
 
 				thread.updateReaderLocation(numReads);
 				queue_size = ipcType.update(tidApp, numReads);
@@ -187,8 +187,8 @@ public class RunnableThread implements Runnable, Encoding {
 				if (v == -1) {
 					this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 					IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
-				//					System.out.println(tidApp+" pin thread got -1");
-				thread.finished = true;
+					//					System.out.println(tidApp+" pin thread got -1");
+					thread.finished = true;
 				}
 
 				if (ipcType.termination[tid] == true) {
@@ -196,21 +196,33 @@ public class RunnableThread implements Runnable, Encoding {
 					break;
 				}
 			}
+			int tempu=0;
 			int minN=Integer.MAX_VALUE;
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 				thread = threadParams[tidEmu];
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
-	//FIXME what if core not started
-				if(thread.started && n!=0 &&  n<minN)
+				if(tidEmu==0)
+					tempu=n;
+				//FIXME what if core not started
+				if(thread.started  &&  n<minN&& n>5*(pipelineInterfaces[tidEmu].getCoreStepSize()))
 					minN=n;
+				//	System.out.print("  "+n);
 			}
+			//System.out.println();
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
-			for (int i1=0; i1< minN; i1++)	{
-				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-					pipelineInterfaces[tidEmu].oneCycleOperation();
-				}
-				GlobalClock.incrementClock();
+			//System.out.println("min is"+minN + " pipeline size  : " + inputToPipeline[0].getListSize());
+			if (minN==tempu &&extraCycles!=-1){ extraCycles+=minN;
+			//System.out.println("Extra cycles = "+extraCycles);
 			}
+			else extraCycles = -1;
+				for (int i1=0; i1< minN; i1++)	{
+					for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+						pipelineInterfaces[tidEmu].oneCycleOperation();
+					}
+					GlobalClock.incrementClock();
+				}
+			int n = inputToPipeline[1].getListSize()/decodeWidth[1] * pipelineInterfaces[1].getCoreStepSize();
+			//System.out.println("after execution n=  "+n+" Thread finished ? "+threadParams[1].finished);
 
 			// this runnable thread can be stopped in two ways. Either the
 			// emulator threads from which it was supposed to read never
@@ -260,7 +272,6 @@ public class RunnableThread implements Runnable, Encoding {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 				thread = threadParams[tidEmu];
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
-				//FIXME what if core not started
 				if( n>maxN)
 					maxN=n;
 			}	
@@ -288,9 +299,10 @@ public class RunnableThread implements Runnable, Encoding {
 				/ (double) timeTaken / 1000.0 +" time-"
 				+ timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
 				+" KIPS-" + (double) totNumIns / (double) timeTaken
-				+ "checksum " + sum + "\n");
+				+ "checksum " + sum + "\n"
+				+"extraCycles  "+extraCycles+"\n");
 
-//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
+		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 
 		Statistics.setDataRead(dataRead, tid);
 		Statistics.setNumInstructions(numInstructions, tid);
@@ -358,7 +370,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 			this.inputToPipeline[tidEmu].appendInstruction(tempList);
 
-/*			//compute hash
+			/*			//compute hash
 			StringBuilder sb = new StringBuilder();				
 			for(int i = 0; i < tempList.getListSize(); i++)
 			{
@@ -373,12 +385,12 @@ public class RunnableThread implements Runnable, Encoding {
 				//System.out.println(sb);
 				md5.update(sb.toString().getBytes());
 			}
-*/
+			 */
 			if(noOfMicroOps[tidEmu] > 1000000  && tempList.getListSize() > 0) {
-					System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
-					noOfMicroOps[tidEmu] = 0;
+				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+				noOfMicroOps[tidEmu] = 0;
 			}
-	
+
 
 			thread.pold = pnew;
 			thread.packets.clear();
@@ -387,7 +399,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 	}
 
-/*	private String makeDigest()
+	/*	private String makeDigest()
 	{
 		byte messageDigest[] = md5.digest();
 		StringBuffer hexString = new StringBuffer();
@@ -404,7 +416,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 		return hexString.toString();
 	}
-*/
+	 */
 	private void tryResumeOnWaitingPipelines(int signaller, long time) {
 		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable.getStateTable();
 		Hashtable<Long, SynchPrimitive> synchTable = IpcBase.glTable.getSynchTable();
@@ -462,7 +474,7 @@ public class RunnableThread implements Runnable, Encoding {
 		}
 	}
 
-	
+
 	@SuppressWarnings("unused")
 	private void sleepPipeline(int tidApp, int encoding) {
 		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.sync,null, null, null));

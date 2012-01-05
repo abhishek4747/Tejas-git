@@ -88,11 +88,14 @@ public class Newmain {
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
 		// Create runnable threads. Each thread reads from EMUTHREADS
+		//FIXME A single java thread can have multiple cores
+		
 		String name;
 		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
 			runners[i] = new RunnableThread(name,i, ipcBase, cores);
 		}
+		
 		//set up statistics module
 		Statistics.initStatistics();
 		Statistics.setExecutable(executableFile);

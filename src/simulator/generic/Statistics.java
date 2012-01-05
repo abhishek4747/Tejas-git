@@ -459,4 +459,5 @@ public class Statistics {
 	public static void setExecutable(String executableFile) {
 		Statistics.benchmark = executableFile;
 	}
+	
 }
