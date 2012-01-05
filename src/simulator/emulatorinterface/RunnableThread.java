@@ -212,7 +212,7 @@ int extraCycles=0;
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
 			//System.out.println("min is"+minN + " pipeline size  : " + inputToPipeline[0].getListSize());
 			if (minN==tempu &&extraCycles!=-1){ extraCycles+=minN;
-			//System.out.println("Extra cycles = "+extraCycles);
+			System.out.println("Extra cycles = "+extraCycles);
 			}
 			else extraCycles = -1;
 				for (int i1=0; i1< minN; i1++)	{
@@ -299,8 +299,7 @@ int extraCycles=0;
 				/ (double) timeTaken / 1000.0 +" time-"
 				+ timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
 				+" KIPS-" + (double) totNumIns / (double) timeTaken
-				+ "checksum " + sum + "\n"
-				+"extraCycles  "+extraCycles+"\n");
+				+ "checksum " + sum + "\n");
 
 		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 
