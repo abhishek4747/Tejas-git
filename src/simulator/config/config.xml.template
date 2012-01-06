@@ -122,6 +122,7 @@
 			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+			<Coherence>false</Coherence>			<!--Whether the upper level is coherent or not-->
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -134,6 +135,7 @@
 			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+			<Coherence>false</Coherence>			<!--Whether the upper level is coherent or not-->
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -146,6 +148,7 @@
 			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+			<Coherence>false</Coherence>			<!--Whether the upper level is coherent or not-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -158,6 +161,7 @@
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+			<Coherence>false</Coherence>			<!--Whether the upper level is coherent or not-->
 		</Type3>
 	</Library>
 </Configuration>

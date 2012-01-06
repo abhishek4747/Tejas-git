@@ -42,6 +42,7 @@ public class CacheConfig
 	public int accessPorts;
 	public int portOccupancy;
 	public MultiPortingType multiportType;
+	public boolean enforcesCoherence;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -135,6 +136,14 @@ public class CacheConfig
 
 	protected void setLevelFromTop(Cache.CacheType levelFromTop) {
 		this.levelFromTop = levelFromTop;
+	}
+
+	public boolean isEnforcesCoherence() {
+		return enforcesCoherence;
+	}
+
+	public void setEnforcesCoherence(boolean enforcesCoherence) {
+		this.enforcesCoherence = enforcesCoherence;
 	}
 
 //	public boolean isFirstLevel() {

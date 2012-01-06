@@ -169,8 +169,6 @@ public class XMLParser
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		
-		SystemConfig.coherenceEnforcingCache = getImmediateString("CoherenceEnforcingCache", systemElmnt);
-		
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
@@ -311,6 +309,17 @@ public class XMLParser
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
+		
+		tempStr = getImmediateString("Coherence", CacheType);
+		if (tempStr.equalsIgnoreCase("true"))
+			cache.enforcesCoherence = true;
+		else if (tempStr.equalsIgnoreCase("false"))
+			cache.enforcesCoherence = false;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'true' or 'false')");
+			System.exit(1);
+		}
 		
 		tempStr = getImmediateString("LastLevel", CacheType);
 		if (tempStr.equalsIgnoreCase("Y"))
