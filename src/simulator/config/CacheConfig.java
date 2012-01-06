@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import memorysystem.Cache;
 import generic.PortType;
 import generic.MultiPortingType;
 
@@ -28,7 +29,8 @@ public class CacheConfig
 	public long operatingFreq;
 	
 	public WritePolicy writePolicy;
-	public boolean isFirstLevel;
+//	public boolean isFirstLevel;
+	public Cache.CacheType levelFromTop;
 	public boolean isLastLevel;
 	public String nextLevel;
 	public int blockSize;
@@ -40,7 +42,7 @@ public class CacheConfig
 	public int accessPorts;
 	public int portOccupancy;
 	public MultiPortingType multiportType;
-	public boolean directoryCoherent;
+	public boolean enforcesCoherence;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -88,9 +90,6 @@ public class CacheConfig
 		return multiportType;
 	}
 
-	public boolean isDirectoryCoherent(){
-		return directoryCoherent;
-	}
 	protected void setWritePolicy(WritePolicy writePolicy) {
 		this.writePolicy = writePolicy;
 	}
@@ -131,11 +130,29 @@ public class CacheConfig
 		this.multiportType = multiportType;
 	}
 
-	public boolean isFirstLevel() {
-		return isFirstLevel;
+	public Cache.CacheType getLevelFromTop() {
+		return levelFromTop;
 	}
 
-	public void setFirstLevel(boolean isFirstLevel) {
-		this.isFirstLevel = isFirstLevel;
-	}	
+	protected void setLevelFromTop(Cache.CacheType levelFromTop) {
+		this.levelFromTop = levelFromTop;
+	}
+
+	public boolean isEnforcesCoherence() {
+		return enforcesCoherence;
+	}
+
+	public void setEnforcesCoherence(boolean enforcesCoherence) {
+		this.enforcesCoherence = enforcesCoherence;
+	}
+
+//	public boolean isFirstLevel() {
+//		return isFirstLevel;
+//	}
+//
+//	public void setFirstLevel(boolean isFirstLevel) {
+//		this.isFirstLevel = isFirstLevel;
+//	}	
+	
+	
 }
