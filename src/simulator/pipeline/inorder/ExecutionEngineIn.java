@@ -16,6 +16,7 @@ public class ExecutionEngineIn {
 	private MemUnitIn memUnitIn;
 	private WriteBackUnitIn writeBackUnitIn;
 	private boolean executionComplete;
+	private boolean fetchComplete;
 	public CoreMemorySystem coreMemorySystem;
 	private int noOfMemRequests;
 	private int noOfLd;
@@ -80,6 +81,9 @@ public class ExecutionEngineIn {
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
 	}
+	public void setFetchComplete(boolean fetchComplete){
+		this.fetchComplete=fetchComplete;
+	}
 	public StageLatch getIfIdLatch(){
 		return this.ifId;
 	}
@@ -100,6 +104,9 @@ public class ExecutionEngineIn {
 //	}
 	public boolean getExecutionComplete(){
 		return this.executionComplete;
+	}
+	public boolean getFetchComplete(){
+		return this.fetchComplete;
 	}
 	
 	public void setTimingStatistics()

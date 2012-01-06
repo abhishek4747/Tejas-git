@@ -38,15 +38,12 @@ public class FetchUnitIn extends SimulationElement{
 	
 	public void fillFetchBuffer(){
 //System.out.println("inside fill fetch buffer "+inputToPipeline.getListSize());
-		//TODO Request iCache for instructions
 		if(inputToPipeline.isEmpty())
 			return;
 		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
-//System.out.println(fetchFillCount);	
 		for(int i=fetchBufferIndex;fetchFillCount<fetchBufferCapacity;i = (i+1)%fetchBufferCapacity){
 			if(newInstruction.getOperationType() == OperationType.inValid){
-//System.out.println("sleep= "+sleep+" Total instructions = "+core.getNoOfInstructionsExecuted());
-				core.getExecutionEngineIn().setExecutionComplete(true);
+				core.getExecutionEngineIn().setFetchComplete(true);
 				break;
 			}
 			else
@@ -57,47 +54,33 @@ public class FetchUnitIn extends SimulationElement{
 					newInstruction = inputToPipeline.peekInstructionAt(0);
 				else
 					break;
-/*				this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getPort().put(
-						new AddressCarryingEvent(
-								this.eventQueue,
-								this.core.getExecutionEngineIn().getCoreMemorySystem().getiCache().getLatencyDelay(),
-								core.getExecutionEngineIn().getDecodeUnitIn(),
-								core.getExecutionEngineIn().getCoreMemorySystem().getiCache(), 
-								RequestType.Cache_Read,
-								fetchBuffer[i].getProgramCounter())); //What address to send ??
-*/
+
 				//TODO add handle fun in getdecodeunit. What happens if icache miss ? stalls not taken account for right now.
 
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getDecodeUnitIn(), 
 						fetchBuffer[i].getProgramCounter());
-//System.out.println(fetchBuffer[i].getProgramCounter());
-
 				fetchFillCount++;
 			}
 		}
 
 	}
 	public void performFetch(){
-		if(!core.getExecutionEngineIn().getExecutionComplete())
+		if(!core.getExecutionEngineIn().getFetchComplete())
 			fillFetchBuffer();
 
-//		StageLatch wbDoneLatch = core.getInorderPipeline().getWbDoneLatch();
-//		StageLatch ifIdLatch = core.getInorderPipeline().getIfIdLatch();
 		Instruction ins;
-		if(!this.sleep && this.stall==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+		if(!this.sleep && this.stall==0){
 			if(fetchFillCount > 0){
 				ins = fetchBuffer[fetchBufferIndex];
 				if(ins.getOperationType()==OperationType.sync){
 					fetchFillCount--;			
 					fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
 					ins = fetchBuffer[fetchBufferIndex];
-//System.out.println("Inside Inorder :: Sync Encountered");
 					if(this.syncCount>0){
 						this.syncCount--;
 					}
 					else{
-//System.out.println("Inside Inorder :: Sleeping the pipeline");
 						core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
 						sleepThePipeline();
 						return;
@@ -110,10 +93,6 @@ public class FetchUnitIn extends SimulationElement{
 			}
 			else{
 				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
-//				wbDoneLatch.decrementStallCount();
-//				ifIdLatch.incrementStallCount();
-//				decrementStall(1);
-//				core.getInorderPipeline().getIfIdLatch().setInstruction(null);
 			}
 		}
 		else if(this.stall>0){

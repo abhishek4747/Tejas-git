@@ -15,12 +15,7 @@ public class WriteBackUnitIn extends SimulationElement{
 	}
 	
 	public void performWriteBack(){
-//		StageLatch wbDoneLatch = core.getInorderPipeline().getWbDoneLatch();
 		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
-//		if(memWbLatch.getStallCount()>0){
-//			wbDoneLatch.incrementStallCount();
-//			memWbLatch.decrementStallCount();
-//		}
 		if(memWbLatch.getInstruction()!=null){
 			core.incrementNoOfInstructionsExecuted();
 		}
