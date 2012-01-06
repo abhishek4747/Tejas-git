@@ -146,6 +146,7 @@ public class Cache extends SimulationElement
 			this.levelFromTop = cacheParameters.getLevelFromTop();
 			this.isLastLevel = cacheParameters.isLastLevel();
 			this.nextLevelName = cacheParameters.getNextLevel();
+			this.enforcesCoherence = cacheParameters.isEnforcesCoherence();
 			
 			this.numLinesBits = Util.logbase2(numLines);
 			this.timestamp = 0;
