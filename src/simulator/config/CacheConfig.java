@@ -43,6 +43,7 @@ public class CacheConfig
 	public int portOccupancy;
 	public MultiPortingType multiportType;
 	public boolean enforcesCoherence;
+	public boolean directoryCoherent;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -90,6 +91,9 @@ public class CacheConfig
 		return multiportType;
 	}
 
+	public boolean isDirectoryCoherent(){
+		return directoryCoherent;
+	}
 	protected void setWritePolicy(WritePolicy writePolicy) {
 		this.writePolicy = writePolicy;
 	}

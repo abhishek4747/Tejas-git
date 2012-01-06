@@ -309,6 +309,7 @@ public class XMLParser
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
+		cache.directoryCoherent=setDirectoryCoherent(getImmediateString("DirectoryCoherent", CacheType));
 		
 		tempStr = getImmediateString("Coherence", CacheType);
 		if (tempStr.equalsIgnoreCase("true"))
@@ -321,7 +322,7 @@ public class XMLParser
 			System.exit(1);
 		}
 		
-		tempStr = getImmediateString("LastLevel", CacheType);
+	tempStr = getImmediateString("LastLevel", CacheType);
 		if (tempStr.equalsIgnoreCase("Y"))
 			cache.isLastLevel = true;
 		else if (tempStr.equalsIgnoreCase("N"))
@@ -333,6 +334,15 @@ public class XMLParser
 		}
 	}
 	
+	private static boolean setDirectoryCoherent(String immediateString) {
+		if(immediateString==null)
+			return false;
+		if(immediateString.equalsIgnoreCase("T"))
+			return true;
+		else
+			return false;
+	}
+
 	private static Element searchLibraryForItem(String tagName)	//Searches the <Library> section for a given tag name and returns it in Element form
 	{															// Used mainly for cache types
 		NodeList nodeLst = doc.getElementsByTagName("Library");
