@@ -29,6 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import memorysystem.Cache;
 import memorysystem.Cache.CacheType;
+import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
@@ -309,16 +310,17 @@ public class XMLParser
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
-		cache.directoryCoherent=setDirectoryCoherent(getImmediateString("DirectoryCoherent", CacheType));
 		
 		tempStr = getImmediateString("Coherence", CacheType);
-		if (tempStr.equalsIgnoreCase("true"))
-			cache.enforcesCoherence = true;
-		else if (tempStr.equalsIgnoreCase("false"))
-			cache.enforcesCoherence = false;
+		if (tempStr.equalsIgnoreCase("N"))
+			cache.coherence = CoherenceType.None;
+		else if (tempStr.equalsIgnoreCase("S"))
+			cache.coherence = CoherenceType.Snoopy;
+		else if (tempStr.equalsIgnoreCase("D"))
+			cache.coherence = CoherenceType.Directory;
 		else
 		{
-			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'true' or 'false')");
+			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'S', D' or 'N')");
 			System.exit(1);
 		}
 		
