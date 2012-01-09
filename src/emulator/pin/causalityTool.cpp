@@ -163,6 +163,7 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 //VOID FunEntry(ADDRINT first_arg, const string * name, THREADID threadid)
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
+/*
 	if (!isActive(tid)) {
 		//		printf("tid %d could not register %d entry as not active\n", tid,
 		//				encode);
@@ -170,6 +171,7 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 		return;
 	}
 	deActivate(tid, first_arg);
+*/
 
 	sendTimerPacket(tid,true);
 /*
@@ -196,6 +198,7 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 
 VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
+/*
 	if (!isActive(tid) && !hasEntered(tid,first_arg)) {
 		//		printf("tid %d could not register %d exit as not active\n", tid,
 		//				encode);
@@ -204,6 +207,7 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	}
 
 	reActivate(tid);
+*/
 
 	sendTimerPacket(tid,false);
 
