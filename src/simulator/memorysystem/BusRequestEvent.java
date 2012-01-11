@@ -22,7 +22,7 @@ package memorysystem;
 
 import java.util.Stack;
 
-import memorysystem.Bus.BusReqType;
+import memorysystem.BusOld.BusReqType;
 import generic.*;
 
 public class BusRequestEvent extends Event
@@ -58,21 +58,21 @@ public class BusRequestEvent extends Event
 	@Override
 	public void handleEvent()
 	{
-		if (Bus.isLocked)
+		if (BusOld.isLocked)
 		{
 			//Bus is locked. Thus put the request in the request queue of the Bus
-			Bus.reqQueue.add(new BusRequestQElmnt(requestingThreadID, requestType, sourceCache, sourceLine, cacheFillStack, lsqEntry));
+			BusOld.reqQueue.add(new BusRequestQElmnt(requestingThreadID, requestType, sourceCache, sourceLine, cacheFillStack, lsqEntry));
 		}
 		else
 		{
 			//First acquire the lock
-			Bus.isLocked = true;
+			BusOld.isLocked = true;
 			
 			//Add the request to the bus
-			Bus.newRequest(requestingThreadID, requestType, addr, sourceCache, sourceLine, cacheFillStack, lsqEntry);
+			BusOld.newRequest(requestingThreadID, requestType, addr, sourceCache, sourceLine, cacheFillStack, lsqEntry);
 			
 			//Process the newly added request
-			Bus.processRequest();
+			BusOld.processRequest();
 		}
 	}
 }

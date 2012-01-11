@@ -24,7 +24,7 @@ import java.util.*;
 
 import memorysystem.CacheLine.MESI;
 
-public class Bus
+public class BusOld
 {
 	protected static ArrayList<Cache> upperLevels = new ArrayList<Cache>();
 	protected static Cache lowerLevel;

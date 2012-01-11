@@ -24,7 +24,7 @@ import java.util.*;
 
 import config.CacheConfig;
 import config.SystemConfig;
-import memorysystem.Bus.BusReqType;
+import memorysystem.BusOld.BusReqType;
 import memorysystem.CacheLine.MESI;
 import misc.Util;
 import generic.*;
