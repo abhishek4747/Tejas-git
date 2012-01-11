@@ -88,8 +88,6 @@ public class Newmain {
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
 		// Create runnable threads. Each thread reads from EMUTHREADS
-		//FIXME A single java thread can have multiple cores
-		
 		String name;
 		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
@@ -98,7 +96,6 @@ public class Newmain {
 		
 		//set up statistics module
 		Statistics.initStatistics();
-		Statistics.setExecutable(executableFile);
 		// Call these functions at last
 		// returns the number of instructions. and waits on a semaphore for
 		// finishing of reader threads
@@ -204,13 +201,12 @@ public class Newmain {
 		
 		Core[] cores = new Core[IpcBase.EmuThreadsPerJavaThread];
 		for (int i=0; i<IpcBase.EmuThreadsPerJavaThread; i++) {
-			cores[i] = new Core(i,
+			cores[i] = new Core(0,
 							1,
 							1,
 							null,
 							new int[]{0});
 		}
-		//TODO wont work in case of multiple runnable threads
 		for(int i = SystemConfig.NoOfCores; i<IpcBase.EmuThreadsPerJavaThread; i++)
 		{
 			if (cores[i].isPipelineStatistical)
