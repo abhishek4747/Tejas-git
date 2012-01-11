@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import memorysystem.Cache.CoherenceType;
 import memorysystem.Cache;
 import generic.PortType;
 import generic.MultiPortingType;
@@ -42,6 +43,7 @@ public class CacheConfig
 	public int accessPorts;
 	public int portOccupancy;
 	public MultiPortingType multiportType;
+	public CoherenceType coherence;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -88,7 +90,7 @@ public class CacheConfig
 	public MultiPortingType getMultiportType() {
 		return multiportType;
 	}
-
+	
 	protected void setWritePolicy(WritePolicy writePolicy) {
 		this.writePolicy = writePolicy;
 	}
@@ -136,6 +138,16 @@ public class CacheConfig
 	protected void setLevelFromTop(Cache.CacheType levelFromTop) {
 		this.levelFromTop = levelFromTop;
 	}
+
+	public CoherenceType getCoherence() {
+		return coherence;
+	}
+
+	public void setCoherence(CoherenceType coherence) {
+		this.coherence = coherence;
+	}
+	
+	
 
 //	public boolean isFirstLevel() {
 //		return isFirstLevel;

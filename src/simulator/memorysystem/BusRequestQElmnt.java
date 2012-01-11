@@ -22,7 +22,7 @@ package memorysystem;
 
 import java.util.Stack;
 
-import memorysystem.Bus.BusReqType;
+import memorysystem.BusOld.BusReqType;
 
 public class BusRequestQElmnt 
 {

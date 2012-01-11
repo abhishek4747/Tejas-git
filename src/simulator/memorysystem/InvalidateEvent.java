@@ -50,14 +50,14 @@ public class InvalidateEvent extends Event
 		CacheLine cl = targetCache.access(address);
 		if (cl != null)
 			cl.setState(MESI.INVALID);
-		Bus.snoopingCoresProcessed++;
+		BusOld.snoopingCoresProcessed++;
 		
 		//If all snooping cores have invalidated their copies, 
 		//finally set the source line as MODIFIED and end the request
-		if (Bus.snoopingCoresProcessed >= (Bus.upperLevels.size() - 1))
+		if (BusOld.snoopingCoresProcessed >= (BusOld.upperLevels.size() - 1))
 		{
 			sourceLine.setState(MESI.MODIFIED);
-			Bus.endRequest();
+			BusOld.endRequest();
 		}
 	}
 }

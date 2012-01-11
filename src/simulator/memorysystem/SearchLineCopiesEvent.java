@@ -49,27 +49,27 @@ public class SearchLineCopiesEvent extends Event
 	
 	public void handleEvent()
 	{
-		Bus.snoopingCoresProcessed++;
+		BusOld.snoopingCoresProcessed++;
 		
 		// If the request is RWITM (For write miss)
-		if (Bus.requestType == Bus.BusReqType.RWITM)
+		if (BusOld.requestType == BusOld.BusReqType.RWITM)
 		{
-			if (Bus.blockRWITM == false)
+			if (BusOld.blockRWITM == false)
 			{
 				CacheLine cl = targetCache.access(address);
 				
 				//Copy found
 				if (cl != null)
 				{
-					Bus.copiesFound++;
+					BusOld.copiesFound++;
 					if (cl.getState() == MESI.MODIFIED) //MODIFIED
 					{
-						Bus.blockRWITM = true;
+						BusOld.blockRWITM = true;
 					
 						//TODO Write modified version to next level
 						CacheRequestPacket request = new CacheRequestPacket();
 						request.setThreadID(requestingThreadID);
-						request.setAddr(Bus.address);
+						request.setAddr(BusOld.address);
 						request.setType(MemoryAccessType.WRITE);
 						Stack<CacheFillStackEntry> cacheFillStack = new Stack<CacheFillStackEntry>();
 						cacheFillStack.add(new CacheFillStackEntry(targetCache, request));
@@ -100,7 +100,7 @@ public class SearchLineCopiesEvent extends Event
 			}
 
 			//if all the snooping caches are processed
-			if (Bus.snoopingCoresProcessed >= (Bus.upperLevels.size() - 1))
+			if (BusOld.snoopingCoresProcessed >= (BusOld.upperLevels.size() - 1))
 			{
 				//TODO Read from main memory into the source cache
 				AccessLowerFromBus.access(requestingThreadID, sourceCache, MESI.MODIFIED);
@@ -108,33 +108,33 @@ public class SearchLineCopiesEvent extends Event
 		}
 		
 		//If the request is memory access (for Read miss)
-		else if (Bus.requestType == Bus.BusReqType.MEM_ACCESS)
+		else if (BusOld.requestType == BusOld.BusReqType.MEM_ACCESS)
 		{
 			CacheLine cl = targetCache.access(address);
-			Bus.snoopingCoresProcessed++;
+			BusOld.snoopingCoresProcessed++;
 			
 			//Copy found
 			if (cl != null)
 			{
-				Bus.copiesFound++;
-				if (Bus.copiesFound == 1)
+				BusOld.copiesFound++;
+				if (BusOld.copiesFound == 1)
 				{
-					Bus.singleFoundCopy = cl;
-					Bus.cacheContainingTheCopy = targetCache;
+					BusOld.singleFoundCopy = cl;
+					BusOld.cacheContainingTheCopy = targetCache;
 				}
 			}
 			
 			//if all the snooping caches are processed
-			if (Bus.snoopingCoresProcessed >= (Bus.upperLevels.size() - 1))
+			if (BusOld.snoopingCoresProcessed >= (BusOld.upperLevels.size() - 1))
 			{
-				if (Bus.copiesFound == 0) //No copies found (may be invalid)
+				if (BusOld.copiesFound == 0) //No copies found (may be invalid)
 				{
 					//TODO Store main mem value in the cache
 					AccessLowerFromBus.access(requestingThreadID, sourceCache, MESI.EXCLUSIVE);
 				}
-				else if (Bus.copiesFound == 1)	// A single copy found (E/M)
+				else if (BusOld.copiesFound == 1)	// A single copy found (E/M)
 				{
-					if (Bus.singleFoundCopy.getState() == MESI.EXCLUSIVE)
+					if (BusOld.singleFoundCopy.getState() == MESI.EXCLUSIVE)
 					{
 						//TODO singleFoundCopy is put to bus
 						//TODO state set OF BOTH to S
@@ -143,9 +143,9 @@ public class SearchLineCopiesEvent extends Event
 																			MemEventQueue.clock
 																			+ SystemConfig.cacheBusLatency
 																			+ sourceCache.getLatency()));
-						Bus.singleFoundCopy.setState(MESI.SHARED);
+						BusOld.singleFoundCopy.setState(MESI.SHARED);
 					}
-					else if (Bus.singleFoundCopy.getState() == MESI.MODIFIED)
+					else if (BusOld.singleFoundCopy.getState() == MESI.MODIFIED)
 					{
 						//TODO singleFoundCopy is put to bus
 						//TODO singleFoundCopy written back to main memory
@@ -158,7 +158,7 @@ public class SearchLineCopiesEvent extends Event
 						
 						CacheRequestPacket request = new CacheRequestPacket();
 						request.setThreadID(requestingThreadID);
-						request.setAddr(Bus.address);
+						request.setAddr(BusOld.address);
 						request.setType(MemoryAccessType.WRITE);
 						if (targetCache.isLastLevel)	
 							MemEventQueue.eventQueue.add(new MainMemAccessEvent(requestingThreadID, 
@@ -177,7 +177,7 @@ public class SearchLineCopiesEvent extends Event
 																			MemEventQueue.clock
 																			+ SystemConfig.cacheBusLatency
 																			+ targetCache.nextLevel.getLatency()));
-						Bus.singleFoundCopy.setState(MESI.SHARED);
+						BusOld.singleFoundCopy.setState(MESI.SHARED);
 					}
 				}
 				else //Multiple copies found (Shared)

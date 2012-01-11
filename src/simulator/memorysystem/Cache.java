@@ -24,7 +24,7 @@ import java.util.*;
 
 import config.CacheConfig;
 import config.SystemConfig;
-import memorysystem.Bus.BusReqType;
+import memorysystem.BusOld.BusReqType;
 import memorysystem.CacheLine.MESI;
 import misc.Util;
 import generic.*;
@@ -36,6 +36,13 @@ public class Cache extends SimulationElement
 			iCache,
 			Lower
 		}
+		
+		public static enum CoherenceType{
+			Snoopy,
+			Directory,
+			None
+		}
+		
 		/* cache parameters */
 		CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
@@ -49,8 +56,10 @@ public class Cache extends SimulationElement
 		protected int numLinesMask;
 		protected Vector<Long> evictedLines = new Vector<Long>();
 		
-		protected boolean enforcesCoherence = false; //The cache which is shared between the coherent cache level
-		protected boolean isCoherent = false; //Tells whether the level is coherent or not
+//		protected boolean enforcesCoherence = false; //The cache which is shared between the coherent cache level
+//		protected boolean isCoherent = false; //Tells whether the level is coherent or not
+		
+		public CoherenceType coherence = CoherenceType.None;
 		
 //		protected boolean isFirstLevel = false;
 		protected CacheType levelFromTop; 
@@ -146,6 +155,8 @@ public class Cache extends SimulationElement
 			this.levelFromTop = cacheParameters.getLevelFromTop();
 			this.isLastLevel = cacheParameters.isLastLevel();
 			this.nextLevelName = cacheParameters.getNextLevel();
+//			this.enforcesCoherence = cacheParameters.isEnforcesCoherence();
+			this.coherence = cacheParameters.getCoherence();
 			
 			this.numLinesBits = Util.logbase2(numLines);
 			this.timestamp = 0;

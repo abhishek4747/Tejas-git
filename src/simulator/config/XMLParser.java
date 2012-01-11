@@ -29,6 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import memorysystem.Cache;
 import memorysystem.Cache.CacheType;
+import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
@@ -168,8 +169,6 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		
-		SystemConfig.coherenceEnforcingCache = getImmediateString("CoherenceEnforcingCache", systemElmnt);
 		
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
@@ -312,7 +311,20 @@ public class XMLParser
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
 		
-		tempStr = getImmediateString("LastLevel", CacheType);
+		tempStr = getImmediateString("Coherence", CacheType);
+		if (tempStr.equalsIgnoreCase("N"))
+			cache.coherence = CoherenceType.None;
+		else if (tempStr.equalsIgnoreCase("S"))
+			cache.coherence = CoherenceType.Snoopy;
+		else if (tempStr.equalsIgnoreCase("D"))
+			cache.coherence = CoherenceType.Directory;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'S', D' or 'N')");
+			System.exit(1);
+		}
+		
+	tempStr = getImmediateString("LastLevel", CacheType);
 		if (tempStr.equalsIgnoreCase("Y"))
 			cache.isLastLevel = true;
 		else if (tempStr.equalsIgnoreCase("N"))
@@ -324,6 +336,15 @@ public class XMLParser
 		}
 	}
 	
+	private static boolean setDirectoryCoherent(String immediateString) {
+		if(immediateString==null)
+			return false;
+		if(immediateString.equalsIgnoreCase("T"))
+			return true;
+		else
+			return false;
+	}
+
 	private static Element searchLibraryForItem(String tagName)	//Searches the <Library> section for a given tag name and returns it in Element form
 	{															// Used mainly for cache types
 		NodeList nodeLst = doc.getElementsByTagName("Library");
