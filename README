@@ -1,4 +1,4 @@
-HOW TO setup BhartiSim
+HOW TO setup Tejas
 -----------------------
 
 building 
@@ -25,7 +25,7 @@ modifying and testing the simulator
  ---------
 
 
-BhartiSim directory structure
+Tejas directory structure
 ------------------------------
 
 doc			- contains explanation of the functionality and working of 
@@ -33,10 +33,10 @@ doc			- contains explanation of the functionality and working of
 LICENSE		- Contains the terms and conditions for use, reproduction and distribution
 MAINTAINERS	- who is responsible for what description
 NOTICE		- copyright notice
-README		- Contains instructions to build and provides overview of BhartiSim
-src		    - all real code for BhartiSim is in this directory (description below)
+README		- Contains instructions to build and provides overview of Tejas
+src		    - all real code for Tejas is in this directory (description below)
 TODO		- if you have some time available and you want to have some fun, 
-		      check this file and help improve BhartiSim
+		      check this file and help improve Tejas
 
 
 src directory structure
