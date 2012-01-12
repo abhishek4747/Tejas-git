@@ -1,0 +1,21 @@
+
+syntax: regexp
+^src/simulator/config/config\.xml$
+syntax: regexp
+^src/emulator/pin/obj-comm/libshmlib\.so$
+syntax: regexp
+^src/emulator/pin/obj-comm/make-directory$
+syntax: regexp
+^src/emulator/pin/obj-ia32/causalityTool\.so$
+syntax: regexp
+^src/emulator/pin/obj-ia32/make-directory$
+syntax: regexp
+^src/emulator/pin/obj-ia32/PgmInstrumentor\.so$
+syntax: regexp
+^src/emulator/pin/obj-ia32/prelimcausalityTool\.so$
+syntax: regexp
+^src/emulator/pin/obj-ia32/printingTool\.so$
+syntax: regexp
+^SPECtestformatmodifier_z\.txt$
+syntax: regexp
+^spooles\.out$
