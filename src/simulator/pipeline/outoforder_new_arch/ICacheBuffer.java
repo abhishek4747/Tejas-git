@@ -15,8 +15,8 @@ public class ICacheBuffer {
 		this.size = size;
 		buffer = new Instruction[size];
 		fetchComplete = new boolean[size];
-		head = 0;
-		tail = 0;
+		head = -1;
+		tail = -1;
 	}
 	
 	public void addToBuffer(Instruction newInstruction)
@@ -24,14 +24,29 @@ public class ICacheBuffer {
 		/*
 		 * check if buffer is full before calling this function
 		 */
+		
+		if(head == -1)
+		{
+			head = tail = 0;
+		}
+		else
+		{
+			tail = (tail + 1)%size;
+		}
+		
 		buffer[tail] = newInstruction;
-		fetchComplete[tail] = false;
-		tail = (tail + 1)%size;
+		//fetchComplete[tail] = false;
+		fetchComplete[tail] = true;
+		
+		//System.out.println("adding ; " + head + " " + tail + " " + newInstruction);
 	}
 	
 	public Instruction getNextInstruction()
 	{
 		Instruction toBeReturned = null;
+		
+		if(head == -1)
+			return null;
 		
 		if(fetchComplete[head] == true)
 		{
@@ -41,14 +56,25 @@ public class ICacheBuffer {
 				System.out.println("to be returned is null");
 			}
 			buffer[head] = null;
-			head = (head + 1)%size;
+			if(head == tail)
+			{
+				head = tail = -1;
+			}
+			else
+			{
+				head = (head + 1)%size;
+			}
 		}
 		
+		//System.out.println("removing ; " + head + " " + tail + " " + toBeReturned);
 		return toBeReturned;
 	}
 	
 	public void updateFetchComplete(long programCounter)
 	{
+		if(head == -1)
+			return;
+		
 		for(int i = head; ; i = (i + 1)%size)
 		{
 			if(buffer[i] != null && buffer[i].getProgramCounter() == programCounter)
@@ -63,7 +89,7 @@ public class ICacheBuffer {
 	
 	public boolean isFull()
 	{
-		if((tail + 1)%size == head && buffer[head] != null)
+		if((tail + 1)%size == head && head != -1 && buffer[head] != null)
 			return true;
 		return false;
 	}
