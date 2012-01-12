@@ -6,6 +6,7 @@ import memorysystem.*;
 
 public class Bus 
 {
+	protected BusController busController;
 	protected Cache requestingCache;
 	protected BusReqType requestType;
 	protected long address;
@@ -29,5 +30,10 @@ public class Bus
 		INVALIDATE,	//Broadcast INVALID (Happens on a write hit if state is SHARED)
 		RWITM,		//Broadcast "Read With Intent To Modify" (Happens on a write miss)
 		MEM_ACCESS	//Memory (or lower level cache) access request (Happens on a read miss)
+	}
+	
+	private Cache getBank(long address)
+	{
+		return this.busController.lowerCache;
 	}
 }

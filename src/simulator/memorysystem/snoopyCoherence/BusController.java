@@ -3,13 +3,13 @@ package memorysystem.snoopyCoherence;
 import java.util.ArrayList;
 import memorysystem.Cache;
 
-public class BusSet 
+public class BusController 
 {
-	private ArrayList<Cache> upperLevel;
-	private Cache lowerCache;
+	protected ArrayList<Cache> upperLevel;
+	protected Cache lowerCache;
 	private Bus busSet[];
 	
-	public BusSet(ArrayList<Cache> upperLevel, Cache lowerCache, int numberOfBuses) 
+	public BusController(ArrayList<Cache> upperLevel, Cache lowerCache, int numberOfBuses) 
 	{
 		super();
 		this.upperLevel = upperLevel;
