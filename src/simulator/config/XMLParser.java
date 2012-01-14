@@ -310,6 +310,9 @@ public class XMLParser
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
+		cache.numberOfBankColumns = Integer.parseInt(getImmediateString("NumberOfBankColumns", CacheType));
+		cache.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", CacheType));		
+		cache.numberOfBuffers = Integer.parseInt(getImmediateString("NumberOfBuffers", CacheType));
 		
 		tempStr = getImmediateString("Coherence", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))
