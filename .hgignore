@@ -15,3 +15,7 @@ syntax: regexp
 ^src/emulator/pin/obj-ia32/prelimcausalityTool\.so$
 syntax: regexp
 ^src/emulator/pin/obj-ia32/printingTool\.so$
+syntax: regexp
+^SPECtestformatmodifier_z\.txt$
+syntax: regexp
+^spooles\.out$

@@ -27,8 +27,6 @@ import config.SystemConfig;
  */
 
 public class Core extends SimulationElement{
-
-	public static int outstandingMemRequests = 0;	//TODO To remove this after testing of perfect pipeline
 	
 	//long clock;
 	StatisticalPipeline statisticalPipeline;

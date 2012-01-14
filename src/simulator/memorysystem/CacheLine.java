@@ -29,13 +29,6 @@ public class CacheLine
 //	private boolean modified;
 	private int pid;
 	private MESI state;
-	
-	public static enum MESI{
-		MODIFIED,
-		EXCLUSIVE,
-		SHARED,
-		INVALID
-	}
 
 	protected boolean hasTagMatch(long tag)
 	{

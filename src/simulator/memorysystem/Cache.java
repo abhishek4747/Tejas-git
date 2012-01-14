@@ -22,10 +22,11 @@ package memorysystem;
 
 import java.util.*;
 
+import memorysystem.snoopyCoherence.BusController;
+
 import config.CacheConfig;
 import config.SystemConfig;
 import memorysystem.BusOld.BusReqType;
-import memorysystem.CacheLine.MESI;
 import misc.Util;
 import generic.*;
 
@@ -40,7 +41,8 @@ public class Cache extends SimulationElement
 		public static enum CoherenceType{
 			Snoopy,
 			Directory,
-			None
+			None,
+			LowerLevelCoherent
 		}
 		
 		/* cache parameters */
@@ -60,6 +62,7 @@ public class Cache extends SimulationElement
 //		protected boolean isCoherent = false; //Tells whether the level is coherent or not
 		
 		public CoherenceType coherence = CoherenceType.None;
+		public BusController busController = null;
 		
 //		protected boolean isFirstLevel = false;
 		protected CacheType levelFromTop; 
@@ -310,73 +313,6 @@ public class Cache extends SimulationElement
 			
 			return entryAlreadyThere;
 		}
-/*		
-		/**
-		 * When a data block requested by an outstanding request arrives through a BlockReadyEvent,
-		 * this method is called to process the arrival of block and process all the outstanding requests.
-		 * @param addr : Memory address requested
-		 *
-		protected void receiveOutstandingRequestBlock(long addr)
-		{
-			CacheLine evictedLine = this.fill(addr);//FIXME
-			
-			if (!/*NOT*outstandingRequestTable.containsKey(addr))
-			{
-				System.err.println("Memory System Crash : An outstanding request not found in the requesting element");
-				System.exit(1);
-			}
-			
-			ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = outstandingRequestTable.get(addr);
-			
-			while (!/*NOT*outstandingRequestList.isEmpty())
-			{
-				if (outstandingRequestList.get(0).requestType == RequestType.MEM_READ)
-				{
-					//Pass the value to the waiting element
-					//Create an event (BlockReadyEvent) for the waiting element
-					if (outstandingRequestList.get(0).lsqIndex == LSQ.INVALID_INDEX)
-						//Generate the event for the Upper level cache
-						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
-																	this,
-																	outstandingRequestList.get(0).requestingElement, 
-																	0, //tieBreaker
-																	RequestType.MEM_BLOCK_READY));
-					else
-						//Generate the event to tell the LSQ
-						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
-																	this,
-																	outstandingRequestList.get(0).requestingElement, 
-																	0, //tieBreaker
-																	RequestType.MEM_BLOCK_READY,
-																	outstandingRequestList.get(0).lsqIndex));
-				}
-				
-				else if (outstandingRequestList.get(0).requestType == RequestType.MEM_WRITE)
-				{
-					//Write the value to the block (Do Nothing)
-					//Pass the value to the waiting element
-					//Create an event (BlockReadyEvent) for the waiting element
-					if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
-						//(If the requesting element is LSQ)
-						//Generate the event to tell the LSQ
-						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
-																	this,
-																	outstandingRequestList.get(0).requestingElement,
-																	0, //tieBreaker
-																	RequestType.MEM_BLOCK_READY,
-																	outstandingRequestList.get(0).lsqIndex));
-					
-					//Handle in any case (Whether requesting element is LSQ or cache)
-					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
-					
-				}
-				else
-				{
-					System.err.println("Memory System Crash : A request was of type other than MEM_READ or MEM_WRITE");
-					System.exit(1);
-				}
-			}
-		}*/
 		
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
@@ -418,9 +354,16 @@ public class Cache extends SimulationElement
 				else if (requestType == RequestType.Cache_Write)
 				{
 					//Write the data to the cache block (Do Nothing)
+					if (this.nextLevel.coherence == CoherenceType.Snoopy)
+						this.nextLevel.busController.processWriteHit();
+					else if (this.nextLevel.coherence == CoherenceType.Directory)
+					{}//TODO
+					else if (this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
+					{}//TODO
 					
 					//If the cache level is Write-through
-					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+					else if ((this.nextLevel.coherence == CoherenceType.None) 
+							&& (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH))
 					{
 						if (this.isLastLevel)
 						{
@@ -462,12 +405,7 @@ public class Cache extends SimulationElement
 											this.nextLevel,
 											RequestType.Cache_Write));
 						}
-					}
-					else
-					{
-						Core.outstandingMemRequests--;
-					}
-						
+					}						
 				}
 			}
 			
@@ -479,6 +417,13 @@ public class Cache extends SimulationElement
 				
 				if (!alreadyRequested)
 				{
+					if (this.nextLevel.coherence == CoherenceType.Snoopy)
+						this.nextLevel.busController.processMiss();
+					else if (this.nextLevel.coherence == CoherenceType.Directory)
+					{}//TODO
+					else if (this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
+					{}//TODO
+					
 					// access the next level
 					if (this.isLastLevel)
 					{
@@ -628,7 +573,7 @@ public class Cache extends SimulationElement
 					}
 					else
 					{
-						Core.outstandingMemRequests--;
+//						Core.outstandingMemRequests--;
 					}
 				}
 				else

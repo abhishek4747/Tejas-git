@@ -20,4 +20,14 @@ public class BusController
 			busSet[i] = new Bus();
 		}
 	}
+	
+	public void processWriteHit()
+	{
+		
+	}
+	
+	public void processMiss()
+	{
+		
+	}
 }
