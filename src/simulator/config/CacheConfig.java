@@ -157,6 +157,10 @@ public class CacheConfig
 		return this.numberOfBankColumns;
 	}
 
+	public int getBankSize()
+	{
+		return size/(numberOfBankColumns*numberOfBankRows);
+	}
 //	public boolean isFirstLevel() {
 //		return isFirstLevel;
 //	}
