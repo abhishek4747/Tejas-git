@@ -68,5 +68,54 @@ public class NucaCacheBank extends Cache
 	{
 		return this.router;
 	}
+	
+	@Override
+	
+	public void handleEvent(EventQueue eventQ, Event event){
+		// TODO Auto-generated method stub
+		
+		SimulationElement requestingElement = event.getRequestingElement();
+		RequestType requestType = event.getRequestType();
+		
+		RoutingAlgo.DIRECTION nextID;
+		Vector<Integer> destinationId;
+		Vector<Integer> currentId = ((NucaCacheBank) event.getRequestingElement()).router.getBankId();
+
+	   //Destination is stored inside event
+		destinationId = ((DestinationBankEvent)(event)).getDestination();
+			
+		if(currentId.equals(destinationId))
+		{
+			//TODO
+			//process the bank search
+			//if request is for read ,then return data
+		}
+		
+		nextID = router.RouteComputation(currentId, destinationId, RoutingAlgo.ALGO.SIMPLE);
+		
+		if(router.CheckNeighbourBuffer(nextID)) 
+		{
+			//post event to nextID
+			requestingElement.getPort().put(
+					event.update(
+							eventQ,
+							1,
+							this, 
+							this.router.GetNeighbours().elementAt(nextID.ordinal()),
+							requestType));
+			this.router.FreeBuffer();
+		}
+		else
+		{
+			//post event to this ID
+			requestingElement.getPort().put(
+					event.update(
+							eventQ,
+							1,
+							this, 
+							this,
+							requestType));
+		}
+	}
 
 }
