@@ -204,10 +204,13 @@ int extraCycles=0;
 				if(tidEmu==0)
 					tempu=n;
 				//FIXME what if core not started
-				if(thread.started  &&  n<minN&& n>5*(pipelineInterfaces[tidEmu].getCoreStepSize()))
+				if(tidEmu==0)
+					System.out.println("n = "+n);
+				if(thread.started  &&  n<minN)
 					minN=n;
 				//	System.out.print("  "+n);
 			}
+			System.out.println("minN ="+minN);
 			//System.out.println();
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
 			//System.out.println("min is"+minN + " pipeline size  : " + inputToPipeline[0].getListSize());
@@ -221,7 +224,6 @@ int extraCycles=0;
 					}
 					GlobalClock.incrementClock();
 				}
-			int n = inputToPipeline[1].getListSize()/decodeWidth[1] * pipelineInterfaces[1].getCoreStepSize();
 			//System.out.println("after execution n=  "+n+" Thread finished ? "+threadParams[1].finished);
 
 			// this runnable thread can be stopped in two ways. Either the

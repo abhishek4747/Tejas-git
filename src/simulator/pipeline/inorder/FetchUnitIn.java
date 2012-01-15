@@ -44,6 +44,8 @@ public class FetchUnitIn extends SimulationElement{
 		for(int i=fetchBufferIndex;fetchFillCount<fetchBufferCapacity;i = (i+1)%fetchBufferCapacity){
 			if(newInstruction.getOperationType() == OperationType.inValid){
 				core.getExecutionEngineIn().setFetchComplete(true);
+				fetchBuffer[i] = inputToPipeline.pollFirst();
+				fetchFillCount++;
 				break;
 			}
 			else
@@ -70,6 +72,7 @@ public class FetchUnitIn extends SimulationElement{
 			fillFetchBuffer();
 
 		Instruction ins;
+//System.out.println(this.sleep+" "+this.stall);
 		if(!this.sleep && this.stall==0){
 			if(fetchFillCount > 0){
 				ins = fetchBuffer[fetchBufferIndex];

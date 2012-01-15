@@ -24,6 +24,7 @@ public class InorderPipeline implements PipelineInterface{
 	System.out.println(" exec complete "+core.getExecutionEngineIn().getExecutionComplete());
 */
 		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+			this.core.getExecutionEngineIn().incrementNumCycles(1);
 			writeback();
 		}
 		drainEventQueue();
@@ -34,6 +35,7 @@ public class InorderPipeline implements PipelineInterface{
 			fetch();
 		}
 		if(core.getExecutionEngineIn().getExecutionComplete()){
+			System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
 			setTimingStatistics();			
 			setPerCoreMemorySystemStatistics();
 		}

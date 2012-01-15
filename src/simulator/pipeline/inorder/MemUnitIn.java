@@ -21,9 +21,10 @@ public class MemUnitIn extends SimulationElement{
 		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
 		StageLatch exMemLatch = core.getExecutionEngineIn().getExMemLatch();
 		Instruction ins = exMemLatch.getInstruction();
-		if(!exMemLatch.getMemDone())
+		if(!exMemLatch.getMemDone()){
 			core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
-		if(ins!=null){
+//System.out.println("Memory Stall!");
+		}if(ins!=null){
 			memWbLatch.setInstruction(ins);
 			memWbLatch.setIn1(exMemLatch.getIn1());
 			memWbLatch.setIn2(exMemLatch.getIn2());
