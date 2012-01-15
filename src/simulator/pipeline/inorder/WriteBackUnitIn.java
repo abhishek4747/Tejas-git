@@ -3,6 +3,7 @@ package pipeline.inorder;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
 
@@ -16,8 +17,11 @@ public class WriteBackUnitIn extends SimulationElement{
 	
 	public void performWriteBack(){
 		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
-		if(memWbLatch.getInstruction()!=null){
-			core.incrementNoOfInstructionsExecuted();
+		if(memWbLatch.getInstruction()!=null){ 
+			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
+				core.getExecutionEngineIn().setExecutionComplete(true);
+			else 
+				core.incrementNoOfInstructionsExecuted();			
 		}
 	}
 

@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import emulatorinterface.communication.IpcBase;
 import generic.MultiPortingType;
 
 import java.io.File;
@@ -168,11 +169,13 @@ public class XMLParser
 		SystemConfig.mainMemoryAccessPorts = Integer.parseInt(getImmediateString("MainMemoryAccessPorts", systemElmnt));
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
-		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
+		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
+		SystemConfig.core = new CoreConfig[32];
 		
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
-		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		for (int i = 0; i < 32; i++)
 		{
 			SystemConfig.core[i] = new CoreConfig();
 			CoreConfig core = SystemConfig.core[i]; //To be locally used for assignments

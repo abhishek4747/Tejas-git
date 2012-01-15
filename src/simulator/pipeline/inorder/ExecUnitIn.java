@@ -36,13 +36,15 @@ public class ExecUnitIn extends SimulationElement{
 				if(idExLatch.getOperationType()==OperationType.load){
 					core.getExecutionEngineIn().updateNoOfLd(1);
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);
-					exMemLatch.setMemDone(false);
 					//Schedule a mem read event now so that it can be completed in the mem stage
+
+					exMemLatch.setMemDone(false);
 	
 					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 							core.getExecutionEngineIn().getMemUnitIn(),
 							RequestType.Cache_Read,
 							ins.getSourceOperand1().getValue());
+				
 				}
 				else if(idExLatch.getOperationType()==OperationType.store){
 					core.getExecutionEngineIn().updateNoOfSt(1);

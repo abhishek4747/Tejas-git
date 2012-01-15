@@ -1,5 +1,6 @@
 package pipeline.inorder;
 
+import config.SystemConfig;
 import memorysystem.CoreMemorySystem;
 import generic.Core;
 import generic.GlobalClock;
@@ -9,6 +10,8 @@ public class ExecutionEngineIn {
 	
 	Core core;
 	StageLatch ifId,idEx,exMem,memWb,wbDone;
+	
+	private int numCycles;
 	private FetchUnitIn fetchUnitIn;
 	private DecodeUnitIn decodeUnitIn;
 	private RegFileIn regFileIn;
@@ -80,6 +83,7 @@ public class ExecutionEngineIn {
 //	}
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
+		System.out.println("Core "+core.getCore_number()+" numCycles="+this.numCycles);
 	}
 	public void setFetchComplete(boolean fetchComplete){
 		this.fetchComplete=fetchComplete;
@@ -164,5 +168,13 @@ public class ExecutionEngineIn {
 	public void updateNoOfSt(int i) {
 		// TODO Auto-generated method stub
 		this.noOfSt += i;
+	}
+
+	public void incrementNumCycles(int numCycles) {
+		this.numCycles += numCycles;
+	}
+
+	public int getNumCycles() {
+		return numCycles;
 	}
 }
