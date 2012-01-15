@@ -205,25 +205,28 @@ int extraCycles=0;
 					tempu=n;
 				//FIXME what if core not started
 				if(tidEmu==0)
-					System.out.println("n = "+n);
+//System.out.println("n = "+n);
 				if(thread.started  &&  n<minN)
 					minN=n;
 				//	System.out.print("  "+n);
 			}
-			System.out.println("minN ="+minN);
+//System.out.println("minN ="+minN);
 			//System.out.println();
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
 			//System.out.println("min is"+minN + " pipeline size  : " + inputToPipeline[0].getListSize());
 			if (minN==tempu &&extraCycles!=-1){ extraCycles+=minN;
 //			System.out.println("Extra cycles = "+extraCycles);
 			}
-			else extraCycles = -1;
-				for (int i1=0; i1< minN; i1++)	{
-					for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+			else 
+				extraCycles = -1;
+			
+			for (int i1=0; i1< minN; i1++)	{
+				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+					if(threadParams[tidEmu].started)
 						pipelineInterfaces[tidEmu].oneCycleOperation();
-					}
-					GlobalClock.incrementClock();
 				}
+				GlobalClock.incrementClock();
+			}
 			//System.out.println("after execution n=  "+n+" Thread finished ? "+threadParams[1].finished);
 
 			// this runnable thread can be stopped in two ways. Either the
@@ -259,7 +262,7 @@ int extraCycles=0;
 		{
 			//System.out.println("Pin completed ");
 			queueComplete = true;        
-			for(int i = 0; i < EMUTHREADS; i++)
+			for(int i = 0; i < EMUTHREADS && threadParams[i].started; i++)
 			{
 
 				queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
@@ -279,14 +282,22 @@ int extraCycles=0;
 			}	
 			for (int i1=0; i1< maxN; i1++)	{
 				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-					pipelineInterfaces[tidEmu].oneCycleOperation();
+					if(threadParams[tidEmu].started)
+						pipelineInterfaces[tidEmu].oneCycleOperation();
 				}
 				GlobalClock.incrementClock();
 			}
 
 		}
-
-
+		Core core;
+		for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+			core = pipelineInterfaces[tidEmu].getCore();
+			if(core.getExecutionEngineIn().getExecutionComplete()){
+				System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
+				pipelineInterfaces[tidEmu].setTimingStatistics();			
+				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
+			}
+		}
 		long dataRead = 0;
 		long totNumIns = 0;
 		long totMicroOps = 0;
@@ -387,9 +398,9 @@ int extraCycles=0;
 				md5.update(sb.toString().getBytes());
 			}
 			 */
-			if(noOfMicroOps[tidEmu] > 1000000  && tempList.getListSize() > 0) {
+			long temp=noOfMicroOps[tidEmu] % 1000000;
+			if(temp < 5  && tempList.getListSize() > 0) {
 				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
-				noOfMicroOps[tidEmu] = 0;
 			}
 
 

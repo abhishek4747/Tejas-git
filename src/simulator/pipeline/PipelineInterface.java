@@ -11,4 +11,6 @@ public interface PipelineInterface {
 	public void resumePipeline();
 	public Core getCore();
 	public boolean isSleeping();
+	public void setTimingStatistics();
+	public void setPerCoreMemorySystemStatistics();
 }

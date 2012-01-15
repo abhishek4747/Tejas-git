@@ -38,13 +38,13 @@ public class ExecUnitIn extends SimulationElement{
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);
 					//Schedule a mem read event now so that it can be completed in the mem stage
 
-//					exMemLatch.setMemDone(false);
-//	
-//					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-//							core.getExecutionEngineIn().getMemUnitIn(),
-//							RequestType.Cache_Read,
-//							ins.getSourceOperand1().getValue());
-//				
+					exMemLatch.setMemDone(false);
+	
+					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							core.getExecutionEngineIn().getMemUnitIn(),
+							RequestType.Cache_Read,
+							ins.getSourceOperand1().getValue());
+				
 				}
 				else if(idExLatch.getOperationType()==OperationType.store){
 					core.getExecutionEngineIn().updateNoOfSt(1);
@@ -52,10 +52,10 @@ public class ExecUnitIn extends SimulationElement{
 //					exMemLatch.setMemDone(false); /FIXME *Pipeline doesn't wait for the store to complete! */
 					//Schedule a mem read event now so that it can be completed in the mem stage
 	
-//					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-//							core.getExecutionEngineIn().getMemUnitIn(),
-//							RequestType.Cache_Write,
-//							ins.getSourceOperand1().getValue());
+					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							core.getExecutionEngineIn().getMemUnitIn(),
+							RequestType.Cache_Write,
+							ins.getSourceOperand1().getValue());
 				}
 				else{
 					exMemLatch.setMemDone(true);

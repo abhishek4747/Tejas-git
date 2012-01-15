@@ -34,11 +34,7 @@ public class InorderPipeline implements PipelineInterface{
 			decode();
 			fetch();
 		}
-		if(core.getExecutionEngineIn().getExecutionComplete()){
-			System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
-			setTimingStatistics();			
-			setPerCoreMemorySystemStatistics();
-		}
+
 		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
 	}
 

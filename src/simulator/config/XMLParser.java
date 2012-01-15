@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import emulatorinterface.communication.IpcBase;
 import generic.MultiPortingType;
 
 import java.io.File;
