@@ -2,18 +2,19 @@ package memorysystem.snoopyCoherence;
 
 import java.util.ArrayList;
 import java.util.Stack;
+
+import generic.RequestType;
 import memorysystem.*;
 import memorysystem.BusOld.BusReqType;
 
-public class Bus extends SimulationElement
+public class Bus
 {
 	protected BusController busController;
 	protected Cache requestingCache;
-	protected BusReqType requestType;
+	protected RequestType requestType;
 	protected long address;
-//	protected CacheLine sourceLine;
-//	protected LSQEntry lsqEntry;
-//	
+	protected CacheLine sourceLine;
+	
 //	protected int snoopingCoresProcessed = 0;
 //	protected int copiesFound = 0;
 //
@@ -25,7 +26,7 @@ public class Bus extends SimulationElement
 //	protected ArrayList<BusRequestQElmnt> reqQueue = 
 //		new ArrayList<BusRequestQElmnt>();
 //	
-//	protected boolean isLocked = false;
+	protected boolean isLocked = false;
 	
 	public enum BusReqType{
 		INVALIDATE,	//Broadcast INVALID (Happens on a write hit if state is SHARED)
@@ -45,28 +46,22 @@ public class Bus extends SimulationElement
 	 * @param _sourceCache : Which cache sent the request?
 	 * @return boolean value to tell whether the request added successfully or not
 	 */
-//	public static void newRequest(int _requestingThreadID,
-//								BusReqType _requestType, 
-//								long _address,
-//								Cache _sourceCache,
-//								CacheLine _sourceLine,
-//								Stack<CacheFillStackEntry> _cacheFillStack,
-//								LSQEntry _lsqEntry)
-//	{
-//		requestingThreadID = _requestingThreadID;
-//		requestType = _requestType;
-//		address = _address;
-//		sourceCache  = _sourceCache;
-//		sourceLine = _sourceLine;
-//		cacheFillStack = _cacheFillStack;
-//		lsqEntry = _lsqEntry;
+	public void putRequest(Cache _requestingCache,
+							CacheLine _sourceLine,
+							RequestType _requestType, 
+							long _address)
+	{
+		requestingCache = _requestingCache;
+		sourceLine = _sourceLine;
+		requestType = _requestType;
+		address = _address;
 //		snoopingCoresProcessed = 0;
 //		copiesFound = 0;
 //		singleFoundCopy = null;
 //		cacheContainingTheCopy = null;
 //		blockRWITM = false;
-//	}
-//	
+	}
+	
 //	public static void processRequest()
 //	{
 //		switch (requestType)
