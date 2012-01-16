@@ -10,15 +10,15 @@ import java.util.Vector;
 public class DestinationBankEvent extends AddressCarryingEvent{
 	
 	private Vector<Integer> destination;
-	
+	private Vector<Integer> source;
 	public DestinationBankEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
-			RequestType requestType, long address, Vector<Integer> Destination){
+			RequestType requestType, long address,Vector<Integer> source ,Vector<Integer> destination){
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType, address);
-		this.destination = new Vector<Integer>(2);
-		this.destination = Destination;
+		this.destination = destination;
+		this.source = source;
 	}
 	public void updateEvent(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement,

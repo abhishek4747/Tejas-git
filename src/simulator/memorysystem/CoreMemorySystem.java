@@ -31,7 +31,7 @@ import config.CacheConfig;
 public class CoreMemorySystem 
 {
 	protected int coreID;
-	protected Core core;
+	private Core core;
 	protected Cache iCache;
 	protected Cache l1Cache;
 	//protected Cache l2Cache;
@@ -41,7 +41,7 @@ public class CoreMemorySystem
 	
 	public CoreMemorySystem(Core core)
 	{
-		this.core = core;
+		this.setCore(core);
 		this.coreID = core.getCore_number();
 		
 		//Initialise the  L3 cache
@@ -100,7 +100,7 @@ public class CoreMemorySystem
 		
 		lsqueue.getPort().put(
 				new LSQEntryContainingEvent(
-						core.getEventQueue(),
+						getCore().getEventQueue(),
 						lsqueue.getLatencyDelay(), 
 						requestingElement, //Requesting Element
 						lsqueue, 
@@ -113,7 +113,7 @@ public class CoreMemorySystem
 	{
 		lsqueue.getPort().put(
 				 new LSQEntryContainingEvent(
-						core.getEventQueue(),
+						getCore().getEventQueue(),
 						lsqueue.getLatencyDelay(),
 						null,
 						lsqueue, 
@@ -128,7 +128,7 @@ public class CoreMemorySystem
 	{
 		l1Cache.getPort().put(
 				new AddressCarryingEvent(
-						core.getEventQueue(),
+						getCore().getEventQueue(),
 						l1Cache.getLatencyDelay(),
 						requestingElement, 
 						l1Cache,
@@ -142,7 +142,7 @@ public class CoreMemorySystem
 	{
 		iCache.getPort().put(
 				new AddressCarryingEvent(
-						core.getEventQueue(),
+						getCore().getEventQueue(),
 						iCache.getLatencyDelay(),
 						requestingElement, 
 						iCache,
@@ -164,5 +164,13 @@ public class CoreMemorySystem
 
 	public Cache getiCache() {
 		return iCache;
+	}
+
+	public void setCore(Core core) {
+		this.core = core;
+	}
+
+	public Core getCore() {
+		return core;
 	}
 }

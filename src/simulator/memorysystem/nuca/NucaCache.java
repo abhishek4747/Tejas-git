@@ -4,6 +4,7 @@ import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Hashtable;
 
@@ -28,6 +29,9 @@ public abstract class NucaCache extends SimulationElement
     int blockSizeBits;
     Vector<Hashtable> coreNetworkHash;
     Vector<Vector<Vector<Integer>>> coreNetworkVector;
+    protected Hashtable<Long, ArrayList<Event>> missStatusHoldingRegister
+							= new Hashtable<Long, ArrayList<Event>>();
+    
     NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys,SystemConfig sysConfig)
     {
     	super(cacheParameters.portType,
@@ -177,5 +181,7 @@ public abstract class NucaCache extends SimulationElement
 	
 	public abstract long getTag(long addr);
 	
-	public abstract Vector<Integer> getBankId(long addr);
+	public abstract Vector<Integer> getDestinationBankId(long addr);
+	public abstract Vector<Integer> getSourceBankId(long addr);
+	 
 }

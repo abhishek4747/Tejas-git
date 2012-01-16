@@ -1,9 +1,12 @@
 package memorysystem.nuca;
 import generic.Event;
 import generic.EventQueue;
+import generic.RequestType;
 
 import java.util.Hashtable;
 import java.util.Vector;
+
+import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
 import config.SystemConfig;
@@ -15,33 +18,7 @@ public class DNuca extends NucaCache {
 		super(cacheParameters,containingMemSys,sysConfig);
 	}
 
-	public boolean lookup(long addr,int coreId)
-    {
-        Vector<Vector<Integer>> coreNet = coreNetworkVector.get(coreId);
-        Vector<Integer> bankId = getBankId(addr);
-        long tag = getTag(addr);
-        for(int i=0;i<coreNet.size();i++)
-        {
-            Vector<Integer> cluster = coreNet.get(i);
-            for(int j=0;j<cluster.size();j++)
-            {
-                if(cluster.get(j)==bankNumber)
-                {
-                    if(cacheBank[bankId.get(0)][bankId.get(1)].lookup(tag))
-                    {
-                        return true;
-                        
-                    } else
-                    {
-                        return false;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public void migrateCacheBank(int cacheBankNumber,int coreId)//migrate the given cache bank to
+	public void migrateCacheBank(int cacheBankNumber,int coreId)//migrate the given cache bank to
                                                                //corresponding Core's nearset cache banks
     {
         Hashtable coreNetHash = coreNetworkHash.get(coreId);
@@ -64,7 +41,8 @@ public class DNuca extends NucaCache {
             }
         }
     }
-    int getLRUCacheBank(int coreId,int level)//returns the cache bank number of bank that is LRU in a bank cluster
+    
+	int getLRUCacheBank(int coreId,int level)//returns the cache bank number of bank that is LRU in a bank cluster
     {
         Vector<Integer> coreNetCluster = coreNetworkVector.get(coreId).get(level);//cluster of banks at specified at level
         int bankNumber = coreNetCluster.get(0);
@@ -92,15 +70,48 @@ public class DNuca extends NucaCache {
 		return 0;
 	}
 
-	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
-		
+		long address = ((AddressCarryingEvent)(event)).getAddress();
+		int currentlevel = ((AddressCarryingEvent)(event)).getCurrentLevel();
+		boolean flag = ((AddressCarryingEvent)(event)).isFlag();
+		Vector<Integer> sourceBankId = getSourceBankId(address);
+		Vector<Integer> destinationBankId = getDestinationBankId(address);
+		sourceBankId.add(currentlevel);
+		if(currentlevel == 0 && !flag)
+			destinationBankId.add(currentlevel);
+		else
+			destinationBankId.add(currentlevel+1);
+		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
+									getPort().put(((AddressCarryingEvent)event).
+															updateEvent(eventQ, 
+																		0, 
+																		this, 
+																		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
+																		event.getRequestType(), 
+																		sourceBankId, 
+																		destinationBankId,
+																		currentlevel+1));
+
+	}
+
+
+	@Override
+	public Vector<Integer> getDestinationBankId(long addr) {
+		// TODO Auto-generated method stub
+		return getSourceBankId(addr); 
 	}
 
 	@Override
-	public Vector<Integer> getBankId(long addr) {
+	public Vector<Integer> getSourceBankId(long addr) {
 		// TODO Auto-generated method stub
+		int numOfBanks = getNumOfBanks();
+		long laddr = addr >>> blockSizeBits;
+		laddr = laddr%numOfBanks;
+		laddr = laddr - (laddr%associativity);
+		Vector<Integer> sourceBankId = new Vector<Integer>();
+		sourceBankId.add((int) (laddr/cacheColumns));
 		return null;
 	}
+	
 }

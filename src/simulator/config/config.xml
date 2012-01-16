@@ -126,7 +126,6 @@
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
-		
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -143,7 +142,6 @@
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
-
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -160,7 +158,6 @@
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
-
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -177,7 +174,6 @@
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
-
 		</Type3>
 	</Library>
 </Configuration>

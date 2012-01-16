@@ -44,7 +44,7 @@ public class Cache extends SimulationElement
 		}
 		
 		/* cache parameters */
-		CoreMemorySystem containingMemSys;
+		public CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
 		protected int blockSizeBits; // in bits
 		protected int assoc;
@@ -64,7 +64,7 @@ public class Cache extends SimulationElement
 //		protected boolean isFirstLevel = false;
 		protected CacheType levelFromTop; 
 		protected boolean isLastLevel; //Tells whether there are any more levels of cache
-		protected CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
+		public CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
 		
 		protected String nextLevelName; //Name of the next level cache according to the configuration file
 		protected ArrayList<Cache> prevLevel = new ArrayList<Cache>(); //Points towards the previous level in the cache hierarchy
@@ -186,7 +186,7 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		protected CacheLine fill(long addr) //Returns a copy of the evicted line
+		public CacheLine fill(long addr) //Returns a copy of the evicted line
 		{
 			CacheLine evictedLine = null;
 			
@@ -285,7 +285,7 @@ public class Cache extends SimulationElement
 		 * @param requestType : MEM_READ or MEM_WRITE
 		 * @param requestingElement : Which element made the request. Helpful in backtracking and filling the stack
 		 */
-		protected boolean addOutstandingRequest(Event event, long addr)
+		public boolean addOutstandingRequest(Event event, long addr)
 		{
 			boolean entryAlreadyThere;
 			
@@ -466,8 +466,7 @@ public class Cache extends SimulationElement
 					else
 					{
 						Core.outstandingMemRequests--;
-					}
-						
+					}						
 				}
 			}
 			
@@ -558,11 +557,11 @@ public class Cache extends SimulationElement
 										this,
 										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.Mem_Response));
-					else if (containingMemSys.core.isPipelineInorder)
+					else if (containingMemSys.getCore().isPipelineInorder)
 						//TODO Return the call to Inorder pipeline
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								new ExecCompleteEvent(
-										containingMemSys.core.getEventQueue(),
+										containingMemSys.getCore().getEventQueue(),
 										0,
 										null,
 										outstandingRequestList.get(0).getRequestingElement(),
