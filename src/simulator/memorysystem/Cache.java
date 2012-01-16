@@ -355,7 +355,7 @@ public class Cache extends SimulationElement
 				{
 					//Write the data to the cache block (Do Nothing)
 					if (this.nextLevel.coherence == CoherenceType.Snoopy)
-						this.nextLevel.busController.processWriteHit();
+						this.nextLevel.busController.processWriteHit(this, cl);
 					else if (this.nextLevel.coherence == CoherenceType.Directory)
 					{}//TODO
 					else if (this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
@@ -418,36 +418,49 @@ public class Cache extends SimulationElement
 				if (!alreadyRequested)
 				{
 					if (this.nextLevel.coherence == CoherenceType.Snoopy)
-						this.nextLevel.busController.processMiss();
+					{
+						if (requestType == RequestType.Cache_Read)
+							this.nextLevel.busController.processReadMiss();
+						else if (requestType == RequestType.Cache_Read)
+							this.nextLevel.busController.processWriteMiss();
+						else
+						{
+							System.err.println("Error : This must not be happening");
+							System.exit(1);
+						}
+					}
 					else if (this.nextLevel.coherence == CoherenceType.Directory)
 					{}//TODO
 					else if (this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
 					{}//TODO
 					
 					// access the next level
-					if (this.isLastLevel)
+					else 
 					{
-						MemorySystem.mainMemory.getPort().put(
-								new AddressCarryingEvent(
-										eventQ,
-										MemorySystem.mainMemory.getLatencyDelay(),
-										this, 
-										MemorySystem.mainMemory,
-										RequestType.Main_Mem_Read,
-										address));
-						return;
-					}
-					else
-					{
-						this.nextLevel.getPort().put(
-								new AddressCarryingEvent(
-										eventQ,
-										this.nextLevel.getLatencyDelay(),
-										this, 
-										this.nextLevel,
-										RequestType.Cache_Read, 
-										address));
-						return;
+						if (this.isLastLevel)
+						{
+							MemorySystem.mainMemory.getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											MemorySystem.mainMemory.getLatencyDelay(),
+											this, 
+											MemorySystem.mainMemory,
+											RequestType.Main_Mem_Read,
+											address));
+							return;
+						}
+						else
+						{
+							this.nextLevel.getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											this.nextLevel.getLatencyDelay(),
+											this, 
+											this.nextLevel,
+											RequestType.Cache_Read, 
+											address));
+							return;
+						}
 					}
 				}
 			}

@@ -5,7 +5,7 @@ import java.util.Stack;
 import memorysystem.*;
 import memorysystem.BusOld.BusReqType;
 
-public class Bus 
+public class Bus extends SimulationElement
 {
 	protected BusController busController;
 	protected Cache requestingCache;

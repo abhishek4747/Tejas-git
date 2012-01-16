@@ -110,11 +110,11 @@ public class CacheLine
 		this.pid = pid;
 	}
 
-	protected MESI getState() {
+	public MESI getState() {
 		return state;
 	}
 
-	protected void setState(MESI state) {
+	public void setState(MESI state) {
 		this.state = state;
 	}
 }

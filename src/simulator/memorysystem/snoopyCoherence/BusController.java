@@ -1,7 +1,9 @@
 package memorysystem.snoopyCoherence;
 
 import java.util.ArrayList;
+import memorysystem.CacheLine;
 import memorysystem.Cache;
+import memorysystem.MESI;
 
 public class BusController 
 {
@@ -21,12 +23,32 @@ public class BusController
 		}
 	}
 	
-	public void processWriteHit()
+	private Bus getBus()
+	{
+		return busSet[0];
+	}
+	
+	public void processWriteHit(Cache requestingCache, CacheLine cl)
+	{
+		if (cl.getState() == MESI.MODIFIED);
+		else if (cl.getState() == MESI.EXCLUSIVE)
+			cl.setState(MESI.MODIFIED);
+		else if (cl.getState() == MESI.SHARED)
+		{
+			getBus().
+		}
+		else
+		{
+			System.out.println("Forbidden code reached");
+		}
+	}
+	
+	public void processReadMiss(CacheLine cl)
 	{
 		
 	}
 	
-	public void processMiss()
+	public void processWriteMiss(CacheLine cl)
 	{
 		
 	}
