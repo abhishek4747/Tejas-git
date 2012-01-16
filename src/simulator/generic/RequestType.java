@@ -51,7 +51,8 @@ public enum RequestType {
 	Mem_Response,
 	LSQ_Commit,
 	CacheBank_Read,
-	CacheBank_Write
+	CacheBank_Write,
+	Main_Mem_Response
 	
 //	MEM_READ,
 //	MEM_WRITE,
