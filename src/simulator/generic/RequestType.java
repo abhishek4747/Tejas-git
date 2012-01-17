@@ -52,7 +52,8 @@ public enum RequestType {
 	LSQ_Commit,
 	
 	MESI_Invalidate,
-	MESI_RWITM
+	MESI_RWITM,
+	Mem_Response_with_State
 	
 //	MEM_READ,
 //	MEM_WRITE,

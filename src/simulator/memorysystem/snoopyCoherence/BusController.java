@@ -1,10 +1,13 @@
 package memorysystem.snoopyCoherence;
 
 import generic.EventQueue;
+import generic.GlobalClock;
 import generic.RequestType;
 import generic.SimulationElement;
 
 import java.util.ArrayList;
+
+import generic.Event;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CacheLine;
@@ -13,26 +16,31 @@ import memorysystem.MESI;
 
 public class BusController 
 {
+	private int numBuses;
+	private Cache sharedMem;
 	protected ArrayList<Cache> upperLevel;
 	protected Cache lowerCache;
-	private Bus busSet[];
+//	private Bus busSet[];
+	private long busBusyUntil[];
 	
-	public BusController(ArrayList<Cache> upperLevel, Cache lowerCache, int numberOfBuses) 
+	public BusController(ArrayList<Cache> upperLevel, Cache lowerCache, int numberOfBuses, Cache sharedMem) 
 	{
 		super();
+		this.numBuses = numberOfBuses;
+		this.sharedMem = sharedMem;
 		this.upperLevel = upperLevel;
 		this.lowerCache = lowerCache;
-		busSet = new Bus[numberOfBuses];
-		for (int i = 0; i < numberOfBuses; i++)
-		{
-			busSet[i] = new Bus();
-		}
+		busBusyUntil = new int[numberOfBuses];
+//		for (int i = 0; i < numberOfBuses; i++)
+//		{
+//			busSet[i] = new Bus();
+//		}
 	}
 	
-	private Bus getBus()
-	{
-		return busSet[0];
-	}
+//	private Bus getBus()
+//	{
+//		return busSet[0];
+//	}
 	
 	public void processWriteHit(EventQueue eventQ, Cache requestingCache, CacheLine cl, long address)
 	{
@@ -67,7 +75,7 @@ public class BusController
 		}
 	}
 	
-	public void processReadMiss(CacheLine cl)
+	public void processReadMiss(CacheLine cl, long address)
 	{
 //		getBus() and lock the bus for 1 cycle
 		
@@ -87,11 +95,33 @@ public class BusController
 		}
 		
 		//Store shared memory copy in the cache
-		bus.
+//		bus.
 	}
 	
 	public void processWriteMiss(CacheLine cl)
 	{
 		
+	}
+	
+	public void getBusAndPutEvents(ArrayList<Event> eventList)
+	{
+		int availableBusID = 0;
+		for(int i=0; i<numBuses; i++)
+		{
+			if(busBusyUntil[i]< 
+					busBusyUntil[availableBusID])
+			{
+				availableBusID = i;
+			}
+		}
+		
+		if (busBusyUntil[availableBusID] < GlobalClock.getCurrentTime())
+		{
+			busBusyUntil[availableBusID] = GlobalClock.getCurrentTime() + sharedMem.getStepSize();
+		}
+		else
+		{
+			busBusyUntil[availableBusID] += sharedMem.getStepSize();
+		}
 	}
 }

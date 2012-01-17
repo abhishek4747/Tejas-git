@@ -3,6 +3,8 @@ package memorysystem.snoopyCoherence;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import generic.*;
+
 import generic.RequestType;
 import memorysystem.*;
 import memorysystem.BusOld.BusReqType;
@@ -33,7 +35,7 @@ public class Bus
 		RWITM,		//Broadcast "Read With Intent To Modify" (Happens on a write miss)
 		MEM_ACCESS	//Memory (or lower level cache) access request (Happens on a read miss)
 	}
-	
+
 	private Cache getBank(long address)
 	{
 		return this.busController.lowerCache;
