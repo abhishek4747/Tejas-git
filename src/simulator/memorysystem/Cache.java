@@ -355,7 +355,7 @@ public class Cache extends SimulationElement
 				{
 					//Write the data to the cache block (Do Nothing)
 					if (this.nextLevel.coherence == CoherenceType.Snoopy)
-						this.nextLevel.busController.processWriteHit(this, cl, address);
+						this.nextLevel.busController.processWriteHit(eventQ, this, cl, address);
 					else if (this.nextLevel.coherence == CoherenceType.Directory)
 					{}//TODO
 					else if (this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)

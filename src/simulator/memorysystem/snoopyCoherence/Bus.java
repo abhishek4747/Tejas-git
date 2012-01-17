@@ -15,7 +15,7 @@ public class Bus
 	protected long address;
 	protected CacheLine sourceLine;
 	
-//	protected int snoopingCoresProcessed = 0;
+	protected int snoopingCoresProcessed = 0;
 //	protected int copiesFound = 0;
 //
 //	protected CacheLine singleFoundCopy = null;
