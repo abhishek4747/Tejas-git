@@ -325,8 +325,9 @@ public class XMLParser
 			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'S', D' or 'N')");
 			System.exit(1);
 		}
+		cache.numberOfBuses = Integer.parseInt(getImmediateString("NumBuses", CacheType));
 		
-	tempStr = getImmediateString("LastLevel", CacheType);
+		tempStr = getImmediateString("LastLevel", CacheType);
 		if (tempStr.equalsIgnoreCase("Y"))
 			cache.isLastLevel = true;
 		else if (tempStr.equalsIgnoreCase("N"))

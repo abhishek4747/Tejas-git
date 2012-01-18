@@ -44,6 +44,7 @@ public class CacheConfig
 	public int portOccupancy;
 	public MultiPortingType multiportType;
 	public CoherenceType coherence;
+	public int numberOfBuses;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -145,6 +146,10 @@ public class CacheConfig
 
 	public void setCoherence(CoherenceType coherence) {
 		this.coherence = coherence;
+	}
+
+	public int getNumberOfBuses() {
+		return numberOfBuses;
 	}
 	
 	

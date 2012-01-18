@@ -22,7 +22,7 @@ public class InstructionCache extends Cache
 	{
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
 		
-		CacheLine evictedLine = this.fill(addr);
+		CacheLine evictedLine = this.fill(addr, MESI.EXCLUSIVE);
 		if (evictedLine != null)
 		{
 			if (this.isLastLevel)

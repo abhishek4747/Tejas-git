@@ -53,7 +53,11 @@ public enum RequestType {
 	
 	MESI_Invalidate,
 	MESI_RWITM,
-	Mem_Response_with_State
+//	Mem_Response_with_State,
+	Request_for_copy,
+	Request_for_modified_copy,
+	Reply_with_shared_copy,
+	Write_Modified_to_sharedmem
 	
 //	MEM_READ,
 //	MEM_WRITE,
