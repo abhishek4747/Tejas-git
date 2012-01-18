@@ -50,6 +50,8 @@ public enum RequestType {
 	Main_Mem_Write,
 	Mem_Response,
 	LSQ_Commit,
+	CacheBank_Read,
+	CacheBank_Write,
 	
 	MESI_Invalidate,
 	MESI_RWITM,

@@ -60,14 +60,14 @@ public class InstructionCache extends Cache
 			{
 				//Pass the value to the waiting element
 				//TODO Add the EXEC_COMPLETE_EVENT
-				if (!containingMemSys.core.isPipelineStatistical)
-					if (!containingMemSys.core.isPipelineInorder)
+				if (!containingMemSys.getCore().isPipelineStatistical)
+					if (!containingMemSys.getCore().isPipelineInorder)
 						eventQ.addEvent(
 								outstandingRequestList.get(0).update(
 										eventQ,
 										GlobalClock.getCurrentTime(),
 										this,
-										containingMemSys.core.getExecEngine().getFetcher(),
+										containingMemSys.getCore().getExecEngine().getFetcher(),
 										RequestType.Mem_Response));
 					else
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(

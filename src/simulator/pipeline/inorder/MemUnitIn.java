@@ -18,20 +18,18 @@ public class MemUnitIn extends SimulationElement{
 	}
 	
 	public void performMemEvent(){
-		Instruction ins = core.getExecutionEngineIn().getExMemLatch().getInstruction();
 		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
 		StageLatch exMemLatch = core.getExecutionEngineIn().getExMemLatch();
-		if(ins!=null){
-			if(!exMemLatch.getMemDone()){
-				core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
-			}
-			else{
-					memWbLatch.setInstruction(ins);
-					memWbLatch.setIn1(exMemLatch.getIn1());
-					memWbLatch.setIn2(exMemLatch.getIn2());
-					memWbLatch.setOut1(exMemLatch.getOut1());
-					memWbLatch.setOperationType(exMemLatch.getOperationType());
-			}
+		Instruction ins = exMemLatch.getInstruction();
+		if(!exMemLatch.getMemDone()){
+			core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
+//System.out.println("Memory Stall!");
+		}if(ins!=null){
+			memWbLatch.setInstruction(ins);
+			memWbLatch.setIn1(exMemLatch.getIn1());
+			memWbLatch.setIn2(exMemLatch.getIn2());
+			memWbLatch.setOut1(exMemLatch.getOut1());
+			memWbLatch.setOperationType(exMemLatch.getOperationType());
 		}
 		else{
 			memWbLatch.setInstruction(null);

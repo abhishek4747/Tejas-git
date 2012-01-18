@@ -45,7 +45,7 @@ public class Cache extends SimulationElement
 		}
 		
 		/* cache parameters */
-		CoreMemorySystem containingMemSys;
+		public CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
 		protected int blockSizeBits; // in bits
 		protected int assoc;

@@ -22,42 +22,34 @@ public class ExecUnitIn extends SimulationElement{
 	}
 	
 	public void execute(){
-		Instruction ins = core.getExecutionEngineIn().getIdExLatch().getInstruction();
 		StageLatch exMemLatch = core.getExecutionEngineIn().getExMemLatch();
 		StageLatch idExLatch = core.getExecutionEngineIn().getIdExLatch();
-//		if(idExLatch.getStallCount()>0){
-			if(ins!=null){
+		Instruction ins = idExLatch.getInstruction();
+		if(ins!=null){
 				//TODO Account for multicycle operations.
 				exMemLatch.setInstruction(ins);
 				exMemLatch.setIn1(idExLatch.getIn1());
 				exMemLatch.setIn2(idExLatch.getIn2());
 				exMemLatch.setOut1(idExLatch.getOut1());
 				exMemLatch.setOperationType(idExLatch.getOperationType());
-			
-//		}
-//		else{
-//			idExLatch.decrementStallCount();
-//			exMemLatch.incrementStallCount();
-//		}
 				
 				if(idExLatch.getOperationType()==OperationType.load){
 					core.getExecutionEngineIn().updateNoOfLd(1);
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);
-					exMemLatch.setMemDone(false);
 					//Schedule a mem read event now so that it can be completed in the mem stage
-					//TODO this.getPort() ?? Is this correct ??
+
+					exMemLatch.setMemDone(false);
 	
 					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 							core.getExecutionEngineIn().getMemUnitIn(),
 							RequestType.Cache_Read,
 							ins.getSourceOperand1().getValue());
-	
-	
+				
 				}
 				else if(idExLatch.getOperationType()==OperationType.store){
 					core.getExecutionEngineIn().updateNoOfSt(1);
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);
-					exMemLatch.setMemDone(false);
+//					exMemLatch.setMemDone(false); /FIXME *Pipeline doesn't wait for the store to complete! */
 					//Schedule a mem read event now so that it can be completed in the mem stage
 	
 					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(

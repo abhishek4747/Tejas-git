@@ -32,15 +32,14 @@ public class DecodeUnitIn extends SimulationElement{
 			
 			if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
 				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
+//System.out.println("Data Hazard!");
+			}
+			idExLatch.setInstruction(ins);
+			idExLatch.setIn1(ins.getSourceOperand1());
+			idExLatch.setIn2(ins.getSourceOperand2());			
+			idExLatch.setOut1(ins.getDestinationOperand());
+			idExLatch.setOperationType(ins.getOperationType());
 
-			}
-			else{
-				idExLatch.setInstruction(ins);
-				idExLatch.setIn1(ins.getSourceOperand1());
-				idExLatch.setIn2(ins.getSourceOperand2());			
-				idExLatch.setOut1(ins.getDestinationOperand());
-				idExLatch.setOperationType(ins.getOperationType());
-			}
 			if(ins.getOperationType()==OperationType.branch){ 
 				core.getBranchPredictor().Train(
 						ins.getProgramCounter(),

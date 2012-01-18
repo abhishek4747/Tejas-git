@@ -15,25 +15,26 @@ public class InorderPipeline implements PipelineInterface{
 	public InorderPipeline(Core _core, EventQueue eventQ){
 		this.core = _core;
 		this.eventQ = eventQ;
+		coreStepSize = core.getStepSize();
 	}
 	
 	public void oneCycleOperation(){
-		coreStepSize = core.getStepSize();
 		long currentTime = GlobalClock.getCurrentTime();
 /*if(core.getCore_number()==1)
 	System.out.println(" exec complete "+core.getExecutionEngineIn().getExecutionComplete());
-*/		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+*/
+		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+			this.core.getExecutionEngineIn().incrementNumCycles(1);
 			writeback();
+		}
+		drainEventQueue();
+		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
 			mem();
 			exec();
 			decode();
 			fetch();
 		}
-		drainEventQueue();
-		if(core.getExecutionEngineIn().getExecutionComplete()){
-			setTimingStatistics();			
-			setPerCoreMemorySystemStatistics();
-		}
+
 		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
 	}
 

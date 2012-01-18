@@ -60,7 +60,7 @@ public class CacheLine
 		return newLine;
 	}
 
-	protected long getTag() {
+	public long getTag() {
 		return tag;
 	}
 
