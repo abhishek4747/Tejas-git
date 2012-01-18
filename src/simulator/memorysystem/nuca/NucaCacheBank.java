@@ -209,7 +209,7 @@ public class NucaCacheBank extends Cache
 				}
 				else
 				{
-					Core.outstandingMemRequests--;
+//					Core.outstandingMemRequests--;
 				}						
 			}
 		}
@@ -248,7 +248,7 @@ public class NucaCacheBank extends Cache
 		//SimulationElement requestingElement = event.getRequestingElement();
 		if(processingElement.getClass().equals(tempMemory.getClass()))
 		{
-			CacheLine evictedLine = this.fill(addr);
+			CacheLine evictedLine = this.fill(addr, MESI.EXCLUSIVE);
 			//if condition to be  changed
 			if (evictedLine != null)
 			{

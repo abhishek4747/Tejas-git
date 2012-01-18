@@ -19,3 +19,7 @@ syntax: regexp
 ^SPECtestformatmodifier_z\.txt$
 syntax: regexp
 ^spooles\.out$
+syntax: regexp
+^src/simulator/config/config\.xml$
+syntax: regexp
+^src/simulator/config/config\.xml$

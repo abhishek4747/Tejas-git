@@ -320,7 +320,8 @@ public class Cache extends SimulationElement
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
 			if (event.getRequestType() == RequestType.Cache_Read
-					|| event.getRequestType() == RequestType.Cache_Write)
+					|| event.getRequestType() == RequestType.Cache_Write
+					||event.getRequestType() == RequestType.Cache_Read_from_iCache)
 				this.handleAccess(eventQ, event);
 			else if (event.getRequestType() == RequestType.Mem_Response)
 				this.handleMemResponse(eventQ, event);
@@ -336,7 +337,7 @@ public class Cache extends SimulationElement
 				this.handleInvalidate(event);
 		}
 		
-		private void handleAccess(EventQueue eventQ, Event event)
+		protected void handleAccess(EventQueue eventQ, Event event)
 		{
 			SimulationElement requestingElement = event.getRequestingElement();
 			RequestType requestType = event.getRequestType();
@@ -375,6 +376,17 @@ public class Cache extends SimulationElement
 										RequestType.Mem_Response));
 				}
 				
+				else if (requestType == RequestType.Cache_Read_from_iCache)
+				{
+					requestingElement.getPort().put(
+							event.update(
+									eventQ,
+									requestingElement.getLatencyDelay(),
+									this,
+									requestingElement,
+									RequestType.Mem_Response));
+				}
+				
 				else if (requestType == RequestType.Cache_Write)
 				{
 					//Write the data to the cache block (Do Nothing)
@@ -386,8 +398,8 @@ public class Cache extends SimulationElement
 					{}//TODO
 					
 					//If the cache level is Write-through
-					else if (this.isLastLevel || (this.nextLevel.coherence == CoherenceType.None) 
-							&& (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH))
+					else if (this.isLastLevel || ((this.nextLevel.coherence == CoherenceType.None) 
+							&& (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)))
 					{
 						if (this.isLastLevel)
 						{
@@ -545,16 +557,27 @@ public class Cache extends SimulationElement
 										this,
 										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.Mem_Response));
-					else if (containingMemSys.core.isPipelineInorder)
+					else if (containingMemSys.getCore().isPipelineInorder)
 						//TODO Return the call to Inorder pipeline
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								new ExecCompleteEvent(
-										containingMemSys.core.getEventQueue(),
+										containingMemSys.getCore().getEventQueue(),
 										0,
 										null,
 										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.EXEC_COMPLETE,
 										null));
+				}
+				
+				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read_from_iCache)
+				{
+					outstandingRequestList.get(0).getRequestingElement().getPort().put(
+							outstandingRequestList.get(0).update(
+									eventQ,
+									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+									this,
+									outstandingRequestList.get(0).getRequestingElement(),
+									RequestType.Mem_Response));
 				}
 				
 				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)

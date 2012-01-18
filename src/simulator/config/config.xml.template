@@ -124,7 +124,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type0>
@@ -141,7 +141,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type1>
@@ -158,7 +158,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type2>
@@ -175,7 +175,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type3>

@@ -24,8 +24,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/raj/Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/raj/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/moksh/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -123,7 +123,8 @@
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type0>
@@ -134,12 +135,13 @@
 			<Associativity>8</Associativity>
 			<Size>16</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type1>
@@ -150,12 +152,13 @@
 			<Associativity>8</Associativity>
 			<Size>2048</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>3</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<Coherence>S</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type2>
@@ -171,7 +174,8 @@
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!---NumberOfBanks--->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type3>
