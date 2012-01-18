@@ -7,7 +7,6 @@ import generic.*;
 
 import generic.RequestType;
 import memorysystem.*;
-import memorysystem.BusOld.BusReqType;
 
 public class Bus
 {

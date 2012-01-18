@@ -31,16 +31,11 @@ public class BusController
 		this.upperLevel = upperLevel;
 		this.lowerCache = lowerCache;
 		busBusyUntil = new long[numberOfBuses];
-//		for (int i = 0; i < numberOfBuses; i++)
-//		{
-//			busSet[i] = new Bus();
-//		}
+		for (int i = 0; i < numberOfBuses; i++)
+		{
+			busBusyUntil[i] = 0;
+		}
 	}
-	
-//	private Bus getBus()
-//	{
-//		return busSet[0];
-//	}
 	
 	public void processWriteHit(EventQueue eventQ, Cache requestingCache, CacheLine cl, long address)
 	{
