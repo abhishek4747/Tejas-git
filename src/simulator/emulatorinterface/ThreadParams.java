@@ -8,7 +8,7 @@ import generic.InstructionLinkedList;
 
 public class ThreadParams {
 	boolean finished;
-	boolean started;
+	boolean started = false;
 	boolean halted;
 	
 	int readerLocation;

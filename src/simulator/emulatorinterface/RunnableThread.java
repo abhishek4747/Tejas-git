@@ -204,9 +204,9 @@ int extraCycles=0;
 				if(tidEmu==0)
 					tempu=n;
 				//FIXME what if core not started
-				if(tidEmu==0)
-//System.out.println("n = "+n);
-				if(thread.started  &&  n<minN)
+/*				if(tidEmu==0)
+					System.out.println("n = "+n);
+*/				if(thread.started  &&  n<minN && n!=0)
 					minN=n;
 				//	System.out.print("  "+n);
 			}
@@ -219,7 +219,18 @@ int extraCycles=0;
 			}
 			else 
 				extraCycles = -1;
-			
+			/*boolean print =false;
+			for (int tidEmu=0; tidEmu<EMUTHREADS; tidEmu++) {
+				if (inputToPipeline[tidEmu].getListSize()!=0 && minN==0) {
+					print = true;
+				}
+			}
+			if (true) {
+				System.out.println("minN is "+minN);
+				for(int tidEmu=0; tidEmu<EMUTHREADS; tidEmu++) {
+					System.out.println("numInstructions in pipeline"+tidEmu+"  "+inputToPipeline[tidEmu].getListSize()+" thread.started is"+threadParams[tidEmu].started);
+				}
+			}*/
 			for (int i1=0; i1< minN; i1++)	{
 				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 					if(threadParams[tidEmu].started)
@@ -293,7 +304,7 @@ int extraCycles=0;
 		for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 			core = pipelineInterfaces[tidEmu].getCore();
 			if(core.getExecutionEngineIn().getExecutionComplete()){
-				System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
+				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
 				pipelineInterfaces[tidEmu].setTimingStatistics();			
 				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
 			}
@@ -400,7 +411,7 @@ int extraCycles=0;
 			 */
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && tempList.getListSize() > 0) {
-				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+				//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 
 
@@ -479,9 +490,11 @@ int extraCycles=0;
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {
+			System.out.println("Resuming "+update.resume.get(i));
 			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
 		}
 		for (int i=0; i<update.getNumSleepers(); i++) {
+			System.out.println("Sleeping "+update.sleep.get(i));
 			this.inputToPipeline[update.sleep.get(i)].appendInstruction(new Instruction(OperationType.sync,null, null, null));
 		}
 	}
@@ -494,8 +507,10 @@ int extraCycles=0;
 
 	private void resumePipelineTimer(int tidToResume) {
 		int numResumes=IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep;
-		for (int i=0; i<numResumes; i++)
+		IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep=0;
+		for (int i=0; i<numResumes; i++) {
+			System.out.println("Resuming by timer"+tidToResume);
 			this.pipelineInterfaces[tidToResume].resumePipeline();
-
+		}
 	}
 }
