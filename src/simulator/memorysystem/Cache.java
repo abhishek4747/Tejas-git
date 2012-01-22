@@ -22,6 +22,7 @@ package memorysystem;
 
 import java.util.*;
 
+import memorysystem.directory.CentralizedDirectory;
 import memorysystem.snoopyCoherence.BusController;
 
 import config.CacheConfig;
@@ -466,7 +467,38 @@ public class Cache extends SimulationElement
 						}
 					}
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
-					{}//TODO
+					{
+						long directoryDelay=0;		
+						int cacheLineNum=(int)(address/(long)blockSize);//TODO is this correct ?
+																//TODO long to int typecast ? need an array indexed by long ?
+						int containingCore = containingMemSys.getCore().getCore_number();//TODO Is this correct ?
+						directoryDelay=CentralizedDirectory.updateDirectory(cacheLineNum, containingCore,event.getRequestType());
+						
+						if (this.isLastLevel)
+						{
+							MemorySystem.mainMemory.getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											MemorySystem.mainMemory.getLatencyDelay(),
+											this, 
+											MemorySystem.mainMemory,
+											RequestType.Main_Mem_Read,
+											address));
+							return;
+						}
+						else
+						{
+							this.nextLevel.getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											this.nextLevel.getLatencyDelay(),
+											this, 
+											this.nextLevel,
+											RequestType.Cache_Read, 
+											address));
+							return;
+						}
+					}//TODO
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
 					{}//TODO
 					
