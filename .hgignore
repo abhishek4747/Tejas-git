@@ -23,3 +23,5 @@ syntax: regexp
 ^src/simulator/config/config\.xml$
 syntax: regexp
 ^src/simulator/config/config\.xml$
+syntax: regexp
+^src/simulator/config/config\.xml$

@@ -24,8 +24,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/moksh/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/kapil/pin</PinTool>
+		<PinInstrumentor>/home/kapil/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -45,6 +45,15 @@
 		<MainMemoryAccessPorts>-1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
 		<MainMemoryPortOccupancy>-1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the BUS used for broadcasting messages for cache coherence-->
+
+<!--Directory Access Latencies. Need to be removed when merged with NoC-->
+
+		<directoryAccessLatency>2</directoryAccessLatency>
+		<memWBDelay>200</memWBDelay>
+		<dataTransferDelay>3</dataTransferDelay>
+		<invalidationSendDelay>3</invalidationSendDelay>
+		<invalidationAckCollectDelay>3</invalidationAckCollectDelay>
+		<ownershipChangeDelay>3</ownershipChangeDelay>
 
 		<!--Core Parameters-->
 		<Core>
@@ -156,7 +165,7 @@
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>3</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>S</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>D</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>

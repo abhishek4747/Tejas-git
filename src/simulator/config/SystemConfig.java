@@ -36,4 +36,12 @@ public class SystemConfig
 	public static int mainMemoryPortOccupancy;
 	public static int cacheBusLatency;
 	public static String coherenceEnforcingCache;
+	
+	//Directory Latencies:
+	public static int directoryAccessLatency;
+	public static int memWBDelay;
+	public static int dataTransferDelay;
+	public static int invalidationSendDelay;
+	public static int invalidationAckCollectDelay;
+	public static int ownershipChangeDelay;
 }

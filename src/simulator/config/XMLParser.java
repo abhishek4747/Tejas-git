@@ -172,6 +172,14 @@ public class XMLParser
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		SystemConfig.core = new CoreConfig[32];
 		
+
+		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
+		SystemConfig.memWBDelay = Integer.parseInt(getImmediateString("memWBDelay", systemElmnt));
+		SystemConfig.dataTransferDelay = Integer.parseInt(getImmediateString("dataTransferDelay", systemElmnt));
+		SystemConfig.invalidationSendDelay = Integer.parseInt(getImmediateString("invalidationSendDelay", systemElmnt));
+		SystemConfig.invalidationAckCollectDelay = Integer.parseInt(getImmediateString("invalidationAckCollectDelay", systemElmnt));
+		SystemConfig.ownershipChangeDelay = Integer.parseInt(getImmediateString("ownershipChangeDelay", systemElmnt));
+		
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
 		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
@@ -286,6 +294,7 @@ public class XMLParser
 				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
 			}
 		}
+		
 		
 		//System.out.println(SystemConfig.NoOfCores + ", " + SystemConfig.core[0].ROBSize);
 	}
