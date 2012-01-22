@@ -29,13 +29,6 @@ public class CacheLine
 //	private boolean modified;
 	private int pid;
 	private MESI state;
-	
-	public static enum MESI{
-		MODIFIED,
-		EXCLUSIVE,
-		SHARED,
-		INVALID
-	}
 
 	protected boolean hasTagMatch(long tag)
 	{
@@ -67,7 +60,7 @@ public class CacheLine
 		return newLine;
 	}
 
-	protected long getTag() {
+	public long getTag() {
 		return tag;
 	}
 
@@ -117,11 +110,11 @@ public class CacheLine
 		this.pid = pid;
 	}
 
-	protected MESI getState() {
+	public MESI getState() {
 		return state;
 	}
 
-	protected void setState(MESI state) {
+	public void setState(MESI state) {
 		this.state = state;
 	}
 }

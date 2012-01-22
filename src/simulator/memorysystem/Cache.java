@@ -22,10 +22,10 @@ package memorysystem;
 
 import java.util.*;
 
+import memorysystem.snoopyCoherence.BusController;
+
 import config.CacheConfig;
 import config.SystemConfig;
-import memorysystem.Bus.BusReqType;
-import memorysystem.CacheLine.MESI;
 import misc.Util;
 import generic.*;
 
@@ -40,11 +40,12 @@ public class Cache extends SimulationElement
 		public static enum CoherenceType{
 			Snoopy,
 			Directory,
-			None
+			None,
+			LowerLevelCoherent
 		}
 		
 		/* cache parameters */
-		CoreMemorySystem containingMemSys;
+		public CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
 		protected int blockSizeBits; // in bits
 		protected int assoc;
@@ -60,6 +61,8 @@ public class Cache extends SimulationElement
 //		protected boolean isCoherent = false; //Tells whether the level is coherent or not
 		
 		public CoherenceType coherence = CoherenceType.None;
+		public int numberOfBuses = 1;
+		public BusController busController = null;
 		
 //		protected boolean isFirstLevel = false;
 		protected CacheType levelFromTop; 
@@ -84,7 +87,7 @@ public class Cache extends SimulationElement
 		
 		public static final long NOT_EVICTED = -1;
 		
-		protected CacheLine access(long addr)
+		public CacheLine access(long addr)
 		{
 			/* remove the block size */
 			long tag = addr >>> this.blockSizeBits;
@@ -157,6 +160,9 @@ public class Cache extends SimulationElement
 			this.nextLevelName = cacheParameters.getNextLevel();
 //			this.enforcesCoherence = cacheParameters.isEnforcesCoherence();
 			this.coherence = cacheParameters.getCoherence();
+			this.numberOfBuses = cacheParameters.getNumberOfBuses();
+			if (this.coherence == CoherenceType.Snoopy)
+				busController = new BusController(prevLevel, this, numberOfBuses, this);
 			
 			this.numLinesBits = Util.logbase2(numLines);
 			this.timestamp = 0;
@@ -186,7 +192,7 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		protected CacheLine fill(long addr) //Returns a copy of the evicted line
+		protected CacheLine fill(long addr, MESI stateToSet) //Returns a copy of the evicted line
 		{
 			CacheLine evictedLine = null;
 			
@@ -245,7 +251,7 @@ public class Cache extends SimulationElement
 			}
 
 			/* This is the new fill line */
-			fillLine.setState(MESI.SHARED);
+			fillLine.setState(stateToSet);
 			//fillLine.setValid(true);
 			mark(fillLine, tag);
 			return evictedLine;
@@ -310,84 +316,28 @@ public class Cache extends SimulationElement
 			
 			return entryAlreadyThere;
 		}
-/*		
-		/**
-		 * When a data block requested by an outstanding request arrives through a BlockReadyEvent,
-		 * this method is called to process the arrival of block and process all the outstanding requests.
-		 * @param addr : Memory address requested
-		 *
-		protected void receiveOutstandingRequestBlock(long addr)
-		{
-			CacheLine evictedLine = this.fill(addr);//FIXME
-			
-			if (!/*NOT*outstandingRequestTable.containsKey(addr))
-			{
-				System.err.println("Memory System Crash : An outstanding request not found in the requesting element");
-				System.exit(1);
-			}
-			
-			ArrayList<CacheOutstandingRequestTableEntry> outstandingRequestList = outstandingRequestTable.get(addr);
-			
-			while (!/*NOT*outstandingRequestList.isEmpty())
-			{
-				if (outstandingRequestList.get(0).requestType == RequestType.MEM_READ)
-				{
-					//Pass the value to the waiting element
-					//Create an event (BlockReadyEvent) for the waiting element
-					if (outstandingRequestList.get(0).lsqIndex == LSQ.INVALID_INDEX)
-						//Generate the event for the Upper level cache
-						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
-																	this,
-																	outstandingRequestList.get(0).requestingElement, 
-																	0, //tieBreaker
-																	RequestType.MEM_BLOCK_READY));
-					else
-						//Generate the event to tell the LSQ
-						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
-																	this,
-																	outstandingRequestList.get(0).requestingElement, 
-																	0, //tieBreaker
-																	RequestType.MEM_BLOCK_READY,
-																	outstandingRequestList.get(0).lsqIndex));
-				}
-				
-				else if (outstandingRequestList.get(0).requestType == RequestType.MEM_WRITE)
-				{
-					//Write the value to the block (Do Nothing)
-					//Pass the value to the waiting element
-					//Create an event (BlockReadyEvent) for the waiting element
-					if (outstandingRequestList.get(0).lsqIndex != LSQ.INVALID_INDEX)
-						//(If the requesting element is LSQ)
-						//Generate the event to tell the LSQ
-						MemEventQueue.eventQueue.add(new BlockReadyEvent(outstandingRequestList.get(0).requestingElement.getLatency(), 
-																	this,
-																	outstandingRequestList.get(0).requestingElement,
-																	0, //tieBreaker
-																	RequestType.MEM_BLOCK_READY,
-																	outstandingRequestList.get(0).lsqIndex));
-					
-					//Handle in any case (Whether requesting element is LSQ or cache)
-					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
-					
-				}
-				else
-				{
-					System.err.println("Memory System Crash : A request was of type other than MEM_READ or MEM_WRITE");
-					System.exit(1);
-				}
-			}
-		}*/
 		
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
 			if (event.getRequestType() == RequestType.Cache_Read
-					|| event.getRequestType() == RequestType.Cache_Write)
+					|| event.getRequestType() == RequestType.Cache_Write
+					||event.getRequestType() == RequestType.Cache_Read_from_iCache)
 				this.handleAccess(eventQ, event);
 			else if (event.getRequestType() == RequestType.Mem_Response)
 				this.handleMemResponse(eventQ, event);
+			else if (event.getRequestType() == RequestType.Request_for_copy)
+				this.handleRequestForCopy(eventQ, event);
+			else if (event.getRequestType() == RequestType.Request_for_modified_copy)
+				this.handleRequestForModifiedCopy(eventQ, event);
+			else if (event.getRequestType() == RequestType.Reply_with_shared_copy)
+				this.handleReplyWithSharedCopy(eventQ, event);
+			else if (event.getRequestType() == RequestType.Write_Modified_to_sharedmem)
+				this.handleWriteModifiedToSharedMem(eventQ, event);
+			else if (event.getRequestType() == RequestType.MESI_Invalidate)
+				this.handleInvalidate(event);
 		}
 		
-		private void handleAccess(EventQueue eventQ, Event event)
+		protected void handleAccess(EventQueue eventQ, Event event)
 		{
 			SimulationElement requestingElement = event.getRequestingElement();
 			RequestType requestType = event.getRequestType();
@@ -406,7 +356,28 @@ public class Cache extends SimulationElement
 			{
 				//Schedule the requesting element to receive the block TODO (for LSQ)
 				if (requestType == RequestType.Cache_Read)
+				{
 					//Just return the read block
+					if (this.coherence != CoherenceType.Snoopy)
+						requestingElement.getPort().put(
+								event.update(
+										eventQ,
+										requestingElement.getLatencyDelay(),
+										this,
+										requestingElement,
+										RequestType.Mem_Response));
+					else
+						this.busController.getBusAndPutEvent(
+								event.update(
+										eventQ,
+										requestingElement.getLatencyDelay(),
+										this,
+										requestingElement,
+										RequestType.Mem_Response));
+				}
+				
+				else if (requestType == RequestType.Cache_Read_from_iCache)
+				{
 					requestingElement.getPort().put(
 							event.update(
 									eventQ,
@@ -414,13 +385,21 @@ public class Cache extends SimulationElement
 									this,
 									requestingElement,
 									RequestType.Mem_Response));
+				}
 				
 				else if (requestType == RequestType.Cache_Write)
 				{
 					//Write the data to the cache block (Do Nothing)
+					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
+						this.nextLevel.busController.processWriteHit(eventQ, this, cl, address);
+					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
+					{}//TODO
+					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
+					{}//TODO
 					
 					//If the cache level is Write-through
-					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+					else if (this.isLastLevel || ((this.nextLevel.coherence == CoherenceType.None) 
+							&& (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)))
 					{
 						if (this.isLastLevel)
 						{
@@ -462,12 +441,7 @@ public class Cache extends SimulationElement
 											this.nextLevel,
 											RequestType.Cache_Write));
 						}
-					}
-					else
-					{
-						Core.outstandingMemRequests--;
-					}
-						
+					}						
 				}
 			}
 			
@@ -479,30 +453,50 @@ public class Cache extends SimulationElement
 				
 				if (!alreadyRequested)
 				{
-					// access the next level
-					if (this.isLastLevel)
+					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
 					{
-						MemorySystem.mainMemory.getPort().put(
-								new AddressCarryingEvent(
-										eventQ,
-										MemorySystem.mainMemory.getLatencyDelay(),
-										this, 
-										MemorySystem.mainMemory,
-										RequestType.Main_Mem_Read,
-										address));
-						return;
+						if (requestType == RequestType.Cache_Read)
+							this.nextLevel.busController.processReadMiss(eventQ, this, address);
+						else if (requestType == RequestType.Cache_Write)
+							this.nextLevel.busController.processWriteMiss(eventQ, this, address);
+						else
+						{
+							System.err.println("Error : This must not be happening");
+							System.exit(1);
+						}
 					}
-					else
+					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
+					{}//TODO
+					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
+					{}//TODO
+					
+					// access the next level
+					else 
 					{
-						this.nextLevel.getPort().put(
-								new AddressCarryingEvent(
-										eventQ,
-										this.nextLevel.getLatencyDelay(),
-										this, 
-										this.nextLevel,
-										RequestType.Cache_Read, 
-										address));
-						return;
+						if (this.isLastLevel)
+						{
+							MemorySystem.mainMemory.getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											MemorySystem.mainMemory.getLatencyDelay(),
+											this, 
+											MemorySystem.mainMemory,
+											RequestType.Main_Mem_Read,
+											address));
+							return;
+						}
+						else
+						{
+							this.nextLevel.getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											this.nextLevel.getLatencyDelay(),
+											this, 
+											this.nextLevel,
+											RequestType.Cache_Read, 
+											address));
+							return;
+						}
 					}
 				}
 			}
@@ -510,10 +504,15 @@ public class Cache extends SimulationElement
 		
 		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{
+			this.fillAndSatisfyRequests(eventQ, event, MESI.EXCLUSIVE);
+		}
+		
+		protected void fillAndSatisfyRequests(EventQueue eventQ, Event event, MESI stateToSet)
+		{		
 			long addr = ((AddressCarryingEvent)(event)).getAddress();
 			
-			CacheLine evictedLine = this.fill(addr);
-			if (evictedLine != null)
+			CacheLine evictedLine = this.fill(addr, stateToSet);
+			if (evictedLine != null && evictedLine.getState() == MESI.MODIFIED) //This does not ensure inclusiveness
 			{
 				if (this.isLastLevel)
 					MemorySystem.mainMemory.getPort().put(
@@ -558,16 +557,27 @@ public class Cache extends SimulationElement
 										this,
 										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.Mem_Response));
-					else if (containingMemSys.core.isPipelineInorder)
+					else if (containingMemSys.getCore().isPipelineInorder)
 						//TODO Return the call to Inorder pipeline
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								new ExecCompleteEvent(
-										containingMemSys.core.getEventQueue(),
+										containingMemSys.getCore().getEventQueue(),
 										0,
 										null,
 										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.EXEC_COMPLETE,
 										null));
+				}
+				
+				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read_from_iCache)
+				{
+					outstandingRequestList.get(0).getRequestingElement().getPort().put(
+							outstandingRequestList.get(0).update(
+									eventQ,
+									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+									this,
+									outstandingRequestList.get(0).getRequestingElement(),
+									RequestType.Mem_Response));
 				}
 				
 				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)
@@ -605,7 +615,7 @@ public class Cache extends SimulationElement
 												MemorySystem.mainMemory,
 												RequestType.Main_Mem_Write));
 						}
-						else
+						else if (this.nextLevel.coherence != CoherenceType.Snoopy)
 						{
 							if (this.levelFromTop == CacheType.L1)
 								this.nextLevel.getPort().put(
@@ -625,10 +635,19 @@ public class Cache extends SimulationElement
 												this.nextLevel,
 												RequestType.Cache_Write));
 						}
+						else
+						{
+							CacheLine cl = this.access(addr);
+							if (cl != null)
+								cl.setState(MESI.MODIFIED);
+						}
+							
 					}
 					else
 					{
-						Core.outstandingMemRequests--;
+						CacheLine cl = this.access(addr);
+						if (cl != null)
+							cl.setState(MESI.MODIFIED);
 					}
 				}
 				else
@@ -640,5 +659,76 @@ public class Cache extends SimulationElement
 				//Remove the processed entry from the outstanding request list
 				outstandingRequestList.remove(0);
 			}
+		}
+		
+		private void handleRequestForCopy(EventQueue eventQ, Event event)
+		{
+			this.nextLevel.busController.getBusAndPutEvent(
+					event.update(eventQ, 
+							event.getRequestingElement().getLatencyDelay(),
+							this, 
+							event.getRequestingElement(), 
+							RequestType.Reply_with_shared_copy));
+		}
+		
+		private void handleRequestForModifiedCopy(EventQueue eventQ, Event event)
+		{
+			ArrayList<Event> eventList = new ArrayList<Event>();
+			long addr = ((AddressCarryingEvent)event).getAddress();
+			eventList.add(
+					event.update(eventQ,
+							event.getRequestingElement().getLatencyDelay(),
+							this, 
+							event.getRequestingElement(), 
+							RequestType.Reply_with_shared_copy));
+			eventList.add(
+					new AddressCarryingEvent(eventQ, 
+							this.nextLevel.getLatencyDelay(),
+							this, 
+							this.nextLevel, 
+							RequestType.Cache_Write,
+							addr));
+			this.nextLevel.busController.getBusAndPutEvents(eventList);
+			
+			CacheLine cl = this.access(addr);
+			if (cl != null)
+				cl.setState(MESI.SHARED);
+		}
+		
+		private void handleReplyWithSharedCopy(EventQueue eventQ, Event event)
+		{
+			this.fillAndSatisfyRequests(eventQ, event, MESI.SHARED);
+		}
+		
+		private void handleWriteModifiedToSharedMem(EventQueue eventQ, Event event)
+		{
+			SimulationElement requestingCache = event.getRequestingElement();
+			long addr = ((AddressCarryingEvent)event).getAddress();
+			this.nextLevel.busController.getBusAndPutEvent(
+					event.update(
+							eventQ,
+							this.nextLevel.getLatencyDelay(),
+							this,
+							this.nextLevel,
+							RequestType.Cache_Write));
+			this.nextLevel.busController.getBusAndPutEvent(
+					new AddressCarryingEvent(
+							eventQ,
+							this.nextLevel.getLatencyDelay(),
+							requestingCache,
+							this.nextLevel,
+							RequestType.Cache_Read,
+							addr));
+			
+			CacheLine cl = this.access(addr);
+			if (cl != null)
+				cl.setState(MESI.INVALID);
+		}
+		
+		private void handleInvalidate(Event event)
+		{
+			CacheLine cl = this.access(((AddressCarryingEvent)event).getAddress());
+			if (cl != null)
+				cl.setState(MESI.INVALID);
 		}
 }

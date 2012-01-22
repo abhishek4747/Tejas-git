@@ -44,6 +44,10 @@ public class CacheConfig
 	public int portOccupancy;
 	public MultiPortingType multiportType;
 	public CoherenceType coherence;
+	public int numberOfBuses;
+	public int numberOfBankColumns;
+	public int numberOfBankRows;
+	public int numberOfBuffers;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -146,9 +150,22 @@ public class CacheConfig
 	public void setCoherence(CoherenceType coherence) {
 		this.coherence = coherence;
 	}
-	
-	
 
+	public int getNumberOfBuses() {
+		return numberOfBuses;
+	}
+	
+	public int getNumberOfBankRows(){
+		return this.numberOfBankRows;
+	}
+	public int getNumberOfBankColumns(){
+		return this.numberOfBankColumns;
+	}
+
+	public int getBankSize()
+	{
+		return size/(numberOfBankColumns*numberOfBankRows);
+	}
 //	public boolean isFirstLevel() {
 //		return isFirstLevel;
 //	}

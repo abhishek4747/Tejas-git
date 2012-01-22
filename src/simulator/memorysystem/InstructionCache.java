@@ -2,6 +2,9 @@ package memorysystem;
 
 import java.util.ArrayList;
 
+import memorysystem.Cache.CacheType;
+import memorysystem.Cache.CoherenceType;
+
 import pipeline.statistical.DelayGenerator;
 
 import generic.Event;
@@ -9,6 +12,7 @@ import generic.EventQueue;
 import generic.ExecCompleteEvent;
 import generic.GlobalClock;
 import generic.RequestType;
+import generic.SimulationElement;
 import config.CacheConfig;
 
 public class InstructionCache extends Cache
@@ -18,11 +22,88 @@ public class InstructionCache extends Cache
 	}
 	
 	@Override
+	protected void handleAccess(EventQueue eventQ, Event event)
+	{
+		SimulationElement requestingElement = event.getRequestingElement();
+		RequestType requestType = event.getRequestType();
+		long address;
+		
+//		if (this.levelFromTop == CacheType.L1 && !MemorySystem.bypassLSQ)
+//			address = ((LSQEntryContainingEvent)(event)).getLsqEntry().getAddr();
+//		else
+			address = ((AddressCarryingEvent)(event)).getAddress();
+		
+		//Process the access
+		CacheLine cl = this.processRequest(requestType, address);
+
+		//IF HIT
+		if (cl != null)
+		{
+			//Schedule the requesting element to receive the block TODO (for LSQ)
+			if (requestType == RequestType.Cache_Read)
+			{
+				//Just return the read block
+					requestingElement.getPort().put(
+							event.update(
+									eventQ,
+									requestingElement.getLatencyDelay(),
+									this,
+									requestingElement,
+									RequestType.Mem_Response));
+			}
+			
+			else if (requestType == RequestType.Cache_Write)
+			{
+				//Write the data to the cache block (Do Nothing)	
+				System.out.println(" iCache got 'write' operation : Not possible");
+				System.exit(1);
+			}
+		}
+		
+		//IF MISS
+		else
+		{			
+			//Add the request to the outstanding request buffer
+			boolean alreadyRequested = this.addOutstandingRequest(event, address);
+			
+			if (!alreadyRequested)
+			{		
+				// access the next level
+				if (this.isLastLevel)
+				{
+					MemorySystem.mainMemory.getPort().put(
+							new AddressCarryingEvent(
+									eventQ,
+									MemorySystem.mainMemory.getLatencyDelay(),
+									this, 
+									MemorySystem.mainMemory,
+									RequestType.Main_Mem_Read,
+									address));
+					return;
+				}
+				else
+				{
+					this.nextLevel.getPort().put(
+							new AddressCarryingEvent(
+									eventQ,
+									this.nextLevel.getLatencyDelay(),
+									this, 
+									this.nextLevel,
+									RequestType.Cache_Read_from_iCache, 
+									address));
+					return;
+				}
+				
+			}
+		}
+	}
+	
+	@Override
 	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
 		
-		CacheLine evictedLine = this.fill(addr);
+		CacheLine evictedLine = this.fill(addr, MESI.EXCLUSIVE);
 		if (evictedLine != null)
 		{
 			if (this.isLastLevel)
@@ -60,14 +141,14 @@ public class InstructionCache extends Cache
 			{
 				//Pass the value to the waiting element
 				//TODO Add the EXEC_COMPLETE_EVENT
-				if (!containingMemSys.core.isPipelineStatistical)
-					if (!containingMemSys.core.isPipelineInorder)
+				if (!containingMemSys.getCore().isPipelineStatistical)
+					if (!containingMemSys.getCore().isPipelineInorder)
 						eventQ.addEvent(
 								outstandingRequestList.get(0).update(
 										eventQ,
 										GlobalClock.getCurrentTime(),
 										this,
-										containingMemSys.core.getExecEngine().getFetcher(),
+										containingMemSys.getCore().getExecEngine().getFetcher(),
 										RequestType.Mem_Response));
 					else
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(

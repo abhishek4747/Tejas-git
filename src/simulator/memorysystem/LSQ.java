@@ -48,7 +48,7 @@ public class LSQ extends SimulationElement
 
 	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
-		super(portType, noOfPorts, occupancy, latency, containingMemSys.core.getFrequency());
+		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
 		this.containingMemSys = containingMemSys;
 		this.lsqSize = lsqSize;
 		curSize = 0;
@@ -218,8 +218,8 @@ public class LSQ extends SimulationElement
 								RequestType.Cache_Write,
 								entry));
 			}
-			else
-				Core.outstandingMemRequests--;
+//			else
+//				Core.outstandingMemRequests--;
 	
 			this.head = this.incrementQ(this.head);
 			this.curSize--;
@@ -435,13 +435,13 @@ public class LSQ extends SimulationElement
 	
 	public void sendExecComplete(ReorderBufferEntry robEntry)
 	{
-		if (!containingMemSys.core.isPipelineStatistical)
-			containingMemSys.core.getEventQueue().addEvent(
+		if (!containingMemSys.getCore().isPipelineStatistical)
+			containingMemSys.getCore().getEventQueue().addEvent(
 					new ExecCompleteEvent(
-							containingMemSys.core.getEventQueue(),
+							containingMemSys.getCore().getEventQueue(),
 							GlobalClock.getCurrentTime(),
 							null,
-							containingMemSys.core.getExecEngine().getExecuter(),
+							containingMemSys.getCore().getExecEngine().getExecuter(),
 							RequestType.EXEC_COMPLETE,
 							robEntry));
 		else
