@@ -1,17 +1,22 @@
 package memorysystem.directory;
 
+import java.util.Hashtable;
+
 import generic.RequestType;
 
 public class CentralizedDirectory {
 	public static DirectoryEntry[] directory;
+//	public static Hashtable<Long, DirectoryEntry> directory;
 	public static int numPresenceBits;
 	public static long numOfEntries;
 	
 	public CentralizedDirectory(int noOfCacheLines, int noOfCores){
 
+//		directory = new Hashtable<Long, DirectoryEntry>();
 		directory = new DirectoryEntry[noOfCacheLines];
 		numPresenceBits=noOfCores;
 		for(int i=0;i<noOfCacheLines;i++)
+//			directory.put((long)i,new DirectoryEntry(noOfCores));
 			directory[i] = new DirectoryEntry(noOfCores);
 		numOfEntries=noOfCacheLines;
 	}
