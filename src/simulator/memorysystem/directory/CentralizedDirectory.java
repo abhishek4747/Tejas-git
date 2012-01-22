@@ -1,11 +1,11 @@
 package memorysystem.directory;
 
-import generic.Event;
 import generic.RequestType;
 
 public class CentralizedDirectory {
-	static DirectoryEntry[] directory;
-	static int numPresenceBits;
+	public static DirectoryEntry[] directory;
+	public static int numPresenceBits;
+	public static long numOfEntries;
 	
 	public CentralizedDirectory(int noOfCacheLines, int noOfCores){
 
@@ -13,7 +13,9 @@ public class CentralizedDirectory {
 		numPresenceBits=noOfCores;
 		for(int i=0;i<noOfCacheLines;i++)
 			directory[i] = new DirectoryEntry(noOfCores);
+		numOfEntries=noOfCacheLines;
 	}
+	/*
 
 	public static long updateDirectory(int cacheLine, int requestingCore, RequestType reqType) {
 		if(reqType==RequestType.Cache_Read){
@@ -92,4 +94,5 @@ public class CentralizedDirectory {
 		else
 			return -1;
 	}
+	*/
 }

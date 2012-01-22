@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import memorysystem.directory.CentralizedDirectory;
+
 import generic.*;
 import config.CacheConfig;
 import config.SimulationConfig;
@@ -75,6 +77,9 @@ public class MemorySystem
 				cacheList.put(cacheName, newCache);
 			}
 		}
+		//Initialize centralized directory
+		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
+		CentralizedDirectory centralizedDirectory = new CentralizedDirectory(numCacheLines, SystemConfig.NoOfCores);
 		//Link all the initialised caches to their next levels
 		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{
