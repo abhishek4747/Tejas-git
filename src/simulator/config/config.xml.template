@@ -26,6 +26,7 @@
 	<Simulation>
 		<PinTool>/home/raj/Softwares/PIN</PinTool>
 		<PinInstrumentor>/home/raj/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<Mode>1</Mode>   <!--From file 0,  From PIN 1, From QEMU *todo* -->
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->

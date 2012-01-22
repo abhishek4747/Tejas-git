@@ -20,8 +20,10 @@
 *****************************************************************************/
 package generic;
 
+import java.io.Serializable;
 
-public class Instruction {
+
+public class Instruction implements Serializable{
 	
 	private OperationType type;
 	private Operand sourceOperand1;

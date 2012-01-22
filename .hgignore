@@ -1,0 +1,7 @@
+
+syntax: regexp
+^src/emulator/pin/obj-comm$
+syntax: regexp
+^src/emulator/pin/obj-ia32$
+syntax: regexp
+^src/simulator/config/config\.xml$

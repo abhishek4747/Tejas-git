@@ -21,13 +21,18 @@
 
 package generic;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 
-public class InstructionLinkedList 
+public class InstructionLinkedList implements Serializable
 {
-	private LinkedList<Instruction> instructionLinkedList;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public LinkedList<Instruction> instructionLinkedList;
 	private ListIterator<Instruction> listIterator;
 	//SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
