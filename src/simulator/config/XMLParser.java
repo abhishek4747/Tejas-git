@@ -349,15 +349,6 @@ public class XMLParser
 		}
 	}
 	
-	private static boolean setDirectoryCoherent(String immediateString) {
-		if(immediateString==null)
-			return false;
-		if(immediateString.equalsIgnoreCase("T"))
-			return true;
-		else
-			return false;
-	}
-
 	private static Element searchLibraryForItem(String tagName)	//Searches the <Library> section for a given tag name and returns it in Element form
 	{															// Used mainly for cache types
 		NodeList nodeLst = doc.getElementsByTagName("Library");
