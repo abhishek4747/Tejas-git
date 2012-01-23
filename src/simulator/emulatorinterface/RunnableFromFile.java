@@ -122,7 +122,10 @@ public class RunnableFromFile implements Runnable, Encoding {
 			int maxN = inputToPipeline[0].getListSize()/decodeWidth[0] * pipelineInterfaces[0].getCoreStepSize();
 	//FIXME Ask Kapil to fix the bug
 	// 			if (pipelineInterfaces[0].isExecutionComplete()) break;
-			if (maxN==0) break;
+			if (maxN==0){ 
+				pipelineInterfaces[0].getCore().getExecutionEngineIn().setExecutionComplete(true);
+				break;
+			}
 			System.out.println("maxN is "+maxN);
 			for (int i1=0; i1< maxN; i1++)	{
 
@@ -132,11 +135,14 @@ public class RunnableFromFile implements Runnable, Encoding {
 
 		}
 		Core core;
-		core = pipelineInterfaces[0].getCore();
-		if(core.getExecutionEngineIn().getExecutionComplete()){
-			System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
-			pipelineInterfaces[0].setTimingStatistics();			
-			pipelineInterfaces[0].setPerCoreMemorySystemStatistics();
+		for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+			core = pipelineInterfaces[tidEmu].getCore();
+			if(core.getExecutionEngineIn().getExecutionComplete()){
+System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
+				System.out.println("number of instructions executed = "+core.getNoOfInstructionsExecuted());
+				pipelineInterfaces[tidEmu].setTimingStatistics();			
+				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
+			}
 		}
 		
 		long timeTaken = System.currentTimeMillis() - Newmain.start;
@@ -148,7 +154,9 @@ public class RunnableFromFile implements Runnable, Encoding {
 
 		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 
-
+//System.out.println("Tid = "+tid+"microops= "+noOfMicroOps[0]);
+		noOfMicroOps[tid]=totMicroOps;
+		
 		Statistics.setNumInstructions(numInstructions, tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
 
