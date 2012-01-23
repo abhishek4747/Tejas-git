@@ -487,7 +487,7 @@ public class Cache extends SimulationElement
 					}
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
 					{
-System.out.println("Encountered a miss in directory!!");
+//System.out.println("Encountered a miss in directory!!");
 						long directoryDelay=0;
 						/* remove the block size */
 						long tag = address >>> this.blockSizeBits;
@@ -772,8 +772,35 @@ System.out.println("Encountered a miss in directory!!");
 		}
 		
 		public void updateDirectory(int cacheLine, int requestingCore, RequestType reqType, EventQueue eventQ, long address, Event event) {
+//System.out.println("Coming inside update directory!");
 if(cacheLine > CentralizedDirectory.numOfEntries){
 	System.out.println("Outside directory range!"+cacheLine);
+	if(reqType==RequestType.Cache_Read){
+		if (this.isLastLevel)
+		{
+			MemorySystem.mainMemory.getPort().put(
+					new AddressCarryingEvent(
+							eventQ,
+							MemorySystem.mainMemory.getLatencyDelay(),
+							this, 
+							MemorySystem.mainMemory,
+							RequestType.Main_Mem_Read,
+							address));
+			return;
+		}
+		else
+		{
+			this.nextLevel.getPort().put(
+					new AddressCarryingEvent(
+							eventQ,
+							this.nextLevel.getLatencyDelay(),
+							this, 
+							this.nextLevel,
+							RequestType.Cache_Read, 
+							address));
+			return;
+		}
+	}
 	return;
 }
 			if(reqType==RequestType.Cache_Read){
@@ -789,7 +816,7 @@ if(cacheLine > CentralizedDirectory.numOfEntries){
 		}
 		
 		private void writeMissUpdate(int cacheLine, int requestingCore, EventQueue eventQ, long address, Event event) {
-System.out.println("Directory Write");			
+//System.out.println("Directory Write");			
 //Hashtable<Long, DirectoryEntry> directory = CentralizedDirectory.directory;
 DirectoryEntry[] directory = CentralizedDirectory.directory;
 
@@ -958,7 +985,6 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 		}
 
 		private void readMissUpdate(int cacheLine, int requestingCore, EventQueue eventQ, long address, Event event) {
-System.out.println("Directory Read");
 //Hashtable<Long, DirectoryEntry> directory = CentralizedDirectory.directory;
 			DirectoryEntry[] directory = CentralizedDirectory.directory;
 			int directoryAccessDelay=SystemConfig.directoryAccessLatency;
@@ -969,6 +995,7 @@ System.out.println("Directory Read");
 			DirectoryState state= dirEntry.getState();
 			SimulationElement requestingElement = event.getRequestingElement();
 			if(state==DirectoryState.readOnly){
+//System.out.println("Directory Read 1");
 				dirEntry.setPresenceBit(requestingCore, true);
 				
 				//TODO Check if it is correct! 
@@ -983,6 +1010,7 @@ System.out.println("Directory Read");
 								RequestType.Mem_Response));
 			}
 			else if(state==DirectoryState.uncached ){
+//System.out.println("Directory Read 2");
 				dirEntry.setPresenceBit(requestingCore, true);
 				dirEntry.setState(DirectoryState.readOnly);
 				if (this.isLastLevel)
@@ -1011,6 +1039,7 @@ System.out.println("Directory Read");
 				}
 			}
 			else if(state==DirectoryState.exclusive){
+//System.out.println("Directory Read 3");
 				dirEntry.setPresenceBit(requestingCore, true);
 				dirEntry.setState(DirectoryState.readOnly);
 				//TODO Check if it is correct!
@@ -1019,7 +1048,7 @@ System.out.println("Directory Read");
 				requestingElement.getPort().put(
 						event.update(
 								eventQ,
-								requestingElement.getLatencyDelay()+directoryAccessDelay+dataTransferDelay+memWBDelay,
+								requestingElement.getLatencyDelay()+directoryAccessDelay+dataTransferDelay,
 								this,
 								requestingElement,
 								RequestType.Mem_Response));

@@ -27,6 +27,7 @@ public class Newmain {
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];;
+	public static RunnableFromFile [] runnersFromFile = new RunnableFromFile[IpcBase.MaxNumJavaThreads];;
 //	public static RunnableFromFile [] runners = new RunnableFromFile[IpcBase.MaxNumJavaThreads];;
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -80,7 +81,10 @@ public class Newmain {
 		String name;
 		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
-			runners[i] = new RunnableThread(name,i, ipcBase, cores);
+			if(SimulationConfig.Mode==0)
+				runnersFromFile[i] = new RunnableFromFile(name,i, ipcBase, cores);
+			else
+				runners[i] = new RunnableThread(name,i, ipcBase, cores);
 		}
 		
 		//set up statistics module

@@ -30,9 +30,9 @@ import generic.Statistics;
 public class RunnableThread implements Runnable, Encoding {
 
 	boolean doNotProcess = false;
-	boolean writeToFile = true;
-	long numInsToWrite = 20000000;
-	String fileName = "outFile.ser"; //TODO take from config 
+	boolean writeToFile = SimulationConfig.writeToFile;
+	long numInsToWrite = SimulationConfig.numInstructionsToBeWritten;
+	String fileName = SimulationConfig.InstructionsFilename; //TODO take from config 
 
 	OutputStream fileOut;
 	OutputStream bufferOut;
@@ -416,7 +416,7 @@ public class RunnableThread implements Runnable, Encoding {
 					dynamicInstructionBuffer[tidEmu]);
 			noOfMicroOps[tidEmu] += tempList.length();
 
-			if(SimulationConfig.detachMemSys == true)	//TODO
+/*			if(SimulationConfig.detachMemSys == true)	//TODO
 			{
 				for(int i = 0; i < tempList.getListSize(); i++)
 				{
@@ -428,7 +428,7 @@ public class RunnableThread implements Runnable, Encoding {
 					}
 				}
 			}
-
+*/
 			// Writing 20million instructions to a file
 			if (writeToFile) {
 				if (noOfMicroOps[0]>numInsToWrite) doNotProcess=true;

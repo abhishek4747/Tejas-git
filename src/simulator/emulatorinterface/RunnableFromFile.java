@@ -102,7 +102,7 @@ public class RunnableFromFile implements Runnable, Encoding {
 
 		threadParams[0].started=true;
 
-		long totMicroOps = readFile("microOps.ser");
+		long totMicroOps = readFile(SimulationConfig.InstructionsFilename);
 
 
 

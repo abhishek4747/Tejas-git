@@ -100,7 +100,7 @@ public class XMLParser
 		Element simulationElmnt = (Element) simulationNode;
 		SimulationConfig.PinTool = getImmediateString("PinTool", simulationElmnt);
 		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
-		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
+//		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
@@ -152,6 +152,22 @@ public class XMLParser
 		{
 			SimulationConfig.isPipelineInorder = false;
 		}
+		
+		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
+		
+		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.writeToFile = true;
+		}
+		else
+		{
+			SimulationConfig.writeToFile = false;
+		}
+		
+		SimulationConfig.numInstructionsToBeWritten = Integer.parseInt(getImmediateString("numInstructionsToBeWritten", simulationElmnt));
+		SimulationConfig.InstructionsFilename = getImmediateString("InstructionsFilename", simulationElmnt);
+
 	}
 	
 	private static void setSystemParameters()
