@@ -1,6 +1,8 @@
 package pipeline.inorder;
 
 
+import config.SimulationConfig;
+import config.SystemConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -59,10 +61,12 @@ public class FetchUnitIn extends SimulationElement{
 
 				//TODO add handle fun in getdecodeunit. What happens if icache miss ? stalls not taken account for right now.
 
+				if(!SimulationConfig.detachMemSys){
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getDecodeUnitIn(), 
 						fetchBuffer[i].getProgramCounter());
 				fetchFillCount++;
+				}
 			}
 		}
 
