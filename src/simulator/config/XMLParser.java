@@ -100,6 +100,7 @@ public class XMLParser
 		Element simulationElmnt = (Element) simulationNode;
 		SimulationConfig.PinTool = getImmediateString("PinTool", simulationElmnt);
 		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
+		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));

@@ -24,8 +24,9 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/moksh/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/raj/Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/raj/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<Mode>1</Mode>   <!--From file 0,  From PIN 1, From QEMU *todo* -->
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -140,15 +141,15 @@
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>128</BlockSize>			<!--In bytes-->
+			<BlockSi			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumberOfBankRows>2</NumberOfBankRows>
+			<NumberOfBuffers>4</NumberOfBuffers>
+ze>128</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
 			<Size>2048</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
@@ -157,10 +158,6 @@
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -169,15 +166,15 @@
 			<Associativity>8</Associativity>
 			<Size>16384</Size>				<!--In KBs-->
 			<Latency>1</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<PortType>UL</PortType>				<!--Type of access ports in th			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumberOfBankRows>2</NumberOfBankRows>
+			<NumberOfBuffers>4</NumberOfBuffers>
+e Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
 		</Type3>
 	</Library>
 </Configuration>

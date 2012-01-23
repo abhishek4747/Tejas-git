@@ -4,6 +4,9 @@ package emulatorinterface.communication;
 // are made here
 public class Packet 
 {
+	// If info packet then ip represents instruction pointer and tgt represents the target addr/mem 
+	// address. Else if synchronization packet then ip represents time and tgt represents lock 
+	// address. Else if timer packet then ip represents time and tgt represents nothing.
 	public long ip;
 	public int value;
 	public long tgt;
