@@ -17,7 +17,7 @@ public class CentralizedDirectory {
 		numPresenceBits=noOfCores;
 		for(int i=0;i<noOfCacheLines;i++)
 //			directory.put((long)i,new DirectoryEntry(noOfCores));
-			directory[i] = new DirectoryEntry(noOfCores);
+			directory[i] = new DirectoryEntry(noOfCores,i);
 		numOfEntries=noOfCacheLines;
 	}
 	/*

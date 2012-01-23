@@ -396,7 +396,23 @@ public class Cache extends SimulationElement
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
 						this.nextLevel.busController.processWriteHit(eventQ, this, cl, address);
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
-					{}//TODO
+					{
+						/* remove the block size */
+						long tag = address >>> this.blockSizeBits;
+
+						/* search all the lines that might match */
+						
+						long laddr = tag >>> this.assocBits;
+						laddr = laddr << assocBits; //Replace the associativity bits with zeros.
+
+						/* remove the tag portion */
+						laddr = laddr & numLinesMask;
+						int cacheLineNum=(int)(laddr/(long)blockSize);//TODO is this correct ?
+																// long to int typecast ? need an array indexed by long ?
+						int requestingCore = containingMemSys.getCore().getCore_number();//TODO Is this correct ?
+						
+						writeHitUpdate(cacheLineNum,requestingCore, eventQ, address, event);
+					}//TODO
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
 					{}//TODO
 					
@@ -821,13 +837,23 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 				for(int i=0;i<numPresenceBits;i++){
 					if(dirEntry.getPresenceBit(i)){
 						//TODO send invalidation messages
-						dirEntry.setPresenceBit(i,false);
+						if(i!=requestingCore){
+							dirEntry.setPresenceBit(i,false);
+							this.nextLevel.prevLevel.get(i).getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											directoryAccessDelay+invalidationAckCollectDelay+invalidationSendDelay,
+											this, 
+											this.nextLevel.prevLevel.get(i),
+											RequestType.MESI_Invalidate, 
+											address));
+						}
 					}
-					dirEntry.setPresenceBit(requestingCore, true);			
-					dirEntry.setState(DirectoryState.exclusive);
-//					directory.put((long)cacheLine,dirEntry);
-					//TODO collect invalidation acks
 				}
+				dirEntry.setPresenceBit(requestingCore, true);			
+				dirEntry.setState(DirectoryState.exclusive);
+				//TODO Check if it is correct!
+				fill(address,MESI.EXCLUSIVE);
 				if (this.isLastLevel)
 				{
 					MemorySystem.mainMemory.getPort().put(
@@ -861,8 +887,12 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 				dirEntry.setPresenceBit(ownerNum,false);
 				dirEntry.setPresenceBit(requestingCore, true);			
 				dirEntry.setState(DirectoryState.exclusive);
+				
 //				directory.put((long)cacheLine,dirEntry);
 
+				//TODO Check if it is correct!
+				fill(address,MESI.EXCLUSIVE);
+				
 				if (this.isLastLevel)
 				{
 					MemorySystem.mainMemory.getPort().put(
@@ -892,6 +922,40 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 			else
 				return;
 		}
+		
+		private void writeHitUpdate(int cacheLine, int requestingCore, EventQueue eventQ, long address, Event event){
+			DirectoryEntry[] directory = CentralizedDirectory.directory;
+			int directoryAccessDelay=SystemConfig.directoryAccessLatency;
+			int memWBDelay=SystemConfig.memWBDelay;
+			int invalidationSendDelay=SystemConfig.invalidationSendDelay;
+			int invalidationAckCollectDelay=SystemConfig.invalidationAckCollectDelay;
+			int ownershipChangeDelay=SystemConfig.ownershipChangeDelay;
+//			DirectoryEntry dirEntry = directory.get((long)cacheLine);
+			int numPresenceBits = CentralizedDirectory.numPresenceBits;
+			DirectoryEntry dirEntry = directory[cacheLine];
+			DirectoryState state= dirEntry.getState();
+			SimulationElement requestingElement = event.getRequestingElement();
+			if(state==DirectoryState.readOnly){
+				for(int i=0;i<numPresenceBits;i++){
+					if(dirEntry.getPresenceBit(i)){
+						//Invalidate others
+						if(i!=requestingCore){
+							dirEntry.setPresenceBit(i,false);
+							this.nextLevel.prevLevel.get(i).getPort().put(
+									new AddressCarryingEvent(
+											eventQ,
+											directoryAccessDelay+invalidationAckCollectDelay+invalidationSendDelay,
+											this, 
+											this.nextLevel.prevLevel.get(i),
+											RequestType.MESI_Invalidate, 
+											address));
+						}
+					}
+				}
+				dirEntry.setPresenceBit(requestingCore, true);
+				dirEntry.setState(DirectoryState.exclusive);
+			}
+		}
 
 		private void readMissUpdate(int cacheLine, int requestingCore, EventQueue eventQ, long address, Event event) {
 System.out.println("Directory Read");
@@ -906,7 +970,10 @@ System.out.println("Directory Read");
 			SimulationElement requestingElement = event.getRequestingElement();
 			if(state==DirectoryState.readOnly){
 				dirEntry.setPresenceBit(requestingCore, true);
-				//TODO Do what is to be done in case of a hit
+				
+				//TODO Check if it is correct! 
+				fill(address,MESI.SHARED);
+				
 				requestingElement .getPort().put(
 						event.update(
 								eventQ,
@@ -946,14 +1013,17 @@ System.out.println("Directory Read");
 			else if(state==DirectoryState.exclusive){
 				dirEntry.setPresenceBit(requestingCore, true);
 				dirEntry.setState(DirectoryState.readOnly);
-				requestingElement .getPort().put(
+				//TODO Check if it is correct!
+				fill(address,MESI.SHARED);
+				
+				requestingElement.getPort().put(
 						event.update(
 								eventQ,
 								requestingElement.getLatencyDelay()+directoryAccessDelay+dataTransferDelay+memWBDelay,
 								this,
 								requestingElement,
 								RequestType.Mem_Response));
-				//TODO shoud write back to memory be done ?
+				//TODO should write back to memory be done ?
 				return;
 			}
 			else
