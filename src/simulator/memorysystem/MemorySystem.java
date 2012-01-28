@@ -24,6 +24,12 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import memorysystem.nuca.DNuca;
+import memorysystem.nuca.NucaCache;
+import memorysystem.nuca.SNuca;
+
+import memorysystem.nuca.NucaCache.NucaType;
+
 import generic.*;
 import config.CacheConfig;
 import config.SimulationConfig;
@@ -69,8 +75,14 @@ public class MemorySystem
 				cacheParameterObj = SystemConfig.declaredCaches.get(cacheName);
 				
 				//Declare the new cache
-				Cache newCache = new Cache(cacheParameterObj, null);
-				
+				Cache newCache = null;
+				if (cacheParameterObj.getNucaType() == NucaType.NONE)
+					newCache = new Cache(cacheParameterObj, null);
+				else if (cacheParameterObj.getNucaType() == NucaType.S_NUCA)
+					newCache = new SNuca(cacheParameterObj,null);
+				else if (cacheParameterObj.getNucaType() == NucaType.D_NUCA)
+					newCache = new DNuca(cacheParameterObj,null);
+
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
 			}
@@ -200,20 +212,6 @@ public class MemorySystem
 		propagateCoherencyUpwards(Bus.upperLevels);*/
 	}
 	
-	/**
-	 * Recursive method to mark all the caches above the bus as COHERENT
-	 * @param list : Initial input is an Arraylist of Caches juat above the Bus and then works recursively upwards
-	 */
-	public static void propagateCoherencyUpwards(ArrayList<Cache> list)
-	{
-		if (list.isEmpty())
-			return;
-		for (int i = 0; i < list.size(); i++)
-		{
-			list.get(i).isCoherent = true;
-			propagateCoherencyUpwards(list.get(i).prevLevel);
-		}
-	}
 	
 	public static void printMemSysResults()
 	{

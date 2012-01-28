@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.Cache.CoherenceType;
 import memorysystem.Cache;
 import generic.PortType;
@@ -44,6 +45,7 @@ public class CacheConfig
 	public int portOccupancy;
 	public MultiPortingType multiportType;
 	public CoherenceType coherence;
+	public NucaType nucaType;
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public int numberOfBuffers;
@@ -161,6 +163,16 @@ public class CacheConfig
 	{
 		return size/(numberOfBankColumns*numberOfBankRows);
 	}
+
+	public NucaType getNucaType() {
+		return nucaType;
+	}
+
+	public void setNucaType(NucaType nucaType) {
+		this.nucaType = nucaType;
+	}
+	
+	
 //	public boolean isFirstLevel() {
 //		return isFirstLevel;
 //	}

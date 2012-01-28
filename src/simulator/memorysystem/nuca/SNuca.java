@@ -1,29 +1,19 @@
 package memorysystem.nuca;
-import java.util.ArrayList;
 import java.util.Vector;
 
-import net.RoutingAlgo;
-import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.ExecCompleteEvent;
-import generic.RequestType;
 import generic.SimulationElement;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
-import memorysystem.DestinationBankEvent;
-import memorysystem.LSQEntryContainingEvent;
-import memorysystem.MemorySystem;
-import memorysystem.Cache.CacheType;
 import misc.Util;
 import config.CacheConfig;
 import config.SystemConfig;
 
 public class SNuca extends NucaCache
 {
-	public SNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys,SystemConfig sysConfig) {
-        super(cacheParameters,containingMemSys,sysConfig);
+	public SNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) {
+        super(cacheParameters,containingMemSys);
     }
 		
 	public long getTag(long addr) {
@@ -63,7 +53,9 @@ public class SNuca extends NucaCache
 		long address = ((AddressCarryingEvent)(event)).getAddress();
 		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
-		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
+		boolean alreadypresent= this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].addOutstandingRequest(event, address);
+		if(!alreadypresent)
+			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
 									getPort().put(((AddressCarryingEvent)event).
 															updateEvent(eventQ, 
 																		0,//to be  changed to some constant(wire delay) 

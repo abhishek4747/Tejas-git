@@ -134,7 +134,7 @@
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
 			<Size>16</Size>					<!--In KBs-->
-			<Latency>2</Latency>				<!--In clock cycles-->
+			<Latency>1</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->

@@ -17,8 +17,14 @@ import config.CacheConfig;
 import net.RoutingAlgo;
 import config.SystemConfig;
 
-public abstract class NucaCache extends SimulationElement
+public abstract class NucaCache extends Cache
 {
+	public enum NucaType{
+		S_NUCA,
+		D_NUCA,
+		NONE
+	}
+	
     /*cache is assumed to in the form of a 2 dimensional array*/
     NucaCacheBank cacheBank[][];
     int cacheRows;
@@ -32,17 +38,13 @@ public abstract class NucaCache extends SimulationElement
     protected Hashtable<Long, ArrayList<Event>> missStatusHoldingRegister
 							= new Hashtable<Long, ArrayList<Event>>();
     
-    NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys,SystemConfig sysConfig)
+    NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
     {
-    	super(cacheParameters.portType,
-		      cacheParameters.getAccessPorts(), 
-			  cacheParameters.getPortOccupancy(),
-			  cacheParameters.getLatency(),
-			  cacheParameters.operatingFreq);
+    	super(cacheParameters, containingMemSys);
     	this.cacheRows = cacheParameters.getNumberOfBankRows();
         this.cacheColumns = cacheParameters.getNumberOfBankColumns();
         this.cacheBank=new NucaCacheBank[cacheRows][cacheColumns];
-        this.numOfCores = sysConfig.NoOfCores;
+        this.numOfCores = SystemConfig.NoOfCores;
         this.cacheSize = cacheParameters.getSize();
         this.associativity = cacheParameters.getAssoc();
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
@@ -143,7 +145,7 @@ public abstract class NucaCache extends SimulationElement
     private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys)
 	{
 		int bankColumns,bankRows,i,j;
-		Vector<Integer> bankId = new Vector<Integer>(2);
+		
 		bankColumns = cacheParameters.getNumberOfBankColumns();  //number banks should be power of 2 otherwise truncated
 		bankRows = cacheParameters.getNumberOfBankRows();  //number banks should be power of 2 otherwise truncated
 		this.cacheBank = new NucaCacheBank[bankRows][bankColumns];
@@ -151,6 +153,7 @@ public abstract class NucaCache extends SimulationElement
 		{
 			for(j=0;j<bankColumns;j++)
 			{
+				Vector<Integer> bankId = new Vector<Integer>(2);
 				bankId.clear();
 				bankId.add(i);
 				bankId.add(j);
@@ -183,5 +186,34 @@ public abstract class NucaCache extends SimulationElement
 	
 	public abstract Vector<Integer> getDestinationBankId(long addr);
 	public abstract Vector<Integer> getSourceBankId(long addr);
+	public void addToForwardedRequests(long address,Vector<Integer>bankId,SimulationElement requestingElement)
+	{
+		NucaCacheBank currentBank =cacheBank[bankId.get(0)][bankId.get(1)]; 
+		if(currentBank.forwardedRequests.contains(address))
+		{
+			ArrayList<SimulationElement> requestingElements = currentBank.forwardedRequests.get(address);  			
+			currentBank.forwardedRequests.remove(address);
+			requestingElements.add(requestingElement);
+			currentBank.forwardedRequests.put(address,requestingElements);
+		}
+		else
+		{
+			ArrayList<SimulationElement> requestingElements = new ArrayList<SimulationElement>();
+			requestingElements.add(requestingElement);
+		}
+	} 
+	
+	public void setStatistics()
+	{
+		for(int i=0;i<cacheRows;i++)
+		{
+			for(int j=0;j<cacheColumns;j++)
+			{
+				noOfRequests = noOfRequests + cacheBank[i][j].noOfRequests;
+				hits = hits + cacheBank[i][j].hits;
+				misses = misses + cacheBank[i][j].misses;
+			}			
+		}
+	}
 	 
 }

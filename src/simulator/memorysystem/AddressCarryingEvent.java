@@ -12,8 +12,6 @@ public class AddressCarryingEvent extends Event
 	private long address;
 	private Vector<Integer> sourceBankId;
 	private Vector<Integer> destinationBankId;
-	private int currentLevel;
-	private boolean flag;
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -21,10 +19,8 @@ public class AddressCarryingEvent extends Event
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType);
 		this.address = address;
-		setSourceBankId(null);
-		setDestinationBankId(null);
-		setCurrentLevel(0);
-		setFlag(false);
+		sourceBankId = null;
+		destinationBankId = null;
 	}
 
 	public void updateEvent(EventQueue eventQ, long eventTime, 
@@ -41,21 +37,8 @@ public class AddressCarryingEvent extends Event
 			RequestType requestType, 
 			Vector<Integer> sourceBankId,
 			Vector<Integer> destinationBankId) {
-		this.sourceBankId = sourceBankId;
-		this.destinationBankId = destinationBankId;
-		return (AddressCarryingEvent) this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
-	}
-	
-	public AddressCarryingEvent updateEvent(EventQueue eventQ, long eventTime, 
-			SimulationElement requestingElement,
-			SimulationElement processingElement,
-			RequestType requestType, 
-			Vector<Integer> sourceBankId,
-			Vector<Integer> destinationBankId,
-			int currentLevel) {
-		this.sourceBankId = sourceBankId;
-		this.destinationBankId = destinationBankId;
-		this.setCurrentLevel(currentLevel);
+		this.sourceBankId = (Vector<Integer>) sourceBankId.clone();
+		this.destinationBankId = (Vector<Integer>) destinationBankId.clone();
 		return (AddressCarryingEvent) this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
 	}
 	
@@ -68,7 +51,7 @@ public class AddressCarryingEvent extends Event
 	}
 
 	public void setSourceBankId(Vector<Integer> sourceBankId) {
-		this.sourceBankId = sourceBankId;
+		this.sourceBankId = (Vector<Integer>) sourceBankId.clone();
 	}
 
 	public Vector<Integer> getSourceBankId() {
@@ -76,26 +59,10 @@ public class AddressCarryingEvent extends Event
 	}
 
 	public void setDestinationBankId(Vector<Integer> destinationBankId) {
-		this.destinationBankId = destinationBankId;
+		this.destinationBankId = (Vector<Integer>) destinationBankId.clone();
 	}
 
 	public Vector<Integer> getDestinationBankId() {
 		return destinationBankId;
-	}
-
-	public void setCurrentLevel(int currentLevel) {
-		this.currentLevel = currentLevel;
-	}
-
-	public int getCurrentLevel() {
-		return currentLevel;
-	}
-
-	public void setFlag(boolean flag) {
-		this.flag = flag;
-	}
-
-	public boolean isFlag() {
-		return flag;
 	}
 }

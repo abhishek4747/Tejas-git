@@ -1,6 +1,10 @@
 package emulatorinterface;
 
 import java.util.Enumeration;
+
+import memorysystem.nuca.NucaCache;
+
+import memorysystem.nuca.SNuca;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import misc.Error;
@@ -115,10 +119,15 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
+			if (cache.getClass() == NucaCache.class)
+			{
+				((NucaCache)cache).setStatistics();
+			}
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
 		}
+			
 
 		end = System.currentTimeMillis();
 		Statistics.setTime(end - start);

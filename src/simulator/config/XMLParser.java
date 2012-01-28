@@ -34,6 +34,8 @@ import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
+import memorysystem.nuca.NucaCache.NucaType;
+
 import generic.PortType;
 
 public class XMLParser 
@@ -327,6 +329,19 @@ public class XMLParser
 		else
 		{
 			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'S', D' or 'N')");
+			System.exit(1);
+		}
+		
+		tempStr = getImmediateString("Nuca", CacheType);
+		if (tempStr.equalsIgnoreCase("N"))
+			cache.nucaType = NucaType.NONE;
+		else if (tempStr.equalsIgnoreCase("S"))
+			cache.nucaType = NucaType.S_NUCA;
+		else if (tempStr.equalsIgnoreCase("D"))
+			cache.nucaType = NucaType.D_NUCA;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");
 			System.exit(1);
 		}
 		

@@ -29,7 +29,7 @@ public class MainMemory extends SimulationElement
 							event.getRequestingElement().getLatencyDelay(),
 							null,
 							event.getRequestingElement(),
-							RequestType.Mem_Response));
+							RequestType.Main_Mem_Response));
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)
 		{

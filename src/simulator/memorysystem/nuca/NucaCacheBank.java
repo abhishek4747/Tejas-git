@@ -1,14 +1,13 @@
 package memorysystem.nuca;
 
-import generic.Core;
 import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 import net.*;
-import memorysystem.*;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.Hashtable;
 import config.CacheConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
@@ -16,35 +15,21 @@ import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
 
-
 public class NucaCacheBank extends Cache
 {
-    private double timestamp;//used when LRU replacement policy is used for LLC
 	Router router;
 	CacheConfig cacheParameters;
+	protected Hashtable<Long, ArrayList<SimulationElement>> forwardedRequests;
 
     NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
     {
         super(cacheParameters,containingMemSys);
     	this.timestamp = 0;
-    	int bankSize = cacheParameters.getBankSize();
-        this.cacheParameters = cacheParameters;
+    	this.cacheParameters = cacheParameters;
         this.router = new Router(bankId,cacheParameters.numberOfBuffers);
+        forwardedRequests =new Hashtable<Long, ArrayList<SimulationElement>>();
     }
     
-    public boolean lookup(long tag)//looks for tag in cache lines present in the bank sequentially
-    {
-        for(int i=0;i<lines.length;i++)
-        {
-            if(tag ==lines[i].getTag())
-                return true;
-        }
-        return false;
-    }
-    
-	
-
-
     public Object clone()
     {
         try
@@ -58,14 +43,6 @@ public class NucaCacheBank extends Cache
         }
     }
 	
-    public void setTimestamp(double timestamp) {
-		this.timestamp = timestamp;
-	}
-	
-    public double getTimestamp() {
-		return timestamp;
-	}
-    
 	public Router getRouter()
 	{
 		return this.router;
@@ -75,16 +52,12 @@ public class NucaCacheBank extends Cache
 	public void handleEvent(EventQueue eventQ, Event event){
 		// TODO Auto-generated method stub
 		
-		SimulationElement requestingElement = event.getRequestingElement();
 		RequestType requestType = event.getRequestType();
-		
 		RoutingAlgo.DIRECTION nextID;
 		Vector<Integer> destinationId;
-		Vector<Integer> currentId = ((NucaCacheBank) event.getRequestingElement()).router.getBankId();
-
+		Vector<Integer> currentId = ((NucaCacheBank) event.getProcessingElement()).router.getBankId();
 	   //Destination is stored inside event
-		destinationId = ((DestinationBankEvent)(event)).getDestination();
-			
+		destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
 		if(currentId.equals(destinationId))
 		{
 			if (event.getRequestType() == RequestType.Cache_Read
@@ -95,17 +68,16 @@ public class NucaCacheBank extends Cache
 			else if (event.getRequestType() == RequestType.Main_Mem_Read ||  
 					event.getRequestType() == RequestType.Main_Mem_Write)
 				this.handleMemoryReadWrite(eventQ,event);
-			else if (event.getRequestType() == RequestType.Mem_Response)
+			else if (event.getRequestType() == RequestType.Main_Mem_Response)
 				this.handleMainMemoryResponse(eventQ,event);
 		}
 		else
 		{
 			nextID = router.RouteComputation(currentId, destinationId, RoutingAlgo.ALGO.SIMPLE);
-			
 			if(router.CheckNeighbourBuffer(nextID))
 			{
 				//post event to nextID
-				requestingElement.getPort().put(
+				this.router.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
 								eventQ,
 								1,
@@ -117,7 +89,7 @@ public class NucaCacheBank extends Cache
 			else
 			{
 				//post event to this ID
-				requestingElement.getPort().put(
+				this.getPort().put(
 						event.update(
 								eventQ,
 								1,
@@ -128,31 +100,27 @@ public class NucaCacheBank extends Cache
 		}
 	}
 	
-	private void handleMainMemoryResponse(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
+	private void handleMainMemoryResponse(EventQueue eventQ, Event event) {//changes are required....
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
 		SimulationElement processingElement = event.getProcessingElement();
-		SimulationElement requestingElement = event.getRequestingElement();
 		CacheLine evictedLine = this.fill(addr);
 		//if condition to be  changed
 		if (evictedLine != null)
 		{
-			((AddressCarryingEvent)event).setAddress(evictedLine.getTag() << this.blockSizeBits);//this address is not correct to be checked 
-			processingElement.getPort().put(
-					((AddressCarryingEvent)event).updateEvent(
-							eventQ,
-							0,
-							this,
-							this,
-							RequestType.Main_Mem_Write,
-							((AddressCarryingEvent)event).getDestinationBankId(),
-							((AddressCarryingEvent)event).getSourceBankId()));
-
+			AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+																		 0,
+																		 this, 
+																		 this, 
+																		 RequestType.Main_Mem_Write, 
+																		 evictedLine.getTag() << this.blockSizeBits);
+			addressEvent.setSourceBankId(((AddressCarryingEvent)event).getDestinationBankId());
+			addressEvent.setDestinationBankId(((AddressCarryingEvent)event).getDestinationBankId());
+			processingElement.getPort().put(addressEvent);
 		}
 		long blockAddr = addr >>> this.blockSizeBits;
 			if (!/*NOT*/this.missStatusHoldingRegister.containsKey(blockAddr))
 			{
-				System.err.println("Memory System Error : An outstanding request not found in the requesting element");
+				System.err.println("Memory System Error : An outstanding request not found in the requesting element from line 128");
 				System.exit(1);
 			}
 			
@@ -164,18 +132,15 @@ public class NucaCacheBank extends Cache
 				{
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 					{
-						//Handle in any case (Whether requesting element is LSQ or cache)
-						//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
-						long address = ((AddressCarryingEvent)(event)).getAddress();
-						processingElement.getPort().put(
-								((AddressCarryingEvent)event).updateEvent(
-										eventQ,
-										0,
-										this,
-										this,
-										RequestType.Main_Mem_Write,
-										(Vector<Integer>)((AddressCarryingEvent)event).getDestinationBankId().clone(),
-										(Vector<Integer>)((AddressCarryingEvent)event).getSourceBankId().clone()));
+						AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+																					 0,
+																					 this, 
+																					 this, 
+																					 RequestType.Main_Mem_Write, 
+																					 evictedLine.getTag() << this.blockSizeBits);
+						addressEvent.setSourceBankId(((AddressCarryingEvent)event).getDestinationBankId());
+						addressEvent.setDestinationBankId(((AddressCarryingEvent)event).getDestinationBankId());
+						processingElement.getPort().put(addressEvent);
 					}				
 				}
 				else if(outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
@@ -186,13 +151,13 @@ public class NucaCacheBank extends Cache
 									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 									this,
 									outstandingRequestList.get(0).getRequestingElement(),
-									RequestType.Mem_Response,
-									(Vector<Integer>)((AddressCarryingEvent)(outstandingRequestList.get(0))).getDestinationBankId().clone(),
-									(Vector<Integer>)((AddressCarryingEvent)(outstandingRequestList.get(0))).getSourceBankId().clone()));
+									RequestType.Mem_Response,									
+									((AddressCarryingEvent)(outstandingRequestList.get(0))).getDestinationBankId(),
+									((AddressCarryingEvent)(outstandingRequestList.get(0))).getSourceBankId()));
 				}
 				else
 				{
-					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write");
+					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 164");
 					System.exit(1);
 				}
 				
@@ -203,20 +168,14 @@ public class NucaCacheBank extends Cache
 
 	private void handleMemoryReadWrite(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
-		long address = ((AddressCarryingEvent)event).getAddress();
 		RequestType requestType = event.getRequestType();
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(
-													eventQ,
-													MemorySystem.mainMemory.getLatencyDelay(),
-													this,
-													MemorySystem.mainMemory,
-													requestType,
-													address);
-		Vector<Integer> sourceBankId = (Vector<Integer>) addressEvent.getDestinationBankId().clone();
-		Vector<Integer> destinationBankId = (Vector<Integer>) addressEvent.getSourceBankId().clone();
-		addressEvent.setDestinationBankId(destinationBankId);
-		addressEvent.setSourceBankId(sourceBankId);		
-		MemorySystem.mainMemory.getPort().put(addressEvent);		
+		((AddressCarryingEvent)event).setSourceBankId(((AddressCarryingEvent)event).getDestinationBankId());
+		((AddressCarryingEvent)event).setDestinationBankId(((AddressCarryingEvent)event).getSourceBankId());
+		MemorySystem.mainMemory.getPort().put(event.update(eventQ, 
+															MemorySystem.mainMemory.getLatencyDelay(), 
+															event.getProcessingElement(), 
+															MemorySystem.mainMemory, 
+															requestType));		
 	}
 
 	private void handleAccess(EventQueue eventQ, Event event)
@@ -248,38 +207,18 @@ public class NucaCacheBank extends Cache
 			
 			else if (requestType == RequestType.Cache_Write)
 			{
-				//Write the data to the cache block (Do Nothing)
-				
-				//If the cache level is Write-through
-				//to be put in Nuca Cache
-				/*if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
-				{
-					MemorySystem.mainMemory.getPort().put(
-									event.update(
-											eventQ,
-											MemorySystem.mainMemory.getLatencyDelay(),
-											this,
-											MemorySystem.mainMemory,
-											RequestType.Main_Mem_Write));
-										
-				}*/
-				
 				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 				{
-					requestingElement.getPort().put(
-							((AddressCarryingEvent)event).updateEvent(
-									eventQ,
-									processingElement.getLatencyDelay(),
-									this,
-									this,
-									RequestType.Main_Mem_Write,
-									((AddressCarryingEvent)event).getDestinationBankId(),
-									((AddressCarryingEvent)event).getSourceBankId()));
+					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+																				 0,
+																				 this, 
+																				 this, 
+																				 RequestType.Main_Mem_Write, 
+																				 address);
+					addressEvent.setSourceBankId(((AddressCarryingEvent)event).getDestinationBankId());
+					addressEvent.setDestinationBankId(((AddressCarryingEvent)event).getDestinationBankId());
+					processingElement.getPort().put(addressEvent);
 				}
-				else
-				{
-					Core.outstandingMemRequests--;
-				}						
 			}
 		}
 		
@@ -292,15 +231,15 @@ public class NucaCacheBank extends Cache
 			if (!alreadyRequested)
 			{
 				// access the next level
-				requestingElement.getPort().put(
-						((AddressCarryingEvent)event).updateEvent(
-								eventQ,
-								processingElement.getLatencyDelay(),
-								this,
-								this,
-								RequestType.Main_Mem_Read,
-								((AddressCarryingEvent)event).getDestinationBankId(),
-								((AddressCarryingEvent)event).getSourceBankId()));
+				AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+																			 0,
+																			 this, 
+																			 this, 
+																			 RequestType.Main_Mem_Read, 
+																			 address);
+				addressEvent.setSourceBankId(((AddressCarryingEvent)event).getDestinationBankId());
+				addressEvent.setDestinationBankId(((AddressCarryingEvent)event).getDestinationBankId());
+				processingElement.getPort().put(addressEvent);
 
 				return;
 			}
@@ -309,61 +248,29 @@ public class NucaCacheBank extends Cache
 	
 	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
-		/*some thing to be done for mem_response for upper level cache */
-		
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
-		SimulationElement processingElement = event.getProcessingElement();
-		SimulationElement requestingElement = event.getRequestingElement();
-		long blockAddr = addr >>> this.blockSizeBits;
+		long blockAddr = addr >>> blockSizeBits;
 		if (!/*NOT*/this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
-			System.err.println("Memory System Error : An outstanding request not found in the requesting element");
+			
+			System.err.println("Memory System Error : An outstanding request not found in the requesting element from line 258");
+			System.out.println(missStatusHoldingRegister);
 			System.exit(1);
 		}
+		ArrayList<Event> outstandingEvents = this.missStatusHoldingRegister.get(blockAddr);
 		
-		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.get(blockAddr);
-		
-		while (!/*NOT*/outstandingRequestList.isEmpty())
+		while (!/*NOT*/outstandingEvents.isEmpty())
 		{				
-			if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)
-			{
-				//Write the value to the block (Do Nothing)
-				//Handle further writes for Write through
-				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
-				{
-					//Handle in any case (Whether requesting element is LSQ or cache)
-					//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
-					long address = ((AddressCarryingEvent)(event)).getAddress();
-					processingElement.getPort().put(
-							((AddressCarryingEvent)event).updateEvent(
-									eventQ,
-									0,
-									this,
-									this,
-									RequestType.Main_Mem_Write,
-									(Vector<Integer>)((AddressCarryingEvent)event).getDestinationBankId().clone(),
-									(Vector<Integer>)((AddressCarryingEvent)event).getSourceBankId().clone()));
-					
-				}				
-			}
-			else if(outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
-			{
-				outstandingRequestList.get(0).getRequestingElement().getPort().put(
-						outstandingRequestList.get(0).update(
-								eventQ,
-								0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
-								this,
-								outstandingRequestList.get(0).getRequestingElement(),
-								RequestType.Mem_Response));
-			}
-			else
-			{
-				System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write");
-				System.exit(1);
-			}
-			
+			Event tempEvent = outstandingEvents.get(0);
+			tempEvent.getRequestingElement().getPort().put
+											(event.update
+														(eventQ, 
+														 tempEvent.getRequestingElement().getLatencyDelay() , 
+														 this,
+														 tempEvent.getRequestingElement(),
+														 tempEvent.getRequestType()));
 			//Remove the processed entry from the outstanding request list
-			outstandingRequestList.remove(0);
+			outstandingEvents.remove(0);
 		}		
 	}
 }

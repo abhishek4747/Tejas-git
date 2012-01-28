@@ -1,11 +1,8 @@
 package memorysystem.nuca;
 import generic.Event;
 import generic.EventQueue;
-import generic.RequestType;
-
 import java.util.Hashtable;
 import java.util.Vector;
-
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
@@ -13,9 +10,9 @@ import config.SystemConfig;
 
 public class DNuca extends NucaCache {
 
-	DNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys,SystemConfig sysConfig) 
+	public DNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) 
 	{
-		super(cacheParameters,containingMemSys,sysConfig);
+		super(cacheParameters,containingMemSys);
 	}
 
 	public void migrateCacheBank(int cacheBankNumber,int coreId)//migrate the given cache bank to
@@ -74,19 +71,14 @@ public class DNuca extends NucaCache {
 		// TODO Auto-generated method stub
 		long address = ((AddressCarryingEvent)(event)).getAddress();
 		int currentlevel = ((AddressCarryingEvent)(event)).getCurrentLevel();
-		boolean flag = ((AddressCarryingEvent)(event)).isFlag();
 		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
-		sourceBankId.add(currentlevel);
-		if(currentlevel == 0 && !flag)
-			destinationBankId.add(currentlevel);
-		else
-			destinationBankId.add(currentlevel+1);
+		addToForwardedRequests(address, sourceBankId, event.getRequestingElement());
 		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
 									getPort().put(((AddressCarryingEvent)event).
 															updateEvent(eventQ, 
 																		0, 
-																		this, 
+																		event.getRequestingElement(), 
 																		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
 																		event.getRequestType(), 
 																		sourceBankId, 
@@ -111,7 +103,7 @@ public class DNuca extends NucaCache {
 		laddr = laddr - (laddr%associativity);
 		Vector<Integer> sourceBankId = new Vector<Integer>();
 		sourceBankId.add((int) (laddr/cacheColumns));
-		return null;
-	}
-	
+		sourceBankId.add(0);
+		return sourceBankId;
+	}	
 }

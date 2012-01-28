@@ -43,7 +43,7 @@ public class Router{
 		return this.bankId;
 	}
 	
-	public boolean AllocateBuffer()  //TODO Check for mutual exclusion
+	public boolean AllocateBuffer()  
 	{
 		if(this.availBuff>0)
 		{
@@ -91,6 +91,7 @@ public class Router{
 		case SIMPLE :
 			return routingAlgo.nextBank(current, destination);
 		}
-		return null;
+		return routingAlgo.nextBank(current, destination);
+		
 	}	
 }
