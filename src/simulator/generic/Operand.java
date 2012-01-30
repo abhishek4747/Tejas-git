@@ -21,8 +21,10 @@
 
 package generic;
 
+import java.io.Serializable;
 
-public class Operand 
+
+public class Operand implements Serializable
 {
 	
 	private OperandType type;

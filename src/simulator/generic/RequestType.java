@@ -45,6 +45,7 @@ public enum RequestType {
 	Tell_LSQ_Addr_Ready,
 	Validate_LSQ_Addr,
 	Cache_Read,
+	Cache_Read_from_iCache,
 	Cache_Write,
 	Main_Mem_Read,
 	Main_Mem_Write,
@@ -52,10 +53,19 @@ public enum RequestType {
 	LSQ_Commit,
 	CacheBank_Read,
 	CacheBank_Write,
-	Main_Mem_Response
+	
+	MESI_Invalidate,
+	MESI_RWITM,
+//	Mem_Response_with_State,
+	Request_for_copy,
+	Request_for_modified_copy,
+	Reply_with_shared_copy,
+	Write_Modified_to_sharedmem
 	
 //	MEM_READ,
-//	MEM_WRITE,
+//	MEM_WRI
+	
+	
 //	
 //	EVICTION_WRITE,
 //	MEM_BLOCK_READY,

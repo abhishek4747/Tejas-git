@@ -31,7 +31,8 @@ public class Newmain {
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];;
-	
+	public static RunnableFromFile [] runnersFromFile = new RunnableFromFile[IpcBase.MaxNumJavaThreads];;
+//	public static RunnableFromFile [] runners = new RunnableFromFile[IpcBase.MaxNumJavaThreads];;
 	public static void main(String[] arguments) throws Exception 
 	{
 		String executableArguments=" ";
@@ -66,24 +67,11 @@ public class Newmain {
 		//create cores
 		Core[] cores = initCores();
 		
-		//create the buffers between the translation logic and the pipeline logic
-		/*InstructionLinkedList[] inputsToPipeline;
-		inputsToPipeline = new InstructionLinkedList[1];
-		for(int i = 0; i < 1; i++)					//TODO number of pipelines = number of cores
-													//mapping of application threads to cores to be read from config file
-													//currently application thread i runs on core i
-		{
-			inputsToPipeline[i] = new InstructionLinkedList();
-			
-			if (cores[i].isPipelineStatistical)
-				cores[i].getStatisticalPipeline().getFetcher().setInputToPipeline(new InstructionLinkedList[]{inputsToPipeline[i]});
-			else
-				cores[i].getExecEngine().getFetcher().setInputToPipeline(new InstructionLinkedList[]{inputsToPipeline[i]});
-		}
-		*/
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
-		Process process = createPINinterface(ipcBase, executableArguments);
+		if (SimulationConfig.Mode==1) {
+			Process process = createPINinterface(ipcBase, executableArguments);
+		}
 
 		//Create the memory system
 		MemorySystem.initializeMemSys(cores); //TODO mem sys need not know eventQ during initialisation
@@ -97,7 +85,10 @@ public class Newmain {
 		String name;
 		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
-			runners[i] = new RunnableThread(name,i, ipcBase, cores);
+			if(SimulationConfig.Mode==0)
+				runnersFromFile[i] = new RunnableFromFile(name,i, ipcBase, cores);
+			else
+				runners[i] = new RunnableThread(name,i, ipcBase, cores);
 		}
 		
 		//set up statistics module
@@ -109,7 +100,7 @@ public class Newmain {
 		//FIXME : wait stopped for unexpected exit.
 		@SuppressWarnings("unused")
 		long icount = ipcBase.doExpectedWaitForSelf();
-		ipcBase.doWaitForPIN(process);
+		if (SimulationConfig.Mode==1) ipcBase.doWaitForPIN(process);
 		ipcBase.finish();
 		reportStatistics();
 		

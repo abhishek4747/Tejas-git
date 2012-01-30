@@ -22,6 +22,7 @@ package config;
 
 public class SimulationConfig 
 {
+	public static int Mode;  // Mode for simulator to run
 	public static int NumTempIntReg; //Number of temporary Integer registers
 	public static boolean IndexAddrModeEnable; //Indexed addressing mode Enabled or disabled
 	public static long MapEmuCores;  //Emulator cores to run on
@@ -33,4 +34,7 @@ public class SimulationConfig
 	public static boolean detachMemSys;
 	public static boolean isPipelineStatistical;
 	public static boolean isPipelineInorder;
+	public static boolean writeToFile;
+	public static int numInstructionsToBeWritten;
+	public static String InstructionsFilename;
 }

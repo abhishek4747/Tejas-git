@@ -29,13 +29,15 @@ public class MainMemory extends SimulationElement
 							event.getRequestingElement().getLatencyDelay(),
 							null,
 							event.getRequestingElement(),
-							RequestType.Main_Mem_Response));
+							RequestType.Mem_Response));
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)
 		{
 			//TODO : If we have to simulate the write timings also, then the code will come here
 			//Just to tell the requesting things that the write is completed
 			
+//			Core.outstandingMemRequests--;
+//			Core.outstandingMemRequests--;
 		}
 	}
 }

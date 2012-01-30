@@ -3,7 +3,12 @@
  */
 
 package emulatorinterface;
-import java.security.MessageDigest;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.Iterator;
 import pipeline.PipelineInterface;
@@ -23,6 +28,15 @@ import generic.Statistics;
  * to its index(taken care in the jni C file).
  */
 public class RunnableThread implements Runnable, Encoding {
+
+	boolean doNotProcess = false;
+	boolean writeToFile = SimulationConfig.writeToFile;
+	long numInsToWrite = SimulationConfig.numInstructionsToBeWritten;
+	String fileName = SimulationConfig.InstructionsFilename; //TODO take from config 
+
+	OutputStream fileOut;
+	OutputStream bufferOut;
+	ObjectOutput output;
 
 	int tid;
 	long sum = 0; // checksum
@@ -53,6 +67,20 @@ public class RunnableThread implements Runnable, Encoding {
 	// write the results in.
 	public RunnableThread(String threadName, int tid1, IpcBase ipcType, Core[] cores) {
 
+		if (writeToFile) {
+			try {
+				fileOut = new FileOutputStream( fileName );
+				bufferOut = new BufferedOutputStream( fileOut );
+				output = new ObjectOutputStream( bufferOut );
+
+				/*	    fileIn = new FileInputStream( "microOps.ser" );
+		    bufferIn = new BufferedInputStream( fileIn );
+		    input = new ObjectInputStream ( bufferIn );
+				 */		}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
 		decodeWidth = new int[EMUTHREADS];
@@ -120,7 +148,7 @@ public class RunnableThread implements Runnable, Encoding {
 	public void run() {
 
 		//		System.out.println("-- in runnable thread run "+this.tid);
-int extraCycles=0;
+		int extraCycles=0;
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
@@ -204,22 +232,33 @@ int extraCycles=0;
 				if(tidEmu==0)
 					tempu=n;
 				//FIXME what if core not started
-				if(tidEmu==0)
-//System.out.println("n = "+n);
-				if(thread.started  &&  n<minN)
-					minN=n;
-				//	System.out.print("  "+n);
+				/*				if(tidEmu==0)
+					System.out.println("n = "+n);
+				 */				if(thread.started  &&  n<minN && n!=0)
+					 minN=n;
+				 //	System.out.print("  "+n);
 			}
-//System.out.println("minN ="+minN);
+			//System.out.println("minN ="+minN);
 			//System.out.println();
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
 			//System.out.println("min is"+minN + " pipeline size  : " + inputToPipeline[0].getListSize());
 			if (minN==tempu &&extraCycles!=-1){ extraCycles+=minN;
-//			System.out.println("Extra cycles = "+extraCycles);
+			//			System.out.println("Extra cycles = "+extraCycles);
 			}
 			else 
 				extraCycles = -1;
-			
+			/*boolean print =false;
+			for (int tidEmu=0; tidEmu<EMUTHREADS; tidEmu++) {
+				if (inputToPipeline[tidEmu].getListSize()!=0 && minN==0) {
+					print = true;
+				}
+			}
+			if (true) {
+				System.out.println("minN is "+minN);
+				for(int tidEmu=0; tidEmu<EMUTHREADS; tidEmu++) {
+					System.out.println("numInstructions in pipeline"+tidEmu+"  "+inputToPipeline[tidEmu].getListSize()+" thread.started is"+threadParams[tidEmu].started);
+				}
+			}*/
 			for (int i1=0; i1< minN; i1++)	{
 				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 					if(threadParams[tidEmu].started)
@@ -293,7 +332,7 @@ int extraCycles=0;
 		for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 			core = pipelineInterfaces[tidEmu].getCore();
 			if(core.getExecutionEngineIn().getExecutionComplete()){
-				System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
+				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
 				pipelineInterfaces[tidEmu].setTimingStatistics();			
 				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
 			}
@@ -308,14 +347,23 @@ int extraCycles=0;
 		}
 		long timeTaken = System.currentTimeMillis() - Newmain.start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
-				+ " instructions-" + numInstructions[tid] + " MBPS-" + (double) (dataRead * 24)
-				/ (double) timeTaken / 1000.0 +" time-"
-				+ timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
-				+" KIPS-" + (double) totNumIns / (double) timeTaken
-				+ "checksum " + sum + "\n");
+				+ " instructions-" + numInstructions[tid] 
+				                                     +" microOps  "+totMicroOps
+				                                     +" MBPS-" + (double) (dataRead * 24)
+				                                     / (double) timeTaken / 1000.0 +" time-"
+				                                     + timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
+				                                     +" KIPS-" + (double) totNumIns / (double) timeTaken
+				                                     + "checksum " + sum + "\n");
 
 		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
-
+		if (writeToFile) {
+			try {
+				this.output.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		Statistics.setDataRead(dataRead, tid);
 		Statistics.setNumInstructions(numInstructions, tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
@@ -344,6 +392,7 @@ int extraCycles=0;
 	}
 
 	private void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
+		if (doNotProcess) return;
 		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
 		if (pnew.value == TIMER) {
@@ -367,7 +416,7 @@ int extraCycles=0;
 					dynamicInstructionBuffer[tidEmu]);
 			noOfMicroOps[tidEmu] += tempList.length();
 
-			if(SimulationConfig.detachMemSys == true)	//TODO
+/*			if(SimulationConfig.detachMemSys == true)	//TODO
 			{
 				for(int i = 0; i < tempList.getListSize(); i++)
 				{
@@ -379,9 +428,24 @@ int extraCycles=0;
 					}
 				}
 			}
-
-			this.inputToPipeline[tidEmu].appendInstruction(tempList);
-
+*/
+			// Writing 20million instructions to a file
+			if (writeToFile) {
+				if (noOfMicroOps[0]>numInsToWrite) doNotProcess=true;
+				if (noOfMicroOps[0]>numInsToWrite && noOfMicroOps[0]< 20000005)
+					System.out.println("Done writing to file");
+				for (Instruction ins : tempList.instructionLinkedList) {
+					try {
+						this.output.writeObject(ins);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			else { 
+				this.inputToPipeline[tidEmu].appendInstruction(tempList);
+			}
 			/*			//compute hash
 			StringBuilder sb = new StringBuilder();				
 			for(int i = 0; i < tempList.getListSize(); i++)
@@ -400,7 +464,7 @@ int extraCycles=0;
 			 */
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && tempList.getListSize() > 0) {
-				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+				//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 
 
@@ -479,9 +543,11 @@ int extraCycles=0;
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {
+			System.out.println("Resuming "+update.resume.get(i));
 			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
 		}
 		for (int i=0; i<update.getNumSleepers(); i++) {
+			System.out.println("Sleeping "+update.sleep.get(i));
 			this.inputToPipeline[update.sleep.get(i)].appendInstruction(new Instruction(OperationType.sync,null, null, null));
 		}
 	}
@@ -494,8 +560,10 @@ int extraCycles=0;
 
 	private void resumePipelineTimer(int tidToResume) {
 		int numResumes=IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep;
-		for (int i=0; i<numResumes; i++)
+		IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep=0;
+		for (int i=0; i<numResumes; i++) {
+			System.out.println("Resuming by timer"+tidToResume);
 			this.pipelineInterfaces[tidToResume].resumePipeline();
-
+		}
 	}
 }

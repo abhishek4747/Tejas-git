@@ -1,5 +1,6 @@
 package pipeline.inorder;
 
+import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
 import generic.Core;
@@ -32,19 +33,20 @@ public class ExecUnitIn extends SimulationElement{
 				exMemLatch.setIn2(idExLatch.getIn2());
 				exMemLatch.setOut1(idExLatch.getOut1());
 				exMemLatch.setOperationType(idExLatch.getOperationType());
-				
+				exMemLatch.setMemDone(true);
 				if(idExLatch.getOperationType()==OperationType.load){
 					core.getExecutionEngineIn().updateNoOfLd(1);
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);
 					//Schedule a mem read event now so that it can be completed in the mem stage
 
-					exMemLatch.setMemDone(false);
-	
-					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-							core.getExecutionEngineIn().getMemUnitIn(),
-							RequestType.Cache_Read,
-							ins.getSourceOperand1().getValue());
-				
+					if(!SimulationConfig.detachMemSys){
+						exMemLatch.setMemDone(false);
+		
+						this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+								core.getExecutionEngineIn().getMemUnitIn(),
+								RequestType.Cache_Read,
+								ins.getSourceOperand1().getValue());
+					}
 				}
 				else if(idExLatch.getOperationType()==OperationType.store){
 					core.getExecutionEngineIn().updateNoOfSt(1);
@@ -52,10 +54,12 @@ public class ExecUnitIn extends SimulationElement{
 //					exMemLatch.setMemDone(false); /FIXME *Pipeline doesn't wait for the store to complete! */
 					//Schedule a mem read event now so that it can be completed in the mem stage
 	
-					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
-							core.getExecutionEngineIn().getMemUnitIn(),
-							RequestType.Cache_Write,
-							ins.getSourceOperand1().getValue());
+					if(!SimulationConfig.detachMemSys){
+						this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+								core.getExecutionEngineIn().getMemUnitIn(),
+								RequestType.Cache_Write,
+								ins.getSourceOperand1().getValue());
+					}
 				}
 				else{
 					exMemLatch.setMemDone(true);

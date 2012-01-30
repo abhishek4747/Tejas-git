@@ -218,8 +218,8 @@ public class LSQ extends SimulationElement
 								RequestType.Cache_Write,
 								entry));
 			}
-			else
-				Core.outstandingMemRequests--;
+//			else
+//				Core.outstandingMemRequests--;
 	
 			this.head = this.incrementQ(this.head);
 			this.curSize--;

@@ -23,6 +23,11 @@ public class MemUnitIn extends SimulationElement{
 		Instruction ins = exMemLatch.getInstruction();
 		if(!exMemLatch.getMemDone()){
 			core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
+			exMemLatch.incrementStallCount();
+			if(exMemLatch.getStallCount()>200){
+				exMemLatch.setMemDone(true);		//FIXME
+				exMemLatch.setStallCount(0);
+			}
 //System.out.println("Memory Stall!");
 		}if(ins!=null){
 			memWbLatch.setInstruction(ins);
