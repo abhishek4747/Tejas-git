@@ -50,7 +50,6 @@ public class NucaCacheBank extends Cache
 	
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event){
-		// TODO Auto-generated method stub
 		
 		RequestType requestType = event.getRequestType();
 		RoutingAlgo.DIRECTION nextID;
