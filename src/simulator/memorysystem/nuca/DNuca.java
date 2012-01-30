@@ -15,7 +15,7 @@ public class DNuca extends NucaCache {
 		super(cacheParameters,containingMemSys);
 	}
 
-	public void migrateCacheBank(int cacheBankNumber,int coreId)//migrate the given cache bank to
+	/*public void migrateCacheBank(int cacheBankNumber,int coreId)//migrate the given cache bank to
                                                                //corresponding Core's nearset cache banks
     {
         Hashtable coreNetHash = coreNetworkHash.get(coreId);
@@ -30,16 +30,16 @@ public class DNuca extends NucaCache {
                 int column1 = lruCacheBank%cacheRows;
                 int row2 = cacheBankNumber/cacheRows;
                 int column2 = cacheBankNumber%cacheRows;
-                /*swap the two cache banks */
+                swap the two cache banks 
                 NucaCacheBank temp   = (NucaCacheBank) cacheBank[row1][column1].clone();
                 cacheBank[row1][column1] = (NucaCacheBank) cacheBank[row2][column2].clone() ;
                 cacheBank[row2][column2] = (NucaCacheBank) temp.clone();
                 break;
             }
         }
-    }
+    }*/
     
-	int getLRUCacheBank(int coreId,int level)//returns the cache bank number of bank that is LRU in a bank cluster
+	/*int getLRUCacheBank(int coreId,int level)//returns the cache bank number of bank that is LRU in a bank cluster
     {
         Vector<Integer> coreNetCluster = coreNetworkVector.get(coreId).get(level);//cluster of banks at specified at level
         int bankNumber = coreNetCluster.get(0);
@@ -59,7 +59,7 @@ public class DNuca extends NucaCache {
             }
         }
         return cacheBankNumber;
-    }
+    }*/
 
 	@Override
 	public long getTag(long addr) {
@@ -70,7 +70,6 @@ public class DNuca extends NucaCache {
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		long address = ((AddressCarryingEvent)(event)).getAddress();
-		int currentlevel = ((AddressCarryingEvent)(event)).getCurrentLevel();
 		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
 		addToForwardedRequests(address, sourceBankId, event.getRequestingElement());
@@ -82,8 +81,7 @@ public class DNuca extends NucaCache {
 																		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
 																		event.getRequestType(), 
 																		sourceBankId, 
-																		destinationBankId,
-																		currentlevel+1));
+																		destinationBankId));
 
 	}
 

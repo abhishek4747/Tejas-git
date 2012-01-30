@@ -294,7 +294,7 @@ public class Cache extends SimulationElement
 		 * @param requestType : MEM_READ or MEM_WRITE
 		 * @param requestingElement : Which element made the request. Helpful in backtracking and filling the stack
 		 */
-		protected boolean addOutstandingRequest(Event event, long addr)
+		public boolean addOutstandingRequest(Event event, long addr)
 		{
 			boolean entryAlreadyThere;
 			
