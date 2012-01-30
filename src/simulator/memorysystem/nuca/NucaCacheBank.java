@@ -67,8 +67,8 @@ public class NucaCacheBank extends Cache
 			else if (event.getRequestType() == RequestType.Main_Mem_Read ||  
 					event.getRequestType() == RequestType.Main_Mem_Write)
 				this.handleMemoryReadWrite(eventQ,event);
-			else if (event.getRequestType() == RequestType.Main_Mem_Response)
-				this.handleMainMemoryResponse(eventQ,event);
+			//else if (event.getRequestType() == RequestType.Main_Mem_Response)
+				//this.handleMainMemoryResponse(eventQ,event);
 		}
 		else
 		{

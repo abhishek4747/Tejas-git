@@ -30,6 +30,8 @@ import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
 
+import memorysystem.directory.CentralizedDirectory;
+
 import generic.*;
 import config.CacheConfig;
 import config.SimulationConfig;
@@ -87,6 +89,9 @@ public class MemorySystem
 				cacheList.put(cacheName, newCache);
 			}
 		}
+		//Initialize centralized directory
+		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
+		CentralizedDirectory centralizedDirectory = new CentralizedDirectory(numCacheLines, SystemConfig.NoOfCores);
 		//Link all the initialised caches to their next levels
 		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{
@@ -212,6 +217,21 @@ public class MemorySystem
 		propagateCoherencyUpwards(Bus.upperLevels);*/
 	}
 	
+
+	/**
+	 * Recursive method to mark all the caches above the bus as COHERENT
+	 * @param list : Initial input is an Arraylist of Caches juat above the Bus and then works recursively upwards
+	 */
+//	public static void propagateCoherencyUpwards(ArrayList<Cache> list)
+//	{
+//		if (list.isEmpty())
+//			return;
+//		for (int i = 0; i < list.size(); i++)
+//		{
+//			list.get(i).isCoherent = true;
+//			propagateCoherencyUpwards(list.get(i).prevLevel);
+//		}
+//	}
 	
 	public static void printMemSysResults()
 	{
