@@ -31,6 +31,9 @@ import memorysystem.snoopyCoherence.BusController;
 
 import config.CacheConfig;
 import config.SystemConfig;
+
+import memorysystem.BusOld.BusReqType;
+import memorysystem.CacheLine.MESI;
 import misc.Util;
 import generic.*;
 

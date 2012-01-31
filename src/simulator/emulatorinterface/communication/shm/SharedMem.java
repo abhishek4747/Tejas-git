@@ -58,6 +58,7 @@ public class SharedMem extends  IpcBase
 			name = "thread"+Integer.toString(i);
 			termination[i]=false;
 			started[i]=false;
+			numInstructions[i]=0;
 			//TODO not all cores are assigned to each thread
 			//when the mechanism to tie threads to cores is in place
 			//this has to be changed
@@ -81,11 +82,10 @@ public class SharedMem extends  IpcBase
 		//inform threads which have not started about finish
 		for (int i=0; i<MaxNumJavaThreads; i++) {
 			if (started[i]==false) termination[i]=true;
-			//totalInstructions += numInstructions[i];
+			totalInstructions += numInstructions[i];
 		}
 
-		//return totalInstructions;
-		return 0;
+		return totalInstructions;
 	}
 	
 	public Packet fetchOnePacket(int tidApp, int index ) {

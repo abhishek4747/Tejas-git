@@ -122,7 +122,8 @@ public class FetchLogic extends SimulationElement {
 					//this is a bad hack TODO
 					for(int i = 0; i < fetchWidth; i++)
 					{
-						if(inputToPipeline[inputPipeToReadNext].peekInstructionAt(i).getOperationType()
+						if(inputToPipeline[inputPipeToReadNext].getListSize() > i &&
+								inputToPipeline[inputPipeToReadNext].peekInstructionAt(i).getOperationType()
 								== OperationType.inValid)
 						{
 							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
