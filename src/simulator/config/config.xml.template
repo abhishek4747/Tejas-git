@@ -141,6 +141,7 @@
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
+			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -160,6 +161,7 @@
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
+			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -178,6 +180,7 @@
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
+			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -196,6 +199,7 @@
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NumberOfBuffers>4</NumberOfBuffers>
+			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
 		</Type3>
 	</Library>
 </Configuration>

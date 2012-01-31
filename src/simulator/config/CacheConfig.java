@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import net.NOC.TOPOLOGY;
 import memorysystem.Cache.CoherenceType;
 import memorysystem.Cache;
 import generic.PortType;
@@ -48,6 +49,7 @@ public class CacheConfig
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public int numberOfBuffers;
+	public TOPOLOGY topology;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -165,6 +167,16 @@ public class CacheConfig
 	public int getBankSize()
 	{
 		return size/(numberOfBankColumns*numberOfBankRows);
+	}
+	
+	public void setTopology(TOPOLOGY topology)
+	{
+		this.topology = topology;
+	}
+	
+	public TOPOLOGY getTopology()
+	{
+		return this.topology;
 	}
 //	public boolean isFirstLevel() {
 //		return isFirstLevel;

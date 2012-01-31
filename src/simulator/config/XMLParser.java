@@ -35,6 +35,7 @@ import memorysystem.Cache.CoherenceType;
 import org.w3c.dom.*;
 
 import memorysystem.nuca.NucaCache.NucaType;
+import net.NOC;
 
 import generic.PortType;
 
@@ -355,6 +356,16 @@ public class XMLParser
 			System.err.println("XML Configuration error : Invalid value of 'isLastLevel' (please enter 'Y' for yes or 'N' for no)");
 			System.exit(1);
 		}
+		tempStr = getImmediateString("NOCTopology", CacheType);
+		if(tempStr.equalsIgnoreCase("MESH"))
+			cache.topology = NOC.TOPOLOGY.MESH;
+		else if(tempStr.equalsIgnoreCase("TORUS"))
+			cache.topology = NOC.TOPOLOGY.TORUS;
+		else if(tempStr.equalsIgnoreCase("BUS"))
+			cache.topology = NOC.TOPOLOGY.BUS;
+		else if(tempStr.equalsIgnoreCase("RING"))
+			cache.topology = NOC.TOPOLOGY.RING;
+		
 	}
 	
 	private static boolean setDirectoryCoherent(String immediateString) {

@@ -22,6 +22,8 @@ package memorysystem;
 
 import java.util.*;
 
+import net.NOC.TOPOLOGY;
+
 import memorysystem.directory.CentralizedDirectory;
 import memorysystem.directory.DirectoryEntry;
 import memorysystem.directory.DirectoryState;
@@ -89,6 +91,8 @@ public class Cache extends SimulationElement
 		public int evictions;
 		
 		public static final long NOT_EVICTED = -1;
+		
+		protected TOPOLOGY topology;
 		
 		public CacheLine access(long addr)
 		{
@@ -174,6 +178,8 @@ public class Cache extends SimulationElement
 			this.hits = 0;
 			this.misses = 0;
 			this.evictions = 0;
+			
+			this.topology = cacheParameters.topology;
 			
 			// make the cache
 			makeCache();

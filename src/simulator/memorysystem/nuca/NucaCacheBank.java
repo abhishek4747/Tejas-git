@@ -17,7 +17,7 @@ import memorysystem.MemorySystem;
 
 public class NucaCacheBank extends Cache
 {
-	Router router;
+	public Router router;
 	CacheConfig cacheParameters;
 	protected Hashtable<Long, ArrayList<SimulationElement>> forwardedRequests;
 

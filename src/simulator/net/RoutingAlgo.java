@@ -20,6 +20,7 @@
 *****************************************************************************/
 package net;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 public class RoutingAlgo{
@@ -50,6 +51,40 @@ public class RoutingAlgo{
 		else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) > destination.elementAt(1))
 			return DIRECTION.LEFT;
 		return null;
+	}
+	public ArrayList<RoutingAlgo.DIRECTION> XYRouting(Vector<Integer> current, Vector<Integer> destination)
+	{
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		ArrayList<RoutingAlgo.DIRECTION> path = new ArrayList<DIRECTION>();
+		while(x1 !=x2 && y1 != y2)
+		{
+			if(current.elementAt(0) < destination.elementAt(0))
+			{
+				path.add(DIRECTION.DOWN);
+				x1++;
+			}
+			else if(current.elementAt(0) > destination.elementAt(0))
+			{
+				path.add(DIRECTION.UP);
+				x1--;
+			}
+			else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) < destination.elementAt(1))
+			{
+				path.add(DIRECTION.RIGHT);
+				y1++;
+			}
+			else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) > destination.elementAt(1))
+			{
+				path.add(DIRECTION.LEFT);
+				y1--;
+			}
+			//return null;
+		}
+		return path;
 	}
 	
 }
