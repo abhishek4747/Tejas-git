@@ -197,6 +197,8 @@ public class XMLParser
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
 
 			core.DecodeWidth = Integer.parseInt(getImmediateString("DecodeWidth", coreElmnt));
+			core.IssueWidth = Integer.parseInt(getImmediateString("IssueWidth", coreElmnt));
+			core.RetireWidth = Integer.parseInt(getImmediateString("RetireWidth", coreElmnt));
 			core.DecodeTime = Integer.parseInt(getImmediateString("DecodeTime", coreElmnt));
 			core.RenamingTime = Integer.parseInt(getImmediateString("RenamingTime", coreElmnt));
 			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));

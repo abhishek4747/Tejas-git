@@ -41,6 +41,8 @@ public class Core extends SimulationElement{
 	
 	//core parameters
 	private int decodeWidth;
+	private int issueWidth;
+	private int retireWidth;
 	private int decodeTime;
 	private int renamingTime;
 	private int reorderBufferSize;
@@ -113,6 +115,8 @@ public class Core extends SimulationElement{
 	{
 		//TODO parameters to be set according to contents of an XML configuration file
 		setDecodeWidth(coreConfig.DecodeWidth);
+		setIssueWidth(coreConfig.IssueWidth);
+		setRetireWidth(coreConfig.RetireWidth);
 		setDecodeTime(coreConfig.DecodeTime);
 		setRenamingTime(coreConfig.RenamingTime);
 		setReorderBufferSize(coreConfig.ROBSize);
@@ -173,6 +177,22 @@ public class Core extends SimulationElement{
 	{
 		this.clock++;
 	}*/
+
+	public int getIssueWidth() {
+		return issueWidth;
+	}
+
+	public void setIssueWidth(int issueWidth) {
+		this.issueWidth = issueWidth;
+	}
+
+	public int getRetireWidth() {
+		return retireWidth;
+	}
+
+	public void setRetireWidth(int retireWidth) {
+		this.retireWidth = retireWidth;
+	}
 
 	public EventQueue getEventQueue() {
 		return eventQueue;

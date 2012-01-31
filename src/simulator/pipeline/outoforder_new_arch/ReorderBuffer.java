@@ -26,6 +26,8 @@ public class ReorderBuffer extends SimulationElement{
 	int head;
 	int tail;
 	
+	int retireWidth;
+	
 	ExecutionEngine execEngine;
 
 	public ReorderBuffer(Core _core, ExecutionEngine execEngine)
@@ -43,6 +45,8 @@ public class ReorderBuffer extends SimulationElement{
 		}
 		head = -1;
 		tail = -1;
+		
+		retireWidth = core.getRetireWidth();
 	}
 	
 	public boolean isFull()
@@ -128,7 +132,7 @@ public class ReorderBuffer extends SimulationElement{
 			return;
 		}*/
 		
-		while(true)
+		for(int no_insts = 0; no_insts < retireWidth; no_insts++)
 		{
 			if(head == -1)
 			{
