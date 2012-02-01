@@ -499,7 +499,7 @@ public class RunnableThread implements Runnable, Encoding {
 		ThreadState signallingThread = stateTable.get(signaller);
 		signallingThread.lastTimerseen = time;
 
-		for (PerAddressInfo pai : signallingThread.addressMap.values()) {
+		for (PerAddressInfoNew pai : signallingThread.addressMap.values()) {
 			for (Iterator<Integer> iter = pai.probableInteractors.iterator(); iter.hasNext();) {
 				int waiter = (Integer)iter.next();
 				ThreadState waiterThread = stateTable.get(waiter);
@@ -517,7 +517,7 @@ public class RunnableThread implements Runnable, Encoding {
 							/*							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller
 									+" num of Times"+stateTable.get(waiter).countTimedSleep);
 							 */							resumePipelineTimer(waiter);
-							 PerAddressInfo p = waiterThread.addressMap.get(pai.address);
+							 PerAddressInfoNew p = waiterThread.addressMap.get(pai.address);
 							 if (p!=null) {
 								 if (p.on_broadcast) {
 									 resumeSleep(synchTable.get(pai.address).broadcastResume(p.broadcastTime,waiter));

@@ -17,10 +17,27 @@ public class Statistics {
 	
 	
 	
-	
+	static String benchmark;
 	public static void printSystemConfig()
 	{
 		//read config.xml and write to output file
+		try
+		{
+			outputFileWriter.write("[Configuration]\n");
+			outputFileWriter.write("\n");
+			outputFileWriter.write("ToolName: "+SimulationConfig.PinInstrumentor+"\n");
+			outputFileWriter.write("Benchmark: "+benchmark+"\n");
+			outputFileWriter.write("Pipeline: ");
+			if (SimulationConfig.isPipelineInorder)
+				outputFileWriter.write("Inorder Pipeline\n");
+			else if (SimulationConfig.isPipelineStatistical)
+				outputFileWriter.write("Statistical Pipeline\n");
+			else outputFileWriter.write("OutOrder Pipeline\n");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -29,8 +46,8 @@ public class Statistics {
 	//Translator Statistics
 	
 	static long dataRead[];
-	static long numInstructions[];
-	static long noOfMicroOps[];
+	static long numInstructions[][];
+	static long noOfMicroOps[][];
 	static double staticCoverage;
 	static double dynamicCoverage;
 	
@@ -48,9 +65,6 @@ public class Statistics {
 				outputFileWriter.write("Java thread\t=\t" + i + "\n");
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
 				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numInstructions[i] + "\n");
-				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
-				outputFileWriter.write("MicroOps/CISC = " + 
-						(double)numInstructions[i]/(double)noOfMicroOps[i] + "\n");
 				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + " %\n");
@@ -90,8 +104,10 @@ public class Statistics {
 				outputFileWriter.write("core\t\t=\t" + i + "\n");
 				outputFileWriter.write("instructions executed\t=\t" + numCoreInstructions[i] + "\n");
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)numInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				//FIXME will work only if java thread is 1
+				outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[0][i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
+				outputFileWriter.write("IPC\t\t=\t" + (double)numInstructions[0][i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
 				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
 				outputFileWriter.write("\n");
@@ -215,11 +231,14 @@ public class Statistics {
 			
 			long totalNumMicroOps = 0;
 			long totalNumInstructions = 0;
-			for(int i = 0; i < SystemConfig.NoOfCores; i++)
+			for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
 			{
-				totalNumMicroOps += noOfMicroOps[i];
-//				totalNumMicroOps += numCoreInstructions[i];
-				totalNumInstructions += numInstructions[i];
+				for (int j=0; j<IpcBase.EmuThreadsPerJavaThread; j++) {
+					totalNumMicroOps += noOfMicroOps[i][j];
+//					totalNumMicroOps += numCoreInstructions[i];
+					totalNumInstructions += numInstructions[i][j];
+				}
+				
 			}
 			if(subsetTime != 0)
 			{
@@ -245,8 +264,8 @@ public class Statistics {
 	public static void initStatistics()
 	{		
 		dataRead = new long[IpcBase.MaxNumJavaThreads];
-		numInstructions = new long[IpcBase.MaxNumJavaThreads];
-		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads];
+		numInstructions = new long[IpcBase.MaxNumJavaThreads][IpcBase.EmuThreadsPerJavaThread];
+		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads][IpcBase.EmuThreadsPerJavaThread];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
 		coreFrequencies = new long[SystemConfig.NoOfCores];
@@ -333,11 +352,11 @@ public class Statistics {
 		Statistics.dataRead[thread] = dataRead;
 	}
 
-	public static void setNumInstructions(long numInstructions, int thread) {
+	public static void setNumInstructions(long numInstructions[], int thread) {
 		Statistics.numInstructions[thread] = numInstructions;
 	}
 
-	public static void setNoOfMicroOps(long noOfMicroOps, int thread) {
+	public static void setNoOfMicroOps(long noOfMicroOps[], int thread) {
 		Statistics.noOfMicroOps[thread] = noOfMicroOps;
 	}
 	
@@ -436,4 +455,9 @@ public class Statistics {
 	public static void setSubsetTime(long subsetTime) {
 		Statistics.subsetTime = subsetTime;
 	}
+
+	public static void setExecutable(String executableFile) {
+		Statistics.benchmark = executableFile;
+	}
+	
 }

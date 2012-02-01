@@ -34,7 +34,7 @@
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
 		<StatisticalPipeline>false</StatisticalPipeline>	<!--True to enable statistical pipeline-->
-		<InorderPipeline>false</InorderPipeline>	<!--True to enable inorder pipeline-->
+		<InorderPipeline>true</InorderPipeline>	<!--True to enable inorder pipeline-->
 		<InstructionsFilename>microOps.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
@@ -77,6 +77,8 @@
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 			
 			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
+			<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
+			<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
 			<DecodeTime>1</DecodeTime>			<!--Instruction decode time-->
 			<RenamingTime>2</RenamingTime>			<!--Renaming Time-->
 			<ROBSize>128</ROBSize>				<!--Maximum number of entries in the ROB-->
@@ -169,7 +171,7 @@
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>3</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>D</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>S</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
