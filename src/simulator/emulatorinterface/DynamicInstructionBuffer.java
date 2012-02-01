@@ -1,5 +1,5 @@
 /*****************************************************************************
-				Tejas Simulator
+				BhartiSim Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -24,6 +24,7 @@ package emulatorinterface;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Vector;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.Encoding;
 import generic.BranchInstr;
@@ -31,25 +32,25 @@ import generic.BranchInstr;
 
 public class DynamicInstructionBuffer implements Encoding
 {
-	private Queue<ArrayList<Packet>> memReadQueue = null;
-	private Queue<ArrayList<Packet>> memWriteQueue = null;
+	private Queue<Vector<Packet>> memReadQueue = null;
+	private Queue<Vector<Packet>> memWriteQueue = null;
 	private Queue<Packet> branchQueue = null;
 	
 	public DynamicInstructionBuffer() 
 	{
 		// Create max number of queues
-		memReadQueue = new LinkedList<ArrayList<Packet>>();
-		memWriteQueue = new LinkedList<ArrayList<Packet>>();
+		memReadQueue = new LinkedList<Vector<Packet>>();
+		memWriteQueue = new LinkedList<Vector<Packet>>();
 		branchQueue = new LinkedList<Packet>();
 	}
 
 	// QQQ Configure packets doesn't take tidEmu or anything now.
-	// packets read from ArrayList rather than a ArrayList.
+	// packets read from ArrayList rather than a vector.
 	public void configurePackets(ArrayList<Packet> arrayListPacket) 
 	{
 		Packet p;
-		ArrayList<Packet> memReadAddr = new ArrayList<Packet>();
-		ArrayList<Packet> memWriteAddr = new ArrayList<Packet>();
+		Vector<Packet> memReadAddr = new Vector<Packet>();
+		Vector<Packet> memWriteAddr = new Vector<Packet>();
 		Packet branchPacket = null;
 
 		long ip = arrayListPacket.get(0).ip;
@@ -57,7 +58,7 @@ public class DynamicInstructionBuffer implements Encoding
 		for (int i = 0; i < arrayListPacket.size(); i++) 
 		{
 			p = arrayListPacket.get(i);
-			if (ip != p.ip) misc.Error.showErrorAndExit("configurePackets screwed"+ip+" "+p.ip);
+			assert (ip == p.ip) : "all instruction pointers not matching";
 			switch (p.value) 
 			{
 				case (-1):
@@ -136,7 +137,7 @@ public class DynamicInstructionBuffer implements Encoding
 	
 	public LinkedList<Long> getmemoryReadAddress(long instructionPointer)
 	{
-		ArrayList<Packet> headPacket = null;
+		Vector<Packet> headPacket = null;
 		
 		while(!memReadQueue.isEmpty())
 		{
@@ -157,11 +158,11 @@ public class DynamicInstructionBuffer implements Encoding
 			}
 			else
 			{
-			/*	System.out.print("\n\tExtra memRead instruction found : original instruction=" +
+				System.out.print("\n\tExtra memRead instruction found : original instruction=" +
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.get(0).ip) + "\n");
 				
-				System.exit(0);*/
+				System.exit(0);
 			}
 		}
 		
@@ -170,7 +171,7 @@ public class DynamicInstructionBuffer implements Encoding
 	
 	public LinkedList<Long> getmemoryWriteAddress(long instructionPointer)
 	{
-		ArrayList<Packet> headPacket = null;
+		Vector<Packet> headPacket = null;
 		
 		while(!memWriteQueue.isEmpty())
 		{
@@ -189,15 +190,14 @@ public class DynamicInstructionBuffer implements Encoding
 								
 				return writeAddessList;
 			}
-			//TODO Prathmesh to handle for this corner case
-			/*else
+			else
 			{
 				System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.get(0).ip) + "\n");
 
 				System.exit(0);
-			}*/
+			}
 		}
 		
 		return null;
@@ -227,7 +227,7 @@ public class DynamicInstructionBuffer implements Encoding
 		}
 
 		// gobble memRead instructions		
-		ArrayList<Packet> headMemReadPacket;
+		Vector<Packet> headMemReadPacket;
 		while(!this.memReadQueue.isEmpty())
 		{
 			headMemReadPacket = memReadQueue.peek();
@@ -245,7 +245,7 @@ public class DynamicInstructionBuffer implements Encoding
 		}
 		
 		// gobble memWrite instructions
-		ArrayList<Packet> headMemWritePacket;
+		Vector<Packet> headMemWritePacket;
 		while(!this.memWriteQueue.isEmpty())
 		{
 			headMemWritePacket = memWriteQueue.peek();

@@ -24,8 +24,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/kapil/pin</PinTool>
-		<PinInstrumentor>/home/kapil/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/moksh/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -77,6 +77,8 @@
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 			
 			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
+			<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
+			<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
 			<DecodeTime>1</DecodeTime>			<!--Instruction decode time-->
 			<RenamingTime>2</RenamingTime>			<!--Renaming Time-->
 			<ROBSize>128</ROBSize>				<!--Maximum number of entries in the ROB-->

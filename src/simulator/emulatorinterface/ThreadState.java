@@ -4,12 +4,49 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+class PerAddressInfo {
+
+	LinkedList<Integer> probableInteractors;
+	long timeSinceSlept;
+	long address;
+	boolean timedWait=false;
+
+
+	public PerAddressInfo(LinkedList<Integer> tentativeInteractors,
+			long time,long address,boolean timedWait) {
+		super();
+		this.probableInteractors = tentativeInteractors;
+		this.timeSinceSlept = time;
+		this.address = address;
+		this.timedWait = timedWait;
+	}
+
+	public LinkedList<Integer> getTentativeInteractors() {
+		return probableInteractors;
+	}
+
+	public void setTentativeInteractors(LinkedList<Integer> tentativeInteractors) {
+		this.probableInteractors = tentativeInteractors;
+	}
+
+	public long getTime() {
+		return timeSinceSlept;
+	}
+
+	public void setTime(long time) {
+		this.timeSinceSlept = time;
+	}
+
+
+
+}
+
 public class ThreadState {
 	int threadIndex;
 	int countTimedSleep=0;
 	long lastTimerseen=(long)-1>>>1;
 	//boolean timedWait=false;
-	HashMap <Long,PerAddressInfo> addressMap = new HashMap<Long,PerAddressInfo>();
+	HashMap <Long,PerAddressInfoNew> addressMap = new HashMap<Long,PerAddressInfoNew>();
 
 	public ThreadState(int tid){
 		this.threadIndex = tid;
@@ -21,8 +58,8 @@ public class ThreadState {
 
 	public void removeDep(int tidApp) {
 		//for (PerAddressInfo pai : addressMap.values()) {
-		for (Iterator<PerAddressInfo> iter = addressMap.values().iterator(); iter.hasNext();) {
-			PerAddressInfo pai = (PerAddressInfo) iter.next();
+		for (Iterator<PerAddressInfoNew> iter = addressMap.values().iterator(); iter.hasNext();) {
+			PerAddressInfoNew pai = (PerAddressInfoNew) iter.next();
 			pai.probableInteractors.remove((Integer)tidApp);
 			if (pai.probableInteractors.size()==0) {
 				iter.remove();
@@ -31,7 +68,7 @@ public class ThreadState {
 	}
 
 	public void addDep(long address, long time, int thread) {
-		PerAddressInfo opai;
+		PerAddressInfoNew opai;
 		if ((opai = this.addressMap.get(address)) != null) {
 			opai.probableInteractors.add(thread);
 			//opai.timeSinceSlept = time;
@@ -39,7 +76,7 @@ public class ThreadState {
 			LinkedList<Integer> th = new LinkedList<Integer>();
 			th.add(thread);
 			this.addressMap.put(address,
-					new PerAddressInfo(th, -1, address, false));
+					new PerAddressInfoNew(th, -1, address, false));
 		}
 
 	}
@@ -49,7 +86,7 @@ public class ThreadState {
 
 	public boolean isOntimedWait() {
 		boolean ret = false;
-		for (PerAddressInfo pai : addressMap.values()) {
+		for (PerAddressInfoNew pai : addressMap.values()) {
 			ret = ret || pai.timedWait;
 		}
 		return ret;
