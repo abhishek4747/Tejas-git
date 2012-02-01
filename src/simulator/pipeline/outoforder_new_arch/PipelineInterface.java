@@ -110,4 +110,18 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		return false;
 	}
 
+	@Override
+	public void setTimingStatistics() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setPerCoreMemorySystemStatistics() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+
 }

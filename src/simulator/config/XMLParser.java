@@ -179,7 +179,8 @@ public class XMLParser
 		Element systemElmnt = (Element) systemNode;
 		
 		//Read number of cores and define the array of core configurations
-		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
+//		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
+		SystemConfig.NoOfCores = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
 		SystemConfig.mainMemPortType = setPortType(getImmediateString("MainMemoryPortType", systemElmnt));

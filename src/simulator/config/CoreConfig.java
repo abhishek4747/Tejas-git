@@ -41,6 +41,8 @@ public class CoreConfig
 	public int TLBPortOccupancy;
 
 	public int DecodeWidth;
+	public int IssueWidth;
+	public int RetireWidth;
 	public int DecodeTime;
 	public int RenamingTime;
 	public int ROBSize;
