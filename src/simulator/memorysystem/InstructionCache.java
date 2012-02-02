@@ -21,7 +21,6 @@ public class InstructionCache extends Cache
 		super(cacheParameters, containingMemSys);
 	}
 	
-	@Override
 	protected void handleAccess(EventQueue eventQ, Event event)
 	{
 		SimulationElement requestingElement = event.getRequestingElement();

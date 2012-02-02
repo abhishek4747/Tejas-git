@@ -186,21 +186,24 @@ public abstract class NucaCache extends Cache
 	
 	public abstract Vector<Integer> getDestinationBankId(long addr);
 	public abstract Vector<Integer> getSourceBankId(long addr);
-	public void addToForwardedRequests(long address,Vector<Integer>bankId,SimulationElement requestingElement)
+	public boolean addToForwardedRequests(Vector<Integer>bankId,Event event,long addr)
 	{
-		NucaCacheBank currentBank =cacheBank[bankId.get(0)][bankId.get(1)]; 
-		if(currentBank.forwardedRequests.contains(address))
+		boolean entryAlreadyThere;
+		
+		long blockAddr = addr >>> blockSizeBits;
+		NucaCacheBank bank = cacheBank[bankId.get(0)][bankId.get(1)];
+		if (!/*NOT*/bank.forwardedRequests.containsKey(blockAddr))
 		{
-			ArrayList<SimulationElement> requestingElements = currentBank.forwardedRequests.get(address);  			
-			currentBank.forwardedRequests.remove(address);
-			requestingElements.add(requestingElement);
-			currentBank.forwardedRequests.put(address,requestingElements);
+			entryAlreadyThere = false;
+			bank.forwardedRequests.put(blockAddr, new ArrayList<Event>());
 		}
+		else if (bank.forwardedRequests.get(blockAddr).isEmpty())
+			entryAlreadyThere = false;
 		else
-		{
-			ArrayList<SimulationElement> requestingElements = new ArrayList<SimulationElement>();
-			requestingElements.add(requestingElement);
-		}
+			entryAlreadyThere = true;
+		if(!bank.forwardedRequests.get(blockAddr).contains(event))
+			bank.forwardedRequests.get(blockAddr).add(event);		
+		return entryAlreadyThere;
 	} 
 	
 	public void setStatistics()

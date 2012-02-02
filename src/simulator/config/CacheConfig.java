@@ -21,6 +21,7 @@
 package config;
 
 import memorysystem.Cache.CoherenceType;
+import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.Cache;
 import generic.PortType;
 import generic.MultiPortingType;
@@ -48,6 +49,8 @@ public class CacheConfig
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public int numberOfBuffers;
+
+	public NucaType nucaType;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -166,7 +169,16 @@ public class CacheConfig
 	{
 		return size/(numberOfBankColumns*numberOfBankRows);
 	}
-//	public boolean isFirstLevel() {
+	
+	public NucaType getNucaType() {
+		return nucaType;
+	}
+
+	public void setNucaType(NucaType nucaType) {
+		this.nucaType = nucaType;
+	}
+
+	//	public boolean isFirstLevel() {
 //		return isFirstLevel;
 //	}
 //

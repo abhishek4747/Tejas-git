@@ -1,6 +1,8 @@
 package memorysystem.nuca;
 import generic.Event;
 import generic.EventQueue;
+import generic.SimulationElement;
+
 import java.util.Hashtable;
 import java.util.Vector;
 import memorysystem.AddressCarryingEvent;
@@ -15,7 +17,7 @@ public class DNuca extends NucaCache {
 		super(cacheParameters,containingMemSys);
 	}
 
-	/*public void migrateCacheBank(int cacheBankNumber,int coreId)//migrate the given cache bank to
+/*	public void migrateCacheBank(int cacheBankNumber,int coreId)//migrate the given cache bank to
                                                                //corresponding Core's nearset cache banks
     {
         Hashtable coreNetHash = coreNetworkHash.get(coreId);
@@ -30,16 +32,16 @@ public class DNuca extends NucaCache {
                 int column1 = lruCacheBank%cacheRows;
                 int row2 = cacheBankNumber/cacheRows;
                 int column2 = cacheBankNumber%cacheRows;
-                swap the two cache banks 
+                swap the two cache banks
                 NucaCacheBank temp   = (NucaCacheBank) cacheBank[row1][column1].clone();
                 cacheBank[row1][column1] = (NucaCacheBank) cacheBank[row2][column2].clone() ;
                 cacheBank[row2][column2] = (NucaCacheBank) temp.clone();
                 break;
             }
         }
-    }*/
+    }
     
-	/*int getLRUCacheBank(int coreId,int level)//returns the cache bank number of bank that is LRU in a bank cluster
+	int getLRUCacheBank(int coreId,int level)//returns the cache bank number of bank that is LRU in a bank cluster
     {
         Vector<Integer> coreNetCluster = coreNetworkVector.get(coreId).get(level);//cluster of banks at specified at level
         int bankNumber = coreNetCluster.get(0);
@@ -59,8 +61,8 @@ public class DNuca extends NucaCache {
             }
         }
         return cacheBankNumber;
-    }*/
-
+    }
+*/
 	@Override
 	public long getTag(long addr) {
 		// TODO Auto-generated method stub
@@ -69,20 +71,31 @@ public class DNuca extends NucaCache {
 
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
+		SimulationElement requestingElement = event.getRequestingElement();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
 		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
-		addToForwardedRequests(address, sourceBankId, event.getRequestingElement());
-		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
-									getPort().put(((AddressCarryingEvent)event).
-															updateEvent(eventQ, 
-																		0, 
-																		event.getRequestingElement(), 
-																		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
-																		event.getRequestType(), 
-																		sourceBankId, 
-																		destinationBankId));
+		boolean alreadypresent= addToForwardedRequests(sourceBankId, event, address);
+		if(!alreadypresent)
+//			if(this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].router.checkThisBuffer())
+				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
+										getPort().put(((AddressCarryingEvent)event).
+																updateEvent(eventQ, 
+																			0,//to be  changed to some constant(wire delay) 
+																			requestingElement, 
+																			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
+																			event.getRequestType(), 
+																			sourceBankId, 
+																			destinationBankId));
 
+/*			else
+				this.getPort().put(event.update(
+												eventQ,
+												1, 
+												requestingElement,
+												event.getProcessingElement(), 
+												event.getRequestType()));
+	*/
 	}
 
 

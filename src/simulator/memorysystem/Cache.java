@@ -113,7 +113,7 @@ public class Cache extends SimulationElement
 			return null;
 		}
 		
-		private void mark(CacheLine ll, long tag)
+		protected void mark(CacheLine ll, long tag)
 		{
 			ll.setTag(tag);
 			mark(ll);

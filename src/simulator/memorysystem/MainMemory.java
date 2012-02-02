@@ -1,5 +1,6 @@
 package memorysystem;
 
+import memorysystem.nuca.NucaCache.NucaType;
 import config.SystemConfig;
 import generic.EventQueue;
 import generic.SimulationElement;
@@ -9,13 +10,15 @@ import generic.RequestType;
 
 public class MainMemory extends SimulationElement
 {
-	public MainMemory() {
+	NucaType nucaType;
+	public MainMemory(NucaType nucaType) {
 		super(SystemConfig.mainMemPortType,
 				SystemConfig.mainMemoryAccessPorts,
 				SystemConfig.mainMemoryPortOccupancy,
 				SystemConfig.mainMemoryLatency,
 				SystemConfig.mainMemoryFrequency
 				);
+		this.nucaType = nucaType;
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -23,13 +26,27 @@ public class MainMemory extends SimulationElement
 	{
 		if (event.getRequestType() == RequestType.Main_Mem_Read)
 		{
-			event.getRequestingElement().getPort().put(
-					event.update(
-							eventQ,
-							event.getRequestingElement().getLatencyDelay(),
-							null,
-							event.getRequestingElement(),
-							RequestType.Mem_Response));
+			if(nucaType == NucaType.NONE)
+			{	
+				event.getRequestingElement().getPort().put(
+						event.update(
+								eventQ,
+								event.getRequestingElement().getLatencyDelay(),
+								null,
+								event.getRequestingElement(),
+								RequestType.Mem_Response));
+			}
+			else
+			{
+				event.getRequestingElement().getPort().put(
+						event.update(
+								eventQ,
+								event.getRequestingElement().getLatencyDelay(),
+								null,
+								event.getRequestingElement(),
+								RequestType.Main_Mem_Response));
+
+			}
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)
 		{
