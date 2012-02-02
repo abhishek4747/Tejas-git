@@ -102,6 +102,7 @@ public class XMLParser
 		Element simulationElmnt = (Element) simulationNode;
 		SimulationConfig.PinTool = getImmediateString("PinTool", simulationElmnt);
 		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
+//		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
@@ -153,6 +154,22 @@ public class XMLParser
 		{
 			SimulationConfig.isPipelineInorder = false;
 		}
+		
+		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
+		
+		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.writeToFile = true;
+		}
+		else
+		{
+			SimulationConfig.writeToFile = false;
+		}
+		
+		SimulationConfig.numInstructionsToBeWritten = Integer.parseInt(getImmediateString("numInstructionsToBeWritten", simulationElmnt));
+		SimulationConfig.InstructionsFilename = getImmediateString("InstructionsFilename", simulationElmnt);
+
 	}
 	
 	private static void setSystemParameters()
@@ -164,7 +181,8 @@ public class XMLParser
 		Element systemElmnt = (Element) systemNode;
 		
 		//Read number of cores and define the array of core configurations
-		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
+//		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
+		SystemConfig.NoOfCores = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
 		SystemConfig.mainMemPortType = setPortType(getImmediateString("MainMemoryPortType", systemElmnt));
@@ -173,6 +191,14 @@ public class XMLParser
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		SystemConfig.core = new CoreConfig[32];
+		
+
+		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
+		SystemConfig.memWBDelay = Integer.parseInt(getImmediateString("memWBDelay", systemElmnt));
+		SystemConfig.dataTransferDelay = Integer.parseInt(getImmediateString("dataTransferDelay", systemElmnt));
+		SystemConfig.invalidationSendDelay = Integer.parseInt(getImmediateString("invalidationSendDelay", systemElmnt));
+		SystemConfig.invalidationAckCollectDelay = Integer.parseInt(getImmediateString("invalidationAckCollectDelay", systemElmnt));
+		SystemConfig.ownershipChangeDelay = Integer.parseInt(getImmediateString("ownershipChangeDelay", systemElmnt));
 		
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
@@ -200,6 +226,8 @@ public class XMLParser
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
 
 			core.DecodeWidth = Integer.parseInt(getImmediateString("DecodeWidth", coreElmnt));
+			core.IssueWidth = Integer.parseInt(getImmediateString("IssueWidth", coreElmnt));
+			core.RetireWidth = Integer.parseInt(getImmediateString("RetireWidth", coreElmnt));
 			core.DecodeTime = Integer.parseInt(getImmediateString("DecodeTime", coreElmnt));
 			core.RenamingTime = Integer.parseInt(getImmediateString("RenamingTime", coreElmnt));
 			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
@@ -331,6 +359,7 @@ public class XMLParser
 			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'S', D' or 'N')");
 			System.exit(1);
 		}
+		cache.numberOfBuses = Integer.parseInt(getImmediateString("NumBuses", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))
@@ -357,15 +386,6 @@ public class XMLParser
 		}
 	}
 	
-	private static boolean setDirectoryCoherent(String immediateString) {
-		if(immediateString==null)
-			return false;
-		if(immediateString.equalsIgnoreCase("T"))
-			return true;
-		else
-			return false;
-	}
-
 	private static Element searchLibraryForItem(String tagName)	//Searches the <Library> section for a given tag name and returns it in Element form
 	{															// Used mainly for cache types
 		NodeList nodeLst = doc.getElementsByTagName("Library");

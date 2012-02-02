@@ -340,7 +340,7 @@ public class Cache extends SimulationElement
 				this.handleInvalidate(event);
 		}
 		
-		private void handleAccess(EventQueue eventQ, Event event)
+		protected void handleAccess(EventQueue eventQ, Event event)
 		{
 			SimulationElement requestingElement = event.getRequestingElement();
 			RequestType requestType = event.getRequestType();

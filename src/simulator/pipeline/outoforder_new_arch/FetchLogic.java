@@ -1,5 +1,6 @@
 package pipeline.outoforder_new_arch;
 
+import config.SimulationConfig;
 import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
@@ -110,7 +111,10 @@ public class FetchLogic extends SimulationElement {
 						{
 							iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 							//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
-							execEngine.coreMemSys.issueRequestToInstrCache(this, newInstruction.getProgramCounter());
+							if(SimulationConfig.detachMemSys == false)
+							{
+									execEngine.coreMemSys.issueRequestToInstrCache(this, newInstruction.getProgramCounter());
+							}
 							//System.out.println(core.getCoreMode() + " - no of insts  : " + noOfInstructionsThisEpoch);
 						}
 						else
@@ -122,7 +126,8 @@ public class FetchLogic extends SimulationElement {
 					//this is a bad hack TODO
 					for(int i = 0; i < fetchWidth; i++)
 					{
-						if(inputToPipeline[inputPipeToReadNext].peekInstructionAt(i).getOperationType()
+						if(inputToPipeline[inputPipeToReadNext].getListSize() > i &&
+								inputToPipeline[inputPipeToReadNext].peekInstructionAt(i).getOperationType()
 								== OperationType.inValid)
 						{
 							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);

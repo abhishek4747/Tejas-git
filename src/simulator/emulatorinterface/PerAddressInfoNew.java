@@ -2,7 +2,7 @@ package emulatorinterface;
 
 import java.util.LinkedList;
 
-public class PerAddressInfo {
+public class PerAddressInfoNew {
 
 	LinkedList<Integer> probableInteractors;
 	long timeSinceSlept;
@@ -12,7 +12,7 @@ public class PerAddressInfo {
 	long broadcastTime = Long.MAX_VALUE;
 	boolean on_barrier = false;
 
-	public PerAddressInfo(LinkedList<Integer> tentativeInteractors,
+	public PerAddressInfoNew(LinkedList<Integer> tentativeInteractors,
 			long timeSinceSlept,long address,boolean timedWait) {
 		super();
 		this.probableInteractors = tentativeInteractors;

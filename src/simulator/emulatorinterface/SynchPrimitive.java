@@ -40,7 +40,7 @@ public class SynchPrimitive implements Encoding {
 			if(debugMode)	
 				System.out.println(this.address+"  "+thread+" `"+encoding+"`, going on a timedWait on "+others.size()+" threads");
 			stateTable.get((Integer)thread).countTimedSleep++;
-			ts.addressMap.put(address, new PerAddressInfo(others, time, address,true));
+			ts.addressMap.put(address, new PerAddressInfoNew(others, time, address,true));
 			entries.add(new SynchType(thread, time, encoding));
 		}
 		else {
@@ -354,7 +354,7 @@ public class SynchPrimitive implements Encoding {
 			}
 		}
 		else {
-			PerAddressInfo p = stateTable.get(thread).addressMap.get(address);
+			PerAddressInfoNew p = stateTable.get(thread).addressMap.get(address);
 			p.on_broadcast = true;
 			p.broadcastTime = time;
 			// Not all threads have passed in time.
@@ -394,7 +394,7 @@ public class SynchPrimitive implements Encoding {
 			}
 		}
 		else {
-			PerAddressInfo p = stateTable.get(thread).addressMap.get(address);
+			PerAddressInfoNew p = stateTable.get(thread).addressMap.get(address);
 			p.on_barrier = true;
 		}
 		return ret;

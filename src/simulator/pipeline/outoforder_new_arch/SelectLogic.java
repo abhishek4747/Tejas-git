@@ -12,7 +12,8 @@ public class SelectLogic extends SimulationElement {
 	
 	Core core;
 	ExecutionEngine execEngine;
-	InstructionWindow IW;
+	InstructionWindow IW;	
+	int issueWidth;
 	
 	//if the instruction issued is a single cycle operation,
 	//instructions dependent on it must be woken up
@@ -28,6 +29,7 @@ public class SelectLogic extends SimulationElement {
 		this.core = core;
 		this.execEngine = execEngine;
 		IW = execEngine.getInstructionWindow();
+		issueWidth = core.getIssueWidth();
 		
 		destRegOpndType = new OperandType[2*IW.maxIWSize];//2*IW.maxIWSize because all instructions in window could be xchgs - each requiring two wake-ups
 		destRegPhyReg = new int[2*IW.maxIWSize];
@@ -54,6 +56,7 @@ public class SelectLogic extends SimulationElement {
 	public void performSelect()
 	{
 		int wakeUpListCtr = 0;
+		int noAwoken = 0;
 		ReorderBuffer ROB = execEngine.getReorderBuffer();
 		IWEntry[] IWEntries = IW.getIW();
 		
@@ -64,6 +67,8 @@ public class SelectLogic extends SimulationElement {
 				//attempt to issue
 				if(IWEntries[i].issueInstruction())
 				{
+					noAwoken++;
+					
 					//if single cycle operation
 					//find dependent instructions
 					if(core.getLatency(
@@ -97,6 +102,11 @@ public class SelectLogic extends SimulationElement {
 					}
 				}
 			}
+			
+			if(noAwoken >= issueWidth)
+			{
+				break;
+			}
 		}
 		
 		if(wakeUpListCtr != IW.maxIWSize)
@@ -109,6 +119,7 @@ public class SelectLogic extends SimulationElement {
 	public void performSelect2()
 	{
 		int wakeUpListCtr = 0;
+		int noAwoken = 0;
 		ReorderBuffer ROB = execEngine.getReorderBuffer();
 		
 		int i;
@@ -126,6 +137,7 @@ public class SelectLogic extends SimulationElement {
 				{
 					if(ROBEntry.associatedIWEntry.issueInstruction())
 					{
+						noAwoken++;
 						//if single cycle operation
 						//find dependent instructions
 						if(core.getLatency(
@@ -158,6 +170,11 @@ public class SelectLogic extends SimulationElement {
 							IWEntryROBIndex[wakeUpListCtr++] = ROB.indexOf(ROBEntry);
 						}
 					}
+				}
+				
+				if(noAwoken >= issueWidth)
+				{
+					break;
 				}
 				
 				i = (i+1)%ROB.MaxROBSize;

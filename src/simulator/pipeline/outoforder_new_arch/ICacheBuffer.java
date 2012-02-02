@@ -1,5 +1,6 @@
 package pipeline.outoforder_new_arch;
 
+import config.SimulationConfig;
 import generic.Instruction;
 
 public class ICacheBuffer {
@@ -35,8 +36,14 @@ public class ICacheBuffer {
 		}
 		
 		buffer[tail] = newInstruction;
-		//fetchComplete[tail] = false;
-		fetchComplete[tail] = true;
+		if(SimulationConfig.detachMemSys == false)
+		{
+			fetchComplete[tail] = false;
+		}
+		else
+		{
+			fetchComplete[tail] = true;
+		}
 		
 		//System.out.println("adding ; " + head + " " + tail + " " + newInstruction);
 	}
