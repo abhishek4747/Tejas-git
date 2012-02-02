@@ -97,7 +97,7 @@ public class InorderPipeline implements PipelineInterface{
 	}
 	public void setTimingStatistics()
 	{
-		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
+		Statistics.setCoreCyclesTaken(core.getCoreCyclesTaken(), core.getCore_number());
 		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
 		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
 	}

@@ -53,6 +53,15 @@ public class Statistics {
 	
 	public static void printTranslatorStatistics()
 	{
+		for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
+		{
+			for (int j=0; j<IpcBase.EmuThreadsPerJavaThread; j++) {
+				totalNumMicroOps += noOfMicroOps[i][j];
+//				totalNumMicroOps += numCoreInstructions[i];
+				totalNumInstructions += numInstructions[i][j];
+			}
+		}
+		
 		//for each java thread, print number of instructions provided by PIN and number of instructions forwarded to the pipeline
 		try
 		{
@@ -67,6 +76,9 @@ public class Statistics {
 				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numInstructions[i] + "\n");
 				outputFileWriter.write("\n");
 			}
+			outputFileWriter.write("Number of micro-ops\t\t=\t" + totalNumMicroOps + "\n");
+			outputFileWriter.write("Number of CISC instructions\t=\t" + totalNumInstructions + "\n");
+			
 			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + " %\n");
 			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage + " %\n");
 			outputFileWriter.write("\n");
@@ -85,9 +97,18 @@ public class Statistics {
 	static long coreCyclesTaken[];
 	static long coreFrequencies[];				//in MHz
 	static long numCoreInstructions[];
+	static long totalNumMicroOps = 0;
+	static long totalNumInstructions = 0;
 
 	public static void printTimingStatistics()
 	{
+		long maxCoreCycles = 0;
+		for (int i =0; i < SystemConfig.NoOfCores; i++)
+		{
+			if (maxCoreCycles < coreCyclesTaken[i])
+				maxCoreCycles = coreCyclesTaken[i];
+		}
+		
 		//for each core, print number of cycles taken by pipeline to reach completion
 		
 		try
@@ -98,6 +119,8 @@ public class Statistics {
 			
 			//outputFileWriter.write("global clock\t=\t" + GlobalClock.getCurrentTime() + " cycles\n");
 			//outputFileWriter.write("\n");
+			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumMicroOps/maxCoreCycles + "\t\tin terms of micro-ops\n");
+			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumInstructions/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
 			
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
@@ -229,17 +252,6 @@ public class Statistics {
 			
 			outputFileWriter.write("Time Taken\t\t=\t" + minutes + " : " + seconds + " minutes\n");
 			
-			long totalNumMicroOps = 0;
-			long totalNumInstructions = 0;
-			for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
-			{
-				for (int j=0; j<IpcBase.EmuThreadsPerJavaThread; j++) {
-					totalNumMicroOps += noOfMicroOps[i][j];
-//					totalNumMicroOps += numCoreInstructions[i];
-					totalNumInstructions += numInstructions[i][j];
-				}
-				
-			}
 			if(subsetTime != 0)
 			{
 				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/subsetTime + " KIPS\t\tin terms of micro-ops\n");
