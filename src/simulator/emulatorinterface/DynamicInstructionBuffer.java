@@ -203,9 +203,10 @@ public class DynamicInstructionBuffer implements Encoding
 		return null;
 	}
 	
-	// This function gobbles the branch, memRead and memWrite instructions
-	// related to instructionPointer. Only the head of the queue are 
-	// searched for this type of instructions.
+	/*
+	 * This function removes multiple packets belonging to instructionPointer
+	 * from the head of the queue. 
+	 */
 	public void gobbleInstruction(long instructionPointer)
 	{
 		// gobble branch instructions
