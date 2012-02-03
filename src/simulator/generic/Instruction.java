@@ -55,12 +55,12 @@ public class Instruction implements Serializable
 		if(oldInstruction.sourceOperand2==null)
 			{this.sourceOperand2=null;}
 		else
-			{this.sourceOperand2=new Operand(oldInstruction.sourceOperand1);}
+			{this.sourceOperand2=new Operand(oldInstruction.sourceOperand2);}
 		
 		if(oldInstruction.destinationOperand==null)
 			{this.destinationOperand=null;}
 		else
-			{this.destinationOperand=new Operand(oldInstruction.sourceOperand1);}
+			{this.destinationOperand=new Operand(oldInstruction.destinationOperand);}
 		
 		this.programCounter=oldInstruction.programCounter;
 		this.branchTaken=oldInstruction.branchTaken;
