@@ -339,8 +339,6 @@ public class ObjParser
 			DynamicInstructionBuffer dynamicInstructionBuffer)
 	{
 		int microOpIndex;
-		Instruction microOp;
-		VisaHandler visaHandler;
 		InstructionLinkedList instructionLinkedList = new InstructionLinkedList();
 
 //		dynamicInstructionBuffer.printBuffer();
@@ -353,16 +351,20 @@ public class ObjParser
 			
 			if(microOpIndex==-1)
 			{
-				// if this instruction was never a part of the executable, just clear buffer and exit.
+				/* startInstructionPointer was never a part of the executable parsed earlier.
+				 * We do not probe further to find a known instruction in the dynamicInstruction
+				 * buffer since it would not be worth the extra effort for such a small window of
+				 * instructions */
 				dynamicInstructionBuffer.clearBuffer();
 				return instructionLinkedList;
 			}
 			
 			else if(instructionArrayList.get(microOpIndex).getProgramCounter()!=startInstructionPointer)
 			{
-				// if the starting instructions was part of the executable but not decoded, 
-				// then gobble all the instructions with this ip and allign the startInstruction pointer 
-				// to the next ip.
+				/* The startInstructionPointer was part of the executable file and hence is present in
+				 * the hashTable. However, it has not been decoded yet. So, we gobble all the branch,
+				 *  memRead and memWrite instructions belnging to it from the dynamicInstructionBuffer.
+				 */
 				dynamicInstructionBuffer.gobbleInstruction(startInstructionPointer);
 				
 				// go to the next microOpIndex and set startInstructionPointer = microOps ip.
@@ -376,20 +378,23 @@ public class ObjParser
 			}
 		}
 
+		Instruction microOperation;
+		VisaHandler visaHandler;
 		int microOpIndexBefore;
 		
 		// main translate loop.
 		while(true)
 		{
-			microOp = instructionArrayList.get(microOpIndex); 
-			if(microOp==null)
+			microOperation = instructionArrayList.get(microOpIndex); 
+			if(microOperation==null)
 			{break;}
 			
-			visaHandler = VisaHandlerSelector.selectHandler(microOp.getOperationType());
+			visaHandler = VisaHandlerSelector.selectHandler(microOperation.getOperationType());
 			
 			microOpIndexBefore = microOpIndex;     //store microOpIndex
-			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOp, dynamicInstructionBuffer); //handle
-			instructionLinkedList.appendInstruction(instructionArrayList.get(microOpIndexBefore)); //append microOp
+			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOperation, dynamicInstructionBuffer); //handle
+			Instruction newInstruction=new Instruction(instructionArrayList.get(microOpIndexBefore));
+			instructionLinkedList.appendInstruction(newInstruction); //append microOp
 			
 			if(microOpIndex != -1)
 			{
@@ -402,6 +407,7 @@ public class ObjParser
 			}
 		}
 		
+		/* clear the dynamicInstructionBuffer */		
 		dynamicInstructionBuffer.clearBuffer();
 		
 //		instructionLinkedList.printList();
