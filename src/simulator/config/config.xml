@@ -24,8 +24,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/opt/PinTool</PinTool>
-		<PinInstrumentor>/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/moksh/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -42,7 +42,7 @@
 
 	<!--System Parameters-->
 	<System>
-		<NoOfCores>32</NoOfCores>				<!--Number of cores in the simulated system-->
+		<NoOfCores>64</NoOfCores>				<!--Number of cores in the simulated system-->
 		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<MainMemoryFrequency>200</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
 		<MainMemoryPortType>UL</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->

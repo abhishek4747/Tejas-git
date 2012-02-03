@@ -59,6 +59,7 @@ public class Core extends SimulationElement{
 	private int core_number;
 	private int no_of_input_pipes;
 	private int no_of_threads;
+	private long coreCyclesTaken;
 
 	private int[] threadIDs;
 	
@@ -410,6 +411,14 @@ public class Core extends SimulationElement{
 	{
 		this.stepSize = stepSize;
 		this.pipelineInterface.setcoreStepSize(stepSize);
+	}
+
+	public long getCoreCyclesTaken() {
+		return coreCyclesTaken;
+	}
+
+	public void setCoreCyclesTaken(long coreCyclesTaken) {
+		this.coreCyclesTaken = coreCyclesTaken;
 	}
 
 }

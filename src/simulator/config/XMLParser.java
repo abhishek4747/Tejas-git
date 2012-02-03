@@ -188,7 +188,7 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		SystemConfig.core = new CoreConfig[32];
+		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		
 
 		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
@@ -201,7 +201,7 @@ public class XMLParser
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
 		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
-		for (int i = 0; i < 32; i++)
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			SystemConfig.core[i] = new CoreConfig();
 			CoreConfig core = SystemConfig.core[i]; //To be locally used for assignments
