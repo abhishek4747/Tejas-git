@@ -119,6 +119,7 @@ public class Statistics {
 			
 			//outputFileWriter.write("global clock\t=\t" + GlobalClock.getCurrentTime() + " cycles\n");
 			//outputFileWriter.write("\n");
+			outputFileWriter.write("Total Cycles taken\t\t=\t" + maxCoreCycles + "\n\n");
 			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumMicroOps/maxCoreCycles + "\t\tin terms of micro-ops\n");
 			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumInstructions/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
 			
