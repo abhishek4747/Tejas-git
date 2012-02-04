@@ -157,10 +157,11 @@ public class Newmain {
 
 		// Creating command for PIN tool.
 		String cmd;
-		
-		cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t " 
-						+ SimulationConfig.PinInstrumentor + " -map "
-						+ SimulationConfig.MapEmuCores + " -- ";
+		cmd = SimulationConfig.PinTool + "/pin" 
+						+ " -injection child -t " + SimulationConfig.PinInstrumentor 
+						+ " -map " + SimulationConfig.MapEmuCores 
+						+ " -numIgn " + SimulationConfig.NumInsToIgnore
+						+ " -- ";
 		cmd += executableArguments;
 
 		Process process = null;

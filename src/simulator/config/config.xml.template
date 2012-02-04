@@ -30,6 +30,7 @@
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
+		<NumInsToIgnore>0</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<Mode>1</Mode>   <!--From file 0,  From PIN 1, From QEMU *todo* -->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
@@ -42,7 +43,7 @@
 
 	<!--System Parameters-->
 	<System>
-		<NoOfCores>32</NoOfCores>				<!--Number of cores in the simulated system-->
+		<NoOfCores>32</NoOfCores>				<!--Useless Here,TO BE DELETED,Number of cores in the simulated system-->
 		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<MainMemoryFrequency>200</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
 		<MainMemoryPortType>UL</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
