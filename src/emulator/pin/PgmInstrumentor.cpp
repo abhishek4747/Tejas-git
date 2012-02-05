@@ -29,12 +29,18 @@
 #endif
 
 // Defining  command line arguments
-KNOB<UINT64>   KnobLong(KNOB_MODE_WRITEONCE,       "pintool",
+KNOB<UINT64>   KnobMap(KNOB_MODE_WRITEONCE,       "pintool",
     "map", "1", "Maps");
+KNOB<UINT64>   KnobIgnore(KNOB_MODE_WRITEONCE,       "pintool",
+    "numIgn", "0", "Ignore these many profilable instructions");
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
 UINT64 checkSum = 0;
+
+static UINT64 numIns = 0;
+UINT64 numInsToIgnore = 0;
+BOOL ignoreActive = false;
 
 IPC::IPCBase *tst;
 
@@ -60,6 +66,7 @@ VOID ThreadFini(THREADID tid,const CONTEXT *ctxt, INT32 flags, VOID *v)
 // Pass a memory read record
 VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 {
+	if (ignoreActive) return;
 		checkSum+=2;
 		uint64_t nip = MASK & (uint64_t)ip;
 		uint64_t naddr = MASK & (uint64_t)addr;
@@ -71,6 +78,7 @@ VOID RecordMemRead(THREADID tid,VOID * ip, VOID * addr)
 // Pass a memory write record
 VOID RecordMemWrite(THREADID tid,VOID * ip, VOID * addr)
 {
+	if (ignoreActive) return;
 		checkSum+=3;
 		uint64_t nip = MASK & (uint64_t)ip;
 		uint64_t naddr = MASK & (uint64_t)addr;
@@ -81,6 +89,7 @@ VOID RecordMemWrite(THREADID tid,VOID * ip, VOID * addr)
 
 VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 {
+	if (ignoreActive) return;
 	uint64_t nip = MASK & (uint64_t)ip;
 	uint64_t ntadr = MASK & (uint64_t)tadr;
 		if (taken) {
@@ -99,6 +108,7 @@ VOID BrnFun(THREADID tid,ADDRINT tadr,BOOL taken,VOID *ip)
 
 VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 {
+	if (ignoreActive) return;
 		checkSum+=6;
 		uint64_t nip = MASK & (uint64_t)ip;
 		uint64_t _nreg = MASK & (uint64_t)_reg;
@@ -110,7 +120,7 @@ VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 
 VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
 {
-
+	if (ignoreActive) return;
 		checkSum+=7;
 		uint64_t nip = MASK & (uint64_t)ip;
 		uint64_t _nreg = MASK & (uint64_t)_reg;
@@ -119,10 +129,19 @@ VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
 		}
 }
 
+VOID CountIns()
+{
+	if (!ignoreActive) return;
+	numIns++;
+	if (numIns>numInsToIgnore) ignoreActive = false;	//activate Now
+}
+
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v)
 {
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
+	if (ignoreActive)
+		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)CountIns, IARG_END);
 /*
 	UINT32 maxWregs = INS_MaxNumWRegs(ins);
 		UINT32 maxRregs = INS_MaxNumRRegs(ins);
@@ -201,15 +220,22 @@ INT32 Usage()
 int main(int argc, char * argv[])
 {
 
-	UINT64 mask = KnobLong;
+	// Initialize pin
+	if (PIN_Init(argc, argv)) return Usage();
+
+	// Knobs get initialized only after initlializing PIN
+	numInsToIgnore = KnobIgnore;
+	if (numInsToIgnore>0) ignoreActive = true;
+	printf("Ignoring %lld profilable instructions \n", numInsToIgnore);
+	fflush(stdout);
+
+	UINT64 mask = KnobMap;
 	printf("mask for pin %lld\n", mask);
 	fflush(stdout);
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
 	}
 
-	// Initialize pin
-	if (PIN_Init(argc, argv)) return Usage();
 
 	tst = new IPC::Shm ();
 	PIN_AddThreadStartFunction(ThreadStart, 0);

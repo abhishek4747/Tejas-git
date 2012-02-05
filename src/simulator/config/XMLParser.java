@@ -102,6 +102,7 @@ public class XMLParser
 		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
 //		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
+		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
