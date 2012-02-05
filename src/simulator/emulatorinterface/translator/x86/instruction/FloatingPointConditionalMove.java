@@ -1,5 +1,6 @@
 package emulatorinterface.translator.x86.instruction;
 
+import emulatorinterface.translator.InvalidInstructionException;
 import generic.Operand;
 import generic.InstructionArrayList;
 
@@ -8,6 +9,7 @@ public class FloatingPointConditionalMove implements InstructionHandler
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
 			InstructionArrayList instructionArrayList)
+					throws InvalidInstructionException
 	{
 		//TODO Must do something !!
 		

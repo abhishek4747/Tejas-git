@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.instruction;
 
+import emulatorinterface.translator.InvalidInstructionException;
 import generic.InstructionArrayList;
 import generic.Instruction;
 import generic.Operand;
@@ -30,6 +31,7 @@ public class Exchange implements InstructionHandler
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
 			InstructionArrayList instructionArrayList)
+					throws InvalidInstructionException
 	{
 		//operand1 is a register and operand2 is also a register
 		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&

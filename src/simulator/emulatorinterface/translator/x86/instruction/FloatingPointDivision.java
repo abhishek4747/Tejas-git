@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.instruction;
 
+import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
@@ -31,6 +32,7 @@ public class FloatingPointDivision implements InstructionHandler
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
 			InstructionArrayList instructionArrayList) 
+					throws InvalidInstructionException
 	{
 		//If no operand is provided to the function, then st(0)
 		//and st(1) are the implicit operands

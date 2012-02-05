@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.objparser;
 
 import emulatorinterface.DynamicInstructionBuffer;
+import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.visaHandler.VisaHandler;
 import emulatorinterface.translator.visaHandler.VisaHandlerSelector;
 import emulatorinterface.translator.x86.instruction.InstructionClass;
@@ -158,40 +159,55 @@ public class ObjParser
 			String operand1Str, String operand2Str, String operand3Str, 
 			InstructionClassTable instructionClassTable, InstructionArrayList instructionArrayList) 
 	{
-		int microOpsIndex = instructionArrayList.length();
+		int microOpsIndexBefore = instructionArrayList.length();
 		
-		//Determine the instruction class for this instruction
-		InstructionClass instructionClass;
-		instructionClass = InstructionClassTable.getInstructionClass(operation);
-		
-		// Simplify the operands
-		Operand operand1, operand2, operand3;
-		
-		Registers.noOfIntTempRegs = 0;
-		Registers.noOfFloatTempRegs = 0;
-		
-		operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionArrayList);
-		operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionArrayList);
-		operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionArrayList);
-		
-		
-		// Obtain a handler for this instruction
-		InstructionHandler handler;
-		handler = InstructionClassTable.getInstructionClassHandler(instructionClass);
-		
-		// Handle the instruction
-		if(handler!=null)
+		try
 		{
-			handler.handle(instructionPointer, operand1, operand2, operand3, instructionArrayList);
+			//Determine the instruction class for this instruction
+			InstructionClass instructionClass;
+			instructionClass = InstructionClassTable.getInstructionClass(operation);
+			
+			// Simplify the operands
+			Operand operand1, operand2, operand3;
+			
+			Registers.noOfIntTempRegs = 0;
+			Registers.noOfFloatTempRegs = 0;
+			
+			operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionArrayList);
+			operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionArrayList);
+			operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionArrayList);
+			
+			
+			// Obtain a handler for this instruction
+			InstructionHandler handler;
+			handler = InstructionClassTable.getInstructionClassHandler(instructionClass);
+			
+			// Handle the instruction
+			if(handler!=null)
+			{
+				handler.handle(instructionPointer, operand1, operand2, operand3, instructionArrayList);
+			}
+			
+			//now set the ip of all converted instructions to instructionPointer
+			for(int i=microOpsIndexBefore; i<instructionArrayList.length(); i++)
+			{
+				instructionArrayList.setProgramCounter(i, instructionPointer);
+			}
+		}catch(InvalidInstructionException inInstrEx)
+		{
+			/*
+			 * microOps created for this instruction are not valid 
+			 * since the translation of the instruction did not 
+			 * complete its execution.
+			 */
+			while(instructionArrayList.getListSize()
+					!=microOpsIndexBefore)
+			{
+				instructionArrayList.removeLastInstr();
+			}
 		}
 		
-		//now set the ip of all converted instructions to instructionPointer
-		for(int i=microOpsIndex; i<instructionArrayList.length(); i++)
-		{
-			instructionArrayList.setProgramCounter(i, instructionPointer);
-		}
-		
-		return microOpsIndex;
+		return microOpsIndexBefore;
 	}
 	
 	//return true if the string is a valid instruction prefix
