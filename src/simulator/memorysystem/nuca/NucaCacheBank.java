@@ -26,7 +26,7 @@ public class NucaCacheBank extends Cache
         super(cacheParameters,containingMemSys);
     	this.timestamp = 0;
     	this.cacheParameters = cacheParameters;
-        this.router = new Router(bankId,cacheParameters.numberOfBuffers);
+        this.router = new Router(bankId, cacheParameters.nocConfig);
         forwardedRequests =new Hashtable<Long, ArrayList<SimulationElement>>();
     }
     
@@ -72,7 +72,7 @@ public class NucaCacheBank extends Cache
 		}
 		else
 		{
-			nextID = router.RouteComputation(currentId, destinationId, RoutingAlgo.ALGO.SIMPLE);
+			nextID = router.RouteComputation(currentId, destinationId);
 			if(router.CheckNeighbourBuffer(nextID))
 			{
 				//post event to nextID

@@ -24,6 +24,7 @@ import emulatorinterface.communication.IpcBase;
 import generic.MultiPortingType;
 
 import java.io.File;
+import java.math.RoundingMode;
 import java.util.Hashtable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -36,6 +37,7 @@ import org.w3c.dom.*;
 
 import memorysystem.nuca.NucaCache.NucaType;
 import net.NOC;
+import net.RoutingAlgo;
 
 import generic.PortType;
 
@@ -318,7 +320,14 @@ public class XMLParser
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
 		cache.numberOfBankColumns = Integer.parseInt(getImmediateString("NumberOfBankColumns", CacheType));
 		cache.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", CacheType));		
-		cache.numberOfBuffers = Integer.parseInt(getImmediateString("NumberOfBuffers", CacheType));
+		cache.nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", CacheType));
+		cache.nocConfig.portType = setPortType(getImmediateString("NocPortType", CacheType));
+		cache.nocConfig.accessPorts = Integer.parseInt(getImmediateString("NocAccessPorts", CacheType));
+		cache.nocConfig.portOccupancy = Integer.parseInt(getImmediateString("NocPortOccupancy", CacheType));
+		cache.nocConfig.latency = Integer.parseInt(getImmediateString("NocLatency", CacheType));
+		cache.nocConfig.operatingFreq = Integer.parseInt(getImmediateString("NocOperatingFreq", CacheType));
+		cache.nocConfig.numberOfRows = cache.numberOfBankRows;
+		cache.nocConfig.numberOfColumns = cache.numberOfBankColumns;
 		
 		tempStr = getImmediateString("Coherence", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))
@@ -356,15 +365,18 @@ public class XMLParser
 			System.err.println("XML Configuration error : Invalid value of 'isLastLevel' (please enter 'Y' for yes or 'N' for no)");
 			System.exit(1);
 		}
-		tempStr = getImmediateString("NOCTopology", CacheType);
+		tempStr = getImmediateString("NocTopology", CacheType);
 		if(tempStr.equalsIgnoreCase("MESH"))
-			cache.topology = NOC.TOPOLOGY.MESH;
+			cache.nocConfig.topology = NOC.TOPOLOGY.MESH;
 		else if(tempStr.equalsIgnoreCase("TORUS"))
-			cache.topology = NOC.TOPOLOGY.TORUS;
+			cache.nocConfig.topology = NOC.TOPOLOGY.TORUS;
 		else if(tempStr.equalsIgnoreCase("BUS"))
-			cache.topology = NOC.TOPOLOGY.BUS;
+			cache.nocConfig.topology = NOC.TOPOLOGY.BUS;
 		else if(tempStr.equalsIgnoreCase("RING"))
-			cache.topology = NOC.TOPOLOGY.RING;
+			cache.nocConfig.topology = NOC.TOPOLOGY.RING;
+		tempStr = getImmediateString("NocRoutingAlgorithm", CacheType);
+		if(tempStr.equalsIgnoreCase("SIMPLE"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.SIMPLE;
 		
 	}
 	

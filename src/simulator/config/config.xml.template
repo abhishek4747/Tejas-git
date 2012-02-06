@@ -140,8 +140,14 @@
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
-			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -160,8 +166,14 @@
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
-			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -179,8 +191,14 @@
 			<Coherence>D</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
-			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -198,8 +216,14 @@
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
-			<NOCTopology>MESH</NOCTopology>     <!--NOCTopology-->
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type3>
 	</Library>
 </Configuration>

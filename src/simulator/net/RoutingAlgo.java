@@ -16,12 +16,14 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-
+	Contributors:  Eldhose Peter
 *****************************************************************************/
 package net;
 
 import java.util.ArrayList;
 import java.util.Vector;
+
+import net.NOC.TOPOLOGY;
 
 public class RoutingAlgo{
 
@@ -39,18 +41,41 @@ public class RoutingAlgo{
 		LEFT
 	}
 	
-	public RoutingAlgo.DIRECTION nextBank(Vector<Integer> current, Vector<Integer> destination){
-		
+	public RoutingAlgo.DIRECTION nextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{	
+		//XYRouting for mesh,torus,ring,bus
 		// to find next bank ID
-		if(current.elementAt(0) < destination.elementAt(0))
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		if(x1 < x2){
+			if(topology == TOPOLOGY.TORUS)
+				if((x2-x1) > Math.ceil(numRows / 2))
+					return DIRECTION.UP;
 			return DIRECTION.DOWN;
-		else if(current.elementAt(0) > destination.elementAt(0))
+		}
+		else if(x1 > x2){
+			if(topology == TOPOLOGY.TORUS)
+				if((x1-x2) > Math.ceil(numRows / 2))
+					return DIRECTION.DOWN;
 			return DIRECTION.UP;
-		else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) < destination.elementAt(1))
+		}
+		else if(x1 == x2 && y1< y2){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if((y2-y1) > Math.ceil(numColums / 2))
+					return DIRECTION.LEFT;	
 			return DIRECTION.RIGHT;
-		else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) > destination.elementAt(1))
+		}
+		else if(x1 == x2 && y1 >y2){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if((y1-y2) > Math.ceil(numColums / 2))
+					return DIRECTION.RIGHT;
 			return DIRECTION.LEFT;
-		return null;
+		}
+		return null;//you should not be here. destinationId == currentId
 	}
 	public ArrayList<RoutingAlgo.DIRECTION> XYRouting(Vector<Integer> current, Vector<Integer> destination)
 	{

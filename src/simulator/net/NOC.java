@@ -1,3 +1,23 @@
+/*****************************************************************************
+				BhartiSim Simulator
+------------------------------------------------------------------------------------------------------------
+
+   Copyright [2010] [Indian Institute of Technology, Delhi]
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+------------------------------------------------------------------------------------------------------------
+
+	Contributors:  Eldhose Peter
+*****************************************************************************/
 package net;
 
 import memorysystem.nuca.NucaCacheBank;
@@ -26,9 +46,9 @@ public class NOC{
 	public void ConnectBanks(NucaCacheBank cacheBank[],int numOfBanks,TOPOLOGY topology){
 		switch (topology){
 		case BUS :
-			ConnectBanksBus(cacheBank, numOfBanks);
+			ConnectBanksRingBus(cacheBank, numOfBanks, 1);
 		case RING :
-			ConnectBanksRing(cacheBank, numOfBanks);
+			ConnectBanksRingBus(cacheBank, numOfBanks, 0);
 		}
 	}
 	public void ConnectBanksMesh(NucaCacheBank cacheBank[][],int bankRows,int bankColumns)  //connect bank in MESH fashion
@@ -89,7 +109,7 @@ public class NOC{
 			}
 	    }
 	}
-	public void ConnectBanksBus(NucaCacheBank cacheBank[], int numOfBanks)
+	/*public void ConnectBanksBus(NucaCacheBank cacheBank[], int numOfBanks)
 	{
 		int i;
 		for(i=0;i<numOfBanks;i++)
@@ -102,19 +122,39 @@ public class NOC{
 			cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.UP);
 			cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN);
 		}
-	}
-	public void ConnectBanksRing(NucaCacheBank cacheBank[], int numOfBanks)
+	}*/
+	public void ConnectBanksRingBus(NucaCacheBank cacheBank[], int numOfBanks, int ringOrBus)
 	{
 		int i;
 		for(i=0;i<numOfBanks;i++)
 		{
-			if(i != numOfBanks-1)
+			if(i == numOfBanks-1){
+				if(ringOrBus == 0)
+					cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT,cacheBank[0]);
+				else
+					cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT);
+				cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT,cacheBank[numOfBanks - 1]);
+			}
+			else if(i == 0){ //fixed the bug in case of one cache bank
+				cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT,cacheBank[1]);
+				if(ringOrBus == 0)
+					cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT,cacheBank[numOfBanks - 1]);
+				else
+					cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT);
+			}
+			else{
 				cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, cacheBank[i+1]);
-			else
-				cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT,cacheBank[0]);
-			cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT);  //setting other dir null
+				cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT,  cacheBank[i-1]);	
+			}  //setting other dir null
 			cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.UP);
 			cacheBank[i].router.SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN);
 		}
 	}
 }
+
+
+
+
+
+
+
