@@ -101,19 +101,18 @@ public class Router extends SimulationElement{
 		//find the route to go
 		switch (this.rAlgo) {
 		case WESTFIRST :
-		break;
+			return routingAlgo.WestFirstnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		case NORTHLAST : 
-		break;
+			return routingAlgo.NorthLastnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		case NEGATIVEFIRST :
 		break;
 		case TABLE :
 		break;
 		case SIMPLE :
-			return routingAlgo.nextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
+			return routingAlgo.XYnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		}
-		return routingAlgo.nextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
+		return routingAlgo.XYnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		//no mans land
-		
 	}
 
 	@Override

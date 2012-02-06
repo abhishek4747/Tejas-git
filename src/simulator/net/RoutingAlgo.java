@@ -41,7 +41,7 @@ public class RoutingAlgo{
 		LEFT
 	}
 	
-	public RoutingAlgo.DIRECTION nextBank(Vector<Integer> current, Vector<Integer> destination, 
+	public RoutingAlgo.DIRECTION XYnextBank(Vector<Integer> current, Vector<Integer> destination, 
 			NOC.TOPOLOGY topology, int numRows, int numColums)
 	{	
 		//XYRouting for mesh,torus,ring,bus
@@ -76,6 +76,40 @@ public class RoutingAlgo{
 			return DIRECTION.LEFT;
 		}
 		return null;//you should not be here. destinationId == currentId
+	}
+	public RoutingAlgo.DIRECTION WestFirstnextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{
+		int y1,y2;
+		y1 = current.elementAt(1);
+		y2 = destination.elementAt(1);
+		if(y2<y1){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if((y1-y2) > Math.ceil(numColums / 2))
+					return DIRECTION.RIGHT;
+			return DIRECTION.LEFT;
+		}
+		else
+			return XYnextBank(current, destination, 
+					topology, numRows, numColums);
+	}
+	public RoutingAlgo.DIRECTION NorthLastnextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		if(x2 < x1){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if(Math.abs(y1-y2) > Math.ceil(numColums / 2))
+					return DIRECTION.RIGHT;
+			return DIRECTION.LEFT;
+		}
+		else
+			return XYnextBank(current, destination, 
+					topology, numRows, numColums);
 	}
 	public ArrayList<RoutingAlgo.DIRECTION> XYRouting(Vector<Integer> current, Vector<Integer> destination)
 	{
