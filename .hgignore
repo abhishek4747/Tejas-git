@@ -33,3 +33,5 @@ syntax: regexp
 ^src/emulator/pin/obj-comm/make-directory$
 syntax: regexp
 ^src/emulator/pin/obj-comm/libshmlib\.so$
+syntax: regexp
+^src/simulator/config/config\.xml$

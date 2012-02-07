@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -105,7 +105,7 @@ public class Router extends SimulationElement{
 		case NORTHLAST : 
 			return routingAlgo.NorthLastnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		case NEGATIVEFIRST :
-		break;
+			return routingAlgo.NegativeFirstnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		case TABLE :
 		break;
 		case SIMPLE :

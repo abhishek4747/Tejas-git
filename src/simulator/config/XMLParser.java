@@ -377,6 +377,10 @@ public class XMLParser
 		tempStr = getImmediateString("NocRoutingAlgorithm", CacheType);
 		if(tempStr.equalsIgnoreCase("SIMPLE"))
 			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.SIMPLE;
+		else if(tempStr.equalsIgnoreCase("WESTFIRST"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.WESTFIRST;
+		else if(tempStr.equalsIgnoreCase("NORTHLAST"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.NORTHLAST;
 		
 	}
 	

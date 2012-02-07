@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -103,7 +103,43 @@ public class RoutingAlgo{
 		y2 = destination.elementAt(1);
 		if(x2 < x1){
 			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
-				if(Math.abs(y1-y2) > Math.ceil(numColums / 2))
+			{
+				if(y2>y1)
+				{
+					if((y2-y1) > Math.ceil(numColums / 2))
+						return DIRECTION.LEFT;
+					else
+						return DIRECTION.RIGHT;
+				}
+				else if(y1>y2)
+				{
+					if((y2-y1) > Math.ceil(numColums / 2))
+						return DIRECTION.RIGHT;
+					else
+						return DIRECTION.LEFT;
+				}
+			}
+			if(y2<y1)
+				return DIRECTION.LEFT;
+			else if(y1>y2)
+				return DIRECTION.RIGHT;
+		}
+		else
+			return XYnextBank(current, destination, 
+					topology, numRows, numColums);
+		return null; // no mans land
+	}
+	public RoutingAlgo.DIRECTION NegativeFirstnextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		if(y2 < y1 && x2 < x1){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if(y1-y2 > Math.ceil(numColums / 2))
 					return DIRECTION.RIGHT;
 			return DIRECTION.LEFT;
 		}
