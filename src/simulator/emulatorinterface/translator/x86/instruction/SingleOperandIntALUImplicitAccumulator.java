@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.instruction;
 
 
+import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
@@ -32,7 +33,8 @@ public class SingleOperandIntALUImplicitAccumulator implements InstructionHandle
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList)
+			InstructionArrayList instructionArrayList) 
+					throws InvalidInstructionException
 	{
 		InstructionLinkedList microOps = new InstructionLinkedList();
 
@@ -44,6 +46,15 @@ public class SingleOperandIntALUImplicitAccumulator implements InstructionHandle
 			//Perform integer alu operation
 			microOps.appendInstruction(Instruction.getIntALUInstruction(
 					null, accumulatorRegister, accumulatorRegister));
+		}
+  		else if(operand1.isImmediateOperand() && operand2==null && operand3==null)
+ 
+		{
+			Operand accumulatorRegister = Registers.getAccumulatorRegister();
+			
+			//Perform integer alu operation
+			microOps.appendInstruction(Instruction.getIntALUInstruction(
+					operand1, accumulatorRegister, accumulatorRegister));
 		}
 		else
 		{

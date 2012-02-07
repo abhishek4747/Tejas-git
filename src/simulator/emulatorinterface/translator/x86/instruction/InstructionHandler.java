@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.instruction;
 
+import emulatorinterface.translator.InvalidInstructionException;
 import generic.InstructionArrayList;
 import generic.Operand;
 
@@ -28,5 +29,5 @@ public interface InstructionHandler
 {
 	void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList);
+			InstructionArrayList instructionArrayList) throws InvalidInstructionException;
 }

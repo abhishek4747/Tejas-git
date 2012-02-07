@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.instruction;
 
 
+import emulatorinterface.translator.InvalidInstructionException;
 import generic.InstructionArrayList;
 import generic.Operand;
 import misc.Error;;
@@ -35,7 +36,8 @@ import misc.Error;;
 public class Call implements InstructionHandler 
 {
 	public void handle(long instructionPointer, Operand operand1,
-			Operand operand2, Operand operand3, InstructionArrayList instructionArrayList)	
+			Operand operand2, Operand operand3, InstructionArrayList instructionArrayList)
+					throws InvalidInstructionException	
 	{
 		//push the next instruction pointer on to the stack
 		//TODO Check if the NEXT_INSTRUCTION can be computed

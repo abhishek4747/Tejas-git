@@ -41,7 +41,8 @@ public class RunnableThread implements Runnable, Encoding {
 	int tid;
 	long sum = 0; // checksum
 	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
-
+	int currentEMUTHREADS = 0;
+	
 	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
 	InstructionLinkedList[] inputToPipeline;
@@ -226,15 +227,14 @@ public class RunnableThread implements Runnable, Encoding {
 			}
 			int tempu=0;
 			int minN=Integer.MAX_VALUE;
-			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-				thread = threadParams[tidEmu];
+			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				if(tidEmu==0)
 					tempu=n;
 				//FIXME what if core not started
 				/*				if(tidEmu==0)
 					System.out.println("n = "+n);
-				 */				if(thread.started  &&  n<minN && n!=0)
+				 */				if(n<minN && n!=0)
 					 minN=n;
 				 //	System.out.print("  "+n);
 			}
@@ -260,8 +260,7 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 			}*/
 			for (int i1=0; i1< minN; i1++)	{
-				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-					if(threadParams[tidEmu].started)
+				for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 						pipelineInterfaces[tidEmu].oneCycleOperation();
 				}
 				GlobalClock.incrementClock();
@@ -286,10 +285,10 @@ public class RunnableThread implements Runnable, Encoding {
 			}
 		}
 
-		for (int i=0; i<EMUTHREADS; i++)
+		for (int i=0; i<currentEMUTHREADS; i++)
 			this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 
-		for (int i=0; i<EMUTHREADS; i++) {
+		for (int i=0; i<currentEMUTHREADS; i++) {
 			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
 				System.out.println("not completed for "+i);
 				resumePipelineTimer(i);
@@ -301,7 +300,7 @@ public class RunnableThread implements Runnable, Encoding {
 		{
 			//System.out.println("Pin completed ");
 			queueComplete = true;        
-			for(int i = 0; i < EMUTHREADS && threadParams[i].started; i++)
+			for(int i = 0; i < currentEMUTHREADS; i++)
 			{
 
 				queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
@@ -313,15 +312,13 @@ public class RunnableThread implements Runnable, Encoding {
 
 			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+pipelineInterfaces[1].isExecutionComplete());
 			int maxN=0;
-			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-				thread = threadParams[tidEmu];
+			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
 				if( n>maxN)
 					maxN=n;
 			}	
 			for (int i1=0; i1< maxN; i1++)	{
-				for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-					if(threadParams[tidEmu].started)
+				for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 						pipelineInterfaces[tidEmu].oneCycleOperation();
 				}
 				GlobalClock.incrementClock();
@@ -329,7 +326,7 @@ public class RunnableThread implements Runnable, Encoding {
 
 		}
 		Core core;
-		for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 			core = pipelineInterfaces[tidEmu].getCore();
 			if(core.getExecutionEngineIn().getExecutionComplete()){
 				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
@@ -404,6 +401,7 @@ public class RunnableThread implements Runnable, Encoding {
 			return;
 		}
 		if (thread.isFirstPacket) {
+			currentEMUTHREADS++;
 			thread.pold = pnew;
 			thread.isFirstPacket=false;
 		}

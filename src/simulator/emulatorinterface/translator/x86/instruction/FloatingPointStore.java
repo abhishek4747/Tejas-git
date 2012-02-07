@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.instruction;
 
+import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.Operand;
@@ -31,6 +32,7 @@ public class FloatingPointStore implements InstructionHandler
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
 			InstructionArrayList instructionArrayList) 
+					throws InvalidInstructionException
 	{
 		if(operand1.isMemoryOperand() && 
 				operand2==null	&& operand3==null)

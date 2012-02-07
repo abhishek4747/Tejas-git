@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.instruction;
 
 
+import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
@@ -33,6 +34,7 @@ public class IntegerMultiplication implements InstructionHandler
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
 			InstructionArrayList instructionArrayList) 
+					throws InvalidInstructionException
 	{
 		Operand accumulatorRegister = Registers.getAccumulatorRegister();
 		Operand multiplier;
