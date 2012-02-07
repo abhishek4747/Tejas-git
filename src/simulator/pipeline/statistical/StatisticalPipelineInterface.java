@@ -72,4 +72,22 @@ public class StatisticalPipelineInterface implements pipeline.PipelineInterface 
 		
 	}
 
+	@Override
+	public boolean isSleeping() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setTimingStatistics() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setPerCoreMemorySystemStatistics() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

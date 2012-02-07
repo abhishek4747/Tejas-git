@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.operand;
 
+import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
 import generic.Instruction;
 import generic.InstructionArrayList;
@@ -34,7 +35,9 @@ import misc.Numbers;
 
 public class OperandTranslator 
 {
-	public static Operand simplifyOperand(String operandStr, InstructionArrayList instructionArrayList)
+	public static Operand simplifyOperand(String operandStr,
+			InstructionArrayList instructionArrayList)
+					throws InvalidInstructionException
 	{
 		//If there is no operand, then just don't process it. 
 		if(operandStr == null)
@@ -111,7 +114,9 @@ public class OperandTranslator
 	}
 	
 
-	static Operand simplifyMemoryLocation(String operandStr, InstructionArrayList instructionArrayList)
+	static Operand simplifyMemoryLocation(String operandStr,
+			InstructionArrayList instructionArrayList) 
+					throws InvalidInstructionException
 	{
 		String memoryAddressTokens[] = operandStr.split("\\+|-");
 		
@@ -178,6 +183,7 @@ public class OperandTranslator
 			else
 			{
 				misc.Error.invalidOperand(operandStr);
+				return null;
 			}
 		}
 

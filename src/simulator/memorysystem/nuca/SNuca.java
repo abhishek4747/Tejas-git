@@ -53,17 +53,28 @@ public class SNuca extends NucaCache
 		long address = ((AddressCarryingEvent)(event)).getAddress();
 		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
-		boolean alreadypresent= this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].addOutstandingRequest(event, address);
-		if(!alreadypresent)
-			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
-									getPort().put(((AddressCarryingEvent)event).
-															updateEvent(eventQ, 
-																		0,//to be  changed to some constant(wire delay) 
-																		requestingElement, 
-																		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
-																		event.getRequestType(), 
-																		sourceBankId, 
-																		destinationBankId));
+//		boolean alreadypresent= addToForwardedRequests(sourceBankId, event, address);
+		//System.out.println("added address in snuca"+address);
+//		if(!alreadypresent)
+//			if(this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].router.checkThisBuffer())
+		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone(); 		
+		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
+										getPort().put(((AddressCarryingEvent)event).
+																updateEvent(eventQ, 
+																			0,//to be  changed to some constant(wire delay) 
+																			requestingElement, 
+																			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
+																			event.getRequestType(), 
+																			sourceBankId, 
+																			destinationBankId));
 
+/*			else
+				this.getPort().put(event.update(
+												eventQ,
+												1, 
+												requestingElement,
+												event.getProcessingElement(), 
+												event.getRequestType()));
+	*/
 	}
 }

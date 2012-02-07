@@ -103,6 +103,10 @@ public class InstructionArrayList
 		return instructionArrayList.get(position);
 	}
 	
+	public void removeLastInstr()
+	{
+		this.instructionArrayList.remove(instructionArrayList.size()-1);
+	}
 //	public SynchronizationObject getSyncObject() {
 //		return syncObject;
 //	}

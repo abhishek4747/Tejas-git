@@ -22,6 +22,7 @@
 package misc;
 
 import emulatorinterface.Newmain;
+import emulatorinterface.translator.InvalidInstructionException;
 import generic.Operand;
 
 public class Error 
@@ -45,18 +46,28 @@ public class Error
 	}
 
 	public static void invalidOperation(String operation, Operand operand1, 
-			Operand operand2, Operand operand3)
+			Operand operand2, Operand operand3) throws InvalidInstructionException
 	{
-		System.out.print("\n\tIllegal operands to a " + operation + ".");
-		System.out.print("\n\tOperand1 : " + operand1);
-		System.out.print("\tOperand2 : " + operand2);
-		System.out.print("\tOperand3 : " + operand3);
-		System.exit(0);
+		String msg;
+		
+		msg=("\n\tIllegal operands to a " + operation + ".");
+		msg+=("\n\tOperand1 : " + operand1);
+		msg+=("\tOperand2 : " + operand2);
+		msg+=("\tOperand3 : " + operand3);
+		
+//		System.out.print(msg);
+//		System.exit(0);
+		
+		throw new InvalidInstructionException(msg, false);
 	}
 
-	public static void invalidOperand(String operandString)
+	public static void invalidOperand(String operandString) throws InvalidInstructionException
 	{
-		System.out.print("\n\tInvalid operand string : " + operandString + ".");
-		System.exit(0);
+		String msg;
+		
+		msg=("\n\tInvalid operand string : " + operandString + ".");
+		
+		throw new InvalidInstructionException(msg, false);
 	}
+
 }

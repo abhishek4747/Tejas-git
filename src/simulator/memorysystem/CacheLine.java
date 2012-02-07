@@ -48,7 +48,7 @@ public class CacheLine
 		this.setPid(0);
 	}
 	
-	protected CacheLine copy()
+	public CacheLine copy()
 	{
 		CacheLine newLine = new CacheLine(0);
 		newLine.setLine_num(this.getLine_num());
@@ -76,14 +76,14 @@ public class CacheLine
 		line_num = lineNum;
 	}
 
-	protected boolean isValid() {
+	public boolean isValid() {
 		if (state != MESI.INVALID)
 			return true;
 		else
 			return false;
 	}
 
-	protected double getTimestamp() {
+	public double getTimestamp() {
 		return timestamp;
 	}
 

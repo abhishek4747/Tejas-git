@@ -58,16 +58,17 @@ public class MemorySystem
 		// initialising the memory system
 		
 		//Set up the main memory properties
-		mainMemory = new MainMemory();
+		
 		
 		if (SimulationConfig.isPipelineInorder)
 			bypassLSQ = true;
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
-		
+		NucaType nucaType = NucaType.NONE;
 		/*First initialise the L2 and greater caches (to be linked with L1 caches and among themselves)*/
 		cacheList = new Hashtable<String, Cache>(); //Declare the hash table for level 2 or greater caches
+		boolean flag = false;
 		for (Enumeration<String> cacheNameSet = SystemConfig.declaredCaches.keys(); cacheNameSet.hasMoreElements(); )
 		{
 			String cacheName = cacheNameSet.nextElement();
@@ -81,14 +82,22 @@ public class MemorySystem
 				if (cacheParameterObj.getNucaType() == NucaType.NONE)
 					newCache = new Cache(cacheParameterObj, null);
 				else if (cacheParameterObj.getNucaType() == NucaType.S_NUCA)
+				{	
+					nucaType = NucaType.S_NUCA;
+					flag = true;
 					newCache = new SNuca(cacheParameterObj,null);
+				}
 				else if (cacheParameterObj.getNucaType() == NucaType.D_NUCA)
+				{	
+					nucaType = NucaType.D_NUCA;
+					flag = true;
 					newCache = new DNuca(cacheParameterObj,null);
-
+				}
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
 			}
 		}
+		mainMemory = new MainMemory(nucaType);
 		//Initialize centralized directory
 		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
 		CentralizedDirectory centralizedDirectory = new CentralizedDirectory(numCacheLines, SystemConfig.NoOfCores);

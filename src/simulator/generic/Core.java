@@ -39,6 +39,8 @@ public class Core extends SimulationElement{
 	
 	//core parameters
 	private int decodeWidth;
+	private int issueWidth;
+	private int retireWidth;
 	private int decodeTime;
 	private int renamingTime;
 	private int reorderBufferSize;
@@ -57,6 +59,7 @@ public class Core extends SimulationElement{
 	private int core_number;
 	private int no_of_input_pipes;
 	private int no_of_threads;
+	private long coreCyclesTaken;
 
 	private int[] threadIDs;
 	
@@ -111,6 +114,8 @@ public class Core extends SimulationElement{
 	{
 		//TODO parameters to be set according to contents of an XML configuration file
 		setDecodeWidth(coreConfig.DecodeWidth);
+		setIssueWidth(coreConfig.IssueWidth);
+		setRetireWidth(coreConfig.RetireWidth);
 		setDecodeTime(coreConfig.DecodeTime);
 		setRenamingTime(coreConfig.RenamingTime);
 		setReorderBufferSize(coreConfig.ROBSize);
@@ -171,6 +176,22 @@ public class Core extends SimulationElement{
 	{
 		this.clock++;
 	}*/
+
+	public int getIssueWidth() {
+		return issueWidth;
+	}
+
+	public void setIssueWidth(int issueWidth) {
+		this.issueWidth = issueWidth;
+	}
+
+	public int getRetireWidth() {
+		return retireWidth;
+	}
+
+	public void setRetireWidth(int retireWidth) {
+		this.retireWidth = retireWidth;
+	}
 
 	public EventQueue getEventQueue() {
 		return eventQueue;
@@ -390,6 +411,14 @@ public class Core extends SimulationElement{
 	{
 		this.stepSize = stepSize;
 		this.pipelineInterface.setcoreStepSize(stepSize);
+	}
+
+	public long getCoreCyclesTaken() {
+		return coreCyclesTaken;
+	}
+
+	public void setCoreCyclesTaken(long coreCyclesTaken) {
+		this.coreCyclesTaken = coreCyclesTaken;
 	}
 
 }

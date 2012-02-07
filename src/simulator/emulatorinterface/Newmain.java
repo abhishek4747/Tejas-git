@@ -2,6 +2,7 @@ package emulatorinterface;
 
 import java.util.Enumeration;
 
+import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
 import memorysystem.nuca.SNuca;
@@ -110,7 +111,11 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
-			if (cache.getClass() == NucaCache.class)
+			if (cache.getClass() == SNuca.class)
+			{
+				((NucaCache)cache).setStatistics();
+			}
+			else if (cache.getClass() == DNuca.class)
 			{
 				((NucaCache)cache).setStatistics();
 			}

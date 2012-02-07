@@ -53,6 +53,29 @@ public class Operand implements Serializable
 		this.memoryLocationSecondOperand = memoryOperandSecondOperand;
 	}
 	
+	/* our copy constructor */
+	public Operand(Operand operand)
+	{
+		this.type=operand.type;
+		this.value=operand.value;
+		
+		if(operand.memoryLocationFirstOperand==null)
+		{
+			this.memoryLocationFirstOperand=null;
+		}else
+		{
+			this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
+		}
+		
+		if(this.memoryLocationSecondOperand==null)
+		{
+			this.memoryLocationSecondOperand=null;
+		}else
+		{
+			this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
+		}
+	}
+	
 	public String toString()
 	{
 			return ("(" + type + ")" + Long.toHexString(value));

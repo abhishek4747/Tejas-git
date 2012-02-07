@@ -31,9 +31,6 @@ import memorysystem.snoopyCoherence.BusController;
 
 import config.CacheConfig;
 import config.SystemConfig;
-
-import memorysystem.BusOld.BusReqType;
-import memorysystem.CacheLine.MESI;
 import misc.Util;
 import generic.*;
 
@@ -118,7 +115,7 @@ public class Cache extends SimulationElement
 			return null;
 		}
 		
-		private void mark(CacheLine ll, long tag)
+		protected void mark(CacheLine ll, long tag)
 		{
 			ll.setTag(tag);
 			mark(ll);
@@ -184,7 +181,7 @@ public class Cache extends SimulationElement
 			makeCache();
 		}
 
-		private CacheLine read(long addr)
+		protected CacheLine read(long addr)
 		{
 			CacheLine cl = access(addr);
 			if(cl != null)
@@ -192,7 +189,7 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		private CacheLine write(long addr)
+		protected CacheLine write(long addr)
 		{
 			CacheLine cl = access(addr);
 			if(cl != null) 
@@ -345,7 +342,7 @@ public class Cache extends SimulationElement
 				this.handleInvalidate(event);
 		}
 		
-		private void handleAccess(EventQueue eventQ, Event event)
+		protected void handleAccess(EventQueue eventQ, Event event)
 		{
 			SimulationElement requestingElement = event.getRequestingElement();
 			RequestType requestType = event.getRequestType();

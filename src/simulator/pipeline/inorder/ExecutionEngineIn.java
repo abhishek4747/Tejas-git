@@ -84,6 +84,11 @@ public class ExecutionEngineIn {
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
 		System.out.println("Core "+core.getCore_number()+" numCycles="+this.numCycles);
+		
+		if (execComplete == true)
+		{
+			core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());
+		}
 	}
 	public void setFetchComplete(boolean fetchComplete){
 		this.fetchComplete=fetchComplete;

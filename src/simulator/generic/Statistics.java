@@ -17,10 +17,27 @@ public class Statistics {
 	
 	
 	
-	
+	static String benchmark;
 	public static void printSystemConfig()
 	{
 		//read config.xml and write to output file
+		try
+		{
+			outputFileWriter.write("[Configuration]\n");
+			outputFileWriter.write("\n");
+			outputFileWriter.write("ToolName: "+SimulationConfig.PinInstrumentor+"\n");
+			outputFileWriter.write("Benchmark: "+benchmark+"\n");
+			outputFileWriter.write("Pipeline: ");
+			if (SimulationConfig.isPipelineInorder)
+				outputFileWriter.write("Inorder Pipeline\n");
+			else if (SimulationConfig.isPipelineStatistical)
+				outputFileWriter.write("Statistical Pipeline\n");
+			else outputFileWriter.write("OutOrder Pipeline\n");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -29,13 +46,22 @@ public class Statistics {
 	//Translator Statistics
 	
 	static long dataRead[];
-	static long numInstructions[];
-	static long noOfMicroOps[];
+	static long numInstructions[][];
+	static long noOfMicroOps[][];
 	static double staticCoverage;
 	static double dynamicCoverage;
 	
 	public static void printTranslatorStatistics()
 	{
+		for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
+		{
+			for (int j=0; j<IpcBase.EmuThreadsPerJavaThread; j++) {
+				totalNumMicroOps += noOfMicroOps[i][j];
+//				totalNumMicroOps += numCoreInstructions[i];
+				totalNumInstructions += numInstructions[i][j];
+			}
+		}
+		
 		//for each java thread, print number of instructions provided by PIN and number of instructions forwarded to the pipeline
 		try
 		{
@@ -53,6 +79,9 @@ public class Statistics {
 						(double)numInstructions[i]/(double)noOfMicroOps[i] + "\n");
 				outputFileWriter.write("\n");
 			}
+			outputFileWriter.write("Number of micro-ops\t\t=\t" + totalNumMicroOps + "\n");
+			outputFileWriter.write("Number of CISC instructions\t=\t" + totalNumInstructions + "\n");
+			
 			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + " %\n");
 			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage + " %\n");
 			outputFileWriter.write("\n");
@@ -71,9 +100,18 @@ public class Statistics {
 	static long coreCyclesTaken[];
 	static long coreFrequencies[];				//in MHz
 	static long numCoreInstructions[];
+	static long totalNumMicroOps = 0;
+	static long totalNumInstructions = 0;
 
 	public static void printTimingStatistics()
 	{
+		long maxCoreCycles = 0;
+		for (int i =0; i < SystemConfig.NoOfCores; i++)
+		{
+			if (maxCoreCycles < coreCyclesTaken[i])
+				maxCoreCycles = coreCyclesTaken[i];
+		}
+		
 		//for each core, print number of cycles taken by pipeline to reach completion
 		
 		try
@@ -84,14 +122,19 @@ public class Statistics {
 			
 			//outputFileWriter.write("global clock\t=\t" + GlobalClock.getCurrentTime() + " cycles\n");
 			//outputFileWriter.write("\n");
+			outputFileWriter.write("Total Cycles taken\t\t=\t" + maxCoreCycles + "\n\n");
+			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumMicroOps/maxCoreCycles + "\t\tin terms of micro-ops\n");
+			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumInstructions/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
 			
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
 				outputFileWriter.write("core\t\t=\t" + i + "\n");
 				outputFileWriter.write("instructions executed\t=\t" + numCoreInstructions[i] + "\n");
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)numInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				//FIXME will work only if java thread is 1
+				outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[0][i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
+				outputFileWriter.write("IPC\t\t=\t" + (double)numInstructions[0][i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
 				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
 				outputFileWriter.write("\n");
@@ -213,14 +256,7 @@ public class Statistics {
 			
 			outputFileWriter.write("Time Taken\t\t=\t" + minutes + " : " + seconds + " minutes\n");
 			
-			long totalNumMicroOps = 0;
-			long totalNumInstructions = 0;
-			for(int i = 0; i < SystemConfig.NoOfCores; i++)
-			{
-				totalNumMicroOps += noOfMicroOps[i];
-//				totalNumMicroOps += numCoreInstructions[i];
-				totalNumInstructions += numInstructions[i];
-			}
+			
 			if(subsetTime != 0)
 			{
 				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/subsetTime + " KIPS\t\tin terms of micro-ops\n");
@@ -245,8 +281,8 @@ public class Statistics {
 	public static void initStatistics()
 	{		
 		dataRead = new long[IpcBase.MaxNumJavaThreads];
-		numInstructions = new long[IpcBase.MaxNumJavaThreads];
-		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads];
+		numInstructions = new long[IpcBase.MaxNumJavaThreads][IpcBase.EmuThreadsPerJavaThread];
+		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads][IpcBase.EmuThreadsPerJavaThread];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
 		coreFrequencies = new long[SystemConfig.NoOfCores];
@@ -333,11 +369,11 @@ public class Statistics {
 		Statistics.dataRead[thread] = dataRead;
 	}
 
-	public static void setNumInstructions(long numInstructions, int thread) {
+	public static void setNumInstructions(long numInstructions[], int thread) {
 		Statistics.numInstructions[thread] = numInstructions;
 	}
 
-	public static void setNoOfMicroOps(long noOfMicroOps, int thread) {
+	public static void setNoOfMicroOps(long noOfMicroOps[], int thread) {
 		Statistics.noOfMicroOps[thread] = noOfMicroOps;
 	}
 	
@@ -436,4 +472,9 @@ public class Statistics {
 	public static void setSubsetTime(long subsetTime) {
 		Statistics.subsetTime = subsetTime;
 	}
+
+	public static void setExecutable(String executableFile) {
+		Statistics.benchmark = executableFile;
+	}
+	
 }

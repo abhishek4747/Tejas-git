@@ -77,6 +77,8 @@
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 			
 			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
+			<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
+			<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
 			<DecodeTime>1</DecodeTime>			<!--Instruction decode time-->
 			<RenamingTime>2</RenamingTime>			<!--Renaming Time-->
 			<ROBSize>128</ROBSize>				<!--Maximum number of entries in the ROB-->

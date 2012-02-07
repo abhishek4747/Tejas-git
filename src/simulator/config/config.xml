@@ -24,8 +24,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/harne/PIN</PinTool>
-		<PinInstrumentor>/home/harne/workspace1/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/eldhose/PIN</PinTool>
+		<PinInstrumentor>/home/eldhose/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -126,7 +126,13 @@
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -143,7 +149,13 @@
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -160,7 +172,13 @@
 			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -177,7 +195,13 @@
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
 		</Type3>
 	</Library>
 </Configuration>

@@ -23,8 +23,8 @@ package generic;
 import java.io.Serializable;
 
 
-public class Instruction implements Serializable{
-	
+public class Instruction implements Serializable
+{
 	private OperationType type;
 	private Operand sourceOperand1;
 	private Operand sourceOperand2;
@@ -42,6 +42,30 @@ public class Instruction implements Serializable{
 		this.destinationOperand = destinationOperand;
 	}
 	
+	/* our clone constructor */
+	public Instruction(Instruction oldInstruction)
+	{
+		this.type=oldInstruction.type;
+		
+		if(oldInstruction.sourceOperand1==null)
+			{this.sourceOperand1=null;}
+		else
+			{this.sourceOperand1=new Operand(oldInstruction.sourceOperand1);}
+		
+		if(oldInstruction.sourceOperand2==null)
+			{this.sourceOperand2=null;}
+		else
+			{this.sourceOperand2=new Operand(oldInstruction.sourceOperand2);}
+		
+		if(oldInstruction.destinationOperand==null)
+			{this.destinationOperand=null;}
+		else
+			{this.destinationOperand=new Operand(oldInstruction.destinationOperand);}
+		
+		this.programCounter=oldInstruction.programCounter;
+		this.branchTaken=oldInstruction.branchTaken;
+		this.branchTargetAddress=oldInstruction.branchTargetAddress;
+	}	
 	
 	public long getProgramCounter()
 	{
@@ -79,11 +103,9 @@ public class Instruction implements Serializable{
 		return type;
 	}
 	
-	
 	public boolean isBranchTaken() {
 		return branchTaken;
 	}
-
 
 	public void setBranchTaken(boolean branchTaken) {
 		this.branchTaken = branchTaken;

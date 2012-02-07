@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.instruction;
 
+import emulatorinterface.translator.InvalidInstructionException;
 import generic.Instruction;
 import generic.Operand;
 import generic.InstructionArrayList;
@@ -29,7 +30,8 @@ public class Interrupt implements InstructionHandler
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList)
+			InstructionArrayList instructionArrayList) 
+					throws InvalidInstructionException
 	{
 		if(operand1.isImmediateOperand() && operand2==null && operand3==null)
 		{
