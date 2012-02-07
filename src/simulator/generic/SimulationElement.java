@@ -1,6 +1,6 @@
 package generic;
 
-public abstract class SimulationElement
+public abstract class SimulationElement implements Cloneable
 {
 	//a simulation element encapsulates a port.
 	//all the request for the port are ported through simulationElement
@@ -9,6 +9,20 @@ public abstract class SimulationElement
 	long frequency;								//in MHz
 	int stepSize;
 
+   public Object clone()
+    {
+        try
+        {
+            // call clone in Object.
+            return super.clone();
+        } catch(CloneNotSupportedException e)
+        {
+            System.out.println("Cloning not allowed.");
+            return this;
+        }
+    }
+
+	
 	public SimulationElement(PortType portType,
 								int noOfPorts,
 								long occupancy,

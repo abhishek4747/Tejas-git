@@ -179,7 +179,7 @@ public class Cache extends SimulationElement
 			makeCache();
 		}
 
-		private CacheLine read(long addr)
+		protected CacheLine read(long addr)
 		{
 			CacheLine cl = access(addr);
 			if(cl != null)
@@ -187,7 +187,7 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		private CacheLine write(long addr)
+		protected CacheLine write(long addr)
 		{
 			CacheLine cl = access(addr);
 			if(cl != null) 

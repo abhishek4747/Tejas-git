@@ -30,23 +30,38 @@ public class NucaCacheBank extends Cache
         forwardedRequests =new Hashtable<Long, ArrayList<Event>>();
     }
     
-    public Object clone()
-    {
-        try
-        {
-            // call clone in Object.
-            return super.clone();
-        } catch(CloneNotSupportedException e)
-        {
-            System.out.println("Cloning not allowed.");
-            return this;
-        }
-    }
-	
-	public Router getRouter()
+    public Router getRouter()
 	{
 		return this.router;
 	}
+	
+	public CacheLine processRequest(RequestType requestType, long addr)
+	{
+		noOfRequests++;
+		//boolean isHit;
+		/* access the Cache */
+		CacheLine ll = null;
+		if(requestType == RequestType.Cache_Read || requestType == RequestType.Cache_Read_from_iCache)
+			ll = this.read(addr);
+		else if (requestType == RequestType.Cache_Write)
+			ll = this.write(addr);
+		
+		if(ll == null)
+		{
+			/* Miss */
+//			if (!(request.isWriteThrough()))//TODO For testing purposes only
+			this.misses++;
+		} 
+		else 
+		{
+			/* Hit */
+			/* do nothing */
+//			if (!(request.isWriteThrough()))//TODO For testing purposes only
+			this.hits++;				
+		}
+		return ll;
+	}
+
 	
 	public CacheLine fill(long addr) //Returns a copy of the evicted line
 	{
@@ -145,7 +160,7 @@ public class NucaCacheBank extends Cache
 				this.router.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
 								eventQ,
-								1,
+								0,
 								this, 
 								this.router.GetNeighbours().elementAt(nextID.ordinal()),
 								requestType));
@@ -191,8 +206,8 @@ public class NucaCacheBank extends Cache
 			addressEvent.setDestinationBankId(destinationBankId);
 			this.getPort().put(addressEvent);
 		}
-		long blockAddr = addr >>> this.blockSizeBits;
-			if (!/*NOT*/this.missStatusHoldingRegister.containsKey(blockAddr))
+/*		long blockAddr = addr >>> this.blockSizeBits;
+			if (!NOTthis.missStatusHoldingRegister.containsKey(blockAddr))
 			{
 				System.err.println("Memory System Error : An outstanding request not found in the requesting element from line 128");
 				//System.out.println("error in bankid  "+router.getBankId());
@@ -201,10 +216,10 @@ public class NucaCacheBank extends Cache
 			
 			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.get(blockAddr);
 			
-			while (!/*NOT*/outstandingRequestList.isEmpty())
+*/			//while (!/*NOT*/outstandingRequestList.isEmpty())
 			{				
-				if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write ||
-					((AddressCarryingEvent)outstandingRequestList.get(0)).oldRequestType == RequestType.Cache_Write	)
+				if (event.getRequestType() == RequestType.Cache_Write ||
+					((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Write	)
 				{
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 					{
@@ -228,21 +243,21 @@ public class NucaCacheBank extends Cache
 						processingElement.getPort().put(addressEvent);
 					}				
 				}
-				else if(outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read ||
-						((AddressCarryingEvent)outstandingRequestList.get(0)).oldRequestType == RequestType.Cache_Read ||
-						outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read_from_iCache ||
-						((AddressCarryingEvent)outstandingRequestList.get(0)).oldRequestType == RequestType.Cache_Read_from_iCache)
+				else if(event.getRequestType() == RequestType.Cache_Read ||
+						((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Read ||
+						event.getRequestType() == RequestType.Cache_Read_from_iCache ||
+						((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Read_from_iCache)
 				{
 					Vector<Integer> sourceBankId = new Vector<Integer>(
 																	   ((AddressCarryingEvent)
-																	    (outstandingRequestList.get(0))).
+																	    event).
 																	    getDestinationBankId());
 					Vector<Integer> destinationBankId = new Vector<Integer>(
 							   												((AddressCarryingEvent)
-							   											     (outstandingRequestList.get(0))).
+							   											     event).
 							   												 getSourceBankId());
 					this.getPort().put(
-							((AddressCarryingEvent)(outstandingRequestList.get(0))).updateEvent(
+							((AddressCarryingEvent)event).updateEvent(
 									eventQ,
 									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 									this,
@@ -258,7 +273,7 @@ public class NucaCacheBank extends Cache
 				}
 				
 				//Remove the processed entry from the outstanding request list
-				outstandingRequestList.remove(0);
+//				outstandingRequestList.remove(0);
 			}
 	}
 
@@ -352,9 +367,9 @@ public class NucaCacheBank extends Cache
 		else
 		{			
 			//Add the request to the outstanding request buffer
-			boolean alreadyRequested = this.addOutstandingRequest(event, address);
+//			boolean alreadyRequested = this.addOutstandingRequest(event, address);
 			//System.out.println("added a new event in bankid " + router.getBankId());
-			if (!alreadyRequested)
+//			if (!alreadyRequested)
 			{
 				// access the next level
 				Vector<Integer> sourceBankId =new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
@@ -384,31 +399,32 @@ public class NucaCacheBank extends Cache
 	
 	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
-		long addr = ((AddressCarryingEvent)(event)).getAddress();
-		long blockAddr = addr >>> blockSizeBits;
-		if (!/*NOT*/this.forwardedRequests.containsKey(blockAddr))
-		{
+		//long addr = ((AddressCarryingEvent)(event)).getAddress();
+		//System.out.println("accessing from nuca bank" + addr);
+		//long blockAddr = addr >>> blockSizeBits;
+		//if (!/*NOT*/this.forwardedRequests.containsKey(blockAddr))
+		/*{
 			
 			System.err.println("Memory System Error : An outstanding request not found in the requesting element from line 258");
 			//System.out.println(forwardedRequests);
 			System.exit(1);
-		}
-		ArrayList<Event> outstandingEvents = this.forwardedRequests.get(blockAddr);
+		}*/
+		//ArrayList<Event> outstandingEvents = this.forwardedRequests.get(blockAddr);
 		
-		while (!/*NOT*/outstandingEvents.isEmpty())
+		//while (!/*NOT*/outstandingEvents.isEmpty())
 		{				
-			Event tempEvent = outstandingEvents.get(0);
-			tempEvent.getRequestingElement().getPort().put
+			//Event tempEvent = outstandingEvents.get(0);
+			((AddressCarryingEvent)event).oldRequestingElement.getPort().put
 											(event.update
 														(eventQ, 
-														 tempEvent.getRequestingElement().getLatencyDelay() , 
+														((AddressCarryingEvent)event).oldRequestingElement.getLatencyDelay() , 
 														 this,
-														 tempEvent.getRequestingElement(),
-														 tempEvent.getRequestType()));
+														 ((AddressCarryingEvent)event).oldRequestingElement,
+														 event.getRequestType()));
 			//Remove the processed entry from the outstanding request list
-			outstandingEvents.remove(0);
+			//outstandingEvents.remove(0);
 		}
-		this.forwardedRequests.remove(blockAddr);
+		//this.forwardedRequests.remove(blockAddr);
 //		this.router.FreeBuffer();
 	}
 }

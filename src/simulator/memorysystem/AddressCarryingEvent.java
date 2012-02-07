@@ -13,6 +13,7 @@ public class AddressCarryingEvent extends Event
 	private Vector<Integer> sourceBankId;
 	private Vector<Integer> destinationBankId;
 	public RequestType oldRequestType;
+	public SimulationElement oldRequestingElement;
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
