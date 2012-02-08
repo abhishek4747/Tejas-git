@@ -93,8 +93,6 @@ public class Statistics {
 	}
 	
 	
-	
-	
 	//Timing Statistics
 	
 	static long coreCyclesTaken[];
