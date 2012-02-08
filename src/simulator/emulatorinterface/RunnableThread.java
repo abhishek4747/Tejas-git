@@ -241,7 +241,8 @@ public class RunnableThread implements Runnable, Encoding {
 			//System.out.println("minN ="+minN);
 			//System.out.println();
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
-			//System.out.println("min is"+minN + " pipeline size  : " + inputToPipeline[0].getListSize());
+			if (currentEMUTHREADS>1)
+			System.out.println("min is"+minN + "0 pipeline size  : " + inputToPipeline[0].getListSize());
 			if (minN==tempu &&extraCycles!=-1){ extraCycles+=minN;
 			//			System.out.println("Extra cycles = "+extraCycles);
 			}
@@ -444,6 +445,10 @@ public class RunnableThread implements Runnable, Encoding {
 			else { 
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
 			}
+			
+/*			if (currentEMUTHREADS>1)
+			System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
+*/				
 			/*			//compute hash
 			StringBuilder sb = new StringBuilder();				
 			for(int i = 0; i < tempList.getListSize(); i++)

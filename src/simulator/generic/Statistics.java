@@ -75,8 +75,8 @@ public class Statistics {
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
 				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numInstructions[i] + "\n");
 				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
-				outputFileWriter.write("MicroOps/CISC = " + 
-						(double)numInstructions[i]/(double)noOfMicroOps[i] + "\n");
+//				outputFileWriter.write("MicroOps/CISC = " + 
+//						((double)(numInstructions[i]))/((double)(noOfMicroOps[i])) + "\n");
 				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("Number of micro-ops\t\t=\t" + totalNumMicroOps + "\n");

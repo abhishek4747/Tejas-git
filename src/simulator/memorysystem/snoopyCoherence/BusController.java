@@ -16,6 +16,8 @@ import memorysystem.MESI;
 
 public class BusController 
 {
+	
+	private final int busOccupancy = 1;
 	private int numBuses;
 	private Cache sharedMem;
 	protected ArrayList<Cache> upperLevel;
@@ -250,8 +252,8 @@ public class BusController
 		
 		if (busBusyUntil[availableBusID] < GlobalClock.getCurrentTime())
 		{
-			busBusyUntil[availableBusID] = GlobalClock.getCurrentTime() + sharedMem.getStepSize();
-			event.addEventTime(sharedMem.getStepSize());
+			busBusyUntil[availableBusID] = GlobalClock.getCurrentTime() + (busOccupancy * sharedMem.getStepSize());
+			event.addEventTime(busOccupancy * sharedMem.getStepSize());
 			event.getProcessingElement().getPort().put(event);
 		}
 		else

@@ -107,6 +107,7 @@ public class XMLParser
 		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
 //		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
+		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
@@ -193,7 +194,7 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		SystemConfig.core = new CoreConfig[32];
+		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		
 
 		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
@@ -206,7 +207,7 @@ public class XMLParser
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
 		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
-		for (int i = 0; i < 32; i++)
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			SystemConfig.core[i] = new CoreConfig();
 			CoreConfig core = SystemConfig.core[i]; //To be locally used for assignments
@@ -369,6 +370,7 @@ public class XMLParser
 			System.err.println("XML Configuration error : Invalid value of 'Coherence' (please enter 'S', D' or 'N')");
 			System.exit(1);
 		}
+		cache.numberOfBuses = Integer.parseInt(getImmediateString("NumBuses", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))
@@ -383,7 +385,7 @@ public class XMLParser
 			System.exit(1);
 		}
 		
-	tempStr = getImmediateString("LastLevel", CacheType);
+		tempStr = getImmediateString("LastLevel", CacheType);
 		if (tempStr.equalsIgnoreCase("Y"))
 			cache.isLastLevel = true;
 		else if (tempStr.equalsIgnoreCase("N"))
