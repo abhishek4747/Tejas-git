@@ -311,10 +311,10 @@ public class RunnableThread implements Runnable, Encoding {
 				break;
 			}
 
-			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+pipelineInterfaces[1].isExecutionComplete());
-			int maxN=0;
+			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+inputToPipeline[0].getListSize());
+			double maxN=0;
 			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
-				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
+				double n = (double)(inputToPipeline[tidEmu].getListSize() * pipelineInterfaces[tidEmu].getCoreStepSize()) / decodeWidth[tidEmu];
 				if( n>maxN)
 					maxN=n;
 			}	
@@ -324,12 +324,12 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 				GlobalClock.incrementClock();
 			}
-
+			//System.out.println("maxN is "+maxN);
 		}
 		Core core;
 		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 			core = pipelineInterfaces[tidEmu].getCore();
-			if(core.getExecutionEngineIn().getExecutionComplete()){
+			if(core.isPipelineInorder && core.getExecutionEngineIn().getExecutionComplete()){
 				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
 				pipelineInterfaces[tidEmu].setTimingStatistics();			
 				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
