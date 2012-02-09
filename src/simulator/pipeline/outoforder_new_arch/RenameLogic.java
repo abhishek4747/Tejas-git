@@ -72,6 +72,10 @@ public class RenameLogic extends SimulationElement {
 						if(SimulationConfig.debugMode)
 						{
 							System.out.println("renamed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
+							if(instruction.getProgramCounter() == Integer.parseInt("808bf86", 16))
+							{
+								System.out.println("\n\n" + reorderBufferEntry + "\n\n");
+							}
 						}
 					}
 					else
@@ -400,6 +404,7 @@ public class RenameLogic extends SimulationElement {
 					{
 						tempRF.setValueValid(false, tempOpndPhyReg1);
 						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
+						//tempRF.incrementNoOfActiveWriters(tempOpndPhyReg1);
 						//2nd operand may be the same register as 1st operand
 						if(tempOpndType == instruction.getSourceOperand2().getOperandType()
 								&& tempOpndPhyReg1 == reorderBufferEntry.getOperand2PhyReg1())
@@ -428,6 +433,7 @@ public class RenameLogic extends SimulationElement {
 					if(opType == OperationType.xchg)
 					{
 						tempRN.setValueValid(false, tempOpndPhyReg1);
+						tempRN.getAssociatedRegisterFile().setValueValid(false, tempOpndPhyReg1);
 						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
 						//2nd operand may be the same register as 1st operand
 						if(tempOpndType == reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType()
@@ -436,6 +442,11 @@ public class RenameLogic extends SimulationElement {
 							reorderBufferEntry.setOperand2Available(true);							
 						}
 					}
+				}
+				
+				if(opType == OperationType.xchg)
+				{
+					tempRN.getAssociatedRegisterFile().incrementNoOfActiveWriters(tempOpndPhyReg1);					
 				}
 			}
 		}
@@ -512,6 +523,7 @@ public class RenameLogic extends SimulationElement {
 					{
 						tempRF.setValueValid(false, tempOpndPhyReg1);
 						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
+						//tempRF.incrementNoOfActiveWriters(tempOpndPhyReg2);
 					}
 				}
 			}
@@ -534,8 +546,16 @@ public class RenameLogic extends SimulationElement {
 					if(opType == OperationType.xchg)
 					{
 						tempRN.setValueValid(false, tempOpndPhyReg1);
+						tempRN.getAssociatedRegisterFile().setValueValid(false, tempOpndPhyReg1);
 						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
 					}
+				}
+				
+				if(opType == OperationType.xchg &&
+						(tempOpndPhyReg1 != reorderBufferEntry.operand1PhyReg1 ||
+						tempOpndType != reorderBufferEntry.getInstruction().getOperand1().getOperandType()))
+				{
+					tempRN.getAssociatedRegisterFile().incrementNoOfActiveWriters(tempOpndPhyReg1);					
 				}
 			}
 		}
