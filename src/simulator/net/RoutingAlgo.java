@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -16,11 +16,14 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-
+	Contributors:  Eldhose Peter
 *****************************************************************************/
 package net;
 
+import java.util.ArrayList;
 import java.util.Vector;
+
+import net.NOC.TOPOLOGY;
 
 public class RoutingAlgo{
 
@@ -38,18 +41,145 @@ public class RoutingAlgo{
 		LEFT
 	}
 	
-	public RoutingAlgo.DIRECTION nextBank(Vector<Integer> current, Vector<Integer> destination){
-		
+	public RoutingAlgo.DIRECTION XYnextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{	
+		//XYRouting for mesh,torus,ring,bus
 		// to find next bank ID
-		if(current.elementAt(0) < destination.elementAt(0))
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		if(x1 < x2){
+			if(topology == TOPOLOGY.TORUS)
+				if((x2-x1) > Math.ceil(numRows / 2))
+					return DIRECTION.UP;
 			return DIRECTION.DOWN;
-		else if(current.elementAt(0) > destination.elementAt(0))
+		}
+		else if(x1 > x2){
+			if(topology == TOPOLOGY.TORUS)
+				if((x1-x2) > Math.ceil(numRows / 2))
+					return DIRECTION.DOWN;
 			return DIRECTION.UP;
-		else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) < destination.elementAt(1))
+		}
+		else if(x1 == x2 && y1< y2){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if((y2-y1) > Math.ceil(numColums / 2))
+					return DIRECTION.LEFT;	
 			return DIRECTION.RIGHT;
-		else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) > destination.elementAt(1))
+		}
+		else if(x1 == x2 && y1 >y2){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if((y1-y2) > Math.ceil(numColums / 2))
+					return DIRECTION.RIGHT;
 			return DIRECTION.LEFT;
-		return null;
+		}
+		return null;//you should not be here. destinationId == currentId
+	}
+	public RoutingAlgo.DIRECTION WestFirstnextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{
+		int y1,y2;
+		y1 = current.elementAt(1);
+		y2 = destination.elementAt(1);
+		if(y2<y1){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if((y1-y2) > Math.ceil(numColums / 2))
+					return DIRECTION.RIGHT;
+			return DIRECTION.LEFT;
+		}
+		else
+			return XYnextBank(current, destination, 
+					topology, numRows, numColums);
+	}
+	public RoutingAlgo.DIRECTION NorthLastnextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		if(x2 < x1){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+			{
+				if(y2>y1)
+				{
+					if((y2-y1) > Math.ceil(numColums / 2))
+						return DIRECTION.LEFT;
+					else
+						return DIRECTION.RIGHT;
+				}
+				else if(y1>y2)
+				{
+					if((y2-y1) > Math.ceil(numColums / 2))
+						return DIRECTION.RIGHT;
+					else
+						return DIRECTION.LEFT;
+				}
+			}
+			if(y2<y1)
+				return DIRECTION.LEFT;
+			else if(y1>y2)
+				return DIRECTION.RIGHT;
+		}
+		else
+			return XYnextBank(current, destination, 
+					topology, numRows, numColums);
+		return null; // no mans land
+	}
+	public RoutingAlgo.DIRECTION NegativeFirstnextBank(Vector<Integer> current, Vector<Integer> destination, 
+			NOC.TOPOLOGY topology, int numRows, int numColums)
+	{
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		if(y2 < y1 && x2 < x1){
+			if(topology == TOPOLOGY.TORUS || topology == TOPOLOGY.RING)
+				if(y1-y2 > Math.ceil(numColums / 2))
+					return DIRECTION.RIGHT;
+			return DIRECTION.LEFT;
+		}
+		else
+			return XYnextBank(current, destination, 
+					topology, numRows, numColums);
+	}
+	public ArrayList<RoutingAlgo.DIRECTION> XYRouting(Vector<Integer> current, Vector<Integer> destination)
+	{
+		int x1,y1,x2,y2;
+		x1 = current.elementAt(0);
+		y1 = current.elementAt(1);
+		x2 = destination.elementAt(0);
+		y2 = destination.elementAt(1);
+		ArrayList<RoutingAlgo.DIRECTION> path = new ArrayList<DIRECTION>();
+		while(x1 !=x2 && y1 != y2)
+		{
+			if(current.elementAt(0) < destination.elementAt(0))
+			{
+				path.add(DIRECTION.DOWN);
+				x1++;
+			}
+			else if(current.elementAt(0) > destination.elementAt(0))
+			{
+				path.add(DIRECTION.UP);
+				x1--;
+			}
+			else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) < destination.elementAt(1))
+			{
+				path.add(DIRECTION.RIGHT);
+				y1++;
+			}
+			else if(current.elementAt(0) == destination.elementAt(0) && current.elementAt(1) > destination.elementAt(1))
+			{
+				path.add(DIRECTION.LEFT);
+				y1--;
+			}
+			//return null;
+		}
+		return path;
 	}
 	
 }

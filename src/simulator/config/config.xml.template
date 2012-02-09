@@ -24,13 +24,13 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/harne/Installed_Softwares/PIN</PinTool>
+		<PinTool>/home/harne/PIN</PinTool>
 		<PinInstrumentor>/home/harne/workspace1/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<Mode>1</Mode>   <!--From file 0,  From PIN 1, From QEMU *todo* -->
+		<Mode>0</Mode>   <!--From file 0,  From PIN 1, From QEMU *todo* -->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
 		<StatisticalPipeline>false</StatisticalPipeline>	<!--True to enable statistical pipeline-->
@@ -138,11 +138,18 @@
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -156,11 +163,19 @@
 			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -168,17 +183,24 @@
 			<BlockSize>128</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
 			<Size>2048</Size>				<!--In KBs-->
-			<Latency>12</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>-1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<Latency>22</Latency>				<!--In clock cycles-->
+			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>3</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<NumberOfBankColumns>16</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>4</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<Coherence>D</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
+			<NumberOfBankRows>2</NumberOfBankRows>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -192,11 +214,18 @@
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumBuses>1</NumBuses>				<!--Number of buses used for coherence-->
 			<NumberOfBankRows>2</NumberOfBankRows>
-			<NumberOfBuffers>4</NumberOfBuffers>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 		</Type3>
 	</Library>
 </Configuration>

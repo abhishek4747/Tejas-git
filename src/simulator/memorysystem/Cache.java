@@ -22,6 +22,8 @@ package memorysystem;
 
 import java.util.*;
 
+import net.NOC.TOPOLOGY;
+
 import memorysystem.directory.CentralizedDirectory;
 import memorysystem.directory.DirectoryEntry;
 import memorysystem.directory.DirectoryState;

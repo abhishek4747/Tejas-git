@@ -74,6 +74,9 @@ public class Statistics {
 				outputFileWriter.write("Java thread\t=\t" + i + "\n");
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
 				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numInstructions[i] + "\n");
+				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
+//				outputFileWriter.write("MicroOps/CISC = " + 
+//						((double)(numInstructions[i]))/((double)(noOfMicroOps[i])) + "\n");
 				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("Number of micro-ops\t\t=\t" + totalNumMicroOps + "\n");
@@ -88,8 +91,6 @@ public class Statistics {
 			e.printStackTrace();
 		}
 	}
-	
-	
 	
 	
 	//Timing Statistics
@@ -252,6 +253,7 @@ public class Statistics {
 			outputFileWriter.write("[Simulator Time]\n");
 			
 			outputFileWriter.write("Time Taken\t\t=\t" + minutes + " : " + seconds + " minutes\n");
+			
 			
 			if(subsetTime != 0)
 			{

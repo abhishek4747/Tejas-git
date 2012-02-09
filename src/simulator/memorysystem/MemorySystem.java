@@ -144,16 +144,12 @@ public class MemorySystem
 		{
 			CoreMemorySystem coreMemSys = new CoreMemorySystem(cores[i]);
 			
-//			if(cores[i].isPipelineInorder){
+			if(cores[i].isPipelineInorder)
 				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
-//			}
-//			else{
-				if (cores[i].isPipelineStatistical)
-					cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
-				else
-					cores[i].getExecEngine().coreMemSys = coreMemSys;
-			
-//			}
+			else if (cores[i].isPipelineStatistical)
+				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
+			else
+				cores[i].getExecEngine().coreMemSys = coreMemSys;
 			
 			//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			

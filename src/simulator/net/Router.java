@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -16,26 +16,47 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-
+	Contributors:  Eldhose Peter
 *****************************************************************************/
 package net;
 
+import generic.Event;
+import generic.EventQueue;
+import generic.RequestType;
+import generic.SimulationElement;
+
 import java.util.*;
 
+import config.NocConfig;
+
+import memorysystem.AddressCarryingEvent;
 import memorysystem.nuca.NucaCacheBank;
 
-public class Router{
+public class Router extends SimulationElement{
 	
 	protected Vector<Integer> bankId = new Vector<Integer>(2); //bank id of router(vector <row,column>)
 	protected int availBuff;                                   //available number of buffer in router
 	protected RoutingAlgo routingAlgo = new RoutingAlgo();
-	protected Vector<NucaCacheBank> neighbours= new Vector<NucaCacheBank>(4);
-				//0 - up ; 1 - right ; 2- down ; 3- left (clockwise) 
+	protected Vector<Router> neighbours= new Vector<Router>(4);
+				//0 - up ; 1 - right ; 2- down ; 3- left (clockwise)
+	protected NOC.TOPOLOGY topology;
+	protected RoutingAlgo.ALGO rAlgo;
+	protected int numberOfRows;
+	protected int numberOfColumns;
 	
-	public Router(Vector<Integer> bankId, int availBuff)
+	public Router(Vector<Integer> bankId, NocConfig nocConfig)
 	{
+		super(nocConfig.portType,
+				nocConfig.getAccessPorts(), 
+				nocConfig.getPortOccupancy(),
+				nocConfig.getLatency(),
+				nocConfig.operatingFreq);
 		this.bankId = bankId;
-		this.availBuff = availBuff;
+		this.availBuff = nocConfig.numberOfBuffers;
+		this.topology = nocConfig.topology;
+		this.rAlgo = nocConfig.rAlgo;
+		this.numberOfRows = nocConfig.numberOfRows;
+		this.numberOfColumns = nocConfig.numberOfColumns;
 	}
 	
 	public Vector<Integer> getBankId()
@@ -54,20 +75,20 @@ public class Router{
 	}
 	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir,NucaCacheBank cacheBank)
 	{
-		this.neighbours.add(dir.ordinal(), cacheBank);
+		this.neighbours.add(dir.ordinal(), cacheBank.getRouter());
 	}
 	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir)
 	{
 		this.neighbours.add(dir.ordinal(), null);
 	}
-	public Vector<NucaCacheBank> GetNeighbours()
+	public Vector<Router> GetNeighbours()
 	{
 		return this.neighbours;
 	}
 	
 	public boolean CheckNeighbourBuffer(RoutingAlgo.DIRECTION nextId)  //request for neighbour buffer
 	{
-		return this.neighbours.elementAt(nextId.ordinal()).getRouter().AllocateBuffer();
+		return this.neighbours.elementAt(nextId.ordinal()).AllocateBuffer();
 	}
 	
 	public void FreeBuffer()
@@ -75,23 +96,63 @@ public class Router{
 		this.availBuff ++;
 	}
 	
-	public RoutingAlgo.DIRECTION RouteComputation(Vector<Integer> current,
-											Vector<Integer> destination, RoutingAlgo.ALGO algoType)
+	public RoutingAlgo.DIRECTION RouteComputation(Vector<Integer> current,Vector<Integer> destination)
 	{ 
 		//find the route to go
-		switch (algoType) {
+		switch (this.rAlgo) {
 		case WESTFIRST :
-		break;
+			return routingAlgo.WestFirstnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		case NORTHLAST : 
-		break;
+			return routingAlgo.NorthLastnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		case NEGATIVEFIRST :
-		break;
+			return routingAlgo.NegativeFirstnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		case TABLE :
 		break;
 		case SIMPLE :
-			return routingAlgo.nextBank(current, destination);
+			return routingAlgo.XYnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 		}
-		return routingAlgo.nextBank(current, destination);
+		return routingAlgo.XYnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
+		//no mans land
+	}
+
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub
+		RoutingAlgo.DIRECTION nextID;
+		Vector<Integer> currentId = this.getBankId();
+		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
+		RequestType requestType = event.getRequestType();
+		if(currentId.equals(destinationId))
+		{
+			
+		}
+		else
+		{
+			nextID = this.RouteComputation(currentId, destinationId);
+			if(this.CheckNeighbourBuffer(nextID))
+			{
+				//post event to nextID
+				this.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
+						event.update(
+								eventQ,
+								1,	//this.getLatency()
+								this, 
+								this.GetNeighbours().elementAt(nextID.ordinal()),
+								requestType));
+				this.FreeBuffer();
+			}
+			else
+			{
+				//post event to this ID
+				this.getPort().put(
+						event.update(
+								eventQ,
+								1,
+								this, 
+								this,
+								requestType));
+			}
+		}
 		
 	}	
 }

@@ -49,6 +49,7 @@ public class CacheConfig
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public int numberOfBuffers;
+	public NocConfig nocConfig = new NocConfig();
 
 	public NucaType nucaType;
 	
@@ -169,6 +170,8 @@ public class CacheConfig
 	{
 		return size/(numberOfBankColumns*numberOfBankRows);
 	}
+	
+//	public boolean isFirstLevel() {
 	
 	public NucaType getNucaType() {
 		return nucaType;
