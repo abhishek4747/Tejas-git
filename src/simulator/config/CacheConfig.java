@@ -49,7 +49,7 @@ public class CacheConfig
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public int numberOfBuffers;
-
+	public NocConfig nocConfig = new NocConfig();
 	public NucaType nucaType;
 	
 	public static enum WritePolicy{

@@ -18,7 +18,7 @@ import memorysystem.nuca.NucaCache.NucaType;
 
 public class NucaCacheBank extends Cache
 {
-	Router router;
+	public Router router;
 	CacheConfig cacheParameters;
 	protected Hashtable<Long, ArrayList<Event>> forwardedRequests;
 	boolean isLastLevel;
@@ -29,7 +29,7 @@ public class NucaCacheBank extends Cache
         super(cacheParameters,containingMemSys);
     	this.timestamp = 0;
     	this.cacheParameters = cacheParameters;
-        this.router = new Router(bankId,cacheParameters.numberOfBuffers);
+        this.router = new Router(bankId,cacheParameters.nocConfig,this);
         forwardedRequests = new Hashtable<Long, ArrayList<Event>>();
         isLastLevel = false;
         isFirstLevel = false;
@@ -185,7 +185,7 @@ public class NucaCacheBank extends Cache
 				}
 			}
 			((AddressCarryingEvent)event).copyLine = false;
-			nextID = router.RouteComputation(currentId, destinationId, RoutingAlgo.ALGO.SIMPLE);
+			nextID = router.RouteComputation(currentId, destinationId);
 //			if(router.CheckNeighbourBuffer(nextID))
 			{
 				//post event to nextID

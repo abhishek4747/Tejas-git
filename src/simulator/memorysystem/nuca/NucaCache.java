@@ -1,20 +1,10 @@
 package memorysystem.nuca;
-import generic.Event;
-import generic.EventQueue;
-import generic.RequestType;
-import generic.SimulationElement;
-
-import java.util.ArrayList;
 import java.util.Vector;
-import java.util.Hashtable;
-
-import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
-import memorysystem.DestinationBankEvent;
 import misc.Util;
 import config.CacheConfig;
-import net.RoutingAlgo;
+import net.NOC;
 import config.SystemConfig;
 
 public abstract class NucaCache extends Cache
@@ -33,6 +23,7 @@ public abstract class NucaCache extends Cache
     int cacheSize;//cache size in bytes
     int associativity;
     int blockSizeBits;
+    public NOC noc;
     NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
     {
     	super(cacheParameters, containingMemSys);
@@ -53,38 +44,9 @@ public abstract class NucaCache extends Cache
             	cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys);
             }
         }
+        noc = new NOC();
         makeCacheBanks(cacheParameters, containingMemSys);
     }
-
-    private void ConnectBanks(int bankRows,int bankColumns)  //connect bank in MESH fashion
-	{
-		int i,j;
-		for(i=0;i<bankRows;i++)
-		{
-			for(j=0;j<bankColumns;j++)
-			{
-				if(i==0)                        //setting null for 0th raw up connection
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.UP);
-				else
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.UP, this.cacheBank[i-1][j]);
-				
-				if(j==bankColumns-1)             //right connections
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT);
-				else
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, this.cacheBank[i][j+1]);
-				
-				if(i==bankRows-1)             //down connections
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN);
-				else
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN, this.cacheBank[i+1][j]);
-				
-				if(j==0)			            //left connections
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT);
-				else
-					this.cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT, cacheBank[i][j-1]);
-			}
-		}
-	}
 
     private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys)
 	{
@@ -104,7 +66,7 @@ public abstract class NucaCache extends Cache
 				this.cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys);
 			}
 		}
-		ConnectBanks(bankRows,bankColumns);
+		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig.topology);
 	}
 
     public Vector<Integer> integerToBankId(int bankNumber)

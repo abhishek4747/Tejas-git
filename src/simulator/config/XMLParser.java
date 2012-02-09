@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.Hashtable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
+import net.*;
 import memorysystem.Cache;
 import memorysystem.Cache.CacheType;
 import memorysystem.Cache.CoherenceType;
@@ -345,7 +345,14 @@ public class XMLParser
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
 		cache.numberOfBankColumns = Integer.parseInt(getImmediateString("NumberOfBankColumns", CacheType));
 		cache.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", CacheType));		
-		cache.numberOfBuffers = Integer.parseInt(getImmediateString("NumberOfBuffers", CacheType));
+		cache.nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", CacheType));
+		cache.nocConfig.portType = setPortType(getImmediateString("NocPortType", CacheType));
+		cache.nocConfig.accessPorts = Integer.parseInt(getImmediateString("NocAccessPorts", CacheType));
+		cache.nocConfig.portOccupancy = Integer.parseInt(getImmediateString("NocPortOccupancy", CacheType));
+		cache.nocConfig.latency = Integer.parseInt(getImmediateString("NocLatency", CacheType));
+		cache.nocConfig.operatingFreq = Integer.parseInt(getImmediateString("NocOperatingFreq", CacheType));
+		cache.nocConfig.numberOfRows = cache.numberOfBankRows;
+		cache.nocConfig.numberOfColumns = cache.numberOfBankColumns;
 		
 		tempStr = getImmediateString("Coherence", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))
@@ -384,6 +391,22 @@ public class XMLParser
 			System.err.println("XML Configuration error : Invalid value of 'isLastLevel' (please enter 'Y' for yes or 'N' for no)");
 			System.exit(1);
 		}
+		tempStr = getImmediateString("NocTopology", CacheType);
+		if(tempStr.equalsIgnoreCase("MESH"))
+			cache.nocConfig.topology = NOC.TOPOLOGY.MESH;
+		else if(tempStr.equalsIgnoreCase("TORUS"))
+			cache.nocConfig.topology = NOC.TOPOLOGY.TORUS;
+		else if(tempStr.equalsIgnoreCase("BUS"))
+			cache.nocConfig.topology = NOC.TOPOLOGY.BUS;
+		else if(tempStr.equalsIgnoreCase("RING"))
+			cache.nocConfig.topology = NOC.TOPOLOGY.RING;
+		tempStr = getImmediateString("NocRoutingAlgorithm", CacheType);
+		if(tempStr.equalsIgnoreCase("SIMPLE"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.SIMPLE;
+		else if(tempStr.equalsIgnoreCase("WESTFIRST"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.WESTFIRST;
+		else if(tempStr.equalsIgnoreCase("NORTHLAST"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.NORTHLAST;
 	}
 	
 	private static Element searchLibraryForItem(String tagName)	//Searches the <Library> section for a given tag name and returns it in Element form
