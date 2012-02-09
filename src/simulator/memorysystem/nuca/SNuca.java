@@ -21,6 +21,7 @@ public class SNuca extends NucaCache
 		long tag = (addr >>> (blockSizeBits +Util.logbase2(getNumOfBanks())));
 		return tag;
 	}
+
 	public int getBankNumber(long addr)
 	{
 		return (int)(addr>>>blockSizeBits)%getNumOfBanks();

@@ -33,11 +33,6 @@ public abstract class NucaCache extends Cache
     int cacheSize;//cache size in bytes
     int associativity;
     int blockSizeBits;
-    Vector<Hashtable> coreNetworkHash;
-    Vector<Vector<Vector<Integer>>> coreNetworkVector;
-    protected Hashtable<Long, ArrayList<Event>> missStatusHoldingRegister
-							= new Hashtable<Long, ArrayList<Event>>();
-    
     NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
     {
     	super(cacheParameters, containingMemSys);
@@ -59,59 +54,8 @@ public abstract class NucaCache extends Cache
             }
         }
         makeCacheBanks(cacheParameters, containingMemSys);
-        this.coreNetworkVector = genrateCoreNetworkVector(numOfCores);
-        this.coreNetworkHash = generateCoreNetworkHash(numOfCores);
     }
 
-    private Vector<Vector<Vector<Integer>>> genrateCoreNetworkVector(int numOfCores)//generates the network of cachebanks for each core in the form of a vector
-    {
-        Vector<Vector<Vector<Integer>>> coreNetworks = new Vector<Vector<Vector<Integer>>>();
-        Vector<Vector<Integer>> coreNet = new Vector<Vector<Integer>>();
-        Vector<Integer> cluster = new Vector<Integer>();
-        int numOfCacheBanks = cacheColumns*cacheRows;
-        for(int l=0;l<numOfCores;l++)
-        {
-            for(int i=0;i<numOfCacheBanks;)
-            {
-                for(int j=0;j<cacheRows;j++)
-                {
-                    cluster.add(i++);
-                }
-                Vector<Integer> temp = (Vector<Integer>) cluster.clone();
-                coreNet.add(temp);
-            }
-            Vector<Vector<Integer>> temp = (Vector<Vector<Integer>>) cluster.clone();
-            coreNetworks.add(temp);            
-        }
-        return coreNetworks;
-    }
-    
-    private Vector<Hashtable> generateCoreNetworkHash(int numOfCores)
-    {
-        Vector<Hashtable> coreNetworks = new Vector<Hashtable>();
-        Hashtable coreNet = new Hashtable();
-        int numOfCacheBanks = cacheColumns*cacheRows;
-
-        for(int i=0;i<numOfCores;i++)
-        {
-            for(int j=0;j<numOfCacheBanks;)
-            {
-                for(int k=0;k<cacheRows;k++)
-                {
-                    coreNet.put(j++, k+1);
-                }
-            }
-            Hashtable temp = (Hashtable) coreNet.clone();
-            coreNetworks.add(temp);
-        }
-        return coreNetworks;
-    }
-
-    public int getBankLevel(int coreId,int bankNumber)
-    {
-    	Hashtable coreNet = coreNetworkHash.get(coreId);
-    	return Integer.parseInt(coreNet.get(bankNumber).toString());
-    }
     private void ConnectBanks(int bankRows,int bankColumns)  //connect bank in MESH fashion
 	{
 		int i,j;
@@ -182,30 +126,6 @@ public abstract class NucaCache extends Cache
 		return cacheRows*cacheColumns;		
 	}
 	
-	public abstract long getTag(long addr);
-	
-	public abstract Vector<Integer> getDestinationBankId(long addr);
-	public abstract Vector<Integer> getSourceBankId(long addr);
-	public boolean addToForwardedRequests(Vector<Integer>bankId,Event event,long addr)
-	{
-		boolean entryAlreadyThere;
-		
-		long blockAddr = addr >>> blockSizeBits;
-		NucaCacheBank bank = cacheBank[bankId.get(0)][bankId.get(1)];
-		if (!/*NOT*/bank.forwardedRequests.containsKey(blockAddr))
-		{
-			entryAlreadyThere = false;
-			bank.forwardedRequests.put(blockAddr, new ArrayList<Event>());
-		}
-		else if (bank.forwardedRequests.get(blockAddr).isEmpty())
-			entryAlreadyThere = false;
-		else
-			entryAlreadyThere = true;
-		if(!bank.forwardedRequests.get(blockAddr).contains(event))
-			bank.forwardedRequests.get(blockAddr).add(event);		
-		return entryAlreadyThere;
-	} 
-	
 	public void setStatistics()
 	{
 		for(int i=0;i<cacheRows;i++)
@@ -218,5 +138,8 @@ public abstract class NucaCache extends Cache
 			}			
 		}
 	}
-	 
+
+	public abstract long getTag(long addr);
+	public abstract Vector<Integer> getDestinationBankId(long addr);
+	public abstract Vector<Integer> getSourceBankId(long addr);
 }

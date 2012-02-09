@@ -31,7 +31,7 @@ public class MainMemory extends SimulationElement
 				event.getRequestingElement().getPort().put(
 						event.update(
 								eventQ,
-								event.getRequestingElement().getLatencyDelay(),
+								2,//wire delay from main memory to cache
 								null,
 								event.getRequestingElement(),
 								RequestType.Mem_Response));

@@ -14,6 +14,8 @@ public class AddressCarryingEvent extends Event
 	private Vector<Integer> destinationBankId;
 	public RequestType oldRequestType;
 	public SimulationElement oldRequestingElement;
+	public Vector<Integer> oldSourceBankId;
+	public boolean copyLine;
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -23,6 +25,8 @@ public class AddressCarryingEvent extends Event
 		this.address = address;
 		sourceBankId = null;
 		destinationBankId = null;
+		oldSourceBankId = null;
+		copyLine = false;
 	}
 
 	public void updateEvent(EventQueue eventQ, long eventTime, 
