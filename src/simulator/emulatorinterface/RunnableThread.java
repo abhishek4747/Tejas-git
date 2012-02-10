@@ -241,8 +241,8 @@ public class RunnableThread implements Runnable, Encoding {
 			//System.out.println("minN ="+minN);
 			//System.out.println();
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
-			if (currentEMUTHREADS>1)
-			System.out.println("min is"+minN + "0 pipeline size  : " + inputToPipeline[0].getListSize());
+//			if (currentEMUTHREADS>1)
+//			System.out.println("min is"+minN + "0 pipeline size  : " + inputToPipeline[0].getListSize());
 			if (minN==tempu &&extraCycles!=-1){ extraCycles+=minN;
 			//			System.out.println("Extra cycles = "+extraCycles);
 			}
@@ -467,7 +467,7 @@ public class RunnableThread implements Runnable, Encoding {
 			 */
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && tempList.getListSize() > 0) {
-				//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 
 
