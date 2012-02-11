@@ -70,20 +70,26 @@ public class WriteBackLogic extends SimulationElement {
 					if(tempDestOpnd.isIntegerRegisterOperand())
 					{
 						tempRN = execEngine.getIntegerRenameTable();
-						if(tempRN.getMappingValid(buffer[i].getPhysicalDestinationRegister()) == false)
+						if(tempRN.getMappingValid(buffer[i].getPhysicalDestinationRegister()) == false &&
+								tempRN.getAssociatedRegisterFile().getNoOfActiveWriters(buffer[i].getPhysicalDestinationRegister()) == 1)
 						{
 							tempRN.addToAvailableList(buffer[i].getPhysicalDestinationRegister());
 						}
 						tempRN.setValueValid(true, buffer[i].getPhysicalDestinationRegister());
+						execEngine.getIntegerRegisterFile().setValueValid(true, buffer[i].getPhysicalDestinationRegister());
+						tempRN.getAssociatedRegisterFile().decrementNoOfActiveWriters(buffer[i].getPhysicalDestinationRegister());
 					}
 					else if(tempDestOpnd.isFloatRegisterOperand())
 					{
 						tempRN = execEngine.getFloatingPointRenameTable();
-						if(tempRN.getMappingValid(buffer[i].getPhysicalDestinationRegister()) == false)
+						if(tempRN.getMappingValid(buffer[i].getPhysicalDestinationRegister()) == false &&
+								tempRN.getAssociatedRegisterFile().getNoOfActiveWriters(buffer[i].getPhysicalDestinationRegister()) == 1)
 						{
 							tempRN.addToAvailableList(buffer[i].getPhysicalDestinationRegister());
 						}
 						tempRN.setValueValid(true, buffer[i].getPhysicalDestinationRegister());
+						execEngine.getFloatingPointRegisterFile().setValueValid(true, buffer[i].getPhysicalDestinationRegister());
+						tempRN.getAssociatedRegisterFile().decrementNoOfActiveWriters(buffer[i].getPhysicalDestinationRegister());
 					}
 					else
 					{
@@ -96,47 +102,68 @@ public class WriteBackLogic extends SimulationElement {
 					if(tempDestOpnd.isIntegerRegisterOperand())
 					{
 						tempRN = execEngine.getIntegerRenameTable();
-						if(tempRN.getMappingValid(buffer[i].operand1PhyReg1) == false)
+						if(tempRN.getMappingValid(buffer[i].operand1PhyReg1) == false &&
+								tempRN.getAssociatedRegisterFile().getNoOfActiveWriters(buffer[i].operand1PhyReg1) == 1)
 						{
 							tempRN.addToAvailableList(buffer[i].operand1PhyReg1);
 						}
+						if(tempRN.getAssociatedRegisterFile().getNoOfActiveWriters(buffer[i].operand1PhyReg1) < 1)
+						{
+							System.out.println("no of active writers < 1 (at writeback) !!");
+						}
 						tempRN.setValueValid(true, buffer[i].operand1PhyReg1);
+						execEngine.getIntegerRegisterFile().setValueValid(true, buffer[i].operand1PhyReg1);
+						tempRN.getAssociatedRegisterFile().decrementNoOfActiveWriters(buffer[i].operand1PhyReg1);
 					}
 					else if(tempDestOpnd.isFloatRegisterOperand())
 					{
 						tempRN = execEngine.getFloatingPointRenameTable();
-						if(tempRN.getMappingValid(buffer[i].operand1PhyReg1) == false)
+						if(tempRN.getMappingValid(buffer[i].operand1PhyReg1) == false &&
+								tempRN.getAssociatedRegisterFile().getNoOfActiveWriters(buffer[i].operand1PhyReg1) == 1)
 						{
 							tempRN.addToAvailableList(buffer[i].operand1PhyReg1);
 						}
 						tempRN.setValueValid(true, buffer[i].operand1PhyReg1);
+						execEngine.getFloatingPointRegisterFile().setValueValid(true, buffer[i].operand1PhyReg1);
+						tempRN.getAssociatedRegisterFile().decrementNoOfActiveWriters(buffer[i].operand1PhyReg1);
 					}
 					else
 					{
 						execEngine.getMachineSpecificRegisterFile(buffer[i].getThreadID()).setValueValid(true, buffer[i].operand1PhyReg1);
 					}
-					tempDestOpnd = buffer[i].getInstruction().getSourceOperand2();
-					if(tempDestOpnd.isIntegerRegisterOperand())
+					
+					if(buffer[i].getInstruction().getSourceOperand1().getOperandType() != buffer[i].getInstruction().getSourceOperand2().getOperandType() ||
+							buffer[i].operand1PhyReg1 != buffer[i].operand2PhyReg1)
 					{
-						tempRN = execEngine.getIntegerRenameTable();
-						if(tempRN.getMappingValid(buffer[i].operand2PhyReg1) == false)
+						tempDestOpnd = buffer[i].getInstruction().getSourceOperand2();
+						if(tempDestOpnd.isIntegerRegisterOperand())
 						{
-							tempRN.addToAvailableList(buffer[i].operand2PhyReg1);
+							tempRN = execEngine.getIntegerRenameTable();
+							if(tempRN.getMappingValid(buffer[i].operand2PhyReg1) == false &&
+									tempRN.getAssociatedRegisterFile().getNoOfActiveWriters(buffer[i].operand2PhyReg1) == 1)
+							{
+								tempRN.addToAvailableList(buffer[i].operand2PhyReg1);
+							}
+							tempRN.setValueValid(true, buffer[i].operand2PhyReg1);
+							execEngine.getIntegerRegisterFile().setValueValid(true, buffer[i].operand2PhyReg1);
+							tempRN.getAssociatedRegisterFile().decrementNoOfActiveWriters(buffer[i].operand2PhyReg1);
 						}
-						tempRN.setValueValid(true, buffer[i].operand2PhyReg1);
-					}
-					else if(tempDestOpnd.isFloatRegisterOperand())
-					{
-						tempRN = execEngine.getFloatingPointRenameTable();
-						if(tempRN.getMappingValid(buffer[i].operand2PhyReg1) == false)
+						else if(tempDestOpnd.isFloatRegisterOperand())
 						{
-							tempRN.addToAvailableList(buffer[i].operand2PhyReg1);
+							tempRN = execEngine.getFloatingPointRenameTable();
+							if(tempRN.getMappingValid(buffer[i].operand2PhyReg1) == false &&
+									tempRN.getAssociatedRegisterFile().getNoOfActiveWriters(buffer[i].operand2PhyReg1) == 1)
+							{
+								tempRN.addToAvailableList(buffer[i].operand2PhyReg1);
+							}
+							tempRN.setValueValid(true, buffer[i].operand2PhyReg1);
+							execEngine.getFloatingPointRegisterFile().setValueValid(true, buffer[i].operand2PhyReg1);
+							tempRN.getAssociatedRegisterFile().decrementNoOfActiveWriters(buffer[i].operand2PhyReg1);
 						}
-						tempRN.setValueValid(true, buffer[i].operand2PhyReg1);
-					}
-					else
-					{
-						execEngine.getMachineSpecificRegisterFile(buffer[i].getThreadID()).setValueValid(true, buffer[i].operand2PhyReg1);
+						else
+						{
+							execEngine.getMachineSpecificRegisterFile(buffer[i].getThreadID()).setValueValid(true, buffer[i].operand2PhyReg1);
+						}
 					}
 				}
 			}

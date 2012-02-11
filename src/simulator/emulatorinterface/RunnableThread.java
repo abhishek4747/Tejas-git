@@ -241,7 +241,8 @@ public class RunnableThread implements Runnable, Encoding {
 			//System.out.println("minN ="+minN);
 			//System.out.println();
 			minN = (minN==Integer.MAX_VALUE) ? 0 : minN;
-			//System.out.println("min is"+minN + " pipeline size  : " + inputToPipeline[0].getListSize());
+//			if (currentEMUTHREADS>1)
+//			System.out.println("min is"+minN + "0 pipeline size  : " + inputToPipeline[0].getListSize());
 			if (minN==tempu &&extraCycles!=-1){ extraCycles+=minN;
 			//			System.out.println("Extra cycles = "+extraCycles);
 			}
@@ -310,10 +311,10 @@ public class RunnableThread implements Runnable, Encoding {
 				break;
 			}
 
-			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+pipelineInterfaces[1].isExecutionComplete());
-			int maxN=0;
+			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+inputToPipeline[0].getListSize());
+			double maxN=0;
 			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
-				int n = inputToPipeline[tidEmu].getListSize()/decodeWidth[tidEmu] * pipelineInterfaces[tidEmu].getCoreStepSize();
+				double n = (double)(inputToPipeline[tidEmu].getListSize() * pipelineInterfaces[tidEmu].getCoreStepSize()) / decodeWidth[tidEmu];
 				if( n>maxN)
 					maxN=n;
 			}	
@@ -323,12 +324,12 @@ public class RunnableThread implements Runnable, Encoding {
 				}
 				GlobalClock.incrementClock();
 			}
-
+			//System.out.println("maxN is "+maxN);
 		}
 		Core core;
 		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 			core = pipelineInterfaces[tidEmu].getCore();
-			if(core.getExecutionEngineIn().getExecutionComplete()){
+			if(core.isPipelineInorder && core.getExecutionEngineIn().getExecutionComplete()){
 				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
 				pipelineInterfaces[tidEmu].setTimingStatistics();			
 				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
@@ -444,6 +445,10 @@ public class RunnableThread implements Runnable, Encoding {
 			else { 
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
 			}
+			
+/*			if (currentEMUTHREADS>1)
+			System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
+*/				
 			/*			//compute hash
 			StringBuilder sb = new StringBuilder();				
 			for(int i = 0; i < tempList.getListSize(); i++)
@@ -462,7 +467,7 @@ public class RunnableThread implements Runnable, Encoding {
 			 */
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && tempList.getListSize() > 0) {
-				//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 
 

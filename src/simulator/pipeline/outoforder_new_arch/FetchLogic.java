@@ -107,6 +107,12 @@ public class FetchLogic extends SimulationElement {
 						
 						newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
 						
+						if(newInstruction.getOperationType() == OperationType.inValid)
+						{
+							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
+							break;
+						}
+						
 						if(!iCacheBuffer.isFull())
 						{
 							iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());

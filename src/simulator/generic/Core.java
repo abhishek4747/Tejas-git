@@ -92,6 +92,8 @@ public class Core extends SimulationElement{
 		
 		if (isPipelineStatistical)
 			this.statisticalPipeline = new StatisticalPipeline(this);
+		else if(isPipelineInorder)
+			this.execEngineIn = new ExecutionEngineIn(this);
 		else
 			this.execEngine = new ExecutionEngine(this);
 		
@@ -104,10 +106,6 @@ public class Core extends SimulationElement{
 			this.pipelineInterface = new InorderPipeline(this, eventQueue);
 		else
 			this.pipelineInterface = new PipelineInterface(this, eventQueue);
-
-		
-		this.execEngineIn = new ExecutionEngineIn(this);
-//		this.inorderPipeline = new InorderPipeline(this,eventQueue);
 	}
 
 	private void initializeCoreParameters(CoreConfig coreConfig)

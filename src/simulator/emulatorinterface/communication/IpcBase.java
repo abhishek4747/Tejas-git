@@ -21,7 +21,7 @@ public abstract class IpcBase {
 	// Must ensure that MAXNUMTHREADS*EMUTHREADS == MaxNumThreads on the PIN side
 	// Do not move it to config file unless you can satisfy the first constraint
 	public static final int MaxNumJavaThreads = 1;
-	public static final int EmuThreadsPerJavaThread = 32; 
+	public static final int EmuThreadsPerJavaThread = 1; 
 	// Must ensure that this is same as COUNT in IPCBase.h
 	public static final int COUNT = 1000;
 

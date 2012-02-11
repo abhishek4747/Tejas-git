@@ -24,6 +24,7 @@ import emulatorinterface.communication.IpcBase;
 import generic.MultiPortingType;
 
 import java.io.File;
+import java.math.RoundingMode;
 import java.util.Hashtable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -104,6 +105,7 @@ public class XMLParser
 		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
 //		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
+		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
@@ -190,7 +192,7 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		SystemConfig.core = new CoreConfig[32];
+		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		
 
 		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
@@ -203,7 +205,7 @@ public class XMLParser
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
 		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
-		for (int i = 0; i < 32; i++)
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			SystemConfig.core[i] = new CoreConfig();
 			CoreConfig core = SystemConfig.core[i]; //To be locally used for assignments
@@ -409,6 +411,15 @@ public class XMLParser
 			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.NORTHLAST;
 	}
 	
+	private static boolean setDirectoryCoherent(String immediateString) {
+		if(immediateString==null)
+			return false;
+		if(immediateString.equalsIgnoreCase("T"))
+			return true;
+		else
+			return false;
+	}
+
 	private static Element searchLibraryForItem(String tagName)	//Searches the <Library> section for a given tag name and returns it in Element form
 	{															// Used mainly for cache types
 		NodeList nodeLst = doc.getElementsByTagName("Library");
