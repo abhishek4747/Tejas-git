@@ -59,12 +59,12 @@ public class SNuca extends NucaCache
 //		if(!alreadypresent)
 //			if(this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].router.checkThisBuffer())
 		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone(); 		
-		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
+		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
 										getPort().put(((AddressCarryingEvent)event).
 																updateEvent(eventQ, 
 																			0,//to be  changed to some constant(wire delay) 
 																			requestingElement, 
-																			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
+																			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
 																			event.getRequestType(), 
 																			sourceBankId, 
 																			destinationBankId));

@@ -4,6 +4,8 @@ import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 import net.*;
+
+import java.net.Authenticator.RequestorType;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Hashtable;
@@ -140,10 +142,10 @@ public class NucaCacheBank extends Cache
 		RequestType requestType = event.getRequestType();
 		RoutingAlgo.DIRECTION nextID;
 		Vector<Integer> destinationId;
-		Vector<Integer> currentId = ((NucaCacheBank) event.getProcessingElement()).router.getBankId();
+		//Vector<Integer> currentId = ((NucaCacheBank) event.getProcessingElement()).router.getBankId();
 	   //Destination is stored inside event
 		destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
-		if(currentId.equals(destinationId))
+		//if(currentId.equals(destinationId))
 		{
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write
@@ -156,8 +158,12 @@ public class NucaCacheBank extends Cache
 				this.handleMemoryReadWrite(eventQ,event);
 			else if (event.getRequestType() == RequestType.Main_Mem_Response)
 				this.handleMainMemoryResponse(eventQ,event);
+			else if( event.getRequestType() == RequestType.COPY_BLOCK)
+			{
+				this.handleCopyBlock(eventQ, event);
+			}
 		}
-		else
+/*		else
 		{
 			if(((AddressCarryingEvent)event).copyLine)
 			{
@@ -185,9 +191,9 @@ public class NucaCacheBank extends Cache
 				}
 			}
 			((AddressCarryingEvent)event).copyLine = false;
-			nextID = router.RouteComputation(currentId, destinationId);
+	*/		//nextID = router.RouteComputation(currentId, destinationId);
 //			if(router.CheckNeighbourBuffer(nextID))
-			{
+			/*{
 				//post event to nextID
 				this.router.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
@@ -197,7 +203,7 @@ public class NucaCacheBank extends Cache
 								this.router.GetNeighbours().elementAt(nextID.ordinal()),
 								requestType));
 				this.router.FreeBuffer();
-			}
+			}*/
 /*			else
 			{
 				//post event to this ID
@@ -209,8 +215,44 @@ public class NucaCacheBank extends Cache
 								this,
 								requestType));
 			}
-*/		}
+*/		
 	}
+	
+	protected void handleCopyBlock(EventQueue eventQ,Event event)
+	{
+		CacheLine evictedLine = this.fill(((AddressCarryingEvent)event).getAddress());
+		//if condition to be  changed
+		if (evictedLine != null)
+		{
+			AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+																		 0,
+																		 this, 
+																		 this, 
+																		 RequestType.Main_Mem_Write, 
+																		 evictedLine.getTag() << this.blockSizeBits);
+			Vector<Integer> sourceBankId = new Vector<Integer>(
+															this.getRouter().getBankId());
+			Vector<Integer> destinationBankId = new Vector<Integer>(
+																	((AddressCarryingEvent)
+																     (event)).
+																	 getDestinationBankId());
+			
+			addressEvent.setSourceBankId(sourceBankId);
+			addressEvent.setDestinationBankId(destinationBankId);
+			this.getPort().put(addressEvent);
+			
+		}
+		Vector<Integer> sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
+		this.getRouter().getPort().put(((AddressCarryingEvent)event).
+														updateEvent(eventQ,
+																	0, 
+																	this, 
+																	this.getRouter(), 
+																	RequestType.Mem_Response,
+																	sourceBankId,
+																	((AddressCarryingEvent)event).oldSourceBankId));
+	}
+	
 	
 	private void handleMainMemoryResponse(EventQueue eventQ, Event event) {//changes are required....
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
@@ -222,7 +264,7 @@ public class NucaCacheBank extends Cache
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																		 0,
 																		 this, 
-																		 this, 
+																		 this.getRouter(), 
 																		 RequestType.Main_Mem_Write, 
 																		 evictedLine.getTag() << this.blockSizeBits);
 			Vector<Integer> sourceBankId = new Vector<Integer>(
@@ -236,7 +278,7 @@ public class NucaCacheBank extends Cache
 			
 			addressEvent.setSourceBankId(sourceBankId);
 			addressEvent.setDestinationBankId(destinationBankId);
-			this.getPort().put(addressEvent);
+			this.getRouter().getPort().put(addressEvent);
 		}
 /*		long blockAddr = addr >>> this.blockSizeBits;
 			if (!NOTthis.missStatusHoldingRegister.containsKey(blockAddr))
@@ -258,7 +300,7 @@ public class NucaCacheBank extends Cache
 						AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																					 0,
 																					 this, 
-																					 this, 
+																					 this.getRouter(), 
 																					 RequestType.Main_Mem_Write, 
 																					 addr);
 						Vector<Integer> sourceBankId = new Vector<Integer>(
@@ -272,7 +314,7 @@ public class NucaCacheBank extends Cache
 
 						addressEvent.setSourceBankId(sourceBankId);
 						addressEvent.setDestinationBankId(destinationBankId);
-						processingElement.getPort().put(addressEvent);
+						this.getRouter().getPort().put(addressEvent);
 					}				
 				}
 				else if(event.getRequestType() == RequestType.Cache_Read ||
@@ -284,33 +326,35 @@ public class NucaCacheBank extends Cache
 																	   ((AddressCarryingEvent)
 																	    event).
 																	    getDestinationBankId());
-					if(nucaType == NucaType.S_NUCA)
+					Vector<Integer> destinationBankId = new Vector<Integer>(
+																		((AddressCarryingEvent)
+																	     event).
+																		 getSourceBankId());
+
+					if(nucaType == NucaType.S_NUCA || isFirstLevel)
 					{
-						Vector<Integer> destinationBankId = new Vector<Integer>(
-								   												((AddressCarryingEvent)
-								   											     event).
-								   												 getSourceBankId());
-						this.getPort().put(
+						this.getRouter().getPort().put(
 								((AddressCarryingEvent)event).updateEvent(
 										eventQ,
 										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 										this,
-										this,
+										this.getRouter(),
 										RequestType.Mem_Response,									
 										sourceBankId,
 										destinationBankId));
 					}
 					else
 					{
-						this.getPort().put(
+						
+						this.getRouter().getPort().put(
 								((AddressCarryingEvent)event).updateEvent(
 										eventQ,
 										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 										this,
-										this,
-										RequestType.Mem_Response,									
+										this.getRouter(),
+										RequestType.COPY_BLOCK,									
 										sourceBankId,
-										((AddressCarryingEvent)event).oldSourceBankId));
+										destinationBankId));
 
 					}
 				}
@@ -375,12 +419,12 @@ public class NucaCacheBank extends Cache
 																     (event)).
 																	 getSourceBankId());
 
-				requestingElement.getPort().put(
+				this.getRouter().getPort().put(
 						((AddressCarryingEvent)event).updateEvent(
 								eventQ,
 								processingElement.getLatencyDelay(),
 								this,
-								this,
+								this.getRouter(),
 								RequestType.Mem_Response,
 								sourceBankId,
 								destinationBankId));
@@ -401,12 +445,12 @@ public class NucaCacheBank extends Cache
 					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																				 0,
 																				 this, 
-																				 this, 
+																				 this.getRouter(), 
 																				 RequestType.Main_Mem_Write, 
 																				 address);
 					addressEvent.setSourceBankId(sourceBankId);
 					addressEvent.setDestinationBankId(destinationBankId);
-					processingElement.getPort().put(addressEvent);
+					this.getRouter().getPort().put(addressEvent);
 				}
 			}
 		}
@@ -423,11 +467,11 @@ public class NucaCacheBank extends Cache
 				Vector<Integer> sourceBankId =new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
 				Vector<Integer> destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).getSourceBankId());
 				((AddressCarryingEvent)event).oldRequestType = event.getRequestType();
-				this.getPort().put(((AddressCarryingEvent)event).
+				this.getRouter().getPort().put(((AddressCarryingEvent)event).
 																updateEvent(eventQ, 
 																		    0,
 																		    this, 
-																		    this, 
+																		    this.getRouter(), 
 																		    RequestType.Main_Mem_Read, 
 																		    sourceBankId, 
 																		    destinationBankId));
@@ -452,10 +496,10 @@ public class NucaCacheBank extends Cache
 			Vector<Integer> destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
 			int id = destinationBankId.remove(1);
 			destinationBankId.add(id +1);
-			this.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ,
+			this.getRouter().getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ,
 																		0, 
 																		this,
-																		this,
+																		this.getRouter(),
 																		event.getRequestType(),
 																		sourceBankId, 
 																		destinationBankId));
