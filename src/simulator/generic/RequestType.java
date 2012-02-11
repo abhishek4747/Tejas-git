@@ -51,8 +51,15 @@ public enum RequestType {
 	Main_Mem_Write,
 	Mem_Response,
 	LSQ_Commit,
+	
+	//banked memory element's request types
 	CacheBank_Read,
 	CacheBank_Write,
+	CacheBank_Read_from_iCache,
+	MemBank_Response,
+	Main_MemBank_Read,
+	Main_MemBank_Write,
+	Main_MemBank_Response,
 	
 	MESI_Invalidate,
 	MESI_RWITM,

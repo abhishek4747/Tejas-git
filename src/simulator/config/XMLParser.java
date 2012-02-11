@@ -355,7 +355,8 @@ public class XMLParser
 		cache.nocConfig.operatingFreq = Integer.parseInt(getImmediateString("NocOperatingFreq", CacheType));
 		cache.nocConfig.numberOfRows = cache.numberOfBankRows;
 		cache.nocConfig.numberOfColumns = cache.numberOfBankColumns;
-		
+		cache.nocConfig.latencyBetweenBanks = Integer.parseInt(getImmediateString("NocLatencyBetweenBanks", CacheType));
+
 		tempStr = getImmediateString("Coherence", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))
 			cache.coherence = CoherenceType.None;

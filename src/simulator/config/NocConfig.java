@@ -37,6 +37,7 @@ public class NocConfig
 	public RoutingAlgo.ALGO rAlgo;
 	public int numberOfRows;
 	public int numberOfColumns;
+	public int latencyBetweenBanks;
 	
 	public int getLatency() {
 		return latency;

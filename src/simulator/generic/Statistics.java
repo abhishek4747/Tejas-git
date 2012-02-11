@@ -165,6 +165,8 @@ public class Statistics {
 	static long noOfIRequests[];
 	static long noOfIHits[];
 	static long noOfIMisses[];
+	public static String nocTopology;
+	public static String nocRoutingAlgo;
 	
 	public static void printMemorySystemStatistics()
 	{
@@ -222,6 +224,11 @@ public class Statistics {
 			{
 				outputFileWriter.write("L2 Hit-Rate\t=\t" + (float)(noOfL2Hits)/noOfL2Requests + "\n");
 				outputFileWriter.write("L2 Miss-Rate\t=\t" + (float)(noOfL2Misses)/noOfL2Requests + "\n");
+			}
+			if (nocRoutingAlgo != null)
+			{
+				outputFileWriter.write("L2 noc Topology\t=\t" + nocTopology + "\n");
+				outputFileWriter.write("L2 noc Routing Algorithm\t=\t" + nocRoutingAlgo + "\n");
 			}
 			outputFileWriter.write("\n");
 		}

@@ -1,3 +1,24 @@
+/*****************************************************************************
+				BhartiSim Simulator
+------------------------------------------------------------------------------------------------------------
+
+   Copyright [2010] [Indian Institute of Technology, Delhi]
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+------------------------------------------------------------------------------------------------------------
+
+				Contributor: Mayur Harne
+*****************************************************************************/
+
 package memorysystem.nuca;
 import java.util.Vector;
 
@@ -8,7 +29,6 @@ import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import misc.Util;
 import config.CacheConfig;
-import config.SystemConfig;
 
 public class SNuca extends NucaCache
 {
@@ -45,19 +65,12 @@ public class SNuca extends NucaCache
 		return bankId;
 	}
 
-	
-
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
 		SimulationElement requestingElement = event.getRequestingElement();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
 		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
-//		boolean alreadypresent= addToForwardedRequests(sourceBankId, event, address);
-		//System.out.println("added address in snuca"+address);
-//		if(!alreadypresent)
-//			if(this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].router.checkThisBuffer())
 		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone(); 		
 		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
 										getPort().put(((AddressCarryingEvent)event).
@@ -69,13 +82,5 @@ public class SNuca extends NucaCache
 																			sourceBankId, 
 																			destinationBankId));
 
-/*			else
-				this.getPort().put(event.update(
-												eventQ,
-												1, 
-												requestingElement,
-												event.getProcessingElement(), 
-												event.getRequestType()));
-	*/
 	}
 }

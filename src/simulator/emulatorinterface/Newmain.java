@@ -114,14 +114,19 @@ public class Newmain {
 			if (cache.getClass() == SNuca.class)
 			{
 				((NucaCache)cache).setStatistics();
+				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
+				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
 			}
 			else if (cache.getClass() == DNuca.class)
 			{
 				((NucaCache)cache).setStatistics();
+				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
+				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
 			}
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
+			
 		}
 			
 
