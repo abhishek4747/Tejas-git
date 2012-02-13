@@ -24,14 +24,14 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/moksh/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/moksh/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/kapil/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/home/kapil/workspace/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<NumInsToIgnore>0</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
-		<Mode>1</Mode>   					<!--From file 0,  From PIN 1, From QEMU *todo* -->
+		<Mode>0</Mode>   					<!--From file 0,  From shmem 1, TODO add others -->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
 		<StatisticalPipeline>false</StatisticalPipeline>	<!--True to enable statistical pipeline-->
@@ -44,7 +44,7 @@
 	<!--System Parameters-->
 	<System>
 		<NoOfCores>32</NoOfCores>				<!--Number of cores in the simulated system-->
-		<MainMemoryLatency>222</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
+		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<MainMemoryFrequency>200</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
 		<MainMemoryPortType>UL</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 		<MainMemoryAccessPorts>-1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->

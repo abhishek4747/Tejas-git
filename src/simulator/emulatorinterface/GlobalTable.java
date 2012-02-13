@@ -5,8 +5,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
-import emulatorinterface.communication.shm.Encoding;
 
 class ResumeSleep {
 	ArrayList<Integer> resume=new ArrayList<Integer>();
@@ -27,6 +27,16 @@ class ResumeSleep {
 	int getNumSleepers() {
 		return this.sleep.size();
 	}
+
+	public void merge(ResumeSleep other) {
+		for (int res : other.resume) {
+			this.addResumer(res);
+		} 
+		for (int slp : other.sleep) {
+			this.addSleeper(slp);
+		} 
+	}
+	
 }
 
 public final class GlobalTable implements Encoding {
@@ -117,5 +127,70 @@ public final class GlobalTable implements Encoding {
 		
 		return ret;
 	}
+	
+	ResumeSleep resumePipelineTimer(int tidToResume) {
+		ResumeSleep ret = new ResumeSleep();
+		int numResumes=IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep;
+		IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep=0;
+		for (int i=0; i<numResumes; i++) {
+			System.out.println("Resuming by timer"+tidToResume);
+			//this.pipelineInterfaces[tidToResume].resumePipeline();
+			ret.addResumer(tidToResume);
+		}
+		if (ret==null) misc.Error.shutDown("resumePipelineTimer returned null"); 
+		return ret;
+	}
+
+	ResumeSleep tryResumeOnWaitingPipelines(int signaller, long time) {
+		ResumeSleep ret = new ResumeSleep();
+		Hashtable<Integer, ThreadState> stateTable = IpcBase.glTable.getStateTable();
+		Hashtable<Long, SynchPrimitive> synchTable = IpcBase.glTable.getSynchTable();
+		ThreadState signallingThread = stateTable.get(signaller);
+		signallingThread.lastTimerseen = time;
+
+		for (PerAddressInfoNew pai : signallingThread.addressMap.values()) {
+			for (Iterator<Integer> iter = pai.probableInteractors.iterator(); iter.hasNext();) {
+				int waiter = (Integer)iter.next();
+				ThreadState waiterThread = stateTable.get(waiter);
+				if (waiterThread.isOntimedWaitAt(pai.address)) {
+					//TODO if multiple RunnableThreads then this should be synchronised
+					if (time>=waiterThread.timeSlept(pai.address)) {
+						//Remove dependencies from both sides.
+						iter.remove();
+						waiterThread.removeDep(signaller);
+						if (!waiterThread.isOntimedWait()) {
+							//TODOthis means waiter got released from a timedWait by a timer and not by synchPrimitive.
+							//this means that in the synchTable somewhere there is a stale entry of their lockEnter/Exit
+							// or unlockEnter. which needs to removed.
+							// flushSynchTable();
+							/*							System.out.println(waiter+" pipeline is resuming by timedWait from"+signaller
+									+" num of Times"+stateTable.get(waiter).countTimedSleep);
+							 */
+							ret = resumePipelineTimer(waiter);
+							 PerAddressInfoNew p = waiterThread.addressMap.get(pai.address);
+							 if (p!=null) {
+								 if (p.on_broadcast) {
+									 ret.merge(synchTable.get(pai.address).broadcastResume(p.broadcastTime,waiter));
+									 p.on_broadcast = false;
+									 p.broadcastTime = Long.MAX_VALUE;
+								 }
+								 else if (p.on_barrier) {
+									 ret.merge(synchTable.get(pai.address).barrierResume());
+									 p.on_barrier = false;
+								 }
+							 }
+						}
+					}
+				}
+				else {
+					// this means that the thread was not timedWait anymore as it got served by the synchronization
+					// it was waiting for.
+					iter.remove();
+				}
+			}
+		}
+		return ret;
+	}
+
 
 }

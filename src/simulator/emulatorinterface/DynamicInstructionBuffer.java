@@ -25,8 +25,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
+
+import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
-import emulatorinterface.communication.shm.Encoding;
 import generic.BranchInstr;
 
 

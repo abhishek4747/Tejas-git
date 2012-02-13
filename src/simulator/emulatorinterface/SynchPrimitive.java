@@ -7,8 +7,8 @@ import java.util.LinkedList;
 import org.apache.log4j.Logger;
 
 
+import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
-import emulatorinterface.communication.shm.Encoding;
 
 public class SynchPrimitive implements Encoding {
 

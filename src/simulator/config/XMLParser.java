@@ -103,7 +103,7 @@ public class XMLParser
 		Element simulationElmnt = (Element) simulationNode;
 		SimulationConfig.PinTool = getImmediateString("PinTool", simulationElmnt);
 		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
-//		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
+		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
@@ -156,8 +156,6 @@ public class XMLParser
 		{
 			SimulationConfig.isPipelineInorder = false;
 		}
-		
-		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		
 		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)

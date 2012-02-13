@@ -12,14 +12,11 @@ import misc.Error;
 import config.SimulationConfig;
 import config.SystemConfig;
 import config.XMLParser;
-import emulatorinterface.DynamicInstructionBuffer;
 import emulatorinterface.communication.*;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.GlobalClock;
-import generic.InstructionLinkedList;
-import generic.EventQueue;
 import generic.Statistics;
 
 public class Newmain {
@@ -32,8 +29,7 @@ public class Newmain {
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];;
-	public static RunnableFromFile [] runnersFromFile = new RunnableFromFile[IpcBase.MaxNumJavaThreads];;
-//	public static RunnableFromFile [] runners = new RunnableFromFile[IpcBase.MaxNumJavaThreads];;
+
 	public static void main(String[] arguments) throws Exception 
 	{
 		String executableArguments=" ";
@@ -70,7 +66,7 @@ public class Newmain {
 		
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
-		if (SimulationConfig.Mode==1) {
+		if (SimulationConfig.Mode!=0) {
 			Process process = createPINinterface(ipcBase, executableArguments);
 		}
 
@@ -87,9 +83,10 @@ public class Newmain {
 		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
 			if(SimulationConfig.Mode==0)
-				runnersFromFile[i] = new RunnableFromFile(name,i, ipcBase, cores);
-			else
-				runners[i] = new RunnableThread(name,i, ipcBase, cores);
+				runners[i] = new RunnableFromFile(name,i, ipcBase, cores);
+			else if (SimulationConfig.Mode==1)
+				runners[i] = new RunnableShm(name,i, ipcBase, cores);
+			else System.out.println("\n\n This mode not implemented yet \n\n");
 		}
 		
 		//set up statistics module
@@ -101,7 +98,7 @@ public class Newmain {
 		//FIXME : wait stopped for unexpected exit.
 		@SuppressWarnings("unused")
 		long icount = ipcBase.doExpectedWaitForSelf();
-		if (SimulationConfig.Mode==1) ipcBase.doWaitForPIN(process);
+		if (SimulationConfig.Mode!=0) ipcBase.doWaitForPIN(process);
 		ipcBase.finish();
 		reportStatistics();
 		

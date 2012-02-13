@@ -1,166 +1,51 @@
-/*
- * This represents a reader thread in the simulator which keeps on reading from EMUTHREADS.
- */
-
 package emulatorinterface;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.security.MessageDigest;
 import java.util.Hashtable;
 import java.util.Iterator;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
+import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
-import emulatorinterface.communication.shm.Encoding;
 import emulatorinterface.translator.x86.objparser.ObjParser;
-import generic.Core;
-import generic.GlobalClock;
-import generic.Instruction;
-import generic.InstructionLinkedList;
-import generic.OperationType;
-import generic.Statistics;
-/* MaxNumThreads threads are created from this class. Each thread
- * continuously keeps reading from the shared memory segment according
- * to its index(taken care in the jni C file).
- */
-public class RunnableFromFile implements Runnable, Encoding {
+import generic.*;
 
-	int tid;
-	long sum = 0; // checksum
-	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
+public class RunnableFromFile extends RunnableThread implements Runnable {
 
-	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
-
-	InstructionLinkedList[] inputToPipeline;
 	IpcBase ipcType;
 
-
-	int[] decodeWidth;
-	int[] stepSize;
-	long[] noOfMicroOps;
-	long[] numInstructions;
-	//FIXME PipelineInterface should be in IpcBase and not here as pipelines from other RunnableThreads
-	// will need to interact.
-	PipelineInterface[] pipelineInterfaces;
-
-	//	MessageDigest md5;
-
-
-	// initialise a reader thread with the correct thread id and the buffer to
-	// write the results in.
-	public RunnableFromFile(String threadName, int tid1, IpcBase ipcType, Core[] cores) {
-
-		for(int i = 0; i < EMUTHREADS; i++)
-		{ threadParams[i] = new ThreadParams();
-		}
-
-		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
-		decodeWidth = new int[EMUTHREADS];
-		stepSize = new int[EMUTHREADS];
-		noOfMicroOps = new long[EMUTHREADS];
-		numInstructions = new long[EMUTHREADS];
-		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
-		for(int i = 0; i < EMUTHREADS; i++)
-		{
-			int id = tid1*IpcBase.EmuThreadsPerJavaThread+i;
-			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
-			pipelineInterfaces[i] = cores[i].getPipelineInterface();
-			inputToPipeline[i] = new InstructionLinkedList();
-			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
-
-			if(cores[i].isPipelineInorder)
-				decodeWidth[i] = 1;
-			else
-				decodeWidth[i] = cores[i].getDecodeWidth();
-
-			stepSize[i] = cores[i].getStepSize();
-		}
-
-		this.tid = tid1;
+	public RunnableFromFile(String threadName, int tid1, IpcBase ipcType,
+			Core[] cores) {
+		super(threadName, tid1, cores);
+		// TODO Auto-generated constructor stub
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();
-		System.out.println("--  starting java thread"+this.tid);
 	}
 
-
+	/*
+	 * This keeps on reading from the appropriate index in the shared memory
+	 * till it gets a -1 after which it stops. NOTE this depends on each thread
+	 * calling threadFini() which might not be the case. This function will
+	 * break if the threads which started do not call threadfini in the PIN (in
+	 * case of unclean termination). Although the problem is easily fixable.
+	 */
 	public void run() {
-
-		//		System.out.println("-- in runnable thread run "+this.tid);
-		ThreadParams thread;
 
 		threadParams[0].started=true;
 
 		long totMicroOps = readFile(SimulationConfig.InstructionsFilename);
 
-
-
-		for (int i=0; i<EMUTHREADS; i++)
-			this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
-
-		System.out.println("Read the instructions. starting pipeline");
+		System.out.println("Read "+totMicroOps+" Micro-instructions. Starting pipeline");
+		
+		//TODO currently reading from file is supported for only 1 thread
+		noOfMicroOps[0] = totMicroOps;
+		currentEMUTHREADS = 1;
+		
 		Newmain.start = System.currentTimeMillis();
-
-		while(true)
-		{
-			//System.out.println("Pin completed ");
-
-			
-			//System.out.println(pipelineInterfaces[0].isExecutionComplete()+"  "+pipelineInterfaces[1].isExecutionComplete());
-
-			int maxN = inputToPipeline[0].getListSize()/decodeWidth[0] * pipelineInterfaces[0].getCoreStepSize();
-	//FIXME Ask Kapil to fix the bug
-	// 			if (pipelineInterfaces[0].isExecutionComplete()) break;
-			if (maxN==0){ 
-				pipelineInterfaces[0].getCore().getExecutionEngineIn().setExecutionComplete(true);
-				break;
-			}
-			System.out.println("maxN is "+maxN);
-			for (int i1=0; i1< maxN; i1++)	{
-
-				pipelineInterfaces[0].oneCycleOperation();
-				GlobalClock.incrementClock();
-			}
-
-		}
-		Core core;
-		for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
-			core = pipelineInterfaces[tidEmu].getCore();
-			if(core.getExecutionEngineIn().getExecutionComplete()){
-System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
-				System.out.println("number of instructions executed = "+core.getNoOfInstructionsExecuted());
-				pipelineInterfaces[tidEmu].setTimingStatistics();			
-				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
-			}
-		}
 		
-		long timeTaken = System.currentTimeMillis() - Newmain.start;
-		System.out.println("\nThread" + tid
-                           +" microOps  "+totMicroOps
-                           +" time "+ timeTaken 
-                           +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
-				           + "\n");
-
-		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
-
-//System.out.println("Tid = "+tid+"microops= "+noOfMicroOps[0]);
-		noOfMicroOps[tid]=totMicroOps;
-		
-		Statistics.setNumInstructions(numInstructions, tid);
-		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
-
-		IpcBase.free.release();
+		super.finishAllPipelines();
 	}
 
 	private long readFile(String filename) {

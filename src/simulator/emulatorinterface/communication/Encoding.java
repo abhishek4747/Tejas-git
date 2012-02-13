@@ -1,4 +1,4 @@
-package emulatorinterface.communication.shm;
+package emulatorinterface.communication;
 
 
 
