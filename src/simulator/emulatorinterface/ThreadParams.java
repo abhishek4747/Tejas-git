@@ -24,8 +24,4 @@ public class ThreadParams {
 		}
 	}
 
-	public void updateReaderLocation(int numReads) {
-		this.readerLocation = (this.readerLocation + numReads) % IpcBase.COUNT;
-	}
-
 }

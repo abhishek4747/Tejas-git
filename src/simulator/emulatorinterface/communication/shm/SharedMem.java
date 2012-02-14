@@ -21,6 +21,9 @@ import generic.InstructionTable;
 public class SharedMem extends  IpcBase
 {
 
+	// Must ensure that this is same as COUNT in shmem.h
+	public static final int COUNT = 1000;
+	
 	public SharedMem() 
 	{
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 

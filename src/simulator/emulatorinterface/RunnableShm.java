@@ -2,6 +2,7 @@ package emulatorinterface;
 
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
+import emulatorinterface.communication.shm.SharedMem;
 import generic.Core;
 
 public class RunnableShm extends RunnableThread implements Runnable {
@@ -85,7 +86,9 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					super.processPacket(thread, pnew, tidEmu);
 				}
 
-				thread.updateReaderLocation(numReads);
+				// update reader location
+				thread.readerLocation = (thread.readerLocation + numReads) % SharedMem.COUNT;
+				
 				queue_size = ipcType.update(tidApp, numReads);
 				errorCheck(tidApp, tidEmu, queue_size, numReads, v);
 
