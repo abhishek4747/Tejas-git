@@ -1,5 +1,7 @@
 package emulatorinterface;
 
+import java.util.ArrayList;
+
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.SharedMem;
@@ -27,6 +29,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 	public void run() {
 
 		// System.out.println("-- in runnable thread run "+this.tid);
+		ArrayList<Packet> fromPIN = new ArrayList<Packet>();
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
@@ -47,7 +50,8 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					continue;
 				}
 				int tidApp = tid * EMUTHREADS + tidEmu;
-				int queue_size, numReads = 0, v = 0;
+				int queue_size, numReads = 0;
+				long v = 0;
 
 				// get the number of packets to read. 'continue' and read from
 				// some other thread if there is nothing.
@@ -83,9 +87,19 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					pnew = ipcType.fetchOnePacket(tidApp, thread.readerLocation
 							+ i);
 					v = pnew.value;
-					super.processPacket(thread, pnew, tidEmu);
+					processPacket(thread, pnew, tidEmu);
 				}
 
+				
+/*				// Read the entries
+				fromPIN = ipcType.fetchManyPackets(tidApp, thread.readerLocation, numReads);
+				for (int i = 0; i < numReads; i++) {
+					pnew = fromPIN.get(i);
+					v = pnew.value;
+				//	System.out.println(pnew.toString());
+					processPacket(thread,pnew,tidEmu);
+				}
+*/				
 				// update reader location
 				thread.readerLocation = (thread.readerLocation + numReads) % SharedMem.COUNT;
 				
@@ -94,7 +108,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
-					super.signalFinish(tidApp);
+					signalFinish(tidApp);
 				}
 
 				if (ipcType.termination[tid] == true) {
@@ -102,7 +116,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					break;
 				}
 			}
-			super.runPipelines();
+			runPipelines();
 			// System.out.println("after execution n=  "+n+" Thread finished ? "+threadParams[1].finished);
 
 			// this runnable thread can be stopped in two ways. Either the
@@ -123,11 +137,11 @@ public class RunnableShm extends RunnableThread implements Runnable {
 			}
 		}
 
-		super.finishAllPipelines();
+		finishAllPipelines();
 	}
 
 	void errorCheck(int tidApp, int emuid, int queue_size,
-			int numReads, int v) {
+			int numReads, long v) {
 		// some error checking
 		threadParams[emuid].totalRead += numReads;
 		long totalRead = threadParams[emuid].totalRead;

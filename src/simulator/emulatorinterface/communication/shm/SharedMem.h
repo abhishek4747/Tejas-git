@@ -16,10 +16,10 @@ extern "C" {
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmget
- * Signature: (IJ)I
+ * Signature: (IIIJ)I
  */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
-  (JNIEnv *, jobject, jint, jlong);
+  (JNIEnv *, jobject, jint, jint, jint, jlong);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
@@ -32,26 +32,34 @@ JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmat
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmread
- * Signature: (IJII)Lemulatorinterface/communication/Packet;
+ * Signature: (IJI)Lemulatorinterface/communication/Packet;
  */
 JNIEXPORT jobject JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmread
-  (JNIEnv *, jclass, jint, jlong, jint, jint);
+  (JNIEnv *, jclass, jint, jlong, jint);
+
+/*
+ * Class:     emulatorinterface_communication_shm_SharedMem
+ * Method:    shmreadMult
+ * Signature: (IJII[J)V
+ */
+JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadMult
+  (JNIEnv *, jclass, jint, jlong, jint, jint, jlongArray);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmreadvalue
- * Signature: (IJII)I
+ * Signature: (IJI)I
  */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
-  (JNIEnv *, jclass, jint, jlong, jint, jint);
+  (JNIEnv *, jclass, jint, jlong, jint);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmwrite
- * Signature: (IJIII)I
+ * Signature: (IJII)I
  */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwrite
-  (JNIEnv *, jclass, jint, jlong, jint, jint, jint);
+  (JNIEnv *, jclass, jint, jlong, jint, jint);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
@@ -76,6 +84,14 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmdel
  */
 JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_asmmfence
   (JNIEnv *, jclass);
+
+/*
+ * Class:     emulatorinterface_communication_shm_SharedMem
+ * Method:    numPacketsAlternate
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
+  (JNIEnv *, jclass, jint);
 
 #ifdef __cplusplus
 }

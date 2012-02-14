@@ -10,6 +10,7 @@
 package emulatorinterface.communication.shm;
 
 import java.lang.System;
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 import config.SimulationConfig;
 import emulatorinterface.communication.*;
@@ -20,18 +21,17 @@ import generic.InstructionTable;
 
 public class SharedMem extends  IpcBase
 {
-
 	// Must ensure that this is same as COUNT in shmem.h
 	public static final int COUNT = 1000;
 	
 	public SharedMem() 
 	{
+		super();
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
-		glTable = new GlobalTable(this);
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
-		shmid = shmget((COUNT+5)*MaxNumJavaThreads*EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores);
+		shmid = shmget(COUNT,MaxNumJavaThreads,EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores);
 		shmAddress = shmat(shmid);
 	}
 	
@@ -61,7 +61,6 @@ public class SharedMem extends  IpcBase
 			name = "thread"+Integer.toString(i);
 			termination[i]=false;
 			started[i]=false;
-			numInstructions[i]=0;
 			//TODO not all cores are assigned to each thread
 			//when the mechanism to tie threads to cores is in place
 			//this has to be changed
@@ -85,40 +84,54 @@ public class SharedMem extends  IpcBase
 		//inform threads which have not started about finish
 		for (int i=0; i<MaxNumJavaThreads; i++) {
 			if (started[i]==false) termination[i]=true;
-			totalInstructions += numInstructions[i];
+			//totalInstructions += numInstructions[i];
 		}
 
-		return totalInstructions;
+		//return totalInstructions;
+		return 0;
 	}
 	
 	public Packet fetchOnePacket(int tidApp, int index ) {
 		return shmread(tidApp, shmAddress,
-				index % COUNT, COUNT);
+				index % COUNT);
 	}
-	public void doWaitForPIN(Process p) throws Exception{
-		try {
-			p.waitFor();
-		} catch (Exception e) {
 
+	public ArrayList<Packet> fetchManyPackets(int tidApp, int index, int numPackets){
+		//System.out.println("Fetching "+numPackets+" simultaneously from index"+index);
+
+	//	Not done here. Done inside
+	//	index = index%COUNT;
+		/*long[] ret = SharedMem.shmreadMult(tidApp,shmAddress,index,numPackets);
+		for (int i=0; i<numPackets; i++) {
+			fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
 		}
+		*/
+		ArrayList<Packet> fromPIN = new ArrayList<Packet>();
+		long[] ret  = new long[3*numPackets]; 
+		SharedMem.shmreadMult(tidApp, shmAddress, index, numPackets,ret);
+			for (int i=0; i<numPackets; i++) {
+				fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
+				//System.out.println(fromPIN.get(i).toString());
+			}
+			
+			return fromPIN;
 	}
+	
 	public int update(int tidApp, int numReads){
 		get_lock(tidApp, shmAddress, COUNT);
-		int queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
-				COUNT);
+		int queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT);
 		queue_size -= numReads;
 
 		// update queue_size
 		SharedMem
-				.shmwrite(tidApp, shmAddress, COUNT, queue_size, COUNT);
+				.shmwrite(tidApp, shmAddress, COUNT, queue_size);
 		SharedMem.release_lock(tidApp, shmAddress, COUNT);
 		
 		return queue_size;
 	}
 	
 	public int totalProduced (int tidApp){
-		return shmreadvalue(tidApp, shmAddress, COUNT + 4,
-				COUNT);
+		return shmreadvalue(tidApp, shmAddress, COUNT + 4);
 	}
 	public void finish(){
 		shmd(shmAddress);
@@ -131,7 +144,7 @@ public class SharedMem extends  IpcBase
 	}
 	// calls shmget function and returns the shmid. Only 1 big segment is created and is indexed
 	// by the threads id. Also pass the core mapping read from config.xml
-	native int shmget(int size, long coremap);
+	native int shmget(int COUNT,int MaxNumJavaThreads,int EmuThreadsPerJavaThread , long coremap);
 	
 	// attaches to the shared memory segment identified by shmid and returns the pointer to 
 	// the memory attached. 
@@ -140,15 +153,18 @@ public class SharedMem extends  IpcBase
 	// returns the class corresponding to the packet struct in common.h. Takes as argument the
 	// emulator thread id, the pointer corresponding to that thread, the index where we want to
 	// read and COUNT
-	native static Packet shmread(int tid,long pointer, int index,int COUNT);
+	native static Packet shmread(int tid,long pointer, int index);
+	
+	// reads multiple packets into the arrays passed.
+	native static void shmreadMult(int tid,long pointer, int index, int numToRead, long[] ret);
 	
 	// reads only the "value" from the packet struct. could be done using shmread() as well,
 	// but if we only need to read value this saves from the heavy JNI callback and thus saves
 	// on time.
-	native static int shmreadvalue(int tid, long pointer, int index, int COUNT);
+	native static int shmreadvalue(int tid, long pointer, int index);
 	
 	// write in the shared memory. needed in peterson locks.
-	native static int shmwrite(int tid,long pointer, int index, int val,int COUNT);
+	native static int shmwrite(int tid,long pointer, int index, int val);
 	
 	// deatches the shared memory segment
 	native static int shmd(long pointer);
@@ -159,30 +175,33 @@ public class SharedMem extends  IpcBase
 	// inserts compiler barriers to avoid reordering. Needed for correct implementation of 
 	// Petersons lock.
 	native static void asmmfence();
+	
+	native static int numPacketsAlternate(int tidApp);
 
 	// get a lock to access a resource shared between PIN and java. For an explanation of the 
 	// shared memory segment structure which explains the parameters passed to the shmwrite 
 	// and shmreadvalue functions here take a look in common.h
 	public static void get_lock(int tid,long pointer, int COUNT) {
-		shmwrite(tid,pointer,COUNT+2,1,COUNT);
+		shmwrite(tid,pointer,COUNT+2,1);
 		asmmfence();
-		shmwrite(tid,pointer,COUNT+3,0,COUNT);
+		shmwrite(tid,pointer,COUNT+3,0);
 		asmmfence();
-		while( (shmreadvalue(tid,pointer,COUNT+1,COUNT) == 1) && (shmreadvalue(tid,pointer,COUNT+3,COUNT) == 0)) {
+		while( (shmreadvalue(tid,pointer,COUNT+1) == 1) && (shmreadvalue(tid,pointer,COUNT+3) == 0)) {
 		}
 	}
 
 	public static void release_lock(int tid,long pointer, int NUMINTS) {
-		shmwrite(tid,pointer, NUMINTS+2,0,NUMINTS);
+		shmwrite(tid,pointer, NUMINTS+2,0);
 	}
 
 	public int numPackets(int tidApp) {
-		get_lock(tidApp, shmAddress, COUNT);
-		int size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT,
-				COUNT);
+/*		get_lock(tidApp, shmAddress, COUNT);
+		int size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT);
 		release_lock(tidApp, shmAddress, COUNT);
 		return size;
+*/		return numPacketsAlternate(tidApp);
 	}
+	
 	// loads the library which contains the implementation of these native functions. The name of
 	// the library should match in the makefile.
 	static { System.loadLibrary("shmlib"); }
@@ -193,5 +212,6 @@ public class SharedMem extends  IpcBase
 	// address of shared memory segment attached. should be of type 'long' to ensure for 64bit
 	static long shmAddress;
 	static int shmid;
+
 	
 }

@@ -11,6 +11,7 @@
 
 package emulatorinterface.communication;
 
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import emulatorinterface.*;
@@ -26,18 +27,20 @@ public abstract class IpcBase {
 	// state management for reader threads
 	public boolean[] termination=new boolean[MaxNumJavaThreads];
 	public boolean[] started=new boolean[MaxNumJavaThreads];
-	
+
 	// number of instructions read by each of the threads
 	public long[] numInstructions = new long[MaxNumJavaThreads];
-	
+
 	// to maintain synchronization between main thread and the reader threads
 	public static final Semaphore free = new Semaphore(0, true);
-	
+
 	public static InstructionTable insTable;
 	public static GlobalTable glTable;
-	
+
 	// Initialise structures and objects
-	public IpcBase () {}
+	public IpcBase () {
+		glTable = new GlobalTable(this);
+	}
 
 	// Start the PIN process. Parse the cmd accordingly
 	public Process startPIN(String cmd) throws Exception{
@@ -56,8 +59,8 @@ public abstract class IpcBase {
 	}
 
 	public abstract void initIpc();
-	
-	
+
+
 	/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
 	public RunnableThread[] getRunnableThreads(){
 		System.out.println("Implement getRunnableThreads() in the IPC mechanism");
@@ -66,17 +69,17 @@ public abstract class IpcBase {
 
 	// returns the numberOfPackets which are currently there in the stream for tidApp
 	public abstract int numPackets(int tidApp);
-	
+
 	// fetch one packet for tidApp from index
 	public abstract Packet fetchOnePacket(int tidApp, int index );
-	
+
 	public abstract int update(int tidApp, int numReads);
 	// The main thread waits for the finish of reader threads and returns total number of 
 	// instructions read
-	
+
 	// return the total packets produced by PIN till now
 	public abstract int totalProduced(int tidApp);
-	
+
 	public long doExpectedWaitForSelf() throws Exception {
 		System.out.println("Implement doExpectedWaitForSelf() in the IPC mechanism");
 		return -1;
@@ -85,12 +88,18 @@ public abstract class IpcBase {
 	// Should wait for PIN too before calling the finish function to deallocate stuff related to
 	// the corresponding mechanism
 	public void doWaitForPIN(Process p) throws Exception{
-		System.out.println("Implement doWaitForPIN in the IPC mechanism");
+		try {
+			p.waitFor();
+		} catch (Exception e) {
+
+		}
 	}
 
 	// Free buffers, free memory , deallocate any stuff.
 	public void finish(){
 		System.out.println("Implement finish in the IPC mechanism");
 	}
-	
+
+	public abstract ArrayList<Packet> fetchManyPackets(int tidApp, int readerLocation, int numReads);
+
 }

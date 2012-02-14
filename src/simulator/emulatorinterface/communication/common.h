@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #define ftokpath	("/tmp")
-#define ftok_id	(5)
+#define ftok_id	(6)
 
 //NOTE We have not included the parameters size and maxnumthreads here as they are
 //needed by the java file too. So, to change these values update IPCBase.h
@@ -25,7 +25,7 @@
 // platforms do not affect.
 typedef struct{
 	uint64_t ip;					/* address of instruction */
-	uint32_t value;					/* defines the encoding scheme,details in DynamicInstructionBuffer.java */
+	uint64_t value;					/* defines the encoding scheme,details in DynamicInstructionBuffer.java */
 	uint64_t tgt;					/* value according to encoding scheme */
 }packet;
 

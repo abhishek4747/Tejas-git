@@ -24,7 +24,6 @@ package emulatorinterface;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Vector;
 
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
@@ -33,25 +32,25 @@ import generic.BranchInstr;
 
 public class DynamicInstructionBuffer implements Encoding
 {
-	private Queue<Vector<Packet>> memReadQueue = null;
-	private Queue<Vector<Packet>> memWriteQueue = null;
+	private Queue<ArrayList<Packet>> memReadQueue = null;
+	private Queue<ArrayList<Packet>> memWriteQueue = null;
 	private Queue<Packet> branchQueue = null;
 	
 	public DynamicInstructionBuffer() 
 	{
 		// Create max number of queues
-		memReadQueue = new LinkedList<Vector<Packet>>();
-		memWriteQueue = new LinkedList<Vector<Packet>>();
+		memReadQueue = new LinkedList<ArrayList<Packet>>();
+		memWriteQueue = new LinkedList<ArrayList<Packet>>();
 		branchQueue = new LinkedList<Packet>();
 	}
 
 	// QQQ Configure packets doesn't take tidEmu or anything now.
-	// packets read from ArrayList rather than a vector.
+	// packets read from ArrayList rather than a ArrayList.
 	public void configurePackets(ArrayList<Packet> arrayListPacket) 
 	{
 		Packet p;
-		Vector<Packet> memReadAddr = new Vector<Packet>();
-		Vector<Packet> memWriteAddr = new Vector<Packet>();
+		ArrayList<Packet> memReadAddr = new ArrayList<Packet>();
+		ArrayList<Packet> memWriteAddr = new ArrayList<Packet>();
 		Packet branchPacket = null;
 
 		long ip = arrayListPacket.get(0).ip;
@@ -60,7 +59,7 @@ public class DynamicInstructionBuffer implements Encoding
 		{
 			p = arrayListPacket.get(i);
 			assert (ip == p.ip) : "all instruction pointers not matching";
-			switch (p.value) 
+			switch ((int)p.value) 
 			{
 				case (-1):
 					break;
@@ -138,7 +137,7 @@ public class DynamicInstructionBuffer implements Encoding
 	
 	public LinkedList<Long> getmemoryReadAddress(long instructionPointer)
 	{
-		Vector<Packet> headPacket = null;
+		ArrayList<Packet> headPacket = null;
 		
 		while(!memReadQueue.isEmpty())
 		{
@@ -172,7 +171,7 @@ public class DynamicInstructionBuffer implements Encoding
 	
 	public LinkedList<Long> getmemoryWriteAddress(long instructionPointer)
 	{
-		Vector<Packet> headPacket = null;
+		ArrayList<Packet> headPacket = null;
 		
 		while(!memWriteQueue.isEmpty())
 		{
@@ -229,7 +228,7 @@ public class DynamicInstructionBuffer implements Encoding
 		}
 
 		// gobble memRead instructions		
-		Vector<Packet> headMemReadPacket;
+		ArrayList<Packet> headMemReadPacket;
 		while(!this.memReadQueue.isEmpty())
 		{
 			headMemReadPacket = memReadQueue.peek();
@@ -247,7 +246,7 @@ public class DynamicInstructionBuffer implements Encoding
 		}
 		
 		// gobble memWrite instructions
-		Vector<Packet> headMemWritePacket;
+		ArrayList<Packet> headMemWritePacket;
 		while(!this.memWriteQueue.isEmpty())
 		{
 			headMemWritePacket = memWriteQueue.peek();

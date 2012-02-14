@@ -8,7 +8,7 @@ public class Packet
 	// address. Else if synchronization packet then ip represents time and tgt represents lock 
 	// address. Else if timer packet then ip represents time and tgt represents nothing.
 	public long ip;
-	public int value;
+	public long value;
 	public long tgt;
 	
 	public Packet () 
@@ -16,7 +16,7 @@ public class Packet
 		ip = -1;
 	}
 
-	public Packet(long ip, int value, long tgt) 
+	public Packet(long ip, long value, long tgt) 
 	{
 		this.ip = ip;
 		this.value = value;

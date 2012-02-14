@@ -180,4 +180,11 @@ public class MemMap extends IpcBase
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public ArrayList<Packet> fetchManyPackets(int tidApp, int readerLocation,
+			int numReads) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

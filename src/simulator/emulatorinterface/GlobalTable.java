@@ -67,38 +67,38 @@ public final class GlobalTable implements Encoding {
 	// returns -1 if 'this' thread needs to sleep
 	// o/w returns otherThreadsId which will now resume
 	public ResumeSleep update(long addressSynchItem, int thread, long time,
-			int encoding) {
+			long value) {
 		SynchPrimitive s;
 		if (synchTable.containsKey(addressSynchItem))
 			s = (SynchPrimitive)synchTable.get(addressSynchItem);
 		else {
 			s = new SynchPrimitive(
-					addressSynchItem, thread, time, encoding, ipcType);
+					addressSynchItem, thread, time, value, ipcType);
 				synchTable.put(addressSynchItem, s);
 		}
 
 		ResumeSleep ret = new ResumeSleep();
-		switch (encoding) {
+		switch ((int)value) {
 		case (BCAST):
-			ret = s.broadcastEnter(thread,time,encoding);
+			ret = s.broadcastEnter(thread,time,value);
 			break;
 		case (SIGNAL):
-			ret = s.sigEnter(thread, time, encoding);
+			ret = s.sigEnter(thread, time, value);
 			break;
 		case (LOCK):
-			ret = s.lockEnter(thread, time, encoding);
+			ret = s.lockEnter(thread, time, value);
 			break;
 		case (UNLOCK):
-			ret = s.unlockEnter(thread, time, encoding);
+			ret = s.unlockEnter(thread, time, value);
 			break;
 		case (JOIN):
 			//TODO
 			break;
 		case (CONDWAIT):
-			ret = s.waitEnter(thread, time, encoding);
+			ret = s.waitEnter(thread, time, value);
 			break;
 		case (BARRIERWAIT):
-			ret = s.barrierEnter(thread, time, encoding);
+			ret = s.barrierEnter(thread, time, value);
 			System.out.println(thread+"  barrier enter");
 			break;
 		case (BCAST + 1):
@@ -108,7 +108,7 @@ public final class GlobalTable implements Encoding {
 			// ignore
 			break;
 		case (LOCK + 1):
-			ret = s.lockExit(thread, time, encoding);
+			ret = s.lockExit(thread, time, value);
 			break;
 		case (UNLOCK + 1):
 			// ignore
@@ -116,10 +116,10 @@ public final class GlobalTable implements Encoding {
 		case (JOIN + 1):
 			break;
 		case (CONDWAIT + 1):
-			ret = s.waitExit(thread, time, encoding);
+			ret = s.waitExit(thread, time, value);
 			break;
 		case (BARRIERWAIT + 1):
-			ret = s.barrierExit(thread, time, encoding);
+			ret = s.barrierExit(thread, time, value);
 			System.out.println(thread+"  barrier exit");
 			break;
 		}

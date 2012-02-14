@@ -17,10 +17,6 @@
 #include "IPCBase.h"
 #include "shmem.h"
 
-#define COUNT	(1000)
-
-#define locQ	(50)
-#define QSIZE	(locQ*sizeof(packet))
 
 #ifdef _LP64
 #define MASK 0xffffffffffffffff

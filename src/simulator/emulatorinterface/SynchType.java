@@ -2,14 +2,14 @@ package emulatorinterface;
 
 public class SynchType {
 
-	public SynchType(int thread, long time, int encoding) {
+	public SynchType(int thread, long time, long value) {
 		super();
 		this.thread = thread;
 		this.time = time;
-		this.encoding = encoding;
+		this.encoding = value;
 	}
 
 	int thread;
 	long time;
-	int encoding; // same as in Encoding.java
+	long encoding; // same as in Encoding.java
 }
