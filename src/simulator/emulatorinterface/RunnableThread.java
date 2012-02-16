@@ -29,6 +29,8 @@ import generic.Statistics;
  */
 public class RunnableThread implements Encoding {
 
+	private static final int THRESHOLD = 100000;
+	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;
 	long numInsToWrite = SimulationConfig.numInstructionsToBeWritten;
@@ -46,7 +48,6 @@ public class RunnableThread implements Encoding {
 	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
 	InstructionLinkedList[] inputToPipeline;
-	
 
 	// QQQ re-arrange packets for use by translate instruction.
 	DynamicInstructionBuffer[] dynamicInstructionBuffer;
@@ -79,6 +80,7 @@ public class RunnableThread implements Encoding {
 		}
 		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
+		
 		decodeWidth = new int[EMUTHREADS];
 		stepSize = new int[EMUTHREADS];
 		noOfMicroOps = new long[EMUTHREADS];
@@ -93,6 +95,7 @@ public class RunnableThread implements Encoding {
 			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
 			inputToPipeline[i] = new InstructionLinkedList();
+			
 			dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
 			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
 
@@ -120,6 +123,11 @@ public class RunnableThread implements Encoding {
 	protected void runPipelines() {
 		int minN = Integer.MAX_VALUE;
 		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+			ThreadParams th = threadParams[tidEmu];
+			if ( th.halted && inputToPipeline[tidEmu].getListSize() < THRESHOLD ) {
+				th.halted = false;
+			//	System.out.println("Halting over..!! "+tidEmu);
+			}
 			int n = inputToPipeline[tidEmu].getListSize() / decodeWidth[tidEmu]
 					* pipelineInterfaces[tidEmu].getCoreStepSize();
 			if (n < minN && n != 0)
@@ -305,8 +313,13 @@ public class RunnableThread implements Encoding {
 					}
 				}
 			}
-			else { 
+			else {
+				
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
+				if (!thread.halted && this.inputToPipeline[tidEmu].getListSize() > THRESHOLD) {
+					thread.halted = true;
+					//System.out.println("Halting "+tidEmu);
+				}
 			}
 			
 /*			if (currentEMUTHREADS>1)

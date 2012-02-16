@@ -9,7 +9,7 @@ import generic.InstructionLinkedList;
 public class ThreadParams {
 	boolean finished;
 	boolean started = false;
-	boolean halted;
+	boolean halted = false;
 	
 	int readerLocation;
 	long totalRead;
