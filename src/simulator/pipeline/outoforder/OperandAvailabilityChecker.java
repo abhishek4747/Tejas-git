@@ -61,9 +61,10 @@ public class OperandAvailabilityChecker {
 				}
 				
 				if(tempRN.getValueValid(phyReg1) == true ||
-						tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry ||
-						reorderBuffer.indexOf(tempRN.getProducerROBEntry(phyReg1))
-						> reorderBuffer.indexOf(reorderBufferEntry))
+						tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry
+						//|| reorderBuffer.indexOf(tempRN.getProducerROBEntry(phyReg1))
+						//> reorderBuffer.indexOf(reorderBufferEntry)
+						)
 				{
 					return new boolean[]{true};
 				}

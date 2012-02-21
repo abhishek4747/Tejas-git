@@ -1,4 +1,4 @@
-package pipeline.outoforder_new_arch;
+package pipeline.outoforder;
 
 import generic.Core;
 import generic.Event;
@@ -32,6 +32,12 @@ public class IWPushLogic extends SimulationElement {
 	 */
 	public void performIWPush()
 	{
+		if(execEngine.isToStall5() == true)
+		{
+			//pipeline stalled due to branch mis-prediction
+			return;
+		}
+		
 		for(int i = 0; i < decodeWidth; i++)
 		{
 			if(renameBuffer[i] != null)

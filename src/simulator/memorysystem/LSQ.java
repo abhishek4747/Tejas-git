@@ -24,8 +24,8 @@ import java.util.ArrayList;
 
 import memorysystem.LSQEntry.LSQEntryType;
 
-import pipeline.outoforder_new_arch.OpTypeToFUTypeMapping;
-import pipeline.outoforder_new_arch.ReorderBufferEntry;
+import pipeline.outoforder.OpTypeToFUTypeMapping;
+import pipeline.outoforder.ReorderBufferEntry;
 import pipeline.statistical.DelayGenerator;
 
 import generic.*;

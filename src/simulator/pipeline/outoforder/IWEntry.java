@@ -1,12 +1,14 @@
 package pipeline.outoforder;
 
+import memorysystem.LSQEntryContainingEvent;
 import config.SimulationConfig;
-import memorysystem.LSQAddressReadyEvent;
+//import memorysystem.LSQAddressReadyEvent;
 import generic.Core;
+import generic.Event;
+import generic.ExecCompleteEvent;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
-import generic.ExecutionCompleteEvent;
 import generic.RequestType;
 
 /**
@@ -58,11 +60,18 @@ public class IWEntry {
 	//				2) schedule ExecutionCompleteEvent
 	//		else
 	//			schedule an FUAvailableEvent
-	public void issueInstruction()
+	public boolean issueInstruction()
 	{
+		if(associatedROBEntry.isRenameDone == false ||
+				associatedROBEntry.isExecuted == true)
+		{
+			System.out.println("cannot issue this instruction");
+		}
+		
 		if(associatedROBEntry.getIssued() == true)
 		{
 			System.out.println("already issued!");
+			return false;
 		}
 		
 		if(associatedROBEntry.isOperand1Available && associatedROBEntry.isOperand2Available)
@@ -73,19 +82,23 @@ public class IWEntry {
 			{
 				//no FU required
 				issueMovXchg();
+				return true;
 			}
 			
 			else if(opType == OperationType.load ||
 					opType == OperationType.store)
 			{
 				issueLoadStore();
+				return true;
 			}
 			
-			else
+			else 
 			{
-				issueOthers();
+				return issueOthers();
 			}
 		}
+		
+		return false;
 	}
 	
 	void issueMovXchg()
@@ -93,17 +106,19 @@ public class IWEntry {
 		//no FU required
 		
 		associatedROBEntry.setIssued(true);
-		associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getStepSize());
 		
 		//remove IW entry
 		instructionWindow.removeFromWindow(this);
 		
 		core.getEventQueue().addEvent(
-				new ExecutionCompleteEvent(
-							this.getAssociatedROBEntry(),
-							associatedROBEntry.getFUInstance(),
-							core,
-							GlobalClock.getCurrentTime() + core.getStepSize() ) );
+				new ExecCompleteEvent(
+						null,
+						GlobalClock.getCurrentTime() + core.getStepSize(),
+						null, 
+						execEngine.getExecuter(),
+						
+						RequestType.EXEC_COMPLETE,
+						associatedROBEntry));
 		
 
 		if(SimulationConfig.debugMode)
@@ -116,8 +131,8 @@ public class IWEntry {
 	
 	void issueLoadStore()
 	{
-		if(instruction.getSourceOperand2() != null)
-		{
+		//if(instruction.getSourceOperand2() != null)
+		//{
 			
 			associatedROBEntry.setIssued(true);
 			if(opType == OperationType.store)
@@ -127,21 +142,33 @@ public class IWEntry {
 				associatedROBEntry.setWriteBackDone2(true);
 			}
 			associatedROBEntry.setFUInstance(0);
-			associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
-					OpTypeToFUTypeMapping.getFUType(opType).ordinal())*core.getStepSize());
 			
 			//remove IW entry
 			instructionWindow.removeFromWindow(this);
 			//TODO add event to indicate address ready
-			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(new LSQAddressReadyEvent(core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
-														null, //Requesting Element
-														core.getExecEngine().coreMemSys.getLsqueue(), 
-														0, //tieBreaker,
-														RequestType.TLB_ADDRESS_READY,
-														associatedROBEntry.getLsqEntry()));
+//			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(
+//					new LSQEntryContainingEvent(
+//							core.getEventQueue(),
+//							core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+//							null, //Requesting Element
+//							core.getExecEngine().coreMemSys.getLsqueue(), 
+//							RequestType.Tell_LSQ_Addr_Ready,
+//							associatedROBEntry.getLsqEntry()));
+			if(associatedROBEntry.lsqEntry.isValid() == true)
+			{
+				System.out.println("attempting to issue a load/store.. address is already valid");
+			}
+			
+			if(associatedROBEntry.lsqEntry.isForwarded() == true)
+			{
+				System.out.println("attempting to issue a load/store.. value forwarded is already valid");
+			}
+			core.getExecEngine().coreMemSys.issueRequestToLSQ(
+					null, 
+					associatedROBEntry);
 
-		}
-		else
+		//}
+		/*else
 		{
 			associatedROBEntry.setIssued(true);
 			if(opType == OperationType.store)
@@ -153,13 +180,18 @@ public class IWEntry {
 			
 			instructionWindow.removeFromWindow(this);
 			//TODO add event to indicate address ready
-			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(new LSQAddressReadyEvent(execEngine.coreMemSys.getLsqueue().getLatencyDelay(), 
-														null, //Requesting Element
-														core.getExecEngine().coreMemSys.getLsqueue(), 
-														0, //tieBreaker,
-														RequestType.TLB_ADDRESS_READY,
-														associatedROBEntry.getLsqEntry()));
-		}
+//			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(
+//					new LSQEntryContainingEvent(
+//						core.getEventQueue(),
+//						core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
+//						null, //Requesting Element
+//						core.getExecEngine().coreMemSys.getLsqueue(), 
+//						RequestType.Tell_LSQ_Addr_Ready,
+//						associatedROBEntry.getLsqEntry()));
+			core.getExecEngine().coreMemSys.issueRequestToLSQ(
+					null, 
+					associatedROBEntry);
+		}*/
 
 		if(SimulationConfig.debugMode)
 		{
@@ -167,11 +199,23 @@ public class IWEntry {
 		}
 	}
 	
-	void issueOthers()
+	boolean issueOthers()
 	{
+		
+		if(associatedROBEntry.instruction.getOperationType() == OperationType.interrupt)
+		{
+			associatedROBEntry.setIssued(true);
+			associatedROBEntry.setFUInstance(0);
+			
+			//remove IW entry
+			instructionWindow.removeFromWindow(this);
+			
+			return true;
+		}
+		
 		long FURequest = 0;	//will be <= 0 if an FU was obtained
 		//will be > 0 otherwise, indicating how long before
-		//	an FU of the type will be available
+		//	an FU of the type will be available (not used in new arch)
 
 		FURequest = execEngine.getFunctionalUnitSet().requestFU(
 			OpTypeToFUTypeMapping.getFUType(opType),
@@ -182,39 +226,38 @@ public class IWEntry {
 		{
 			associatedROBEntry.setIssued(true);
 			associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
-			associatedROBEntry.setReadyAtTime(GlobalClock.getCurrentTime() + core.getLatency(
-					OpTypeToFUTypeMapping.getFUType(opType).ordinal())*core.getStepSize());
 			
 			//remove IW entry
 			instructionWindow.removeFromWindow(this);
 			
 			core.getEventQueue().addEvent(
-				new ExecutionCompleteEvent(
-						this.getAssociatedROBEntry(),
-						associatedROBEntry.getFUInstance(),
-						core,
-						GlobalClock.getCurrentTime() + core.getLatency(
-								OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize()
-						) );
+					new BroadCast1Event(
+							GlobalClock.getCurrentTime() + (core.getLatency(
+									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) - 1) * core.getStepSize(),
+							null, 
+							execEngine.getExecuter(),
+							RequestType.BROADCAST_1,
+							associatedROBEntry));
+			
+			core.getEventQueue().addEvent(
+					new ExecCompleteEvent(
+							null,
+							GlobalClock.getCurrentTime() + core.getLatency(
+									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize(),
+							null, 
+							execEngine.getExecuter(),
+							RequestType.EXEC_COMPLETE,
+							associatedROBEntry));
 
 			if(SimulationConfig.debugMode)
 			{
 				System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());
 			}
+			
+			return true;
 		}
 		
-		else
-		{
-			
-			associatedROBEntry.setReadyAtTime(FURequest + core.getLatency(
-			OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize());
-			
-			core.getEventQueue().addEvent(
-					new FunctionalUnitAvailableEvent(
-						this.core,
-						this.getAssociatedROBEntry(),
-						FURequest ) );
-		}
+		return false;
 	}
 
 	

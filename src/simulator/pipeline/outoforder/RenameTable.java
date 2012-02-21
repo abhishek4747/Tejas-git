@@ -1,7 +1,9 @@
 package pipeline.outoforder;
 
+import generic.Event;
+import generic.EventQueue;
+import generic.PortType;
 import generic.SimulationElement;
-import generic.Time_t;
 
 import java.util.LinkedList;
 
@@ -17,17 +19,21 @@ public class RenameTable extends SimulationElement{
 	boolean[] valueValid;
 	private ReorderBufferEntry[] producerROBEntry;
 	
-	LinkedList <Integer>availableList;
+	//LinkedList <Integer>availableList;
 	
 	int[][] archToPhyMapping;
 	
 	RegisterFile associatedRegisterFile;
 	RenameTableCheckpoint checkpoint;
 	
+	int availableList[];
+	int availableListHead;
+	int availableListTail;
+	
 	public RenameTable(int nArchRegisters, int nPhyRegisters, RegisterFile associatedRegisterFile,
 						int noOfThreads)
 	{
-		super(1, new Time_t(-1), new Time_t(-1), -1);
+		super(PortType.Unlimited, -1, -1, null, -1, -1);
 		this.nArchRegisters = nArchRegisters;
 		this.nPhyRegisters = nPhyRegisters;
 		this.noOfThreads = noOfThreads;
@@ -56,6 +62,7 @@ public class RenameTable extends SimulationElement{
 				threadID[temp + i] = j;
 				mappingValid[temp + i] = true;
 				valueValid[temp + i] = true;
+				//associatedRegisterFile.setValueValid(true, temp + i);
 				producerROBEntry[temp + i] = null;
 			}
 		}
@@ -69,11 +76,21 @@ public class RenameTable extends SimulationElement{
 			producerROBEntry[i] = null;
 		}
 		
-		availableList = new LinkedList<Integer>();
+		/*availableList = new LinkedList<Integer>();
 		for(int i = this.nArchRegisters * this.noOfThreads; i < this.nPhyRegisters; i++)
 		{
 			availableList.addLast(i);
 		}
+		*/
+		
+		availableList = new int[this.nPhyRegisters - this.nArchRegisters * this.noOfThreads];
+		int ctr = 0;
+		for(int i = this.nArchRegisters * this.noOfThreads; i < this.nPhyRegisters; i++)
+		{
+			availableList[ctr++] = i;
+		}
+		availableListHead = 0;
+		availableListTail = this.nPhyRegisters - this.nArchRegisters * this.noOfThreads - 1;
 		
 		archToPhyMapping = new int[this.noOfThreads][this.nArchRegisters];
 		for(int j = 0; j < this.noOfThreads; j++)
@@ -104,7 +121,7 @@ public class RenameTable extends SimulationElement{
 	
 	public int allocatePhysicalRegister(int threadID, int archReg)
 	{
-		if(availableList.size() <= 0)
+		if(availableListHead == -1)
 		{
 			//no free physical registers
 			return -1;
@@ -116,12 +133,34 @@ public class RenameTable extends SimulationElement{
 			addToAvailableList(curPhyReg);
 		}
 		*/
-		int newPhyReg = availableList.pollFirst();
+		int newPhyReg = removeFromAvailableList();
+		int oldPhyReg = this.archToPhyMapping[threadID][archReg];
 		this.archReg[newPhyReg] = archReg;
 		this.threadID[newPhyReg] = threadID;
-		this.mappingValid[newPhyReg] = true;
 		this.valueValid[newPhyReg] = false;
+		this.associatedRegisterFile.setValueValid(false, newPhyReg);		
 		this.archToPhyMapping[threadID][archReg] = newPhyReg;
+		/*if(this.valueValid[this.archToPhyMapping[threadID][archReg]] == true
+				&& this.mappingValid[this.archToPhyMapping[threadID][archReg]] == true)*/
+		/*if(this.associatedRegisterFile.getValueValid(oldPhyReg) == true)*/
+		if(this.associatedRegisterFile.getNoOfActiveWriters(oldPhyReg) == 0)
+		{
+			if(this.mappingValid[oldPhyReg] == false)
+			{
+				System.out.println("attempting to add a register, whose mapping is false, to the available list!!");
+			}
+			addToAvailableList(oldPhyReg);
+		}
+		if(this.associatedRegisterFile.getNoOfActiveWriters(oldPhyReg) < 0)
+		{
+			System.out.println("number of active writers < 0!!");
+		}
+
+		this.mappingValid[newPhyReg] = true;
+		this.mappingValid[oldPhyReg] = false;
+		
+		this.associatedRegisterFile.incrementNoOfActiveWriters(newPhyReg);
+		
 		return newPhyReg;
 	}
 
@@ -166,6 +205,14 @@ public class RenameTable extends SimulationElement{
 
 	public void setProducerROBEntry(ReorderBufferEntry producerROBEntry, int index) {
 		this.producerROBEntry[index] = producerROBEntry;
+	}	
+
+	public RegisterFile getAssociatedRegisterFile() {
+		return associatedRegisterFile;
+	}
+
+	public void setAssociatedRegisterFile(RegisterFile associatedRegisterFile) {
+		this.associatedRegisterFile = associatedRegisterFile;
 	}
 
 	public RenameTableCheckpoint getCheckpoint() {
@@ -176,10 +223,88 @@ public class RenameTable extends SimulationElement{
 		this.checkpoint = checkpoint;
 	}
 	
-	public void addToAvailableList(int phyRegNum)
+	/*public void addToAvailableList(int phyRegNum)
 	{
 		this.availableList.addLast(phyRegNum);
-		setValueValid(false, phyRegNum);
+		//setValueValid(false, phyRegNum);
+	}
+	*/
+	
+	public void addToAvailableList(int phyRegNum)
+	{
+		/*for(int i = availableListHead; ; i = (i+1)%(this.nPhyRegisters - this.nArchRegisters * this.noOfThreads))
+		{
+			if(i == -1)
+				break;
+			
+			if(availableList[i] == phyRegNum)
+			{
+				System.out.println("adding already existing register to available list!!");
+			}
+			
+			if(i == availableListTail)
+				break;
+		}
+		for(int i = 0; i < noOfThreads; i++)
+		{
+			for(int j = 0; j < nArchRegisters; j++)
+			{
+				if(archToPhyMapping[i][j] == phyRegNum)
+				{
+					System.out.println("adding register, that is currently mapped, to available list!!");
+				}
+			}
+		}*/
+		if(getAvailableListSize() >= this.nPhyRegisters - this.nArchRegisters * this.noOfThreads)
+		{
+			System.out.println("available register list overflow!!");
+			System.exit(1);
+		}
+		
+		availableListTail = (availableListTail + 1)%(this.nPhyRegisters - this.nArchRegisters * this.noOfThreads);
+		availableList[availableListTail] = phyRegNum;
+		if(availableListHead == -1)
+		{
+			availableListHead = 0;
+		}
 	}
 	
+	public int removeFromAvailableList()
+	{
+		//NOTE - list empty check to be done before this function is called
+		int toBeReturned = availableList[availableListHead];
+		
+		if(availableListHead == availableListTail)
+		{
+			availableListHead = availableListTail = -1;
+		}
+		else
+		{
+			availableListHead = (availableListHead + 1)%(this.nPhyRegisters - this.nArchRegisters * this.noOfThreads);
+		}
+		
+		return toBeReturned;
+	}
+	
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public int getAvailableListSize()
+	{
+		if(availableListHead == -1)
+		{
+			return 0;
+		}
+		
+		if(availableListTail >= availableListHead)
+		{
+			return (availableListTail - availableListHead + 1);
+		}
+		
+		return (this.nPhyRegisters - this.nArchRegisters * this.noOfThreads - availableListHead + availableListTail + 1);
+	}
+
 }

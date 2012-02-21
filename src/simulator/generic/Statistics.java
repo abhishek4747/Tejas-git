@@ -98,6 +98,8 @@ public class Statistics {
 	static long coreCyclesTaken[];
 	static long coreFrequencies[];				//in MHz
 	static long numCoreInstructions[];
+	static long branchCount[];
+	static long mispredictedBranchCount[];
 	static long totalNumMicroOps = 0;
 	static long totalNumInstructions = 0;
 
@@ -135,6 +137,11 @@ public class Statistics {
 				
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
 				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
+				outputFileWriter.write("\n");
+				
+				outputFileWriter.write("number of branches\t=\t" + branchCount[i] + "\n");
+				outputFileWriter.write("number of mispredicted branches\t=\t" + mispredictedBranchCount[i] + "\n");
+				outputFileWriter.write("branch predictor accuracy\t=\t" + (double)((double)(branchCount[i]-mispredictedBranchCount[i])*100/branchCount[i]) + " %\n");
 				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("\n");
@@ -292,6 +299,8 @@ public class Statistics {
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
 		coreFrequencies = new long[SystemConfig.NoOfCores];
 		numCoreInstructions = new long[SystemConfig.NoOfCores];
+		branchCount = new long[SystemConfig.NoOfCores];
+		mispredictedBranchCount = new long[SystemConfig.NoOfCores];
 		
 		noOfMemRequests = new long[SystemConfig.NoOfCores];
 		noOfLoads = new long[SystemConfig.NoOfCores];
@@ -400,6 +409,14 @@ public class Statistics {
 	
 	public static void setNumCoreInstructions(long numCoreInstructions, int core) {
 		Statistics.numCoreInstructions[core] = numCoreInstructions;
+	}
+
+	public static void setBranchCount(long branchCount, int core) {
+		Statistics.branchCount[core] = branchCount;
+	}
+
+	public static void setMispredictedBranchCount(long mispredictedBranchCount, int core) {
+		Statistics.mispredictedBranchCount[core] = mispredictedBranchCount;
 	}
 	
 	public static void setNoOfLoads(long noOfLoads, int core) {

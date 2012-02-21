@@ -1,4 +1,4 @@
-package pipeline.outoforder_new_arch;
+package pipeline.outoforder;
 
 import config.SimulationConfig;
 import generic.Core;

@@ -1,6 +1,6 @@
 package pipeline.statistical;
 
-import pipeline.outoforder_new_arch.ReorderBufferEntry;
+import pipeline.outoforder.ReorderBufferEntry;
 import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import generic.Core;

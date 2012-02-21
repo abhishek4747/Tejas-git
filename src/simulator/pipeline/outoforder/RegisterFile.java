@@ -1,8 +1,10 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.Event;
+import generic.EventQueue;
+import generic.PortType;
 import generic.SimulationElement;
-import generic.Time_t;
 
 public class RegisterFile extends SimulationElement{
 	
@@ -11,19 +13,23 @@ public class RegisterFile extends SimulationElement{
 	private Object[] value;
 	private boolean[] valueValid;					//28-6-11. currently used only for
 	private ReorderBufferEntry[] producerROBEntry;	//machine specific registers
+	private int[] noOfActiveWriters;
 	
 	public RegisterFile(Core core, int _registerFileSize)
 	{
-		super(core.getNoOfRegFilePorts(), new Time_t(core.getRegFileOccupancy()), new Time_t(-1), -1);
+		super(PortType.Unlimited, -1, -1, null, -1, -1);
+		
 		this.core = core;
 		registerFileSize = _registerFileSize;
 		value = new Object[registerFileSize];
 		valueValid = new boolean[registerFileSize];
 		producerROBEntry = new ReorderBufferEntry[registerFileSize];
+		noOfActiveWriters = new int[registerFileSize];
 		for(int i = 0; i < registerFileSize; i++)
 		{
 			valueValid[i] = true;
 			producerROBEntry[i] = null;
+			noOfActiveWriters[i] = 0;
 		}
 	}
 
@@ -57,5 +63,29 @@ public class RegisterFile extends SimulationElement{
 
 	public Core getCore() {
 		return core;
+	}
+
+	public int getNoOfActiveWriters(int phyRegNum) {
+		return noOfActiveWriters[phyRegNum];
+	}
+
+	public void setNoOfActiveWriters(int noOfActiveWriters, int phyRegNum) {
+		this.noOfActiveWriters[phyRegNum] = noOfActiveWriters;
+	}
+	
+	public void incrementNoOfActiveWriters(int phyRegNum)
+	{
+		this.noOfActiveWriters[phyRegNum]++;
+	}
+	
+	public void decrementNoOfActiveWriters(int phyRegNum)
+	{
+		this.noOfActiveWriters[phyRegNum]--;
+	}
+
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub
+		
 	}
 }

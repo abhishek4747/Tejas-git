@@ -1,4 +1,4 @@
-package pipeline.outoforder_new_arch;
+package pipeline.outoforder;
 
 import config.SimulationConfig;
 import generic.Core;
@@ -43,6 +43,12 @@ public class RenameLogic extends SimulationElement {
 	 */
 	public void performRename()
 	{
+		if(execEngine.isToStall5() == true)
+		{
+			//pipeline stalled due to branch mis-prediction
+			return;
+		}
+		
 		if(!execEngine.isToStall1())
 		{
 			for(int i = 0; i < decodeWidth; i++)

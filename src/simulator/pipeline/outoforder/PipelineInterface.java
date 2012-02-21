@@ -1,4 +1,4 @@
-package pipeline.outoforder_new_arch;
+package pipeline.outoforder;
 
 import generic.Core;
 import generic.EventQueue;

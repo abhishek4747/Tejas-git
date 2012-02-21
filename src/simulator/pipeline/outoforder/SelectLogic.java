@@ -1,4 +1,4 @@
-package pipeline.outoforder_new_arch;
+package pipeline.outoforder;
 
 import generic.Core;
 import generic.Event;
@@ -118,6 +118,12 @@ public class SelectLogic extends SimulationElement {
 	
 	public void performSelect2()
 	{
+		if(execEngine.isToStall5() == true)
+		{
+			//pipeline stalled due to branch mis-prediction
+			return;
+		}
+		
 		int wakeUpListCtr = 0;
 		int noAwoken = 0;
 		ReorderBuffer ROB = execEngine.getReorderBuffer();
@@ -180,6 +186,12 @@ public class SelectLogic extends SimulationElement {
 				i = (i+1)%ROB.MaxROBSize;
 			}while(i != ROB.tail);
 		}
+		
+		if(wakeUpListCtr != IW.maxIWSize)
+		{
+			destRegOpndType[wakeUpListCtr] = OperandType.inValid;
+		}
+		performWakeUp();
 	}
 	
 	private void performWakeUp()

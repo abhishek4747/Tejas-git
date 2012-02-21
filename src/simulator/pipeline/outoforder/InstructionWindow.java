@@ -1,8 +1,10 @@
 package pipeline.outoforder;
 
 import generic.Core;
+import generic.Event;
+import generic.EventQueue;
+import generic.PortType;
 import generic.SimulationElement;
-import generic.Time_t;
 
 public class InstructionWindow extends SimulationElement {
 	
@@ -23,7 +25,7 @@ public class InstructionWindow extends SimulationElement {
 	
 	public InstructionWindow(Core core, ExecutionEngine executionEngine)
 	{
-		super(1, new Time_t(-1), new Time_t(-1), -1);
+		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;
 		maxIWSize = core.getIWSize();
 		IW = new IWEntry[maxIWSize];
@@ -134,6 +136,12 @@ public class InstructionWindow extends SimulationElement {
 	
 	public int getMaxIWSize() {
 		return maxIWSize;
+	}
+
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

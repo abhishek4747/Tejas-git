@@ -20,7 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
-import pipeline.outoforder_new_arch.ReorderBufferEntry;
+import pipeline.outoforder.ReorderBufferEntry;
 import generic.SimulationElement;
 import generic.EventQueue;
 import generic.Core;

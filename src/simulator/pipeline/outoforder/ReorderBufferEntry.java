@@ -11,29 +11,29 @@ import generic.OperationType;
 public class ReorderBufferEntry {
 	
 	private Core core;
-	private boolean isValid;
-	private Instruction instruction;
+	boolean isValid;
+	Instruction instruction;
 	int threadID;
-	private int operand1PhyReg1;
-	private int operand1PhyReg2;
-	private int operand2PhyReg1;
-	private int operand2PhyReg2;
+	int operand1PhyReg1;
+	int operand1PhyReg2;
+	int operand2PhyReg1;
+	int operand2PhyReg2;
 	boolean isOperand1Available;
 	boolean isOperand2Available;
 	boolean isOperand11Available;
 	boolean isOperand12Available;
 	boolean isOperand21Available;
 	boolean isOperand22Available;
-	private int physicalDestinationRegister;
-	private boolean isRenameDone;
-	private boolean isIssued;
-	private int FUInstance;								//which FU has been assigned
-	private boolean isExecuted;
-	private boolean isWriteBackDone1;
-	private boolean isWriteBackDone2;
-	private long readyAtTime;							//in terms of GlobalClock cycles
-	private IWEntry associatedIWEntry;
-	private LSQEntry lsqEntry = null; //entry in LSQ
+	int physicalDestinationRegister;
+	boolean isRenameDone;
+	boolean isIssued;
+	int FUInstance;								//which FU has been assigned
+	boolean isExecuted;
+	boolean isWriteBackDone1;
+	boolean isWriteBackDone2;
+	//private long readyAtTime;							//in terms of GlobalClock cycles
+	IWEntry associatedIWEntry;
+	LSQEntry lsqEntry = null; //entry in LSQ
 	
 	int pos;
 	
@@ -48,6 +48,7 @@ public class ReorderBufferEntry {
 		this.execEngine = execEngine;
 	}
 	
+	/*
 	public void attemptToWriteBack()
 	{
 		if(isExecuted == true)
@@ -170,7 +171,7 @@ public class ReorderBufferEntry {
 		//attempt to write-back
 		WriteBackLogic.writeBack(this, 3, tempRF, tempRN, physicalDestinationRegister, core);
 	}
-	
+	*/
 	
 		
 	public Instruction getInstruction()
@@ -223,7 +224,7 @@ public class ReorderBufferEntry {
 		FUInstance = _FUInstance;
 	}
 	
-	public long getReadyAtTime()
+	/*public long getReadyAtTime()
 	{
 		if(readyAtTime <= GlobalClock.getCurrentTime())
 		{
@@ -240,7 +241,7 @@ public class ReorderBufferEntry {
 		readyAtTime = _readyAtTime + core.getRegFileOccupancy()*core.getStepSize();
 		//at places where the readyAtTime is calculated, the focus is on completion of operation
 		//hence, the register file latency is accounted for here
-	}
+	}*/
 	
 	public int getOperand1PhyReg1() {
 		return operand1PhyReg1;
@@ -399,7 +400,7 @@ public class ReorderBufferEntry {
 		sb.append("exec = " + isExecuted + " ");
 		sb.append("wb1 = " + isWriteBackDone1 + " ");
 		sb.append("wb2 = " + isWriteBackDone2 + "\n");
-		sb.append("ready at time = " + readyAtTime + "\n\n\n");
+		//sb.append("ready at time = " + readyAtTime + "\n\n\n");
 		return sb.toString();
 	}
 
