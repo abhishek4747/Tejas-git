@@ -29,7 +29,7 @@ import generic.Statistics;
  */
 public class RunnableThread implements Encoding {
 
-	private static final int THRESHOLD = 100000;
+	private static final int THRESHOLD = 5000;
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;

@@ -48,6 +48,9 @@ public class InstructionLinkedList implements Serializable
 	//appends a single instruction to the instruction list
 	public void appendInstruction(Instruction instruction)
 	{
+		if(instructionLinkedList.size() > 50000) {
+			System.out.println("Limit Exceeded");
+		}
 		instructionLinkedList.add(instruction);
 	}
 	
