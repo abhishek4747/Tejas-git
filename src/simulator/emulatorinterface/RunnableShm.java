@@ -87,6 +87,14 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					pnew = ipcType.fetchOnePacket(tidApp, thread.readerLocation
 							+ i);
 					v = pnew.value;
+					if(Newmain.operandPool.getNumIdle() == 0)
+					{
+						System.out.println("operand pool exhausted : " + inputToPipeline[0].getListSize());
+					}
+					if(Newmain.instructionPool.getNumIdle() == 0)
+					{
+						System.out.println("instruction pool exhausted : " + inputToPipeline[0].getListSize());
+					}
 					processPacket(thread, pnew, tidEmu);
 				}
 

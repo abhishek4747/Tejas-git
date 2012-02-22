@@ -25,6 +25,8 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
+import emulatorinterface.Newmain;
+
 
 public class InstructionLinkedList implements Serializable
 {
@@ -67,10 +69,16 @@ public class InstructionLinkedList implements Serializable
 	// ip=instructionPointer
 	public void removeInstructionFromTail(long instructionPointer)
 	{
+		Instruction removedInstruction;
 		while( (instructionLinkedList.isEmpty()==false) &&
 			(instructionLinkedList.getLast().getProgramCounter()==instructionPointer))
 		{
-			instructionLinkedList.removeLast();
+			removedInstruction = instructionLinkedList.removeLast();
+			try {
+				Newmain.instructionPool.returnObject(removedInstruction);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
