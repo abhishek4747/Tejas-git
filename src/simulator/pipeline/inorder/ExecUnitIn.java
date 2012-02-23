@@ -34,6 +34,9 @@ public class ExecUnitIn extends SimulationElement{
 				exMemLatch.setOut1(idExLatch.getOut1());
 				exMemLatch.setOperationType(idExLatch.getOperationType());
 				exMemLatch.setMemDone(true);
+				
+				idExLatch.clear();
+				
 				if(idExLatch.getOperationType()==OperationType.load){
 					core.getExecutionEngineIn().updateNoOfLd(1);
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);

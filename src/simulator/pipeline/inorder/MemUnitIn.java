@@ -28,16 +28,23 @@ public class MemUnitIn extends SimulationElement{
 				exMemLatch.setMemDone(true);		//FIXME
 				exMemLatch.setStallCount(0);
 			}
+			memWbLatch.setInstruction(null);
 //System.out.println("Memory Stall!");
-		}if(ins!=null){
-			memWbLatch.setInstruction(ins);
-			memWbLatch.setIn1(exMemLatch.getIn1());
-			memWbLatch.setIn2(exMemLatch.getIn2());
-			memWbLatch.setOut1(exMemLatch.getOut1());
-			memWbLatch.setOperationType(exMemLatch.getOperationType());
 		}
 		else{
-			memWbLatch.setInstruction(null);
+			if(ins!=null){
+				memWbLatch.setInstruction(ins);
+				memWbLatch.setIn1(exMemLatch.getIn1());
+				memWbLatch.setIn2(exMemLatch.getIn2());
+				memWbLatch.setOut1(exMemLatch.getOut1());
+				memWbLatch.setOperationType(exMemLatch.getOperationType());
+
+				exMemLatch.clear();
+				
+			}
+			else{
+				memWbLatch.setInstruction(null);
+			}
 		}
 	}
 

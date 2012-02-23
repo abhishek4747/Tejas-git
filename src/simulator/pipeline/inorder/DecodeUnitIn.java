@@ -34,24 +34,28 @@ public class DecodeUnitIn extends SimulationElement{
 				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
 //System.out.println("Data Hazard!");
 			}
-			idExLatch.setInstruction(ins);
-			idExLatch.setIn1(ins.getSourceOperand1());
-			idExLatch.setIn2(ins.getSourceOperand2());			
-			idExLatch.setOut1(ins.getDestinationOperand());
-			idExLatch.setOperationType(ins.getOperationType());
-
-			if(ins.getOperationType()==OperationType.branch){ 
-				core.getBranchPredictor().Train(
-						ins.getProgramCounter(),
-						ins.isBranchTaken(),
-						core.getBranchPredictor().predict(ins.getProgramCounter())
-						);
-				if(core.getBranchPredictor().predict(ins.getProgramCounter()) != ins.isBranchTaken()){
-				//Branch mis predicted
-				//stall pipeline for appropriate cycles
-				//TODO correct the following:
-//				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
-					core.getExecutionEngineIn().getFetchUnitIn().incrementStall(2);
+			else{
+				idExLatch.setInstruction(ins);
+				idExLatch.setIn1(ins.getSourceOperand1());
+				idExLatch.setIn2(ins.getSourceOperand2());			
+				idExLatch.setOut1(ins.getDestinationOperand());
+				idExLatch.setOperationType(ins.getOperationType());
+				
+				ifIdLatch.clear();
+			
+				if(ins.getOperationType()==OperationType.branch){ 
+					core.getBranchPredictor().Train(
+							ins.getProgramCounter(),
+							ins.isBranchTaken(),
+							core.getBranchPredictor().predict(ins.getProgramCounter())
+							);
+					if(core.getBranchPredictor().predict(ins.getProgramCounter()) != ins.isBranchTaken()){
+					//Branch mis predicted
+					//stall pipeline for appropriate cycles
+					//TODO correct the following:
+	//				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
+						core.getExecutionEngineIn().getFetchUnitIn().incrementStall(2);
+					}
 				}
 			}
 		}

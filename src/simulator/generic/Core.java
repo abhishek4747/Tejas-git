@@ -68,6 +68,7 @@ public class Core extends SimulationElement{
 	private int noOfInstructionsExecuted;
 	
 	private pipeline.PipelineInterface pipelineInterface;
+	public int numReturns;
 
 
 //	private InorderPipeline inorderPipeline;
@@ -99,7 +100,7 @@ public class Core extends SimulationElement{
 		
 		this.branchPredictor = new TournamentPredictor();
 		this.noOfInstructionsExecuted = 0;
-		
+		this.numReturns=0;
 		if (this.isPipelineStatistical)
 			this.pipelineInterface = new StatisticalPipelineInterface(this, eventQueue);
 		else if(this.isPipelineInorder)

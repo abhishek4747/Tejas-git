@@ -109,4 +109,11 @@ public class StageLatch {
 	public void setMemDone(boolean val){
 		this.memDone=val;
 	}
+	public void clear(){
+		this.instruction=null;
+		this.in1 = null;
+		this.in2 = null;
+		this.out1 = null;
+		this.operationType = null;
+	}
 }

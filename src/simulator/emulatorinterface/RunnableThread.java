@@ -3,6 +3,7 @@
  */
 
 package emulatorinterface;
+
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,13 +24,16 @@ import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.Statistics;
+import org.apache.commons.pool.ObjectPool;
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
  */
 public class RunnableThread implements Encoding {
 
-	private static final int THRESHOLD = 100000;
+	private static final int INSTRUCTION_THRESHOLD = 5000;
+	private static final int PACKET_THRESHOLD = 5000;
+	
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;
@@ -124,7 +128,8 @@ public class RunnableThread implements Encoding {
 		int minN = Integer.MAX_VALUE;
 		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 			ThreadParams th = threadParams[tidEmu];
-			if ( th.halted && inputToPipeline[tidEmu].getListSize() < THRESHOLD ) {
+			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD
+					|| th.packets.size() > PACKET_THRESHOLD)){
 				th.halted = false;
 			//	System.out.println("Halting over..!! "+tidEmu);
 			}
@@ -316,7 +321,8 @@ public class RunnableThread implements Encoding {
 			else {
 				
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
-				if (!thread.halted && this.inputToPipeline[tidEmu].getListSize() > THRESHOLD) {
+				if (!thread.halted && (this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD
+						|| thread.packets.size() > PACKET_THRESHOLD)) {
 					thread.halted = true;
 					//System.out.println("Halting "+tidEmu);
 				}
