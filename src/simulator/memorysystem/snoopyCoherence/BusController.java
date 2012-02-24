@@ -13,12 +13,14 @@ import memorysystem.AddressCarryingEvent;
 import memorysystem.CacheLine;
 import memorysystem.Cache;
 import memorysystem.MESI;
+import misc.Util;
 
 public class BusController 
 {
 	
-	private final int busOccupancy = 1;
+	private final int busOccupancy = 5;
 	private int numBuses;
+	private long busMask;
 	private Cache sharedMem;
 	protected ArrayList<Cache> upperLevel;
 	protected Cache lowerCache;
@@ -29,6 +31,8 @@ public class BusController
 	{
 		super();
 		this.numBuses = numberOfBuses;
+		this.busMask = numberOfBuses-1;
+//		System.out.println("BusMask = "+ busMask);
 		this.sharedMem = sharedMem;
 		this.upperLevel = upperLevel;
 		this.lowerCache = lowerCache;
@@ -209,57 +213,74 @@ public class BusController
 	
 	public void getBusAndPutEvents(ArrayList<Event> eventList)
 	{
-		int availableBusID = 0;
-		for(int i=0; i<numBuses; i++)
-		{
-			if(busBusyUntil[i]< 
-					busBusyUntil[availableBusID])
-			{
-				availableBusID = i;
-			}
-		}
+		if (eventList.isEmpty())
+			return;
 		
-		if (busBusyUntil[availableBusID] < GlobalClock.getCurrentTime())
+		int busID = 0;
+
+		//Address multiplexing
+		long address = ((AddressCarryingEvent)(eventList.get(0))).getAddress();
+		busID = (int)(address & busMask);
+//		System.out.println("Bus ID : "+busID);
+		
+		
+//		for(int i=0; i<numBuses; i++)
+//		{
+//			if(busBusyUntil[i]< 
+//					busBusyUntil[busID])
+//			{
+//				busID = i;
+//			}
+//		}
+		
+		if (busBusyUntil[busID] < GlobalClock.getCurrentTime())
 		{
-			busBusyUntil[availableBusID] = GlobalClock.getCurrentTime() + sharedMem.getStepSize();
+			busBusyUntil[busID] = GlobalClock.getCurrentTime() + (busOccupancy * sharedMem.getStepSize());
 			for (int i = 0; i < eventList.size(); i++)
 			{
-				eventList.get(i).addEventTime(sharedMem.getStepSize());
+				eventList.get(i).addEventTime(busOccupancy * sharedMem.getStepSize());
 				eventList.get(i).getProcessingElement().getPort().put(eventList.get(i));
 			}
 		}
 		else
 		{
-			busBusyUntil[availableBusID] += sharedMem.getStepSize();
+			busBusyUntil[busID] += busOccupancy * sharedMem.getStepSize();
 			for (int i = 0; i < eventList.size(); i++)
 			{
-				eventList.get(i).addEventTime(busBusyUntil[availableBusID] - GlobalClock.getCurrentTime());
+				eventList.get(i).addEventTime(busBusyUntil[busID] - GlobalClock.getCurrentTime() + (busOccupancy * sharedMem.getStepSize()));
 				eventList.get(i).getProcessingElement().getPort().put(eventList.get(i));
 			}
 		}
 	}
 	public void getBusAndPutEvent(Event event)
 	{
-		int availableBusID = 0;
-		for(int i=0; i<numBuses; i++)
-		{
-			if(busBusyUntil[i]< 
-					busBusyUntil[availableBusID])
-			{
-				availableBusID = i;
-			}
-		}
+		int busID = 0;
+
+		//Address multiplexing
+		long address = ((AddressCarryingEvent)event).getAddress();
+		busID = (int)(address & busMask);
+//		System.out.println("Bus ID : "+busID);
 		
-		if (busBusyUntil[availableBusID] < GlobalClock.getCurrentTime())
+		
+//		for(int i=0; i<numBuses; i++)
+//		{
+//			if(busBusyUntil[i]< 
+//					busBusyUntil[busID])
+//			{
+//				busID = i;
+//			}
+//		}
+		
+		if (busBusyUntil[busID] < GlobalClock.getCurrentTime())
 		{
-			busBusyUntil[availableBusID] = GlobalClock.getCurrentTime() + (busOccupancy * sharedMem.getStepSize());
+			busBusyUntil[busID] = GlobalClock.getCurrentTime() + (busOccupancy * sharedMem.getStepSize());
 			event.addEventTime(busOccupancy * sharedMem.getStepSize());
 			event.getProcessingElement().getPort().put(event);
 		}
 		else
 		{
-			busBusyUntil[availableBusID] += sharedMem.getStepSize();
-			event.addEventTime(busBusyUntil[availableBusID] - GlobalClock.getCurrentTime());
+			busBusyUntil[busID] += busOccupancy * sharedMem.getStepSize();
+			event.addEventTime(busBusyUntil[busID] - GlobalClock.getCurrentTime() + (busOccupancy * sharedMem.getStepSize()));
 			event.getProcessingElement().getPort().put(event);
 		}
 	}
