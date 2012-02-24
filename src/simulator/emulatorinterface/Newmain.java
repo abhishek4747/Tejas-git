@@ -18,6 +18,8 @@ import emulatorinterface.communication.*;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
+import generic.CustomInstructionPool;
+import generic.CustomOperandPool;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
@@ -32,8 +34,10 @@ public class Newmain {
 	public static int notHandled=0;
 	public static Object syncObject = new Object();
 	public static Process process;
-	public static GenericObjectPool<Operand> operandPool;
-	public static GenericObjectPool<Instruction> instructionPool;
+	//public static GenericObjectPool<Operand> operandPool;
+	//public static GenericObjectPool<Instruction> instructionPool;
+	public static CustomOperandPool operandPool;
+	public static CustomInstructionPool instructionPool;
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];;
@@ -63,8 +67,9 @@ public class Newmain {
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// Create Pools of Instructions and Operands
-		int numInstructionsInPool = 10000;
+		int numInstructionsInPool = 15000;
 		
+		/* "apache pool"
 		System.out.println("creating operand pool..");
 		operandPool = new GenericObjectPool<Operand>(new PoolableOperandFactory());
 		operandPool.setMaxActive(numInstructionsInPool * 3);
@@ -85,7 +90,14 @@ public class Newmain {
 		
 		System.out.println("number of operands in pool = " + operandPool.getNumIdle());
 		System.out.println("number of instructions in pool = " + instructionPool.getNumIdle());
-
+		*/
+		/* custom pool */
+		System.out.println("creating operand pool..");
+		operandPool = new CustomOperandPool(numInstructionsInPool * 3);
+		System.out.println("creating instruction pool..");
+		instructionPool = new CustomInstructionPool(numInstructionsInPool);
+		
+		
 /*		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
 */

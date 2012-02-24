@@ -1,6 +1,7 @@
 package pipeline.outoforder;
 
 import config.SimulationConfig;
+import emulatorinterface.Newmain;
 import pipeline.outoforder.ReorderBufferEntry;
 import generic.Core;
 import generic.Event;
@@ -80,6 +81,20 @@ public class DecodeLogic extends SimulationElement {
 					if(SimulationConfig.debugMode)
 					{
 						System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + fetchBuffer[i]);
+					}
+				}
+				
+				if(fetchBuffer[i] != null)
+				{
+					if(fetchBuffer[i].getOperationType() == OperationType.interrupt ||
+							fetchBuffer[i].getOperationType() == OperationType.nop ||
+							fetchBuffer[i].getOperationType() == OperationType.inValid)
+					{
+						try {
+							Newmain.instructionPool.returnObject(fetchBuffer[i]);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 				

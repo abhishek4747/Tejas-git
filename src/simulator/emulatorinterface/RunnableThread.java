@@ -31,8 +31,8 @@ import org.apache.commons.pool.ObjectPool;
  */
 public class RunnableThread implements Encoding {
 
-	private static final int INSTRUCTION_THRESHOLD = 5000;
-	private static final int PACKET_THRESHOLD = 5000;
+	private static final int INSTRUCTION_THRESHOLD = 10000;
+	private static final int PACKET_THRESHOLD = 10000;
 	
 	
 	boolean doNotProcess = false;
@@ -128,8 +128,8 @@ public class RunnableThread implements Encoding {
 		int minN = Integer.MAX_VALUE;
 		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 			ThreadParams th = threadParams[tidEmu];
-			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD
-					|| th.packets.size() > PACKET_THRESHOLD)){
+			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
+					//|| th.packets.size() > PACKET_THRESHOLD)){
 				th.halted = false;
 			//	System.out.println("Halting over..!! "+tidEmu);
 			}
@@ -321,8 +321,8 @@ public class RunnableThread implements Encoding {
 			else {
 				
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
-				if (!thread.halted && (this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD
-						|| thread.packets.size() > PACKET_THRESHOLD)) {
+				if (!thread.halted && (this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
+						//|| thread.packets.size() > PACKET_THRESHOLD)) {
 					thread.halted = true;
 					//System.out.println("Halting "+tidEmu);
 				}
@@ -333,7 +333,7 @@ public class RunnableThread implements Encoding {
 */				
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && tempList.getListSize() > 0) {
-				//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 
 

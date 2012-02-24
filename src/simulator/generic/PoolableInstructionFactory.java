@@ -12,7 +12,7 @@ public class PoolableInstructionFactory implements PoolableObjectFactory<Instruc
 	@Override
 	public void activateObject(Instruction arg0) throws Exception {
 		
-		System.out.println("instruction borrow :" +  ++numBorrows);
+		//System.out.println("instruction borrow :" +  ++numBorrows);
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class PoolableInstructionFactory implements PoolableObjectFactory<Instruc
 			Newmain.operandPool.returnObject(arg0.getDestinationOperand());
 		}
 		
-		System.out.println("instruction return :" +  ++numReturns);
+		//System.out.println("instruction return :" +  ++numReturns);
 		
 	}
 

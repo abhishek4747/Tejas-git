@@ -221,7 +221,7 @@ public class ReorderBuffer extends SimulationElement{
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
 					
-					System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
+					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					
 					if(firstDestOpnd != null)
 					{
