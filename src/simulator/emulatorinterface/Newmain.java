@@ -2,8 +2,6 @@ package emulatorinterface;
 
 import java.util.Enumeration;
 
-import org.apache.commons.pool.impl.GenericObjectPool;
-
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
@@ -23,8 +21,6 @@ import generic.CustomOperandPool;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
-import generic.PoolableInstructionFactory;
-import generic.PoolableOperandFactory;
 import generic.Statistics;
 
 public class Newmain {

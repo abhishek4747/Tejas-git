@@ -24,7 +24,6 @@ import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.Statistics;
-import org.apache.commons.pool.ObjectPool;
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
@@ -344,7 +343,9 @@ public class RunnableThread implements Encoding {
 
 	}
 
-
+	protected boolean poolExhausted() {
+		return (Newmain.instructionPool.getNumIdle() < 30);
+	}
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {
