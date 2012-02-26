@@ -102,6 +102,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				}
 */
 				while (poolExhausted()) {
+					//System.out.println("infinte loop");
 					runPipelines();
 				}
 				

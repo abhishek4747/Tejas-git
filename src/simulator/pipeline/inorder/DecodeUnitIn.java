@@ -60,7 +60,7 @@ public class DecodeUnitIn extends SimulationElement{
 			}
 		}
 		else{
-			idExLatch.setInstruction(null);
+//			idExLatch.setInstruction(null);
 		}
 		
 	}

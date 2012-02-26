@@ -53,7 +53,7 @@ public class FetchUnitIn extends SimulationElement{
 			else
 			{	
 				fetchBuffer[i] = inputToPipeline.pollFirst();
-
+//System.out.println("Serial Num Fetch = "+fetchBuffer[i].getSerialNo());
 				if(!inputToPipeline.isEmpty())
 					newInstruction = inputToPipeline.peekInstructionAt(0);
 				else
@@ -99,11 +99,11 @@ public class FetchUnitIn extends SimulationElement{
 			
 			}
 			else{
-				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
+//				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
 			}
 		}
 		else if(this.stall>0){
-			core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
+//			core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
 			this.stall--;
 		}
 				

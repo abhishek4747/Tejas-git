@@ -34,6 +34,7 @@ public class Instruction implements Serializable
 	private long programCounter;
 	private boolean branchTaken;
 	private long branchTargetAddress;
+	private long serialNo;
 	
 	public Instruction()
 	{
@@ -287,5 +288,13 @@ public class Instruction implements Serializable
 	public Operand getOperand2()
 	{
 		return sourceOperand2;
+	}
+
+	public long getSerialNo() {
+		return serialNo;
+	}
+
+	public void setSerialNo(long serialNo) {
+		this.serialNo = serialNo;
 	}
 }

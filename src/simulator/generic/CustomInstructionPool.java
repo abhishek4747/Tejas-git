@@ -5,9 +5,9 @@ import emulatorinterface.Newmain;
 public class CustomInstructionPool {
 	
 	Instruction[] pool;
-	int head;
-	int tail;
-	int poolSize;
+	public int head;
+	public int tail;
+	public int poolSize;
 	
 	public CustomInstructionPool(int poolSize)
 	{
@@ -23,6 +23,7 @@ public class CustomInstructionPool {
 	
 	public Instruction borrowObject()
 	{
+//		System.out.println("borrow"+head+" "+tail);
 		if(head == -1)
 		{
 			System.out.println("instruction pool empty!!");
@@ -43,6 +44,7 @@ public class CustomInstructionPool {
 	
 	public void returnObject(Instruction arg0)
 	{
+//		System.out.println("return"+head+" "+tail);
 		if(arg0.getSourceOperand1() != null)
 		{
 			Newmain.operandPool.returnObject(arg0.getSourceOperand1());

@@ -22,12 +22,18 @@ public class WriteBackUnitIn extends SimulationElement{
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
 				core.getExecutionEngineIn().setExecutionComplete(true);
 			else {
+				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
+					//System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());
+				}
 				core.incrementNoOfInstructionsExecuted();
 				try {
-					Newmain.instructionPool.returnObject(memWbLatch.getInstruction());
-					Newmain.operandPool.returnObject(memWbLatch.getIn1());
-					Newmain.operandPool.returnObject(memWbLatch.getIn2());
-					Newmain.operandPool.returnObject(memWbLatch.getOut1());
+/*					System.out.println(Newmain.instructionPool.getNumIdle()+"  "+Newmain.instructionPool.poolSize
+							+"  "+Newmain.instructionPool.head
+							+"  "+Newmain.instructionPool.tail);
+*/					Newmain.instructionPool.returnObject(memWbLatch.getInstruction());
+//					Newmain.operandPool.returnObject(memWbLatch.getIn1());
+//					Newmain.operandPool.returnObject(memWbLatch.getIn2());
+//					Newmain.operandPool.returnObject(memWbLatch.getOut1());
 					core.numReturns++;
 				} catch (Exception e) {
 					e.printStackTrace();

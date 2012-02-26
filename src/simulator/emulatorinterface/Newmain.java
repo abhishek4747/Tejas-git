@@ -89,7 +89,7 @@ public class Newmain {
 		*/
 		/* custom pool */
 		System.out.println("creating operand pool..");
-		operandPool = new CustomOperandPool(numInstructionsInPool * 3);
+		operandPool = new CustomOperandPool(numInstructionsInPool *3);
 		System.out.println("creating instruction pool..");
 		instructionPool = new CustomInstructionPool(numInstructionsInPool);
 		

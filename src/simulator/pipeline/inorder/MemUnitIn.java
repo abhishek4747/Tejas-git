@@ -28,7 +28,7 @@ public class MemUnitIn extends SimulationElement{
 				exMemLatch.setMemDone(true);		//FIXME
 				exMemLatch.setStallCount(0);
 			}
-			memWbLatch.setInstruction(null);
+//			memWbLatch.setInstruction(null);
 //System.out.println("Memory Stall!");
 		}
 		else{
@@ -43,7 +43,7 @@ public class MemUnitIn extends SimulationElement{
 				
 			}
 			else{
-				memWbLatch.setInstruction(null);
+//				memWbLatch.setInstruction(null);
 			}
 		}
 	}
