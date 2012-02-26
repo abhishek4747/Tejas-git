@@ -66,5 +66,20 @@ public class CustomInstructionPool {
 		}
 		pool[tail] = arg0;
 	}
-
+	
+	public int getNumIdle()
+	{
+		if(head == -1)
+		{
+			return 0;
+		}
+		if(tail >= head)
+		{
+			return (tail - head + 1);
+		}
+		return (poolSize - head + tail + 1);
+	}
+	
 }
+
+

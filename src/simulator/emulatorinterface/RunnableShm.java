@@ -85,10 +85,10 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				// Read the entries
 				boolean poolExhausted = false;
 				for (int i = 0; i < numReads; i++) {
-					//if(Newmain.instructionPool.getNumIdle() < 50)
+					if(Newmain.instructionPool.getNumIdle() < 30)
 					{
-						//poolExhausted = true;
-						//break;
+						poolExhausted = true;
+						break;
 					}
 					pnew = ipcType.fetchOnePacket(tidApp, thread.readerLocation
 							+ i);
