@@ -31,8 +31,9 @@ public class MemUnitIn extends SimulationElement{
 //			memWbLatch.setInstruction(null);
 //System.out.println("Memory Stall!");
 		}
-		else{
+//		else{
 			if(ins!=null){
+//System.out.println("Mem "+ins.getSerialNo());			
 				memWbLatch.setInstruction(ins);
 				memWbLatch.setIn1(exMemLatch.getIn1());
 				memWbLatch.setIn2(exMemLatch.getIn2());
@@ -45,7 +46,7 @@ public class MemUnitIn extends SimulationElement{
 			else{
 //				memWbLatch.setInstruction(null);
 			}
-		}
+//		}
 	}
 
 

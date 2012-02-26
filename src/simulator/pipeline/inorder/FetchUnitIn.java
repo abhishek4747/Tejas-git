@@ -43,16 +43,17 @@ public class FetchUnitIn extends SimulationElement{
 		if(inputToPipeline.isEmpty())
 			return;
 		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
-		for(int i=fetchBufferIndex;fetchFillCount<fetchBufferCapacity;i = (i+1)%fetchBufferCapacity){
+		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity;i = (i+1)%this.fetchBufferCapacity){
 			if(newInstruction.getOperationType() == OperationType.inValid){
 				core.getExecutionEngineIn().setFetchComplete(true);
-				fetchBuffer[i] = inputToPipeline.pollFirst();
-				fetchFillCount++;
+				this.fetchBuffer[i] = inputToPipeline.pollFirst();
+				this.fetchFillCount++;
 				break;
 			}
 			else
 			{	
-				fetchBuffer[i] = inputToPipeline.pollFirst();
+				this.fetchBuffer[i] = inputToPipeline.pollFirst();
+				this.fetchFillCount++;
 //System.out.println("Serial Num Fetch = "+fetchBuffer[i].getSerialNo());
 				if(!inputToPipeline.isEmpty())
 					newInstruction = inputToPipeline.peekInstructionAt(0);
@@ -64,9 +65,8 @@ public class FetchUnitIn extends SimulationElement{
 				if(!SimulationConfig.detachMemSys){
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getDecodeUnitIn(), 
-						fetchBuffer[i].getProgramCounter());
+						this.fetchBuffer[i].getProgramCounter());
 				}
-				fetchFillCount++;
 			}
 		}
 
@@ -78,12 +78,13 @@ public class FetchUnitIn extends SimulationElement{
 		Instruction ins;
 //System.out.println(this.sleep+" "+this.stall);
 		if(!this.sleep && this.stall==0){
-			if(fetchFillCount > 0){
-				ins = fetchBuffer[fetchBufferIndex];
+			if(this.fetchFillCount > 0){
+				ins = this.fetchBuffer[this.fetchBufferIndex];
+//System.out.println("Fetch "+ins.getSerialNo());			
 				if(ins.getOperationType()==OperationType.sync){
-					fetchFillCount--;			
-					fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
-					ins = fetchBuffer[fetchBufferIndex];
+					this.fetchFillCount--;			
+					this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
+					ins = this.fetchBuffer[fetchBufferIndex];
 					if(this.syncCount>0){
 						this.syncCount--;
 					}
@@ -93,10 +94,11 @@ public class FetchUnitIn extends SimulationElement{
 						return;
 					}
 				}
-				core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
-				fetchFillCount--;			
-				fetchBufferIndex = (fetchBufferIndex+1)%fetchBufferCapacity;
-			
+				else{
+					core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
+					this.fetchFillCount--;			
+					this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
+				}
 			}
 			else{
 //				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);

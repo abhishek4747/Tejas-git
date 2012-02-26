@@ -29,12 +29,12 @@ public class DecodeUnitIn extends SimulationElement{
 
 		ins = ifIdLatch.getInstruction();
 		if(ins!=null){
-			
+//System.out.println("Decode "+ins.getSerialNo());			
 			if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
 				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
 //System.out.println("Data Hazard!");
 			}
-			else{
+//			else{
 				idExLatch.setInstruction(ins);
 				idExLatch.setIn1(ins.getSourceOperand1());
 				idExLatch.setIn2(ins.getSourceOperand2());			
@@ -57,7 +57,7 @@ public class DecodeUnitIn extends SimulationElement{
 						core.getExecutionEngineIn().getFetchUnitIn().incrementStall(2);
 					}
 				}
-			}
+//			}
 		}
 		else{
 //			idExLatch.setInstruction(null);

@@ -19,11 +19,12 @@ public class WriteBackUnitIn extends SimulationElement{
 	public void performWriteBack(){
 		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
 		if(memWbLatch.getInstruction()!=null){ 
+//System.out.println("wb "+memWbLatch.getInstruction().getSerialNo());			
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
 				core.getExecutionEngineIn().setExecutionComplete(true);
 			else {
 				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
-					//System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());
+System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());
 				}
 				core.incrementNoOfInstructionsExecuted();
 				try {

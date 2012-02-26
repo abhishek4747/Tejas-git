@@ -162,7 +162,7 @@ public class DynamicInstructionBuffer implements Encoding
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.get(0).ip) + "\n");
 				
-				System.exit(0);
+//				System.exit(0);
 			}
 		}
 		

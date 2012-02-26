@@ -28,6 +28,7 @@ public class ExecUnitIn extends SimulationElement{
 		Instruction ins = idExLatch.getInstruction();
 		if(ins!=null){
 				//TODO Account for multicycle operations.
+//System.out.println("Exec "+ins.getSerialNo());			
 				exMemLatch.setInstruction(ins);
 				exMemLatch.setIn1(idExLatch.getIn1());
 				exMemLatch.setIn2(idExLatch.getIn2());
