@@ -25,7 +25,7 @@
 	<!--Simulation Parameters-->
 	<Simulation>
 		<PinTool>/home/harne/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/harne/workspace_1/Tejas/src/emulator/pin/obj-ia32/PgmInstrumentor.so</PinInstrumentor>
+		<PinInstrumentor>/home/harne/workspace_1/Tejas/src/emulator/pin/obj-pin/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<NumInsToIgnore>0</NumInsToIgnore>
