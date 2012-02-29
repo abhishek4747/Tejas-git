@@ -46,6 +46,7 @@ public class CacheConfig
 	public MultiPortingType multiportType;
 	public CoherenceType coherence;
 	public int numberOfBuses;
+	public int busOccupancy;
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public int numberOfBuffers;
@@ -177,6 +178,15 @@ public class CacheConfig
 	public void setNucaType(NucaType nucaType) {
 		this.nucaType = nucaType;
 	}
+
+	public int getBusOccupancy() {
+		return busOccupancy;
+	}
+
+	public void setBusOccupancy(int busOccupancy) {
+		this.busOccupancy = busOccupancy;
+	}
+	
 
 	//	public boolean isFirstLevel() {
 //		return isFirstLevel;

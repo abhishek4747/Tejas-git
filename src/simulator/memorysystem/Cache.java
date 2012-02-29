@@ -167,7 +167,7 @@ public class Cache extends SimulationElement
 			this.coherence = cacheParameters.getCoherence();
 			this.numberOfBuses = cacheParameters.getNumberOfBuses();
 			if (this.coherence == CoherenceType.Snoopy)
-				busController = new BusController(prevLevel, this, numberOfBuses, this);
+				busController = new BusController(prevLevel, this, numberOfBuses, this, cacheParameters.getBusOccupancy());
 			
 			this.numLinesBits = Util.logbase2(numLines);
 			this.timestamp = 0;

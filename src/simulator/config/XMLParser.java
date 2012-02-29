@@ -43,11 +43,11 @@ public class XMLParser
 {
 	private static Document doc;
 
-	public static void parse() 
+	public static void parse(String fileName) 
 	{ 
 		try 
 		{
-			File file = new File("src/simulator/config/config.xml");
+			File file = new File(fileName);
 			DocumentBuilderFactory DBFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder DBuilder = DBFactory.newDocumentBuilder();
 			doc = DBuilder.parse(file);
@@ -368,6 +368,7 @@ public class XMLParser
 			System.exit(1);
 		}
 		cache.numberOfBuses = Integer.parseInt(getImmediateString("NumBuses", CacheType));
+		cache.busOccupancy = Integer.parseInt(getImmediateString("BusOccupancy", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))

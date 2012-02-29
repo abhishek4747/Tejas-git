@@ -41,15 +41,16 @@ public class Newmain {
 		checkCommandLineArguments(arguments);
 
 		// Read the command line arguments
-		SimulationConfig.outputFileName = arguments[0];
-		executableFile = arguments[1];
-		for(int i=1; i < arguments.length; i++)
+		String configFileName = arguments[0];
+		SimulationConfig.outputFileName = arguments[1];
+		executableFile = arguments[2];
+		for(int i=2; i < arguments.length; i++)
 		{
 			executableArguments = executableArguments + " " + arguments[i];
 		}
 
 		// Parse the command line arguments
-		XMLParser.parse();
+		XMLParser.parse(configFileName);
 
 		// Create a hash-table for the static representation of the executable
 		ObjParser.buildStaticInstructionTable(executableFile);

@@ -18,7 +18,7 @@ import misc.Util;
 public class BusController 
 {
 	
-	private final int busOccupancy = 5;
+	private int busOccupancy;
 	private int numBuses;
 	private long busMask;
 	private Cache sharedMem;
@@ -27,12 +27,13 @@ public class BusController
 //	private Bus busSet[];
 	private long busBusyUntil[];
 	
-	public BusController(ArrayList<Cache> upperLevel, Cache lowerCache, int numberOfBuses, Cache sharedMem) 
+	public BusController(ArrayList<Cache> upperLevel, Cache lowerCache, int numberOfBuses, Cache sharedMem, int occupancy) 
 	{
 		super();
 		this.numBuses = numberOfBuses;
 		this.busMask = numberOfBuses-1;
 //		System.out.println("BusMask = "+ busMask);
+		this.busOccupancy = occupancy;
 		this.sharedMem = sharedMem;
 		this.upperLevel = upperLevel;
 		this.lowerCache = lowerCache;

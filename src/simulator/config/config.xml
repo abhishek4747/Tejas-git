@@ -140,6 +140,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
@@ -166,6 +167,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
@@ -192,6 +194,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>S</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<BusOccupancy>10</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
@@ -218,6 +221,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>				<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
