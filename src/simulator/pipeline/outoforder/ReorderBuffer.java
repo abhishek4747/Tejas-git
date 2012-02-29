@@ -1,6 +1,7 @@
 package pipeline.outoforder;
 
 import config.SimulationConfig;
+import emulatorinterface.Newmain;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -220,6 +221,8 @@ public class ReorderBuffer extends SimulationElement{
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
 					
+					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
+					
 					if(firstDestOpnd != null)
 					{
 						OperandType firstDestOpndType = firstDestOpnd.getOperandType();
@@ -275,6 +278,12 @@ public class ReorderBuffer extends SimulationElement{
 														);
 						
 						branchCount++;
+					}
+					
+					try {
+						Newmain.instructionPool.returnObject(firstInstruction);
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 				else

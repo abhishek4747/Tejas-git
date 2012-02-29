@@ -76,14 +76,14 @@ PINCOMM_INCLUDE = -I$(COMMDIR) -I$(SHMDIR) -I$(PIPEDIR) -I$(MMAPDIR) -I$(NETWORK
 
 JNIPACKAGE = emulatorinterface.communication.shm.SharedMem
 JNINCLUDE = -I/usr/lib/jvm/java-6-openjdk/include -I/usr/lib/jvm/java-6-openjdk/include/linux
-JNILinkingFlags = -fPIC -shared -Wl,-soname,libnative.so -static -lc
+JNILinkingFlags = -shared -Wall -fPIC
 JAVAH = javah -jni
 
 communication: cppside $(MYOBJDIR)libshmlib.so
 
 #library is produced in the $(MYOBJDIR)
 $(MYOBJDIR)libshmlib.so: $(SHMDIR)SharedMem.h $(SHMDIR)JNIShm.c common.h
-	gcc -o $(MYOBJDIR)libshmlib.so $(JNINCLUDE) $(JNILinkingFlags) $(SHMDIR)JNIShm.c
+	$(CC) $(JNILinkingFlags) $(SHMDIR)JNIShm.c $(JNINCLUDE) -o $(MYOBJDIR)libshmlib.so
 
 $(SHMDIR)SharedMem.h: $(SHMBINDIR)SharedMem.class
 	$(JAVAH) -classpath $(TOPBINDIR) -o $@ $(JNIPACKAGE)
@@ -93,7 +93,7 @@ PINLINK = $(patsubst %.o,$(MYOBJDIR)%.o,$(CEXEC))
 cppside: $(PINLINK)
 
 $(MYOBJDIR)%.o: %.cc %.h IPCBase.h common.h encoding.h $(MYOBJDIR)make-directory
-	g++ -c $< -o $@
+	g++ -c -fPIC $< -o $@
 ##############################################################
 #
 # applications

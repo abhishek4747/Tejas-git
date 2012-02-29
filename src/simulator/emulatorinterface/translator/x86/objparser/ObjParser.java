@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.objparser;
 
 import emulatorinterface.DynamicInstructionBuffer;
+import emulatorinterface.Newmain;
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.visaHandler.VisaHandler;
 import emulatorinterface.translator.visaHandler.VisaHandlerSelector;
@@ -409,7 +410,15 @@ public class ObjParser
 			
 			microOpIndexBefore = microOpIndex;     //store microOpIndex
 			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOperation, dynamicInstructionBuffer); //handle
-			Instruction newInstruction=new Instruction(instructionArrayList.get(microOpIndexBefore));
+			//Instruction newInstruction=new Instruction(instructionArrayList.get(microOpIndexBefore));
+			Instruction newInstruction = null;
+			try {
+				newInstruction = Newmain.instructionPool.borrowObject();
+			} catch (Exception e) {
+				//TODO what if there are no more objects in the pool??
+				e.printStackTrace();
+			}
+			newInstruction.copy(instructionArrayList.get(microOpIndexBefore));
 			instructionLinkedList.appendInstruction(newInstruction); //append microOp
 			
 			if(microOpIndex != -1)

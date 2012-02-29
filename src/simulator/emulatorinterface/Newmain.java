@@ -16,7 +16,11 @@ import emulatorinterface.communication.*;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
+import generic.CustomInstructionPool;
+import generic.CustomOperandPool;
 import generic.GlobalClock;
+import generic.Instruction;
+import generic.Operand;
 import generic.Statistics;
 
 public class Newmain {
@@ -26,6 +30,10 @@ public class Newmain {
 	public static int notHandled=0;
 	public static Object syncObject = new Object();
 	public static Process process;
+	//public static GenericObjectPool<Operand> operandPool;
+	//public static GenericObjectPool<Instruction> instructionPool;
+	public static CustomOperandPool operandPool;
+	public static CustomInstructionPool instructionPool;
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];;
@@ -54,7 +62,39 @@ public class Newmain {
 
 		// Create a hash-table for the static representation of the executable
 		ObjParser.buildStaticInstructionTable(executableFile);
-
+		
+		// Create Pools of Instructions and Operands
+		int numInstructionsInPool = 15000;
+		
+		/* "apache pool"
+		System.out.println("creating operand pool..");
+		operandPool = new GenericObjectPool<Operand>(new PoolableOperandFactory());
+		operandPool.setMaxActive(numInstructionsInPool * 3);
+		operandPool.setMaxIdle(numInstructionsInPool * 3);
+		for(int i = 0; i < numInstructionsInPool * 3; i++)
+		{
+			operandPool.addObject();
+		}
+		
+		System.out.println("creating instruction pool..");
+		instructionPool = new GenericObjectPool<Instruction>(new PoolableInstructionFactory());
+		instructionPool.setMaxActive(numInstructionsInPool);
+		instructionPool.setMaxIdle(numInstructionsInPool);
+		for(int i = 0; i < numInstructionsInPool; i++)
+		{
+			instructionPool.addObject();
+		}
+		
+		System.out.println("number of operands in pool = " + operandPool.getNumIdle());
+		System.out.println("number of instructions in pool = " + instructionPool.getNumIdle());
+		*/
+		/* custom pool */
+		System.out.println("creating operand pool..");
+		operandPool = new CustomOperandPool(numInstructionsInPool *3);
+		System.out.println("creating instruction pool..");
+		instructionPool = new CustomInstructionPool(numInstructionsInPool);
+		
+		
 /*		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
 */

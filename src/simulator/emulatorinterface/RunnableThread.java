@@ -3,6 +3,7 @@
  */
 
 package emulatorinterface;
+
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,7 +30,9 @@ import generic.Statistics;
  */
 public class RunnableThread implements Encoding {
 
-	private static final int THRESHOLD = 5000;
+	private static final int INSTRUCTION_THRESHOLD = 10000;
+	private static final int PACKET_THRESHOLD = 10000;
+	
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;
@@ -54,7 +57,7 @@ public class RunnableThread implements Encoding {
 
 	int[] decodeWidth;
 	int[] stepSize;
-	long[] noOfMicroOps;
+	static long[] noOfMicroOps;
 	long[] numInstructions;
 	//FIXME PipelineInterface should be in IpcBase and not here as pipelines from other RunnableThreads
 	// will need to interact.
@@ -124,7 +127,8 @@ public class RunnableThread implements Encoding {
 		int minN = Integer.MAX_VALUE;
 		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 			ThreadParams th = threadParams[tidEmu];
-			if ( th.halted && inputToPipeline[tidEmu].getListSize() < THRESHOLD ) {
+			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
+					//|| th.packets.size() > PACKET_THRESHOLD)){
 				th.halted = false;
 			//	System.out.println("Halting over..!! "+tidEmu);
 			}
@@ -137,7 +141,7 @@ public class RunnableThread implements Encoding {
 		// System.out.println();
 		minN = (minN == Integer.MAX_VALUE) ? 0 : minN;
 		// if (currentEMUTHREADS>1)
-		// System.out.println("min is"+minN + "0 pipeline size  : " +
+		//if (minN==0) System.out.println("min is"+minN + "0 pipeline size  : " +
 		// inputToPipeline[0].getListSize());
 
 		/*
@@ -284,7 +288,6 @@ public class RunnableThread implements Encoding {
 			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
 			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
 					dynamicInstructionBuffer[tidEmu]);
-			noOfMicroOps[tidEmu] += tempList.length();
 
 /*			if(SimulationConfig.detachMemSys == true)	//TODO
 			{
@@ -315,8 +318,16 @@ public class RunnableThread implements Encoding {
 			}
 			else {
 				
+				int temmm = tempList.getListSize();
+				for (int i = 0; i < temmm; i++) {
+					//Newmain.instructionPool.returnObject(tempList.pollFirst());
+					tempList.peekInstructionAt(i).setSerialNo(noOfMicroOps[0]+i);
+				}
+				
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
-				if (!thread.halted && this.inputToPipeline[tidEmu].getListSize() > THRESHOLD) {
+
+				if (!thread.halted && (this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
+						//|| thread.packets.size() > PACKET_THRESHOLD)) {
 					thread.halted = true;
 					//System.out.println("Halting "+tidEmu);
 				}
@@ -325,6 +336,7 @@ public class RunnableThread implements Encoding {
 /*			if (currentEMUTHREADS>1)
 			System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
 */				
+			noOfMicroOps[tidEmu] += tempList.length();
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && tempList.getListSize() > 0) {
 				//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
@@ -338,7 +350,9 @@ public class RunnableThread implements Encoding {
 
 	}
 
-
+	protected boolean poolExhausted() {
+		return (Newmain.instructionPool.getNumIdle() < 2000);
+	}
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {

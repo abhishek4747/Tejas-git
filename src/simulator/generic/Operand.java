@@ -23,6 +23,8 @@ package generic;
 
 import java.io.Serializable;
 
+import emulatorinterface.Newmain;
+
 
 public class Operand implements Serializable
 {
@@ -33,6 +35,13 @@ public class Operand implements Serializable
 	
 	Operand memoryLocationFirstOperand;
 	Operand memoryLocationSecondOperand;
+	
+	public Operand()
+	{
+		this.value = 0;
+		this.memoryLocationFirstOperand = null;
+		this.memoryLocationSecondOperand = null;
+	}
 	
 	public Operand(OperandType operandType, long  operandValue)
 	{
@@ -73,6 +82,43 @@ public class Operand implements Serializable
 		}else
 		{
 			this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
+		}
+	}
+	
+	//all properties of sourceOperand is copied to the current operand
+	public void copy(Operand sourceOperand)
+	{
+		this.type=sourceOperand.type;
+		this.value=sourceOperand.value;
+		
+		if(sourceOperand.memoryLocationFirstOperand==null)
+		{
+			this.memoryLocationFirstOperand=null;
+		}else
+		{
+			//this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
+			try {
+				this.memoryLocationFirstOperand = Newmain.operandPool.borrowObject();
+			} catch (Exception e) {
+				// TODO what if there are no more objects in the pool??
+				e.printStackTrace();
+			}
+			this.memoryLocationFirstOperand.copy(sourceOperand.memoryLocationFirstOperand);
+		}
+		
+		if(this.memoryLocationSecondOperand==null)
+		{
+			this.memoryLocationSecondOperand=null;
+		}else
+		{
+			//this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
+			try {
+				this.memoryLocationSecondOperand = Newmain.operandPool.borrowObject();
+			} catch (Exception e) {
+				// TODO what if there are no more objects in the pool??
+				e.printStackTrace();
+			}
+			this.memoryLocationSecondOperand.copy(sourceOperand.memoryLocationSecondOperand);
 		}
 	}
 	

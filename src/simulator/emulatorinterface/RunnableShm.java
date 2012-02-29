@@ -82,16 +82,31 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 				thread.checkStarted();
 
-				// Read the entries
+/*				// Read the entries
+				boolean poolExhausted = false;
 				for (int i = 0; i < numReads; i++) {
+					if(Newmain.instructionPool.getNumIdle() < 30)
+					{
+						poolExhausted = true;
+						break;
+					}
 					pnew = ipcType.fetchOnePacket(tidApp, thread.readerLocation
 							+ i);
 					v = pnew.value;
 					processPacket(thread, pnew, tidEmu);
 				}
-
 				
-/*				// Read the entries
+				if(poolExhausted)
+				{
+					break;
+				}
+*/
+				while (poolExhausted()) {
+					//System.out.println("infinte loop");
+					runPipelines();
+				}
+				
+				// Read the entries
 				fromPIN = ipcType.fetchManyPackets(tidApp, thread.readerLocation, numReads);
 				for (int i = 0; i < numReads; i++) {
 					pnew = fromPIN.get(i);
@@ -99,7 +114,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				//	System.out.println(pnew.toString());
 					processPacket(thread,pnew,tidEmu);
 				}
-*/				
+				
 				// update reader location
 				thread.readerLocation = (thread.readerLocation + numReads) % SharedMem.COUNT;
 				

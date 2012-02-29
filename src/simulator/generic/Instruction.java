@@ -22,6 +22,8 @@ package generic;
 
 import java.io.Serializable;
 
+import emulatorinterface.Newmain;
+
 
 public class Instruction implements Serializable
 {
@@ -32,6 +34,14 @@ public class Instruction implements Serializable
 	private long programCounter;
 	private boolean branchTaken;
 	private long branchTargetAddress;
+	private long serialNo;
+	
+	public Instruction()
+	{
+		this.sourceOperand1 = null;
+		this.sourceOperand2 = null;
+		this.destinationOperand = null;
+	}
 	
 	public Instruction(OperationType type, Operand sourceOperand1,
 			Operand sourceOperand2, Operand destinationOperand)
@@ -65,7 +75,56 @@ public class Instruction implements Serializable
 		this.programCounter=oldInstruction.programCounter;
 		this.branchTaken=oldInstruction.branchTaken;
 		this.branchTargetAddress=oldInstruction.branchTargetAddress;
-	}	
+	}
+	
+	//all properties of sourceInstruction is copied to the current instruction
+	public void copy(Instruction sourceInstruction)
+	{
+		this.type=sourceInstruction.type;
+		
+		if(sourceInstruction.sourceOperand1==null)
+			{this.sourceOperand1=null;}
+		else
+			{//this.sourceOperand1=new Operand(sourceInstruction.sourceOperand1);
+				try {
+					this.sourceOperand1 = Newmain.operandPool.borrowObject();
+				} catch (Exception e) {
+					// TODO what if there are no more objects in the pool??
+					e.printStackTrace();
+				}
+				this.sourceOperand1.copy(sourceInstruction.sourceOperand1);
+			}
+		
+		if(sourceInstruction.sourceOperand2==null)
+			{this.sourceOperand2=null;}
+		else
+			{//this.sourceOperand2=new Operand(sourceInstruction.sourceOperand2);
+				try {
+					this.sourceOperand2 = Newmain.operandPool.borrowObject();
+				} catch (Exception e) {
+					// TODO what if there are no more objects in the pool??
+					e.printStackTrace();
+				}
+				this.sourceOperand2.copy(sourceInstruction.sourceOperand2);
+			}
+		
+		if(sourceInstruction.destinationOperand==null)
+			{this.destinationOperand=null;}
+		else
+			{//this.destinationOperand=new Operand(sourceInstruction.destinationOperand);
+				try {
+					this.destinationOperand = Newmain.operandPool.borrowObject();
+				} catch (Exception e) {
+					// TODO what if there are no more objects in the pool??
+					e.printStackTrace();
+				}
+				this.destinationOperand.copy(sourceInstruction.destinationOperand);
+			}
+		
+		this.programCounter=sourceInstruction.programCounter;
+		this.branchTaken=sourceInstruction.branchTaken;
+		this.branchTargetAddress=sourceInstruction.branchTargetAddress;
+	}
 	
 	public long getProgramCounter()
 	{
@@ -229,5 +288,13 @@ public class Instruction implements Serializable
 	public Operand getOperand2()
 	{
 		return sourceOperand2;
+	}
+
+	public long getSerialNo() {
+		return serialNo;
+	}
+
+	public void setSerialNo(long serialNo) {
+		this.serialNo = serialNo;
 	}
 }

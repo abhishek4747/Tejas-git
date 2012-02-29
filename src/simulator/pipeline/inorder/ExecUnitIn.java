@@ -28,13 +28,17 @@ public class ExecUnitIn extends SimulationElement{
 		Instruction ins = idExLatch.getInstruction();
 		if(ins!=null){
 				//TODO Account for multicycle operations.
+//System.out.println("Exec "+ins.getSerialNo());			
 				exMemLatch.setInstruction(ins);
 				exMemLatch.setIn1(idExLatch.getIn1());
 				exMemLatch.setIn2(idExLatch.getIn2());
 				exMemLatch.setOut1(idExLatch.getOut1());
 				exMemLatch.setOperationType(idExLatch.getOperationType());
 				exMemLatch.setMemDone(true);
-				if(idExLatch.getOperationType()==OperationType.load){
+				
+				idExLatch.clear();
+				
+				if(exMemLatch.getOperationType()==OperationType.load){
 					core.getExecutionEngineIn().updateNoOfLd(1);
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);
 					//Schedule a mem read event now so that it can be completed in the mem stage
@@ -48,7 +52,7 @@ public class ExecUnitIn extends SimulationElement{
 								ins.getSourceOperand1().getValue());
 					}
 				}
-				else if(idExLatch.getOperationType()==OperationType.store){
+				else if(exMemLatch.getOperationType()==OperationType.store){
 					core.getExecutionEngineIn().updateNoOfSt(1);
 					core.getExecutionEngineIn().updateNoOfMemRequests(1);
 //					exMemLatch.setMemDone(false); /FIXME *Pipeline doesn't wait for the store to complete! */
@@ -66,7 +70,7 @@ public class ExecUnitIn extends SimulationElement{
 				}
 			}
 			else{
-				exMemLatch.setInstruction(null);
+//				exMemLatch.setInstruction(null);
 			}
 		}
 	@Override
