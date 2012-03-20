@@ -128,14 +128,42 @@ public class DynamicInstructionBuffer implements Encoding
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.ip) + "\n");
 
-				System.exit(0);
+			//	System.exit(0);
 			}
 		}
 		
 		return null;
 	}
 	
-	public LinkedList<Long> getmemoryReadAddress(long instructionPointer)
+	public long getSingleLoadAddress(long instructionPointer)
+	{
+		ArrayList<Packet> headPacket = null;
+		
+		while(!memReadQueue.isEmpty())
+		{
+			headPacket = memReadQueue.poll();
+			
+			// check the ip of this instruction
+			if(headPacket.get(0).ip == instructionPointer)
+			{
+				// return the first readAddress.
+				// Hope that this instruction does not have more pending reads.
+				return headPacket.get(0).tgt;
+			}
+			else
+			{
+				System.out.print("\n\tExtra memRead instruction found : original instruction=" +
+						Long.toHexString(instructionPointer) + " found instruction=" + 
+						Long.toHexString(headPacket.get(0).ip) + "\n");
+				
+//				System.exit(0);
+			}
+		}
+		
+		return -1;
+	}
+	
+	public LinkedList<Long> getMultipleLoadAddresses(long instructionPointer)
 	{
 		ArrayList<Packet> headPacket = null;
 		
@@ -169,7 +197,34 @@ public class DynamicInstructionBuffer implements Encoding
 		return null;
 	}
 	
-	public LinkedList<Long> getmemoryWriteAddress(long instructionPointer)
+	public long getSingleStoreAddress(long instructionPointer)
+	{
+		ArrayList<Packet> headPacket = null;
+		
+		while(!memWriteQueue.isEmpty())
+		{
+			headPacket = memWriteQueue.poll();
+			
+			// check the ip of this instruction
+			if(headPacket.get(0).ip == instructionPointer)
+			{
+				return headPacket.get(0).tgt;
+			}
+			else
+			{
+				System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
+						Long.toHexString(instructionPointer) + " found instruction=" + 
+						Long.toHexString(headPacket.get(0).ip) + "\n");
+
+//				System.exit(0);
+			}
+		}
+		
+		return -1;
+	}
+
+	
+	public LinkedList<Long> getMultipleStoreAddresses(long instructionPointer)
 	{
 		ArrayList<Packet> headPacket = null;
 		
@@ -196,7 +251,7 @@ public class DynamicInstructionBuffer implements Encoding
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.get(0).ip) + "\n");
 
-				System.exit(0);
+			//	System.exit(0);
 			}
 		}
 		
