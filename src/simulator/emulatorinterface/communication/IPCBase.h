@@ -26,7 +26,7 @@ public:
 
 	// Fill the packet struct when doing analysis and send to Java process. This is the
 	// most important function
-	virtual int analysisFn (int tid,uint64_t ip, int value, uint64_t tgt)=0;
+	virtual int analysisFn (int tid,uint64_t ip, uint64_t value, uint64_t tgt)=0;
 
 	// Things to be done when a thread is started in PIN/ application
 	virtual void onThread_start (int tid)=0;

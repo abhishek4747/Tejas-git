@@ -37,6 +37,9 @@ public abstract class IpcBase {
 	public static InstructionTable insTable;
 	public static GlobalTable glTable;
 
+	StreamGobbler s1;
+	StreamGobbler s2;
+	
 	// Initialise structures and objects
 	public IpcBase () {
 		glTable = new GlobalTable(this);
@@ -47,8 +50,8 @@ public abstract class IpcBase {
 		Runtime rt = Runtime.getRuntime();
 		try {
 			Process p = rt.exec(cmd);
-			StreamGobbler s1 = new StreamGobbler ("stdin", p.getInputStream ());
-			StreamGobbler s2 = new StreamGobbler ("stderr", p.getErrorStream ());
+			s1 = new StreamGobbler ("stdin", p.getInputStream ());
+			s2 = new StreamGobbler ("stderr", p.getErrorStream ());
 			s1.start ();
 			s2.start ();
 			return p;
@@ -80,9 +83,36 @@ public abstract class IpcBase {
 	// return the total packets produced by PIN till now
 	public abstract int totalProduced(int tidApp);
 
-	public long doExpectedWaitForSelf() throws Exception {
-		System.out.println("Implement doExpectedWaitForSelf() in the IPC mechanism");
-		return -1;
+	public long doExpectedWaitForSelf() throws InterruptedException{
+		
+		// this takes care if no thread started yet.
+		free.acquire();	
+		
+		int j=0;
+		// if any thread has started and not finished then wait.
+		for (int i=0; i<MaxNumJavaThreads; i++) {
+			if (started[i] && !termination[i]) {
+				free.acquire();
+				j++;
+			}
+		}
+		
+		long totalInstructions = 0;
+		
+		//inform threads which have not started about finish
+		for (int i=0; i<MaxNumJavaThreads; i++) {
+			if (started[i]==false) {
+				termination[i]=true;
+			}
+			//totalInstructions += numInstructions[i];
+		}
+		for (; j<MaxNumJavaThreads-1; j++)
+			free.acquire();
+		
+		s1.join();
+		s2.join();
+		//return totalInstructions;
+		return 0;
 	}
 
 	// Should wait for PIN too before calling the finish function to deallocate stuff related to

@@ -67,30 +67,7 @@ public class SharedMem extends  IpcBase
 		}
 	}
 
-	public long doExpectedWaitForSelf() throws InterruptedException{
-		
-		// this takes care if no thread started yet.
-		free.acquire();	
-		
-		// if any thread has started and not finished then wait.
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i] && !termination[i]) {
-				free.acquire();
-			}
-		}
-		
-		long totalInstructions = 0;
-		
-		//inform threads which have not started about finish
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i]==false) termination[i]=true;
-			//totalInstructions += numInstructions[i];
-		}
 
-		//return totalInstructions;
-		return 0;
-	}
-	
 	public Packet fetchOnePacket(int tidApp, int index ) {
 		return shmread(tidApp, shmAddress,
 				index % COUNT);
