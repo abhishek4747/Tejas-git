@@ -34,23 +34,7 @@ public class SharedMem extends  IpcBase
 		shmid = shmget(COUNT,MaxNumJavaThreads,EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores);
 		shmAddress = shmat(shmid);
 	}
-	
-	public Process startPIN(String cmd) throws Exception {
-		Runtime rt = Runtime.getRuntime();
-		System.out.println("starting PIN");
-		try {
-			Process p = rt.exec(cmd);
-			StreamGobbler s1 = new StreamGobbler ("stdin", p.getInputStream ());
-			StreamGobbler s2 = new StreamGobbler ("stderr", p.getErrorStream ());
-			s1.start ();
-			s2.start ();
-			return p;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
+		
 	public void initIpc() {
 		
 		if (SimulationConfig.debugMode) 
