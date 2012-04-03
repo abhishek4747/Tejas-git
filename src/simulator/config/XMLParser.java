@@ -26,6 +26,8 @@ import generic.MultiPortingType;
 import java.io.File;
 import java.math.RoundingMode;
 import java.util.Hashtable;
+import java.util.StringTokenizer;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.*;
@@ -35,6 +37,7 @@ import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
+import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
 
 import generic.PortType;
@@ -181,7 +184,7 @@ public class XMLParser
 		Element systemElmnt = (Element) systemNode;
 		
 		//Read number of cores and define the array of core configurations
-//		SystemConfig.NoOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
+		int numOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
 		SystemConfig.NoOfCores = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
@@ -190,9 +193,25 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
+		StringTokenizer coreNucaMapping = new StringTokenizer((getImmediateString("NearestBankToCores", systemElmnt)));
+		SystemConfig.coreCacheMapping = new int[numOfCores][2];
 		
+		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
+		{
+			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
+			for(int j=0;tempTok.hasMoreTokens();j++)
+			{
+				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
+			}
+		}
+		/*for(int i=0;i<numOfCores;i++)
+		{
+			for(int j=0;j<2;j++)
+			System.out.print("\t"+ SystemConfig.coreNucaMapping[i][j]);
+			System.out.println();
+		}*/
 
+		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
 		SystemConfig.memWBDelay = Integer.parseInt(getImmediateString("memWBDelay", systemElmnt));
 		SystemConfig.dataTransferDelay = Integer.parseInt(getImmediateString("dataTransferDelay", systemElmnt));
@@ -343,6 +362,7 @@ public class XMLParser
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
+		cache.mshrSize = Integer.parseInt(getImmediateString("MSHRSize", CacheType));
 		cache.numberOfBankColumns = Integer.parseInt(getImmediateString("NumberOfBankColumns", CacheType));
 		cache.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", CacheType));		
 		cache.nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", CacheType));
@@ -383,6 +403,19 @@ public class XMLParser
 			System.exit(1);
 		}
 		
+		tempStr = getImmediateString("NucaMapping", CacheType);
+		if (tempStr.equalsIgnoreCase("S"))
+			cache.mapping = Mapping.SET_ASSOCIATIVE;
+		else if (tempStr.equalsIgnoreCase("A"))
+			cache.mapping = Mapping.ADDRESS;
+		else if (tempStr.equalsIgnoreCase("B"))
+			cache.mapping = Mapping.BOTH;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");
+			System.exit(1);
+		}
+		
 	tempStr = getImmediateString("LastLevel", CacheType);
 		if (tempStr.equalsIgnoreCase("Y"))
 			cache.isLastLevel = true;
@@ -402,6 +435,13 @@ public class XMLParser
 			cache.nocConfig.topology = NOC.TOPOLOGY.BUS;
 		else if(tempStr.equalsIgnoreCase("RING"))
 			cache.nocConfig.topology = NOC.TOPOLOGY.RING;
+		else if(tempStr.equalsIgnoreCase("FATTREE"))
+			cache.nocConfig.topology = NOC.TOPOLOGY.FATTREE;
+		else if(tempStr.equalsIgnoreCase("OMEGA"))
+			cache.nocConfig.topology = NOC.TOPOLOGY.OMEGA;
+		else if(tempStr.equalsIgnoreCase("BUTTERFLY"))
+			cache.nocConfig.topology = NOC.TOPOLOGY.BUTTERFLY;
+		
 		tempStr = getImmediateString("NocRoutingAlgorithm", CacheType);
 		if(tempStr.equalsIgnoreCase("SIMPLE"))
 			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.SIMPLE;
@@ -409,6 +449,20 @@ public class XMLParser
 			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.WESTFIRST;
 		else if(tempStr.equalsIgnoreCase("NORTHLAST"))
 			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.NORTHLAST;
+		else if(tempStr.equalsIgnoreCase("NEGATIVEFIRST"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.NEGATIVEFIRST;
+		else if(tempStr.equalsIgnoreCase("FATTREE"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.FATTREE;
+		else if(tempStr.equalsIgnoreCase("OMEGA"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.OMEGA;
+		else if(tempStr.equalsIgnoreCase("BUTTERFLY"))
+			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.BUTTERFLY;
+
+		tempStr = getImmediateString("NocSelScheme", CacheType);
+		if(tempStr.equalsIgnoreCase("STATIC"))
+			cache.nocConfig.selScheme = RoutingAlgo.SELSCHEME.STATIC;
+		else
+			cache.nocConfig.selScheme = RoutingAlgo.SELSCHEME.ADAPTIVE;
 	}
 	
 	private static boolean setDirectoryCoherent(String immediateString) {

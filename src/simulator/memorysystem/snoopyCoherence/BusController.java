@@ -44,7 +44,7 @@ public class BusController
 		}
 	}
 	
-	public void processWriteHit(EventQueue eventQ, Cache requestingCache, CacheLine cl, long address)
+	public void processWriteHit(EventQueue eventQ, Cache requestingCache, CacheLine cl, long address,int coreId)
 	{
 		if (cl.getState() == MESI.MODIFIED);
 		else if (cl.getState() == MESI.EXCLUSIVE)
@@ -64,7 +64,8 @@ public class BusController
 									requestingCache,
 									destCache,
 									RequestType.MESI_Invalidate, 
-									address));
+									address,
+									coreId));
 			}
 			this.getBusAndPutEvents(eventList);
 			
@@ -77,7 +78,7 @@ public class BusController
 		}
 	}
 	
-	public void processReadMiss(EventQueue eventQ, Cache requestingCache, long address)
+	public void processReadMiss(EventQueue eventQ, Cache requestingCache, long address,int coreId)
 	{
 		for (int i = 0; i < upperLevel.size(); i++)
 		{
@@ -93,7 +94,8 @@ public class BusController
 								requestingCache,
 								upperLevel.get(i),
 								RequestType.Request_for_modified_copy, 
-								address));
+								address,
+								coreId));
 					return;
 				case EXCLUSIVE:
 					this.getBusAndPutEvent(
@@ -103,7 +105,8 @@ public class BusController
 								requestingCache,
 								upperLevel.get(i),
 								RequestType.Request_for_copy, 
-								address));
+								address,
+								coreId));
 					return;
 				case SHARED:
 					this.getBusAndPutEvent(
@@ -113,7 +116,8 @@ public class BusController
 								requestingCache,
 								upperLevel.get(i),
 								RequestType.Request_for_copy, 
-								address));
+								address,
+								coreId));
 					return;
 				}
 		}
@@ -126,10 +130,11 @@ public class BusController
 					requestingCache,
 					lowerCache,
 					RequestType.Cache_Read, 
-					address));
+					address,
+					coreId));
 	}
 	
-	public void processWriteMiss(EventQueue eventQ, Cache requestingCache, long address)
+	public void processWriteMiss(EventQueue eventQ, Cache requestingCache, long address,int coreId)
 	{
 		for (int i = 0; i < upperLevel.size(); i++)
 		{
@@ -145,7 +150,8 @@ public class BusController
 								requestingCache,
 								upperLevel.get(i),
 								RequestType.Write_Modified_to_sharedmem, 
-								address));
+								address,
+								coreId));
 					return;
 				case EXCLUSIVE:
 					this.getBusAndPutEvent(
@@ -155,7 +161,8 @@ public class BusController
 								requestingCache,
 								upperLevel.get(i),
 								RequestType.MESI_Invalidate, 
-								address));
+								address,
+								coreId));
 					this.getBusAndPutEvent(
 							new AddressCarryingEvent(
 									eventQ,
@@ -163,7 +170,8 @@ public class BusController
 									requestingCache,
 									lowerCache,
 									RequestType.Cache_Read, 
-									address));
+									address,
+									coreId));
 					return;
 				case SHARED:
 					ArrayList<Event> eventList = new ArrayList<Event>();
@@ -174,7 +182,8 @@ public class BusController
 									requestingCache,
 									upperLevel.get(i),
 									RequestType.MESI_Invalidate, 
-									address));
+									address,
+									coreId));
 					for (int j = i+1; j < upperLevel.size(); j++)
 					{
 						if (upperLevel.get(j).access(address) != null)
@@ -185,7 +194,8 @@ public class BusController
 											requestingCache,
 											upperLevel.get(j),
 											RequestType.MESI_Invalidate, 
-											address));
+											address,
+											coreId));
 					}
 					this.getBusAndPutEvents(eventList);
 
@@ -196,7 +206,8 @@ public class BusController
 									requestingCache,
 									lowerCache,
 									RequestType.Cache_Read, 
-									address));
+									address,
+									coreId));
 					return;
 				}
 		}
@@ -209,7 +220,8 @@ public class BusController
 					requestingCache,
 					lowerCache,
 					RequestType.Cache_Read, 
-					address));
+					address,
+					coreId));
 	}
 	
 	public void getBusAndPutEvents(ArrayList<Event> eventList)

@@ -124,7 +124,7 @@ public class CoreMemorySystem
 	//To issue the request directly to L1 cache
 	public void issueRequestToL1Cache(SimulationElement requestingElement, 
 											RequestType requestType, 
-											long address)
+											long address,int coreId)
 	{
 		l1Cache.getPort().put(
 				new AddressCarryingEvent(
@@ -133,8 +133,10 @@ public class CoreMemorySystem
 						requestingElement, 
 						l1Cache,
 						requestType, 
-						address));
+						address,
+						coreId));
 	}
+	
 	
 	//To issue the request to instruction cache
 	public void issueRequestToInstrCache(SimulationElement requestingElement,
@@ -148,6 +150,21 @@ public class CoreMemorySystem
 						iCache,
 						RequestType.Cache_Read, 
 						address));
+	}
+	
+	//To issue the request to instruction cache
+	public void issueRequestToInstrCache(SimulationElement requestingElement,
+											long address,int coreId)
+	{
+		iCache.getPort().put(
+				new AddressCarryingEvent(
+						getCore().getEventQueue(),
+						iCache.getLatencyDelay(),
+						requestingElement, 
+						iCache,
+						RequestType.Cache_Read, 
+						address,
+						coreId));
 	}
 
 	public LSQ getLsqueue() {

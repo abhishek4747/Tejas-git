@@ -21,8 +21,8 @@ endif
 
 
 #prelimCausality and causality were creating problems in building.
-TOOL_ROOTS = PgmInstrumentor  prelimcausalityTool causalityTool printingTool
-#TOOL_ROOTS = PgmInstrumentor
+#TOOL_ROOTS = PgmInstrumentor  prelimcausalityTool causalityTool printingTool
+TOOL_ROOTS = PgmInstrumentor
 
 # Tools which are built specially, e.g. with more than one source file.
 # As well as being defined here they need specific build rules for the tool.

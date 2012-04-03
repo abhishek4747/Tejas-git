@@ -6,3 +6,7 @@ syntax: regexp
 syntax: regexp
 ^src/emulator/pin/obj-ia32$
 syntax: regexp
+syntax: regexp
+^src/simulator/config/config\.xml$
+syntax: regexp
+^src/simulator/config/config\.xml$

@@ -1,5 +1,6 @@
 package memorysystem;
 
+import java.util.Stack;
 import java.util.Vector;
 
 import generic.Event;
@@ -16,6 +17,9 @@ public class AddressCarryingEvent extends Event
 	public SimulationElement oldRequestingElement;
 	public Vector<Integer> oldSourceBankId;
 	public boolean copyLine;
+	public int coreId;
+	//Stack<SimulationElement> requestingElementStack = new Stack<SimulationElement>();
+	//Stack<RequestType> requestTypeStack = new Stack<RequestType>();
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -29,6 +33,20 @@ public class AddressCarryingEvent extends Event
 		copyLine = false;
 	}
 
+	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
+			SimulationElement requestingElement,
+			SimulationElement processingElement,
+			RequestType requestType, long address,int coreId) {
+		super(eventQ, eventTime, requestingElement, processingElement,
+				requestType);
+		this.address = address;
+		sourceBankId = null;
+		destinationBankId = null;
+		oldSourceBankId = null;
+		copyLine = false;
+		this.coreId = coreId;
+	}
+	
 	public void updateEvent(EventQueue eventQ, long eventTime, 
 			SimulationElement requestingElement,
 			SimulationElement processingElement,

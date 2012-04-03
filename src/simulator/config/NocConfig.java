@@ -24,6 +24,7 @@ package config;
 import generic.PortType;
 import net.RoutingAlgo;
 import net.NOC.TOPOLOGY;
+import net.RoutingAlgo.SELSCHEME;
 
 public class NocConfig
 {
@@ -38,6 +39,7 @@ public class NocConfig
 	public int numberOfRows;
 	public int numberOfColumns;
 	public int latencyBetweenBanks;
+	public SELSCHEME selScheme;
 	
 	public int getLatency() {
 		return latency;

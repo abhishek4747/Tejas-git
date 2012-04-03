@@ -37,6 +37,11 @@ public abstract class NucaCache extends Cache
 		NONE
 	}
 	
+	public enum Mapping {
+		SET_ASSOCIATIVE,
+		ADDRESS,
+		BOTH
+	}
     /*cache is assumed to in the form of a 2 dimensional array*/
     public NucaCacheBank cacheBank[][];
     int cacheRows;
@@ -46,6 +51,8 @@ public abstract class NucaCache extends Cache
     int associativity;
     int blockSizeBits;
     public NOC noc;
+    public Mapping mapping;
+    public int coreCacheMapping[][];
     NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
     {
     	super(cacheParameters, containingMemSys);
@@ -56,6 +63,8 @@ public abstract class NucaCache extends Cache
         this.cacheSize = cacheParameters.getSize();
         this.associativity = cacheParameters.getAssoc();
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
+        coreCacheMapping = SystemConfig.coreCacheMapping.clone();
+        this.mapping = cacheParameters.mapping;
         for(int i=0;i<cacheRows;i++)
         {
             for(int j=0;j<cacheColumns;j++)
@@ -88,7 +97,7 @@ public abstract class NucaCache extends Cache
 				this.cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys);
 			}
 		}
-		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig.topology);
+		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig);
 	}
 
     public Vector<Integer> integerToBankId(int bankNumber)
@@ -125,5 +134,5 @@ public abstract class NucaCache extends Cache
 
 	public abstract long getTag(long addr);
 	public abstract Vector<Integer> getDestinationBankId(long addr);
-	public abstract Vector<Integer> getSourceBankId(long addr);
+	public abstract Vector<Integer> getNearestBankId(long addr,int coreId);
 }

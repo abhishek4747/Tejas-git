@@ -36,7 +36,8 @@ public class Newmain {
 	public static CustomInstructionPool instructionPool;
 
 	// the reader threads. Each thread reads from EMUTHREADS
-	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];;
+	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
+	public static boolean subsetSimulation = true; //test added
 
 	public static void main(String[] arguments) throws Exception 
 	{

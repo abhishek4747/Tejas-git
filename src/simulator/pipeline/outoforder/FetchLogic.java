@@ -119,7 +119,7 @@ public class FetchLogic extends SimulationElement {
 							//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
 							if(SimulationConfig.detachMemSys == false)
 							{
-									execEngine.coreMemSys.issueRequestToInstrCache(this, newInstruction.getProgramCounter());
+									execEngine.coreMemSys.issueRequestToInstrCache(this, newInstruction.getProgramCounter());//core id needs to be added to this call.
 							}
 							//System.out.println(core.getCoreMode() + " - no of insts  : " + noOfInstructionsThisEpoch);
 						}

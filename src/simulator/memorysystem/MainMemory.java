@@ -1,5 +1,6 @@
 package memorysystem;
 
+import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
 import config.SystemConfig;
 import generic.EventQueue;
@@ -31,21 +32,22 @@ public class MainMemory extends SimulationElement
 				event.getRequestingElement().getPort().put(
 						event.update(
 								eventQ,
-								event.getRequestingElement().getLatencyDelay(),//2,//wire delay from main memory to cache
+								event.getRequestingElement().getLatency(),//2,//wire delay from main memory to cache
 								null,
 								event.getRequestingElement(),
 								RequestType.Mem_Response));
 			}
 			else
 			{
-				event.getRequestingElement().getPort().put(
+
+				NucaCacheBank requestingBank =  (NucaCacheBank) event.getRequestingElement();
+				requestingBank.getRouter().getPort().put(
 						event.update(
 								eventQ,
 								event.getRequestingElement().getLatencyDelay(),
 								null,
-								event.getRequestingElement(),
+								requestingBank.getRouter(),
 								RequestType.Main_Mem_Response));
-
 			}
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)

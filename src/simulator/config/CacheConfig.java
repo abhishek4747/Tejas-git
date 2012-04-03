@@ -21,6 +21,7 @@
 package config;
 
 import memorysystem.Cache.CoherenceType;
+import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.Cache;
 import generic.PortType;
@@ -50,8 +51,10 @@ public class CacheConfig
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public int numberOfBuffers;
+	public int mshrSize;
 	public NocConfig nocConfig = new NocConfig();
 	public NucaType nucaType;
+	public Mapping mapping;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH

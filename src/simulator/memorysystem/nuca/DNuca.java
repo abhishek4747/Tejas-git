@@ -58,15 +58,17 @@ public class DNuca extends NucaCache {
 		// TODO Auto-generated method stub
 		SimulationElement requestingElement = event.getRequestingElement();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
-		Vector<Integer> sourceBankId = getSourceBankId(address);
+		Vector<Integer> sourceBankId = getNearestBankId(address, ((AddressCarryingEvent)(event)).coreId);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
+		//System.out.println(sourceBankId + " " + destinationBankId + " " + getBankNumber(address));
+		//System.exit(0);
 		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone();
-		cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].
+		cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
 								getPort().put(((AddressCarryingEvent)event).
 														updateEvent(eventQ, 
 																	0,//to be  changed to some constant(wire delay) 
 																	requestingElement, 
-																	cacheBank[sourceBankId.get(0)][sourceBankId.get(1)], 
+																	cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
 																	event.getRequestType(), 
 																	sourceBankId, 
 																	destinationBankId));
@@ -74,7 +76,25 @@ public class DNuca extends NucaCache {
 
 	public int getBankNumber(long addr)
 	{
-		return (int)(addr>>>blockSizeBits)%getNumOfBanks();
+		if(mapping == Mapping.SET_ASSOCIATIVE)
+			return (int)((addr>>>blockSizeBits)%getNumOfBanks());
+		else if(mapping == Mapping.ADDRESS)
+		{
+			long tag = (addr>>>blockSizeBits);
+			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
+			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
+			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
+	//		System.out.println(bankId);
+			return bankId;
+		}else
+		{
+			long tag = (addr>>>blockSizeBits);
+			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
+			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
+			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
+	//		System.out.println(bankId);
+			return bankId;
+		}
 	}
 	
 	public Vector<Integer> getDestinationBankId(long addr)
@@ -89,5 +109,40 @@ public class DNuca extends NucaCache {
 		bankId.add(0);
 		bankId.add(bankNumber%cacheColumns);
 		return bankId;
+	}
+
+	double getDistance(int x1,int y1,int x2,int y2)
+	{
+		return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+	}
+	
+	@Override
+	public Vector<Integer> getNearestBankId(long addr, int coreId)
+	{
+		Vector<Integer> destinationBankId = getDestinationBankId(addr);
+		Vector<Integer> nearestBankId = new Vector<Integer>();
+		nearestBankId.add(coreCacheMapping[coreId][0]/cacheColumns);
+		nearestBankId.add(coreCacheMapping[coreId][0]%cacheColumns);
+		//System.out.println(coreCacheMapping[coreId][0] + "core");
+		double distance = getDistance(coreCacheMapping[coreId][0]/cacheColumns,
+				                      coreCacheMapping[coreId][0]%cacheColumns,
+				                      destinationBankId.get(0),
+				                      destinationBankId.get(1));
+		for(int i=1;i < coreCacheMapping[coreId][1];i++)
+		{
+			double newDistance = getDistance((coreCacheMapping[coreId][0]+i)/cacheColumns,
+						                    (coreCacheMapping[coreId][0]+i)%cacheColumns,
+						                    destinationBankId.get(0),
+						                    destinationBankId.get(1));
+			//System.out.println(distance + "distance" + newDistance + "new distance");
+			if(newDistance < distance)
+			{
+				distance = newDistance;
+				nearestBankId.clear();
+				nearestBankId.add((coreCacheMapping[coreId][0]+i)/cacheColumns);
+				nearestBankId.add((coreCacheMapping[coreId][0]+i)%cacheColumns);
+			}
+		}
+		return nearestBankId;
 	}
 }

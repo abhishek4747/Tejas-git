@@ -124,11 +124,11 @@ public class DynamicInstructionBuffer implements Encoding
 			}
 			else
 			{
-				System.out.print("\n\tExtra branch instruction found : original instruction=" +
+			/*	System.out.print("\n\tExtra branch instruction found : original instruction=" +
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.ip) + "\n");
 
-				System.exit(0);
+				System.exit(0);*/
 			}
 		}
 		
@@ -158,9 +158,9 @@ public class DynamicInstructionBuffer implements Encoding
 			}
 			else
 			{
-				System.out.print("\n\tExtra memRead instruction found : original instruction=" +
+				/*System.out.print("\n\tExtra memRead instruction found : original instruction=" +
 						Long.toHexString(instructionPointer) + " found instruction=" + 
-						Long.toHexString(headPacket.get(0).ip) + "\n");
+						Long.toHexString(headPacket.get(0).ip) + "\n");*/
 				
 //				System.exit(0);
 			}
@@ -192,11 +192,11 @@ public class DynamicInstructionBuffer implements Encoding
 			}
 			else
 			{
-				System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
+	/*			System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
 						Long.toHexString(instructionPointer) + " found instruction=" + 
 						Long.toHexString(headPacket.get(0).ip) + "\n");
 
-				System.exit(0);
+				System.exit(0);*/
 			}
 		}
 		

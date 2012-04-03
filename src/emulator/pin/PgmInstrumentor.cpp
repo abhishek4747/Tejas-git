@@ -193,7 +193,7 @@ VOID Instruction(INS ins, VOID *v)
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
-	printf("checkSum is %lld\n",checkSum);
+	//printf("checkSum is %lld\n",checkSum);
 	tst->unload();
 }
 
@@ -222,12 +222,12 @@ int main(int argc, char * argv[])
 	// Knobs get initialized only after initlializing PIN
 	numInsToIgnore = KnobIgnore;
 	if (numInsToIgnore>0) ignoreActive = true;
-	printf("Ignoring %lld profilable instructions \n", numInsToIgnore);
-	fflush(stdout);
+//	printf("Ignoring %lld profilable instructions \n", numInsToIgnore);
+//	fflush(stdout);
 
 	UINT64 mask = KnobMap;
-	printf("mask for pin %lld\n", mask);
-	fflush(stdout);
+//	printf("mask for pin %lld\n", mask);
+//	fflush(stdout);
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
 	}

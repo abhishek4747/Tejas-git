@@ -65,7 +65,8 @@ public class FetchUnitIn extends SimulationElement{
 				if(!SimulationConfig.detachMemSys){
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getDecodeUnitIn(), 
-						this.fetchBuffer[i].getProgramCounter());
+						this.fetchBuffer[i].getProgramCounter(),
+						this.core.getCore_number());
 				}
 			}
 		}

@@ -77,7 +77,8 @@ public class InstructionCache extends Cache
 									this, 
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Read,
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				else
@@ -89,7 +90,8 @@ public class InstructionCache extends Cache
 									this, 
 									this.nextLevel,
 									RequestType.Cache_Read_from_iCache, 
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				
@@ -113,7 +115,8 @@ public class InstructionCache extends Cache
 								this, 
 								MemorySystem.mainMemory,
 								RequestType.Main_Mem_Write,
-								evictedLine.getTag() << this.blockSizeBits));
+								evictedLine.getTag() << this.blockSizeBits,
+								((AddressCarryingEvent)event).coreId));
 			else
 				this.nextLevel.getPort().put(
 						new AddressCarryingEvent(
@@ -122,7 +125,8 @@ public class InstructionCache extends Cache
 								this,
 								this.nextLevel,
 								RequestType.Cache_Write,
-								evictedLine.getTag() << this.blockSizeBits));
+								evictedLine.getTag() << this.blockSizeBits,
+								((AddressCarryingEvent)event).coreId));
 		}
 		
 		long blockAddr = addr >>> this.blockSizeBits;

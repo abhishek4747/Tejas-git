@@ -49,7 +49,7 @@ public class ExecUnitIn extends SimulationElement{
 						this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 								core.getExecutionEngineIn().getMemUnitIn(),
 								RequestType.Cache_Read,
-								ins.getSourceOperand1().getValue());
+								ins.getSourceOperand1().getValue(),this.core.getCore_number());
 					}
 				}
 				else if(exMemLatch.getOperationType()==OperationType.store){
@@ -62,7 +62,8 @@ public class ExecUnitIn extends SimulationElement{
 						this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 								core.getExecutionEngineIn().getMemUnitIn(),
 								RequestType.Cache_Write,
-								ins.getSourceOperand1().getValue());
+								ins.getSourceOperand1().getValue(),
+								this.core.getCore_number());
 					}
 				}
 				else{

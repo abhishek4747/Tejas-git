@@ -82,7 +82,7 @@ public class Cache extends SimulationElement
 		
 //		protected Hashtable<Long, ArrayList<CacheMissStatusHoldingRegisterEntry>> missStatusHoldingRegister
 //						= new Hashtable<Long, ArrayList<CacheMissStatusHoldingRegisterEntry>>();
-		protected Hashtable<Long, ArrayList<Event>> missStatusHoldingRegister
+		public Hashtable<Long, ArrayList<Event>> missStatusHoldingRegister
 						= new Hashtable<Long, ArrayList<Event>>();
 		
 		public int noOfRequests;
@@ -396,7 +396,7 @@ public class Cache extends SimulationElement
 				{
 					//Write the data to the cache block (Do Nothing)
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
-						this.nextLevel.busController.processWriteHit(eventQ, this, cl, address);
+						this.nextLevel.busController.processWriteHit(eventQ, this, cl, address,((AddressCarryingEvent)event).coreId);
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
 					{
 						/* remove the block size */
@@ -432,7 +432,8 @@ public class Cache extends SimulationElement
 												this,
 												MemorySystem.mainMemory,
 												RequestType.Main_Mem_Write,
-												address));
+												address,
+												((AddressCarryingEvent)event).coreId));
 							else
 								MemorySystem.mainMemory.getPort().put(
 										event.update(
@@ -452,7 +453,8 @@ public class Cache extends SimulationElement
 												this,
 												this.nextLevel,
 												RequestType.Cache_Write, 
-												address));
+												address,
+												((AddressCarryingEvent)event).coreId));
 							else
 								this.nextLevel.getPort().put(
 									event.update(
@@ -478,9 +480,9 @@ public class Cache extends SimulationElement
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
 					{
 						if (requestType == RequestType.Cache_Read)
-							this.nextLevel.busController.processReadMiss(eventQ, this, address);
+							this.nextLevel.busController.processReadMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
 						else if (requestType == RequestType.Cache_Write)
-							this.nextLevel.busController.processWriteMiss(eventQ, this, address);
+							this.nextLevel.busController.processWriteMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
 						else
 						{
 							System.err.println("Error : This must not be happening");
@@ -523,7 +525,8 @@ public class Cache extends SimulationElement
 											this, 
 											MemorySystem.mainMemory,
 											RequestType.Main_Mem_Read,
-											address));
+											address,
+											((AddressCarryingEvent)event).coreId));
 							return;
 						}
 						else
@@ -535,7 +538,8 @@ public class Cache extends SimulationElement
 											this, 
 											this.nextLevel,
 											RequestType.Cache_Read, 
-											address));
+											address,
+											((AddressCarryingEvent)event).coreId));
 							return;
 						}
 					}
@@ -563,7 +567,8 @@ public class Cache extends SimulationElement
 									this, 
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Write,
-									evictedLine.getTag() << this.blockSizeBits));
+									evictedLine.getTag() << this.blockSizeBits,
+									((AddressCarryingEvent)event).coreId));
 				else
 					this.nextLevel.getPort().put(
 							new AddressCarryingEvent(
@@ -572,7 +577,8 @@ public class Cache extends SimulationElement
 									this,
 									this.nextLevel,
 									RequestType.Cache_Write,
-									evictedLine.getTag() << this.blockSizeBits));
+									evictedLine.getTag() << this.blockSizeBits,
+									((AddressCarryingEvent)event).coreId));
 			}
 			
 			long blockAddr = addr >>> this.blockSizeBits;
@@ -582,7 +588,7 @@ public class Cache extends SimulationElement
 				System.exit(1);
 			}
 			
-			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.get(blockAddr);
+			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
 			
 			while (!/*NOT*/outstandingRequestList.isEmpty())
 			{				
@@ -646,7 +652,8 @@ public class Cache extends SimulationElement
 												this,
 												MemorySystem.mainMemory,
 												RequestType.Main_Mem_Write,
-												address));
+												address,
+												((AddressCarryingEvent)event).coreId));
 							else
 								MemorySystem.mainMemory.getPort().put(
 										event.update(
@@ -666,7 +673,8 @@ public class Cache extends SimulationElement
 												this,
 												this.nextLevel,
 												RequestType.Cache_Write,
-												address));
+												address,
+												((AddressCarryingEvent)event).coreId));
 							else
 								this.nextLevel.getPort().put(
 										event.update(
@@ -728,7 +736,8 @@ public class Cache extends SimulationElement
 							this, 
 							this.nextLevel, 
 							RequestType.Cache_Write,
-							addr));
+							addr,
+							((AddressCarryingEvent)event).coreId));
 			this.nextLevel.busController.getBusAndPutEvents(eventList);
 			
 			CacheLine cl = this.access(addr);
@@ -759,7 +768,8 @@ public class Cache extends SimulationElement
 							requestingCache,
 							this.nextLevel,
 							RequestType.Cache_Read,
-							addr));
+							addr,
+							((AddressCarryingEvent)event).coreId));
 			
 			CacheLine cl = this.access(addr);
 			if (cl != null)
@@ -787,7 +797,8 @@ if(cacheLine > CentralizedDirectory.numOfEntries){
 							this, 
 							MemorySystem.mainMemory,
 							RequestType.Main_Mem_Read,
-							address));
+							address,
+							((AddressCarryingEvent)event).coreId));
 			return;
 		}
 		else
@@ -799,7 +810,8 @@ if(cacheLine > CentralizedDirectory.numOfEntries){
 							this, 
 							this.nextLevel,
 							RequestType.Cache_Read, 
-							address));
+							address,
+							((AddressCarryingEvent)event).coreId));
 			return;
 		}
 	}
@@ -845,7 +857,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Write,
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				else
@@ -857,7 +870,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									this.nextLevel,
 									RequestType.Cache_Write, 
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				
@@ -875,7 +889,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 											this, 
 											this.nextLevel.prevLevel.get(i),
 											RequestType.MESI_Invalidate, 
-											address));
+											address,
+											((AddressCarryingEvent)event).coreId));
 						}
 					}
 				}
@@ -892,7 +907,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Read,
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				else
@@ -904,7 +920,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									this.nextLevel,
 									RequestType.Cache_Read, 
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 			}
@@ -931,7 +948,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Read,
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				else
@@ -943,7 +961,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									this.nextLevel,
 									RequestType.Cache_Read, 
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				
@@ -977,7 +996,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 											this, 
 											this.nextLevel.prevLevel.get(i),
 											RequestType.MESI_Invalidate, 
-											address));
+											address,
+											((AddressCarryingEvent)event).coreId));
 						}
 					}
 				}
@@ -1024,7 +1044,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Read,
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 				else
@@ -1036,7 +1057,8 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 									this, 
 									this.nextLevel,
 									RequestType.Cache_Read, 
-									address));
+									address,
+									((AddressCarryingEvent)event).coreId));
 					return;
 				}
 			}
