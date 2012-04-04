@@ -254,7 +254,8 @@ public class InstructionClassTable {
 		for (int i = 0; i < returnOp.length; i++)
 			instructionClassTable.put(returnOp[i], InstructionClass.RETURN);
 
-		String move[] = "mov|movsx|movzx".split("\\|");
+		//FIXME : movsx* does a sign-extend + move. Right now, we are doing move only.
+		String move[] = "mov|movsx|movsxd|movzx|movzxd|movsd".split("\\|");
 		for (int i = 0; i < move.length; i++)
 			instructionClassTable.put(move[i], InstructionClass.MOVE);
 
