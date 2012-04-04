@@ -58,8 +58,8 @@ public class Port
 	{
 		if(this.portType == PortType.Unlimited)
 		{
-			// For an unlimited port, add the event with current-time.
-			event.addEventTime(GlobalClock.getCurrentTime());
+			// For an unlimited port, set the event with current-time.
+			event.setEventTime(GlobalClock.getCurrentTime());
 			event.getEventQ().addEvent(event);
 			return;
 		}
@@ -68,27 +68,32 @@ public class Port
 		{
 			//else return the slot that will be available earliest.
 			int availablePortID = 0;
+			
+			// find the first available port
 			for(int i=0; i<noOfPorts; i++)
 			{
 				if(portBusyUntil[i]< 
-						portBusyUntil[availablePortID])
+					portBusyUntil[availablePortID])
 				{
 					availablePortID = i;
 				}
 			}
 			
-			// If all the ports are available, return current-time.
+			// If a port is available, set its portBusyUntil field to
+			// current time
 			if(portBusyUntil[availablePortID]<
-					GlobalClock.getCurrentTime())
+				GlobalClock.getCurrentTime())
 			{
-				portBusyUntil[availablePortID] = GlobalClock.getCurrentTime();
+				// this port will be busy for next occupancy cycles
+				portBusyUntil[availablePortID] = 
+					GlobalClock.getCurrentTime() + occupancy;
+			}else{
+				// set the port as busy for occupancy cycles
+				portBusyUntil[availablePortID] += occupancy;	
 			}
-			
-			//set the port as busy for occupancy amount of time.
-			portBusyUntil[availablePortID] += occupancy;
-			
+						
 			// set the time of the event
-			event.addEventTime(portBusyUntil[availablePortID]);
+			event.setEventTime(portBusyUntil[availablePortID]);
 			
 			// add event in the eventQueue
 			event.getEventQ().addEvent(event);
