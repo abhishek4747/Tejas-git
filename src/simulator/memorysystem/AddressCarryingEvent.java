@@ -18,8 +18,8 @@ public class AddressCarryingEvent extends Event
 	public Vector<Integer> oldSourceBankId;
 	public boolean copyLine;
 	public int coreId;
-	//Stack<SimulationElement> requestingElementStack = new Stack<SimulationElement>();
-	//Stack<RequestType> requestTypeStack = new Stack<RequestType>();
+	public Stack<SimulationElement> requestingElementStack = new Stack<SimulationElement>();
+	public Stack<RequestType> requestTypeStack = new Stack<RequestType>();
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -47,12 +47,12 @@ public class AddressCarryingEvent extends Event
 		this.coreId = coreId;
 	}
 	
-	public void updateEvent(EventQueue eventQ, long eventTime, 
+	public AddressCarryingEvent updateEvent(EventQueue eventQ, long eventTime, 
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, long address) {
 		this.address = address;
-		this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
+		return (AddressCarryingEvent)this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
 	}
 	
 	public AddressCarryingEvent updateEvent(EventQueue eventQ, long eventTime, 

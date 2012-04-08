@@ -205,7 +205,7 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				System.out.println(event.getRequestingElement());
+			//	System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Cache_Write)
@@ -256,7 +256,7 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				System.out.println(event.getRequestingElement());
+				//System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Mem_Response)
@@ -282,7 +282,7 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				System.out.println(event.getRequestingElement());
+				//System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Main_Mem_Read)
@@ -308,7 +308,7 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				System.out.println(event.getRequestingElement());
+				//System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Main_Mem_Write)
@@ -334,7 +334,7 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				System.out.println(event.getRequestingElement());
+				//System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Main_Mem_Response)
@@ -360,7 +360,7 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				System.out.println(event.getRequestingElement());
+				//System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(currentId.equals(destinationId))

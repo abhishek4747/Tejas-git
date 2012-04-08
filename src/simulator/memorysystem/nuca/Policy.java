@@ -18,14 +18,14 @@ public class Policy {
 		if(nucaType == NucaType.S_NUCA)
 		{			
 			//Add the request to the outstanding request buffer
-			boolean alreadyRequested = cacheBank.addtoForwardedRequests(event, address);
-
+			int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
+			sourceBankId =new Vector<Integer>(event.getDestinationBankId());
+			destinationBankId = new Vector<Integer>(event.getSourceBankId());
 			//System.out.println("added a new event in bankid " + router.getBankId());
-			if (!alreadyRequested)
+			if (alreadyRequested==0)
 			{
-				sourceBankId =new Vector<Integer>(event.getDestinationBankId());
-				destinationBankId = new Vector<Integer>(event.getSourceBankId());
 				event.oldRequestType = event.getRequestType();
+				event.requestTypeStack.push(event.getRequestType());
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																			 0,
 																			 cacheBank, 
@@ -36,6 +36,17 @@ public class Policy {
 				addressEvent.setSourceBankId(sourceBankId);
 				addressEvent.setDestinationBankId(destinationBankId);
 				return addressEvent;
+			}
+			else if (alreadyRequested == 2)
+			{
+				event.requestTypeStack.push(event.getRequestType());
+				return event.updateEvent(eventQ,
+						                 0, 
+						                 cacheBank,
+						                 cacheBank.getRouter(), 
+						                 RequestType.Main_Mem_Read, 
+						                 sourceBankId, 
+						                 destinationBankId);
 			}
 			else
 			{

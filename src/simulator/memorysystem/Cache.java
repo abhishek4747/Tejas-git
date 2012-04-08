@@ -77,7 +77,7 @@ public class Cache extends SimulationElement
 		protected String nextLevelName; //Name of the next level cache according to the configuration file
 		protected ArrayList<Cache> prevLevel = new ArrayList<Cache>(); //Points towards the previous level in the cache hierarchy
 		protected Cache nextLevel; //Points towards the next level in the cache hierarchy
-
+        protected final int MSHRSize;
 		protected CacheLine lines[];
 		
 //		protected Hashtable<Long, ArrayList<CacheMissStatusHoldingRegisterEntry>> missStatusHoldingRegister
@@ -176,7 +176,7 @@ public class Cache extends SimulationElement
 			this.hits = 0;
 			this.misses = 0;
 			this.evictions = 0;
-			
+			this.MSHRSize = cacheParameters.mshrSize;
 			// make the cache
 			makeCache();
 		}
@@ -251,7 +251,7 @@ public class Cache extends SimulationElement
 					this.evictions++;
 
 					/* log the line */
-					evictedLines.addElement(fillLine.getTag());
+					//evictedLines.addElement(fillLine.getTag());
 				//}
 			}
 
@@ -296,29 +296,31 @@ public class Cache extends SimulationElement
 		 * @param requestType : MEM_READ or MEM_WRITE
 		 * @param requestingElement : Which element made the request. Helpful in backtracking and filling the stack
 		 */
-		public boolean addOutstandingRequest(Event event, long addr)
+		public int addOutstandingRequest(Event event, long addr)
 		{
-			boolean entryAlreadyThere;
+			int entryAlreadyThere = 0;
 			
 			long blockAddr = addr >>> blockSizeBits;
 			
 			if (!/*NOT*/missStatusHoldingRegister.containsKey(blockAddr))
 			{
-				entryAlreadyThere = false;
+				entryAlreadyThere = 0;
 //				missStatusHoldingRegister.put(blockAddr, new ArrayList<CacheMissStatusHoldingRegisterEntry>());
 				missStatusHoldingRegister.put(blockAddr, new ArrayList<Event>());
 			}
 			else if (missStatusHoldingRegister.get(blockAddr).isEmpty())
-				entryAlreadyThere = false;
+				entryAlreadyThere = 0;
+			else if (missStatusHoldingRegister.get(blockAddr).size() <= MSHRSize)
+				entryAlreadyThere = 1;
 			else
-				entryAlreadyThere = true;
+				entryAlreadyThere = 2;
 			
 //			missStatusHoldingRegister.get(blockAddr).add(new CacheMissStatusHoldingRegisterEntry(requestType,
 //																							requestingElement,
 //																							addr,
 //																							lsqEntry));
-			missStatusHoldingRegister.get(blockAddr).add(event);
-			
+			if(entryAlreadyThere !=2)
+				missStatusHoldingRegister.get(blockAddr).add(event);
 			return entryAlreadyThere;
 		}
 		
@@ -473,9 +475,9 @@ public class Cache extends SimulationElement
 			{			
 //System.out.println("Encountered a miss!!");
 				//Add the request to the outstanding request buffer
-				boolean alreadyRequested = this.addOutstandingRequest(event, address);
+				int alreadyRequested = this.addOutstandingRequest(event, address);
 				
-				if (!alreadyRequested)
+				if (alreadyRequested == 0)
 				{
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
 					{
@@ -544,6 +546,78 @@ public class Cache extends SimulationElement
 						}
 					}
 				}
+				else if(alreadyRequested == 2)
+				{
+					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
+					{
+						if (requestType == RequestType.Cache_Read)
+							this.nextLevel.busController.processReadMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
+						else if (requestType == RequestType.Cache_Write)
+							this.nextLevel.busController.processWriteMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
+						else
+						{
+							System.err.println("Error : This must not be happening");
+							System.exit(1);
+						}
+					}
+					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
+					{
+//System.out.println("Encountered a miss in directory!!");
+						long directoryDelay=0;
+						/* remove the block size */
+						long tag = address >>> this.blockSizeBits;
+
+						/* search all the lines that might match */
+						
+						long laddr = tag >>> this.assocBits;
+						laddr = laddr << assocBits; //Replace the associativity bits with zeros.
+
+						/* remove the tag portion */
+						laddr = laddr & numLinesMask;
+						int cacheLineNum=(int)(laddr/(long)blockSize);//TODO is this correct ?
+																//TODO long to int typecast ? need an array indexed by long ?
+						int containingCore = containingMemSys.getCore().getCore_number();//TODO Is this correct ?
+	
+						updateDirectory(cacheLineNum, containingCore,requestType, eventQ, address, event);//FIXME reduce number of arguments
+						
+					}//TODO
+					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
+					{}//TODO
+					
+					// access the next level
+					else 
+					{
+						((AddressCarryingEvent)event).requestingElementStack.push(event.getRequestingElement());
+						((AddressCarryingEvent)event).requestTypeStack.push(event.getRequestType());
+
+						if (this.isLastLevel)
+						{
+//							((AddressCarryingEvent)event).requestingElementStack.push(event.getRequestingElement());
+//							((AddressCarryingEvent)event).requestTypeStack.push(event.getRequestType());
+							MemorySystem.mainMemory.getPort().put(
+									((AddressCarryingEvent)event).updateEvent(
+											eventQ,
+											MemorySystem.mainMemory.getLatencyDelay(),
+											this, 
+											MemorySystem.mainMemory,
+											RequestType.Main_Mem_Read,
+											address));
+							return;
+						}
+						else
+						{
+							this.nextLevel.getPort().put(
+									((AddressCarryingEvent)event).updateEvent(
+											eventQ,
+											this.nextLevel.getLatencyDelay(),
+											this, 
+											this.nextLevel,
+											RequestType.Cache_Read, 
+											address));
+							return;
+						}
+					}
+				}
 			}
 		}
 		
@@ -582,52 +656,47 @@ public class Cache extends SimulationElement
 			}
 			
 			long blockAddr = addr >>> this.blockSizeBits;
-			if (!/*NOT*/this.missStatusHoldingRegister.containsKey(blockAddr))
+			if(!((AddressCarryingEvent)event).requestingElementStack.isEmpty())
 			{
-				System.err.println("Memory System Error : An outstanding request not found in the requesting element");
-				System.exit(1);
-			}
-			
-			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
-			
-			while (!/*NOT*/outstandingRequestList.isEmpty())
-			{				
-				if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
+				SimulationElement oldRequestingElement = ((AddressCarryingEvent)event).requestingElementStack.pop();
+				RequestType oldRequestType = ((AddressCarryingEvent)event).requestTypeStack.pop();
+				
+				if (oldRequestType == RequestType.Cache_Read)
 				{
 					//Pass the value to the waiting element
 					//FIXME : Check the logic before finalizing
 					if (this.levelFromTop != CacheType.L1 || (!MemorySystem.bypassLSQ))
-						outstandingRequestList.get(0).getRequestingElement().getPort().put(
-								outstandingRequestList.get(0).update(
+						oldRequestingElement.getPort().put(
+								event.update(
 										eventQ,
 										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 										this,
-										outstandingRequestList.get(0).getRequestingElement(),
+										oldRequestingElement,
 										RequestType.Mem_Response));
 					else if (containingMemSys.getCore().isPipelineInorder)
 						//TODO Return the call to Inorder pipeline
-						outstandingRequestList.get(0).getRequestingElement().getPort().put(
+						oldRequestingElement.getPort().put(
 								new ExecCompleteEvent(
 										containingMemSys.getCore().getEventQueue(),
 										0,
 										null,
-										outstandingRequestList.get(0).getRequestingElement(),
+										oldRequestingElement,
 										RequestType.EXEC_COMPLETE,
 										null));
 				}
 				
-				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read_from_iCache)
+				else if (oldRequestType == RequestType.Cache_Read_from_iCache)
 				{
-					outstandingRequestList.get(0).getRequestingElement().getPort().put(
-							outstandingRequestList.get(0).update(
+					oldRequestingElement.getPort().put(
+							event.update(
 									eventQ,
 									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 									this,
-									outstandingRequestList.get(0).getRequestingElement(),
+									oldRequestingElement,
 									RequestType.Mem_Response));
 				}
 				
-				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)
+				else if (oldRequestType == RequestType.Cache_Write)
 				{
 					//Write the value to the block (Do Nothing)
 					//Handle further writes for Write through
@@ -701,12 +770,136 @@ public class Cache extends SimulationElement
 				}
 				else
 				{
-					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write. The encountered request type was : " + outstandingRequestList.get(0).getRequestType());
+					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write. The encountered request type was : " + oldRequestType);
 					System.exit(1);
 				}
-				
-				//Remove the processed entry from the outstanding request list
-				outstandingRequestList.remove(0);
+			}
+			else if (this.missStatusHoldingRegister.containsKey(blockAddr))
+			{
+				ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
+				while (!/*NOT*/outstandingRequestList.isEmpty())
+				{				
+					if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
+					{
+						//Pass the value to the waiting element
+						//FIXME : Check the logic before finalizing
+						if (this.levelFromTop != CacheType.L1 || (!MemorySystem.bypassLSQ))
+							outstandingRequestList.get(0).getRequestingElement().getPort().put(
+									outstandingRequestList.get(0).update(
+											eventQ,
+											0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+											this,
+											outstandingRequestList.get(0).getRequestingElement(),
+											RequestType.Mem_Response));
+						else if (containingMemSys.getCore().isPipelineInorder)
+							//TODO Return the call to Inorder pipeline
+							outstandingRequestList.get(0).getRequestingElement().getPort().put(
+									new ExecCompleteEvent(
+											containingMemSys.getCore().getEventQueue(),
+											0,
+											null,
+											outstandingRequestList.get(0).getRequestingElement(),
+											RequestType.EXEC_COMPLETE,
+											null));
+					}
+					
+					else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read_from_iCache)
+					{
+						outstandingRequestList.get(0).getRequestingElement().getPort().put(
+								outstandingRequestList.get(0).update(
+										eventQ,
+										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+										this,
+										outstandingRequestList.get(0).getRequestingElement(),
+										RequestType.Mem_Response));
+					}
+					
+					else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)
+					{
+						//Write the value to the block (Do Nothing)
+						//Handle further writes for Write through
+						if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+						{
+							//Handle in any case (Whether requesting element is LSQ or cache)
+							//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
+							long address;
+							if (this.levelFromTop == CacheType.L1 && !MemorySystem.bypassLSQ)
+								address = ((LSQEntryContainingEvent)(event)).getLsqEntry().getAddr();
+							else
+								address = ((AddressCarryingEvent)(event)).getAddress();
+								
+							
+							if (this.isLastLevel)
+							{
+								if (this.levelFromTop == CacheType.L1)
+									MemorySystem.mainMemory.getPort().put(
+											new AddressCarryingEvent(
+													eventQ,
+													MemorySystem.mainMemory.getLatencyDelay(),
+													this,
+													MemorySystem.mainMemory,
+													RequestType.Main_Mem_Write,
+													address,
+													((AddressCarryingEvent)event).coreId));
+								else
+									MemorySystem.mainMemory.getPort().put(
+											event.update(
+													eventQ,
+													MemorySystem.mainMemory.getLatencyDelay(),
+													this,
+													MemorySystem.mainMemory,
+													RequestType.Main_Mem_Write));
+							}
+							else if (this.nextLevel.coherence != CoherenceType.Snoopy)
+							{
+								if (this.levelFromTop == CacheType.L1)
+									this.nextLevel.getPort().put(
+											new AddressCarryingEvent(
+													eventQ,
+													this.nextLevel.getLatencyDelay(),
+													this,
+													this.nextLevel,
+													RequestType.Cache_Write,
+													address,
+													((AddressCarryingEvent)event).coreId));
+								else
+									this.nextLevel.getPort().put(
+											event.update(
+													eventQ,
+													this.nextLevel.getLatencyDelay(),
+													this,
+													this.nextLevel,
+													RequestType.Cache_Write));
+							}
+							else
+							{
+								CacheLine cl = this.access(addr);
+								if (cl != null)
+									cl.setState(MESI.MODIFIED);
+							}
+								
+						}
+						else
+						{
+							CacheLine cl = this.access(addr);
+							if (cl != null)
+								cl.setState(MESI.MODIFIED);
+						}
+					}
+					else
+					{
+						System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write. The encountered request type was : " + outstandingRequestList.get(0).getRequestType());
+						System.exit(1);
+					}
+					
+					//Remove the processed entry from the outstanding request list
+					outstandingRequestList.remove(0);
+				}
+			}
+			else
+			{
+				System.err.println("Memory System Error : An outstanding request not found in the requesting element" + event.getRequestType() + event.getProcessingElement().getClass() + "  " + ((Cache)event.getProcessingElement()).levelFromTop);
+				System.exit(1);
 			}
 		}
 		
