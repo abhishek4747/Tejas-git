@@ -70,7 +70,7 @@ Shm::Shm ()
  * else just write at localQueue at the appropriate index i.e. at 'in'
  */
 int
-Shm::analysisFn (int tid,uint64_t ip, int val, uint64_t addr)
+Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 {
 	THREAD_DATA *myData = &tldata[tid];
 

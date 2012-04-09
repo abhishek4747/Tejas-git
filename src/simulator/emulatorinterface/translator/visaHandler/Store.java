@@ -11,13 +11,13 @@ public class Store implements VisaHandler
 	public int handle(int microOpIndex, InstructionTable instructionTable,
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
-		LinkedList<Long> memoryWriteAddress;
+		long memoryWriteAddress;
 		memoryWriteAddress = dynamicInstructionBuffer.
-				getmemoryWriteAddress(microOp.getProgramCounter());
+				getSingleStoreAddress(microOp.getProgramCounter());
 		
-		if(memoryWriteAddress!=null)
+		if(memoryWriteAddress!=-1)
 		{
-			microOp.getOperand1().setValue(memoryWriteAddress.poll());
+			microOp.getOperand1().setValue(memoryWriteAddress);
 			return ++microOpIndex;
 		}
 		else

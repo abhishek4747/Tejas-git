@@ -39,7 +39,7 @@ public:
 	Shm();
 	Shm (uint32_t count,uint32_t localQueue);
 
-	int analysisFn (int tid,uint64_t ip, int value, uint64_t tgt);
+	int analysisFn (int tid,uint64_t ip, uint64_t value, uint64_t tgt);
 	void onThread_start (int tid);
 	int onThread_finish (int tid);
 	int shmwrite (int tid, int last);

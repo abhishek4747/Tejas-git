@@ -34,23 +34,7 @@ public class SharedMem extends  IpcBase
 		shmid = shmget(COUNT,MaxNumJavaThreads,EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores);
 		shmAddress = shmat(shmid);
 	}
-	
-	public Process startPIN(String cmd) throws Exception {
-		Runtime rt = Runtime.getRuntime();
-		System.out.println("starting PIN");
-		try {
-			Process p = rt.exec(cmd);
-			StreamGobbler s1 = new StreamGobbler ("stdin", p.getInputStream ());
-			StreamGobbler s2 = new StreamGobbler ("stderr", p.getErrorStream ());
-			s1.start ();
-			s2.start ();
-			return p;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
+		
 	public void initIpc() {
 		
 		if (SimulationConfig.debugMode) 
@@ -67,30 +51,7 @@ public class SharedMem extends  IpcBase
 		}
 	}
 
-	public long doExpectedWaitForSelf() throws InterruptedException{
-		
-		// this takes care if no thread started yet.
-		free.acquire();	
-		
-		// if any thread has started and not finished then wait.
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i] && !termination[i]) {
-				free.acquire();
-			}
-		}
-		
-		long totalInstructions = 0;
-		
-		//inform threads which have not started about finish
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i]==false) termination[i]=true;
-			//totalInstructions += numInstructions[i];
-		}
 
-		//return totalInstructions;
-		return 0;
-	}
-	
 	public Packet fetchOnePacket(int tidApp, int index ) {
 		return shmread(tidApp, shmAddress,
 				index % COUNT);

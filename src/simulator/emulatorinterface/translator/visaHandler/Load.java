@@ -1,8 +1,5 @@
 package emulatorinterface.translator.visaHandler;
 
-import java.util.LinkedList;
-
-
 import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
 import generic.InstructionTable;
@@ -12,13 +9,13 @@ public class Load implements VisaHandler
 	public int handle(int microOpIndex, InstructionTable instructionTable,
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
-		LinkedList<Long> memoryReadAddress;
+		long memoryReadAddress;
 		memoryReadAddress = dynamicInstructionBuffer.
-				getmemoryReadAddress(microOp.getProgramCounter());
+				getSingleLoadAddress(microOp.getProgramCounter());
 		
-		if(memoryReadAddress != null)
+		if(memoryReadAddress != -1)
 		{
-			microOp.getOperand1().setValue(memoryReadAddress.poll());
+			microOp.getOperand1().setValue(memoryReadAddress);
 			return ++microOpIndex;
 		}
 		else

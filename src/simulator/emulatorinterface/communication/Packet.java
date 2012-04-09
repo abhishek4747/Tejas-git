@@ -22,4 +22,17 @@ public class Packet
 		this.value = value;
 		this.tgt = tgt;
 	}
+
+	@Override
+	public String toString() {
+		return "Packet [ip=" + ip + ", tgt=" + tgt + ", value=" + value + "]";
+	}
+
+	public void set(long ip, long value, long tgt) {
+		this.ip = ip;
+		this.value = value;
+		this.tgt = tgt;
+	}
+	
+	
 }

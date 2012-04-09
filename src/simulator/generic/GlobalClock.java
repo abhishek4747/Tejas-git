@@ -13,7 +13,6 @@ public class GlobalClock {
 	
 	static long currentTime;
 	static int stepSize;
-	static double stepValue;
 
 	public static void systemTimingSetUp(Core[] cores, Hashtable<String, Cache> cacheList)
 	{
@@ -29,26 +28,27 @@ public class GlobalClock {
 		String cacheName;
 		Cache cache;
 		
+		/*
 		for(i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			time_periods[i] = Math.round(100000/cores[i].getFrequency());
+			time_periods[i] = Math.round(100000000/cores[i].getFrequency());
 			if(time_periods[i] < seed)
 			{
 				seed = time_periods[i];
 			}
 		}
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); )
 		{
 			cacheName = cacheNameSet.nextElement();
 			cache = cacheList.get(cacheName);
-			time_periods[i] = Math.round(100000/cache.getFrequency());
+			time_periods[i] = Math.round(100000000/cache.getFrequency());
 			if(time_periods[i] < seed)
 			{
 				seed = time_periods[i];
 			}
 			i++;
 		}
-		time_periods[i] = Math.round(100000/MemorySystem.mainMemory.getFrequency());
+		time_periods[i] = Math.round(100000000/MemorySystem.mainMemory.getFrequency());
 		if(time_periods[i] < seed)
 		{
 			seed = time_periods[i];
@@ -98,7 +98,7 @@ public class GlobalClock {
 			coreMemSys.getTLBuffer().setStepSize(cores[i].getStepSize());
 			//System.out.println(cores[i].getStepSize());
 		}
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements();)
 		{
 			cacheName = cacheNameSet.nextElement();
 			cache = cacheList.get(cacheName);
@@ -108,7 +108,125 @@ public class GlobalClock {
 		MemorySystem.mainMemory.setStepSize(time_periods[i]/HCF);
 		//System.out.println(MemorySystem.mainMemStepSize);
 		
-		stepValue = HCF/100000.0;
+		*/
+		
+		int[] freq_list = new int[SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1];
+		
+		for(i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			freq_list[i] = Math.round(cores[i].getFrequency()/100);
+		}
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); )
+		{
+			cacheName = cacheNameSet.nextElement();
+			cache = cacheList.get(cacheName);
+			freq_list[i] = Math.round(cache.getFrequency()/100);
+			i++;
+		}
+		freq_list[i] = Math.round(MemorySystem.mainMemory.getFrequency()/100);
+		
+		//compute HCF
+		//TODO look for a better algorithm
+		int j;
+		boolean flag = false;
+		boolean HCFFound = false;
+		int HCF = 1;
+		for(i = 1; ; i++)
+		{
+			flag = true;
+			for(j = 0; j < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1; j++)
+			{
+				if(freq_list[j]%i != 0)
+				{
+					flag = false;
+					break;
+				}
+				
+				if(freq_list[j] == i)
+				{
+					HCFFound = true;
+				}					
+			}
+			
+			if(flag == true)
+			{
+				HCF = i;
+			}
+			
+			if(HCFFound == true)
+				break;
+		}
+		
+		System.out.println("HCF = " + HCF);
+		
+		for(i = 0; i < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1; i++)
+		{
+			freq_list[i] = freq_list[i]/HCF;
+		}
+		
+		int LCM, cur = freq_list[0];
+		
+		while(true)
+		{
+			flag = true;
+			for(i = 0; i < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1; i++)
+			{
+				if(cur%freq_list[i] != 0)
+				{
+					flag = false;
+					break;
+				}
+			}
+			if(flag == true)
+			{
+				LCM = cur;
+				break;
+			}
+			cur = cur + freq_list[0];
+		}
+		
+		System.out.println("LCM = " + LCM);
+		
+		//set step sizes of components
+		for(i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			cores[i].setStepSize(LCM/freq_list[i]);
+			CoreMemorySystem coreMemSys;
+			
+			if (cores[i].isPipelineStatistical)
+				coreMemSys = cores[i].getStatisticalPipeline().coreMemSys;
+			else if(cores[i].isPipelineInorder)
+				coreMemSys = cores[i].getExecutionEngineIn().coreMemorySystem;
+			else
+				coreMemSys = cores[i].getExecEngine().coreMemSys;
+			
+			coreMemSys.getL1Cache().setStepSize(cores[i].getStepSize());
+			coreMemSys.getLsqueue().setStepSize(cores[i].getStepSize());
+			coreMemSys.getTLBuffer().setStepSize(cores[i].getStepSize());
+			//System.out.println(cores[i].getStepSize());
+		}
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			cacheName = cacheNameSet.nextElement();
+			cache = cacheList.get(cacheName);
+			cache.setStepSize(LCM/freq_list[i++]);
+			//System.out.println(cache.getStepSize());
+		}
+		MemorySystem.mainMemory.setStepSize(LCM/freq_list[i]);
+		//System.out.println(MemorySystem.mainMemStepSize);
+		
+		for(i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			System.out.println("step size of core " + i + " is " + cores[i].getStepSize());
+		}
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			cacheName = cacheNameSet.nextElement();
+			cache = cacheList.get(cacheName);
+			System.out.println("step size of cache " + (i - SystemConfig.NoOfCores) + " is " + cache.getStepSize());
+			//System.out.println(cache.getStepSize());
+		}
+		System.out.println("step size of main memory is " + MemorySystem.mainMemory.getStepSize());
 		
 	}
 
@@ -131,10 +249,6 @@ public class GlobalClock {
 
 	public static void setStepSize(int stepSize) {
 		GlobalClock.stepSize = stepSize;
-	}
-	
-	public static double getStepValue() {
-		return stepValue;
 	}
 
 }
