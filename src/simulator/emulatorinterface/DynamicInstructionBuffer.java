@@ -188,7 +188,7 @@ public class DynamicInstructionBuffer implements Encoding
 			{
 				System.out.print("\n\tExtra memRead instruction found : original instruction=" +
 						Long.toHexString(instructionPointer) + " found instruction=" + 
-						Long.toHexString(headPacket.get(0).ip) + "\n");*/
+						Long.toHexString(headPacket.get(0).ip) + "\n");
 				
 //				System.exit(0);
 			}
