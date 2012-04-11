@@ -60,6 +60,9 @@ public class NOC{
 		case BUTTERFLY :
 			ConnectBanksButterfly(cacheBank, bankColumns,nocConfig);
 			break;
+		case FATTREE :
+			ConnectBanksFatTree(cacheBank, bankColumns, nocConfig);
+			break;
 		}
 			
 	}
@@ -222,7 +225,7 @@ public class NOC{
 		return root;
 	}
 	
-	public Switch ConnectBanksFatTree(NucaCacheBank cacheBank[][], int bankColumns,NocConfig nocConfig)
+	public void ConnectBanksFatTree(NucaCacheBank cacheBank[][], int bankColumns,NocConfig nocConfig)
 	{	
 		int lastElement;
 		String routerClassName = new String("net.Router");
@@ -233,27 +236,27 @@ public class NOC{
 		Switch newOne;
 		do{
 			newOne = new Switch(nocConfig);
-			nodes.add(0,newOne);                             //put in front of nodes
-			newOne.connection[1] = nodes.lastElement();   //right connection
+			nodes.add(0,newOne);                                                 //put in front of nodes
+			newOne.connection[1] = nodes.lastElement();                          //right connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
 				newOne.range[1] = ((Router)(nodes.lastElement())).bankId.elementAt(1);
 			else
-				newOne.range[1] = nodes.lastElement().range[1];   //right range
+				newOne.range[1] = nodes.lastElement().range[1];                  //right range
 			nodes.lastElement().connection[0] = newOne;
 			lastElement = nodes.size();
-			nodes.removeElementAt(lastElement - 1); //right is connected to rightmost end router in node list
-			newOne.connection[3] = nodes.lastElement();   //left connection
+			nodes.removeElementAt(lastElement - 1);                             //right is connected to rightmost end router in node list
+			newOne.connection[3] = nodes.lastElement();                         //left connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
 				newOne.range[0] = ((Router)(nodes.lastElement())).bankId.elementAt(1);
 			else
-				newOne.range[0] = nodes.lastElement().range[0];    //left range
+				newOne.range[0] = nodes.lastElement().range[0];                 //left range
 			nodes.lastElement().connection[0] = newOne;
 			lastElement = nodes.size();
-			nodes.removeElementAt(lastElement - 1); //left is connected to rightmost end router in node list
+			nodes.removeElementAt(lastElement - 1);                            //left is connected to rightmost end router in node list
 		}while(nodes.size()>1);
 		//NucaCacheBank root = connectFatTree(cacheBank,0,bankColumns-1);
 		System.out.println("test");
-		return nodes.elementAt(0);
+		//return nodes.elementAt(0);
 	}
 	/************************************************************************
      * Method Name  : connectInputOmega
