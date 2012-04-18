@@ -20,7 +20,11 @@
 *****************************************************************************/
 package memorysystem;
 
+import java.util.Hashtable;
+
+import pipeline.inorder.MemUnitIn;
 import pipeline.outoforder.ReorderBufferEntry;
+import generic.OMREntry;
 import generic.SimulationElement;
 import generic.EventQueue;
 import generic.Core;
@@ -126,15 +130,20 @@ public class CoreMemorySystem
 											RequestType requestType, 
 											long address,int coreId)
 	{
-		l1Cache.getPort().put(
-				new AddressCarryingEvent(
-						getCore().getEventQueue(),
-						l1Cache.getLatencyDelay(),
-						requestingElement, 
-						l1Cache,
-						requestType, 
-						address,
-						coreId));
+		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
+																	 l1Cache.getLatencyDelay(),
+																	 requestingElement, 
+																	 l1Cache,
+																	 requestType, 
+																	 address,
+																	 coreId); 
+		if(requestingElement.getClass() == MemUnitIn.class)
+		{
+			Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
+			missStatusHoldingRegister.put(address >> (l1Cache.blockSizeBits), 
+										  new OMREntry(null,false,addressEvent));
+		}
+		l1Cache.getPort().put(addressEvent);
 	}
 	
 	

@@ -1,6 +1,8 @@
 package pipeline.inorder;
 
 
+import java.util.Hashtable;
+
 import config.SimulationConfig;
 import config.SystemConfig;
 import generic.Core;
@@ -8,6 +10,7 @@ import generic.Event;
 import generic.EventQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
+import generic.OMREntry;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
@@ -24,6 +27,8 @@ public class FetchUnitIn extends SimulationElement{
 	InstructionLinkedList inputToPipeline;
 	EventQueue eventQueue;
 	int syncCount;
+	Hashtable<Long,OMREntry> missStatusHoldingRegister;
+
 
 	public FetchUnitIn(Core core, EventQueue eventQueue) {
 		super(PortType.Unlimited, -1, -1, -1, -1);
@@ -36,80 +41,72 @@ public class FetchUnitIn extends SimulationElement{
 		this.eventQueue = eventQueue;
 		this.sleep=false;
 		this.syncCount=0;
+		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
+		
 	}
-	
+
+	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
+		return missStatusHoldingRegister;
+	}
+
+	public void setMissStatusHoldingRegister(
+			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
+		this.missStatusHoldingRegister = missStatusHoldingRegister;
+	}	
 	public void fillFetchBuffer(){
 //System.out.println("inside fill fetch buffer "+inputToPipeline.getListSize());
 		if(inputToPipeline.isEmpty())
 			return;
 		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
 		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity;i = (i+1)%this.fetchBufferCapacity){
-			if(newInstruction.getOperationType() == OperationType.inValid){
-				core.getExecutionEngineIn().setFetchComplete(true);
-				this.fetchBuffer[i] = inputToPipeline.pollFirst();
-				this.fetchFillCount++;
-				break;
-			}
-			else
-			{	
-				this.fetchBuffer[i] = inputToPipeline.pollFirst();
-				this.fetchFillCount++;
-//System.out.println("Serial Num Fetch = "+fetchBuffer[i].getSerialNo());
-				if(!inputToPipeline.isEmpty())
-					newInstruction = inputToPipeline.peekInstructionAt(0);
-				else
-					break;
-
-				//TODO add handle fun in getdecodeunit. What happens if icache miss ? stalls not taken account for right now.
-
-				if(!SimulationConfig.detachMemSys){
+			if(!SimulationConfig.detachMemSys){
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getDecodeUnitIn(), 
 						this.fetchBuffer[i].getProgramCounter(),
 						this.core.getCore_number());
 				}
+				else{
+					handleEvent(null, null);					
+				}
 			}
-		}
-
 	}
 	public void performFetch(){
 		if(!core.getExecutionEngineIn().getFetchComplete())
 			fillFetchBuffer();
 
 		Instruction ins;
+		StageLatch ifIdLatch = core.getExecutionEngineIn().getIfIdLatch();
 //System.out.println(this.sleep+" "+this.stall);
-		if(!this.sleep && this.stall==0){
-			if(this.fetchFillCount > 0){
-				ins = this.fetchBuffer[this.fetchBufferIndex];
-//System.out.println("Fetch "+ins.getSerialNo());			
-				if(ins.getOperationType()==OperationType.sync){
-					this.fetchFillCount--;			
-					this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
-					ins = this.fetchBuffer[fetchBufferIndex];
-					if(this.syncCount>0){
-						this.syncCount--;
+		
+			if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && ifIdLatch.getStallCount()==0 && missStatusHoldingRegister.isEmpty()){
+					ins = this.fetchBuffer[this.fetchBufferIndex];
+	//System.out.println("Fetch "+ins.getSerialNo());			
+					if(ins.getOperationType()==OperationType.sync){
+						this.fetchFillCount--;			
+						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
+						ins = this.fetchBuffer[fetchBufferIndex];
+						if(this.syncCount>0){
+							this.syncCount--;
+						}
+						else{
+							core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
+							sleepThePipeline();
+							return;
+						}
 					}
 					else{
-						core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
-						sleepThePipeline();
-						return;
+						core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
+						this.fetchFillCount--;			
+						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
 					}
-				}
-				else{
-					core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
-					this.fetchFillCount--;			
-					this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
-				}
 			}
-			else{
-//				core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
+			if(ifIdLatch.getStallCount()>0){
+				ifIdLatch.decrementStallCount();
 			}
-		}
-		else if(this.stall>0){
-//			core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
-			this.stall--;
-		}
-				
+			if(this.stall>0){
+	//			core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
+				this.stall--;
+			}
 	}
 	public int getStall(){
 		return this.stall;
@@ -149,6 +146,16 @@ public class FetchUnitIn extends SimulationElement{
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
+		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
+		if(newInstruction.getOperationType() == OperationType.inValid){
+			core.getExecutionEngineIn().setFetchComplete(true);
+			this.fetchBuffer[this.fetchBufferIndex+this.fetchFillCount] = inputToPipeline.pollFirst();
+			this.fetchFillCount++;
+		}
+		else{
+			this.fetchBuffer[this.fetchBufferIndex+this.fetchFillCount]= inputToPipeline.pollFirst();
+			this.fetchFillCount++;
+		}
 		// TODO Auto-generated method stub
 		//This should be called when the pipeline needs to wake up
 //		this.sleep=false;

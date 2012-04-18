@@ -292,77 +292,16 @@ public class NucaCacheBank extends Cache
 		}
 		long blockAddr = addr >>> this.blockSizeBits;
 			
-		if (this.missStatusHoldingRegister.containsKey(blockAddr))
+		if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
-			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
-			while (!/*NOT*/outstandingRequestList.isEmpty())
-			{				
-				AddressCarryingEvent tempevent = (AddressCarryingEvent) outstandingRequestList.remove(0);
-				if (tempevent.getRequestType() == RequestType.Cache_Write ||
-					((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Write	)
-				{
-					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
-					{
-						AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
-																					 0,
-																					 this, 
-																					 this.getRouter(), 
-																					 RequestType.Main_Mem_Write, 
-																					 addr,
-																					 ((AddressCarryingEvent)event).coreId);
-						Vector<Integer> sourceBankId = new Vector<Integer>(
-																		   ((AddressCarryingEvent)
-																		    (tempevent)).
-																		    getDestinationBankId());
-						Vector<Integer> destinationBankId = new Vector<Integer>(
-																			((AddressCarryingEvent)
-																		     (tempevent)).
-																			 getSourceBankId());
-
-						addressEvent.setSourceBankId(sourceBankId);
-						addressEvent.setDestinationBankId(destinationBankId);
-						this.getRouter().getPort().put(addressEvent);
-					}				
-				}
-				else if(tempevent.getRequestType() == RequestType.Cache_Read ||
-						((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Read ||
-						tempevent.getRequestType() == RequestType.Cache_Read_from_iCache ||
-						((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Read_from_iCache)
-				{
-					Vector<Integer> sourceBankId = new Vector<Integer>(
-																	   ((AddressCarryingEvent)
-																	    tempevent).
-																	    getDestinationBankId());
-					Vector<Integer> destinationBankId = new Vector<Integer>(
-																		((AddressCarryingEvent)
-																	     tempevent).
-																		 getSourceBankId());
-
-					this.getRouter().getPort().put(
-							((AddressCarryingEvent)tempevent).updateEvent(
-																		eventQ,
-																		0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
-																		this,
-																		this.getRouter(),
-																		RequestType.Mem_Response,									
-																		sourceBankId,
-																		destinationBankId));
-				}
-				else
-				{
-					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 164 error " + event.getRequestType() + ((AddressCarryingEvent)event).getSourceBankId() + ((AddressCarryingEvent)event).getDestinationBankId());
-					System.exit(1);
-				}
-				
-				//Remove the processed entry from the outstanding request list
-//				outstandingRequestList.remove(0);
-			}
+			System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 416");
+			System.exit(1);
 		}
-		else
-		{
-			AddressCarryingEvent tempevent = (AddressCarryingEvent) event;
-			RequestType requestType = tempevent.requestTypeStack.pop();
-			if (requestType == RequestType.Cache_Write ||
+		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
+		while (!/*NOT*/outstandingRequestList.isEmpty())
+		{				
+			AddressCarryingEvent tempevent = (AddressCarryingEvent) outstandingRequestList.remove(0);
+			if (tempevent.getRequestType() == RequestType.Cache_Write ||
 				((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Write	)
 			{
 				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
@@ -388,9 +327,9 @@ public class NucaCacheBank extends Cache
 					this.getRouter().getPort().put(addressEvent);
 				}				
 			}
-			else if(requestType == RequestType.Cache_Read ||
+			else if(tempevent.getRequestType() == RequestType.Cache_Read ||
 					((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Read ||
-					requestType == RequestType.Cache_Read_from_iCache ||
+					tempevent.getRequestType() == RequestType.Cache_Read_from_iCache ||
 					((AddressCarryingEvent)event).oldRequestType == RequestType.Cache_Read_from_iCache)
 			{
 				Vector<Integer> sourceBankId = new Vector<Integer>(
@@ -414,10 +353,14 @@ public class NucaCacheBank extends Cache
 			}
 			else
 			{
-				System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 416");
+				System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 164 error " + event.getRequestType() + ((AddressCarryingEvent)event).getSourceBankId() + ((AddressCarryingEvent)event).getDestinationBankId());
 				System.exit(1);
 			}
+			
+			//Remove the processed entry from the outstanding request list
+//				outstandingRequestList.remove(0);
 		}
+		
 	}
 
     /************************************************************************

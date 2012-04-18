@@ -22,6 +22,8 @@ package memorysystem;
 
 import java.util.*;
 
+import pipeline.inorder.MemUnitIn;
+
 import net.NOC.TOPOLOGY;
 
 import memorysystem.directory.CentralizedDirectory;
@@ -52,7 +54,7 @@ public class Cache extends SimulationElement
 		/* cache parameters */
 		public CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
-		protected int blockSizeBits; // in bits
+		public int blockSizeBits; // in bits
 		protected int assoc;
 		protected int assocBits; // in bits
 		protected int size; // MegaBytes
@@ -61,6 +63,7 @@ public class Cache extends SimulationElement
 		protected double timestamp;
 		protected int numLinesMask;
 		protected Vector<Long> evictedLines = new Vector<Long>();
+		
 		
 //		protected boolean enforcesCoherence = false; //The cache which is shared between the coherent cache level
 //		protected boolean isCoherent = false; //Tells whether the level is coherent or not
@@ -82,8 +85,10 @@ public class Cache extends SimulationElement
 		
 //		protected Hashtable<Long, ArrayList<CacheMissStatusHoldingRegisterEntry>> missStatusHoldingRegister
 //						= new Hashtable<Long, ArrayList<CacheMissStatusHoldingRegisterEntry>>();
-		public Hashtable<Long, ArrayList<Event>> missStatusHoldingRegister
-						= new Hashtable<Long, ArrayList<Event>>();
+		public Hashtable<Long, OMREntry> missStatusHoldingRegister
+								= new Hashtable<Long, OMREntry>();
+		public ArrayList<Hashtable<Long,OMREntry>> connectedMSHR = 
+						new ArrayList<Hashtable<Long,OMREntry>>();
 		
 		public int noOfRequests;
 		public int hits;
@@ -305,12 +310,16 @@ public class Cache extends SimulationElement
 			if (!/*NOT*/missStatusHoldingRegister.containsKey(blockAddr))
 			{
 				entryAlreadyThere = 0;
+				if(missStatusHoldingRegister.size() >= MSHRSize)
+				{
+					return 2;
+				}
 //				missStatusHoldingRegister.put(blockAddr, new ArrayList<CacheMissStatusHoldingRegisterEntry>());
-				missStatusHoldingRegister.put(blockAddr, new ArrayList<Event>());
+				missStatusHoldingRegister.put(blockAddr, new OMREntry(new ArrayList<Event>(), false, null));
 			}
-			else if (missStatusHoldingRegister.get(blockAddr).isEmpty())
+			else if (missStatusHoldingRegister.get(blockAddr).outStandingEvents.isEmpty())
 				entryAlreadyThere = 0;
-			else if (missStatusHoldingRegister.get(blockAddr).size() <= MSHRSize)
+			else if (missStatusHoldingRegister.get(blockAddr).outStandingEvents.size() <= MSHRSize)
 				entryAlreadyThere = 1;
 			else
 				entryAlreadyThere = 2;
@@ -320,8 +329,28 @@ public class Cache extends SimulationElement
 //																							addr,
 //																							lsqEntry));
 			if(entryAlreadyThere !=2)
-				missStatusHoldingRegister.get(blockAddr).add(event);
+				missStatusHoldingRegister.get(blockAddr).outStandingEvents.add(event);
 			return entryAlreadyThere;
+		}
+		
+		boolean isMSHRfull()
+		{
+			if(missStatusHoldingRegister.size() < MSHRSize)
+			{
+				return false;
+			}
+			else
+			{
+				Enumeration<OMREntry> omrEntryEnum = missStatusHoldingRegister.elements();
+				while(omrEntryEnum.hasMoreElements())
+				{
+					if(omrEntryEnum.nextElement().outStandingEvents.size() < MSHRSize)
+					{
+						return false;
+					}
+				}
+				return true;
+			}
 		}
 		
 		public void handleEvent(EventQueue eventQ, Event event)
@@ -343,6 +372,8 @@ public class Cache extends SimulationElement
 			else if (event.getRequestType() == RequestType.MESI_Invalidate)
 				this.handleInvalidate(event);
 		}
+
+
 		
 		protected void handleAccess(EventQueue eventQ, Event event)
 		{
@@ -361,6 +392,10 @@ public class Cache extends SimulationElement
 			//IF HIT
 			if (cl != null)
 			{
+				if(requestingElement.getClass() == MemUnitIn.class)
+				{
+					((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address >> blockSizeBits);
+				}
 				//Schedule the requesting element to receive the block TODO (for LSQ)
 				if (requestType == RequestType.Cache_Read)
 				{
@@ -473,12 +508,15 @@ public class Cache extends SimulationElement
 			//IF MISS
 			else
 			{			
-//System.out.println("Encountered a miss!!");
+				//System.out.println("Encountered a miss!!");
 				//Add the request to the outstanding request buffer
 				int alreadyRequested = this.addOutstandingRequest(event, address);
-				
 				if (alreadyRequested == 0)
 				{
+					if(requestingElement.getClass() == MemUnitIn.class)
+					{
+						((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address >> blockSizeBits);
+					}
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
 					{
 						if (requestType == RequestType.Cache_Read)
@@ -493,7 +531,7 @@ public class Cache extends SimulationElement
 					}
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
 					{
-//System.out.println("Encountered a miss in directory!!");
+						//System.out.println("Encountered a miss in directory!!");
 						long directoryDelay=0;
 						/* remove the block size */
 						long tag = address >>> this.blockSizeBits;
@@ -520,103 +558,66 @@ public class Cache extends SimulationElement
 					{
 						if (this.isLastLevel)
 						{
-							MemorySystem.mainMemory.getPort().put(
-									new AddressCarryingEvent(
-											eventQ,
-											MemorySystem.mainMemory.getLatencyDelay(),
-											this, 
-											MemorySystem.mainMemory,
-											RequestType.Main_Mem_Read,
-											address,
-											((AddressCarryingEvent)event).coreId));
+							AddressCarryingEvent addressEvent =	new AddressCarryingEvent(eventQ,
+																						 MemorySystem.mainMemory.getLatencyDelay(),
+																						 this, 
+																						 MemorySystem.mainMemory,
+																						 RequestType.Main_Mem_Read,
+																						 address,
+																						 ((AddressCarryingEvent)event).coreId); 
+							MemorySystem.mainMemory.getPort().put(addressEvent);
+							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 							return;
 						}
 						else
 						{
-							this.nextLevel.getPort().put(
-									new AddressCarryingEvent(
-											eventQ,
-											this.nextLevel.getLatencyDelay(),
-											this, 
-											this.nextLevel,
-											RequestType.Cache_Read, 
-											address,
-											((AddressCarryingEvent)event).coreId));
+							AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+																						 this.nextLevel.getLatencyDelay(),
+																						 this, 
+																						 this.nextLevel,
+																						 RequestType.Cache_Read, 
+																						 address,
+																						 ((AddressCarryingEvent)event).coreId); 
+							this.nextLevel.getPort().put(addressEvent);
+							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 							return;
 						}
 					}
-				}
+				} 
 				else if(alreadyRequested == 2)
 				{
-					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
+					if(requestingElement.getClass() == Cache.class)
 					{
-						if (requestType == RequestType.Cache_Read)
-							this.nextLevel.busController.processReadMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
-						else if (requestType == RequestType.Cache_Write)
-							this.nextLevel.busController.processWriteMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
-						else
+						if(!this.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
+							this.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
+						if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
 						{
-							System.err.println("Error : This must not be happening");
+							((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
+							((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
+						}
+						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+						{
+							System.out.println("Outstanding Request in Memory System");
 							System.exit(1);
 						}
 					}
-					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
+					else if(requestingElement.getClass() == MemUnitIn.class)
 					{
-//System.out.println("Encountered a miss in directory!!");
-						long directoryDelay=0;
-						/* remove the block size */
-						long tag = address >>> this.blockSizeBits;
-
-						/* search all the lines that might match */
-						
-						long laddr = tag >>> this.assocBits;
-						laddr = laddr << assocBits; //Replace the associativity bits with zeros.
-
-						/* remove the tag portion */
-						laddr = laddr & numLinesMask;
-						int cacheLineNum=(int)(laddr/(long)blockSize);//TODO is this correct ?
-																//TODO long to int typecast ? need an array indexed by long ?
-						int containingCore = containingMemSys.getCore().getCore_number();//TODO Is this correct ?
-	
-						updateDirectory(cacheLineNum, containingCore,requestType, eventQ, address, event);//FIXME reduce number of arguments
-						
-					}//TODO
-					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.LowerLevelCoherent)
-					{}//TODO
+						if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
+							this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
+						if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
+						{
+							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).readyToProceed = true;
+							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).eventToForward = event;
+						}
+						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+						{
+							System.out.println("Outstanding Request in Memory System");
+							System.exit(1);
+						}
+					}  
 					
-					// access the next level
-					else 
-					{
-						((AddressCarryingEvent)event).requestingElementStack.push(event.getRequestingElement());
-						((AddressCarryingEvent)event).requestTypeStack.push(event.getRequestType());
-
-						if (this.isLastLevel)
-						{
-//							((AddressCarryingEvent)event).requestingElementStack.push(event.getRequestingElement());
-//							((AddressCarryingEvent)event).requestTypeStack.push(event.getRequestType());
-							MemorySystem.mainMemory.getPort().put(
-									((AddressCarryingEvent)event).updateEvent(
-											eventQ,
-											MemorySystem.mainMemory.getLatencyDelay(),
-											this, 
-											MemorySystem.mainMemory,
-											RequestType.Main_Mem_Read,
-											address));
-							return;
-						}
-						else
-						{
-							this.nextLevel.getPort().put(
-									((AddressCarryingEvent)event).updateEvent(
-											eventQ,
-											this.nextLevel.getLatencyDelay(),
-											this, 
-											this.nextLevel,
-											RequestType.Cache_Read, 
-											address));
-							return;
-						}
-					}
+						
 				}
 			}
 		}
@@ -654,49 +655,51 @@ public class Cache extends SimulationElement
 									evictedLine.getTag() << this.blockSizeBits,
 									((AddressCarryingEvent)event).coreId));
 			}
-			
 			long blockAddr = addr >>> this.blockSizeBits;
-			if(!((AddressCarryingEvent)event).requestingElementStack.isEmpty())
+			if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 			{
-				SimulationElement oldRequestingElement = ((AddressCarryingEvent)event).requestingElementStack.pop();
-				RequestType oldRequestType = ((AddressCarryingEvent)event).requestTypeStack.pop();
-				
-				if (oldRequestType == RequestType.Cache_Read)
+				System.err.println("Memory System Error : An outstanding request not found in the requesting element" + event.getRequestType() + event.getProcessingElement().getClass() + "  " + ((Cache)event.getProcessingElement()).levelFromTop);
+				System.exit(1);
+			}
+			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
+			while (!/*NOT*/outstandingRequestList.isEmpty())
+			{				
+				if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
 				{
 					//Pass the value to the waiting element
 					//FIXME : Check the logic before finalizing
 					if (this.levelFromTop != CacheType.L1 || (!MemorySystem.bypassLSQ))
-						oldRequestingElement.getPort().put(
-								event.update(
+						outstandingRequestList.get(0).getRequestingElement().getPort().put(
+								outstandingRequestList.get(0).update(
 										eventQ,
 										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 										this,
-										oldRequestingElement,
+										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.Mem_Response));
 					else if (containingMemSys.getCore().isPipelineInorder)
 						//TODO Return the call to Inorder pipeline
-						oldRequestingElement.getPort().put(
+						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								new ExecCompleteEvent(
 										containingMemSys.getCore().getEventQueue(),
 										0,
 										null,
-										oldRequestingElement,
+										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.EXEC_COMPLETE,
 										null));
 				}
 				
-				else if (oldRequestType == RequestType.Cache_Read_from_iCache)
+				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read_from_iCache)
 				{
-					oldRequestingElement.getPort().put(
-							event.update(
+					outstandingRequestList.get(0).getRequestingElement().getPort().put(
+							outstandingRequestList.get(0).update(
 									eventQ,
 									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 									this,
-									oldRequestingElement,
+									outstandingRequestList.get(0).getRequestingElement(),
 									RequestType.Mem_Response));
 				}
 				
-				else if (oldRequestType == RequestType.Cache_Write)
+				else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)
 				{
 					//Write the value to the block (Do Nothing)
 					//Handle further writes for Write through
@@ -770,147 +773,48 @@ public class Cache extends SimulationElement
 				}
 				else
 				{
-					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write. The encountered request type was : " + oldRequestType);
+					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write. The encountered request type was : " + outstandingRequestList.get(0).getRequestType());
 					System.exit(1);
 				}
+				
+				//Remove the processed entry from the outstanding request list
+				outstandingRequestList.remove(0);
 			}
-			else if (this.missStatusHoldingRegister.containsKey(blockAddr))
+			while(connectedMSHR.size() > 0)
 			{
-				ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
-				while (!/*NOT*/outstandingRequestList.isEmpty())
-				{				
-					if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
+				Enumeration<OMREntry> omrIte = connectedMSHR.remove(0).elements();
+				while(omrIte.hasMoreElements())
+				{
+					OMREntry omrEntry = omrIte.nextElement();
+					if(omrEntry.readyToProceed)
 					{
-						//Pass the value to the waiting element
-						//FIXME : Check the logic before finalizing
-						if (this.levelFromTop != CacheType.L1 || (!MemorySystem.bypassLSQ))
-							outstandingRequestList.get(0).getRequestingElement().getPort().put(
-									outstandingRequestList.get(0).update(
-											eventQ,
-											0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
-											this,
-											outstandingRequestList.get(0).getRequestingElement(),
-											RequestType.Mem_Response));
-						else if (containingMemSys.getCore().isPipelineInorder)
-							//TODO Return the call to Inorder pipeline
-							outstandingRequestList.get(0).getRequestingElement().getPort().put(
-									new ExecCompleteEvent(
-											containingMemSys.getCore().getEventQueue(),
-											0,
-											null,
-											outstandingRequestList.get(0).getRequestingElement(),
-											RequestType.EXEC_COMPLETE,
-											null));
+						handleAccess(eventQ, omrEntry.eventToForward);
 					}
-					
-					else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read_from_iCache)
+					if(isMSHRfull())
 					{
-						outstandingRequestList.get(0).getRequestingElement().getPort().put(
-								outstandingRequestList.get(0).update(
-										eventQ,
-										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
-										this,
-										outstandingRequestList.get(0).getRequestingElement(),
-										RequestType.Mem_Response));
+						break;
 					}
-					
-					else if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Write)
-					{
-						//Write the value to the block (Do Nothing)
-						//Handle further writes for Write through
-						if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
-						{
-							//Handle in any case (Whether requesting element is LSQ or cache)
-							//TODO : handle write-value forwarding (for Write-Through and Coherent caches)
-							long address;
-							if (this.levelFromTop == CacheType.L1 && !MemorySystem.bypassLSQ)
-								address = ((LSQEntryContainingEvent)(event)).getLsqEntry().getAddr();
-							else
-								address = ((AddressCarryingEvent)(event)).getAddress();
-								
-							
-							if (this.isLastLevel)
-							{
-								if (this.levelFromTop == CacheType.L1)
-									MemorySystem.mainMemory.getPort().put(
-											new AddressCarryingEvent(
-													eventQ,
-													MemorySystem.mainMemory.getLatencyDelay(),
-													this,
-													MemorySystem.mainMemory,
-													RequestType.Main_Mem_Write,
-													address,
-													((AddressCarryingEvent)event).coreId));
-								else
-									MemorySystem.mainMemory.getPort().put(
-											event.update(
-													eventQ,
-													MemorySystem.mainMemory.getLatencyDelay(),
-													this,
-													MemorySystem.mainMemory,
-													RequestType.Main_Mem_Write));
-							}
-							else if (this.nextLevel.coherence != CoherenceType.Snoopy)
-							{
-								if (this.levelFromTop == CacheType.L1)
-									this.nextLevel.getPort().put(
-											new AddressCarryingEvent(
-													eventQ,
-													this.nextLevel.getLatencyDelay(),
-													this,
-													this.nextLevel,
-													RequestType.Cache_Write,
-													address,
-													((AddressCarryingEvent)event).coreId));
-								else
-									this.nextLevel.getPort().put(
-											event.update(
-													eventQ,
-													this.nextLevel.getLatencyDelay(),
-													this,
-													this.nextLevel,
-													RequestType.Cache_Write));
-							}
-							else
-							{
-								CacheLine cl = this.access(addr);
-								if (cl != null)
-									cl.setState(MESI.MODIFIED);
-							}
-								
-						}
-						else
-						{
-							CacheLine cl = this.access(addr);
-							if (cl != null)
-								cl.setState(MESI.MODIFIED);
-						}
-					}
-					else
-					{
-						System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write. The encountered request type was : " + outstandingRequestList.get(0).getRequestType());
-						System.exit(1);
-					}
-					
-					//Remove the processed entry from the outstanding request list
-					outstandingRequestList.remove(0);
+				}
+				if(isMSHRfull())
+				{
+					break;
 				}
 			}
+			/*}
 			else
 			{
 				System.err.println("Memory System Error : An outstanding request not found in the requesting element" + event.getRequestType() + event.getProcessingElement().getClass() + "  " + ((Cache)event.getProcessingElement()).levelFromTop);
 				System.exit(1);
-			}
+			}*/
 		}
 		
 		private void handleRequestForCopy(EventQueue eventQ, Event event)
 		{
-			this.nextLevel.busController.getBusAndPutEvent(
-					event.update(eventQ, 
-							event.getRequestingElement().getLatencyDelay(),
-							this, 
-							event.getRequestingElement(), 
-							RequestType.Reply_with_shared_copy));
+			this.nextLevel.busController.getBusAndPutEvent(event.update(eventQ, 
+														   event.getRequestingElement().getLatencyDelay(),
+														   this, 
+														   event.getRequestingElement(), 
+														   RequestType.Reply_with_shared_copy));
 		}
 		
 		private void handleRequestForModifiedCopy(EventQueue eventQ, Event event)
@@ -977,39 +881,39 @@ public class Cache extends SimulationElement
 		}
 		
 		public void updateDirectory(int cacheLine, int requestingCore, RequestType reqType, EventQueue eventQ, long address, Event event) {
-//System.out.println("Coming inside update directory!");
-if(cacheLine > CentralizedDirectory.numOfEntries){
-	System.out.println("Outside directory range!"+cacheLine);
-	if(reqType==RequestType.Cache_Read){
-		if (this.isLastLevel)
-		{
-			MemorySystem.mainMemory.getPort().put(
-					new AddressCarryingEvent(
-							eventQ,
-							MemorySystem.mainMemory.getLatencyDelay(),
-							this, 
-							MemorySystem.mainMemory,
-							RequestType.Main_Mem_Read,
-							address,
-							((AddressCarryingEvent)event).coreId));
-			return;
-		}
-		else
-		{
-			this.nextLevel.getPort().put(
-					new AddressCarryingEvent(
-							eventQ,
-							this.nextLevel.getLatencyDelay(),
-							this, 
-							this.nextLevel,
-							RequestType.Cache_Read, 
-							address,
-							((AddressCarryingEvent)event).coreId));
-			return;
-		}
-	}
-	return;
-}
+			//System.out.println("Coming inside update directory!");
+			if(cacheLine > CentralizedDirectory.numOfEntries){
+				System.out.println("Outside directory range!"+cacheLine);
+				if(reqType==RequestType.Cache_Read){
+					if (this.isLastLevel)
+					{
+						MemorySystem.mainMemory.getPort().put(
+								new AddressCarryingEvent(
+										eventQ,
+										MemorySystem.mainMemory.getLatencyDelay(),
+										this, 
+										MemorySystem.mainMemory,
+										RequestType.Main_Mem_Read,
+										address,
+										((AddressCarryingEvent)event).coreId));
+						return;
+					}
+					else
+					{
+						this.nextLevel.getPort().put(
+								new AddressCarryingEvent(
+										eventQ,
+										this.nextLevel.getLatencyDelay(),
+										this, 
+										this.nextLevel,
+										RequestType.Cache_Read, 
+										address,
+										((AddressCarryingEvent)event).coreId));
+						return;
+					}
+				}
+				return;
+			}
 			if(reqType==RequestType.Cache_Read){
 				readMissUpdate(cacheLine, requestingCore, eventQ,address,event);
 			}
@@ -1023,9 +927,9 @@ if(cacheLine > CentralizedDirectory.numOfEntries){
 		}
 		
 		private void writeMissUpdate(int cacheLine, int requestingCore, EventQueue eventQ, long address, Event event) {
-//System.out.println("Directory Write");			
-//Hashtable<Long, DirectoryEntry> directory = CentralizedDirectory.directory;
-DirectoryEntry[] directory = CentralizedDirectory.directory;
+			//System.out.println("Directory Write");			
+			//Hashtable<Long, DirectoryEntry> directory = CentralizedDirectory.directory;
+			DirectoryEntry[] directory = CentralizedDirectory.directory;
 
 			int numPresenceBits = CentralizedDirectory.numPresenceBits;
 			int directoryAccessDelay=SystemConfig.directoryAccessLatency;
@@ -1200,7 +1104,7 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 		}
 
 		private void readMissUpdate(int cacheLine, int requestingCore, EventQueue eventQ, long address, Event event) {
-//Hashtable<Long, DirectoryEntry> directory = CentralizedDirectory.directory;
+			//Hashtable<Long, DirectoryEntry> directory = CentralizedDirectory.directory;
 			DirectoryEntry[] directory = CentralizedDirectory.directory;
 			int directoryAccessDelay=SystemConfig.directoryAccessLatency;
 			int memWBDelay=SystemConfig.memWBDelay;
@@ -1210,7 +1114,7 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 			DirectoryState state= dirEntry.getState();
 			SimulationElement requestingElement = event.getRequestingElement();
 			if(state==DirectoryState.readOnly){
-//System.out.println("Directory Read 1");
+				//System.out.println("Directory Read 1");
 				dirEntry.setPresenceBit(requestingCore, true);
 				
 				//TODO Check if it is correct! 
@@ -1225,7 +1129,7 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 								RequestType.Mem_Response));
 			}
 			else if(state==DirectoryState.uncached ){
-//System.out.println("Directory Read 2");
+				//System.out.println("Directory Read 2");
 				dirEntry.setPresenceBit(requestingCore, true);
 				dirEntry.setState(DirectoryState.readOnly);
 				if (this.isLastLevel)
@@ -1256,7 +1160,7 @@ DirectoryEntry[] directory = CentralizedDirectory.directory;
 				}
 			}
 			else if(state==DirectoryState.exclusive){
-//System.out.println("Directory Read 3");
+				//System.out.println("Directory Read 3");
 				dirEntry.setPresenceBit(requestingCore, true);
 				dirEntry.setState(DirectoryState.readOnly);
 				//TODO Check if it is correct!

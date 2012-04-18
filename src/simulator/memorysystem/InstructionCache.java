@@ -1,6 +1,7 @@
 package memorysystem;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import memorysystem.Cache.CacheType;
 import memorysystem.Cache.CoherenceType;
@@ -11,6 +12,7 @@ import generic.Event;
 import generic.EventQueue;
 import generic.ExecCompleteEvent;
 import generic.GlobalClock;
+import generic.OMREntry;
 import generic.RequestType;
 import generic.SimulationElement;
 import config.CacheConfig;
@@ -98,32 +100,24 @@ public class InstructionCache extends Cache
 			}
 			else if (alreadyRequested ==2)
 			{
-				((AddressCarryingEvent)event).requestingElementStack.push(event.getRequestingElement());
-				((AddressCarryingEvent)event).requestTypeStack.push(event.getRequestType());
-				// access the next level
-				if (this.isLastLevel)
+				if(requestingElement.getClass() == Cache.class)
 				{
-					MemorySystem.mainMemory.getPort().put(
-							((AddressCarryingEvent)event).updateEvent(
-									eventQ,
-									MemorySystem.mainMemory.getLatencyDelay(),
-									this, 
-									MemorySystem.mainMemory,
-									RequestType.Main_Mem_Read,
-									address));
-					return;
+					if(!this.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
+						this.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
+					if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
+					{
+						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
+						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
+					}
+					else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+					{
+						System.out.println("Outstanding Request in Memory System");
+						System.exit(1);
+					}
 				}
 				else
 				{
-					this.nextLevel.getPort().put(
-							((AddressCarryingEvent)event).updateEvent(
-									eventQ,
-									this.nextLevel.getLatencyDelay(),
-									this, 
-									this.nextLevel,
-									RequestType.Cache_Read_from_iCache, 
-									address));
-					return;
+					//TODO
 				}
 			}
 		}
@@ -161,30 +155,35 @@ public class InstructionCache extends Cache
 		
 		long blockAddr = addr >>> this.blockSizeBits;
 
-		if(!((AddressCarryingEvent)event).requestingElementStack.isEmpty())
+		if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
-			SimulationElement oldRequestingElement = ((AddressCarryingEvent)event).requestingElementStack.pop();
-			RequestType oldRequestType = ((AddressCarryingEvent)event).requestTypeStack.pop();
-			if (oldRequestType == RequestType.Cache_Read)
+			System.err.println("Memory System Error : An outstanding request not found in the requesting element from here");
+			System.exit(1);
+		}
+		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
+			
+		while (!/*NOT*/outstandingRequestList.isEmpty())
+		{				
+			if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
 			{
 				//Pass the value to the waiting element
 				//TODO Add the EXEC_COMPLETE_EVENT
 				if (!containingMemSys.getCore().isPipelineStatistical)
 					if (!containingMemSys.getCore().isPipelineInorder)
 						eventQ.addEvent(
-								event.update(
+								outstandingRequestList.get(0).update(
 										eventQ,
 										GlobalClock.getCurrentTime(),
 										this,
 										containingMemSys.getCore().getExecEngine().getFetcher(),
 										RequestType.Mem_Response));
 					else
-						oldRequestingElement.getPort().put(
-								event.update(
+						outstandingRequestList.get(0).getRequestingElement().getPort().put(
+								outstandingRequestList.get(0).update(
 										eventQ,
 										0,
 										this,
-										oldRequestingElement,
+										outstandingRequestList.get(0).getRequestingElement(),
 										RequestType.Mem_Response));
 				else
 					DelayGenerator.insCountOut++;
@@ -195,51 +194,9 @@ public class InstructionCache extends Cache
 				System.exit(1);
 			}
 			
+			//Remove the processed entry from the outstanding request list
+			outstandingRequestList.remove(0);
 		}
-		else if (this.missStatusHoldingRegister.containsKey(blockAddr))
-		{
-			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr);
-			
-			while (!/*NOT*/outstandingRequestList.isEmpty())
-			{				
-				if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
-				{
-					//Pass the value to the waiting element
-					//TODO Add the EXEC_COMPLETE_EVENT
-					if (!containingMemSys.getCore().isPipelineStatistical)
-						if (!containingMemSys.getCore().isPipelineInorder)
-							eventQ.addEvent(
-									outstandingRequestList.get(0).update(
-											eventQ,
-											GlobalClock.getCurrentTime(),
-											this,
-											containingMemSys.getCore().getExecEngine().getFetcher(),
-											RequestType.Mem_Response));
-						else
-							outstandingRequestList.get(0).getRequestingElement().getPort().put(
-									outstandingRequestList.get(0).update(
-											eventQ,
-											0,
-											this,
-											outstandingRequestList.get(0).getRequestingElement(),
-											RequestType.Mem_Response));
-					else
-						DelayGenerator.insCountOut++;
-				}
-				else
-				{
-					System.err.println("Instruction Cache Error : A request was of type other than Cache_Read");
-					System.exit(1);
-				}
-				
-				//Remove the processed entry from the outstanding request list
-				outstandingRequestList.remove(0);
-			}
-		}
-		else 
-		{
-			System.err.println("Memory System Error : An outstanding request not found in the requesting element from here");
-			System.exit(1);
-		}
+		
 	}
 }

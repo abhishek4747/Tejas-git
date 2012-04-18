@@ -2,9 +2,12 @@ package memorysystem.nuca;
 
 import generic.EventQueue;
 import generic.RequestType;
+import generic.SimulationElement;
+
 import java.util.Vector;
 import net.NOC.TOPOLOGY;
 import memorysystem.AddressCarryingEvent;
+import memorysystem.Cache;
 import memorysystem.nuca.NucaCache.NucaType;
 
 public class Policy {
@@ -37,16 +40,29 @@ public class Policy {
 				addressEvent.setDestinationBankId(destinationBankId);
 				return addressEvent;
 			}
-			else if (alreadyRequested == 2)
+			else if(alreadyRequested == 2)
 			{
-				event.requestTypeStack.push(event.getRequestType());
-				return event.updateEvent(eventQ,
-						                 0, 
-						                 cacheBank,
-						                 cacheBank.getRouter(), 
-						                 RequestType.Main_Mem_Read, 
-						                 sourceBankId, 
-						                 destinationBankId);
+				SimulationElement requestingElement = ((AddressCarryingEvent)event).oldRequestingElement;
+				if(requestingElement.getClass() == Cache.class)
+				{
+					if(!cacheBank.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
+						cacheBank.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
+					if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
+					{
+						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
+						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
+					}
+					else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+					{
+						System.out.println("Outstanding Request in Memory System");
+						System.exit(1);
+					}
+				}
+				else
+				{
+					//TODO
+				}
+				return null;
 			}
 			else
 			{

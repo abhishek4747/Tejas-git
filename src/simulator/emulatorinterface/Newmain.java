@@ -22,7 +22,7 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
 import generic.Statistics;
-
+import java.util.*;
 public class Newmain {
 	public static long start, end;
 	public static long instructionCount = 0;
@@ -45,7 +45,6 @@ public class Newmain {
 		String executableFile = " ";
 		
 		start = System.currentTimeMillis();
-		
 		// check command line arguments
 		checkCommandLineArguments(arguments);
 
