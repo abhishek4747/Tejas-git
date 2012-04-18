@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import memorysystem.Cache.CacheType;
 import memorysystem.Cache.CoherenceType;
 
+import pipeline.inorder.FetchUnitIn;
 import pipeline.statistical.DelayGenerator;
 
 import generic.Event;
@@ -100,24 +101,17 @@ public class InstructionCache extends Cache
 			}
 			else if (alreadyRequested ==2)
 			{
-				if(requestingElement.getClass() == Cache.class)
+				if(!this.connectedMSHR.contains(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister()))
+					this.connectedMSHR.add(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister());
+				if(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().contains(address >> this.blockSizeBits))
 				{
-					if(!this.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
-						this.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
-					if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
-					{
-						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
-						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
-					}
-					else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-					{
-						System.out.println("Outstanding Request in Memory System");
-						System.exit(1);
-					}
+					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).readyToProceed = true;
+					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).eventToForward = event;
 				}
-				else
+				else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
 				{
-					//TODO
+					System.out.println("Outstanding Request in Memory System from icache line 115" + ((FetchUnitIn)requestingElement).getMissStatusHoldingRegister());
+					System.exit(1);
 				}
 			}
 		}
@@ -188,15 +182,30 @@ public class InstructionCache extends Cache
 				else
 					DelayGenerator.insCountOut++;
 			}
-			else
-			{
-				System.err.println("Instruction Cache Error : A request was of type other than Cache_Read");
-				System.exit(1);
-			}
 			
 			//Remove the processed entry from the outstanding request list
 			outstandingRequestList.remove(0);
 		}
 		
+		while(connectedMSHR.size() > 0)
+		{
+			Enumeration<OMREntry> omrIte = connectedMSHR.remove(0).elements();
+			while(omrIte.hasMoreElements())
+			{
+				OMREntry omrEntry = omrIte.nextElement();
+				if(omrEntry.readyToProceed)
+				{
+					handleAccess(eventQ, omrEntry.eventToForward);
+				}
+				if(isMSHRfull())
+				{
+					break;
+				}
+			}
+			if(isMSHRfull())
+			{
+				break;
+			}
+		}
 	}
 }

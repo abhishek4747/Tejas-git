@@ -3,6 +3,9 @@ package pipeline.inorder;
 
 import java.util.Hashtable;
 
+import memorysystem.AddressCarryingEvent;
+import memorysystem.InstructionCache;
+
 import config.SimulationConfig;
 import config.SystemConfig;
 import generic.Core;
@@ -58,12 +61,16 @@ public class FetchUnitIn extends SimulationElement{
 		if(inputToPipeline.isEmpty())
 			return;
 		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
-		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity;i = (i+1)%this.fetchBufferCapacity){
+		int k=0;
+		int numSendRequest = 0;
+		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity && numSendRequest < this.fetchBufferCapacity;i = (i+1)%this.fetchBufferCapacity){
 			if(!SimulationConfig.detachMemSys){
+				if(inputToPipeline.length() > k+1)
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
-						core.getExecutionEngineIn().getDecodeUnitIn(), 
-						this.fetchBuffer[i].getProgramCounter(),
+						core.getExecutionEngineIn().getFetchUnitIn(), 
+						inputToPipeline.peekInstructionAt(k++).getProgramCounter(),
 						this.core.getCore_number());
+				numSendRequest++;
 				}
 				else{
 					handleEvent(null, null);					
@@ -146,15 +153,26 @@ public class FetchUnitIn extends SimulationElement{
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
-		if(newInstruction.getOperationType() == OperationType.inValid){
-			core.getExecutionEngineIn().setFetchComplete(true);
-			this.fetchBuffer[this.fetchBufferIndex+this.fetchFillCount] = inputToPipeline.pollFirst();
-			this.fetchFillCount++;
-		}
-		else{
-			this.fetchBuffer[this.fetchBufferIndex+this.fetchFillCount]= inputToPipeline.pollFirst();
-			this.fetchFillCount++;
+		long address = ((AddressCarryingEvent)event).getAddress();
+		InstructionCache iCache = (InstructionCache)event.getRequestingElement();
+		OMREntry omrEntry = missStatusHoldingRegister.remove(address >> iCache.blockSizeBits);
+		int numOfOutStandingRequest = omrEntry.outStandingEvents.size();
+		for(int i=0;i<numOfOutStandingRequest;i++)
+		{
+			if(inputToPipeline.isEmpty())
+			{
+				return;
+			}
+			Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
+			if(newInstruction.getOperationType() == OperationType.inValid){
+				core.getExecutionEngineIn().setFetchComplete(true);
+				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = inputToPipeline.pollFirst();
+				this.fetchFillCount++;
+			}
+			else{
+				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= inputToPipeline.pollFirst();
+				this.fetchFillCount++;
+			}
 		}
 		// TODO Auto-generated method stub
 		//This should be called when the pipeline needs to wake up

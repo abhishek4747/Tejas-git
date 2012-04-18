@@ -597,7 +597,7 @@ public class Cache extends SimulationElement
 						}
 						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
 						{
-							System.out.println("Outstanding Request in Memory System");
+							System.out.println("Outstanding Request in Memory System from cache line 600");
 							System.exit(1);
 						}
 					}
@@ -605,19 +605,17 @@ public class Cache extends SimulationElement
 					{
 						if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
 							this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
-						if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
+						if(((MemUnitIn)requestingElement).getMissStatusHoldingRegister().contains(address >> this.blockSizeBits))
 						{
 							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).readyToProceed = true;
 							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).eventToForward = event;
 						}
 						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
 						{
-							System.out.println("Outstanding Request in Memory System");
+							System.out.println("Outstanding Request in Memory System from cache line 615");
 							System.exit(1);
 						}
 					}  
-					
-						
 				}
 			}
 		}

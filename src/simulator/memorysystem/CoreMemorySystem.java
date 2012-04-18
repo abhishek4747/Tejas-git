@@ -20,10 +20,13 @@
 *****************************************************************************/
 package memorysystem;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 
+import pipeline.inorder.FetchUnitIn;
 import pipeline.inorder.MemUnitIn;
 import pipeline.outoforder.ReorderBufferEntry;
+import generic.Event;
 import generic.OMREntry;
 import generic.SimulationElement;
 import generic.EventQueue;
@@ -137,13 +140,20 @@ public class CoreMemorySystem
 																	 requestType, 
 																	 address,
 																	 coreId); 
-		if(requestingElement.getClass() == MemUnitIn.class)
+		Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
+		long tag = address >> (l1Cache.blockSizeBits);
+		if(!missStatusHoldingRegister.containsKey(tag))
 		{
-			Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
-			missStatusHoldingRegister.put(address >> (l1Cache.blockSizeBits), 
-										  new OMREntry(null,false,addressEvent));
+			ArrayList<Event> eventList = new ArrayList<Event>();
+			eventList.add(addressEvent);
+			missStatusHoldingRegister.put(tag, 
+					  new OMREntry(eventList,true,addressEvent));
+			l1Cache.getPort().put(addressEvent);
 		}
-		l1Cache.getPort().put(addressEvent);
+		else
+		{
+			missStatusHoldingRegister.get(address >> (l1Cache.blockSizeBits)).outStandingEvents.add(addressEvent);
+		}
 	}
 	
 	
@@ -151,29 +161,42 @@ public class CoreMemorySystem
 	public void issueRequestToInstrCache(SimulationElement requestingElement,
 											long address)
 	{
-		iCache.getPort().put(
-				new AddressCarryingEvent(
-						getCore().getEventQueue(),
-						iCache.getLatencyDelay(),
-						requestingElement, 
-						iCache,
-						RequestType.Cache_Read, 
-						address));
+		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
+																	iCache.getLatencyDelay(),
+																	requestingElement, 
+																	iCache,
+																	RequestType.Cache_Read, 
+																	address);
+		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
+		missStatusHoldingRegister.put(address >> (iCache.blockSizeBits), 
+									  new OMREntry(null,false,addressEvent));
+		iCache.getPort().put(addressEvent);
 	}
 	
 	//To issue the request to instruction cache
 	public void issueRequestToInstrCache(SimulationElement requestingElement,
 											long address,int coreId)
 	{
-		iCache.getPort().put(
-				new AddressCarryingEvent(
-						getCore().getEventQueue(),
-						iCache.getLatencyDelay(),
-						requestingElement, 
-						iCache,
-						RequestType.Cache_Read, 
-						address,
-						coreId));
+		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
+																	iCache.getLatencyDelay(),
+																	requestingElement, 
+																	iCache,
+																	RequestType.Cache_Read, 
+																	address,
+																	coreId);
+		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
+		long tag = address >> (iCache.blockSizeBits);
+		if(!missStatusHoldingRegister.containsKey(tag))
+		{
+			ArrayList<Event> eventList = new ArrayList<Event>();
+			eventList.add(addressEvent);
+			missStatusHoldingRegister.put(tag,new OMREntry(eventList,true,addressEvent));
+			iCache.getPort().put(addressEvent);
+		}
+		else
+		{
+			missStatusHoldingRegister.get(address >> (iCache.blockSizeBits)).outStandingEvents.add(addressEvent);
+		}
 	}
 
 	public LSQ getLsqueue() {
