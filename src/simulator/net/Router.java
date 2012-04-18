@@ -37,7 +37,7 @@ import memorysystem.nuca.NucaCacheBank;
 public class Router extends Switch{
 	
 	protected Vector<Integer> bankId = new Vector<Integer>(2); //bank id of router(vector <row,column>)
-	protected int availBuff;                                   //available number of buffer in router
+//	protected int availBuff;                                   //available number of buffer in router
 	protected RoutingAlgo routingAlgo = new RoutingAlgo();
 	
 //	public NOC.TOPOLOGY topology;
@@ -59,7 +59,6 @@ public class Router extends Switch{
 	{
 		super(nocConfig);
 		this.bankId = bankId;
-		this.availBuff = nocConfig.numberOfBuffers;
 		this.topology = nocConfig.topology;
 		this.rAlgo = nocConfig.rAlgo;
 		this.numberOfRows = nocConfig.numberOfRows;
@@ -72,24 +71,8 @@ public class Router extends Switch{
 	public Vector<Integer> getBankId()
 	{
 		return this.bankId;
-	}
-	
-	/************************************************************************
-     * Method Name  : AllocateBuffer
-     * Purpose      : check whether buffer available
-     * Parameters   : none
-     * Return       : true if allocated , false if no buffer available
-     *************************************************************************/
-	
-	public boolean AllocateBuffer()  
-	{
-		if(this.availBuff>0)
-		{
-			this.availBuff --;
-			return true;
-		}
-		return false;
-	}
+	}	
+
 	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir,NucaCacheBank cacheBank)
 	{
 		this.neighbours.add(dir.ordinal(), cacheBank.getRouter());
@@ -103,19 +86,9 @@ public class Router extends Switch{
 		return this.neighbours;
 	}
 	
-	public boolean CheckNeighbourBuffer(RoutingAlgo.DIRECTION nextId)  //request for neighbour buffer
+	public boolean CheckNeighbourBuffer(RoutingAlgo.DIRECTION nextId,boolean reqOrReply)  //request for neighbour buffer
 	{
-		return ((Router) this.neighbours.elementAt(nextId.ordinal())).AllocateBuffer();
-	}
-	
-	public void FreeBuffer()
-	{
-		this.availBuff ++;
-	}
-	
-	public int bufferSize()
-	{
-		return this.availBuff;
+		return ((Router) this.neighbours.elementAt(nextId.ordinal())).AllocateBuffer(reqOrReply);
 	}
 	
 	/***************************************************************************************
@@ -168,6 +141,7 @@ public class Router extends Switch{
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		RoutingAlgo.DIRECTION nextID;
+		boolean reqOrReply;
 		Vector<Integer> currentId = this.getBankId();
 		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
 		RequestType requestType = event.getRequestType();
@@ -184,7 +158,7 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Cache_Read)
 		{
-			if(this.AllocateBuffer())
+			if(this.AllocateBuffer(false))
 			{
 				requestType = RequestType.CacheBank_Read;
 				this.getPort().put(
@@ -205,12 +179,12 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-			//	System.out.println(event.getRequestingElement());
+				System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Cache_Write)
 		{
-			if(this.AllocateBuffer())
+			if(this.AllocateBuffer(false))
 			{
 				requestType = RequestType.CacheBank_Write;
 				this.getPort().put(
@@ -235,7 +209,7 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Cache_Read_from_iCache)
 		{
-			if(this.AllocateBuffer())
+			if(this.AllocateBuffer(false))
 			{
 				requestType = RequestType.CacheBank_Read_from_iCache;
 				this.getPort().put(
@@ -256,12 +230,12 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				//System.out.println(event.getRequestingElement());
+				System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Mem_Response)
 		{
-			if(this.AllocateBuffer())
+			if(this.AllocateBuffer(true))
 			{
 				requestType = RequestType.MemBank_Response;
 				this.getPort().put(
@@ -282,12 +256,12 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				//System.out.println(event.getRequestingElement());
+				System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Main_Mem_Read)
 		{
-			if(this.AllocateBuffer())
+			if(this.AllocateBuffer(true))
 			{
 				requestType = RequestType.Main_MemBank_Read;
 				this.getPort().put(
@@ -308,12 +282,12 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				//System.out.println(event.getRequestingElement());
+				System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Main_Mem_Write)
 		{
-			if(this.AllocateBuffer())
+			if(this.AllocateBuffer(true))
 			{
 				requestType = RequestType.Main_MemBank_Write;
 				this.getPort().put(
@@ -334,12 +308,12 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				//System.out.println(event.getRequestingElement());
+				System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(requestType == RequestType.Main_Mem_Response)
 		{
-			if(this.AllocateBuffer())
+			if(this.AllocateBuffer(true))
 			{
 				requestType = RequestType.Main_MemBank_Response;
 				this.getPort().put(
@@ -360,7 +334,7 @@ public class Router extends Switch{
 								this, 
 								this,
 								requestType));
-				//System.out.println(event.getRequestingElement());
+				System.out.println(event.getRequestingElement());
 			}
 		}
 		else if(currentId.equals(destinationId))
@@ -391,7 +365,14 @@ public class Router extends Switch{
 		else
 		{
 			nextID = this.RouteComputation(currentId, destinationId);
-			if(this.CheckNeighbourBuffer(nextID))
+			if(requestType == RequestType.Main_Mem_Read || requestType == RequestType.Main_Mem_Response ||
+					requestType == RequestType.Main_Mem_Write || requestType == RequestType.Main_MemBank_Read  ||
+					requestType == RequestType.Main_MemBank_Response || requestType == RequestType.Main_MemBank_Write ||
+					requestType == RequestType.Mem_Response || requestType == RequestType.MemBank_Response)
+				reqOrReply = true;  //for reply messages
+			else
+				reqOrReply = false; //for incoming messages
+			if(this.CheckNeighbourBuffer(nextID,reqOrReply))
 			{
 				//post event to nextID
 				this.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
