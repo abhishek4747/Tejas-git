@@ -22,6 +22,7 @@ package memorysystem;
 
 import java.util.*;
 
+import pipeline.inorder.FetchUnitIn;
 import pipeline.inorder.MemUnitIn;
 
 import net.NOC.TOPOLOGY;
@@ -394,7 +395,7 @@ public class Cache extends SimulationElement
 			{
 				if(requestingElement.getClass() == MemUnitIn.class)
 				{
-					((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address >> blockSizeBits);
+					((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
 				//Schedule the requesting element to receive the block TODO (for LSQ)
 				if (requestType == RequestType.Cache_Read)
@@ -515,7 +516,7 @@ public class Cache extends SimulationElement
 				{
 					if(requestingElement.getClass() == MemUnitIn.class)
 					{
-						((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address >> blockSizeBits);
+						((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 					}
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
 					{
@@ -583,7 +584,15 @@ public class Cache extends SimulationElement
 							return;
 						}
 					}
-				} 
+				}
+				else if(alreadyRequested == 1)
+				{
+					if(requestingElement.getClass() == MemUnitIn.class)
+					{
+						if(((MemUnitIn)requestingElement).getMissStatusHoldingRegister().containsKey(address))
+							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
+					}
+				}
 				else if(alreadyRequested == 2)
 				{
 					if(requestingElement.getClass() == Cache.class)
@@ -600,22 +609,12 @@ public class Cache extends SimulationElement
 							System.out.println("Outstanding Request in Memory System from cache line 600");
 							System.exit(1);
 						}
-					}
-					else if(requestingElement.getClass() == MemUnitIn.class)
+					} 
+					else if (alreadyRequested ==2)
 					{
 						if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
 							this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
-						if(((MemUnitIn)requestingElement).getMissStatusHoldingRegister().contains(address >> this.blockSizeBits))
-						{
-							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).readyToProceed = true;
-							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).eventToForward = event;
-						}
-						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-						{
-							System.out.println("Outstanding Request in Memory System from cache line 615");
-							System.exit(1);
-						}
-					}  
+					}
 				}
 			}
 		}
@@ -780,12 +779,19 @@ public class Cache extends SimulationElement
 			}
 			while(connectedMSHR.size() > 0)
 			{
-				Enumeration<OMREntry> omrIte = connectedMSHR.remove(0).elements();
+				Enumeration<OMREntry> omrIte = connectedMSHR.get(0).elements();
+				Enumeration<Long> omrKeys = connectedMSHR.remove(0).keys();
 				while(omrIte.hasMoreElements())
 				{
 					OMREntry omrEntry = omrIte.nextElement();
+					Long key = omrKeys.nextElement();
 					if(omrEntry.readyToProceed)
 					{
+						SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
+						if(requestingElement.getClass() != MemUnitIn.class)
+						{
+							omrEntry.readyToProceed = false;
+						}
 						handleAccess(eventQ, omrEntry.eventToForward);
 					}
 					if(isMSHRfull())

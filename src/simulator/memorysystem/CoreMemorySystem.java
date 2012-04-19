@@ -141,18 +141,16 @@ public class CoreMemorySystem
 																	 address,
 																	 coreId); 
 		Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
-		long tag = address >> (l1Cache.blockSizeBits);
-		if(!missStatusHoldingRegister.containsKey(tag))
+		if(!missStatusHoldingRegister.containsKey(address))
 		{
 			ArrayList<Event> eventList = new ArrayList<Event>();
 			eventList.add(addressEvent);
-			missStatusHoldingRegister.put(tag, 
-					  new OMREntry(eventList,true,addressEvent));
+			missStatusHoldingRegister.put(address, new OMREntry(eventList,true,addressEvent));
 			l1Cache.getPort().put(addressEvent);
 		}
 		else
 		{
-			missStatusHoldingRegister.get(address >> (l1Cache.blockSizeBits)).outStandingEvents.add(addressEvent);
+			missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
 		}
 	}
 	
@@ -168,8 +166,7 @@ public class CoreMemorySystem
 																	RequestType.Cache_Read, 
 																	address);
 		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
-		missStatusHoldingRegister.put(address >> (iCache.blockSizeBits), 
-									  new OMREntry(null,false,addressEvent));
+		missStatusHoldingRegister.put(address, new OMREntry(null,false,addressEvent));
 		iCache.getPort().put(addressEvent);
 	}
 	
@@ -185,17 +182,16 @@ public class CoreMemorySystem
 																	address,
 																	coreId);
 		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
-		long tag = address >> (iCache.blockSizeBits);
-		if(!missStatusHoldingRegister.containsKey(tag))
+		if(!missStatusHoldingRegister.containsKey(address))
 		{
 			ArrayList<Event> eventList = new ArrayList<Event>();
 			eventList.add(addressEvent);
-			missStatusHoldingRegister.put(tag,new OMREntry(eventList,true,addressEvent));
+			missStatusHoldingRegister.put(address,new OMREntry(eventList,true,addressEvent));
 			iCache.getPort().put(addressEvent);
 		}
 		else
 		{
-			missStatusHoldingRegister.get(address >> (iCache.blockSizeBits)).outStandingEvents.add(addressEvent);
+			missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
 		}
 	}
 

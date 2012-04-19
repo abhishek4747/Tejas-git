@@ -155,9 +155,9 @@ public class FetchUnitIn extends SimulationElement{
 	public void handleEvent(EventQueue eventQ, Event event) {
 		long address = ((AddressCarryingEvent)event).getAddress();
 		InstructionCache iCache = (InstructionCache)event.getRequestingElement();
-		OMREntry omrEntry = missStatusHoldingRegister.remove(address >> iCache.blockSizeBits);
-		int numOfOutStandingRequest = omrEntry.outStandingEvents.size();
-		for(int i=0;i<numOfOutStandingRequest;i++)
+		//OMREntry omrEntry = missStatusHoldingRegister.remove(address >> iCache.blockSizeBits);
+		//int numOfOutStandingRequest = omrEntry.outStandingEvents.size();
+		//for(int i=0;i<numOfOutStandingRequest;i++)
 		{
 			if(inputToPipeline.isEmpty())
 			{
@@ -168,6 +168,7 @@ public class FetchUnitIn extends SimulationElement{
 				core.getExecutionEngineIn().setFetchComplete(true);
 				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = inputToPipeline.pollFirst();
 				this.fetchFillCount++;
+				return;
 			}
 			else{
 				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= inputToPipeline.pollFirst();

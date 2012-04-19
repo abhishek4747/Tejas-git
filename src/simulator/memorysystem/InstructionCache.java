@@ -7,6 +7,7 @@ import memorysystem.Cache.CacheType;
 import memorysystem.Cache.CoherenceType;
 
 import pipeline.inorder.FetchUnitIn;
+import pipeline.inorder.MemUnitIn;
 import pipeline.statistical.DelayGenerator;
 
 import generic.Event;
@@ -41,6 +42,11 @@ public class InstructionCache extends Cache
 		//IF HIT
 		if (cl != null)
 		{
+			if(requestingElement.getClass() == FetchUnitIn.class)
+			{
+				((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
+			}
+
 			//Schedule the requesting element to receive the block TODO (for LSQ)
 			if (requestType == RequestType.Cache_Read)
 			{
@@ -70,6 +76,10 @@ public class InstructionCache extends Cache
 			
 			if (alreadyRequested==0)
 			{		
+				if(requestingElement.getClass() == FetchUnitIn.class)
+				{
+					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
+				}
 				// access the next level
 				if (this.isLastLevel)
 				{
@@ -99,20 +109,18 @@ public class InstructionCache extends Cache
 				}
 				
 			}
+			else if(alreadyRequested == 1)
+			{
+				if(requestingElement.getClass() == FetchUnitIn.class)
+				{
+					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
+				}
+			}
 			else if (alreadyRequested ==2)
 			{
 				if(!this.connectedMSHR.contains(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister()))
 					this.connectedMSHR.add(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister());
-				if(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().contains(address >> this.blockSizeBits))
-				{
-					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).readyToProceed = true;
-					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().get(address >> this.blockSizeBits).eventToForward = event;
-				}
-				else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-				{
-					System.out.println("Outstanding Request in Memory System from icache line 115" + ((FetchUnitIn)requestingElement).getMissStatusHoldingRegister());
-					System.exit(1);
-				}
+				((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().get(address).readyToProceed = true;
 			}
 		}
 	}
@@ -195,6 +203,11 @@ public class InstructionCache extends Cache
 				OMREntry omrEntry = omrIte.nextElement();
 				if(omrEntry.readyToProceed)
 				{
+					SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
+					if(requestingElement.getClass() != MemUnitIn.class)
+					{
+						omrEntry.readyToProceed = false;
+					}
 					handleAccess(eventQ, omrEntry.eventToForward);
 				}
 				if(isMSHRfull())
