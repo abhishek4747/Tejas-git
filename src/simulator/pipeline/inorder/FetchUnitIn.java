@@ -30,6 +30,8 @@ public class FetchUnitIn extends SimulationElement{
 	InstructionLinkedList inputToPipeline;
 	EventQueue eventQueue;
 	int syncCount;
+	int numRequestsSent;
+	int numRequestsAcknowledged;
 	Hashtable<Long,OMREntry> missStatusHoldingRegister;
 
 
@@ -45,6 +47,8 @@ public class FetchUnitIn extends SimulationElement{
 		this.sleep=false;
 		this.syncCount=0;
 		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
+		this.numRequestsSent=0;
+		this.numRequestsAcknowledged=0;
 		
 	}
 
@@ -61,16 +65,16 @@ public class FetchUnitIn extends SimulationElement{
 		if(inputToPipeline.isEmpty())
 			return;
 		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
-		int k=0;
-		int numSendRequest = 0;
-		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity && numSendRequest < this.fetchBufferCapacity;i = (i+1)%this.fetchBufferCapacity){
-			if(!SimulationConfig.detachMemSys){
-				if(inputToPipeline.length() > k+1)
+		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;
+					this.fetchFillCount + this.numRequestsSent - this.numRequestsAcknowledged <this.fetchBufferCapacity; 
+					i = (i+1)%this.fetchBufferCapacity){
+			if(!SimulationConfig.detachMemSys){//TODO is the following check required ?
+				if(inputToPipeline.length() > this.numRequestsSent - this.numRequestsAcknowledged)
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getFetchUnitIn(), 
-						inputToPipeline.peekInstructionAt(k++).getProgramCounter(),
+						inputToPipeline.peekInstructionAt(this.numRequestsSent - this.numRequestsAcknowledged).getProgramCounter(),
 						this.core.getCore_number());
-				numSendRequest++;
+				this.numRequestsSent++;
 				}
 				else{
 					handleEvent(null, null);					
@@ -158,7 +162,7 @@ public class FetchUnitIn extends SimulationElement{
 		//OMREntry omrEntry = missStatusHoldingRegister.remove(address >> iCache.blockSizeBits);
 		//int numOfOutStandingRequest = omrEntry.outStandingEvents.size();
 		//for(int i=0;i<numOfOutStandingRequest;i++)
-		{
+//		{
 			if(inputToPipeline.isEmpty())
 			{
 				return;
@@ -168,13 +172,15 @@ public class FetchUnitIn extends SimulationElement{
 				core.getExecutionEngineIn().setFetchComplete(true);
 				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = inputToPipeline.pollFirst();
 				this.fetchFillCount++;
+				this.numRequestsAcknowledged++;
 				return;
 			}
 			else{
 				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= inputToPipeline.pollFirst();
 				this.fetchFillCount++;
+				this.numRequestsAcknowledged++;
 			}
-		}
+//		}
 		// TODO Auto-generated method stub
 		//This should be called when the pipeline needs to wake up
 //		this.sleep=false;
