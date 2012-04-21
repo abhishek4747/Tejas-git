@@ -33,15 +33,16 @@ public class FetchUnitIn extends SimulationElement{
 	int numRequestsSent;
 	int numRequestsAcknowledged;
 	Hashtable<Long,OMREntry> missStatusHoldingRegister;
+	private boolean fetchBufferStatus[];
 
 
 	public FetchUnitIn(Core core, EventQueue eventQueue) {
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
-		this.fetchBuffer = new Instruction[4];
+		this.fetchBufferCapacity=4;
+		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;
-		this.fetchBufferCapacity=4;
 		this.stall = 0;
 		this.eventQueue = eventQueue;
 		this.sleep=false;
@@ -49,7 +50,9 @@ public class FetchUnitIn extends SimulationElement{
 		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
 		this.numRequestsSent=0;
 		this.numRequestsAcknowledged=0;
-		
+		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];
+		for(int i=0;i<this.fetchBufferCapacity;i++)
+			this.fetchBufferStatus[i]=false;
 	}
 
 	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
@@ -61,25 +64,56 @@ public class FetchUnitIn extends SimulationElement{
 		this.missStatusHoldingRegister = missStatusHoldingRegister;
 	}	
 	public void fillFetchBuffer(){
-//System.out.println("inside fill fetch buffer "+inputToPipeline.getListSize());
+//System.out.println("inside fill fetch buffer "+inputToPipeline.length()			+ " ins executed"+core.getNoOfInstructionsExecuted());
 		if(inputToPipeline.isEmpty())
 			return;
-		Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
-		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;
-					this.fetchFillCount + this.numRequestsSent - this.numRequestsAcknowledged <this.fetchBufferCapacity; 
-					i = (i+1)%this.fetchBufferCapacity){
-			if(!SimulationConfig.detachMemSys){//TODO is the following check required ?
-				if(inputToPipeline.length() > this.numRequestsSent - this.numRequestsAcknowledged)
+		Instruction newInstruction=null;// = inputToPipeline.peekInstructionAt(0);
+		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity
+				;i = (i+1)%this.fetchBufferCapacity){
+			
+//		while(this.fetchFillCount + this.numRequestsSent - this.numRequestsAcknowledged <this.fetchBufferCapacity ){
+//			if(inputToPipeline.length() > this.numRequestsSent - this.numRequestsAcknowledged ){
+//				newInstruction=inputToPipeline.peekInstructionAt(this.numRequestsSent - this.numRequestsAcknowledged);
+//			if(newInstruction.getOperationType()==OperationType.inValid){
+//				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= newInstruction;//inputToPipeline.pollFirst();
+//				this.fetchFillCount++;
+//				core.getExecutionEngineIn().setFetchComplete(true);
+//				System.out.println("Invalid encountered");
+//				System.out.println("pc = "+newInstruction.getProgramCounter());
+//				System.out.println("length = "+inputToPipeline.length());
+//				System.out.println("index = "+(this.numRequestsSent-this.numRequestsAcknowledged));
+//				break;
+//			}
+		
+			if( missStatusHoldingRegister.size() >= this.fetchBufferCapacity){
+				System.out.println("Exiting due to size exceed");
+				break;
+			}
+			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
+			if(newInstruction.getOperationType() == OperationType.inValid){
+				core.getExecutionEngineIn().setFetchComplete(true);
+				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = newInstruction;//inputToPipeline.pollFirst();
+						this.fetchBufferStatus[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]=true;
+						this.fetchFillCount++;
+//						this.numRequestsAcknowledged++;
+						
+//System.out.println("Size = "+inputToPipeline.getListSize()+" "+(this.fetchBufferIndex+this.fetchFillCount));
+			}
+			else{
+				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= newInstruction;//inputToPipeline.pollFirst();
+				this.fetchBufferStatus[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]=false;
+				this.fetchFillCount++;
+//System.out.println("Address of the instruction ="+newInstruction.getProgramCounter());
+//				this.numRequestsAcknowledged++;
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getFetchUnitIn(), 
-						inputToPipeline.peekInstructionAt(this.numRequestsSent - this.numRequestsAcknowledged).getProgramCounter(),
+						newInstruction.getProgramCounter(),
 						this.core.getCore_number());
-				this.numRequestsSent++;
+//				this.numRequestsSent++;
 				}
-				else{
-					handleEvent(null, null);					
-				}
-			}
+		}
+				
+
 	}
 	public void performFetch(){
 		if(!core.getExecutionEngineIn().getFetchComplete())
@@ -87,9 +121,9 @@ public class FetchUnitIn extends SimulationElement{
 
 		Instruction ins;
 		StageLatch ifIdLatch = core.getExecutionEngineIn().getIfIdLatch();
-//System.out.println(this.sleep+" "+this.stall);
 		
-			if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && ifIdLatch.getStallCount()==0 && missStatusHoldingRegister.isEmpty()){
+			if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && ifIdLatch.getStallCount()==0 
+					&& this.fetchBufferStatus[this.fetchBufferIndex]){
 					ins = this.fetchBuffer[this.fetchBufferIndex];
 	//System.out.println("Fetch "+ins.getSerialNo());			
 					if(ins.getOperationType()==OperationType.sync){
@@ -158,28 +192,39 @@ public class FetchUnitIn extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		long address = ((AddressCarryingEvent)event).getAddress();
-		InstructionCache iCache = (InstructionCache)event.getRequestingElement();
+//		InstructionCache iCache = (InstructionCache)event.getRequestingElement();
 		//OMREntry omrEntry = missStatusHoldingRegister.remove(address >> iCache.blockSizeBits);
 		//int numOfOutStandingRequest = omrEntry.outStandingEvents.size();
 		//for(int i=0;i<numOfOutStandingRequest;i++)
 //		{
+
+//System.out.println("Address in handle event="+address);
+		for(int i=0;i<this.fetchBufferCapacity;i++){
+			if(this.fetchBuffer[i].getProgramCounter() == address){
+				this.fetchBufferStatus[i]=true;
+			}
+		}
+		
+/*		System.out.println("Length = "+inputToPipeline.length() + " "+ (this.numRequestsSent-this.numRequestsAcknowledged));
+
 			if(inputToPipeline.isEmpty())
 			{
 				return;
 			}
-			Instruction newInstruction = inputToPipeline.peekInstructionAt(0);
+			Instruction newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
 			if(newInstruction.getOperationType() == OperationType.inValid){
 				core.getExecutionEngineIn().setFetchComplete(true);
-				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = inputToPipeline.pollFirst();
+				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = newInstruction;//inputToPipeline.pollFirst();
 				this.fetchFillCount++;
 				this.numRequestsAcknowledged++;
 				return;
 			}
 			else{
-				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= inputToPipeline.pollFirst();
+				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= newInstruction;//inputToPipeline.pollFirst();
 				this.fetchFillCount++;
 				this.numRequestsAcknowledged++;
 			}
+			*/
 //		}
 		// TODO Auto-generated method stub
 		//This should be called when the pipeline needs to wake up

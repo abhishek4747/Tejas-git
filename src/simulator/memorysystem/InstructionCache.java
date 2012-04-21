@@ -42,29 +42,34 @@ public class InstructionCache extends Cache
 		//IF HIT
 		if (cl != null)
 		{
+			OMREntry omrEntry = null;
 			if(requestingElement.getClass() == FetchUnitIn.class)
 			{
-				((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
+				 omrEntry = ((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 			}
-
+			while(omrEntry !=null && omrEntry.outStandingEvents.size()>0)
 			//Schedule the requesting element to receive the block TODO (for LSQ)
-			if (requestType == RequestType.Cache_Read)
 			{
-				//Just return the read block
-					requestingElement.getPort().put(
-							event.update(
-									eventQ,
-									requestingElement.getLatencyDelay(),
-									this,
-									requestingElement,
-									RequestType.Mem_Response));
-			}
-			
-			else if (requestType == RequestType.Cache_Write)
-			{
-				//Write the data to the cache block (Do Nothing)	
-				System.out.println(" iCache got 'write' operation : Not possible");
-				System.exit(1);
+				
+				Event tempEvent = omrEntry.outStandingEvents.remove(0);
+				if (requestType == RequestType.Cache_Read)
+				{
+					//Just return the read block
+						requestingElement.getPort().put(
+								tempEvent.update(
+										eventQ,
+										requestingElement.getLatencyDelay(),
+										this,
+										requestingElement,
+										RequestType.Mem_Response));
+				}
+				
+				else if (requestType == RequestType.Cache_Write)
+				{
+					//Write the data to the cache block (Do Nothing)	
+					System.out.println(" iCache got 'write' operation : Not possible");
+					System.exit(1);
+				}
 			}
 		}
 		
