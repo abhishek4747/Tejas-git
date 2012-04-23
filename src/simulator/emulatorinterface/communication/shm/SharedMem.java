@@ -35,47 +35,17 @@ public class SharedMem extends  IpcBase
 		shmAddress = shmat(shmid);
 	}
 		
-	public void initIpc() {
-		
-		if (SimulationConfig.debugMode) 
-			System.out.println("-- SharedMem initialising");
-		
-		String name;
-		for (int i=0; i<MaxNumJavaThreads; i++){
-			name = "thread"+Integer.toString(i);
-			termination[i]=false;
-			started[i]=false;
-			//TODO not all cores are assigned to each thread
-			//when the mechanism to tie threads to cores is in place
-			//this has to be changed
-		}
-	}
+	public int fetchManyPackets(int tidApp, int index, int numPackets,ArrayList<Packet> fromPIN){
 
-
-	public Packet fetchOnePacket(int tidApp, int index ) {
-		return shmread(tidApp, shmAddress,
-				index % COUNT);
-	}
-
-	public ArrayList<Packet> fetchManyPackets(int tidApp, int index, int numPackets){
-		//System.out.println("Fetching "+numPackets+" simultaneously from index"+index);
-
-	//	Not done here. Done inside
-	//	index = index%COUNT;
-		/*long[] ret = SharedMem.shmreadMult(tidApp,shmAddress,index,numPackets);
-		for (int i=0; i<numPackets; i++) {
-			fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
-		}
-		*/
-		ArrayList<Packet> fromPIN = new ArrayList<Packet>();
 		long[] ret  = new long[3*numPackets]; 
 		SharedMem.shmreadMult(tidApp, shmAddress, index, numPackets,ret);
 			for (int i=0; i<numPackets; i++) {
-				fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
+				//fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
+				fromPIN.get(i).set(ret[3*i],ret[3*i+1],ret[3*i+2]);
 				//System.out.println(fromPIN.get(i).toString());
 			}
 			
-			return fromPIN;
+		return 0;
 	}
 	
 	public int update(int tidApp, int numReads){
@@ -173,6 +143,30 @@ public class SharedMem extends  IpcBase
 	// address of shared memory segment attached. should be of type 'long' to ensure for 64bit
 	static long shmAddress;
 	static int shmid;
+
+	@Override
+	public void initIpc() {
+		if (SimulationConfig.debugMode) 
+			System.out.println("-- SharedMem initialising");
+		
+		String name;
+		for (int i=0; i<MaxNumJavaThreads; i++){
+			name = "thread"+Integer.toString(i);
+			termination[i]=false;
+			started[i]=false;
+			//TODO not all cores are assigned to each thread
+			//when the mechanism to tie threads to cores is in place
+			//this has to be changed
+		}
+		
+	}
+
+
+	@Override
+	public Packet fetchOnePacket(int tidApp, int index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	
 }

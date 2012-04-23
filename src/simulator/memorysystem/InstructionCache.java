@@ -101,15 +101,15 @@ public class InstructionCache extends Cache
 				}
 				else
 				{
-					this.nextLevel.getPort().put(
-							new AddressCarryingEvent(
-									eventQ,
-									this.nextLevel.getLatencyDelay(),
-									this, 
-									this.nextLevel,
-									RequestType.Cache_Read_from_iCache, 
-									address,
-									((AddressCarryingEvent)event).coreId));
+					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+																				this.nextLevel.getLatencyDelay(),
+																				this, 
+																				this.nextLevel,
+																				RequestType.Cache_Read_from_iCache, 
+																				address,
+																				((AddressCarryingEvent)event).coreId);
+					missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
+					this.nextLevel.getPort().put(addressEvent);
 					return;
 				}
 				
@@ -209,18 +209,18 @@ public class InstructionCache extends Cache
 				if(omrEntry.readyToProceed)
 				{
 					SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
-					if(requestingElement.getClass() != MemUnitIn.class)
+					if(requestingElement.getClass() != FetchUnitIn.class)
 					{
 						omrEntry.readyToProceed = false;
 					}
 					handleAccess(eventQ, omrEntry.eventToForward);
 				}
-				if(isMSHRfull())
+				if(missStatusHoldingRegister.size() >= MSHRSize)
 				{
 					break;
 				}
 			}
-			if(isMSHRfull())
+			if(missStatusHoldingRegister.size() >= MSHRSize)
 			{
 				break;
 			}

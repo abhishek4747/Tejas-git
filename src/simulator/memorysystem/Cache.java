@@ -579,8 +579,8 @@ public class Cache extends SimulationElement
 																						 RequestType.Cache_Read, 
 																						 address,
 																						 ((AddressCarryingEvent)event).coreId); 
-							this.nextLevel.getPort().put(addressEvent);
 							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
+							this.nextLevel.getPort().put(addressEvent);
 							return;
 						}
 					}
@@ -591,6 +591,11 @@ public class Cache extends SimulationElement
 					{
 						if(((MemUnitIn)requestingElement).getMissStatusHoldingRegister().containsKey(address))
 							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
+						else
+						{
+							System.out.println("Request Not Present in Mem MSHR");
+							System.exit(1);
+						}
 					}
 				}
 				else if(alreadyRequested == 2)
@@ -599,14 +604,31 @@ public class Cache extends SimulationElement
 					{
 						if(!this.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
 							this.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
-						if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
+						if(((Cache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((Cache)requestingElement).blockSizeBits) &&
+								event.getRequestType() == RequestType.Cache_Read )
 						{
 							((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
-							((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
+							//((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
 						}
 						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
 						{
-							System.out.println("Outstanding Request in Memory System from cache line 600");
+							System.out.println("Outstanding Request in Memory System from cache line 610 " + (address >> ((Cache)requestingElement).blockSizeBits) + ((Cache)requestingElement).missStatusHoldingRegister + event.getRequestType());
+							System.exit(1);
+						}
+					}
+					else if(requestingElement.getClass() == InstructionCache.class)
+					{
+						if(!this.connectedMSHR.contains(((InstructionCache)requestingElement).missStatusHoldingRegister))
+							this.connectedMSHR.add(((InstructionCache)requestingElement).missStatusHoldingRegister);
+						if(((InstructionCache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((InstructionCache)requestingElement).blockSizeBits) &&
+								event.getRequestType() == RequestType.Cache_Read_from_iCache )
+						{
+							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).readyToProceed = true;
+//							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).eventToForward = event;
+						}
+						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+						{
+							System.out.println("Outstanding Request in Memory System from cache line 626");
 							System.exit(1);
 						}
 					} 
@@ -614,6 +636,7 @@ public class Cache extends SimulationElement
 					{
 						if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
 							this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
+						((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address).readyToProceed = true;
 					}
 				}
 			}
@@ -779,8 +802,10 @@ public class Cache extends SimulationElement
 			}
 			while(connectedMSHR.size() > 0)
 			{
-				Enumeration<OMREntry> omrIte = connectedMSHR.get(0).elements();
-				Enumeration<Long> omrKeys = connectedMSHR.remove(0).keys();
+				
+				Hashtable<Long,OMREntry> tempMissStatusHoldingRegister = connectedMSHR.remove(0);
+				Enumeration<OMREntry> omrIte = tempMissStatusHoldingRegister.elements();
+				Enumeration<Long> omrKeys = tempMissStatusHoldingRegister.keys();
 				while(omrIte.hasMoreElements())
 				{
 					OMREntry omrEntry = omrIte.nextElement();
@@ -794,12 +819,12 @@ public class Cache extends SimulationElement
 						}
 						handleAccess(eventQ, omrEntry.eventToForward);
 					}
-					if(isMSHRfull())
+					if(missStatusHoldingRegister.size() >= MSHRSize)
 					{
 						break;
 					}
 				}
-				if(isMSHRfull())
+				if(missStatusHoldingRegister.size() >= MSHRSize)
 				{
 					break;
 				}

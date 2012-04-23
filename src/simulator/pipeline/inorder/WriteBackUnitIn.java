@@ -10,9 +10,11 @@ import generic.SimulationElement;
 
 public class WriteBackUnitIn extends SimulationElement{
 	Core core;
+	int j;
 	public WriteBackUnitIn(Core core) {
 		super(PortType.Unlimited, core.getNoOfRegFilePorts(), -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
+		this.j=0;
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -23,6 +25,9 @@ public class WriteBackUnitIn extends SimulationElement{
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
 				core.getExecutionEngineIn().setExecutionComplete(true);
 			else {
+				if(core.getNoOfInstructionsExecuted()%1000000==0){
+					System.out.println(this.j++ + " million done");
+				}
 //				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
 //System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());
 //				}

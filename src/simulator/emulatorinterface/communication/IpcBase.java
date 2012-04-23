@@ -130,6 +130,5 @@ public abstract class IpcBase {
 		System.out.println("Implement finish in the IPC mechanism");
 	}
 
-	public abstract ArrayList<Packet> fetchManyPackets(int tidApp, int readerLocation, int numReads);
-
+	public abstract int fetchManyPackets(int tidApp, int readerLocation, int numReads,ArrayList<Packet> fromPIN);
 }

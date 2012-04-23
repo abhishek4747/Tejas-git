@@ -29,7 +29,12 @@ public class RunnableShm extends RunnableThread implements Runnable {
 	public void run() {
 
 		// System.out.println("-- in runnable thread run "+this.tid);
-		ArrayList<Packet> fromPIN = new ArrayList<Packet>();
+		ArrayList<Packet> fromPIN = new ArrayList<Packet>(SharedMem.COUNT);
+		// little pooling on its own.
+		for (int i = 0; i < SharedMem.COUNT; i++) {
+			fromPIN.add(new Packet());
+		}
+		
 		Packet pnew = new Packet();
 		boolean allover = false;
 		boolean emulatorStarted = false;
@@ -107,7 +112,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				}
 				
 				// Read the entries
-				fromPIN = ipcType.fetchManyPackets(tidApp, thread.readerLocation, numReads);
+				ipcType.fetchManyPackets(tidApp, thread.readerLocation, numReads, fromPIN);
 				for (int i = 0; i < numReads; i++) {
 					pnew = fromPIN.get(i);
 					v = pnew.value;

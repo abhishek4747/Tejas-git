@@ -90,6 +90,8 @@ public class FetchUnitIn extends SimulationElement{
 				break;
 			}
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
+			if(newInstruction == null)
+				return;
 			if(newInstruction.getOperationType() == OperationType.inValid){
 				core.getExecutionEngineIn().setFetchComplete(true);
 				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = newInstruction;//inputToPipeline.pollFirst();
