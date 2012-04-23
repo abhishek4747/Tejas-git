@@ -591,11 +591,11 @@ public class Cache extends SimulationElement
 					{
 						if(((MemUnitIn)requestingElement).getMissStatusHoldingRegister().containsKey(address))
 							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
-						else
+						/*else
 						{
 							System.out.println("Request Not Present in Mem MSHR");
 							System.exit(1);
-						}
+						}*/
 					}
 				}
 				else if(alreadyRequested == 2)
@@ -631,13 +631,9 @@ public class Cache extends SimulationElement
 							System.out.println("Outstanding Request in Memory System from cache line 626");
 							System.exit(1);
 						}
-					} 
-					else if (alreadyRequested ==2)
-					{
-						if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
-							this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
-						((MemUnitIn)requestingElement).getMissStatusHoldingRegister().get(address).readyToProceed = true;
-					}
+					} else if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
+						this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
+ 
 				}
 			}
 		}
@@ -800,10 +796,13 @@ public class Cache extends SimulationElement
 				//Remove the processed entry from the outstanding request list
 				outstandingRequestList.remove(0);
 			}
-			while(connectedMSHR.size() > 0)
+			Vector<Integer> indexToRemove = new Vector<Integer>();
+			for(int i=0; i < connectedMSHR.size();i++)
 			{
 				
-				Hashtable<Long,OMREntry> tempMissStatusHoldingRegister = connectedMSHR.remove(0);
+				Hashtable<Long,OMREntry> tempMissStatusHoldingRegister = connectedMSHR.get(i);
+				int readyToProceedCount =0;
+				int instructionProceeded =0;
 				Enumeration<OMREntry> omrIte = tempMissStatusHoldingRegister.elements();
 				Enumeration<Long> omrKeys = tempMissStatusHoldingRegister.keys();
 				while(omrIte.hasMoreElements())
@@ -812,22 +811,35 @@ public class Cache extends SimulationElement
 					Long key = omrKeys.nextElement();
 					if(omrEntry.readyToProceed)
 					{
+						readyToProceedCount++;
 						SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
 						if(requestingElement.getClass() != MemUnitIn.class)
 						{
 							omrEntry.readyToProceed = false;
 						}
 						handleAccess(eventQ, omrEntry.eventToForward);
+						if(!omrEntry.readyToProceed)
+						{
+							instructionProceeded++;
+						}
 					}
 					if(missStatusHoldingRegister.size() >= MSHRSize)
 					{
 						break;
 					}
 				}
+				if(readyToProceedCount == instructionProceeded && readyToProceedCount>0)
+				{
+					indexToRemove.add(i);
+				}
 				if(missStatusHoldingRegister.size() >= MSHRSize)
 				{
 					break;
 				}
+			}
+			for(int i=0;i<indexToRemove.size();i++)
+			{
+				this.connectedMSHR.remove(indexToRemove.get(i));
 			}
 			/*}
 			else

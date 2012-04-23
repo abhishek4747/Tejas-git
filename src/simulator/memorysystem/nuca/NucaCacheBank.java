@@ -21,14 +21,18 @@
 package memorysystem.nuca;
 import generic.Event;
 import generic.EventQueue;
+import generic.OMREntry;
 import generic.RequestType;
 import generic.SimulationElement;
 import net.*;
 import net.NOC.TOPOLOGY;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Hashtable;
+
+import pipeline.inorder.MemUnitIn;
 import config.CacheConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
@@ -356,11 +360,52 @@ public class NucaCacheBank extends Cache
 				System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 164 error " + event.getRequestType() + ((AddressCarryingEvent)event).getSourceBankId() + ((AddressCarryingEvent)event).getDestinationBankId());
 				System.exit(1);
 			}
-			
-			//Remove the processed entry from the outstanding request list
-//				outstandingRequestList.remove(0);
 		}
-		
+		Vector<Integer> indexToRemove = new Vector<Integer>();
+		for(int i=0; i < connectedMSHR.size();i++)
+		{
+			
+			Hashtable<Long,OMREntry> tempMissStatusHoldingRegister = connectedMSHR.get(i);
+			int readyToProceedCount =0;
+			int instructionProceeded =0;
+			Enumeration<OMREntry> omrIte = tempMissStatusHoldingRegister.elements();
+			Enumeration<Long> omrKeys = tempMissStatusHoldingRegister.keys();
+			while(omrIte.hasMoreElements())
+			{
+				OMREntry omrEntry = omrIte.nextElement();
+				Long key = omrKeys.nextElement();
+				if(omrEntry.readyToProceed)
+				{
+					readyToProceedCount++;
+					SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
+					if(requestingElement.getClass() != MemUnitIn.class)
+					{
+						omrEntry.readyToProceed = false;
+					}
+					handleAccess(eventQ, omrEntry.eventToForward);
+					if(!omrEntry.readyToProceed)
+					{
+						instructionProceeded++;
+					}
+				}
+				if(missStatusHoldingRegister.size() >= MSHRSize)
+				{
+					break;
+				}
+			}
+			if(readyToProceedCount == instructionProceeded && readyToProceedCount>0)
+			{
+				indexToRemove.add(i);
+			}
+			if(missStatusHoldingRegister.size() >= MSHRSize)
+			{
+				break;
+			}
+		}
+		for(int i=0;i<indexToRemove.size();i++)
+		{
+			this.connectedMSHR.remove(indexToRemove.get(i));
+		}
 	}
 
     /************************************************************************

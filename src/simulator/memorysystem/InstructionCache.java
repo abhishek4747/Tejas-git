@@ -2,6 +2,8 @@ package memorysystem;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import memorysystem.Cache.CacheType;
 import memorysystem.Cache.CoherenceType;
@@ -125,7 +127,6 @@ public class InstructionCache extends Cache
 			{
 				if(!this.connectedMSHR.contains(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister()))
 					this.connectedMSHR.add(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister());
-				((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().get(address).readyToProceed = true;
 			}
 		}
 	}
@@ -199,31 +200,47 @@ public class InstructionCache extends Cache
 			//Remove the processed entry from the outstanding request list
 			outstandingRequestList.remove(0);
 		}
-		
-		while(connectedMSHR.size() > 0)
+		Vector<Integer> indexToRemove = new Vector<Integer>();
+		for(int i=0; i < connectedMSHR.size();i++)
 		{
-			Enumeration<OMREntry> omrIte = connectedMSHR.remove(0).elements();
+			
+			Hashtable<Long,OMREntry> tempMissStatusHoldingRegister = connectedMSHR.get(i);
+			int readyToProceedCount =0;
+			int instructionProceeded =0;
+			Enumeration<OMREntry> omrIte = tempMissStatusHoldingRegister.elements();
+			Enumeration<Long> omrKeys = tempMissStatusHoldingRegister.keys();
 			while(omrIte.hasMoreElements())
 			{
 				OMREntry omrEntry = omrIte.nextElement();
+				Long key = omrKeys.nextElement();
 				if(omrEntry.readyToProceed)
 				{
+					readyToProceedCount++;
 					SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
-					if(requestingElement.getClass() != FetchUnitIn.class)
-					{
-						omrEntry.readyToProceed = false;
-					}
 					handleAccess(eventQ, omrEntry.eventToForward);
+					if(!omrEntry.readyToProceed)
+					{
+						instructionProceeded++;
+					}
 				}
 				if(missStatusHoldingRegister.size() >= MSHRSize)
 				{
 					break;
 				}
 			}
+			if(readyToProceedCount == instructionProceeded && readyToProceedCount>0)
+			{
+				indexToRemove.add(i);
+			}
 			if(missStatusHoldingRegister.size() >= MSHRSize)
 			{
 				break;
 			}
 		}
+		for(int i=0;i<indexToRemove.size();i++)
+		{
+			this.connectedMSHR.remove(indexToRemove.get(i));
+		}
+
 	}
 }

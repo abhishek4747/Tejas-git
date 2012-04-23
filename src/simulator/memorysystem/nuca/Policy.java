@@ -8,6 +8,7 @@ import java.util.Vector;
 import net.NOC.TOPOLOGY;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
+import memorysystem.InstructionCache;
 import memorysystem.nuca.NucaCache.NucaType;
 
 public class Policy {
@@ -47,21 +48,34 @@ public class Policy {
 				{
 					if(!cacheBank.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
 						cacheBank.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
-					if(((Cache)requestingElement).missStatusHoldingRegister.contains(address >> ((Cache)requestingElement).blockSizeBits))
+					if(((Cache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((Cache)requestingElement).blockSizeBits) &&
+							event.getRequestType() == RequestType.Cache_Read )
 					{
 						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
-						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
+						//((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
 					}
 					else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
 					{
-						System.out.println("Outstanding Request in Memory System");
+						System.out.println("Outstanding Request in Memory System from policy line 59 " + (address >> ((Cache)requestingElement).blockSizeBits) + ((Cache)requestingElement).missStatusHoldingRegister + event.getRequestType());
 						System.exit(1);
 					}
 				}
-				else
+				else if(requestingElement.getClass() == InstructionCache.class)
 				{
-					//TODO
-				}
+					if(!cacheBank.connectedMSHR.contains(((InstructionCache)requestingElement).missStatusHoldingRegister))
+						cacheBank.connectedMSHR.add(((InstructionCache)requestingElement).missStatusHoldingRegister);
+					if(((InstructionCache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((InstructionCache)requestingElement).blockSizeBits) &&
+							event.getRequestType() == RequestType.Cache_Read_from_iCache )
+					{
+						((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).readyToProceed = true;
+//						((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).eventToForward = event;
+					}
+					else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+					{
+						System.out.println("Outstanding Request in Memory System from policy line 75");
+						System.exit(1);
+					}
+				} 
 				return null;
 			}
 			else
@@ -184,10 +198,11 @@ public class Policy {
 				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
 				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).oldSourceBankId);
 				event.oldRequestType = event.getRequestType();
-				boolean alreadyRequested = cacheBank.addtoForwardedRequests(event, address);
-				//System.out.println("added a new event in bankid " + router.getBankId());
-				if (!alreadyRequested)
+				int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
+				if (alreadyRequested==0)
 				{
+					event.oldRequestType = event.getRequestType();
+					event.requestTypeStack.push(event.getRequestType());
 					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																				 0,
 																				 cacheBank, 
@@ -199,8 +214,47 @@ public class Policy {
 					addressEvent.setDestinationBankId(destinationBankId);
 					return addressEvent;
 				}
-				else
+				else if(alreadyRequested == 2)
+				{
+					SimulationElement requestingElement = ((AddressCarryingEvent)event).oldRequestingElement;
+					if(requestingElement.getClass() == Cache.class)
+					{
+						if(!cacheBank.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
+							cacheBank.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
+						if(((Cache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((Cache)requestingElement).blockSizeBits) &&
+								event.getRequestType() == RequestType.Cache_Read )
+						{
+							((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
+							//((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
+						}
+						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+						{
+							System.out.println("Outstanding Request in Memory System from policy line 232 " + (address >> ((Cache)requestingElement).blockSizeBits) + ((Cache)requestingElement).missStatusHoldingRegister + event.getRequestType());
+							System.exit(1);
+						}
+					}
+					else if(requestingElement.getClass() == InstructionCache.class)
+					{
+						if(!cacheBank.connectedMSHR.contains(((InstructionCache)requestingElement).missStatusHoldingRegister))
+							cacheBank.connectedMSHR.add(((InstructionCache)requestingElement).missStatusHoldingRegister);
+						if(((InstructionCache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((InstructionCache)requestingElement).blockSizeBits) &&
+								event.getRequestType() == RequestType.Cache_Read_from_iCache )
+						{
+							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).readyToProceed = true;
+//							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).eventToForward = event;
+						}
+						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
+						{
+							System.out.println("Outstanding Request in Memory System from policy line 248");
+							System.exit(1);
+						}
+					} 
 					return null;
+				}
+				else
+				{
+					return null;
+				}
 			}
 			sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
 			destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
@@ -228,11 +282,11 @@ public class Policy {
 		{
 			destinationBankId= new Vector<Integer>(event.getSourceBankId());
 		}
-		else if(topology == TOPOLOGY.BUS || topology == TOPOLOGY.RING)
+		/*else if(topology == TOPOLOGY.BUS || topology == TOPOLOGY.RING)
 		{
 			//give proper value to destination bank id
 			destinationBankId = null;
-		}
+		}*/
 		else if(cacheBank.isFirstLevel)
 		{
 			destinationBankId = sourceBankId;

@@ -158,9 +158,10 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Cache_Read)
 		{
+			requestType = RequestType.CacheBank_Read;
+
 			if(this.AllocateBuffer(false))
 			{
-				requestType = RequestType.CacheBank_Read;
 				this.getPort().put(
 						event.update(
 								eventQ,
@@ -184,9 +185,9 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Cache_Write)
 		{
+			requestType = RequestType.CacheBank_Write;
 			if(this.AllocateBuffer(false))
 			{
-				requestType = RequestType.CacheBank_Write;
 				this.getPort().put(
 						event.update(
 								eventQ,
@@ -209,9 +210,9 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Cache_Read_from_iCache)
 		{
+			requestType = RequestType.CacheBank_Read_from_iCache;
 			if(this.AllocateBuffer(false))
 			{
-				requestType = RequestType.CacheBank_Read_from_iCache;
 				this.getPort().put(
 						event.update(
 								eventQ,
@@ -235,9 +236,9 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Mem_Response)
 		{
+			requestType = RequestType.MemBank_Response;
 			if(this.AllocateBuffer(true))
 			{
-				requestType = RequestType.MemBank_Response;
 				this.getPort().put(
 						event.update(
 								eventQ,
@@ -261,9 +262,9 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Main_Mem_Read)
 		{
+			requestType = RequestType.Main_MemBank_Read;
 			if(this.AllocateBuffer(true))
 			{
-				requestType = RequestType.Main_MemBank_Read;
 				this.getPort().put(
 						event.update(
 								eventQ,
@@ -287,9 +288,9 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Main_Mem_Write)
 		{
+			requestType = RequestType.Main_MemBank_Write;
 			if(this.AllocateBuffer(true))
 			{
-				requestType = RequestType.Main_MemBank_Write;
 				this.getPort().put(
 						event.update(
 								eventQ,
@@ -313,9 +314,9 @@ public class Router extends Switch{
 		}
 		else if(requestType == RequestType.Main_Mem_Response)
 		{
+			requestType = RequestType.Main_MemBank_Response;
 			if(this.AllocateBuffer(true))
 			{
-				requestType = RequestType.Main_MemBank_Response;
 				this.getPort().put(
 						event.update(
 								eventQ,
