@@ -43,7 +43,7 @@
 
 	<!--System Parameters-->
 	<System>
-		<NoOfCores>4</NoOfCores>				<!--Number of cores in the simulated system-->
+		<NoOfCores>4</NoOfCores>				<!--(!!!Not used!!!) Number of cores in the simulated system-->
 		<MainMemoryLatency>1</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<MainMemoryFrequency>200</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
 		<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->

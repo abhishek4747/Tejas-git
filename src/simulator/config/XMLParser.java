@@ -184,7 +184,7 @@ public class XMLParser
 		Element systemElmnt = (Element) systemNode;
 		
 		//Read number of cores and define the array of core configurations
-		int numOfCores = Integer.parseInt(getImmediateString("NoOfCores", systemElmnt));
+		//Note that number of Cores specified in config.xml is deprecated and is instead done as follows
 		SystemConfig.NoOfCores = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
@@ -194,7 +194,7 @@ public class XMLParser
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		StringTokenizer coreNucaMapping = new StringTokenizer((getImmediateString("NearestBankToCores", systemElmnt)));
-		SystemConfig.coreCacheMapping = new int[numOfCores][2];
+		SystemConfig.coreCacheMapping = new int[SystemConfig.NoOfCores][2];
 		
 		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
 		{
