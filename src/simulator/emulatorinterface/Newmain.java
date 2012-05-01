@@ -35,14 +35,14 @@ public class Newmain {
 	public static CustomOperandPool operandPool;
 	public static CustomInstructionPool instructionPool;
 
+	public static String executableFile = " ";
+
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
-	public static boolean subsetSimulation = true; //test added
 
 	public static void main(String[] arguments) throws Exception 
 	{
 		String executableArguments=" ";
-		String executableFile = " ";
 		
 		start = System.currentTimeMillis();
 		// check command line arguments

@@ -2,6 +2,8 @@ package emulatorinterface;
 
 import java.util.ArrayList;
 
+import config.SimulationConfig;
+
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.SharedMem;
@@ -48,6 +50,11 @@ public class RunnableShm extends RunnableThread implements Runnable {
 		// tidEmu is the local notion of pin threads for the current java thread
 		// tidApp is the actual tid of a pin thread
 		while (true) {
+			long microOpsDone = 0;
+			for (int i = 0; i  < EMUTHREADS; i++) {
+				microOpsDone += noOfMicroOps[i];
+			}
+
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 
 				thread = threadParams[tidEmu];
@@ -70,6 +77,16 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				// for loop. also update the variable allover so that I can
 				// break from$the while loop also.
 				if (ipcType.termination[tid] == true) {
+					allover = true;
+					break;
+				}
+				/**** END ***/
+				
+				//subset simulation : 100M micro-ops
+				
+				
+				if(SimulationConfig.subsetSimulation && microOpsDone > SimulationConfig.subsetSimSize)
+				{
 					allover = true;
 					break;
 				}
