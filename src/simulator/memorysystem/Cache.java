@@ -812,6 +812,11 @@ public class Cache extends SimulationElement
 					if(omrEntry.readyToProceed)
 					{
 						readyToProceedCount++;
+						if(omrEntry.eventToForward == null)
+						{
+							System.out.println("level " + this.levelFromTop);
+							System.exit(1);
+						}
 						SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
 						if(requestingElement.getClass() != MemUnitIn.class)
 						{
@@ -890,7 +895,7 @@ public class Cache extends SimulationElement
 		
 		private void handleWriteModifiedToSharedMem(EventQueue eventQ, Event event)
 		{
-			SimulationElement requestingCache = event.getRequestingElement();
+			Cache requestingCache = (Cache)(event.getRequestingElement());
 			long addr = ((AddressCarryingEvent)event).getAddress();
 			this.nextLevel.busController.getBusAndPutEvent(
 					event.update(
@@ -899,16 +904,24 @@ public class Cache extends SimulationElement
 							this,
 							this.nextLevel,
 							RequestType.Cache_Write));
-			this.nextLevel.busController.getBusAndPutEvent(
-					new AddressCarryingEvent(
-							eventQ,
-							this.nextLevel.getLatencyDelay(),
-							requestingCache,
-							this.nextLevel,
-							RequestType.Cache_Read,
-							addr,
-							((AddressCarryingEvent)event).coreId));
-			
+			AddressCarryingEvent eventToSend = new AddressCarryingEvent(
+													eventQ,
+													this.nextLevel.getLatencyDelay(),
+													requestingCache,
+													this.nextLevel,
+													RequestType.Cache_Read,
+													addr,
+													((AddressCarryingEvent)event).coreId);
+			int alreadyRequested = requestingCache.addOutstandingRequest(eventToSend, addr);
+			if(alreadyRequested == 0)
+			{
+				this.nextLevel.busController.getBusAndPutEvent(eventToSend);
+				requestingCache.missStatusHoldingRegister.get(addr >> requestingCache.blockSizeBits).eventToForward
+			}
+			else if(alreadyRequested ==2)
+			{
+				
+			}
 			CacheLine cl = this.access(addr);
 			if (cl != null)
 				cl.setState(MESI.INVALID);
