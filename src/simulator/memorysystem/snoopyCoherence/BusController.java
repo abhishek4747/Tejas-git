@@ -123,15 +123,17 @@ public class BusController
 		}
 		
 		//Store shared memory copy in the cache
-		this.getBusAndPutEvent(
-				new AddressCarryingEvent(
+		AddressCarryingEvent eventToRequest = new AddressCarryingEvent(
 					eventQ,
 					lowerCache.getLatencyDelay(),
 					requestingCache,
 					lowerCache,
 					RequestType.Cache_Read, 
 					address,
-					coreId));
+					coreId);
+				
+		this.getBusAndPutEvent(eventToRequest);
+		requestingCache.missStatusHoldingRegister.get((address >> requestingCache.blockSizeBits)).eventToForward = eventToRequest;
 	}
 	
 	public void processWriteMiss(EventQueue eventQ, Cache requestingCache, long address,int coreId)
@@ -213,15 +215,17 @@ public class BusController
 		}
 		
 		//Store shared memory copy in the cache
-		this.getBusAndPutEvent(
-				new AddressCarryingEvent(
+		AddressCarryingEvent eventToRequest = new AddressCarryingEvent(
 					eventQ,
 					lowerCache.getLatencyDelay(),
 					requestingCache,
 					lowerCache,
 					RequestType.Cache_Read, 
 					address,
-					coreId));
+					coreId);
+		
+		this.getBusAndPutEvent(eventToRequest);
+		requestingCache.missStatusHoldingRegister.get((address >> requestingCache.blockSizeBits)).eventToForward = eventToRequest;
 	}
 	
 	public void getBusAndPutEvents(ArrayList<Event> eventList)

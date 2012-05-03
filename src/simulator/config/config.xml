@@ -30,7 +30,7 @@
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<NumInsToIgnore>10000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
+		<NumInsToIgnore>50000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<Mode>1</Mode>   					<!--From file 0,  From shmem 1, TODO add others -->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
@@ -40,7 +40,7 @@
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>5000000</subsetSimSize>
+		<subsetSimSize>100000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -200,7 +200,7 @@
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>4</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>S</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<BusOccupancy>10</BusOccupancy>
 			<MSHRSize>8</MSHRSize>

@@ -897,31 +897,25 @@ public class Cache extends SimulationElement
 		{
 			Cache requestingCache = (Cache)(event.getRequestingElement());
 			long addr = ((AddressCarryingEvent)event).getAddress();
-			this.nextLevel.busController.getBusAndPutEvent(
-					event.update(
+			ArrayList<Event> eventList = new ArrayList<Event>();
+					
+			eventList.add(event.update(
 							eventQ,
 							this.nextLevel.getLatencyDelay(),
 							this,
 							this.nextLevel,
 							RequestType.Cache_Write));
-			AddressCarryingEvent eventToSend = new AddressCarryingEvent(
-													eventQ,
-													this.nextLevel.getLatencyDelay(),
-													requestingCache,
-													this.nextLevel,
-													RequestType.Cache_Read,
-													addr,
-													((AddressCarryingEvent)event).coreId);
-			int alreadyRequested = requestingCache.addOutstandingRequest(eventToSend, addr);
-			if(alreadyRequested == 0)
-			{
-				this.nextLevel.busController.getBusAndPutEvent(eventToSend);
-				requestingCache.missStatusHoldingRegister.get(addr >> requestingCache.blockSizeBits).eventToForward
-			}
-			else if(alreadyRequested ==2)
-			{
-				
-			}
+			eventList.add(new AddressCarryingEvent(
+							eventQ,
+							this.nextLevel.getLatencyDelay(),
+							this,
+							requestingCache,
+							RequestType.Mem_Response,
+							addr,
+							((AddressCarryingEvent)event).coreId));
+		
+			this.nextLevel.busController.getBusAndPutEvents(eventList);
+			
 			CacheLine cl = this.access(addr);
 			if (cl != null)
 				cl.setState(MESI.INVALID);
