@@ -1,5 +1,6 @@
 package pipeline.inorder;
 
+import power.Counters;
 import emulatorinterface.Newmain;
 import generic.Core;
 import generic.Event;
@@ -21,6 +22,22 @@ public class WriteBackUnitIn extends SimulationElement{
 	public void performWriteBack(){
 		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
 		if(memWbLatch.getInstruction()!=null){ 
+			OperationType opType = memWbLatch.getInstruction().getOperationType(); 
+			
+			if(!(opType==OperationType.branch || opType==OperationType.jump)){
+				Counters.window_access++;
+				Counters.window_preg_access++;
+				Counters.window_wakeup_access++;
+				Counters.resultbus_access++;
+			}
+			
+			if(!(opType==OperationType.store || opType == OperationType.branch 
+					|| opType == OperationType.nop || opType == OperationType.jump)){
+				Counters.regfile_access++;
+			}
+
+				
+				
 //System.out.println("wb "+memWbLatch.getInstruction().getSerialNo());			
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
 				core.getExecutionEngineIn().setExecutionComplete(true);

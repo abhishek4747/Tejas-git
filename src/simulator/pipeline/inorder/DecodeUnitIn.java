@@ -3,6 +3,7 @@ package pipeline.inorder;
 import java.util.Hashtable;
 
 import pipeline.outoforder.MispredictionPenaltyCompleteEvent;
+import power.Counters;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -41,6 +42,33 @@ public class DecodeUnitIn extends SimulationElement{
 	//System.out.println("Data Hazard!");
 				}
 	//			else{
+
+   				OperationType opType = ins.getOperationType();
+				Counters.window_selection_access++;
+				if(opType==OperationType.load || opType==OperationType.store){
+//System.out.println("load instruction");
+					Counters.lsq_wakeup_access++;		//FIXME lsq stats for inorder ?!
+					Counters.lsq_access++;
+					Counters.lsq_store_data_access++;
+					Counters.lsq_preg_access++;
+				}
+				else if(opType==OperationType.floatALU || opType==OperationType.floatDiv || opType==OperationType.floatMul){
+//System.out.println("float alu instruction");
+					Counters.alu_access++;
+					Counters.falu_access++;
+				}
+				else if(opType==OperationType.integerALU || opType==OperationType.integerDiv || opType==OperationType.integerMul){
+//System.out.println("int alu instruction");
+					Counters.alu_access++;
+					Counters.ialu_access++;
+				}
+				
+			  Counters.window_access++;
+			  Counters.window_preg_access++;
+			  Counters.window_preg_access++;
+			  
+			  Counters.regfile_access++;
+			  
 					idExLatch.setInstruction(ins);
 					idExLatch.setIn1(ins.getSourceOperand1());
 					idExLatch.setIn2(ins.getSourceOperand2());			
@@ -50,7 +78,9 @@ public class DecodeUnitIn extends SimulationElement{
 					ifIdLatch.clear();
 				
 					if(ins.getOperationType()==OperationType.branch){ 
-						core.getBranchPredictor().Train(
+								Counters.bpred_access++;
+
+								core.getBranchPredictor().Train(
 								ins.getProgramCounter(),
 								ins.isBranchTaken(),
 								core.getBranchPredictor().predict(ins.getProgramCounter())

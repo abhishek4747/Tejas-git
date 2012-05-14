@@ -11,6 +11,7 @@ import memorysystem.Cache.CoherenceType;
 import pipeline.inorder.FetchUnitIn;
 import pipeline.inorder.MemUnitIn;
 import pipeline.statistical.DelayGenerator;
+import power.Counters;
 
 import generic.Event;
 import generic.EventQueue;
@@ -41,6 +42,8 @@ public class InstructionCache extends Cache
 		//Process the access
 		CacheLine cl = this.processRequest(requestType, address);
 
+//		Counters.icache_access[containingMemSys.getCore().getCore_number()]++; //TODO check for correctness!
+		Counters.icache_access++; //TODO check for correctness!
 		//IF HIT
 		if (cl != null)
 		{

@@ -2,6 +2,8 @@ package emulatorinterface;
 
 import java.util.Enumeration;
 
+import power.Counters;
+
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
@@ -117,6 +119,8 @@ public class Newmain {
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
+		//Initialize counters
+		Counters counters = new Counters();
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		//FIXME A single java thread can have multiple cores
 		
@@ -178,7 +182,9 @@ public class Newmain {
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
 		Statistics.printSimulationTime();
+		Statistics.dumpPowerStats();
 		Statistics.closeStream();
+		
 		
 		System.exit(0);
 		System.exit(0);

@@ -24,8 +24,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/mtech/mcs112579/workspace/PIN</PinTool>
-		<PinInstrumentor>/home/mtech/mcs112579/workspace/Tejas/src/emulator/pin/obj-pin/PgmInstrumentor.so</PinInstrumentor>
+		<PinTool>/home/kapil/pin</PinTool>
+		<PinInstrumentor>/home/kapil/Desktop/Tejas/src/emulator/pin/obj-pin/PgmInstrumentor.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -118,7 +118,25 @@
 			<!--L2Cache type = "Type2"/-->
 			<!--L3Cache type = "Type3"/-->
 		</Core>
-
+		<Predictor>
+			<Bimod>
+				<TableSize>1024</TableSize>	
+			</Bimod>
+			<TwoLevel>
+				<L1>1</L1>
+				<L2>1024</L2>
+				<HistoryRegSize>5</HistoryRegSize>
+				<XOR>0</XOR>
+			</TwoLevel>
+			<CombConfig>
+				<MetaTableSize>1024</MetaTableSize>
+			</CombConfig>
+		</Predictor>
+		<BTB>
+			<NumSets>512</NumSets>
+			<Associativity>4</Associativity>
+		</BTB>
+		
 		<!--Specify the caches other than the L1 caches after this-->
 		<Cache name = "L2" type = "Type2" nextLevel = "" frequency = "2000"/>
 
@@ -203,8 +221,8 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
 			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<NumberOfBankColumns>16</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>1</NumberOfBankRows>
+			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
 			<NocSelScheme>ADAPTIVE</NocSelScheme>
 			<NocNumberOfBuffers>3</NocNumberOfBuffers>
@@ -213,8 +231,8 @@
 			<NocPortOccupancy>-1</NocPortOccupancy>
 			<NocLatency>1</NocLatency>
 			<NocOperatingFreq>2000</NocOperatingFreq>
-			<NocTopology>FATTREE</NocTopology>     <!--NOCTopology-->
-			<NocRoutingAlgorithm>FATTREE</NocRoutingAlgorithm>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>NORTHLAST</NocRoutingAlgorithm>
 			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
 		</Type2>
 		<Type3>
@@ -248,4 +266,42 @@
 			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
 		</Type3>
 	</Library>
+			<Power>
+		  <total_power>0</total_power>
+		  <total_power_nodcache2>0</total_power_nodcache2>
+		  <ialu_power>0</ialu_power>
+		  <falu_power>0</falu_power>
+		  <bpred_power>0</bpred_power>
+		  <rename_power>0</rename_power>
+		  <rat_power>0</rat_power>
+		  <dcl_power>0</dcl_power>
+		  <window_power>0</window_power>
+		  <lsq_power>0</lsq_power>
+		  <wakeup_power>0</wakeup_power>
+		  <lsq_wakeup_power>0</lsq_wakeup_power>
+		  <rs_power>0</rs_power>
+		  <rs_power_nobit>0</rs_power_nobit>
+		  <lsq_rs_power>0</lsq_rs_power>
+		  <lsq_rs_power_nobit>0</lsq_rs_power_nobit>
+		  <selection_power>0</selection_power>
+		  <regfile_power>0</regfile_power>
+		  <regfile_power_nobit>0</regfile_power_nobit>
+		  <result_power>0</result_power>
+		  <icache_power>0</icache_power>
+		  <dcache_power>0</dcache_power>
+		  <dcache2_power>0</dcache2_power>
+		  <clock_power>0</clock_power>
+		  
+		  <itlb>0</itlb>
+		  <dtlb>0</dtlb>
+		  <resultbus>0</resultbus>
+		  <selection>0</selection>
+		  
+		  <ruu_decode_width>0</ruu_decode_width>
+		  <ruu_issue_width>0</ruu_issue_width>
+		  <ruu_commit_width>0</ruu_commit_width>
+		  <res_memport>0</res_memport>
+		  <res_ialu>0</res_ialu>
+		  <res_fpalu>0</res_fpalu>
+	  </Power>
 </Configuration>

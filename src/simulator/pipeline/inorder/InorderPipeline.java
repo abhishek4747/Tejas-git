@@ -2,6 +2,7 @@ package pipeline.inorder;
 
 import memorysystem.CoreMemorySystem;
 import pipeline.PipelineInterface;
+import power.Counters;
 import generic.Core;
 import generic.EventQueue;
 import generic.GlobalClock;
@@ -24,7 +25,6 @@ public class InorderPipeline implements PipelineInterface{
 	System.out.println(" exec complete "+core.getExecutionEngineIn().getExecutionComplete());
 */
 		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
-			this.core.getExecutionEngineIn().incrementNumCycles(1);
 			writeback();
 		}
 		drainEventQueue();
@@ -33,6 +33,9 @@ public class InorderPipeline implements PipelineInterface{
 			exec();
 			decode();
 			fetch();
+			Counters.updatePowerStats();
+			Counters.clearAccessStats();
+			this.core.getExecutionEngineIn().incrementNumCycles(1);
 		}
 
 		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());

@@ -22,6 +22,7 @@ package memorysystem;
 
 import java.util.*;
 
+import power.Counters;
 import pipeline.inorder.FetchUnitIn;
 import pipeline.inorder.MemUnitIn;
 
@@ -389,7 +390,13 @@ public class Cache extends SimulationElement
 			
 			//Process the access
 			CacheLine cl = this.processRequest(requestType, address);
-
+			if(this.isLastLevel){
+				Counters.dcache2_access++;
+			}
+			else{
+				Counters.dcache_access++; //TODO check for correctness!
+//				Counters.dcache_access[containingMemSys.getCore().getCore_number()]++; //TODO check for correctness!
+			}
 			//IF HIT
 			if (cl != null)
 			{

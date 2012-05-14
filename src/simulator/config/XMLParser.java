@@ -37,6 +37,8 @@ import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
+import power.PowerConfig;
+
 import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
 
@@ -58,6 +60,7 @@ public class XMLParser
 			//System.out.println("Root element : " + doc.getDocumentElement().getNodeName());
 			
 			setSimulationParameters();
+			setPowerParameters();
 			
 			setSystemParameters();
 		} 
@@ -99,7 +102,51 @@ public class XMLParser
 		return ret;
 	}
 	
-	private static void setSimulationParameters()
+	private static void setPowerParameters(){
+		NodeList nodeLst = doc.getElementsByTagName("Power");
+		Node powerNode = nodeLst.item(0);
+		Element powerElmnt = (Element) powerNode;
+		 PowerConfig.total_power=Double.parseDouble(getImmediateString("total_power", powerElmnt));
+		  PowerConfig.total_power_nodcache2=Double.parseDouble(getImmediateString("total_power_nodcache2", powerElmnt));
+		  PowerConfig.ialu_power=Double.parseDouble(getImmediateString("ialu_power", powerElmnt));
+		  PowerConfig.falu_power=Double.parseDouble(getImmediateString("falu_power", powerElmnt));
+		  PowerConfig.bpred_power=Double.parseDouble(getImmediateString("bpred_power", powerElmnt));
+		  PowerConfig.rename_power=Double.parseDouble(getImmediateString("rename_power", powerElmnt));
+		  PowerConfig.rat_power=Double.parseDouble(getImmediateString("rat_power", powerElmnt));
+		  PowerConfig.dcl_power=Double.parseDouble(getImmediateString("dcl_power", powerElmnt));
+		  PowerConfig.window_power=Double.parseDouble(getImmediateString("window_power", powerElmnt));
+		  PowerConfig.lsq_power=Double.parseDouble(getImmediateString("lsq_power", powerElmnt));
+		  PowerConfig.wakeup_power=Double.parseDouble(getImmediateString("wakeup_power", powerElmnt));
+		  PowerConfig.lsq_wakeup_power=Double.parseDouble(getImmediateString("lsq_wakeup_power", powerElmnt));
+		  PowerConfig.rs_power=Double.parseDouble(getImmediateString("rs_power", powerElmnt));
+		  PowerConfig.rs_power_nobit=Double.parseDouble(getImmediateString("rs_power_nobit", powerElmnt));
+		  PowerConfig.lsq_rs_power=Double.parseDouble(getImmediateString("lsq_rs_power", powerElmnt));
+		  PowerConfig.lsq_rs_power_nobit=Double.parseDouble(getImmediateString("lsq_rs_power_nobit", powerElmnt));
+		  PowerConfig.selection_power=Double.parseDouble(getImmediateString("selection_power", powerElmnt));
+		  PowerConfig.regfile_power=Double.parseDouble(getImmediateString("regfile_power", powerElmnt));
+		  PowerConfig.regfile_power_nobit=Double.parseDouble(getImmediateString("regfile_power_nobit", powerElmnt));
+		  PowerConfig.result_power=Double.parseDouble(getImmediateString("result_power", powerElmnt));
+		  PowerConfig.icache_power=Double.parseDouble(getImmediateString("icache_power", powerElmnt));
+		  PowerConfig.dcache_power=Double.parseDouble(getImmediateString("dcache_power", powerElmnt));
+		  PowerConfig.dcache2_power=Double.parseDouble(getImmediateString("dcache2_power", powerElmnt));
+		  PowerConfig.clock_power=Double.parseDouble(getImmediateString("clock_power", powerElmnt));
+
+		  
+		  PowerConfig.itlb=Double.parseDouble(getImmediateString("itlb", powerElmnt));
+		  PowerConfig.dtlb=Double.parseDouble(getImmediateString("dtlb", powerElmnt));
+		  PowerConfig.resultbus=Double.parseDouble(getImmediateString("resultbus", powerElmnt));
+		  PowerConfig.selection=Double.parseDouble(getImmediateString("selection", powerElmnt));
+		  
+		  PowerConfig.ruu_decode_width=Double.parseDouble(getImmediateString("ruu_decode_width", powerElmnt));
+		  PowerConfig.ruu_issue_width=Double.parseDouble(getImmediateString("ruu_issue_width", powerElmnt));
+		  PowerConfig.ruu_commit_width=Double.parseDouble(getImmediateString("ruu_commit_width", powerElmnt));
+		  PowerConfig.res_memport=Double.parseDouble(getImmediateString("res_memport", powerElmnt));
+		  PowerConfig.res_ialu=Double.parseDouble(getImmediateString("res_ialu", powerElmnt));
+		  PowerConfig.res_fpalu=Double.parseDouble(getImmediateString("res_fpalu", powerElmnt));
+	
+	}
+	
+private static void setSimulationParameters()
 	{
 		NodeList nodeLst = doc.getElementsByTagName("Simulation");
 		Node simulationNode = nodeLst.item(0);
