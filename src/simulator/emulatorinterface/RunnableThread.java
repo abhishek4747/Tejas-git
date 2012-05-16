@@ -213,6 +213,7 @@ public class RunnableThread implements Encoding {
 				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
 				pipelineInterfaces[tidEmu].setTimingStatistics();			
 				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
+				pipelineInterfaces[tidEmu].setPerCorePowerStatistics();
 			}
 		}
 		long dataRead = 0;

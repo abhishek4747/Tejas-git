@@ -4,7 +4,7 @@ syntax: regexp
 syntax: regexp
 ^src/emulator/pin/obj-comm$
 syntax: regexp
-^src/emulator/pin/obj-ia32$
+^src/emulator/pin/obj-pin$
 syntax: regexp
 syntax: regexp
 ^src/simulator/config/config\.xml$

@@ -13,4 +13,5 @@ public interface PipelineInterface {
 	public boolean isSleeping();
 	public void setTimingStatistics();
 	public void setPerCoreMemorySystemStatistics();
+	public void setPerCorePowerStatistics();
 }
