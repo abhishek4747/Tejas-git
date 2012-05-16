@@ -219,6 +219,18 @@ private static void setSimulationParameters()
 		
 		SimulationConfig.numInstructionsToBeWritten = Integer.parseInt(getImmediateString("numInstructionsToBeWritten", simulationElmnt));
 		SimulationConfig.InstructionsFilename = getImmediateString("InstructionsFilename", simulationElmnt);
+		
+		if(getImmediateString("subsetSim", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.subsetSimulation = true;
+		}
+		else
+		{
+			SimulationConfig.subsetSimulation = false;
+		}
+
+		SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
 
 	}
 	
@@ -241,16 +253,16 @@ private static void setSimulationParameters()
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		StringTokenizer coreNucaMapping = new StringTokenizer((getImmediateString("NearestBankToCores", systemElmnt)));
-		SystemConfig.coreCacheMapping = new int[SystemConfig.NoOfCores][2];
+//		SystemConfig.coreCacheMapping = new int[numOfCores][2];
 		
-		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
-		{
-			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
-			for(int j=0;tempTok.hasMoreTokens();j++)
-			{
-				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
-			}
-		}
+//		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
+//		{
+//			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
+//			for(int j=0;tempTok.hasMoreTokens();j++)
+//			{
+//				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
+//			}
+//		}
 		/*for(int i=0;i<numOfCores;i++)
 		{
 			for(int j=0;j<2;j++)

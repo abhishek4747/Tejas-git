@@ -40,11 +40,13 @@ public class Newmain {
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
 	public static boolean subsetSimulation = true; //test added
+	public static String executableArguments=" ";
+	public static String executableFile = " ";
 
 	public static void main(String[] arguments) throws Exception 
 	{
-		String executableArguments=" ";
-		String executableFile = " ";
+//		String executableArguments=" ";
+//		String executableFile = " ";
 		
 		start = System.currentTimeMillis();
 		// check command line arguments
