@@ -25,15 +25,15 @@ public class WriteBackUnitIn extends SimulationElement{
 			OperationType opType = memWbLatch.getInstruction().getOperationType(); 
 			
 			if(!(opType==OperationType.branch || opType==OperationType.jump)){
-				Counters.window_access++;
-				Counters.window_preg_access++;
-				Counters.window_wakeup_access++;
-				Counters.resultbus_access++;
+				this.core.powerCounters.incrementWindowAccess(1);
+				this.core.powerCounters.incrementWindowPregAccess(1);
+				this.core.powerCounters.incrementWindowWakeupAccess(1);
+				this.core.powerCounters.incrementResultbusAccess(1);
 			}
 			
 			if(!(opType==OperationType.store || opType == OperationType.branch 
 					|| opType == OperationType.nop || opType == OperationType.jump)){
-				Counters.regfile_access++;
+				this.core.powerCounters.incrementRegfileAccess(1);
 			}
 
 				

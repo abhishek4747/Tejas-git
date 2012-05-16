@@ -104,7 +104,8 @@ public class Statistics {
 	static long mispredictedBranchCount[];
 	static long totalNumMicroOps = 0;
 	static long totalNumInstructions = 0;
-
+	static Counters powerCounters[];
+	
 	public static void printTimingStatistics()
 	{
 		long maxCoreCycles = 0;
@@ -261,254 +262,266 @@ public class Statistics {
 	public static void dumpPowerStats(){
 		
 		try {
-			int i=0;	//TODO When extending to multicore, enclose it in a loop with variable i
-			
+			for (int i =0; i < SystemConfig.NoOfCores; i++)
+			{
 			outputFileWriter.write("Simple conditional clocking \n\n");
 			
-			outputFileWriter.write("Rename Power\t=\t"+Counters.rename_power_cc1+"\n");
-			outputFileWriter.write("Bpred Power\t=\t"+Counters.bpred_power_cc1+"\n");
-			outputFileWriter.write("Window Power\t=\t"+Counters.window_power_cc1+"\n");
-			outputFileWriter.write("LSQ Power\t=\t"+Counters.lsq_power_cc1+"\n");
-			outputFileWriter.write("Reg file Power\t=\t"+Counters.regfile_power_cc1+"\n");
-			outputFileWriter.write("I L1 Cache Power\t=\t"+Counters.icache_power_cc1+"\n");
-			outputFileWriter.write("D L1 Cache Power\t=\t"+Counters.dcache_power_cc1+"\n");
-			outputFileWriter.write("L2 Cache Power\t=\t"+Counters.dcache2_power_cc1+"\n");
-			outputFileWriter.write("ALU power\t=\t"+Counters.alu_power_cc1+"\n");
-			outputFileWriter.write("Result bus power\t=\t"+Counters.resultbus_power_cc1+"\n");
-			outputFileWriter.write("Clock Power\t=\t"+Counters.clock_power_cc1+"\n");
+			outputFileWriter.write("Rename Power\t=\t"+powerCounters[i].getRenamePowerCC1()+"\n");
+			outputFileWriter.write("Bpred Power\t=\t"+powerCounters[i].getBpredPowerCC1()+"\n");
+			outputFileWriter.write("Window Power\t=\t"+powerCounters[i].getWindowPowerCC1()+"\n");
+			outputFileWriter.write("LSQ Power\t=\t"+powerCounters[i].getLsqPowerCC1()+"\n");
+			outputFileWriter.write("Reg file Power\t=\t"+powerCounters[i].getRegfilePower()+"\n");
+			outputFileWriter.write("I L1 Cache Power\t=\t"+powerCounters[i].getIcachePowerCC1()+"\n");
+			outputFileWriter.write("D L1 Cache Power\t=\t"+powerCounters[i].getDcachePowerCC1()+"\n");
+			outputFileWriter.write("L2 Cache Power\t=\t"+powerCounters[i].getDcache2PowerCC1()+"\n");
+			outputFileWriter.write("ALU power\t=\t"+powerCounters[i].getAluPowerCC1()+"\n");
+			outputFileWriter.write("Result bus power\t=\t"+powerCounters[i].getResultbusPowerCC1()+"\n");
+			outputFileWriter.write("Clock Power\t=\t"+powerCounters[i].getClockPowerCC1()+"\n");
 			
-			outputFileWriter.write("Average Rename Power\t=\t"+Counters.rename_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Bpred Power\t=\t"+Counters.bpred_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Window Power\t=\t"+Counters.window_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average LSQ Power\t=\t"+Counters.lsq_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Reg file Power\t=\t"+Counters.regfile_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average I L1 Cache Power\t=\t"+Counters.icache_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average D L1 Cache Power\t=\t"+Counters.dcache_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average L2 Cache Power\t=\t"+Counters.dcache2_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average ALU power\t=\t"+Counters.alu_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Result bus power\t=\t"+Counters.resultbus_power_cc1/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Clock Power\t=\t"+Counters.clock_power_cc1/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Rename Power\t=\t"+powerCounters[i].getRenamePowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Bpred Power\t=\t"+powerCounters[i].getBpredPowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Window Power\t=\t"+powerCounters[i].getWindowPowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg LSQ Power\t=\t"+powerCounters[i].getLsqPowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Reg file Power\t=\t"+powerCounters[i].getRegfilePower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg I L1 Cache Power\t=\t"+powerCounters[i].getIcachePowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg D L1 Cache Power\t=\t"+powerCounters[i].getDcachePowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg L2 Cache Power\t=\t"+powerCounters[i].getDcache2PowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg ALU power\t=\t"+powerCounters[i].getAluPowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Result bus power\t=\t"+powerCounters[i].getResultbusPowerCC1()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Clock Power\t=\t"+powerCounters[i].getClockPowerCC1()/coreCyclesTaken[i]+"\n");
+
 			
-			outputFileWriter.write("Fetch Stage Power\t=\t"+(Counters.icache_power_cc1+Counters.bpred_power_cc1)+"\n");
+			outputFileWriter.write("Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePowerCC1()+powerCounters[i].getBpredPowerCC1())+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Dispatch Stage Power\t=\t"+Counters.rename_power_cc1+"\n");
+			outputFileWriter.write("Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePowerCC1()+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Issue Stage Power\t=\t"+(Counters.resultbus_power_cc1+Counters.alu_power_cc1
-									+Counters.dcache_power_cc1+Counters.dcache2_power_cc1+Counters.lsq_power_cc1
-									+Counters.window_power_cc1)+"\n");
+			outputFileWriter.write("Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPowerCC1()+powerCounters[i].getAluPowerCC1()
+									+powerCounters[i].getDcachePowerCC1()+powerCounters[i].getDcache2PowerCC1()+powerCounters[i].getLsqPowerCC1()
+									+powerCounters[i].getWindowPowerCC1())+"\n");
 			
-			outputFileWriter.write("Average Fetch Stage Power\t=\t"+(Counters.icache_power_cc1+Counters.bpred_power_cc1)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePowerCC1()+powerCounters[i].getBpredPowerCC1())/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Dispatch Stage Power\t=\t"+Counters.rename_power_cc1/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePowerCC1()/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Issue Stage Power\t=\t"+(Counters.resultbus_power_cc1+Counters.alu_power_cc1
-									+Counters.dcache_power_cc1+Counters.dcache2_power_cc1+Counters.lsq_power_cc1
-									+Counters.window_power_cc1)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPowerCC1()+powerCounters[i].getAluPowerCC1()
+									+powerCounters[i].getDcachePowerCC1()+powerCounters[i].getDcache2PowerCC1()+powerCounters[i].getLsqPowerCC1()
+									+powerCounters[i].getWindowPowerCC1())/coreCyclesTaken[i]+"\n");
 			
-			outputFileWriter.write("Total Power per cycle \t=\t"+(Counters.rename_power_cc1 + Counters.bpred_power_cc1
-					+Counters.regfile_power_cc1+Counters.icache_power_cc1
-					+Counters.resultbus_power_cc1+Counters.alu_power_cc1
-					+Counters.dcache_power_cc1+Counters.dcache2_power_cc1
-					+Counters.lsq_power_cc1+Counters.clock_power_cc1
-					+Counters.window_power_cc1)+"\n");
-			outputFileWriter.write("Average Total Power per cycle \t=\t"+(Counters.rename_power_cc1 + Counters.bpred_power_cc1
-					+Counters.regfile_power_cc1+Counters.icache_power_cc1
-					+Counters.resultbus_power_cc1+Counters.alu_power_cc1
-					+Counters.dcache_power_cc1+Counters.dcache2_power_cc1
-					+Counters.lsq_power_cc1+Counters.clock_power_cc1
-					+Counters.window_power_cc1)/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Total Power per instruction \t=\t"+(Counters.rename_power_cc1 + Counters.bpred_power_cc1
-					+Counters.regfile_power_cc1+Counters.icache_power_cc1
-					+Counters.resultbus_power_cc1+Counters.alu_power_cc1
-					+Counters.dcache_power_cc1+Counters.dcache2_power_cc1
-					+Counters.lsq_power_cc1+Counters.clock_power_cc1
-					+Counters.window_power_cc1)/numCoreInstructions[i]+"\n");
+			outputFileWriter.write("Total Power per cycle \t=\t"+(powerCounters[i].getRenamePowerCC1() + powerCounters[i].getBpredPowerCC1()
+					+powerCounters[i].getRegfilePowerCC1()+powerCounters[i].getIcachePowerCC1()
+					+powerCounters[i].getResultbusPowerCC1()+powerCounters[i].getAluPowerCC1()
+					+powerCounters[i].getDcachePowerCC1()+powerCounters[i].getDcache2PowerCC1()
+					+powerCounters[i].getLsqPowerCC1()+powerCounters[i].getClockPowerCC1()
+					+powerCounters[i].getWindowPowerCC1())+"\n");
+			
+			outputFileWriter.write("Avg Total Power per cycle \t=\t"+(powerCounters[i].getRenamePowerCC1() + powerCounters[i].getBpredPowerCC1()
+					+powerCounters[i].getRegfilePowerCC1()+powerCounters[i].getIcachePowerCC1()
+					+powerCounters[i].getResultbusPowerCC1()+powerCounters[i].getAluPowerCC1()
+					+powerCounters[i].getDcachePowerCC1()+powerCounters[i].getDcache2PowerCC1()
+					+powerCounters[i].getLsqPowerCC1()+powerCounters[i].getClockPowerCC1()
+					+powerCounters[i].getWindowPowerCC1())/coreCyclesTaken[i]+"\n");
+
+			outputFileWriter.write("Avg Total Power per instruction \t=\t"+(powerCounters[i].getRenamePowerCC1() + powerCounters[i].getBpredPowerCC1()
+					+powerCounters[i].getRegfilePowerCC1()+powerCounters[i].getIcachePowerCC1()
+					+powerCounters[i].getResultbusPowerCC1()+powerCounters[i].getAluPowerCC1()
+					+powerCounters[i].getDcachePowerCC1()+powerCounters[i].getDcache2PowerCC1()
+					+powerCounters[i].getLsqPowerCC1()+powerCounters[i].getClockPowerCC1()
+					+powerCounters[i].getWindowPowerCC1())/numCoreInstructions[i]+"\n");
 			
 
 			outputFileWriter.write("\n\n Aggresive, ideal conditional clocking \n\n");
 			
-			outputFileWriter.write("Rename Power\t=\t"+Counters.rename_power_cc2+"\n");
-			outputFileWriter.write("Bpred Power\t=\t"+Counters.bpred_power_cc2+"\n");
-			outputFileWriter.write("Window Power\t=\t"+Counters.window_power_cc2+"\n");
-			outputFileWriter.write("LSQ Power\t=\t"+Counters.lsq_power_cc2+"\n");
-			outputFileWriter.write("Reg file Power\t=\t"+Counters.regfile_power_cc2+"\n");
-			outputFileWriter.write("I L1 Cache Power\t=\t"+Counters.icache_power_cc2+"\n");
-			outputFileWriter.write("D L1 Cache Power\t=\t"+Counters.dcache_power_cc2+"\n");
-			outputFileWriter.write("L2 Cache Power\t=\t"+Counters.dcache2_power_cc2+"\n");
-			outputFileWriter.write("ALU power\t=\t"+Counters.alu_power_cc2+"\n");
-			outputFileWriter.write("Result bus power\t=\t"+Counters.resultbus_power_cc2+"\n");
-			outputFileWriter.write("Clock Power\t=\t"+Counters.clock_power_cc2+"\n");
+			outputFileWriter.write("Rename Power\t=\t"+powerCounters[i].getRenamePowerCC2()+"\n");
+			outputFileWriter.write("Bpred Power\t=\t"+powerCounters[i].getBpredPowerCC2()+"\n");
+			outputFileWriter.write("Window Power\t=\t"+powerCounters[i].getWindowPowerCC2()+"\n");
+			outputFileWriter.write("LSQ Power\t=\t"+powerCounters[i].getLsqPowerCC2()+"\n");
+			outputFileWriter.write("Reg file Power\t=\t"+powerCounters[i].getRegfilePower()+"\n");
+			outputFileWriter.write("I L1 Cache Power\t=\t"+powerCounters[i].getIcachePowerCC2()+"\n");
+			outputFileWriter.write("D L1 Cache Power\t=\t"+powerCounters[i].getDcachePowerCC2()+"\n");
+			outputFileWriter.write("L2 Cache Power\t=\t"+powerCounters[i].getDcache2PowerCC2()+"\n");
+			outputFileWriter.write("ALU power\t=\t"+powerCounters[i].getAluPowerCC2()+"\n");
+			outputFileWriter.write("Result bus power\t=\t"+powerCounters[i].getResultbusPowerCC2()+"\n");
+			outputFileWriter.write("Clock Power\t=\t"+powerCounters[i].getClockPowerCC2()+"\n");
 			
-			outputFileWriter.write("Average Rename Power\t=\t"+Counters.rename_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Bpred Power\t=\t"+Counters.bpred_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Window Power\t=\t"+Counters.window_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average LSQ Power\t=\t"+Counters.lsq_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Reg file Power\t=\t"+Counters.regfile_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average I L1 Cache Power\t=\t"+Counters.icache_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average D L1 Cache Power\t=\t"+Counters.dcache_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average L2 Cache Power\t=\t"+Counters.dcache2_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average ALU power\t=\t"+Counters.alu_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Result bus power\t=\t"+Counters.resultbus_power_cc2/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Clock Power\t=\t"+Counters.clock_power_cc2/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Rename Power\t=\t"+powerCounters[i].getRenamePowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Bpred Power\t=\t"+powerCounters[i].getBpredPowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Window Power\t=\t"+powerCounters[i].getWindowPowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg LSQ Power\t=\t"+powerCounters[i].getLsqPowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Reg file Power\t=\t"+powerCounters[i].getRegfilePower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg I L1 Cache Power\t=\t"+powerCounters[i].getIcachePowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg D L1 Cache Power\t=\t"+powerCounters[i].getDcachePowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg L2 Cache Power\t=\t"+powerCounters[i].getDcache2PowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg ALU power\t=\t"+powerCounters[i].getAluPowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Result bus power\t=\t"+powerCounters[i].getResultbusPowerCC2()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Clock Power\t=\t"+powerCounters[i].getClockPowerCC2()/coreCyclesTaken[i]+"\n");
+
 			
-			outputFileWriter.write("Fetch Stage Power\t=\t"+(Counters.icache_power_cc2+Counters.bpred_power_cc2)+"\n");
+			outputFileWriter.write("Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePowerCC2()+powerCounters[i].getBpredPowerCC2())+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Dispatch Stage Power\t=\t"+Counters.rename_power_cc2+"\n");
+			outputFileWriter.write("Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePowerCC2()+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Issue Stage Power\t=\t"+(Counters.resultbus_power_cc2+Counters.alu_power_cc2
-									+Counters.dcache_power_cc2+Counters.dcache2_power_cc2+Counters.lsq_power_cc2
-									+Counters.window_power_cc2)+"\n");
+			outputFileWriter.write("Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPowerCC2()+powerCounters[i].getAluPowerCC2()
+									+powerCounters[i].getDcachePowerCC2()+powerCounters[i].getDcache2PowerCC2()+powerCounters[i].getLsqPowerCC2()
+									+powerCounters[i].getWindowPowerCC2())+"\n");
 			
-			outputFileWriter.write("Average Fetch Stage Power\t=\t"+(Counters.icache_power_cc2+Counters.bpred_power_cc2)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePowerCC2()+powerCounters[i].getBpredPowerCC2())/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Dispatch Stage Power\t=\t"+Counters.rename_power_cc2/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePowerCC2()/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Issue Stage Power\t=\t"+(Counters.resultbus_power_cc2+Counters.alu_power_cc2
-									+Counters.dcache_power_cc2+Counters.dcache2_power_cc2+Counters.lsq_power_cc2
-									+Counters.window_power_cc2)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPowerCC2()+powerCounters[i].getAluPowerCC2()
+									+powerCounters[i].getDcachePowerCC2()+powerCounters[i].getDcache2PowerCC2()+powerCounters[i].getLsqPowerCC2()
+									+powerCounters[i].getWindowPowerCC2())/coreCyclesTaken[i]+"\n");
 			
-			outputFileWriter.write("Total Power per cycle \t=\t"+(Counters.rename_power_cc2 + Counters.bpred_power_cc2
-					+Counters.regfile_power_cc2+Counters.icache_power_cc2
-					+Counters.resultbus_power_cc2+Counters.alu_power_cc2
-					+Counters.dcache_power_cc2+Counters.dcache2_power_cc2
-					+Counters.lsq_power_cc2+Counters.clock_power_cc2
-					+Counters.window_power_cc2)+"\n");
-			outputFileWriter.write("Average Total Power per cycle \t=\t"+(Counters.rename_power_cc2 + Counters.bpred_power_cc2
-					+Counters.regfile_power_cc2+Counters.icache_power_cc2
-					+Counters.resultbus_power_cc2+Counters.alu_power_cc2
-					+Counters.dcache_power_cc2+Counters.dcache2_power_cc2
-					+Counters.lsq_power_cc2+Counters.clock_power_cc2
-					+Counters.window_power_cc2)/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Total Power per instruction \t=\t"+(Counters.rename_power_cc2 + Counters.bpred_power_cc2
-					+Counters.regfile_power_cc2+Counters.icache_power_cc2
-					+Counters.resultbus_power_cc2+Counters.alu_power_cc2
-					+Counters.dcache_power_cc2+Counters.dcache2_power_cc2
-					+Counters.lsq_power_cc2+Counters.clock_power_cc2
-					+Counters.window_power_cc2)/numCoreInstructions[i]+"\n");
+			outputFileWriter.write("Total Power per cycle \t=\t"+(powerCounters[i].getRenamePowerCC2() + powerCounters[i].getBpredPowerCC2()
+					+powerCounters[i].getRegfilePowerCC2()+powerCounters[i].getIcachePowerCC2()
+					+powerCounters[i].getResultbusPowerCC2()+powerCounters[i].getAluPowerCC2()
+					+powerCounters[i].getDcachePowerCC2()+powerCounters[i].getDcache2PowerCC2()
+					+powerCounters[i].getLsqPowerCC2()+powerCounters[i].getClockPowerCC2()
+					+powerCounters[i].getWindowPowerCC2())+"\n");
+			
+			outputFileWriter.write("Avg Total Power per cycle \t=\t"+(powerCounters[i].getRenamePowerCC2() + powerCounters[i].getBpredPowerCC2()
+					+powerCounters[i].getRegfilePowerCC2()+powerCounters[i].getIcachePowerCC2()
+					+powerCounters[i].getResultbusPowerCC2()+powerCounters[i].getAluPowerCC2()
+					+powerCounters[i].getDcachePowerCC2()+powerCounters[i].getDcache2PowerCC2()
+					+powerCounters[i].getLsqPowerCC2()+powerCounters[i].getClockPowerCC2()
+					+powerCounters[i].getWindowPowerCC2())/coreCyclesTaken[i]+"\n");
+
+			outputFileWriter.write("Avg Total Power per instruction \t=\t"+(powerCounters[i].getRenamePowerCC2() + powerCounters[i].getBpredPowerCC2()
+					+powerCounters[i].getRegfilePowerCC2()+powerCounters[i].getIcachePowerCC2()
+					+powerCounters[i].getResultbusPowerCC2()+powerCounters[i].getAluPowerCC2()
+					+powerCounters[i].getDcachePowerCC2()+powerCounters[i].getDcache2PowerCC2()
+					+powerCounters[i].getLsqPowerCC2()+powerCounters[i].getClockPowerCC2()
+					+powerCounters[i].getWindowPowerCC2())/numCoreInstructions[i]+"\n");
 			
 			outputFileWriter.write("\n\n Aggressive non ideal conditional clocking \n\n");
 			
-			outputFileWriter.write("Rename Power\t=\t"+Counters.rename_power_cc3+"\n");
-			outputFileWriter.write("Bpred Power\t=\t"+Counters.bpred_power_cc3+"\n");
-			outputFileWriter.write("Window Power\t=\t"+Counters.window_power_cc3+"\n");
-			outputFileWriter.write("LSQ Power\t=\t"+Counters.lsq_power_cc3+"\n");
-			outputFileWriter.write("Reg file Power\t=\t"+Counters.regfile_power_cc3+"\n");
-			outputFileWriter.write("I L1 Cache Power\t=\t"+Counters.icache_power_cc3+"\n");
-			outputFileWriter.write("D L1 Cache Power\t=\t"+Counters.dcache_power_cc3+"\n");
-			outputFileWriter.write("L2 Cache Power\t=\t"+Counters.dcache2_power_cc3+"\n");
-			outputFileWriter.write("ALU power\t=\t"+Counters.alu_power_cc3+"\n");
-			outputFileWriter.write("Result bus power\t=\t"+Counters.resultbus_power_cc3+"\n");
-			outputFileWriter.write("Clock Power\t=\t"+Counters.clock_power_cc3+"\n");
+			outputFileWriter.write("Rename Power\t=\t"+powerCounters[i].getRenamePowerCC3()+"\n");
+			outputFileWriter.write("Bpred Power\t=\t"+powerCounters[i].getBpredPowerCC3()+"\n");
+			outputFileWriter.write("Window Power\t=\t"+powerCounters[i].getWindowPowerCC3()+"\n");
+			outputFileWriter.write("LSQ Power\t=\t"+powerCounters[i].getLsqPowerCC3()+"\n");
+			outputFileWriter.write("Reg file Power\t=\t"+powerCounters[i].getRegfilePower()+"\n");
+			outputFileWriter.write("I L1 Cache Power\t=\t"+powerCounters[i].getIcachePowerCC3()+"\n");
+			outputFileWriter.write("D L1 Cache Power\t=\t"+powerCounters[i].getDcachePowerCC3()+"\n");
+			outputFileWriter.write("L2 Cache Power\t=\t"+powerCounters[i].getDcache2PowerCC3()+"\n");
+			outputFileWriter.write("ALU power\t=\t"+powerCounters[i].getAluPowerCC3()+"\n");
+			outputFileWriter.write("Result bus power\t=\t"+powerCounters[i].getResultbusPowerCC3()+"\n");
+			outputFileWriter.write("Clock Power\t=\t"+powerCounters[i].getClockPowerCC3()+"\n");
 			
-			outputFileWriter.write("Average Rename Power\t=\t"+Counters.rename_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Bpred Power\t=\t"+Counters.bpred_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Window Power\t=\t"+Counters.window_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average LSQ Power\t=\t"+Counters.lsq_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Reg file Power\t=\t"+Counters.regfile_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average I L1 Cache Power\t=\t"+Counters.icache_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average D L1 Cache Power\t=\t"+Counters.dcache_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average L2 Cache Power\t=\t"+Counters.dcache2_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average ALU power\t=\t"+Counters.alu_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Result bus power\t=\t"+Counters.resultbus_power_cc3/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Clock Power\t=\t"+Counters.clock_power_cc3/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Rename Power\t=\t"+powerCounters[i].getRenamePowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Bpred Power\t=\t"+powerCounters[i].getBpredPowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Window Power\t=\t"+powerCounters[i].getWindowPowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg LSQ Power\t=\t"+powerCounters[i].getLsqPowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Reg file Power\t=\t"+powerCounters[i].getRegfilePower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg I L1 Cache Power\t=\t"+powerCounters[i].getIcachePowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg D L1 Cache Power\t=\t"+powerCounters[i].getDcachePowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg L2 Cache Power\t=\t"+powerCounters[i].getDcache2PowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg ALU power\t=\t"+powerCounters[i].getAluPowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Result bus power\t=\t"+powerCounters[i].getResultbusPowerCC3()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Clock Power\t=\t"+powerCounters[i].getClockPowerCC3()/coreCyclesTaken[i]+"\n");
+
 			
-			outputFileWriter.write("Fetch Stage Power\t=\t"+(Counters.icache_power_cc3+Counters.bpred_power_cc3)+"\n");
+			outputFileWriter.write("Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePowerCC3()+powerCounters[i].getBpredPowerCC3())+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Dispatch Stage Power\t=\t"+Counters.rename_power_cc3+"\n");
+			outputFileWriter.write("Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePowerCC3()+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Issue Stage Power\t=\t"+(Counters.resultbus_power_cc3+Counters.alu_power_cc3
-									+Counters.dcache_power_cc3+Counters.dcache2_power_cc3+Counters.lsq_power_cc3
-									+Counters.window_power_cc3)+"\n");
+			outputFileWriter.write("Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPowerCC3()+powerCounters[i].getAluPowerCC3()
+									+powerCounters[i].getDcachePowerCC3()+powerCounters[i].getDcache2PowerCC3()+powerCounters[i].getLsqPowerCC3()
+									+powerCounters[i].getWindowPowerCC3())+"\n");
 			
-			outputFileWriter.write("Average Fetch Stage Power\t=\t"+(Counters.icache_power_cc3+Counters.bpred_power_cc3)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePowerCC3()+powerCounters[i].getBpredPowerCC3())/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Dispatch Stage Power\t=\t"+Counters.rename_power_cc3/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePowerCC3()/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Issue Stage Power\t=\t"+(Counters.resultbus_power_cc3+Counters.alu_power_cc3
-									+Counters.dcache_power_cc3+Counters.dcache2_power_cc3+Counters.lsq_power_cc3
-									+Counters.window_power_cc3)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPowerCC3()+powerCounters[i].getAluPowerCC3()
+									+powerCounters[i].getDcachePowerCC3()+powerCounters[i].getDcache2PowerCC3()+powerCounters[i].getLsqPowerCC3()
+									+powerCounters[i].getWindowPowerCC3())/coreCyclesTaken[i]+"\n");
 			
-			outputFileWriter.write("Total Power per cycle \t=\t"+(Counters.rename_power_cc3 + Counters.bpred_power_cc3
-					+Counters.regfile_power_cc3+Counters.icache_power_cc3
-					+Counters.resultbus_power_cc3+Counters.alu_power_cc3
-					+Counters.dcache_power_cc3+Counters.dcache2_power_cc3
-					+Counters.lsq_power_cc3+Counters.clock_power_cc3
-					+Counters.window_power_cc3)+"\n");
-			outputFileWriter.write("Average Total Power per cycle \t=\t"+(Counters.rename_power_cc3 + Counters.bpred_power_cc3
-					+Counters.regfile_power_cc3+Counters.icache_power_cc3
-					+Counters.resultbus_power_cc3+Counters.alu_power_cc3
-					+Counters.dcache_power_cc3+Counters.dcache2_power_cc3
-					+Counters.lsq_power_cc3+Counters.clock_power_cc3
-					+Counters.window_power_cc3)/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Total Power per instruction \t=\t"+(Counters.rename_power_cc3 + Counters.bpred_power_cc3
-					+Counters.regfile_power_cc3+Counters.icache_power_cc3
-					+Counters.resultbus_power_cc3+Counters.alu_power_cc3
-					+Counters.dcache_power_cc3+Counters.dcache2_power_cc3
-					+Counters.lsq_power_cc3+Counters.clock_power_cc3
-					+Counters.window_power_cc3)/numCoreInstructions[i]+"\n");
+			outputFileWriter.write("Total Power per cycle \t=\t"+(powerCounters[i].getRenamePowerCC3() + powerCounters[i].getBpredPowerCC3()
+					+powerCounters[i].getRegfilePowerCC3()+powerCounters[i].getIcachePowerCC3()
+					+powerCounters[i].getResultbusPowerCC3()+powerCounters[i].getAluPowerCC3()
+					+powerCounters[i].getDcachePowerCC3()+powerCounters[i].getDcache2PowerCC3()
+					+powerCounters[i].getLsqPowerCC3()+powerCounters[i].getClockPowerCC3()
+					+powerCounters[i].getWindowPowerCC3())+"\n");
+			
+			outputFileWriter.write("Avg Total Power per cycle \t=\t"+(powerCounters[i].getRenamePowerCC3() + powerCounters[i].getBpredPowerCC3()
+					+powerCounters[i].getRegfilePowerCC3()+powerCounters[i].getIcachePowerCC3()
+					+powerCounters[i].getResultbusPowerCC3()+powerCounters[i].getAluPowerCC3()
+					+powerCounters[i].getDcachePowerCC3()+powerCounters[i].getDcache2PowerCC3()
+					+powerCounters[i].getLsqPowerCC3()+powerCounters[i].getClockPowerCC3()
+					+powerCounters[i].getWindowPowerCC3())/coreCyclesTaken[i]+"\n");
+
+			outputFileWriter.write("Avg Total Power per instruction \t=\t"+(powerCounters[i].getRenamePowerCC3() + powerCounters[i].getBpredPowerCC3()
+					+powerCounters[i].getRegfilePowerCC3()+powerCounters[i].getIcachePowerCC3()
+					+powerCounters[i].getResultbusPowerCC3()+powerCounters[i].getAluPowerCC3()
+					+powerCounters[i].getDcachePowerCC3()+powerCounters[i].getDcache2PowerCC3()
+					+powerCounters[i].getLsqPowerCC3()+powerCounters[i].getClockPowerCC3()
+					+powerCounters[i].getWindowPowerCC3())/numCoreInstructions[i]+"\n");
 			
 
 			outputFileWriter.write("\n\n No conditional clocking \n\n");
 			
-			outputFileWriter.write("Rename Power\t=\t"+Counters.rename_power+"\n");
-			outputFileWriter.write("Bpred Power\t=\t"+Counters.bpred_power+"\n");
-			outputFileWriter.write("Window Power\t=\t"+Counters.window_power+"\n");
-			outputFileWriter.write("LSQ Power\t=\t"+Counters.lsq_power+"\n");
-			outputFileWriter.write("Reg file Power\t=\t"+Counters.regfile_power+"\n");
-			outputFileWriter.write("I L1 Cache Power\t=\t"+Counters.icache_power+"\n");
-			outputFileWriter.write("D L1 Cache Power\t=\t"+Counters.dcache_power+"\n");
-			outputFileWriter.write("L2 Cache Power\t=\t"+Counters.dcache2_power+"\n");
-			outputFileWriter.write("ALU power\t=\t"+Counters.alu_power+"\n");
-			outputFileWriter.write("Result bus power\t=\t"+Counters.resultbus_power+"\n");
-			outputFileWriter.write("Clock Power\t=\t"+Counters.clock_power+"\n");
+			outputFileWriter.write("Rename Power\t=\t"+powerCounters[i].getRenamePower()+"\n");
+			outputFileWriter.write("Bpred Power\t=\t"+powerCounters[i].getBpredPower()+"\n");
+			outputFileWriter.write("Window Power\t=\t"+powerCounters[i].getWindowPower()+"\n");
+			outputFileWriter.write("LSQ Power\t=\t"+powerCounters[i].getLsqPower()+"\n");
+			outputFileWriter.write("Reg file Power\t=\t"+powerCounters[i].getRegfilePower()+"\n");
+			outputFileWriter.write("I L1 Cache Power\t=\t"+powerCounters[i].getIcachePower()+"\n");
+			outputFileWriter.write("D L1 Cache Power\t=\t"+powerCounters[i].getDcachePower()+"\n");
+			outputFileWriter.write("L2 Cache Power\t=\t"+powerCounters[i].getDcache2Power()+"\n");
+			outputFileWriter.write("ALU power\t=\t"+powerCounters[i].getAluPower()+"\n");
+			outputFileWriter.write("Result bus power\t=\t"+powerCounters[i].getResultbusPower()+"\n");
+			outputFileWriter.write("Clock Power\t=\t"+powerCounters[i].getClockPower()+"\n");
 			
-			outputFileWriter.write("Average Rename Power\t=\t"+Counters.rename_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Bpred Power\t=\t"+Counters.bpred_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Window Power\t=\t"+Counters.window_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average LSQ Power\t=\t"+Counters.lsq_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Reg file Power\t=\t"+Counters.regfile_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average I L1 Cache Power\t=\t"+Counters.icache_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average D L1 Cache Power\t=\t"+Counters.dcache_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average L2 Cache Power\t=\t"+Counters.dcache2_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average ALU power\t=\t"+Counters.alu_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Result bus power\t=\t"+Counters.resultbus_power/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Clock Power\t=\t"+Counters.clock_power/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Rename Power\t=\t"+powerCounters[i].getRenamePower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Bpred Power\t=\t"+powerCounters[i].getBpredPower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Window Power\t=\t"+powerCounters[i].getWindowPower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg LSQ Power\t=\t"+powerCounters[i].getLsqPower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Reg file Power\t=\t"+powerCounters[i].getRegfilePower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg I L1 Cache Power\t=\t"+powerCounters[i].getIcachePower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg D L1 Cache Power\t=\t"+powerCounters[i].getDcachePower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg L2 Cache Power\t=\t"+powerCounters[i].getDcache2Power()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg ALU power\t=\t"+powerCounters[i].getAluPower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Result bus power\t=\t"+powerCounters[i].getResultbusPower()/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Clock Power\t=\t"+powerCounters[i].getClockPower()/coreCyclesTaken[i]+"\n");
+
 			
-			outputFileWriter.write("Fetch Stage Power\t=\t"+(Counters.icache_power+Counters.bpred_power)+"\n");
+			outputFileWriter.write("Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePower()+powerCounters[i].getBpredPower())+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Dispatch Stage Power\t=\t"+Counters.rename_power+"\n");
+			outputFileWriter.write("Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePower()+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Issue Stage Power\t=\t"+(Counters.resultbus_power+Counters.alu_power
-									+Counters.dcache_power+Counters.dcache2_power+Counters.lsq_power
-									+Counters.window_power)+"\n");
+			outputFileWriter.write("Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPower()+powerCounters[i].getAluPower()
+									+powerCounters[i].getDcachePower()+powerCounters[i].getDcache2Power()+powerCounters[i].getLsqPower()
+									+powerCounters[i].getWindowPower())+"\n");
 			
-			outputFileWriter.write("Average Fetch Stage Power\t=\t"+(Counters.icache_power+Counters.bpred_power)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Fetch Stage Power\t=\t"+(powerCounters[i].getIcachePower()+powerCounters[i].getBpredPower())/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Dispatch Stage Power\t=\t"+Counters.rename_power/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Dispatch Stage Power\t=\t"+powerCounters[i].getRenamePower()/coreCyclesTaken[i]+"\n");
 			//TODO only for out of order ?
-			outputFileWriter.write("Average Issue Stage Power\t=\t"+(Counters.resultbus_power+Counters.alu_power
-									+Counters.dcache_power+Counters.dcache2_power+Counters.lsq_power
-									+Counters.window_power)/coreCyclesTaken[i]+"\n");
+			outputFileWriter.write("Avg Issue Stage Power\t=\t"+(powerCounters[i].getResultbusPower()+powerCounters[i].getAluPower()
+									+powerCounters[i].getDcachePower()+powerCounters[i].getDcache2Power()+powerCounters[i].getLsqPower()
+									+powerCounters[i].getWindowPower())/coreCyclesTaken[i]+"\n");
 			
-			outputFileWriter.write("Total Power per cycle \t=\t"+(Counters.rename_power + Counters.bpred_power
-					+Counters.regfile_power+Counters.icache_power
-					+Counters.resultbus_power+Counters.alu_power
-					+Counters.dcache_power+Counters.dcache2_power
-					+Counters.lsq_power+Counters.clock_power
-					+Counters.window_power)+"\n");
-			outputFileWriter.write("Average Total Power per cycle \t=\t"+(Counters.rename_power + Counters.bpred_power
-					+Counters.regfile_power+Counters.icache_power
-					+Counters.resultbus_power+Counters.alu_power
-					+Counters.dcache_power+Counters.dcache2_power
-					+Counters.lsq_power+Counters.clock_power
-					+Counters.window_power)/coreCyclesTaken[i]+"\n");
-			outputFileWriter.write("Average Total Power per instruction \t=\t"+(Counters.rename_power + Counters.bpred_power
-					+Counters.regfile_power+Counters.icache_power
-					+Counters.resultbus_power+Counters.alu_power
-					+Counters.dcache_power+Counters.dcache2_power
-					+Counters.lsq_power+Counters.clock_power
-					+Counters.window_power)/numCoreInstructions[i]+"\n");
+			outputFileWriter.write("Total Power per cycle \t=\t"+(powerCounters[i].getRenamePower() + powerCounters[i].getBpredPower()
+					+powerCounters[i].getRegfilePower()+powerCounters[i].getIcachePower()
+					+powerCounters[i].getResultbusPower()+powerCounters[i].getAluPower()
+					+powerCounters[i].getDcachePower()+powerCounters[i].getDcache2Power()
+					+powerCounters[i].getLsqPower()+powerCounters[i].getClockPower()
+					+powerCounters[i].getWindowPower())+"\n");
 			
+			outputFileWriter.write("Avg Total Power per cycle \t=\t"+(powerCounters[i].getRenamePower() + powerCounters[i].getBpredPower()
+					+powerCounters[i].getRegfilePower()+powerCounters[i].getIcachePower()
+					+powerCounters[i].getResultbusPower()+powerCounters[i].getAluPower()
+					+powerCounters[i].getDcachePower()+powerCounters[i].getDcache2Power()
+					+powerCounters[i].getLsqPower()+powerCounters[i].getClockPower()
+					+powerCounters[i].getWindowPower())/coreCyclesTaken[i]+"\n");
+
+			outputFileWriter.write("Avg Total Power per instruction \t=\t"+(powerCounters[i].getRenamePower() + powerCounters[i].getBpredPower()
+					+powerCounters[i].getRegfilePower()+powerCounters[i].getIcachePower()
+					+powerCounters[i].getResultbusPower()+powerCounters[i].getAluPower()
+					+powerCounters[i].getDcachePower()+powerCounters[i].getDcache2Power()
+					+powerCounters[i].getLsqPower()+powerCounters[i].getClockPower()
+					+powerCounters[i].getWindowPower())/numCoreInstructions[i]+"\n");
+			}
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -578,6 +591,8 @@ public class Statistics {
 		noOfIRequests = new long[SystemConfig.NoOfCores];
 		noOfIHits = new long[SystemConfig.NoOfCores];
 		noOfIMisses = new long[SystemConfig.NoOfCores];
+		
+		powerCounters = new Counters[SystemConfig.NoOfCores];
 		
 	}	
 	
@@ -761,5 +776,7 @@ public class Statistics {
 	public static void setExecutable(String executableFile) {
 		Statistics.benchmark = executableFile;
 	}
-	
+	public static void setPerCorePowerStatistics(Counters powerCount, int core) {
+		Statistics.powerCounters[core]=powerCount;
+	}	
 }

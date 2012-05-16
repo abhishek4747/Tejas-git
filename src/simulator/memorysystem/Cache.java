@@ -391,10 +391,11 @@ public class Cache extends SimulationElement
 			//Process the access
 			CacheLine cl = this.processRequest(requestType, address);
 			if(this.isLastLevel){
-				Counters.dcache2_access++;
+				this.containingMemSys.getCore().powerCounters.incrementDcache2Access(1);
 			}
 			else{
-				Counters.dcache_access++; //TODO check for correctness!
+				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
+; //TODO check for correctness!
 //				Counters.dcache_access[containingMemSys.getCore().getCore_number()]++; //TODO check for correctness!
 			}
 			//IF HIT

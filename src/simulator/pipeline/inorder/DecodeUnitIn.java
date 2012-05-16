@@ -44,30 +44,29 @@ public class DecodeUnitIn extends SimulationElement{
 	//			else{
 
    				OperationType opType = ins.getOperationType();
-				Counters.window_selection_access++;
+   				this.core.powerCounters.incrementWindowSelectionAccess(1);
 				if(opType==OperationType.load || opType==OperationType.store){
 //System.out.println("load instruction");
-					Counters.lsq_wakeup_access++;		//FIXME lsq stats for inorder ?!
-					Counters.lsq_access++;
-					Counters.lsq_store_data_access++;
-					Counters.lsq_preg_access++;
+					this.core.powerCounters.incrementLsqWakeupAccess(1);	//FIXME lsq stats for inorder ?!
+					this.core.powerCounters.incrementLsqAccess(1);
+					this.core.powerCounters.incrementLsqStoreDataAccess(1);
+					this.core.powerCounters.incrementLsqPregAccess(1);
 				}
 				else if(opType==OperationType.floatALU || opType==OperationType.floatDiv || opType==OperationType.floatMul){
 //System.out.println("float alu instruction");
-					Counters.alu_access++;
-					Counters.falu_access++;
+					this.core.powerCounters.incrementAluAccess(1);
+					this.core.powerCounters.incrementFaluAccess(1);
 				}
 				else if(opType==OperationType.integerALU || opType==OperationType.integerDiv || opType==OperationType.integerMul){
 //System.out.println("int alu instruction");
-					Counters.alu_access++;
-					Counters.ialu_access++;
+					this.core.powerCounters.incrementAluAccess(1);
+					this.core.powerCounters.incrementIaluAccess(1);
 				}
 				
-			  Counters.window_access++;
-			  Counters.window_preg_access++;
-			  Counters.window_preg_access++;
+				this.core.powerCounters.incrementWindowAccess(1);
+				this.core.powerCounters.incrementWindowPregAccess(1);
 			  
-			  Counters.regfile_access++;
+				this.core.powerCounters.incrementRegfileAccess(1);
 			  
 					idExLatch.setInstruction(ins);
 					idExLatch.setIn1(ins.getSourceOperand1());
@@ -78,7 +77,7 @@ public class DecodeUnitIn extends SimulationElement{
 					ifIdLatch.clear();
 				
 					if(ins.getOperationType()==OperationType.branch){ 
-								Counters.bpred_access++;
+								this.core.powerCounters.incrementBpredAccess(1);
 
 								core.getBranchPredictor().Train(
 								ins.getProgramCounter(),

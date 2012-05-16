@@ -145,6 +145,9 @@ public class ExecutionEngineIn {
 		Statistics.setNoOfIMisses(core.getExecutionEngineIn().coreMemorySystem.getiCache().misses, core.getCore_number());
 	}
 
+	public void setPerCorePowerStatistics(){
+		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
+	}
 	private long getNoOfSt() {
 		// TODO Auto-generated method stub
 		return noOfSt;

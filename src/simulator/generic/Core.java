@@ -16,6 +16,7 @@ import pipeline.outoforder.ExecutionEngine;
 import pipeline.outoforder.PipelineInterface;
 import pipeline.statistical.StatisticalPipeline;
 import pipeline.statistical.StatisticalPipelineInterface;
+import power.Counters;
 import config.CoreConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
@@ -69,6 +70,7 @@ public class Core extends SimulationElement{
 	
 	private pipeline.PipelineInterface pipelineInterface;
 	public int numReturns;
+	public Counters powerCounters;
 
 
 //	private InorderPipeline inorderPipeline;
@@ -107,6 +109,7 @@ public class Core extends SimulationElement{
 			this.pipelineInterface = new InorderPipeline(this, eventQueue);
 		else
 			this.pipelineInterface = new PipelineInterface(this, eventQueue);
+		this.powerCounters = new Counters();
 	}
 
 	private void initializeCoreParameters(CoreConfig coreConfig)

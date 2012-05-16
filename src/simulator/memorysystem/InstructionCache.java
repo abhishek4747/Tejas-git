@@ -43,7 +43,7 @@ public class InstructionCache extends Cache
 		CacheLine cl = this.processRequest(requestType, address);
 
 //		Counters.icache_access[containingMemSys.getCore().getCore_number()]++; //TODO check for correctness!
-		Counters.icache_access++; //TODO check for correctness!
+		this.containingMemSys.getCore().powerCounters.incrementIcacheAccess(1); //TODO check for correctness!
 		//IF HIT
 		if (cl != null)
 		{

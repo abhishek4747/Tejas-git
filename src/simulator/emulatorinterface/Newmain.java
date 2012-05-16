@@ -120,7 +120,10 @@ public class Newmain {
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
 		
 		//Initialize counters
-		Counters counters = new Counters();
+//		Counters powerCounters[] = new Counters[SystemConfig.NoOfCores];
+//		for(int i=0;i<SystemConfig.NoOfCores;i++){
+//			powerCounters[i] = new Counters();
+//		}
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		//FIXME A single java thread can have multiple cores
 		
