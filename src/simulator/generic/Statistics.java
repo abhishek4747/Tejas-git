@@ -593,6 +593,9 @@ public class Statistics {
 		noOfIMisses = new long[SystemConfig.NoOfCores];
 		
 		powerCounters = new Counters[SystemConfig.NoOfCores];
+		for(int i=0;i<SystemConfig.NoOfCores;i++){
+			powerCounters[i] = new Counters();
+		}
 		
 	}	
 	
@@ -776,7 +779,9 @@ public class Statistics {
 	public static void setExecutable(String executableFile) {
 		Statistics.benchmark = executableFile;
 	}
+	
 	public static void setPerCorePowerStatistics(Counters powerCount, int core) {
+		System.out.println("Setting for coreid "+core + " "+SystemConfig.NoOfCores);
 		Statistics.powerCounters[core]=powerCount;
 	}	
 }

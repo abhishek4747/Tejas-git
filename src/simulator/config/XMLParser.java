@@ -106,30 +106,30 @@ public class XMLParser
 		NodeList nodeLst = doc.getElementsByTagName("Power");
 		Node powerNode = nodeLst.item(0);
 		Element powerElmnt = (Element) powerNode;
-		 PowerConfig.total_power=Double.parseDouble(getImmediateString("total_power", powerElmnt));
-		  PowerConfig.total_power_nodcache2=Double.parseDouble(getImmediateString("total_power_nodcache2", powerElmnt));
-		  PowerConfig.ialu_power=Double.parseDouble(getImmediateString("ialu_power", powerElmnt));
-		  PowerConfig.falu_power=Double.parseDouble(getImmediateString("falu_power", powerElmnt));
-		  PowerConfig.bpred_power=Double.parseDouble(getImmediateString("bpred_power", powerElmnt));
-		  PowerConfig.rename_power=Double.parseDouble(getImmediateString("rename_power", powerElmnt));
-		  PowerConfig.rat_power=Double.parseDouble(getImmediateString("rat_power", powerElmnt));
-		  PowerConfig.dcl_power=Double.parseDouble(getImmediateString("dcl_power", powerElmnt));
-		  PowerConfig.window_power=Double.parseDouble(getImmediateString("window_power", powerElmnt));
-		  PowerConfig.lsq_power=Double.parseDouble(getImmediateString("lsq_power", powerElmnt));
-		  PowerConfig.wakeup_power=Double.parseDouble(getImmediateString("wakeup_power", powerElmnt));
-		  PowerConfig.lsq_wakeup_power=Double.parseDouble(getImmediateString("lsq_wakeup_power", powerElmnt));
-		  PowerConfig.rs_power=Double.parseDouble(getImmediateString("rs_power", powerElmnt));
-		  PowerConfig.rs_power_nobit=Double.parseDouble(getImmediateString("rs_power_nobit", powerElmnt));
-		  PowerConfig.lsq_rs_power=Double.parseDouble(getImmediateString("lsq_rs_power", powerElmnt));
-		  PowerConfig.lsq_rs_power_nobit=Double.parseDouble(getImmediateString("lsq_rs_power_nobit", powerElmnt));
-		  PowerConfig.selection_power=Double.parseDouble(getImmediateString("selection_power", powerElmnt));
-		  PowerConfig.regfile_power=Double.parseDouble(getImmediateString("regfile_power", powerElmnt));
-		  PowerConfig.regfile_power_nobit=Double.parseDouble(getImmediateString("regfile_power_nobit", powerElmnt));
-		  PowerConfig.result_power=Double.parseDouble(getImmediateString("result_power", powerElmnt));
-		  PowerConfig.icache_power=Double.parseDouble(getImmediateString("icache_power", powerElmnt));
-		  PowerConfig.dcache_power=Double.parseDouble(getImmediateString("dcache_power", powerElmnt));
-		  PowerConfig.dcache2_power=Double.parseDouble(getImmediateString("dcache2_power", powerElmnt));
-		  PowerConfig.clock_power=Double.parseDouble(getImmediateString("clock_power", powerElmnt));
+		 PowerConfig.totalPower=Double.parseDouble(getImmediateString("total_power", powerElmnt));
+		  PowerConfig.totalPowerNodcache2=Double.parseDouble(getImmediateString("total_power_nodcache2", powerElmnt));
+		  PowerConfig.ialuPower=Double.parseDouble(getImmediateString("ialu_power", powerElmnt));
+		  PowerConfig.faluPower=Double.parseDouble(getImmediateString("falu_power", powerElmnt));
+		  PowerConfig.bpredPower=Double.parseDouble(getImmediateString("bpred_power", powerElmnt));
+		  PowerConfig.renamePower=Double.parseDouble(getImmediateString("rename_power", powerElmnt));
+		  PowerConfig.ratPower=Double.parseDouble(getImmediateString("rat_power", powerElmnt));
+		  PowerConfig.dclPower=Double.parseDouble(getImmediateString("dcl_power", powerElmnt));
+		  PowerConfig.windowPower=Double.parseDouble(getImmediateString("window_power", powerElmnt));
+		  PowerConfig.lsqPower=Double.parseDouble(getImmediateString("lsq_power", powerElmnt));
+		  PowerConfig.wakeupPower=Double.parseDouble(getImmediateString("wakeup_power", powerElmnt));
+		  PowerConfig.lsqWakeupPower=Double.parseDouble(getImmediateString("lsq_wakeup_power", powerElmnt));
+		  PowerConfig.rsPower=Double.parseDouble(getImmediateString("rs_power", powerElmnt));
+		  PowerConfig.rsPowerNobit=Double.parseDouble(getImmediateString("rs_power_nobit", powerElmnt));
+		  PowerConfig.lsqRsPower=Double.parseDouble(getImmediateString("lsq_rs_power", powerElmnt));
+		  PowerConfig.lsqRsPowerNobit=Double.parseDouble(getImmediateString("lsq_rs_power_nobit", powerElmnt));
+		  PowerConfig.selectionPower=Double.parseDouble(getImmediateString("selection_power", powerElmnt));
+		  PowerConfig.regfilePower=Double.parseDouble(getImmediateString("regfile_power", powerElmnt));
+		  PowerConfig.regfilePowerNobit=Double.parseDouble(getImmediateString("regfile_power_nobit", powerElmnt));
+		  PowerConfig.resultPower=Double.parseDouble(getImmediateString("result_power", powerElmnt));
+		  PowerConfig.icachePower=Double.parseDouble(getImmediateString("icache_power", powerElmnt));
+		  PowerConfig.dcachePower=Double.parseDouble(getImmediateString("dcache_power", powerElmnt));
+		  PowerConfig.dcache2Power=Double.parseDouble(getImmediateString("dcache2_power", powerElmnt));
+		  PowerConfig.clockPower=Double.parseDouble(getImmediateString("clock_power", powerElmnt));
 
 		  
 		  PowerConfig.itlb=Double.parseDouble(getImmediateString("itlb", powerElmnt));
@@ -137,12 +137,12 @@ public class XMLParser
 		  PowerConfig.resultbus=Double.parseDouble(getImmediateString("resultbus", powerElmnt));
 		  PowerConfig.selection=Double.parseDouble(getImmediateString("selection", powerElmnt));
 		  
-		  PowerConfig.ruu_decode_width=Double.parseDouble(getImmediateString("ruu_decode_width", powerElmnt));
-		  PowerConfig.ruu_issue_width=Double.parseDouble(getImmediateString("ruu_issue_width", powerElmnt));
-		  PowerConfig.ruu_commit_width=Double.parseDouble(getImmediateString("ruu_commit_width", powerElmnt));
-		  PowerConfig.res_memport=Double.parseDouble(getImmediateString("res_memport", powerElmnt));
-		  PowerConfig.res_ialu=Double.parseDouble(getImmediateString("res_ialu", powerElmnt));
-		  PowerConfig.res_fpalu=Double.parseDouble(getImmediateString("res_fpalu", powerElmnt));
+		  PowerConfig.ruuDecodeWidth=Double.parseDouble(getImmediateString("ruu_decode_width", powerElmnt));
+		  PowerConfig.ruuIssueWidth=Double.parseDouble(getImmediateString("ruu_issue_width", powerElmnt));
+		  PowerConfig.ruuCommitWidth=Double.parseDouble(getImmediateString("ruu_commit_width", powerElmnt));
+		  PowerConfig.resMemport=Double.parseDouble(getImmediateString("res_memport", powerElmnt));
+		  PowerConfig.resIalu=Double.parseDouble(getImmediateString("res_ialu", powerElmnt));
+		  PowerConfig.resFpalu=Double.parseDouble(getImmediateString("res_fpalu", powerElmnt));
 	
 	}
 	
