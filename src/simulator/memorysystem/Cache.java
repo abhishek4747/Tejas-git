@@ -391,7 +391,9 @@ public class Cache extends SimulationElement
 			//Process the access
 			CacheLine cl = this.processRequest(requestType, address);
 			if(this.isLastLevel){
-				this.containingMemSys.getCore().powerCounters.incrementDcache2Access(1);
+//TODO where to add these l2 counters ??, For now made it static 
+//				this.containingMemSys.getCore().powerCounters.incrementDcache2Access(1);
+				Counters.incrementDcache2Access(1);
 			}
 			else{
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);

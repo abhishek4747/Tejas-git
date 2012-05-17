@@ -33,8 +33,10 @@ public class InorderPipeline implements PipelineInterface{
 			exec();
 			decode();
 			fetch();
-			this.core.powerCounters.updatePowerStats();
-			this.core.powerCounters.clearAccessStats();
+//			if((currentTime % (coreStepSize*1000))==0){
+				this.core.powerCounters.updatePowerStats();
+				this.core.powerCounters.clearAccessStats();
+//			}
 			this.core.getExecutionEngineIn().incrementNumCycles(1);
 		}
 

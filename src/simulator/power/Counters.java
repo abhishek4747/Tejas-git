@@ -16,7 +16,7 @@ public class Counters {
 	long icacheAccess=0;
 	long dcacheAccess=0;
 
-	long dcache2Access=0;
+	static long dcache2Access=0;
 	long aluAccess=0;
 	long ialuAccess=0;
 	long faluAccess=0;
@@ -656,8 +656,8 @@ public class Counters {
 		return dcache2Access;
 	}
 
-	public void incrementDcache2Access(long dcache2Access) {
-		this.dcache2Access += dcache2Access;
+	public static void incrementDcache2Access(long dcache2access) {
+		dcache2Access += dcache2access;
 	}
 
 	public long getAluAccess() {

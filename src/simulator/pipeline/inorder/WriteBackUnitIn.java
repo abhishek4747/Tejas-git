@@ -39,8 +39,11 @@ public class WriteBackUnitIn extends SimulationElement{
 				
 				
 //System.out.println("wb "+memWbLatch.getInstruction().getSerialNo());			
-			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
+			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid){
+//				this.core.powerCounters.updatePowerStats();
+//				this.core.powerCounters.clearAccessStats();
 				core.getExecutionEngineIn().setExecutionComplete(true);
+			}
 			else {
 				if(core.getNoOfInstructionsExecuted()%1000000==0){
 					System.out.println(this.j++ + " million done");
