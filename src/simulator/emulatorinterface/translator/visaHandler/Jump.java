@@ -11,7 +11,7 @@ public class Jump implements VisaHandler
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
 		BranchInstr branchInstruction;
-		branchInstruction = dynamicInstructionBuffer.getBranchPacket(microOp.getProgramCounter()); 
+		branchInstruction = dynamicInstructionBuffer.getBranchPacket(microOp.getCISCProgramCounter()); 
 		
 		if(branchInstruction != null)
 		{

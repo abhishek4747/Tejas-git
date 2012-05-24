@@ -192,7 +192,9 @@ public class ObjParser
 			//now set the ip of all converted instructions to instructionPointer
 			for(int i=microOpsIndexBefore; i<instructionArrayList.length(); i++)
 			{
-				instructionArrayList.setProgramCounter(i, instructionPointer);
+				instructionArrayList.setCISCProgramCounter(i, instructionPointer);
+				//FIXME : index in the array list - check ??
+				instructionArrayList.setRISCProgramCounter(i, i);
 			}
 		}catch(InvalidInstructionException inInstrEx)
 		{
@@ -376,7 +378,7 @@ public class ObjParser
 				return instructionLinkedList;
 			}
 			
-			else if(instructionArrayList.get(microOpIndex).getProgramCounter()!=startInstructionPointer)
+			else if(instructionArrayList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
 			{
 				/* The startInstructionPointer was part of the executable file and hence is present in
 				 * the hashTable. However, it has not been decoded yet. So, we gobble all the branch,
@@ -386,7 +388,7 @@ public class ObjParser
 				
 				// go to the next microOpIndex and set startInstructionPointer = microOps ip.
 				microOpIndex++;
-				startInstructionPointer = instructionArrayList.get(microOpIndex).getProgramCounter();
+				startInstructionPointer = instructionArrayList.get(microOpIndex).getCISCProgramCounter();
 			}
 			
 			else
@@ -427,7 +429,8 @@ public class ObjParser
 			}
 			else
 			{
-				instructionLinkedList.removeInstructionFromTail(instructionArrayList.get(microOpIndexBefore).getProgramCounter());
+				instructionLinkedList.
+					removeInstructionFromTail(instructionArrayList.get(microOpIndexBefore).getCISCProgramCounter());
 				break;
 			}
 		}

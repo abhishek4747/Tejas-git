@@ -201,7 +201,7 @@ public class ReorderBuffer extends SimulationElement{
 					
 					if(firstOpType != OperationType.branch ||
 							firstOpType == OperationType.branch && //true)
-							core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
+							core.getBranchPredictor().predict(first.getInstruction().getRISCProgramCounter())
 								== first.getInstruction().isBranchTaken())		
 					{
 						//if branch, then if branch prediction correct
@@ -272,9 +272,9 @@ public class ReorderBuffer extends SimulationElement{
 					if(firstOpType == OperationType.branch)
 					{
 						core.getBranchPredictor().Train(
-														first.getInstruction().getProgramCounter(),
+														first.getInstruction().getRISCProgramCounter(),
 														first.getInstruction().isBranchTaken(),
-														core.getBranchPredictor().predict(first.getInstruction().getProgramCounter())
+														core.getBranchPredictor().predict(first.getInstruction().getRISCProgramCounter())
 														);
 						
 						branchCount++;

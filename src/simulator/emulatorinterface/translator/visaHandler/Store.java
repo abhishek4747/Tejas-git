@@ -13,7 +13,7 @@ public class Store implements VisaHandler
 	{
 		long memoryWriteAddress;
 		memoryWriteAddress = dynamicInstructionBuffer.
-				getSingleStoreAddress(microOp.getProgramCounter());
+				getSingleStoreAddress(microOp.getCISCProgramCounter());
 		
 		if(memoryWriteAddress!=-1)
 		{

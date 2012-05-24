@@ -80,11 +80,11 @@ public class DecodeUnitIn extends SimulationElement{
 								this.core.powerCounters.incrementBpredAccess(1);
 
 								core.getBranchPredictor().Train(
-								ins.getProgramCounter(),
+								ins.getRISCProgramCounter(),
 								ins.isBranchTaken(),
-								core.getBranchPredictor().predict(ins.getProgramCounter())
+								core.getBranchPredictor().predict(ins.getRISCProgramCounter())
 								);
-						if(core.getBranchPredictor().predict(ins.getProgramCounter()) != ins.isBranchTaken()){
+						if(core.getBranchPredictor().predict(ins.getRISCProgramCounter()) != ins.isBranchTaken()){
 						//Branch mis predicted
 						//stall pipeline for appropriate cycles
 						//TODO correct the following:

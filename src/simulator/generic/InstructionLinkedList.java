@@ -70,7 +70,7 @@ public class InstructionLinkedList implements Serializable
 	{
 		Instruction removedInstruction;
 		while( (instructionLinkedList.isEmpty()==false) &&
-			(instructionLinkedList.getLast().getProgramCounter()==instructionPointer))
+			(instructionLinkedList.getLast().getCISCProgramCounter()==instructionPointer))
 		{
 			removedInstruction = instructionLinkedList.removeLast();
 			try {

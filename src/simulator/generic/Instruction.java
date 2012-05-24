@@ -31,7 +31,10 @@ public class Instruction implements Serializable
 	private Operand sourceOperand1;
 	private Operand sourceOperand2;
 	private Operand destinationOperand;
-	private long programCounter;
+	
+	private long riscProgramCounter;
+	private long ciscProgramCounter;
+	
 	private boolean branchTaken;
 	private long branchTargetAddress;
 	private long serialNo;
@@ -72,7 +75,7 @@ public class Instruction implements Serializable
 		else
 			{this.destinationOperand=new Operand(oldInstruction.destinationOperand);}
 		
-		this.programCounter=oldInstruction.programCounter;
+		this.riscProgramCounter=oldInstruction.riscProgramCounter;
 		this.branchTaken=oldInstruction.branchTaken;
 		this.branchTargetAddress=oldInstruction.branchTargetAddress;
 	}
@@ -121,19 +124,29 @@ public class Instruction implements Serializable
 				this.destinationOperand.copy(sourceInstruction.destinationOperand);
 			}
 		
-		this.programCounter=sourceInstruction.programCounter;
+		this.riscProgramCounter=sourceInstruction.riscProgramCounter;
 		this.branchTaken=sourceInstruction.branchTaken;
 		this.branchTargetAddress=sourceInstruction.branchTargetAddress;
 	}
 	
-	public long getProgramCounter()
+	public long getCISCProgramCounter()
 	{
-		return this.programCounter;
+		return ciscProgramCounter;
 	}
 	
-	public void setProgramCounter(long programCounter) 
+	public long getRISCProgramCounter()
 	{
-		this.programCounter = programCounter;
+		return this.riscProgramCounter;
+	}
+	
+	public void setCISCProgramCounter(long programCounter) 
+	{
+		this.ciscProgramCounter = programCounter;
+	}
+	
+	public void setRISCProgramCounter(long programCounter) 
+	{
+		this.riscProgramCounter = programCounter;
 	}
 	
 	public void setOperationType(OperationType operationType)
@@ -149,7 +162,7 @@ public class Instruction implements Serializable
 	{
 		return 
 		(
-			String.format("%-20s", "IP = " + Long.toHexString(programCounter)) +
+			String.format("%-20s", "IP = " + Long.toHexString(riscProgramCounter)) +
 			String.format("%-20s", "Op = " + type) +
 			String.format("%-40s", "srcOp1 = " + sourceOperand1) +
 			String.format("%-40s", "srcOp2 = " + sourceOperand2) +

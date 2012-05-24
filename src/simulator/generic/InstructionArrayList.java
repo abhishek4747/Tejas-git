@@ -88,9 +88,14 @@ public class InstructionArrayList
 //		return instructionLinkedList.pollFirst();
 //	}
 
-	public void setProgramCounter(int index, long instructionPointer) 
+	public void setCISCProgramCounter(int index, long instructionPointer) 
 	{
-		instructionArrayList.get(index).setProgramCounter(instructionPointer);
+		instructionArrayList.get(index).setCISCProgramCounter(instructionPointer);
+	}
+	
+	public void setRISCProgramCounter(int index, long instructionPointer) 
+	{
+		instructionArrayList.get(index).setRISCProgramCounter(instructionPointer);
 	}
 	
 	public int getListSize()

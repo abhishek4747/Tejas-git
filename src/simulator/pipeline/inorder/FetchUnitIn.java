@@ -109,7 +109,7 @@ public class FetchUnitIn extends SimulationElement{
 //				this.numRequestsAcknowledged++;
 				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 						core.getExecutionEngineIn().getFetchUnitIn(), 
-						newInstruction.getProgramCounter(),
+						newInstruction.getRISCProgramCounter(),
 						this.core.getCore_number());
 //				this.numRequestsSent++;
 				}
@@ -202,7 +202,7 @@ public class FetchUnitIn extends SimulationElement{
 
 //System.out.println("Address in handle event="+address);
 		for(int i=0;i<this.fetchBufferCapacity;i++){
-			if(this.fetchBuffer[i].getProgramCounter() == address){
+			if(this.fetchBuffer[i].getRISCProgramCounter() == address){
 				this.fetchBufferStatus[i]=true;
 			}
 		}

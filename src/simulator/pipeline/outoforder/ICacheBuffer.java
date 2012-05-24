@@ -84,7 +84,7 @@ public class ICacheBuffer {
 		
 		for(int i = head; ; i = (i + 1)%size)
 		{
-			if(buffer[i] != null && buffer[i].getProgramCounter() == programCounter)
+			if(buffer[i] != null && buffer[i].getRISCProgramCounter() == programCounter)
 			{
 				fetchComplete[i] = true;
 			}
