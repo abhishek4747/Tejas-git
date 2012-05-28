@@ -11,6 +11,12 @@ public class Counters {
 	long windowAccess=0;
 	long lsqAccess=0;
 	long regfileAccess=0;
+
+	long IntegerRegfileAccess=0;
+	long FloatRegfileAccess=0;
+	long IntegerRenameAccess=0;
+	long FloatRenameAccess=0;
+	
 //	long []icacheAccess=0;
 //	long []dcacheAccess=0;
 	long icacheAccess=0;
@@ -49,7 +55,11 @@ public class Counters {
 	long totalDcache2Access=0;
 	long totalAluAccess=0;
 	long totalResultbusAccess=0;
-
+	long totalIntegerRegfileAccess=0;
+	long totalFloatRegfileAccess=0;
+	long totalIntegerRenameAccess=0;
+	long totalFloatRenameAccess=0;
+	
 	long maxRenameAccess=0;
 	long maxBpredAccess=0;
 	long maxWindowAccess=0;
@@ -61,6 +71,11 @@ public class Counters {
 	long maxAluAccess=0;
 	long maxResultbusAccess=0;
 	
+	long maxIntegerRenameAccess=0;
+	long maxFloatRenameAccess=0;
+	long maxIntegerRegfileAccess=0;
+	long maxFloatRegfileAccess=0;
+
 	double renamePower=0;
 	double bpredPower=0;
 	double windowPower=0;
@@ -127,6 +142,7 @@ public class Counters {
 	double maxCyclePowerCC3 = 0.0;
 
 	double turnoffFactor = 0.1;
+
 	
 	public Counters(){
 		/* options for Wattch *///FIXME 
@@ -232,7 +248,15 @@ public class Counters {
 		 maxCyclePowerCC2 = 0.0;
 		 maxCyclePowerCC3 = 0.0;
 
+		IntegerRegfileAccess=0;
+		FloatRegfileAccess=0;
+		IntegerRenameAccess=0;
+		FloatRenameAccess=0;
 		
+		totalIntegerRegfileAccess=0;
+		totalFloatRegfileAccess=0;
+		totalIntegerRenameAccess=0;
+		totalFloatRenameAccess=0;
 	}
 	
 	public void clearAccessStats(){
@@ -243,7 +267,11 @@ public class Counters {
 		 windowAccess=0;
 		 lsqAccess=0;
 		 regfileAccess=0;
-		 
+	 
+		IntegerRegfileAccess=0;
+		FloatRegfileAccess=0;
+		IntegerRenameAccess=0;
+		FloatRenameAccess=0;
 //		 for(int i=0;i<SystemConfig.NoOfCores;i++){
 //			 icacheAccess[i]=0;
 //			 dcacheAccess[i]=0;
@@ -303,6 +331,10 @@ public class Counters {
 		    totalWindowAccess+=windowAccess;
 		    totalLsqAccess+=lsqAccess;
 		    totalRegfileAccess+=regfileAccess;
+		    
+		    totalIntegerRegfileAccess+=IntegerRegfileAccess;
+		    totalIntegerRenameAccess+=IntegerRenameAccess;
+		    
 		    totalIcacheAccess+=icacheAccess;
 		    totalDcacheAccess+=dcacheAccess;
 		    totalDcache2Access+=dcache2Access;
@@ -319,7 +351,13 @@ public class Counters {
 		    maxDcache2Access=max(dcache2Access,maxDcache2Access);
 		    maxAluAccess=max(aluAccess,maxAluAccess);
 		    maxResultbusAccess=max(resultbusAccess,maxResultbusAccess);
-		        
+
+		    maxIntegerRenameAccess=max(IntegerRenameAccess,maxIntegerRenameAccess);
+		    maxFloatRenameAccess=max(FloatRenameAccess,maxFloatRenameAccess);
+
+		    maxIntegerRegfileAccess=max(IntegerRenameAccess,maxIntegerRegfileAccess);
+		    maxFloatRegfileAccess=max(FloatRenameAccess,maxFloatRegfileAccess);
+
 		    if(renameAccess>0) {
 		      renamePowerCC1+=PowerConfig.renamePower;
 		      renamePowerCC2+=((double)renameAccess/(double)PowerConfig.ruuDecodeWidth)*PowerConfig.renamePower;
@@ -423,24 +461,24 @@ public class Counters {
 		  #endif
 */
 //		  #ifdef STATICAF
-		    if(regfileAccess>0) {
-		      if(regfileAccess <= (3.0*PowerConfig.ruuCommitWidth))
+		    if(IntegerRegfileAccess>0) {
+		      if(IntegerRegfileAccess <= (3.0*PowerConfig.ruuCommitWidth))
 		        regfilePowerCC1+=PowerConfig.regfilePower;
 		      else
-		        regfilePowerCC1+=((double)regfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
-		      regfilePowerCC2+=((double)regfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
-		      regfilePowerCC3+=((double)regfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+		        regfilePowerCC1+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+		      regfilePowerCC2+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+		      regfilePowerCC3+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
 		    }
 		    else
 		      regfilePowerCC3+=turnoffFactor*PowerConfig.regfilePower;
 /*		  #else
-		    if(regfileAccess) {
-		      if(regfileAccess <= (3.0*PowerConfig.ruuCommitWidth))
+		    if(IntegerRegfileAccess) {
+		      if(IntegerRegfileAccess <= (3.0*PowerConfig.ruuCommitWidth))
 		        regfilePowerCC1+=PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline;
 		      else
-		        regfilePowerCC1+=((double)regfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
-		      regfilePowerCC2+=((double)regfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
-		      regfilePowerCC3+=((double)regfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
+		        regfilePowerCC1+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
+		      regfilePowerCC2+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
+		      regfilePowerCC3+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
 		    }
 		    else
 		      regfilePowerCC3+=turnoffFactor*PowerConfig.regfilePower;
@@ -596,7 +634,10 @@ public class Counters {
 		this.dataWidth = dataWidth;
 	}
 
-	public long getRenameAccess() {
+	public long getIntegerRenameAccess() {
+		return renameAccess;
+	}
+	public long getFloatRenameAccess() {
 		return renameAccess;
 	}
 
@@ -1443,6 +1484,68 @@ public class Counters {
 	public void setTurnoffFactor(double turnoffFactor) {
 		this.turnoffFactor = turnoffFactor;
 	}
+
+	public void incrementIntegerRenameAccess(int renameAccess) {
+		this.IntegerRenameAccess += renameAccess;
+		
+	}
 	
+	public void incrementFloatRenameAccess(int renameAccess) {
+		this.FloatRenameAccess += renameAccess;
+		
+	}
+
+	public void incrementIntegerRegfileAccess(int regfileAccess) {
+		this.IntegerRegfileAccess += regfileAccess;
+		
+	}
+	public void incrementFloatRegfileAccess(int regfileAccess) {
+		this.FloatRegfileAccess += regfileAccess;
+		
+	}
+
+	public long getTotalIntegerRegfileAccess() {
+		return totalIntegerRegfileAccess;
+	}
+
+	public void setTotalIntegerRegfileAccess(long totalIntegerRegfileAccess) {
+		this.totalIntegerRegfileAccess = totalIntegerRegfileAccess;
+	}
+
+	public long getTotalFloatRegfileAccess() {
+		return totalFloatRegfileAccess;
+	}
+
+	public void setTotalFloatRegfileAccess(long totalFloatRegfileAccess) {
+		this.totalFloatRegfileAccess = totalFloatRegfileAccess;
+	}
+
+	public long getTotalIntegerRenameAccess() {
+		return totalIntegerRenameAccess;
+	}
+
+	public void setTotalIntegerRenameAccess(long totalIntegerRenameAccess) {
+		this.totalIntegerRenameAccess = totalIntegerRenameAccess;
+	}
+
+	public long getTotalFloatRenameAccess() {
+		return totalFloatRenameAccess;
+	}
+
+	public void setTotalFloatRenameAccess(long totalFloatRenameAccess) {
+		this.totalFloatRenameAccess = totalFloatRenameAccess;
+	}
+
+	public long getRenameAccess() {
+		return renameAccess;
+	}
+
+	public long getIntegerRegfileAccess() {
+		return IntegerRegfileAccess;
+	}
+
+	public long getFloatRegfileAccess() {
+		return FloatRegfileAccess;
+	}
 
 }

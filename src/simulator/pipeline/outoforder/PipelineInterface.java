@@ -121,6 +121,12 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void setPerCorePowerStatistics() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 	
 

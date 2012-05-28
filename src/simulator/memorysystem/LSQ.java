@@ -90,6 +90,12 @@ public class LSQ extends SimulationElement
 		if(couldForward) 
 		{
 			NoOfForwards++;
+			
+			//Increment the counters for power calculations
+			this.containingMemSys.getCore().powerCounters.incrementLsqAccess(1);
+			this.containingMemSys.getCore().powerCounters.incrementLsqPregAccess(1);
+			this.containingMemSys.getCore().powerCounters.incrementLsqLoadDataAccess(1);
+
 		}
 		//Otherwise the cache access is done through LSQValidateEvent
 		

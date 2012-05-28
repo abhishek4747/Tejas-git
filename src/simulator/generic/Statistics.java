@@ -334,7 +334,7 @@ System.out.println("execution time = "+executionTime);
 					+powerCounters[i].getLsqPowerCC1()/executionTime+powerCounters[i].getClockPowerCC1()/executionTime
 					+powerCounters[i].getWindowPowerCC1()/executionTime)/numCoreInstructions[i]+"\n");
 			
-
+/*
 			outputFileWriter.write("\n\n Aggresive, ideal conditional clocking \n\n");
 			
 			outputFileWriter.write("Bpred Power\t=\t"+powerCounters[i].getBpredPowerCC2()/executionTime+"\n");
@@ -462,7 +462,7 @@ System.out.println("execution time = "+executionTime);
 					+powerCounters[i].getDcachePowerCC3()/executionTime+powerCounters[i].getDcache2PowerCC3()/executionTime
 					+powerCounters[i].getLsqPowerCC3()/executionTime+powerCounters[i].getClockPowerCC3()/executionTime
 					+powerCounters[i].getWindowPowerCC3()/executionTime)/numCoreInstructions[i]+"\n");
-			
+*/			
 
 /*			outputFileWriter.write("\n\n No conditional clocking \n\n");
 			

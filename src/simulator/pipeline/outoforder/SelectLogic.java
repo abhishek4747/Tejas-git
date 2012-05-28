@@ -141,8 +141,16 @@ public class SelectLogic extends SimulationElement {
 				if(ROBEntry.isIssued == false &&
 						ROBEntry.associatedIWEntry != null)
 				{
+					//Increment counter for power calculation
+					//Window selection access is incremented as instruction is being issued here
+					this.core.powerCounters.incrementWindowSelectionAccess(1);
+					
+					//Other window accesses are incremented in the issueInstruction() of IWEntry
+					
 					if(ROBEntry.associatedIWEntry.issueInstruction())
 					{
+
+						
 						noAwoken++;
 						//if single cycle operation
 						//find dependent instructions

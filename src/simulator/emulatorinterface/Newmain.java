@@ -68,7 +68,7 @@ public class Newmain {
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// Create Pools of Instructions and Operands
-		int numInstructionsInPool = 70000;
+		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.EmuThreadsPerJavaThread*2;
 		
 		/* "apache pool"
 		System.out.println("creating operand pool..");

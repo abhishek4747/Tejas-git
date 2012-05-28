@@ -199,10 +199,14 @@ public class ReorderBuffer extends SimulationElement{
 						break;
 					}
 					
-					if(firstOpType != OperationType.branch ||
-							firstOpType == OperationType.branch && //true)
-							core.getBranchPredictor().predict(first.getInstruction().getRISCProgramCounter())
-								== first.getInstruction().isBranchTaken())		
+					boolean branchPredictedCorrectly=false;
+					if(firstOpType == OperationType.branch){
+						this.core.powerCounters.incrementBpredAccess(1);
+						if((core.getBranchPredictor().predict(first.getInstruction().getRISCProgramCounter())
+								== first.getInstruction().isBranchTaken()))
+							branchPredictedCorrectly=true;
+					}
+					if(firstOpType != OperationType.branch || branchPredictedCorrectly)		
 					{
 						//if branch, then if branch prediction correct
 					}
@@ -278,6 +282,7 @@ public class ReorderBuffer extends SimulationElement{
 														);
 						
 						branchCount++;
+						this.core.powerCounters.incrementBpredAccess(1);
 					}
 					
 					try {

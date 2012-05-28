@@ -33,6 +33,12 @@ public class OperandAvailabilityChecker {
 				tempOpndType == OperandType.floatRegister ||
 				tempOpndType == OperandType.machineSpecificRegister)
 		{
+			//Increment counters for power calculations
+			if(tempOpndType==OperandType.integerRegister)
+				core.powerCounters.incrementIntegerRegfileAccess(1);
+			else
+				core.powerCounters.incrementFloatRegfileAccess(1);
+
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
 				RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);

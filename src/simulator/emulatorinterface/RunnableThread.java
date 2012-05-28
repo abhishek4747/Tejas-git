@@ -30,8 +30,8 @@ import generic.Statistics;
  */
 public class RunnableThread implements Encoding {
 
-	private static final int INSTRUCTION_THRESHOLD = 2000;
-	private static final int PACKET_THRESHOLD = 10000;
+	public static final int INSTRUCTION_THRESHOLD = 2000;
+	//private static final int PACKET_THRESHOLD = 000;
 	
 	
 	boolean doNotProcess = false;

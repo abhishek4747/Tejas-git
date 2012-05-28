@@ -56,6 +56,12 @@ public class WriteBackLogic extends SimulationElement {
 				buffer[i].setWriteBackDone1(true);
 				buffer[i].setWriteBackDone2(true);
 				
+				this.core.powerCounters.incrementWindowAccess(1);
+				this.core.powerCounters.incrementWindowPregAccess(1);
+				this.core.powerCounters.incrementWindowWakeupAccess(1);
+				this.core.powerCounters.incrementResultbusAccess(1);
+				
+				
 				//TODO is a better solution possible?
 				if(buffer[i].instruction.getOperationType() == OperationType.load)
 				{
@@ -84,6 +90,9 @@ public class WriteBackLogic extends SimulationElement {
 						tempRN.setValueValid(true, buffer[i].getPhysicalDestinationRegister());
 						execEngine.getIntegerRegisterFile().setValueValid(true, buffer[i].getPhysicalDestinationRegister());
 						tempRN.getAssociatedRegisterFile().decrementNoOfActiveWriters(buffer[i].getPhysicalDestinationRegister());
+						
+						//Update counters for power calculation. For now, only integer register file assumed.
+						this.core.powerCounters.incrementRegfileAccess(1);
 					}
 					else if(tempDestOpnd.isFloatRegisterOperand())
 					{
