@@ -76,6 +76,7 @@ public class Instruction implements Serializable
 			{this.destinationOperand=new Operand(oldInstruction.destinationOperand);}
 		
 		this.riscProgramCounter=oldInstruction.riscProgramCounter;
+		this.ciscProgramCounter=oldInstruction.ciscProgramCounter;
 		this.branchTaken=oldInstruction.branchTaken;
 		this.branchTargetAddress=oldInstruction.branchTargetAddress;
 	}
@@ -124,9 +125,8 @@ public class Instruction implements Serializable
 				this.destinationOperand.copy(sourceInstruction.destinationOperand);
 			}
 		
-		this.ciscProgramCounter=sourceInstruction.ciscProgramCounter;
 		this.riscProgramCounter=sourceInstruction.riscProgramCounter;
-		
+		this.ciscProgramCounter=sourceInstruction.ciscProgramCounter;
 		this.branchTaken=sourceInstruction.branchTaken;
 		this.branchTargetAddress=sourceInstruction.branchTargetAddress;
 	}
