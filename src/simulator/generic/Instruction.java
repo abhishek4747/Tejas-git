@@ -124,7 +124,9 @@ public class Instruction implements Serializable
 				this.destinationOperand.copy(sourceInstruction.destinationOperand);
 			}
 		
+		this.ciscProgramCounter=sourceInstruction.ciscProgramCounter;
 		this.riscProgramCounter=sourceInstruction.riscProgramCounter;
+		
 		this.branchTaken=sourceInstruction.branchTaken;
 		this.branchTargetAddress=sourceInstruction.branchTargetAddress;
 	}
