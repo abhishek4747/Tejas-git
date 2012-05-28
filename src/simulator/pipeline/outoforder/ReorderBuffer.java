@@ -182,6 +182,7 @@ public class ReorderBuffer extends SimulationElement{
 						
 						setTimingStatistics();			
 						setPerCoreMemorySystemStatistics();
+						setPerCorePowerStatistics();
 					}
 					break;
 				}
@@ -494,6 +495,9 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setNoOfIMisses(core.getExecEngine().coreMemSys.getiCache().misses, core.getCore_number());
 	}
 
+	public void setPerCorePowerStatistics(){
+		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
+	}
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		

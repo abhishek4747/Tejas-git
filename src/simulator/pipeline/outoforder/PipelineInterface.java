@@ -3,6 +3,7 @@ package pipeline.outoforder;
 import generic.Core;
 import generic.EventQueue;
 import generic.GlobalClock;
+import generic.Statistics;
 
 public class PipelineInterface implements pipeline.PipelineInterface {
 	
@@ -58,6 +59,10 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			execEngine.getRenamer().performRename();
 			execEngine.getDecoder().performDecode();
 			execEngine.getFetcher().performFetch();
+
+			this.core.powerCounters.updatePowerStatsPerCycle();
+			this.core.powerCounters.clearAccessStats();
+
 		}
 		
 	}
@@ -121,13 +126,11 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		// TODO Auto-generated method stub
 		
 	}
-
-	@Override
-	public void setPerCorePowerStatistics() {
-		// TODO Auto-generated method stub
-		
-	}
 	
+	@Override
+	public void setPerCorePowerStatistics(){
+		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
+	}
 	
 
 }

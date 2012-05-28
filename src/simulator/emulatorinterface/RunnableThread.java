@@ -207,16 +207,16 @@ public class RunnableThread implements Encoding {
 			//System.out.println("maxN is "+maxN);
 		}
 		
-		Core core;
-		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
-			core = pipelineInterfaces[tidEmu].getCore();
-			if(core.isPipelineInorder && core.getExecutionEngineIn().getExecutionComplete()){
-				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
-				pipelineInterfaces[tidEmu].setTimingStatistics();			
-				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
-				pipelineInterfaces[tidEmu].setPerCorePowerStatistics();
-			}
-		}
+//		Core core;
+//		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+//			core = pipelineInterfaces[tidEmu].getCore();
+//			if(core.isPipelineInorder && core.getExecutionEngineIn().getExecutionComplete()){
+//				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
+//				pipelineInterfaces[tidEmu].setTimingStatistics();			
+//				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
+//				pipelineInterfaces[tidEmu].setPerCorePowerStatistics();
+//			}
+//		}
 		long dataRead = 0;
 		long totNumIns = 0;
 		long totMicroOps = 0;

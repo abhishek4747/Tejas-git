@@ -1,5 +1,6 @@
 package pipeline.inorder;
 
+import memorysystem.CoreMemorySystem;
 import power.Counters;
 import emulatorinterface.Newmain;
 import generic.Core;
@@ -8,6 +9,7 @@ import generic.EventQueue;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
+import generic.Statistics;
 
 public class WriteBackUnitIn extends SimulationElement{
 	Core core;
@@ -40,8 +42,11 @@ public class WriteBackUnitIn extends SimulationElement{
 				
 //System.out.println("wb "+memWbLatch.getInstruction().getSerialNo());			
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid){
-//				this.core.powerCounters.updatePowerStats();
+//				this.core.powerCounters.updatePowerStatsPerCycle();
 //				this.core.powerCounters.clearAccessStats();
+				setTimingStatistics();			
+				setPerCoreMemorySystemStatistics();
+				setPerCorePowerStatistics();
 				core.getExecutionEngineIn().setExecutionComplete(true);
 			}
 			else {
@@ -70,6 +75,29 @@ public class WriteBackUnitIn extends SimulationElement{
 		}
 	}
 
+	public void setTimingStatistics()
+	{
+		Statistics.setCoreCyclesTaken(core.getCoreCyclesTaken(), core.getCore_number());
+		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
+		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
+	}
+	
+	public void setPerCoreMemorySystemStatistics()
+	{
+		CoreMemorySystem coreMemSys = core.getExecutionEngineIn().coreMemorySystem;
+		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfL1Requests(coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfIRequests(coreMemSys.getiCache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfIHits(coreMemSys.getiCache().hits, core.getCore_number());
+		Statistics.setNoOfIMisses(coreMemSys.getiCache().misses, core.getCore_number());
+	}
+	public void setPerCorePowerStatistics(){
+		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
+	}
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
