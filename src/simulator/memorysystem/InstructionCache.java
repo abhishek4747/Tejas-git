@@ -10,6 +10,7 @@ import memorysystem.Cache.CoherenceType;
 
 import pipeline.inorder.FetchUnitIn;
 import pipeline.inorder.MemUnitIn;
+import pipeline.outoforder.FetchLogic;
 import pipeline.statistical.DelayGenerator;
 import power.Counters;
 
@@ -52,6 +53,10 @@ public class InstructionCache extends Cache
 			{
 				 omrEntry = ((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 			}
+			else if(requestingElement.getClass() == FetchLogic.class)
+			{
+				 omrEntry = ((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
+			}
 			while(omrEntry !=null && omrEntry.outStandingEvents.size()>0)
 			//Schedule the requesting element to receive the block TODO (for LSQ)
 			{
@@ -90,6 +95,10 @@ public class InstructionCache extends Cache
 				{
 					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
+				else if(requestingElement.getClass() == FetchLogic.class)
+				{
+					((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
+				}
 				// access the next level
 				if (this.isLastLevel)
 				{
@@ -125,11 +134,21 @@ public class InstructionCache extends Cache
 				{
 					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
+				else if(requestingElement.getClass() == FetchLogic.class)
+				{
+					((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
+				}
 			}
 			else if (alreadyRequested ==2)
 			{
-				if(!this.connectedMSHR.contains(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister()))
+				if(requestingElement.getClass() == FetchUnitIn.class){
+					if(!this.connectedMSHR.contains(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister()))
 					this.connectedMSHR.add(((FetchUnitIn)requestingElement).getMissStatusHoldingRegister());
+				}
+				else if(requestingElement.getClass() == FetchLogic.class){
+					if(!this.connectedMSHR.contains(((FetchLogic)requestingElement).getMissStatusHoldingRegister()))
+					this.connectedMSHR.add(((FetchLogic)requestingElement).getMissStatusHoldingRegister());
+				}
 			}
 		}
 	}
