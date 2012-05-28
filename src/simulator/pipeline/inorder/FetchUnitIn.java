@@ -107,7 +107,7 @@ public class FetchUnitIn extends SimulationElement{
 				this.fetchFillCount++;
 //System.out.println("Address of the instruction ="+newInstruction.getProgramCounter());
 //				this.numRequestsAcknowledged++;
-				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
+				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCacheFromInorder(
 						core.getExecutionEngineIn().getFetchUnitIn(), 
 						newInstruction.getRISCProgramCounter(),
 						this.core.getCore_number());

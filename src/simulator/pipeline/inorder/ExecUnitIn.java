@@ -51,7 +51,7 @@ public class ExecUnitIn extends SimulationElement{
 						if(!SimulationConfig.detachMemSys){
 							exMemLatch.setMemDone(false);
 			
-							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1CacheFromInorder(
 									core.getExecutionEngineIn().getMemUnitIn(),
 									RequestType.Cache_Read,
 									ins.getSourceOperand1().getValue(),this.core.getCore_number());
@@ -64,7 +64,7 @@ public class ExecUnitIn extends SimulationElement{
 						//Schedule a mem read event now so that it can be completed in the mem stage
 		
 						if(!SimulationConfig.detachMemSys){
-							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1CacheFromInorder(
 									core.getExecutionEngineIn().getMemUnitIn(),
 									RequestType.Cache_Write,
 									ins.getSourceOperand1().getValue(),

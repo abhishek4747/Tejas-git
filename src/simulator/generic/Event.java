@@ -16,6 +16,8 @@ public abstract class Event
 	private EventQueue eventQ;
 	RequestType requestType;
 	private long priority;
+	public int coreId;
+
 	
 	//Element which processes the event.
 	private SimulationElement requestingElement;
@@ -29,6 +31,7 @@ public abstract class Event
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
 		this.requestType = requestType;
+		this.coreId = 0;	//FIXME!!
 		
 		this.priority = requestType.ordinal();
 	}

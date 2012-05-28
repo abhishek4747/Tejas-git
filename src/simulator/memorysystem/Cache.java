@@ -407,6 +407,9 @@ public class Cache extends SimulationElement
 				{
 					((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
+				else if(requestingElement.getClass() == LSQ.class){
+					((LSQ)requestingElement).getMissStatusHoldingRegister().remove(address);
+				}
 				//Schedule the requesting element to receive the block TODO (for LSQ)
 				if (requestType == RequestType.Cache_Read)
 				{
@@ -444,7 +447,7 @@ public class Cache extends SimulationElement
 				{
 					//Write the data to the cache block (Do Nothing)
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
-						this.nextLevel.busController.processWriteHit(eventQ, this, cl, address,((AddressCarryingEvent)event).coreId);
+						this.nextLevel.busController.processWriteHit(eventQ, this, cl, address,(event).coreId);
 					else if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Directory)
 					{
 						/* remove the block size */
@@ -481,7 +484,7 @@ public class Cache extends SimulationElement
 												MemorySystem.mainMemory,
 												RequestType.Main_Mem_Write,
 												address,
-												((AddressCarryingEvent)event).coreId));
+												(event).coreId));
 							else
 								MemorySystem.mainMemory.getPort().put(
 										event.update(
@@ -502,7 +505,7 @@ public class Cache extends SimulationElement
 												this.nextLevel,
 												RequestType.Cache_Write, 
 												address,
-												((AddressCarryingEvent)event).coreId));
+												(event).coreId));
 							else
 								this.nextLevel.getPort().put(
 									event.update(
@@ -528,12 +531,16 @@ public class Cache extends SimulationElement
 					{
 						((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 					}
+					else if(requestingElement.getClass() == LSQ.class)
+					{
+						((LSQ)requestingElement).getMissStatusHoldingRegister().remove(address);
+					}
 					if ((!this.isLastLevel) && this.nextLevel.coherence == CoherenceType.Snoopy)
 					{
 						if (requestType == RequestType.Cache_Read)
-							this.nextLevel.busController.processReadMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
+							this.nextLevel.busController.processReadMiss(eventQ, this, address,(event).coreId);
 						else if (requestType == RequestType.Cache_Write)
-							this.nextLevel.busController.processWriteMiss(eventQ, this, address,((AddressCarryingEvent)event).coreId);
+							this.nextLevel.busController.processWriteMiss(eventQ, this, address,(event).coreId);
 						else
 						{
 							System.err.println("Error : This must not be happening");
@@ -575,7 +582,7 @@ public class Cache extends SimulationElement
 																						 MemorySystem.mainMemory,
 																						 RequestType.Main_Mem_Read,
 																						 address,
-																						 ((AddressCarryingEvent)event).coreId); 
+																						 (event).coreId); 
 							MemorySystem.mainMemory.getPort().put(addressEvent);
 							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 							return;
@@ -588,7 +595,7 @@ public class Cache extends SimulationElement
 																						 this.nextLevel,
 																						 RequestType.Cache_Read, 
 																						 address,
-																						 ((AddressCarryingEvent)event).coreId); 
+																						 (event).coreId); 
 							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 							this.nextLevel.getPort().put(addressEvent);
 							return;
@@ -601,11 +608,16 @@ public class Cache extends SimulationElement
 					{
 						if(((MemUnitIn)requestingElement).getMissStatusHoldingRegister().containsKey(address))
 							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
+						
 						/*else
 						{
 							System.out.println("Request Not Present in Mem MSHR");
 							System.exit(1);
 						}*/
+					}
+					else if(requestingElement.getClass() == LSQ.class){
+						if(((LSQ)requestingElement).getMissStatusHoldingRegister().containsKey(address))
+							((LSQ)requestingElement).getMissStatusHoldingRegister().remove(address);
 					}
 				}
 				else if(alreadyRequested == 2)
@@ -641,9 +653,15 @@ public class Cache extends SimulationElement
 							System.out.println("Outstanding Request in Memory System from cache line 626");
 							System.exit(1);
 						}
-					} else if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
-						this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
- 
+					}
+					else if(requestingElement.getClass()==MemUnitIn.class){
+						if(!this.connectedMSHR.contains(((MemUnitIn)requestingElement).getMissStatusHoldingRegister()))
+							this.connectedMSHR.add(((MemUnitIn)requestingElement).getMissStatusHoldingRegister());
+					}
+					else if(requestingElement.getClass()==LSQ.class){
+						if(!this.connectedMSHR.contains(((LSQ)requestingElement).getMissStatusHoldingRegister()))
+							this.connectedMSHR.add(((LSQ)requestingElement).getMissStatusHoldingRegister());
+					}
 				}
 			}
 		}
@@ -669,7 +687,7 @@ public class Cache extends SimulationElement
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Write,
 									evictedLine.getTag() << this.blockSizeBits,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 				else
 					this.nextLevel.getPort().put(
 							new AddressCarryingEvent(
@@ -679,7 +697,7 @@ public class Cache extends SimulationElement
 									this.nextLevel,
 									RequestType.Cache_Write,
 									evictedLine.getTag() << this.blockSizeBits,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 			}
 			long blockAddr = addr >>> this.blockSizeBits;
 			if (!this.missStatusHoldingRegister.containsKey(blockAddr))
@@ -751,7 +769,7 @@ public class Cache extends SimulationElement
 												MemorySystem.mainMemory,
 												RequestType.Main_Mem_Write,
 												address,
-												((AddressCarryingEvent)event).coreId));
+												(event).coreId));
 							else
 								MemorySystem.mainMemory.getPort().put(
 										event.update(
@@ -772,7 +790,7 @@ public class Cache extends SimulationElement
 												this.nextLevel,
 												RequestType.Cache_Write,
 												address,
-												((AddressCarryingEvent)event).coreId));
+												(event).coreId));
 							else
 								this.nextLevel.getPort().put(
 										event.update(
@@ -823,7 +841,7 @@ public class Cache extends SimulationElement
 					{
 						readyToProceedCount++;
 						SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
-						if(requestingElement.getClass() != MemUnitIn.class)
+						if(requestingElement.getClass() != MemUnitIn.class && requestingElement.getClass() != LSQ.class)
 						{
 							omrEntry.readyToProceed = false;
 						}
@@ -885,7 +903,7 @@ public class Cache extends SimulationElement
 							this.nextLevel, 
 							RequestType.Cache_Write,
 							addr,
-							((AddressCarryingEvent)event).coreId));
+							(event).coreId));
 			this.nextLevel.busController.getBusAndPutEvents(eventList);
 			
 			CacheLine cl = this.access(addr);
@@ -917,7 +935,7 @@ public class Cache extends SimulationElement
 							this.nextLevel,
 							RequestType.Cache_Read,
 							addr,
-							((AddressCarryingEvent)event).coreId));
+							(event).coreId));
 			
 			CacheLine cl = this.access(addr);
 			if (cl != null)
@@ -946,7 +964,7 @@ public class Cache extends SimulationElement
 										MemorySystem.mainMemory,
 										RequestType.Main_Mem_Read,
 										address,
-										((AddressCarryingEvent)event).coreId));
+										(event).coreId));
 						return;
 					}
 					else
@@ -959,7 +977,7 @@ public class Cache extends SimulationElement
 										this.nextLevel,
 										RequestType.Cache_Read, 
 										address,
-										((AddressCarryingEvent)event).coreId));
+										(event).coreId));
 						return;
 					}
 				}
@@ -1006,7 +1024,7 @@ public class Cache extends SimulationElement
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Write,
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 				else
@@ -1019,7 +1037,7 @@ public class Cache extends SimulationElement
 									this.nextLevel,
 									RequestType.Cache_Write, 
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 				
@@ -1038,7 +1056,7 @@ public class Cache extends SimulationElement
 											this.nextLevel.prevLevel.get(i),
 											RequestType.MESI_Invalidate, 
 											address,
-											((AddressCarryingEvent)event).coreId));
+											(event).coreId));
 						}
 					}
 				}
@@ -1056,7 +1074,7 @@ public class Cache extends SimulationElement
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Read,
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 				else
@@ -1069,7 +1087,7 @@ public class Cache extends SimulationElement
 									this.nextLevel,
 									RequestType.Cache_Read, 
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 			}
@@ -1097,7 +1115,7 @@ public class Cache extends SimulationElement
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Read,
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 				else
@@ -1110,7 +1128,7 @@ public class Cache extends SimulationElement
 									this.nextLevel,
 									RequestType.Cache_Read, 
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 				
@@ -1145,7 +1163,7 @@ public class Cache extends SimulationElement
 											this.nextLevel.prevLevel.get(i),
 											RequestType.MESI_Invalidate, 
 											address,
-											((AddressCarryingEvent)event).coreId));
+											(event).coreId));
 						}
 					}
 				}
@@ -1193,7 +1211,7 @@ public class Cache extends SimulationElement
 									MemorySystem.mainMemory,
 									RequestType.Main_Mem_Read,
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 				else
@@ -1206,7 +1224,7 @@ public class Cache extends SimulationElement
 									this.nextLevel,
 									RequestType.Cache_Read, 
 									address,
-									((AddressCarryingEvent)event).coreId));
+									(event).coreId));
 					return;
 				}
 			}

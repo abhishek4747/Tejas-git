@@ -21,6 +21,7 @@
 package memorysystem;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import memorysystem.LSQEntry.LSQEntryType;
 
@@ -45,7 +46,7 @@ public class LSQ extends SimulationElement
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
 	
 	public static final int INVALID_INDEX = -1;
-
+	Hashtable<Long,OMREntry> missStatusHoldingRegister;
 	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
@@ -53,6 +54,17 @@ public class LSQ extends SimulationElement
 		this.lsqSize = lsqSize;
 		curSize = 0;
 		lsqueue = new LSQEntry[lsqSize];	
+		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
+
+	}
+
+	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
+		return missStatusHoldingRegister;
+	}
+
+	public void setMissStatusHoldingRegister(
+			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
+		this.missStatusHoldingRegister = missStatusHoldingRegister;
 	}
 
 	public LSQEntry addEntry(boolean isLoad, long address, ReorderBufferEntry robEntry) //To be accessed at the time of allocating the entry
@@ -339,8 +351,11 @@ public class LSQ extends SimulationElement
 			//If the value could not be forwarded
 			if (!(this.loadValidate(lsqEntry/*.getIndexInQ()*/, event)))
 			{
-				//TODO Read from the cache (CacheAccessEvent)
-				//Direct address must not be set as it is pageID in some cases
+				
+//				this.containingMemSys.issueRequestToL1CacheFromOutofOrder(this, 
+//						RequestType.Cache_Read, 
+//						lsqEntry.getAddr(),containingMemSys.coreID);
+				
 				this.containingMemSys.l1Cache.getPort().put(
 						event.update(
 								eventQ,
@@ -348,6 +363,18 @@ public class LSQ extends SimulationElement
 								this,
 								this.containingMemSys.l1Cache,
 								RequestType.Cache_Read));
+			}
+			
+			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
+			if(!missStatusHoldingRegister.containsKey(lsqEntry.getAddr()))
+			{
+				ArrayList<Event> eventList = new ArrayList<Event>();
+				eventList.add(event);
+				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,event));
+			}
+			else
+			{
+				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(event);
 			}
 		}
 		else //If the LSQ entry is a store
@@ -412,6 +439,10 @@ public class LSQ extends SimulationElement
 		if(lsqEntry.getType() == LSQEntry.LSQEntryType.STORE) 
 		{
 			//TODO Write to the cache
+//			this.containingMemSys.issueRequestToL1CacheFromOutofOrder(this, 
+//					RequestType.Cache_Write, 
+//					lsqEntry.getAddr(),containingMemSys.coreID);
+
 			this.containingMemSys.l1Cache.getPort().put(
 					event.update(
 							eventQ,
@@ -419,7 +450,18 @@ public class LSQ extends SimulationElement
 							this,
 							this.containingMemSys.l1Cache,
 							RequestType.Cache_Write));
-			
+
+			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
+			if(!missStatusHoldingRegister.containsKey(lsqEntry.getAddr()))
+			{
+				ArrayList<Event> eventList = new ArrayList<Event>();
+				eventList.add(event);
+				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,event));
+			}
+			else
+			{
+				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(event);
+			}	
 			this.head = this.incrementQ(this.head);
 			this.curSize--;
 		}

@@ -1,5 +1,7 @@
 package pipeline.outoforder;
 
+import java.util.Hashtable;
+
 import config.SimulationConfig;
 import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
@@ -12,6 +14,7 @@ import generic.ExecCompleteEvent;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.InstructionLinkedList;
+import generic.OMREntry;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
@@ -28,6 +31,8 @@ public class FetchLogic extends SimulationElement {
 	int inputPipeToReadNext;
 	InstructionLinkedList[] inputToPipeline;
 	CoreMemorySystem coreMemSys;
+	Hashtable<Long,OMREntry> missStatusHoldingRegister;
+
 
 	public FetchLogic(Core core, ExecutionEngine execEngine)
 	{
@@ -39,6 +44,8 @@ public class FetchLogic extends SimulationElement {
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
 		coreMemSys = execEngine.coreMemSys;
+		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
+
 	}
 	
 	/*
@@ -47,6 +54,14 @@ public class FetchLogic extends SimulationElement {
 	 * else
 	 * 		stall fetch
 	 */
+	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
+		return missStatusHoldingRegister;
+	}
+
+	public void setMissStatusHoldingRegister(
+			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
+		this.missStatusHoldingRegister = missStatusHoldingRegister;
+	}	
 	public void performFetch()
 	{
 		Instruction newInstruction;
@@ -119,7 +134,7 @@ public class FetchLogic extends SimulationElement {
 							//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
 							if(SimulationConfig.detachMemSys == false)
 							{
-									execEngine.coreMemSys.issueRequestToInstrCache(this, newInstruction.getRISCProgramCounter());//core id needs to be added to this call.
+									execEngine.coreMemSys.issueRequestToInstrCacheFromOutofOrder(this, newInstruction.getRISCProgramCounter(),this.core.getCore_number());
 							}
 							//System.out.println(core.getCoreMode() + " - no of insts  : " + noOfInstructionsThisEpoch);
 						}
