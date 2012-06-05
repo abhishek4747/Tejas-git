@@ -40,11 +40,11 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 	uint64_t mask = coremap;
 
 
-/*
+
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
 	}
-*/
+
 
 
 	int shmid;
