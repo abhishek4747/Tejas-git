@@ -34,12 +34,13 @@ public class FetchUnitIn extends SimulationElement{
 	int numRequestsAcknowledged;
 	Hashtable<Long,OMREntry> missStatusHoldingRegister;
 	private boolean fetchBufferStatus[];
+	private int stallLowerMSHRFull;
 
 
 	public FetchUnitIn(Core core, EventQueue eventQueue) {
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
-		this.fetchBufferCapacity=4;
+		this.fetchBufferCapacity=8;
 		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;
@@ -50,6 +51,7 @@ public class FetchUnitIn extends SimulationElement{
 		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
 		this.numRequestsSent=0;
 		this.numRequestsAcknowledged=0;
+		this.stallLowerMSHRFull=0;
 		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];
 		for(int i=0;i<this.fetchBufferCapacity;i++)
 			this.fetchBufferStatus[i]=false;
@@ -86,7 +88,7 @@ public class FetchUnitIn extends SimulationElement{
 //			}
 		
 			if( missStatusHoldingRegister.size() >= this.fetchBufferCapacity){
-				System.out.println("Exiting due to size exceed");
+				System.err.println("Exiting due to size exceed");
 				break;
 			}
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
@@ -94,8 +96,8 @@ public class FetchUnitIn extends SimulationElement{
 				return;
 			if(newInstruction.getOperationType() == OperationType.inValid){
 				core.getExecutionEngineIn().setFetchComplete(true);
-				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity] = newInstruction;//inputToPipeline.pollFirst();
-						this.fetchBufferStatus[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]=true;
+				this.fetchBuffer[i] = newInstruction;//inputToPipeline.pollFirst();
+						this.fetchBufferStatus[i]=true;
 						this.fetchFillCount++;
 //						this.numRequestsAcknowledged++;
 						
@@ -103,14 +105,22 @@ public class FetchUnitIn extends SimulationElement{
 			}
 			else{
 				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= newInstruction;//inputToPipeline.pollFirst();
-				this.fetchBufferStatus[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]=false;
 				this.fetchFillCount++;
-//System.out.println("Address of the instruction ="+newInstruction.getProgramCounter());
+
+				if(SimulationConfig.detachMemSys){
+					this.fetchBufferStatus[i]=true;
+				}
+				else{
+					this.fetchBufferStatus[i]=false;
+					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCacheFromInorder(
+							core.getExecutionEngineIn().getFetchUnitIn(), 
+							newInstruction.getRISCProgramCounter(),
+							this.core.getCore_number());
+				}
+
+					//System.out.println("Address of the instruction ="+newInstruction.getProgramCounter());
 //				this.numRequestsAcknowledged++;
-				this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCacheFromInorder(
-						core.getExecutionEngineIn().getFetchUnitIn(), 
-						newInstruction.getRISCProgramCounter(),
-						this.core.getCore_number());
+
 //				this.numRequestsSent++;
 				}
 		}
@@ -120,12 +130,18 @@ public class FetchUnitIn extends SimulationElement{
 	public void performFetch(){
 		if(!core.getExecutionEngineIn().getFetchComplete())
 			fillFetchBuffer();
-
+		if(this.stallLowerMSHRFull > 0){
+			System.err.println("Exiting due to size exceed");
+			return;
+		}
 		Instruction ins;
 		StageLatch ifIdLatch = core.getExecutionEngineIn().getIfIdLatch();
-		
-			if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && ifIdLatch.getStallCount()==0 
+			
+		if(!this.fetchBufferStatus[this.fetchBufferIndex])
+			this.core.getExecutionEngineIn().incrementInstructionMemStall(1); 
+		if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && ifIdLatch.getStallCount()==0 
 					&& this.fetchBufferStatus[this.fetchBufferIndex]){
+					
 					ins = this.fetchBuffer[this.fetchBufferIndex];
 	//System.out.println("Fetch "+ins.getSerialNo());			
 					if(ins.getOperationType()==OperationType.sync){
@@ -202,8 +218,9 @@ public class FetchUnitIn extends SimulationElement{
 
 //System.out.println("Address in handle event="+address);
 		for(int i=0;i<this.fetchBufferCapacity;i++){
-			if(this.fetchBuffer[i].getRISCProgramCounter() == address){
+			if(this.fetchBuffer[i].getRISCProgramCounter() == address && this.fetchBufferStatus[i]==false){
 				this.fetchBufferStatus[i]=true;
+//				break;
 			}
 		}
 		
@@ -231,6 +248,20 @@ public class FetchUnitIn extends SimulationElement{
 		// TODO Auto-generated method stub
 		//This should be called when the pipeline needs to wake up
 //		this.sleep=false;
+		
+	}
+
+	public int getStallLowerMSHRFull() {
+		return stallLowerMSHRFull;
+	}
+
+	public void decrementStallLowerMSHRFull(int i) {
+		this.stallLowerMSHRFull -= i;
+		
+	}
+
+	public void incrementStallLowerMSHRFull(int i) {
+		this.stallLowerMSHRFull += i;
 		
 	}
 

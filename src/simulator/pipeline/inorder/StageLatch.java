@@ -115,5 +115,6 @@ public class StageLatch {
 		this.in2 = null;
 		this.out1 = null;
 		this.operationType = null;
+		this.LoadFlag=false;
 	}
 }

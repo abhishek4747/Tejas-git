@@ -69,7 +69,7 @@ public class DecodeLogic extends SimulationElement {
 					{
 						if(execEngine.coreMemSys.getLsqueue().isFull())
 						{
-							execEngine.setToStall4(true);
+							execEngine.setToStall3(true);
 							break;
 						}
 					}
@@ -98,6 +98,7 @@ public class DecodeLogic extends SimulationElement {
 					}
 				}
 				
+				execEngine.setToStall3(false);
 				execEngine.setToStall4(false);
 			}
 		}

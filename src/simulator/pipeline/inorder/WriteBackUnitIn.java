@@ -44,9 +44,11 @@ public class WriteBackUnitIn extends SimulationElement{
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid){
 //				this.core.powerCounters.updatePowerStatsPerCycle();
 //				this.core.powerCounters.clearAccessStats();
-				setTimingStatistics();			
-				setPerCoreMemorySystemStatistics();
-				setPerCorePowerStatistics();
+				
+				//FIXME the following does not set the statistics. Check!
+				this.core.getExecutionEngineIn().setTimingStatistics();			
+				this.core.getExecutionEngineIn().setPerCoreMemorySystemStatistics();
+				this.core.getExecutionEngineIn().setPerCorePowerStatistics();
 				core.getExecutionEngineIn().setExecutionComplete(true);
 			}
 			else {
@@ -75,29 +77,6 @@ public class WriteBackUnitIn extends SimulationElement{
 		}
 	}
 
-	public void setTimingStatistics()
-	{
-		Statistics.setCoreCyclesTaken(core.getCoreCyclesTaken(), core.getCore_number());
-		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
-		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
-	}
-	
-	public void setPerCoreMemorySystemStatistics()
-	{
-		CoreMemorySystem coreMemSys = core.getExecutionEngineIn().coreMemorySystem;
-		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfL1Requests(coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(coreMemSys.getiCache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfIHits(coreMemSys.getiCache().hits, core.getCore_number());
-		Statistics.setNoOfIMisses(coreMemSys.getiCache().misses, core.getCore_number());
-	}
-	public void setPerCorePowerStatistics(){
-		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
-	}
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub

@@ -32,14 +32,23 @@ public class DecodeUnitIn extends SimulationElement{
 		Instruction ins;
 		StageLatch ifIdLatch = this.core.getExecutionEngineIn().getIfIdLatch();
 		StageLatch idExLatch = this.core.getExecutionEngineIn().getIdExLatch(); 
-
+		StageLatch exMemLatch = this.core.getExecutionEngineIn().getExMemLatch();
 		ins = ifIdLatch.getInstruction();
 		if(idExLatch.getStallCount()==0 && ifIdLatch.getMemDone()){
 			if(ins!=null){
-	//System.out.println("Decode "+ins.getSerialNo());			
-				if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
-					core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
-	//System.out.println("Data Hazard!");
+	//System.out.println("Decode "+ins.getSerialNo());		
+				if(idExLatch.getInstruction()!=null){
+					if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
+						core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
+						this.core.getExecutionEngineIn().incrementDataHazardStall(1);
+		//System.out.println("Data Hazard!");
+					}
+				}
+				else{
+					if(checkDataHazard(ins,exMemLatch.getOut1()) && exMemLatch.getLoadFlag()){
+						core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
+						this.core.getExecutionEngineIn().incrementDataHazardStall(1);
+					}
 				}
 	//			else{
 
@@ -108,13 +117,15 @@ public class DecodeUnitIn extends SimulationElement{
 	private boolean checkDataHazard(Instruction ins, Operand destOp){
 		if(destOp!=null){
 			//TODO check the following way of comparing the two operands
-			if(destOp.equals(ins.getSourceOperand1()) || destOp.equals(ins.getSourceOperand1()))
-				return true;
-			else 
-				return false;
+//			if(destOp.equals(ins.getSourceOperand1()) || destOp.equals(ins.getSourceOperand2()))
+			if(ins.getSourceOperand1() != null)
+				if(destOp.getValue()==ins.getSourceOperand1().getValue())
+					return true;
+			if(ins.getSourceOperand2() != null)
+				if(destOp.getValue()==ins.getSourceOperand2().getValue())
+					return true;
 		}
-		else
-			return false;
+		return false;
 	}
 
 

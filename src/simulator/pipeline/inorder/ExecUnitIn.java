@@ -40,6 +40,7 @@ public class ExecUnitIn extends SimulationElement{
 					exMemLatch.setOut1(idExLatch.getOut1());
 					exMemLatch.setOperationType(idExLatch.getOperationType());
 					exMemLatch.setMemDone(true);
+					exMemLatch.setLoadFlag(idExLatch.getLoadFlag());
 					
 					idExLatch.clear();
 					

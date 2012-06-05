@@ -4,6 +4,7 @@ import java.util.Hashtable;
 
 import config.SimulationConfig;
 import config.SystemConfig;
+import emulatorinterface.Newmain;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import memorysystem.InstructionCache;
@@ -96,6 +97,11 @@ public class FetchLogic extends SimulationElement {
 					int fetchBufferIndex = 0;
 					for(int i = 0; i < fetchWidth; i++)
 					{
+						if( this.core.getExecEngine().getFetcher().getMissStatusHoldingRegister().size() >= fetchWidth){
+							System.out.println("Exiting due to size exceed");
+							break;
+						}
+						
 						newInstruction = iCacheBuffer.getNextInstruction();
 						if(newInstruction != null)
 						{
@@ -116,7 +122,8 @@ public class FetchLogic extends SimulationElement {
 					{
 						if(inputToPipeline[inputPipeToReadNext].getListSize() <= 0)
 						{
-							System.out.println("number of instructions fetched < width");				
+//							System.out.println("number of instructions fetched < width");
+//							System.out.println("Instructions done ="+core.getNoOfInstructionsExecuted());
 							break;
 						}
 						
@@ -126,6 +133,18 @@ public class FetchLogic extends SimulationElement {
 						{
 							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
 							break;
+						}
+						
+						if(newInstruction.getOperationType() == OperationType.load ||
+								newInstruction.getOperationType() == OperationType.store)
+						{
+							if(SimulationConfig.detachMemSys == true)
+							{
+								inputToPipeline[inputPipeToReadNext].pollFirst();
+								Newmain.instructionPool.returnObject(newInstruction);
+								i--;
+								continue;
+							}
 						}
 						
 						if(!iCacheBuffer.isFull())

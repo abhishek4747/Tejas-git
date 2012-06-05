@@ -36,6 +36,12 @@ public class MemUnitIn extends SimulationElement{
 		StageLatch exMemLatch = core.getExecutionEngineIn().getExMemLatch();
 		Instruction ins = exMemLatch.getInstruction();
 		if(!exMemLatch.getMemDone() || !missStatusHoldingRegister.isEmpty()){
+			if(!missStatusHoldingRegister.isEmpty()){
+				this.core.getExecutionEngineIn().getFetchUnitIn().incrementStallLowerMSHRFull(1);
+				System.err.println("Stalling pipeline coz MSHR of the next level can't take any more requests");
+				return;
+			}
+			this.core.getExecutionEngineIn().incrementMemStall(1);
 //			core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
 			exMemLatch.incrementStallCount();
 /*			if(exMemLatch.getStallCount()>200){
