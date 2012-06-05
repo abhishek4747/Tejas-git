@@ -349,6 +349,12 @@ public class LSQ extends SimulationElement
 		if (lsqEntry.getType() == LSQEntryType.LOAD)
 		{
 			//If the value could not be forwarded
+			Event eventNew = event.update(
+					eventQ,
+					this.containingMemSys.l1Cache.getLatencyDelay(),
+					this,
+					this.containingMemSys.l1Cache,
+					RequestType.Cache_Read);
 			if (!(this.loadValidate(lsqEntry/*.getIndexInQ()*/, event)))
 			{
 				
@@ -356,27 +362,23 @@ public class LSQ extends SimulationElement
 //						RequestType.Cache_Read, 
 //						lsqEntry.getAddr(),containingMemSys.coreID);
 				
+				
 				this.containingMemSys.l1Cache.getPort().put(
-						event.update(
-								eventQ,
-								this.containingMemSys.l1Cache.getLatencyDelay(),
-								this,
-								this.containingMemSys.l1Cache,
-								RequestType.Cache_Read));
+						eventNew);
 			}
 			
-			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
+/*			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
 			if(!missStatusHoldingRegister.containsKey(lsqEntry.getAddr()))
 			{
 				ArrayList<Event> eventList = new ArrayList<Event>();
-				eventList.add(event);
-				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,event));
+				eventList.add(eventNew);
+				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,eventNew));
 			}
 			else
 			{
-				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(event);
+				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(eventNew);
 			}
-		}
+*/		}
 		else //If the LSQ entry is a store
 		{
 			this.storeValidate(lsqEntry);
@@ -443,25 +445,24 @@ public class LSQ extends SimulationElement
 //					RequestType.Cache_Write, 
 //					lsqEntry.getAddr(),containingMemSys.coreID);
 
+			Event eventNew = event.update(eventQ,this.containingMemSys.l1Cache.getLatencyDelay(),
+										this,this.containingMemSys.l1Cache,RequestType.Cache_Write);
+			
 			this.containingMemSys.l1Cache.getPort().put(
-					event.update(
-							eventQ,
-							this.containingMemSys.l1Cache.getLatencyDelay(),
-							this,
-							this.containingMemSys.l1Cache,
-							RequestType.Cache_Write));
+					eventNew);
 
-			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
+/*			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
 			if(!missStatusHoldingRegister.containsKey(lsqEntry.getAddr()))
 			{
 				ArrayList<Event> eventList = new ArrayList<Event>();
-				eventList.add(event);
-				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,event));
+				eventList.add(eventNew);
+				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,eventNew));
 			}
 			else
 			{
-				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(event);
+				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(eventNew);
 			}	
+*/
 			this.head = this.incrementQ(this.head);
 			this.curSize--;
 		}

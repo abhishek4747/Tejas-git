@@ -49,7 +49,8 @@ public class InstructionCache extends Cache
 		if (cl != null)
 		{
 			OMREntry omrEntry = null;
-			if(requestingElement.getClass() == FetchUnitIn.class)
+			/*
+			 * if(requestingElement.getClass() == FetchUnitIn.class)
 			{
 				 omrEntry = ((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 			}
@@ -57,6 +58,16 @@ public class InstructionCache extends Cache
 			{
 				 omrEntry = ((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
 			}
+			*/
+			//Just return the read block
+			requestingElement.getPort().put(
+					event.update(
+							eventQ,
+							0,
+							this,
+							requestingElement,
+							RequestType.Mem_Response));
+
 			while(omrEntry !=null && omrEntry.outStandingEvents.size()>0)
 			//Schedule the requesting element to receive the block TODO (for LSQ)
 			{
@@ -68,7 +79,7 @@ public class InstructionCache extends Cache
 						requestingElement.getPort().put(
 								tempEvent.update(
 										eventQ,
-										requestingElement.getLatencyDelay(),
+										0,
 										this,
 										requestingElement,
 										RequestType.Mem_Response));
@@ -91,7 +102,8 @@ public class InstructionCache extends Cache
 			
 			if (alreadyRequested==0)
 			{		
-				if(requestingElement.getClass() == FetchUnitIn.class)
+				/*
+				 * if(requestingElement.getClass() == FetchUnitIn.class)
 				{
 					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
@@ -99,7 +111,9 @@ public class InstructionCache extends Cache
 				{
 					((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
+				*/
 				// access the next level
+		
 				if (this.isLastLevel)
 				{
 					MemorySystem.mainMemory.getPort().put(
@@ -115,6 +129,9 @@ public class InstructionCache extends Cache
 				}
 				else
 				{
+				//FIXME What is the need of generating a new address carrying event here ?
+				// Can use the original event itself
+//					System.out.println("Next Level " + this.nextLevelName + "last level ="+this.isLastLevel);
 					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																				this.nextLevel.getLatencyDelay(),
 																				this, 
@@ -122,7 +139,7 @@ public class InstructionCache extends Cache
 																				RequestType.Cache_Read_from_iCache, 
 																				address,
 																				((AddressCarryingEvent)event).coreId);
-					missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
+//					missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 					this.nextLevel.getPort().put(addressEvent);
 					return;
 				}
@@ -130,7 +147,8 @@ public class InstructionCache extends Cache
 			}
 			else if(alreadyRequested == 1)
 			{
-				if(requestingElement.getClass() == FetchUnitIn.class)
+//				this.containingMemSys.getCore().getExecutionEngineIn().incrementDataHazardStall(1);
+			/*	if(requestingElement.getClass() == FetchUnitIn.class)
 				{
 					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
@@ -138,6 +156,7 @@ public class InstructionCache extends Cache
 				{
 					((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
+			*/
 			}
 			else if (alreadyRequested ==2)
 			{
@@ -191,38 +210,39 @@ public class InstructionCache extends Cache
 			System.exit(1);
 		}
 		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
-			
+		Event eventPoppedOut;	
 		while (!/*NOT*/outstandingRequestList.isEmpty())
-		{				
-			if (outstandingRequestList.get(0).getRequestType() == RequestType.Cache_Read)
+		{	eventPoppedOut = outstandingRequestList.remove(0);
+			if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
 			{
 				//Pass the value to the waiting element
 				//TODO Add the EXEC_COMPLETE_EVENT
 				if (!containingMemSys.getCore().isPipelineStatistical)
-					if (!containingMemSys.getCore().isPipelineInorder)
+/*					if (!containingMemSys.getCore().isPipelineInorder)
 						eventQ.addEvent(
-								outstandingRequestList.get(0).update(
+								eventPoppedOut.update(
 										eventQ,
 										GlobalClock.getCurrentTime(),
 										this,
 										containingMemSys.getCore().getExecEngine().getFetcher(),
 										RequestType.Mem_Response));
 					else
-						outstandingRequestList.get(0).getRequestingElement().getPort().put(
-								outstandingRequestList.get(0).update(
-										eventQ,
+*/
+					eventPoppedOut.getRequestingElement().getPort().put(
+							eventPoppedOut.update(
+									eventPoppedOut.getEventQ(),
 										0,
 										this,
-										outstandingRequestList.get(0).getRequestingElement(),
+										eventPoppedOut.getRequestingElement(),
 										RequestType.Mem_Response));
 				else
 					DelayGenerator.insCountOut++;
 			}
 			
 			//Remove the processed entry from the outstanding request list
-			outstandingRequestList.remove(0);
+//			outstandingRequestList.remove(0);
 		}
-		Vector<Integer> indexToRemove = new Vector<Integer>();
+/*		Vector<Integer> indexToRemove = new Vector<Integer>();
 		for(int i=0; i < connectedMSHR.size();i++)
 		{
 			
@@ -263,6 +283,6 @@ public class InstructionCache extends Cache
 		{
 			this.connectedMSHR.remove(indexToRemove.get(i));
 		}
-
+*/
 	}
 }
