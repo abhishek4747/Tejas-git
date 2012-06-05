@@ -34,9 +34,16 @@ public class InorderPipeline implements PipelineInterface{
 			decode();
 			fetch();
 
-			this.core.powerCounters.updatePowerStatsPerCycle();
-			this.core.powerCounters.clearAccessStats();
-			this.core.getExecutionEngineIn().incrementNumCycles(1);
+			this.core.powerCounters.perCycleAccessRecordUpdate();
+
+//			this.core.powerCounters.updatePowerStatsPerCycle();
+//			this.core.powerCounters.clearAccessStats();
+
+//			if(this.core.getExecutionEngineIn().getFetchUnitIn().getStallLowerMSHRFull()>0)
+//				this.core.getExecutionEngineIn().getFetchUnitIn().decrementStallLowerMSHRFull(1);
+//			else
+				this.core.getExecutionEngineIn().incrementNumCycles(1);	//FIXME redundant operation. We are not using this for final statistics.
+																		//Global clock cycle/core step size is used instead.
 		}
 
 		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
@@ -101,9 +108,23 @@ public class InorderPipeline implements PipelineInterface{
 	}
 	public void setTimingStatistics()
 	{
-		Statistics.setCoreCyclesTaken(core.getCoreCyclesTaken(), core.getCore_number());
+		core.setCoreCyclesTaken(core.getExecutionEngineIn().getNumCycles());
+		Statistics.setCoreCyclesTaken(core.getExecutionEngineIn().getNumCycles(), core.getCore_number());
 		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
 		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
+		
+		System.out.println("Mem Stalls = "+this.core.getExecutionEngineIn().getMemStall());
+		System.out.println("Data Hazard Stalls = "+this.core.getExecutionEngineIn().getDataHazardStall());
+		System.out.println("Instruction Mem Stalls = "+this.core.getExecutionEngineIn().getInstructionMemStall());
+
+		System.out.println("IcacheHits = "+this.core.getExecutionEngineIn().icachehit);
+		System.out.println("Fresh l2 requests = "+this.core.getExecutionEngineIn().freshl2req);
+		System.out.println("Old l2 requests = "+this.core.getExecutionEngineIn().oldl2req);
+		System.out.println("L2 mem response = "+this.core.getExecutionEngineIn().l2memres);
+		System.out.println("L2 mem outstanding = "+this.core.getExecutionEngineIn().l2memoutstanding);
+		System.out.println("L2 accesses = "+this.core.getExecutionEngineIn().l2accesses);
+		System.out.println("L2 hits = "+this.core.getExecutionEngineIn().l2hits);
+
 	}
 	
 	public void setPerCoreMemorySystemStatistics()
@@ -120,6 +141,7 @@ public class InorderPipeline implements PipelineInterface{
 		Statistics.setNoOfIMisses(coreMemSys.getiCache().misses, core.getCore_number());
 	}
 	public void setPerCorePowerStatistics(){
+		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
 }

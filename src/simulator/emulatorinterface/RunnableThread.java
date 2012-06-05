@@ -155,12 +155,15 @@ public class RunnableThread implements Encoding {
 		 * [tidEmu].getListSize()+" thread.started is"
 		 * +threadParams[tidEmu].started); } }
 		 */
+//		System.out.print("Pipe Size Start= "+inputToPipeline[0].getListSize()+ " " +minN/pipelineInterfaces[0].getCoreStepSize());
 		for (int i1 = 0; i1 < minN; i1++) {
 			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
 			}
 			GlobalClock.incrementClock();
 		}
+//		System.out.println("  Pipe Size end= "+inputToPipeline[0].getListSize());
+		
 	}
 
 	public void finishAllPipelines() {
@@ -207,16 +210,18 @@ public class RunnableThread implements Encoding {
 			//System.out.println("maxN is "+maxN);
 		}
 		
-//		Core core;
-//		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
-//			core = pipelineInterfaces[tidEmu].getCore();
-//			if(core.isPipelineInorder && core.getExecutionEngineIn().getExecutionComplete()){
-//				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
-//				pipelineInterfaces[tidEmu].setTimingStatistics();			
-//				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
-//				pipelineInterfaces[tidEmu].setPerCorePowerStatistics();
-//			}
-//		}
+		//FIXME move inside the writeback stage
+		Core core;
+		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+			core = pipelineInterfaces[tidEmu].getCore();
+			if(core.isPipelineInorder && core.getExecutionEngineIn().getExecutionComplete()){
+				//System.out.println("Setting statistics for core number = "+core.getCore_number()+"with step size= "+core.getStepSize());
+				pipelineInterfaces[tidEmu].setTimingStatistics();			
+				pipelineInterfaces[tidEmu].setPerCoreMemorySystemStatistics();
+				pipelineInterfaces[tidEmu].setPerCorePowerStatistics();
+
+			}
+		}
 		long dataRead = 0;
 		long totNumIns = 0;
 		long totMicroOps = 0;

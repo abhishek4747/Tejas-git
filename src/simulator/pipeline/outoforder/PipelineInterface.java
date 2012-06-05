@@ -59,9 +59,9 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			execEngine.getRenamer().performRename();
 			execEngine.getDecoder().performDecode();
 			execEngine.getFetcher().performFetch();
-
-			this.core.powerCounters.updatePowerStatsPerCycle();
-			this.core.powerCounters.clearAccessStats();
+			this.core.powerCounters.perCycleAccessRecordUpdate();
+//			this.core.powerCounters.updatePowerStatsPerCycle();
+//			this.core.powerCounters.clearAccessStats();
 
 		}
 		
