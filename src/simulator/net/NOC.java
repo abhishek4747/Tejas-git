@@ -64,7 +64,6 @@ public class NOC{
 			ConnectBanksFatTree(cacheBank, bankColumns, nocConfig);
 			break;
 		}
-			
 	}
 /*	public void ConnectBanks(NucaCacheBank cacheBank[],int numOfBanks,TOPOLOGY topology){
 		switch (topology){
@@ -95,7 +94,7 @@ public class NOC{
 				if(j==bankColumns-1)             //right connections
 					cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT);
 				else
-					cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, cacheBank[i][j+1]);
+					cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, cacheBank[i][(j+1)]);
 				
 				if(i==bankRows-1)             //down connections
 					cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN);
@@ -105,7 +104,7 @@ public class NOC{
 				if(j==0)			            //left connections
 					cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT);
 				else
-					cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT, cacheBank[i][j-1]);
+					cacheBank[i][j].router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT, cacheBank[i][(j-1)]);
 			}
 	    }
 	}

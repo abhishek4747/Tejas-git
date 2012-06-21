@@ -16,6 +16,7 @@ public class AddressCarryingEvent extends Event
 	public RequestType oldRequestType;
 	public SimulationElement oldRequestingElement;
 	public Vector<Integer> oldSourceBankId;
+	public int index;
 	public boolean copyLine;
 	public int coreId;
 	public Stack<SimulationElement> requestingElementStack = new Stack<SimulationElement>();
@@ -31,6 +32,7 @@ public class AddressCarryingEvent extends Event
 		destinationBankId = null;
 		oldSourceBankId = null;
 		copyLine = false;
+		index = 0 ;
 	}
 
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,

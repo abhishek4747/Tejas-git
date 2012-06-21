@@ -53,8 +53,9 @@ public class NucaCacheBank extends Cache
 	TOPOLOGY topology;
 	Policy policy;
 	int cacheBankRows;
+	int cacheNumber;
 	int cacheBankColumns;
-	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
+	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NucaCache nucaCache)
     {
         super(cacheParameters,containingMemSys);
     	this.timestamp = 0;
@@ -65,7 +66,7 @@ public class NucaCacheBank extends Cache
         isFirstLevel = false;
         nucaType = NucaType.S_NUCA;
         topology = cacheParameters.nocConfig.topology;
-        policy = new Policy();
+        policy = new Policy(nucaCache);
         this.cacheBankColumns = cacheParameters.getNumberOfBankColumns();
         this.cacheBankRows = cacheParameters.getNumberOfBankRows();
     }

@@ -2,6 +2,7 @@ package emulatorinterface;
 
 import java.util.Enumeration;
 
+import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
@@ -161,6 +162,12 @@ public class Newmain {
 				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
 				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
 			}
+			else if (cache.getClass() == CBDNuca.class)
+			{
+				((NucaCache)cache).setStatistics();
+				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
+				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
+			}
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
@@ -281,10 +288,10 @@ public class Newmain {
 		long seconds = time/1000;
 		long minutes = seconds/60;
 		seconds = seconds%60;
-			System.out.println("\n");
-			System.out.println("[Simulator Time]\n");
-			
-			System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
-			System.out.println("\n");
+		System.out.println("\n");
+		System.out.println("[Simulator Time]\n");
+		
+		System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
+		System.out.println("\n");
 	}
 }

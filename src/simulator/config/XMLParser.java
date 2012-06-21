@@ -397,6 +397,8 @@ public class XMLParser
 			cache.nucaType = NucaType.S_NUCA;
 		else if (tempStr.equalsIgnoreCase("D"))
 			cache.nucaType = NucaType.D_NUCA;
+		else if (tempStr.equalsIgnoreCase("CBD"))
+			cache.nucaType = NucaType.CB_D_NUCA;
 		else
 		{
 			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");

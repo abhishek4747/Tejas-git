@@ -50,17 +50,6 @@ public class CoreMemorySystem
 	{
 		this.setCore(core);
 		this.coreID = core.getCore_number();
-		
-		//Initialise the  L3 cache
-		//CacheConfig cacheParameterObj;// = SystemConfig.core[coreID].l3Cache;
-		//l3Cache = new Cache(cacheParameterObj, this); 
-		
-		//Initialise the  L2 cache
-		//cacheParameterObj = SystemConfig.core[coreID].l2Cache;
-		//l2Cache = new Cache(cacheParameterObj, this); 
-		//l2Cache.nextLevel = l3Cache;
-		
-		//Initialise the  instruction cache
 		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].iCache;
 		iCache = new InstructionCache(cacheParameterObj, this);
