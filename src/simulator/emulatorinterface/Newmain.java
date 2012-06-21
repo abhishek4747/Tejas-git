@@ -116,7 +116,7 @@ public class Newmain {
 		MemorySystem.initializeMemSys(cores); //TODO mem sys need not know eventQ during initialisation
 		
 		//different core components may work at different frequencies
-		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
+		GlobalClock.systemTimingSetUp(cores);
 		
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		//FIXME A single java thread can have multiple cores

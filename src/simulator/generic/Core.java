@@ -26,10 +26,13 @@ import config.SystemConfig;
  * all core parameters are defined here
  */
 
-public class Core extends SimulationElement{
+public class Core {
 	
 	//long clock;
 	StatisticalPipeline statisticalPipeline;
+	Port port;
+	int stepSize;
+	long frequency;
 	ExecutionEngine execEngine;
 	EventQueue eventQueue;
 	ExecutionEngineIn execEngineIn;
@@ -80,10 +83,10 @@ public class Core extends SimulationElement{
 			InstructionLinkedList[] incomingInstructionLists,
 			int[] threadIDs)
 	{
-		super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
-		
+		//super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
+		this.port = new Port(PortType.Unlimited, -1, -1);
 		this.eventQueue = new EventQueue();
-		
+		this.frequency = SystemConfig.core[core_number].frequency;
 		initializeCoreParameters(SystemConfig.core[core_number]);
 		
 		this.core_number = core_number;
@@ -375,12 +378,6 @@ public class Core extends SimulationElement{
 	}
 
 
-	@Override
-	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	public pipeline.PipelineInterface getPipelineInterface() {
 		return pipelineInterface;
 	}
@@ -419,5 +416,19 @@ public class Core extends SimulationElement{
 	public void setCoreCyclesTaken(long coreCyclesTaken) {
 		this.coreCyclesTaken = coreCyclesTaken;
 	}
-
+	
+	public long getFrequency()
+	{
+		return this.frequency;
+	}
+	
+	public void setFrequency(long frequency)
+	{
+		this.frequency = frequency;
+	}
+	
+	public int getStepSize()
+	{
+		return stepSize;
+	}	
 }

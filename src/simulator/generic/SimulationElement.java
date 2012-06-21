@@ -6,8 +6,6 @@ public abstract class SimulationElement implements Cloneable
 	//all the request for the port are ported through simulationElement
 	Port port;
 	protected long latency;
-	long frequency;								//in MHz
-	int stepSize;
 
    public Object clone()
     {
@@ -32,7 +30,6 @@ public abstract class SimulationElement implements Cloneable
 	{
 		this.port = new Port(portType, noOfPorts, occupancy);
 		this.latency = latency;
-		this.frequency = frequency;
 	}
 //TODO remove this method
 	public SimulationElement(PortType portType,
@@ -45,13 +42,12 @@ public abstract class SimulationElement implements Cloneable
 	{
 		this.port = new Port(portType, noOfPorts, occupancy);
 		this.latency = latency;
-		this.frequency = frequency;
 	}
 	
 	//To get the time delay(due to latency) to schedule the event 
 	public long getLatencyDelay()
 	{
-		return (this.latency * this.stepSize);
+		return (this.latency /** this.stepSize*/);
 	}
 	
 	public long getLatency() 
@@ -68,7 +64,7 @@ public abstract class SimulationElement implements Cloneable
 		return this.port;
 	}	
 	
-	public long getFrequency() {
+	/*public long getFrequency() {
 		return frequency;
 	}
 
@@ -82,7 +78,7 @@ public abstract class SimulationElement implements Cloneable
 
 	public void setStepSize(int stepSize) {
 		this.stepSize = stepSize;
-	}
+	}*/
 	
 //	public abstract void handleEvent(EventQueue eventQueue);
 	public abstract void handleEvent(EventQueue eventQ, Event event);
