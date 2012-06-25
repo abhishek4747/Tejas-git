@@ -42,7 +42,7 @@ public class DNuca extends NucaCache {
 					cacheBank[i][j].isFirstLevel = true;
 				if(i==1)
 				{
-					cacheBank[cacheRows-1][j].isLastLevel = false; 
+					cacheBank[cacheRows-1][j].isLastLevel = true; 
 				}
 			}
 		}
@@ -58,7 +58,7 @@ public class DNuca extends NucaCache {
 		// TODO Auto-generated method stub
 		SimulationElement requestingElement = event.getRequestingElement();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
-		Vector<Integer> sourceBankId = getNearestBankId(address, ((AddressCarryingEvent)(event)).coreId);
+		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
 		//System.out.println(sourceBankId + " " + destinationBankId + " " + getBankNumber(address));
 		//System.exit(0);

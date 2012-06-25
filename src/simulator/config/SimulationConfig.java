@@ -38,4 +38,6 @@ public class SimulationConfig
 	public static boolean writeToFile;
 	public static int numInstructionsToBeWritten;
 	public static String InstructionsFilename;
+	public static boolean subSetSim;
+	public static long subSetSimSize;
 }

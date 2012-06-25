@@ -41,6 +41,7 @@ public class MainMemory extends SimulationElement
 			{
 
 				NucaCacheBank requestingBank =  (NucaCacheBank) event.getRequestingElement();
+				//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() +" " + ((AddressCarryingEvent)event).getDestinationBankId());
 				requestingBank.getRouter().getPort().put(
 						event.update(
 								eventQ,

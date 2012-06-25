@@ -47,7 +47,7 @@ public class RunnableThread implements Encoding {
 	long sum = 0; // checksum
 	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
 	int currentEMUTHREADS = 0;
-	
+	static long ignoredInstructions = 0;
 	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
 	InstructionLinkedList[] inputToPipeline;
@@ -242,6 +242,24 @@ public class RunnableThread implements Encoding {
 				e.printStackTrace();
 			}
 		}
+		
+		if(SimulationConfig.subSetSim)
+		{
+			String cmd[] = {"/bin/sh",
+					      "-c",
+					      "killall -9 " + Newmain.executableFile
+			};
+			try
+			{
+				Process process = Runtime.getRuntime().exec(cmd);
+				int ret = process.waitFor();
+				System.out.println("ret :" + ret);
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
 		Statistics.setDataRead(dataRead, tid);
 		Statistics.setNumInstructions(numInstructions, tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
@@ -288,6 +306,14 @@ public class RunnableThread implements Encoding {
 			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
 			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
 					dynamicInstructionBuffer[tidEmu]);
+			if(ignoredInstructions < SimulationConfig.NumInsToIgnore)
+			{
+				ignoredInstructions += tempList.length();
+			}
+			else
+			{
+				noOfMicroOps[tidEmu] += tempList.length();
+			}
 
 /*			if(SimulationConfig.detachMemSys == true)	//TODO
 			{
@@ -316,27 +342,35 @@ public class RunnableThread implements Encoding {
 					}
 				}
 			}
+			else if(ignoredInstructions >= SimulationConfig.NumInsToIgnore)
+			{
+				this.inputToPipeline[tidEmu].appendInstruction(tempList);
+				if(!thread.halted && this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)
+				{
+					thread.halted = true;
+				}
+			}
 			else {
 				
 				int temmm = tempList.getListSize();
 				for (int i = 0; i < temmm; i++) {
-					//Newmain.instructionPool.returnObject(tempList.pollFirst());
-					tempList.peekInstructionAt(i).setSerialNo(noOfMicroOps[0]+i);
+					Newmain.instructionPool.returnObject(tempList.pollFirst());
+					//tempList.peekInstructionAt(i).setSerialNo(noOfMicroOps[0]+i);
 				}
 				
-				this.inputToPipeline[tidEmu].appendInstruction(tempList);
+				/*this.inputToPipeline[tidEmu].appendInstruction(tempList);
 
 				if (!thread.halted && (this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
 						//|| thread.packets.size() > PACKET_THRESHOLD)) {
 					thread.halted = true;
 					//System.out.println("Halting "+tidEmu);
-				}
+				}*/
 			}
 			
 /*			if (currentEMUTHREADS>1)
 			System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
 */				
-			noOfMicroOps[tidEmu] += tempList.length();
+			//noOfMicroOps[tidEmu] += tempList.length();
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && tempList.getListSize() > 0) {
 				//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);

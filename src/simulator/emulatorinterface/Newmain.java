@@ -39,11 +39,11 @@ public class Newmain {
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
 	public static boolean subsetSimulation = true; //test added
-
+	public static String executableFile = " ";
 	public static void main(String[] arguments) throws Exception 
 	{
 		String executableArguments=" ";
-		String executableFile = " ";
+		
 		
 		start = System.currentTimeMillis();
 		// check command line arguments
@@ -65,7 +65,7 @@ public class Newmain {
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// Create Pools of Instructions and Operands
-		int numInstructionsInPool = 70000;
+		int numInstructionsInPool = 150000;
 		
 		/* "apache pool"
 		System.out.println("creating operand pool..");

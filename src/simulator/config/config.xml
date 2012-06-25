@@ -38,6 +38,8 @@
 		<InorderPipeline>true</InorderPipeline>	<!--True to enable inorder pipeline-->
 		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
+		<subsetsim>true<subsetsim>
+		<subsetsimsize>100000000<subsetsimsize>
 		<writeToFile>false</writeToFile>
 	</Simulation>
 

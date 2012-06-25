@@ -88,7 +88,7 @@ public class Policy {
 				return null;
 			}
 		} 
-		else if(nucaType == NucaType.CB_D_NUCA)
+	/*	else if(nucaType == NucaType.CB_D_NUCA)
 		{
 			int setIndex = nucaCache.getSetIndex(address);
 			if(event.index == nucaCache.cacheMapping.get(event.coreId).get(setIndex).size())
@@ -175,14 +175,14 @@ public class Policy {
 								  address);
 			}
 			
-		}
+		}*/
 		else
 		{
 			if(cacheBank.isFirstLevel)
 			{
 				((AddressCarryingEvent)event).oldSourceBankId = (Vector<Integer>) ((AddressCarryingEvent)event).getSourceBankId().clone(); 
 			}
-			else if(cacheBank.isLastLevel)
+			if(cacheBank.isLastLevel)
 			{
 				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
 				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).oldSourceBankId);
@@ -192,6 +192,7 @@ public class Policy {
 				{
 					event.oldRequestType = event.getRequestType();
 					event.requestTypeStack.push(event.getRequestType());
+					System.out.println("cachebank id" + cacheBank.getRouter().getBankId() + event.getDestinationBankId() + event.getSourceBankId());
 					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																				 0,
 																				 cacheBank, 
@@ -245,18 +246,21 @@ public class Policy {
 					return null;
 				}
 			}
-			sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-			destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-			int id = destinationBankId.remove(0);
-			destinationBankId.add(0,id +1);
-			requestType = event.getRequestType();
-			return event.updateEvent(eventQ,
-									 cacheBank.getLatencyDelay(), 
-									 cacheBank,
-									 cacheBank.getRouter(),
-									 requestType,
-									 sourceBankId, 
-									 destinationBankId);
+			else
+			{
+				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
+				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
+				int id = destinationBankId.remove(0);
+				destinationBankId.add(0,id +1);
+				requestType = event.getRequestType();
+				return event.updateEvent(eventQ,
+										 cacheBank.getLatencyDelay(), 
+										 cacheBank,
+										 cacheBank.getRouter(),
+										 requestType,
+										 sourceBankId, 
+										 destinationBankId);
+			}
 		}
 	}
 	

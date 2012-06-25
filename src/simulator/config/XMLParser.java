@@ -110,6 +110,11 @@ public class XMLParser
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
+		if(getImmediateString("subsetsim", simulationElmnt).equals("true"))
+		{
+			SimulationConfig.subSetSim = true;
+			SimulationConfig.subSetSimSize = Long.parseLong(getImmediateString("subsetsimsize", simulationElmnt));
+		}
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
 			SimulationConfig.IndexAddrModeEnable = false;
