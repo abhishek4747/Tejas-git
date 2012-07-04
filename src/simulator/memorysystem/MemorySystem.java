@@ -60,7 +60,7 @@ public class MemorySystem
 		//Set up the main memory properties
 		
 		
-		if (SimulationConfig.isPipelineInorder)
+		if (SimulationConfig.isPipelineInorder || SimulationConfig.isPipelineMultiIssueInorder)
 			bypassLSQ = true;
 		
 		/*-- Initialise the memory system --*/
@@ -148,6 +148,8 @@ public class MemorySystem
 				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
 			else if (cores[i].isPipelineStatistical)
 				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
+			else if(cores[i].isPipelineMultiIssueInorder)
+				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
 			else
 				cores[i].getExecEngine().coreMemSys = coreMemSys;
 			

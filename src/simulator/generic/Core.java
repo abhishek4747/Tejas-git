@@ -12,6 +12,7 @@ import pipeline.inorder.InorderPipeline;
 import pipeline.inorder.MemUnitIn;
 import pipeline.inorder.RegFileIn;
 import pipeline.inorder.WriteBackUnitIn;
+import pipeline.inorder.multiissue.MultiIssueInorder;
 import pipeline.outoforder.ExecutionEngine;
 import pipeline.outoforder.PipelineInterface;
 import pipeline.statistical.StatisticalPipeline;
@@ -37,7 +38,8 @@ public class Core extends SimulationElement{
 	
 	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
 	public boolean isPipelineInorder = SimulationConfig.isPipelineInorder;
-	
+	public boolean isPipelineMultiIssueInorder = SimulationConfig.isPipelineMultiIssueInorder;
+
 	//core parameters
 	private int decodeWidth;
 	private int issueWidth;
@@ -71,6 +73,7 @@ public class Core extends SimulationElement{
 	private pipeline.PipelineInterface pipelineInterface;
 	public int numReturns;
 	public Counters powerCounters;
+	private int numInorderPipelines;
 
 
 //	private InorderPipeline inorderPipeline;
@@ -95,8 +98,10 @@ public class Core extends SimulationElement{
 		
 		if (isPipelineStatistical)
 			this.statisticalPipeline = new StatisticalPipeline(this);
-		else if(isPipelineInorder)
-			this.execEngineIn = new ExecutionEngineIn(this);
+		else if(this.isPipelineInorder)
+			this.execEngineIn = new ExecutionEngineIn(this,1);
+		else if(this.isPipelineMultiIssueInorder)
+			this.execEngineIn = new ExecutionEngineIn(this,this.numInorderPipelines);
 		else
 			this.execEngine = new ExecutionEngine(this);
 		
@@ -106,7 +111,9 @@ public class Core extends SimulationElement{
 		if (this.isPipelineStatistical)
 			this.pipelineInterface = new StatisticalPipelineInterface(this, eventQueue);
 		else if(this.isPipelineInorder)
-			this.pipelineInterface = new InorderPipeline(this, eventQueue);
+			this.pipelineInterface = new InorderPipeline(this, eventQueue,0);
+		else if(this.isPipelineMultiIssueInorder)
+			this.pipelineInterface = new MultiIssueInorder(this, eventQueue);
 		else
 			this.pipelineInterface = new PipelineInterface(this, eventQueue);
 		this.powerCounters = new Counters();
@@ -130,6 +137,8 @@ public class Core extends SimulationElement{
 		setNoOfRegFilePorts(coreConfig.RegFilePorts);
 		setRegFileOccupancy(coreConfig.RegFileOccupancy);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
+		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
+		setNumInorderPipelines(coreConfig.numInorderPipelines);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
@@ -181,6 +190,14 @@ public class Core extends SimulationElement{
 
 	public int getIssueWidth() {
 		return issueWidth;
+	}
+
+	public int getNumInorderPipelines() {
+		return numInorderPipelines;
+	}
+
+	public void setNumInorderPipelines(int numInorderPipelines) {
+		this.numInorderPipelines = numInorderPipelines;
 	}
 
 	public void setIssueWidth(int issueWidth) {
@@ -397,6 +414,10 @@ public class Core extends SimulationElement{
 	public void setInputToPipeline(InstructionLinkedList[] inputsToPipeline)
 	{
 		if(this.isPipelineInorder){
+			//System.out.println("Input to pipeline is set");			
+			this.getExecutionEngineIn().getFetchUnitIn().setInputToPipeline(inputsToPipeline[0]);
+		}
+		else if(this.isPipelineMultiIssueInorder){
 			//System.out.println("Input to pipeline is set");			
 			this.getExecutionEngineIn().getFetchUnitIn().setInputToPipeline(inputsToPipeline[0]);
 		}

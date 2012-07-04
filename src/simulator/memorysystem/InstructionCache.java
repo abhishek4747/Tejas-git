@@ -62,7 +62,7 @@ public class InstructionCache extends Cache
 			//Just return the read block
 			requestingElement.getPort().put(
 					event.update(
-							eventQ,
+							event.getEventQ(),
 							0,
 							this,
 							requestingElement,
@@ -118,7 +118,7 @@ public class InstructionCache extends Cache
 				{
 					MemorySystem.mainMemory.getPort().put(
 							new AddressCarryingEvent(
-									eventQ,
+									event.getEventQ(),
 									MemorySystem.mainMemory.getLatencyDelay(),
 									this, 
 									MemorySystem.mainMemory,
@@ -132,7 +132,7 @@ public class InstructionCache extends Cache
 				//FIXME What is the need of generating a new address carrying event here ?
 				// Can use the original event itself
 //					System.out.println("Next Level " + this.nextLevelName + "last level ="+this.isLastLevel);
-					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+					AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																				this.nextLevel.getLatencyDelay(),
 																				this, 
 																				this.nextLevel,

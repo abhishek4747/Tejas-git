@@ -97,11 +97,11 @@ public class StageLatch {
 	public void setLoadFlag(boolean flagValue){
 		this.LoadFlag=flagValue;
 	}
-	public void incrementStallCount(){
-		this.stallCount++;
+	public void incrementStallCount(int stall){
+		this.stallCount += stall;
 	}
-	public void decrementStallCount(){
-		this.stallCount--;
+	public void decrementStallCount(int stall){
+		this.stallCount -= stall;
 	}
 	public void setStallCount(int count){
 		this.stallCount = count;

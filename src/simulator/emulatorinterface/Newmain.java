@@ -276,6 +276,8 @@ public class Newmain {
 				cores[i].getStatisticalPipeline().setExecutionComplete(true);
 			else if (cores[i].isPipelineInorder)
 				cores[i].getExecutionEngineIn().setExecutionComplete(true);
+			else if (cores[i].isPipelineMultiIssueInorder)
+				cores[i].getExecutionEngineIn().setExecutionComplete(true);
 			else
 				cores[i].getExecEngine().setExecutionComplete(true);
 		}

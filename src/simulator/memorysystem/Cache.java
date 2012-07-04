@@ -386,13 +386,10 @@ public class Cache extends SimulationElement
 			CacheLine cl = this.processRequest(requestType, address);
 			if(this.isLastLevel){
 //TODO where to add these l2 counters ??, For now made it static 
-//				this.containingMemSys.getCore().powerCounters.incrementDcache2Access(1);
 				Counters.incrementDcache2Access(1);
 			}
 			else{
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
-; //TODO check for correctness!
-//				Counters.dcache_access[containingMemSys.getCore().getCore_number()]++; //TODO check for correctness!
 			}
 			//IF HIT
 			if (cl != null)
@@ -726,8 +723,17 @@ public class Cache extends SimulationElement
 										this,
 										eventPoppedOut.getRequestingElement(),
 										RequestType.Mem_Response));
-					else if (containingMemSys.getCore().isPipelineInorder)
+					else if (containingMemSys.getCore().isPipelineInorder 
+							|| containingMemSys.getCore().isPipelineMultiIssueInorder)
 						//TODO Return the call to Inorder pipeline
+						eventPoppedOut.getRequestingElement().getPort().put(
+								eventPoppedOut.update(
+										eventPoppedOut.getEventQ(),
+										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
+										this,
+										eventPoppedOut.getRequestingElement(),
+										RequestType.Mem_Response));
+					/*
 						eventPoppedOut.getRequestingElement().getPort().put(
 								new ExecCompleteEvent(
 										containingMemSys.getCore().getEventQueue(),
@@ -736,6 +742,7 @@ public class Cache extends SimulationElement
 										eventPoppedOut.getRequestingElement(),
 										RequestType.EXEC_COMPLETE,
 										null));
+						*/
 				}
 				
 				else if (eventPoppedOut.getRequestType() == RequestType.Cache_Read_from_iCache)

@@ -1,15 +1,21 @@
 package pipeline.inorder;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import pipeline.outoforder.FunctionalUnitSet;
+
 import config.SystemConfig;
 import memorysystem.CoreMemorySystem;
 import generic.Core;
 import generic.GlobalClock;
+import generic.Operand;
+import generic.OperationType;
 import generic.Statistics;
 
 public class ExecutionEngineIn {
 	
 	Core core;
-	StageLatch ifId,idEx,exMem,memWb,wbDone;
 	
 	private int numCycles;
 	private FetchUnitIn fetchUnitIn;
@@ -24,14 +30,30 @@ public class ExecutionEngineIn {
 	private int noOfMemRequests;
 	private int noOfLd;
 	private int noOfSt;
+	private int memStall;
+	private int dataHazardStall;
+	private int InstructionMemStall;
+	public int l2memres;
+	public int oldl2req;
+	public int freshl2req;
+	public int icachehit;
+	public int l2memoutstanding;
+	public int l2hits;
+	public int l2accesses;
+	private int numPipelines;
+	
+	ArrayList<Operand> destRegisters = new ArrayList<Operand>();
+	private int stallFetch;
+	private int stallPipelinesDecode;	// these specify which all pipelines to stall. i.e. all pipelines with iDs from
+	private int stallPipelinesExecute;	// stallPipelines to N (max Num of pipelines) will be stalled
 
-	public ExecutionEngineIn(Core _core){
+	private FunctionalUnitSet functionalUnitSet;
+	StageLatch[] ifIdLatch,idExLatch,exMemLatch,memWbLatch,wbDoneLatch;
+
+
+	public ExecutionEngineIn(Core _core, int numPipelines){
 		this.core = _core;
-		this.ifId = new StageLatch(_core);
-		this.idEx = new StageLatch(_core);
-		this.exMem = new StageLatch(_core);
-		this.memWb = new StageLatch(_core);
-		this.wbDone = new StageLatch(_core);
+
 		this.setFetchUnitIn(new FetchUnitIn(core,core.getEventQueue()));
 		this.setDecodeUnitIn(new DecodeUnitIn(core));
 		this.setRegFileIn(new RegFileIn(core));
@@ -39,7 +61,49 @@ public class ExecutionEngineIn {
 		this.setMemUnitIn(new MemUnitIn(core));
 		this.setWriteBackUnitIn(new WriteBackUnitIn(core));
 		this.executionComplete=false;
+		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),core.getAllLatencies());
+		memStall=0;
+		dataHazardStall=0;
+		InstructionMemStall=0;
+		
+		l2memres=0;
+		freshl2req=0;
+		oldl2req=0;
+		icachehit=0;
+		l2memoutstanding=0;
+		l2hits=0;
+		l2accesses=0;
+		stallPipelinesDecode=-1;	//-1 implies no pipeline should be stalled
+		stallPipelinesExecute=-1;
+		ifIdLatch = new StageLatch[numPipelines];
+		idExLatch = new StageLatch[numPipelines];
+		exMemLatch = new StageLatch[numPipelines];
+		memWbLatch = new StageLatch[numPipelines];
+		wbDoneLatch = new StageLatch[numPipelines];
+		for(int i=0;i<numPipelines;i++){
+			ifIdLatch[i] = new StageLatch(_core);
+			idExLatch[i] = new StageLatch(_core);
+			exMemLatch[i] = new StageLatch(_core);
+			memWbLatch[i] = new StageLatch(_core);
+			wbDoneLatch[i]= new StageLatch(_core);
+		}
+		this.numPipelines = numPipelines;
+	}
 
+	public int getNumPipelines() {
+		return numPipelines;
+	}
+
+	public void setNumPipelines(int numPipelines) {
+		this.numPipelines = numPipelines;
+	}
+
+	public FunctionalUnitSet getFunctionalUnitSet() {
+		return functionalUnitSet;
+	}
+
+	public void setFunctionalUnitSet(FunctionalUnitSet functionalUnitSet) {
+		this.functionalUnitSet = functionalUnitSet;
 	}
 
 	public FetchUnitIn getFetchUnitIn(){
@@ -93,21 +157,7 @@ public class ExecutionEngineIn {
 	public void setFetchComplete(boolean fetchComplete){
 		this.fetchComplete=fetchComplete;
 	}
-	public StageLatch getIfIdLatch(){
-		return this.ifId;
-	}
-	public StageLatch getIdExLatch(){
-		return this.idEx;
-	}
-	public StageLatch getExMemLatch(){
-		return this.exMem;
-	}
-	public StageLatch getMemWbLatch(){
-		return this.memWb;
-	}
-	public StageLatch getWbDoneLatch(){
-		return this.wbDone;
-	}
+
 //	public CoreMemorySystem getCoreMemorySystem(){
 //		return this.coreMemorySystem;
 //	}
@@ -130,13 +180,9 @@ public class ExecutionEngineIn {
 		Statistics.setNoOfMemRequests(core.getExecutionEngineIn().getNoOfMemRequests(), core.getCore_number());
 		Statistics.setNoOfLoads(core.getExecutionEngineIn().getNoOfLd(), core.getCore_number());
 		Statistics.setNoOfStores(core.getExecutionEngineIn().getNoOfSt(), core.getCore_number());
-//		Statistics.setNoOfMemRequests(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().noOfMemRequests, core.getCore_number());
-//		Statistics.setNoOfLoads(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().NoOfLd, core.getCore_number());
-//		Statistics.setNoOfStores(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().NoOfSt, core.getCore_number());
-//		Statistics.setNoOfValueForwards(core.getExecutionEngineIn().coreMemorySystem.getLsqueue().NoOfForwards, core.getCore_number());
-//		Statistics.setNoOfTLBRequests(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
-//		Statistics.setNoOfTLBHits(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
-//		Statistics.setNoOfTLBMisses(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfTLBRequests(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
 		Statistics.setNoOfL1Requests(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfL1Hits(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().misses, core.getCore_number());
@@ -149,32 +195,26 @@ public class ExecutionEngineIn {
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
 	private long getNoOfSt() {
-		// TODO Auto-generated method stub
 		return noOfSt;
 	}
 
 	private long getNoOfLd() {
-		// TODO Auto-generated method stub
 		return noOfLd;
 	}
 
 	private long getNoOfMemRequests() {
-		// TODO Auto-generated method stub
 		return noOfMemRequests;
 	}
 
 	public void updateNoOfLd(int i) {
-		// TODO Auto-generated method stub
 		this.noOfLd += i;
 	}
 
 	public void updateNoOfMemRequests(int i) {
-		// TODO Auto-generated method stub
 		this.noOfMemRequests += i;
 	}
 
 	public void updateNoOfSt(int i) {
-		// TODO Auto-generated method stub
 		this.noOfSt += i;
 	}
 
@@ -184,5 +224,108 @@ public class ExecutionEngineIn {
 
 	public int getNumCycles() {
 		return numCycles;
+	}
+
+	public int getMemStall() {
+		return memStall;
+	}
+
+	public int getDataHazardStall() {
+		return dataHazardStall;
+	}
+
+	public void incrementDataHazardStall(int i) {
+		this.dataHazardStall += i;
+		
+	}
+
+	public void incrementMemStall(int i) {
+		this.memStall += i;
+		
+	}
+
+	public int getInstructionMemStall() {
+		return InstructionMemStall;
+
+	}
+	
+	public void incrementInstructionMemStall(int i) {
+		this.InstructionMemStall += i;
+		
+	}
+	
+	public ArrayList<Operand> getDestRegisters() {
+		return destRegisters;
+	}
+
+	public int getStallFetch() {
+		return stallFetch;
+	}
+
+	public void setStallFetch(int stallFetch) {
+		this.stallFetch = stallFetch;
+	}
+
+	public void incrementStallFetch(int stallFetch) {
+		this.stallFetch += stallFetch;
+	}
+
+	public void decrementStallFetch(int stallFetch) {
+		this.stallFetch -= stallFetch;
+	}
+
+	public int getStallPipelinesDecode() {
+		return stallPipelinesDecode;
+	}
+
+	public void setStallPipelinesDecode(int stallPipelines, int stall) {
+		for(int i=stallPipelines;i<this.numPipelines;i++){
+			ifIdLatch[i].incrementStallCount(stall);
+		}
+//		this.stallPipelinesDecode = stallPipelines;
+	}
+
+	public int getStallPipelinesExecute() {
+		return stallPipelinesExecute;
+	}
+
+	public void setStallPipelinesExecute(int stallPipelines, int stall) {
+		for(int i=stallPipelines;i<this.numPipelines;i++){
+			idExLatch[i].incrementStallCount(stall);
+		}
+//		this.stallPipelinesExecute = stallPipelines;
+	}
+	public void setStallPipelinesMem(int stallPipelines, int stall) {
+		for(int i=stallPipelines;i<this.numPipelines;i++){
+			exMemLatch[i].incrementStallCount(stall);
+		}
+//		this.stallPipelinesExecute = stallPipelines;
+	}
+	public StageLatch getIfIdLatch(int i){
+		return this.ifIdLatch[i];
+	}
+	public StageLatch getIdExLatch(int i){
+		return this.idExLatch[i];
+	}
+	public StageLatch getExMemLatch(int i){
+		return this.exMemLatch[i];
+	}
+	public StageLatch getMemWbLatch(int i){
+		return this.memWbLatch[i];
+	}
+	public StageLatch getWbDoneLatch(int i){
+		return this.wbDoneLatch[i];
+	}
+
+	public void setMemDone(long address, boolean b) {
+		for(int i=0;i<this.numPipelines;i++){
+			if(exMemLatch[i].getOperationType()==OperationType.load && exMemLatch[i].getInstruction().getSourceOperand1().getValue()==address){
+				exMemLatch[i].setMemDone(b);
+				idExLatch[i].setStallCount(0);
+			}
+			else if(exMemLatch[i].getOperationType()==OperationType.store && exMemLatch[i].getInstruction().getSourceOperand1().getValue()==address){
+				idExLatch[i].setStallCount(0);
+			}
+		}
 	}
 }

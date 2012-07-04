@@ -324,12 +324,12 @@ public class LSQ extends SimulationElement
 		else
 		{
 			//Fetch the physical address from from Page table
-			//TODO Now, we directly check TLB as a function and schedule a validate event 
-			// assuming a constant delay equal to Main memory latency
+			//Now, we directly check TLB as a function and schedule a validate event 
+			// assuming a constant delay equal to TLB miss penalty
 			this.getPort().put(
 					event.update(
 							eventQ,
-							MemorySystem.mainMemory.getLatencyDelay(),
+							this.containingMemSys.TLBuffer.getMissPenalty(),//MemorySystem.mainMemory.getLatencyDelay(),
 							null,
 							this,
 							RequestType.Validate_LSQ_Addr));

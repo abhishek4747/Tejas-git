@@ -104,7 +104,7 @@ public class FetchUnitIn extends SimulationElement{
 //System.out.println("Size = "+inputToPipeline.getListSize()+" "+(this.fetchBufferIndex+this.fetchFillCount));
 			}
 			else{
-				this.fetchBuffer[(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity]= newInstruction;//inputToPipeline.pollFirst();
+				this.fetchBuffer[i]= newInstruction;//inputToPipeline.pollFirst();
 				this.fetchFillCount++;
 
 				if(SimulationConfig.detachMemSys){
@@ -127,7 +127,7 @@ public class FetchUnitIn extends SimulationElement{
 				
 
 	}
-	public void performFetch(){
+	public void performFetch(InorderPipeline inorderPipeline){
 		if(!core.getExecutionEngineIn().getFetchComplete())
 			fillFetchBuffer();
 		if(this.stallLowerMSHRFull > 0){
@@ -135,11 +135,11 @@ public class FetchUnitIn extends SimulationElement{
 			return;
 		}
 		Instruction ins;
-		StageLatch ifIdLatch = core.getExecutionEngineIn().getIfIdLatch();
+		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();
 			
 		if(!this.fetchBufferStatus[this.fetchBufferIndex])
 			this.core.getExecutionEngineIn().incrementInstructionMemStall(1); 
-		if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && ifIdLatch.getStallCount()==0 
+		if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && this.core.getExecutionEngineIn().getStallFetch()==0 
 					&& this.fetchBufferStatus[this.fetchBufferIndex]){
 					
 					ins = this.fetchBuffer[this.fetchBufferIndex];
@@ -152,19 +152,16 @@ public class FetchUnitIn extends SimulationElement{
 							this.syncCount--;
 						}
 						else{
-							core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
+							ifIdLatch.setInstruction(null);
 							sleepThePipeline();
 							return;
 						}
 					}
 					else{
-						core.getExecutionEngineIn().getIfIdLatch().setInstruction(ins);
+						inorderPipeline.getIfIdLatch().setInstruction(ins);
 						this.fetchFillCount--;			
 						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
 					}
-			}
-			if(ifIdLatch.getStallCount()>0){
-				ifIdLatch.decrementStallCount();
 			}
 			if(this.stall>0){
 	//			core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);

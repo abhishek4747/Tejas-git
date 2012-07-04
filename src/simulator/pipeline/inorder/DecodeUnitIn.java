@@ -1,5 +1,6 @@
 package pipeline.inorder;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import pipeline.outoforder.MispredictionPenaltyCompleteEvent;
@@ -11,6 +12,7 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.OMREntry;
 import generic.Operand;
+import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -28,30 +30,50 @@ public class DecodeUnitIn extends SimulationElement{
 	}
 
 	
-	public void performDecode(){
+	public void performDecode(InorderPipeline inorderPipeline){
 		Instruction ins;
-		StageLatch ifIdLatch = this.core.getExecutionEngineIn().getIfIdLatch();
-		StageLatch idExLatch = this.core.getExecutionEngineIn().getIdExLatch(); 
-		StageLatch exMemLatch = this.core.getExecutionEngineIn().getExMemLatch();
+		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();
+		StageLatch idExLatch = inorderPipeline.getIdExLatch(); 
+		StageLatch exMemLatch = inorderPipeline.getExMemLatch();
 		ins = ifIdLatch.getInstruction();
-		if(idExLatch.getStallCount()==0 && ifIdLatch.getMemDone()){
+		if(ifIdLatch.getStallCount()>0){
+			ifIdLatch.decrementStallCount(1);
+			return;
+//			this.core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
+		}
+		if(ifIdLatch.getStallCount()==0){
 			if(ins!=null){
 	//System.out.println("Decode "+ins.getSerialNo());		
-				if(idExLatch.getInstruction()!=null){
+/*				OLD Code for checking data hazard
+* 				if(idExLatch.getInstruction()!=null){
 					if(checkDataHazard(ins,idExLatch.getOut1()) && idExLatch.getLoadFlag()){
-						core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
+						this.core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
 						this.core.getExecutionEngineIn().incrementDataHazardStall(1);
+						return;
+//						idExLatch.setStallCount(1);
 		//System.out.println("Data Hazard!");
 					}
 				}
 				else{
 					if(checkDataHazard(ins,exMemLatch.getOut1()) && exMemLatch.getLoadFlag()){
-						core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
+						this.core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
 						this.core.getExecutionEngineIn().incrementDataHazardStall(1);
+						return;
+//						idExLatch.setStallCount(1);
 					}
 				}
+*/
 	//			else{
 
+				if(checkDataHazard(ins)){
+//System.out.println("Data Hazard");					
+					this.core.getExecutionEngineIn().incrementStallFetch(1);
+					this.core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId()+1,1);
+//					this.core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
+					this.core.getExecutionEngineIn().incrementDataHazardStall(1);
+					return;
+				}
+//				this.core.getExecutionEngineIn().setStallPipelinesDecode(-1);
    				OperationType opType = ins.getOperationType();
    				this.core.powerCounters.incrementWindowSelectionAccess(1);
 				if(opType==OperationType.load || opType==OperationType.store){
@@ -77,47 +99,66 @@ public class DecodeUnitIn extends SimulationElement{
 			  
 				this.core.powerCounters.incrementRegfileAccess(1);
 			  
-					idExLatch.setInstruction(ins);
-					idExLatch.setIn1(ins.getSourceOperand1());
-					idExLatch.setIn2(ins.getSourceOperand2());			
-					idExLatch.setOut1(ins.getDestinationOperand());
-					idExLatch.setOperationType(ins.getOperationType());
-					
-					ifIdLatch.clear();
-				
+					if(ins.getDestinationOperand()!=null){
+						if(/*ins.getOperationType()==OperationType.floatDiv ||
+								ins.getOperationType()==OperationType.floatMul ||
+								ins.getOperationType()==OperationType.floatALU ||
+								ins.getOperationType()==OperationType.integerALU ||
+								ins.getOperationType()==OperationType.integerDiv ||
+								ins.getOperationType()==OperationType.integerMul ||*/
+								ins.getOperationType()==OperationType.load)
+//							if(ins.getDestinationOperand().getOperandType()==OperandType.integerRegister ||
+//									ins.getDestinationOperand().getOperandType()==OperandType.floatRegister)
+							this.core.getExecutionEngineIn().getDestRegisters().add(ins.getDestinationOperand());
+					}
 					if(ins.getOperationType()==OperationType.branch){ 
 								this.core.powerCounters.incrementBpredAccess(1);
 
+								if(core.getBranchPredictor().predict(ins.getRISCProgramCounter()) != ins.isBranchTaken()){
+									//Branch mis predicted
+									//stall pipelines for appropriate cycles
+									//TODO correct the following:
+//										core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
+										core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId()+1, core.getBranchMispredictionPenalty());
+										core.getExecutionEngineIn().incrementStallFetch(core.getBranchMispredictionPenalty());
+									}
+				
 								core.getBranchPredictor().Train(
 								ins.getRISCProgramCounter(),
 								ins.isBranchTaken(),
 								core.getBranchPredictor().predict(ins.getRISCProgramCounter())
 								);
-						if(core.getBranchPredictor().predict(ins.getRISCProgramCounter()) != ins.isBranchTaken()){
-						//Branch mis predicted
-						//stall pipeline for appropriate cycles
-						//TODO correct the following:
-		//				core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
-							core.getExecutionEngineIn().getFetchUnitIn().incrementStall(2);
-						}
 					}
 	//			}
+					idExLatch.setInstruction(ins);
+					idExLatch.setIn1(ins.getSourceOperand1());
+					idExLatch.setIn2(ins.getSourceOperand2());			
+					idExLatch.setOut1(ins.getDestinationOperand());
+					idExLatch.setOperationType(ins.getOperationType());
+					ifIdLatch.clear();
+				
+
 			}
 			else{
 	//			idExLatch.setInstruction(null);
 			}
 		}			
 
-		if(idExLatch.getStallCount()>0){
-			idExLatch.decrementStallCount();
-			ifIdLatch.incrementStallCount();
-		}
+
 	}
 
-	private boolean checkDataHazard(Instruction ins, Operand destOp){
-		if(destOp!=null){
-			//TODO check the following way of comparing the two operands
-//			if(destOp.equals(ins.getSourceOperand1()) || destOp.equals(ins.getSourceOperand2()))
+	private boolean checkDataHazard(Instruction ins){
+		ArrayList<Operand> destRegisters = this.core.getExecutionEngineIn().getDestRegisters();
+		for(Operand e: destRegisters){
+			if(ins.getSourceOperand1()!=null && e.getOperandType()==ins.getSourceOperand1().getOperandType() 
+					&& e.getValue() == ins.getSourceOperand1().getValue())
+				return true;
+			if(ins.getSourceOperand2()!=null && e.getOperandType()==ins.getSourceOperand2().getOperandType() 
+					&& e.getValue() == ins.getSourceOperand2().getValue())
+				return true;
+		}
+		return false;
+/*		if(destOp!=null){
 			if(ins.getSourceOperand1() != null)
 				if(destOp.getValue()==ins.getSourceOperand1().getValue())
 					return true;
@@ -126,6 +167,7 @@ public class DecodeUnitIn extends SimulationElement{
 					return true;
 		}
 		return false;
+*/	
 	}
 
 

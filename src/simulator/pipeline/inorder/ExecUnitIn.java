@@ -1,11 +1,15 @@
 package pipeline.inorder;
 
+import pipeline.outoforder.OpTypeToFUTypeMapping;
 import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
+import memorysystem.TLB;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.FunctionalUnitType;
+import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.PortType;
@@ -22,33 +26,98 @@ public class ExecUnitIn extends SimulationElement{
 		// TODO Auto-generated constructor stub
 	}
 	
-	public void execute(){
-		StageLatch exMemLatch = core.getExecutionEngineIn().getExMemLatch();
-		StageLatch idExLatch = core.getExecutionEngineIn().getIdExLatch();
+	public void execute(InorderPipeline inorderPipeline){
+		StageLatch exMemLatch = inorderPipeline.getExMemLatch();
+		StageLatch idExLatch = inorderPipeline.getIdExLatch();
+		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();
 		Instruction ins = idExLatch.getInstruction();
-		if(exMemLatch.getStallCount()>0){
-			exMemLatch.decrementStallCount();
-			idExLatch.incrementStallCount();
+//		if(exMemLatch.getStallCount()>0){
+//			exMemLatch.decrementStallCount();
+//			idExLatch.incrementStallCount();
+//		}
+		if(idExLatch.getStallCount()>0){
+//System.out.println("Not executing "+idExLatch.getStallCount());
+			idExLatch.decrementStallCount(1);
+			ifIdLatch.incrementStallCount(1);
+			return;
 		}
 		else{
 			if(ins!=null){
 					//TODO Account for multicycle operations.
-	//System.out.println("Exec "+ins.getSerialNo());			
-					exMemLatch.setInstruction(ins);
-					exMemLatch.setIn1(idExLatch.getIn1());
-					exMemLatch.setIn2(idExLatch.getIn2());
-					exMemLatch.setOut1(idExLatch.getOut1());
-					exMemLatch.setOperationType(idExLatch.getOperationType());
-					exMemLatch.setMemDone(true);
-					exMemLatch.setLoadFlag(idExLatch.getLoadFlag());
+	//System.out.println("Exec "+ins.getSerialNo());	
+				long FURequest = 0;	//will be <= 0 if an FU was obtained
+				//will be > 0 otherwise, indicating how long before
+				//	an FU of the type will be available (not used in new arch)
+
+				long lat=0;
+
+				if(OpTypeToFUTypeMapping.getFUType(ins.getOperationType())!=FunctionalUnitType.memory
+						&& OpTypeToFUTypeMapping.getFUType(ins.getOperationType())!=FunctionalUnitType.inValid){
+								
+					FURequest = this.core.getExecutionEngineIn().getFunctionalUnitSet().requestFU(
+						OpTypeToFUTypeMapping.getFUType(ins.getOperationType()),
+						GlobalClock.getCurrentTime(),
+						core.getStepSize() );
+				
+					lat = this.core.getExecutionEngineIn().getFunctionalUnitSet().getFULatency(
+							OpTypeToFUTypeMapping.getFUType(ins.getOperationType()));
 					
-					idExLatch.clear();
+					if(FURequest >0){
+						//FU is not available
+						//Set the appropriate pipelines to stall due to execute for FURequest/core.getStepSize() number of cycles!!
+						//Also stall the decode of this pipeline for one cycle 
+						//(later cycle stalls will eventually propagate from execute stage itself)
+						this.core.getExecutionEngineIn().incrementStallFetch((int)FURequest/core.getStepSize());
+						this.core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(), (int)FURequest/core.getStepSize());
+						ifIdLatch.incrementStallCount(1);
+						return;
+					}
+				}
+/*				else if(OpTypeToFUTypeMapping.getFUType(ins.getOperationType())==FunctionalUnitType.memory){
+					//Search TLB for address hit
+					TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.TLBuffer;
+					boolean TLBHit=TlbBuffer.searchTLBForPhyAddr(ins.getSourceOperand1().getValue());
+					if(!TLBHit){
+						this.core.getExecutionEngineIn().incrementStallFetch(TlbBuffer.getMissPenalty());
+						core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(),TlbBuffer.getMissPenalty());
+						return;
+					}
+						
+				}
+*/
+					if(lat>1){
+						//If it is a multicycle operation, stall appropriate pipelines for rest of the cycles
+						this.core.getExecutionEngineIn().incrementStallFetch((int)lat-1);
+						core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId()+1, (int)lat-1);
+						//Also stall the decode of this pipeline
+						ifIdLatch.incrementStallCount((int)lat-1);
+					}
+					if(ins.getOperationType()==OperationType.floatDiv ||
+							ins.getOperationType()==OperationType.floatMul ||
+							ins.getOperationType()==OperationType.floatALU ||
+							ins.getOperationType()==OperationType.integerALU ||
+							ins.getOperationType()==OperationType.integerDiv ||
+							ins.getOperationType()==OperationType.integerMul)
+						this.core.getExecutionEngineIn().getDestRegisters().remove(ins.getDestinationOperand());
 					
-					if(exMemLatch.getOperationType()==OperationType.load){
+					if(ins.getOperationType()==OperationType.load){
 						core.getExecutionEngineIn().updateNoOfLd(1);
 						core.getExecutionEngineIn().updateNoOfMemRequests(1);
+						//Search TLB for address hit
+						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.TLBuffer;
+						boolean TLBHit=TlbBuffer.searchTLBForPhyAddr(ins.getSourceOperand1().getValue());
+						if(!TLBHit){
+//System.out.println("TLB Miss for"+ins.getSourceOperand1().getValue());
+							//Set appropriate stalls - Stall fetch, stall execute stages and stall this pipeline's decode 
+							this.core.getExecutionEngineIn().incrementStallFetch(TlbBuffer.getMissPenalty());
+							this.core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(),TlbBuffer.getMissPenalty());
+							ifIdLatch.incrementStallCount(1);
+							return;
+						}
+				
+						
 						//Schedule a mem read event now so that it can be completed in the mem stage
-	
+
 						if(!SimulationConfig.detachMemSys){
 							exMemLatch.setMemDone(false);
 			
@@ -58,12 +127,20 @@ public class ExecUnitIn extends SimulationElement{
 									ins.getSourceOperand1().getValue(),this.core.getCore_number());
 						}
 					}
-					else if(exMemLatch.getOperationType()==OperationType.store){
+					else if(ins.getOperationType()==OperationType.store){
 						core.getExecutionEngineIn().updateNoOfSt(1);
 						core.getExecutionEngineIn().updateNoOfMemRequests(1);
-	//					exMemLatch.setMemDone(false); /FIXME *Pipeline doesn't wait for the store to complete! */
+						exMemLatch.setMemDone(true); //FIXME Pipeline doesn't wait for the store to complete! 
 						//Schedule a mem read event now so that it can be completed in the mem stage
-		
+						//Search TLB for address hit
+						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.TLBuffer;
+						boolean TLBHit=TlbBuffer.searchTLBForPhyAddr(ins.getSourceOperand1().getValue());
+						if(!TLBHit){
+							this.core.getExecutionEngineIn().incrementStallFetch(TlbBuffer.getMissPenalty());
+							core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(),TlbBuffer.getMissPenalty());
+							ifIdLatch.incrementStallCount(1);
+							return;
+						}		
 						if(!SimulationConfig.detachMemSys){
 							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1CacheFromInorder(
 									core.getExecutionEngineIn().getMemUnitIn(),
@@ -75,12 +152,22 @@ public class ExecUnitIn extends SimulationElement{
 					else{
 						exMemLatch.setMemDone(true);
 					}
+					exMemLatch.setInstruction(ins);
+					exMemLatch.setIn1(idExLatch.getIn1());
+					exMemLatch.setIn2(idExLatch.getIn2());
+					exMemLatch.setOut1(idExLatch.getOut1());
+					exMemLatch.setOperationType(idExLatch.getOperationType());
+//					exMemLatch.setMemDone(true);
+					exMemLatch.setLoadFlag(idExLatch.getLoadFlag());
+					
+					idExLatch.clear();
+
 				}
 				else{
 	//				exMemLatch.setInstruction(null);
 				}
 		}
-		}
+	}
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub

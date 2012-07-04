@@ -21,8 +21,8 @@ public class WriteBackUnitIn extends SimulationElement{
 		// TODO Auto-generated constructor stub
 	}
 	
-	public void performWriteBack(){
-		StageLatch memWbLatch = core.getExecutionEngineIn().getMemWbLatch();
+	public void performWriteBack(InorderPipeline inorderPipeline){
+		StageLatch memWbLatch = inorderPipeline.getMemWbLatch();
 		if(memWbLatch.getInstruction()!=null){ 
 			OperationType opType = memWbLatch.getInstruction().getOperationType(); 
 			
@@ -44,12 +44,13 @@ public class WriteBackUnitIn extends SimulationElement{
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid){
 //				this.core.powerCounters.updatePowerStatsPerCycle();
 //				this.core.powerCounters.clearAccessStats();
-				
+System.out.println("Invalid encountered");				
 				//FIXME the following does not set the statistics. Check!
+				core.getExecutionEngineIn().setExecutionComplete(true);
 				this.core.getExecutionEngineIn().setTimingStatistics();			
 				this.core.getExecutionEngineIn().setPerCoreMemorySystemStatistics();
 				this.core.getExecutionEngineIn().setPerCorePowerStatistics();
-				core.getExecutionEngineIn().setExecutionComplete(true);
+				
 			}
 			else {
 				if(core.getNoOfInstructionsExecuted()%1000000==0){
