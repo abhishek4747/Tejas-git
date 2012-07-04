@@ -104,7 +104,7 @@ public class ExecUnitIn extends SimulationElement{
 						core.getExecutionEngineIn().updateNoOfLd(1);
 						core.getExecutionEngineIn().updateNoOfMemRequests(1);
 						//Search TLB for address hit
-						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.TLBuffer;
+						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.getTLBuffer();
 						boolean TLBHit=TlbBuffer.searchTLBForPhyAddr(ins.getSourceOperand1().getValue());
 						if(!TLBHit){
 //System.out.println("TLB Miss for"+ins.getSourceOperand1().getValue());
@@ -133,7 +133,7 @@ public class ExecUnitIn extends SimulationElement{
 						exMemLatch.setMemDone(true); //FIXME Pipeline doesn't wait for the store to complete! 
 						//Schedule a mem read event now so that it can be completed in the mem stage
 						//Search TLB for address hit
-						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.TLBuffer;
+						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.getTLBuffer();
 						boolean TLBHit=TlbBuffer.searchTLBForPhyAddr(ins.getSourceOperand1().getValue());
 						if(!TLBHit){
 							this.core.getExecutionEngineIn().incrementStallFetch(TlbBuffer.getMissPenalty());
