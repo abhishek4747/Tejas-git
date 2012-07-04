@@ -101,8 +101,7 @@ public class XMLParser
 		}
 		return ret;
 	}
-	
-	private static void setPowerParameters(){
+		private static void setPowerParameters(){
 		NodeList nodeLst = doc.getElementsByTagName("Power");
 		Node powerNode = nodeLst.item(0);
 		Element powerElmnt = (Element) powerNode;
@@ -143,8 +142,12 @@ public class XMLParser
 		  PowerConfig.resMemport=Double.parseDouble(getImmediateString("res_memport", powerElmnt));
 		  PowerConfig.resIalu=Double.parseDouble(getImmediateString("res_ialu", powerElmnt));
 		  PowerConfig.resFpalu=Double.parseDouble(getImmediateString("res_fpalu", powerElmnt));
-	
+		  PowerConfig.il1Port=Double.parseDouble(getImmediateString("il1_port", powerElmnt));
+		  PowerConfig.dl1Port=Double.parseDouble(getImmediateString("dl1_port", powerElmnt));
+		  PowerConfig.dl2Port=Double.parseDouble(getImmediateString("dl2_port", powerElmnt));
+		  
 	}
+
 	
 private static void setSimulationParameters()
 	{
@@ -187,26 +190,29 @@ private static void setSimulationParameters()
 			SimulationConfig.detachMemSys = false;
 		}
 		
-		if(getImmediateString("StatisticalPipeline", simulationElmnt).compareTo("true") == 0 ||
-				getImmediateString("StatisticalPipeline", simulationElmnt).compareTo("True") == 0)
-		{
+		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==0){
 			SimulationConfig.isPipelineStatistical = true;
-		}
-		else 
-		{
-			SimulationConfig.isPipelineStatistical = false;
-		}
-		
-		if(getImmediateString("InorderPipeline", simulationElmnt).compareTo("true") == 0 ||
-				getImmediateString("InorderPipeline", simulationElmnt).compareTo("True") == 0)
-		{
-			SimulationConfig.isPipelineInorder = true;
-		}
-		else 
-		{
 			SimulationConfig.isPipelineInorder = false;
+			SimulationConfig.isPipelineMultiIssueInorder = false;
 		}
-		
+		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
+			SimulationConfig.isPipelineStatistical = false;
+			SimulationConfig.isPipelineInorder = true;
+			SimulationConfig.isPipelineMultiIssueInorder = false;
+		}
+		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==2){
+			SimulationConfig.isPipelineStatistical = false;
+			SimulationConfig.isPipelineInorder = false;
+			SimulationConfig.isPipelineMultiIssueInorder = true;
+		}
+		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==3){
+			SimulationConfig.isPipelineStatistical = false;
+			SimulationConfig.isPipelineInorder = false;
+			SimulationConfig.isPipelineMultiIssueInorder = false;
+		}
+		else{
+			System.err.println("Please specify any of the four pipeline types in the config file");
+		}
 		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
 		{
@@ -299,6 +305,7 @@ private static void setSimulationParameters()
 			
 			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
 			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
+			core.TLBMissPenalty = Integer.parseInt(getImmediateString("TLBMissPenalty", coreElmnt));
 			core.TLBPortType = setPortType(getImmediateString("TLBPortType", coreElmnt));
 			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
@@ -335,6 +342,7 @@ private static void setSimulationParameters()
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
 			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
 			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
+			core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
 		
 			//Code for instruction cache configurations for each core
 			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
