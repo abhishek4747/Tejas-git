@@ -77,6 +77,8 @@ public class RenameLogic extends SimulationElement {
 						renameBuffer[i] = decodeBuffer[i];
 						decodeBuffer[i] = null;
 						reorderBufferEntry.isRenameDone = true;
+						//FIXME For now, for every renaming, only one kind of rename accesses are incremented
+						this.core.powerCounters.incrementRenameAccess(1);
 						execEngine.setToStall2(false);
 						
 						if(SimulationConfig.debugMode)

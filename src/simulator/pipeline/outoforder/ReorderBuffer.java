@@ -37,6 +37,8 @@ public class ReorderBuffer extends SimulationElement{
 	long branchCount;
 	long mispredCount;
 
+	private int j;
+
 	public ReorderBuffer(Core _core, ExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, _core.getEventQueue(), -1, -1);
@@ -62,6 +64,7 @@ public class ReorderBuffer extends SimulationElement{
 		branchCount = 0;
 		
 		retireWidth = core.getRetireWidth();
+		j=0;
 	}
 	
 	public boolean isFull()
@@ -225,7 +228,9 @@ public class ReorderBuffer extends SimulationElement{
 					
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
-					
+					if(core.getNoOfInstructionsExecuted()%1000000==0){
+						System.out.println(this.j++ + " million done");
+					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					
 					if(firstDestOpnd != null)
@@ -471,11 +476,20 @@ public class ReorderBuffer extends SimulationElement{
 	
 	public void setTimingStatistics()
 	{
+		core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());
 		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
 		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
 		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
 		Statistics.setBranchCount(branchCount, core.getCore_number());
 		Statistics.setMispredictedBranchCount(mispredCount, core.getCore_number());
+		
+		System.out.println(core.getCore_number());
+		System.out.println(core.getCore_number()+"IW full : " + stall1Count);
+		System.out.println(core.getCore_number()+"phy reg unavailable : " + stall2Count);
+		System.out.println(core.getCore_number()+"LSQ full : " + stall3Count);
+		System.out.println(core.getCore_number()+"ROB full : " + stall4Count);
+		System.out.println(core.getCore_number()+"branch mispredicted : " + stall5Count);
+		System.out.println(core.getCore_number()+"Instruction Mem Stall : " + core.getExecEngine().getInstructionMemStall());
 	}
 	
 	public void setPerCoreMemorySystemStatistics()
@@ -496,6 +510,7 @@ public class ReorderBuffer extends SimulationElement{
 	}
 
 	public void setPerCorePowerStatistics(){
+		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
 	@Override

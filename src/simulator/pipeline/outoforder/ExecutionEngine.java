@@ -61,6 +61,8 @@ public class ExecutionEngine {
 	private boolean isExecutionComplete;		//TRUE indicates end of simulation
 	private boolean isInputPipeEmpty[];
 	private boolean allPipesEmpty;
+
+	private long instructionMemStall;
 	
 
 	public ExecutionEngine(Core containingCore)
@@ -84,7 +86,7 @@ public class ExecutionEngine {
 													core.getAllLatencies());
 		
 		
-		iCacheBuffer = new ICacheBuffer(core.getDecodeWidth());
+		iCacheBuffer = new ICacheBuffer(32);
 		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchLogic(core, this);
 		decodeBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
@@ -105,6 +107,7 @@ public class ExecutionEngine {
 		isExecutionComplete = false;
 		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
 		allPipesEmpty = false;
+		instructionMemStall=0;
 	}
 	
 	/*public void work()
@@ -268,6 +271,16 @@ public class ExecutionEngine {
 
 	public WriteBackLogic getWriteBackLogic() {
 		return writeBackLogic;
+	}
+
+	public void incrementInstructionMemStall(int i) {
+		this.instructionMemStall += i;
+		
+	}
+
+	public long getInstructionMemStall() {
+		// TODO Auto-generated method stub
+		return instructionMemStall;
 	}
 
 }
