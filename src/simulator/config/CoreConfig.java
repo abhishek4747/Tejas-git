@@ -36,6 +36,7 @@ public class CoreConfig
 	
 	public int TLBSize;
 	public int TLBLatency;
+	public int TLBMissPenalty;
 	public PortType TLBPortType;
 	public int TLBAccessPorts;
 	public int TLBPortOccupancy;
@@ -77,4 +78,7 @@ public class CoreConfig
 	public CacheConfig l1Cache = new CacheConfig();
 	public CacheConfig l2Cache = new CacheConfig();
 	public CacheConfig l3Cache = new CacheConfig();
+
+	public int numInorderPipelines;
+
 }

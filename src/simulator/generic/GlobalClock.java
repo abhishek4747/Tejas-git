@@ -197,6 +197,8 @@ public class GlobalClock {
 				coreMemSys = cores[i].getStatisticalPipeline().coreMemSys;
 			else if(cores[i].isPipelineInorder)
 				coreMemSys = cores[i].getExecutionEngineIn().coreMemorySystem;
+			else if(cores[i].isPipelineMultiIssueInorder)
+				coreMemSys = cores[i].getExecutionEngineIn().coreMemorySystem;
 			else
 				coreMemSys = cores[i].getExecEngine().coreMemSys;
 			

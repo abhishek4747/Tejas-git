@@ -43,9 +43,18 @@ public class TLB extends SimulationElement
 	
 	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
 	protected int requestsProcessedThisCycle = 0;
+	private int missPenalty;
 	
+	public int getMissPenalty() {
+		return missPenalty;
+	}
+
+	public void setMissPenalty(int missPenalty) {
+		this.missPenalty = missPenalty;
+	}
+
 	public TLB(PortType portType, int noOfPorts, long occupancy, long latency,
-			CoreMemorySystem containingMemSys, int tlbSize) 
+			CoreMemorySystem containingMemSys, int tlbSize, int missPenalty) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
 		
@@ -53,6 +62,7 @@ public class TLB extends SimulationElement
 		this.timestamp = 0;
 		TLBuffer = new Hashtable<Long, TLBEntry>(TLBSize);
 		this.containingMemSys =containingMemSys;
+		this.missPenalty = missPenalty;
 	}
 	
 	/**
@@ -122,6 +132,7 @@ public class TLB extends SimulationElement
 			if (entry.getTimestamp() < minTimestamp)
 			{
 				oldestAddr = entry.getPhyAddr();
+				minTimestamp = entry.getTimestamp();
 			}
 		}
 		return (getPageID(oldestAddr));

@@ -105,6 +105,8 @@ public class RunnableThread implements Encoding {
 
 			if(cores[i].isPipelineInorder)
 				decodeWidth[i] = 1;
+			else if(cores[i].isPipelineMultiIssueInorder)
+				decodeWidth[i] = 1;
 			else
 				decodeWidth[i] = cores[i].getDecodeWidth();
 
@@ -211,7 +213,7 @@ public class RunnableThread implements Encoding {
 		}
 		
 		//FIXME move inside the writeback stage
-		Core core;
+/*		Core core;
 		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 			core = pipelineInterfaces[tidEmu].getCore();
 			if(core.isPipelineInorder && core.getExecutionEngineIn().getExecutionComplete()){
@@ -221,7 +223,7 @@ public class RunnableThread implements Encoding {
 				pipelineInterfaces[tidEmu].setPerCorePowerStatistics();
 
 			}
-		}
+		}*/
 		long dataRead = 0;
 		long totNumIns = 0;
 		long totMicroOps = 0;

@@ -12,11 +12,21 @@ public class InorderPipeline implements PipelineInterface{
 	Core core;
 	EventQueue eventQ;
 	int coreStepSize;
-	
-	public InorderPipeline(Core _core, EventQueue eventQ){
+	StageLatch ifId,idEx,exMem,memWb,wbDone;
+	private int id;
+
+	public InorderPipeline(Core _core, EventQueue eventQ, int id){
 		this.core = _core;
 		this.eventQ = eventQ;
-		coreStepSize = core.getStepSize();
+		this.coreStepSize = core.getStepSize();	//Not correct. Global clock hasn't been initialized yet
+												//So, step sizes of the cores hasn't been set.
+												//It will be set when the step sizes of the cores will be set.
+		this.ifId = core.getExecutionEngineIn().getIfIdLatch(id);
+		this.idEx = core.getExecutionEngineIn().getIdExLatch(id);
+		this.exMem = core.getExecutionEngineIn().getExMemLatch(id);
+		this.memWb = core.getExecutionEngineIn().getMemWbLatch(id);
+		this.wbDone = core.getExecutionEngineIn().getWbDoneLatch(id);
+		this.id = id;
 	}
 	
 	public void oneCycleOperation(){
@@ -24,11 +34,11 @@ public class InorderPipeline implements PipelineInterface{
 /*if(core.getCore_number()==1)
 	System.out.println(" exec complete "+core.getExecutionEngineIn().getExecutionComplete());
 */
-		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+		if(currentTime % getCoreStepSize()==0 && !core.getExecutionEngineIn().getExecutionComplete()){
 			writeback();
 		}
 		drainEventQueue();
-		if(currentTime % coreStepSize==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+		if(currentTime % getCoreStepSize()==0 && !core.getExecutionEngineIn().getExecutionComplete()){
 			mem();
 			exec();
 			decode();
@@ -42,34 +52,47 @@ public class InorderPipeline implements PipelineInterface{
 //			if(this.core.getExecutionEngineIn().getFetchUnitIn().getStallLowerMSHRFull()>0)
 //				this.core.getExecutionEngineIn().getFetchUnitIn().decrementStallLowerMSHRFull(1);
 //			else
-				this.core.getExecutionEngineIn().incrementNumCycles(1);	//FIXME redundant operation. We are not using this for final statistics.
+			if(this.core.getExecutionEngineIn().getStallFetch()>0){
+//			System.out.println("Stalled for "+this.core.getExecutionEngineIn().getStallFetch());
+				this.core.getExecutionEngineIn().decrementStallFetch(1);
+			}
+
+//			this.core.getExecutionEngineIn().incrementNumCycles(1);	//FIXME redundant operation. We are not using this for final statistics.
 																		//Global clock cycle/core step size is used instead.
 		}
 
 		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
 	}
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	private void drainEventQueue(){
 		eventQ.processEvents();		
 	}
 	public void writeback(){
-		core.getExecutionEngineIn().getWriteBackUnitIn().performWriteBack();		
+		core.getExecutionEngineIn().getWriteBackUnitIn().performWriteBack(this);		
 	}
 	public void mem(){
-		core.getExecutionEngineIn().getMemUnitIn().performMemEvent();
+		core.getExecutionEngineIn().getMemUnitIn().performMemEvent(this);
 	}
 	public void exec(){
-		core.getExecutionEngineIn().getExecUnitIn().execute();
+		core.getExecutionEngineIn().getExecUnitIn().execute(this);
 	}
 	public void regfile(){
-		core.getExecutionEngineIn().getRegFileIn().fetchOperands();
+		core.getExecutionEngineIn().getRegFileIn().fetchOperands(this);
 	}
 	public void decode(){
-		core.getExecutionEngineIn().getDecodeUnitIn().performDecode();
+		core.getExecutionEngineIn().getDecodeUnitIn().performDecode(this);
 		regfile();
 	}
 	public void fetch(){
-		core.getExecutionEngineIn().getFetchUnitIn().performFetch();
+		core.getExecutionEngineIn().getFetchUnitIn().performFetch(this);
 	}
 
 	@Override
@@ -80,13 +103,12 @@ public class InorderPipeline implements PipelineInterface{
 
 	@Override
 	public int getCoreStepSize() {
-		// TODO Auto-generated method stub
-		return coreStepSize;
+//		return coreStepSize;
+		return this.core.getStepSize();
 	}
 
 	@Override
 	public void setcoreStepSize(int stepSize) {
-		// TODO Auto-generated method stub
 		this.coreStepSize=stepSize;
 	}
 
@@ -143,5 +165,21 @@ public class InorderPipeline implements PipelineInterface{
 	public void setPerCorePowerStatistics(){
 		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
+	}
+	
+	public StageLatch getIfIdLatch(){
+		return this.ifId;
+	}
+	public StageLatch getIdExLatch(){
+		return this.idEx;
+	}
+	public StageLatch getExMemLatch(){
+		return this.exMem;
+	}
+	public StageLatch getMemWbLatch(){
+		return this.memWb;
+	}
+	public StageLatch getWbDoneLatch(){
+		return this.wbDone;
 	}
 }

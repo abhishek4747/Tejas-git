@@ -67,6 +67,49 @@ public class FetchLogic extends SimulationElement {
 	{
 		Instruction newInstruction;
 		
+		for(int i = 0; i < iCacheBuffer.size; i++)
+		{
+			if(inputToPipeline[inputPipeToReadNext].getListSize() <= 0)
+			{
+				break;
+			}
+			
+			newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
+			
+			if(newInstruction.getOperationType() == OperationType.inValid)
+			{
+				execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
+				break;
+			}
+			
+			if(newInstruction.getOperationType() == OperationType.load ||
+					newInstruction.getOperationType() == OperationType.store)
+			{
+				if(SimulationConfig.detachMemSys == true)
+				{
+					inputToPipeline[inputPipeToReadNext].pollFirst();
+					Newmain.instructionPool.returnObject(newInstruction);
+					i--;
+					continue;
+				}
+			}
+			
+			if(!iCacheBuffer.isFull())
+			{
+				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
+				//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
+				if(SimulationConfig.detachMemSys == false)
+				{
+						execEngine.coreMemSys.issueRequestToInstrCacheFromOutofOrder(this, newInstruction.getRISCProgramCounter(),this.core.getCore_number());
+				}
+				//System.out.println(core.getCoreMode() + " - no of insts  : " + noOfInstructionsThisEpoch);
+			}
+			else
+			{
+				break;
+			}
+		}
+		
 		if(!execEngine.isToStall1() &&
 				!execEngine.isToStall2() &&
 				!execEngine.isToStall3() &&
@@ -114,51 +157,7 @@ public class FetchLogic extends SimulationElement {
 						}
 						else
 						{
-							break;
-						}
-					}
-					
-					for(int i = 0; i < fetchWidth; i++)
-					{
-						if(inputToPipeline[inputPipeToReadNext].getListSize() <= 0)
-						{
-//							System.out.println("number of instructions fetched < width");
-//							System.out.println("Instructions done ="+core.getNoOfInstructionsExecuted());
-							break;
-						}
-						
-						newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
-						
-						if(newInstruction.getOperationType() == OperationType.inValid)
-						{
-							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
-							break;
-						}
-						
-						if(newInstruction.getOperationType() == OperationType.load ||
-								newInstruction.getOperationType() == OperationType.store)
-						{
-							if(SimulationConfig.detachMemSys == true)
-							{
-								inputToPipeline[inputPipeToReadNext].pollFirst();
-								Newmain.instructionPool.returnObject(newInstruction);
-								i--;
-								continue;
-							}
-						}
-						
-						if(!iCacheBuffer.isFull())
-						{
-							iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
-							//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
-							if(SimulationConfig.detachMemSys == false)
-							{
-									execEngine.coreMemSys.issueRequestToInstrCacheFromOutofOrder(this, newInstruction.getRISCProgramCounter(),this.core.getCore_number());
-							}
-							//System.out.println(core.getCoreMode() + " - no of insts  : " + noOfInstructionsThisEpoch);
-						}
-						else
-						{
+							this.core.getExecEngine().incrementInstructionMemStall(1); 
 							break;
 						}
 					}
