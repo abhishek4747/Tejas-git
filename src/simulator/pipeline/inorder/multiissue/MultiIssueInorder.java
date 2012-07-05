@@ -2,6 +2,7 @@ package pipeline.inorder.multiissue;
 
 import generic.Core;
 import generic.EventQueue;
+import generic.GlobalClock;
 import pipeline.PipelineInterface;
 import pipeline.inorder.InorderPipeline;
 
@@ -29,37 +30,41 @@ public class MultiIssueInorder implements PipelineInterface{
 	 * "inorder" characteristic.
 	 * */
 	public void oneCycleOperation() {
-/*
- * 		for(int i=0;i<numPipelines;i++)
-				pipelines[i].writeback();
-
-		for(int i=0;i<numPipelines;i++)
-					pipelines[i].mem();
-
-		for(int i=0;i<numPipelines;i++){
-				pipelines[i].exec();
+		long currentTime = GlobalClock.getCurrentTime();
+		if(currentTime % getCoreStepSize()==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+	 		for(int i=0;i<numPipelines;i++)
+					pipelines[i].writeback();
 		}
-	
-		for(int i=0;i<numPipelines;i++){
-				pipelines[i].decode();
-		}
-		
-		if(this.core.getExecutionEngineIn().getStallFetch()>0)
-			this.core.getExecutionEngineIn().decrementStallFetch(1);
-		else
+		drainEventQueue();
+		if(currentTime % getCoreStepSize()==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+			
 			for(int i=0;i<numPipelines;i++)
-				pipelines[i].fetch();				
-*/
+						pipelines[i].mem();
+	
+			for(int i=0;i<numPipelines;i++){
+					pipelines[i].exec();
+			}
+		
+			for(int i=0;i<numPipelines;i++){
+					pipelines[i].decode();
+			}
+			
+			if(this.core.getExecutionEngineIn().getStallFetch()>0)
+				this.core.getExecutionEngineIn().decrementStallFetch(1);
+			else
+				for(int i=0;i<numPipelines;i++)
+					pipelines[i].fetch();				
+		}
+/*
 		for(int i=0;i<numPipelines;i++)
 			pipelines[i].oneCycleOperation();
 		if(this.core.getExecutionEngineIn().getStallFetch()>0)
 			this.core.getExecutionEngineIn().decrementStallFetch(1);
-		
+*/		
 	}
 
-	private void fetch() {
-		// TODO Auto-generated method stub
-		
+	private void drainEventQueue(){
+		eventQ.processEvents();		
 	}
 	@Override
 	public boolean isExecutionComplete() {
@@ -73,7 +78,7 @@ public class MultiIssueInorder implements PipelineInterface{
 
 	@Override
 	public int getCoreStepSize() {
-		return coreStepSize;
+		return this.core.getStepSize();
 	}
 
 	@Override
@@ -84,7 +89,7 @@ public class MultiIssueInorder implements PipelineInterface{
 
 	@Override
 	public Core getCore() {
-		return core;
+		return this.core;
 	}
 
 	@Override

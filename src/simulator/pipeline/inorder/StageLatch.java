@@ -104,7 +104,10 @@ public class StageLatch {
 		this.stallCount -= stall;
 	}
 	public void setStallCount(int count){
-		this.stallCount = count;
+		if(this.stallCount > count)
+			return;
+		else
+			this.stallCount = count;
 	}
 	public void setMemDone(boolean val){
 		this.memDone=val;

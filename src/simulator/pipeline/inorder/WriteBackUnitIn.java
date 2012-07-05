@@ -44,7 +44,7 @@ public class WriteBackUnitIn extends SimulationElement{
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid){
 //				this.core.powerCounters.updatePowerStatsPerCycle();
 //				this.core.powerCounters.clearAccessStats();
-System.out.println("Invalid encountered");				
+//System.out.println("Invalid encountered");				
 				//FIXME the following does not set the statistics. Check!
 				core.getExecutionEngineIn().setExecutionComplete(true);
 				this.core.getExecutionEngineIn().setTimingStatistics();			

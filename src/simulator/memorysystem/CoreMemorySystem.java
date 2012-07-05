@@ -76,7 +76,8 @@ public class CoreMemorySystem
 							SystemConfig.core[coreID].TLBPortOccupancy, 
 							SystemConfig.core[coreID].TLBLatency,
 							this,
-							SystemConfig.core[coreID].TLBSize);
+							SystemConfig.core[coreID].TLBSize,
+							SystemConfig.core[coreID].TLBMissPenalty);
 		
 		//Initialise the LSQ
 		lsqueue = new LSQ(SystemConfig.core[coreID].LSQPortType,
@@ -130,12 +131,13 @@ public class CoreMemorySystem
 	}
 	
 	//To issue the request directly to L1 cache
+	//missPenalty field has been added to accomodate the missPenalty incurred due to TLB miss
 	public void issueRequestToL1CacheFromInorder(SimulationElement requestingElement, 
 											RequestType requestType, 
-											long address,int coreId)
+											long address,int coreId,int missPenalty)
 	{
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-																	 l1Cache.getLatencyDelay(),
+																	 l1Cache.getLatencyDelay()+missPenalty,
 																	 requestingElement, 
 																	 l1Cache,
 																	 requestType, 

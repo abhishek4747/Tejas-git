@@ -173,6 +173,11 @@ public class ExecutionEngineIn {
 		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
 		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
 		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
+		
+		System.out.println("Mem Stalls = "+this.core.getExecutionEngineIn().getMemStall());
+		System.out.println("Data Hazard Stalls = "+this.core.getExecutionEngineIn().getDataHazardStall());
+		System.out.println("Instruction Mem Stalls = "+this.core.getExecutionEngineIn().getInstructionMemStall());
+
 	}
 	
 	public void setPerCoreMemorySystemStatistics()
@@ -263,7 +268,10 @@ public class ExecutionEngineIn {
 	}
 
 	public void setStallFetch(int stallFetch) {
-		this.stallFetch = stallFetch;
+		if(this.stallFetch > stallFetch)
+			return;
+		else
+			this.stallFetch = stallFetch;
 	}
 
 	public void incrementStallFetch(int stallFetch) {
@@ -278,27 +286,35 @@ public class ExecutionEngineIn {
 		return stallPipelinesDecode;
 	}
 
-	public void setStallPipelinesDecode(int stallPipelines, int stall) {
-		for(int i=stallPipelines;i<this.numPipelines;i++){
-			ifIdLatch[i].incrementStallCount(stall);
-		}
-//		this.stallPipelinesDecode = stallPipelines;
-	}
-
 	public int getStallPipelinesExecute() {
 		return stallPipelinesExecute;
 	}
 
-	public void setStallPipelinesExecute(int stallPipelines, int stall) {
-		for(int i=stallPipelines;i<this.numPipelines;i++){
-			idExLatch[i].incrementStallCount(stall);
+	public void setStallPipelinesDecode(int stallPipelines, int stall) {
+		for(int i=stallPipelines+1;i<this.numPipelines;i++){
+			ifIdLatch[i].setStallCount(stall);
 		}
+//		this.stallPipelinesDecode = stallPipelines;
+	}
+
+	public void setStallPipelinesExecute(int stallPipelines, int stall) {
+		for(int i=stallPipelines+1;i<this.numPipelines;i++){
+			idExLatch[i].setStallCount(stall);
+		}
+		for(int i=0;i<stallPipelines;i++){
+			ifIdLatch[i].setStallCount(stall);
+		}
+		
 //		this.stallPipelinesExecute = stallPipelines;
 	}
 	public void setStallPipelinesMem(int stallPipelines, int stall) {
-		for(int i=stallPipelines;i<this.numPipelines;i++){
-			exMemLatch[i].incrementStallCount(stall);
+		for(int i=stallPipelines+1;i<this.numPipelines;i++){
+			exMemLatch[i].setStallCount(stall);
 		}
+		for(int i=0;i<stallPipelines;i++){
+			idExLatch[i].setStallCount(stall);
+		}
+		
 //		this.stallPipelinesExecute = stallPipelines;
 	}
 	public StageLatch getIfIdLatch(int i){
@@ -321,10 +337,10 @@ public class ExecutionEngineIn {
 		for(int i=0;i<this.numPipelines;i++){
 			if(exMemLatch[i].getOperationType()==OperationType.load && exMemLatch[i].getInstruction().getSourceOperand1().getValue()==address){
 				exMemLatch[i].setMemDone(b);
-				idExLatch[i].setStallCount(0);
+//				idExLatch[i].setStallCount(0);
 			}
 			else if(exMemLatch[i].getOperationType()==OperationType.store && exMemLatch[i].getInstruction().getSourceOperand1().getValue()==address){
-				idExLatch[i].setStallCount(0);
+//				idExLatch[i].setStallCount(0);
 			}
 		}
 	}

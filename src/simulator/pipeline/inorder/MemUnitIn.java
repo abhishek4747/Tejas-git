@@ -53,10 +53,10 @@ public class MemUnitIn extends SimulationElement{
 			this.core.getExecutionEngineIn().incrementMemStall(1);
 //			core.getExecutionEngineIn().getFetchUnitIn().setStall(1);
 			//Stall appropriate pipelines and stall fetch
-			core.getExecutionEngineIn().incrementStallFetch(1);
-			core.getExecutionEngineIn().setStallPipelinesMem(inorderPipeline.getId()+1, 1);
+			core.getExecutionEngineIn().setStallFetch(1);
+			core.getExecutionEngineIn().setStallPipelinesMem(inorderPipeline.getId(), 1);
 			//Also stall the exec of this pipeline
-			idExLatch.incrementStallCount(1);
+			idExLatch.setStallCount(1);
 			return;
 /*			if(exMemLatch.getStallCount()>200){
 				exMemLatch.setMemDone(true);		//FIXME

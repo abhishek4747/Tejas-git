@@ -67,8 +67,8 @@ public class DecodeUnitIn extends SimulationElement{
 
 				if(checkDataHazard(ins)){
 //System.out.println("Data Hazard");					
-					this.core.getExecutionEngineIn().incrementStallFetch(1);
-					this.core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId()+1,1);
+					this.core.getExecutionEngineIn().setStallFetch(1);
+					this.core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId(),1);
 //					this.core.getExecutionEngineIn().getFetchUnitIn().incrementStall(1);
 					this.core.getExecutionEngineIn().incrementDataHazardStall(1);
 					return;
@@ -100,12 +100,12 @@ public class DecodeUnitIn extends SimulationElement{
 				this.core.powerCounters.incrementRegfileAccess(1);
 			  
 					if(ins.getDestinationOperand()!=null){
-						if(/*ins.getOperationType()==OperationType.floatDiv ||
+						if(ins.getOperationType()==OperationType.floatDiv ||
 								ins.getOperationType()==OperationType.floatMul ||
 								ins.getOperationType()==OperationType.floatALU ||
 								ins.getOperationType()==OperationType.integerALU ||
 								ins.getOperationType()==OperationType.integerDiv ||
-								ins.getOperationType()==OperationType.integerMul ||*/
+								ins.getOperationType()==OperationType.integerMul ||
 								ins.getOperationType()==OperationType.load)
 //							if(ins.getDestinationOperand().getOperandType()==OperandType.integerRegister ||
 //									ins.getDestinationOperand().getOperandType()==OperandType.floatRegister)
@@ -119,8 +119,8 @@ public class DecodeUnitIn extends SimulationElement{
 									//stall pipelines for appropriate cycles
 									//TODO correct the following:
 //										core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
-										core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId()+1, core.getBranchMispredictionPenalty());
-										core.getExecutionEngineIn().incrementStallFetch(core.getBranchMispredictionPenalty());
+										core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId(), core.getBranchMispredictionPenalty());
+										core.getExecutionEngineIn().setStallFetch(core.getBranchMispredictionPenalty());
 									}
 				
 								core.getBranchPredictor().Train(
