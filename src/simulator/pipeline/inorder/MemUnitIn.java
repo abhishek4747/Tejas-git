@@ -41,7 +41,7 @@ public class MemUnitIn extends SimulationElement{
 		Instruction ins = exMemLatch.getInstruction();
 		if(exMemLatch.getStallCount()>0){
 			exMemLatch.decrementStallCount(1);
-			idExLatch.incrementStallCount(1);
+			idExLatch.setStallCount(1);
 			return;
 		}
 		if(!exMemLatch.getMemDone() /*|| !missStatusHoldingRegister.isEmpty()*/){

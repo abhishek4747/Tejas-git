@@ -38,7 +38,7 @@ public class ExecUnitIn extends SimulationElement{
 		if(idExLatch.getStallCount()>0){
 //System.out.println("Not executing "+idExLatch.getStallCount());
 			idExLatch.decrementStallCount(1);
-			ifIdLatch.incrementStallCount(1);
+			ifIdLatch.setStallCount(1);
 			return;
 		}
 		else{
@@ -71,8 +71,8 @@ public class ExecUnitIn extends SimulationElement{
 						int delayCycles = (int)(FURequest-currentTime)/core.getStepSize();
 						this.core.getExecutionEngineIn().setStallFetch(delayCycles);
 						this.core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(), delayCycles);
-						idExLatch.incrementStallCount(delayCycles-1);
-						ifIdLatch.incrementStallCount(1);
+						idExLatch.setStallCount(delayCycles-1);
+						ifIdLatch.setStallCount(1);
 						return;
 					}
 					if(lat>1){
@@ -80,7 +80,7 @@ public class ExecUnitIn extends SimulationElement{
 						this.core.getExecutionEngineIn().setStallFetch((int)lat-1);
 						core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(), (int)lat-1);
 						//Also stall the decode of this pipeline
-						ifIdLatch.incrementStallCount((int)lat-1);
+						ifIdLatch.setStallCount((int)lat-1);
 					}
 				}
 /*				else if(OpTypeToFUTypeMapping.getFUType(ins.getOperationType())==FunctionalUnitType.memory){
