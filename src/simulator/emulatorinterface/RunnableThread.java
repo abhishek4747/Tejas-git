@@ -63,6 +63,8 @@ public class RunnableThread implements Encoding {
 	//FIXME PipelineInterface should be in IpcBase and not here as pipelines from other RunnableThreads
 	// will need to interact.
 	PipelineInterface[] pipelineInterfaces;
+	long prevTotalInstructions, currentTotalInstructions;
+	long[] prevCycles;
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
@@ -124,6 +126,9 @@ public class RunnableThread implements Encoding {
 		 */
 		this.tid = tid1;
 		System.out.println("--  starting java thread"+this.tid);
+		prevTotalInstructions=-1;
+		currentTotalInstructions=0;
+		prevCycles=new long[EMUTHREADS];
 	}
 
 	protected void runPipelines() {
@@ -164,12 +169,63 @@ public class RunnableThread implements Encoding {
 			}
 			GlobalClock.incrementClock();
 		}
+		if(prevTotalInstructions == -1){
+			Statistics.openTraceStream();
+			Statistics.printPowerTraceHeader(",");
+			prevTotalInstructions=0;
+		}
+		if(SimulationConfig.powerTrace==1){
+			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+				currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
+			}
+			if(currentTotalInstructions - prevTotalInstructions > SimulationConfig.numInsForTrace){
+				long[] cyclesElapsed = new long[currentEMUTHREADS];
+				long currentCycles;
+				Core currentCore;
+				for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+					currentCore = pipelineInterfaces[tidEmu].getCore();
+					currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
+					cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
+					currentCore.powerCounters.updatePowerPeriodically(cyclesElapsed[tidEmu]);
+					Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
+					Statistics.setPerCorePowerStatistics(currentCore.powerCounters,currentCore.getCore_number());
+				}
+				Statistics.printPowerTrace(",", cyclesElapsed,currentEMUTHREADS);
+				for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+					prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
+					pipelineInterfaces[tidEmu].getCore().powerCounters.clearAccessStats();
+				}
+				prevTotalInstructions = currentTotalInstructions;
+			}
+			currentTotalInstructions=0;
+		}
+		else if(SimulationConfig.powerTrace==2){
+			long cyclesTillNow = GlobalClock.getCurrentTime()/pipelineInterfaces[0].getCore().getStepSize();
+			if(cyclesTillNow - prevCycles[0] > SimulationConfig.numCyclesForTrace){
+				long[] cyclesElapsed = new long[currentEMUTHREADS];
+				long currentCycles;
+				Core currentCore;
+					for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+						currentCore = pipelineInterfaces[tidEmu].getCore();
+						currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
+						cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
+						currentCore.powerCounters.updatePowerPeriodically(cyclesElapsed[tidEmu]);
+						Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
+						Statistics.setPerCorePowerStatistics(currentCore.powerCounters,currentCore.getCore_number());
+				}
+				Statistics.printPowerTrace(",", cyclesElapsed,currentEMUTHREADS);
+				for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+					prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
+					pipelineInterfaces[tidEmu].getCore().powerCounters.clearAccessStats();
+				}
+				prevCycles[0] = cyclesTillNow;
+			}
+		}
 //		System.out.println("  Pipe Size end= "+inputToPipeline[0].getListSize());
 		
 	}
 
 	public void finishAllPipelines() {
-
 
 		for (int i=0; i<currentEMUTHREADS; i++)
 			this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
@@ -208,6 +264,53 @@ public class RunnableThread implements Encoding {
 						pipelineInterfaces[tidEmu].oneCycleOperation();
 				}
 				GlobalClock.incrementClock();
+				if(SimulationConfig.powerTrace==1){
+					for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+						currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
+					}
+					if(currentTotalInstructions - prevTotalInstructions > SimulationConfig.numInsForTrace){
+						long[] cyclesElapsed = new long[currentEMUTHREADS];
+						long currentCycles;
+						Core currentCore;
+							for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+							currentCore = pipelineInterfaces[tidEmu].getCore();
+							currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
+							cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
+							currentCore.powerCounters.updatePowerPeriodically(cyclesElapsed[tidEmu]);
+							Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
+							Statistics.setPerCorePowerStatistics(currentCore.powerCounters,currentCore.getCore_number());
+						}
+						Statistics.printPowerTrace(",", cyclesElapsed,currentEMUTHREADS);
+						for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+							prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
+							pipelineInterfaces[tidEmu].getCore().powerCounters.clearAccessStats();
+						}
+						prevTotalInstructions = currentTotalInstructions;
+					}
+					currentTotalInstructions=0;
+				}
+				else if(SimulationConfig.powerTrace==2){
+					long cyclesTillNow = GlobalClock.getCurrentTime()/pipelineInterfaces[0].getCore().getStepSize();
+					if(cyclesTillNow - prevCycles[0] > SimulationConfig.numCyclesForTrace){
+						long[] cyclesElapsed = new long[currentEMUTHREADS];
+						long currentCycles;
+						Core currentCore;
+							for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+								currentCore = pipelineInterfaces[tidEmu].getCore();
+								currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
+								cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
+								currentCore.powerCounters.updatePowerPeriodically(cyclesElapsed[tidEmu]);
+								Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
+								Statistics.setPerCorePowerStatistics(currentCore.powerCounters,currentCore.getCore_number());
+						}
+						Statistics.printPowerTrace(",", cyclesElapsed,currentEMUTHREADS);
+						for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+							prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
+							pipelineInterfaces[tidEmu].getCore().powerCounters.clearAccessStats();
+						}
+						prevCycles[0] = cyclesTillNow;
+					}
+				}
 //			}
 			//System.out.println("maxN is "+maxN);
 		}

@@ -4,6 +4,7 @@ import memorysystem.CoreMemorySystem;
 import generic.Core;
 import generic.Instruction;
 import generic.InstructionLinkedList;
+import generic.Statistics;
 
 /**
  * execution engine comprises of : decode logic, ROB, instruction window, register files,
@@ -63,6 +64,8 @@ public class ExecutionEngine {
 	private boolean allPipesEmpty;
 
 	private long instructionMemStall;
+
+	public long prevCycles;
 	
 
 	public ExecutionEngine(Core containingCore)
@@ -108,6 +111,7 @@ public class ExecutionEngine {
 		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
 		allPipesEmpty = false;
 		instructionMemStall=0;
+		prevCycles=0;
 	}
 	
 	/*public void work()
@@ -282,5 +286,5 @@ public class ExecutionEngine {
 		// TODO Auto-generated method stub
 		return instructionMemStall;
 	}
-
+	
 }

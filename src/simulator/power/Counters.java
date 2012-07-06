@@ -108,15 +108,59 @@ public class Counters {
 	long totalWindowAccess=0;
 	long totalLsqAccess=0;
 	long totalRegfileAccess=0;
+
 	long totalIcacheAccess=0;
 	long totalDcacheAccess=0;
+
 	long totalDcache2Access=0;
 	long totalAluAccess=0;
+	long totalIaluAccess=0;
+	long totalFaluAccess=0;
 	long totalResultbusAccess=0;
+
+	long totalWindowPregAccess=0;
+	long totalWindowSelectionAccess=0;
+	long totalWindowWakeupAccess=0;
+	long totalLsqStoreDataAccess=0;
+	long totalLsqLoadDataAccess=0;
+	long totalLsqPregAccess=0;
+	long totalLsqWakeupAccess=0;
+
 	long totalIntegerRegfileAccess=0;
 	long totalFloatRegfileAccess=0;
 	long totalIntegerRenameAccess=0;
 	long totalFloatRenameAccess=0;
+
+	
+	/*Following counters keep a track of whether there were non zero access in a given cycle for the corresponding counter*/
+	long totalRenameAccessCycle=0;
+	long totalBpredAccessCycle=0;
+	long totalWindowAccessCycle=0;
+	long totalLsqAccessCycle=0;
+	long totalRegfileAccessCycle=0;
+
+	long totalIntegerRegfileAccessCycle=0;
+	long totalFloatRegfileAccessCycle=0;
+	long totalIntegerRenameAccessCycle=0;
+	long totalFloatRenameAccessCycle=0;
+	
+	long totalIcacheAccessCycle=0;
+	long totalDcacheAccessCycle=0;
+
+	static long totalDcache2AccessCycle=0;
+	long totalAluAccessCycle=0;
+	long totalIaluAccessCycle=0;
+	long totalFaluAccessCycle=0;
+	long totalResultbusAccessCycle=0;
+
+	long totalWindowPregAccessCycle=0;
+	long totalWindowSelectionAccessCycle=0;
+	long totalWindowWakeupAccessCycle=0;
+	long totalLsqStoreDataAccessCycle=0;
+	long totalLsqLoadDataAccessCycle=0;
+	long totalLsqPregAccessCycle=0;
+	long totalLsqWakeupAccessCycle=0;
+	
 	
 	long maxRenameAccess=0;
 	long maxBpredAccess=0;
@@ -143,7 +187,6 @@ public class Counters {
 	double dcachePower=0;
 	double dcache2Power=0;
 	double aluPower=0;
-	double faluPower=0;
 	double resultbusPower=0;
 	double clockPower=0;
 
@@ -182,6 +225,55 @@ public class Counters {
 	double aluPowerCC3=0;
 	double resultbusPowerCC3=0;
 	double clockPowerCC3=0;
+
+	double totalRenamePower=0;
+	double totalBpredPower=0;
+	double totalWindowPower=0;
+	double totalLsqPower=0;
+	double totaRegfilePower=0;
+	double totalIcachePower=0;
+	double totalDcachePower=0;
+	double totalDcache2Power=0;
+	double totalAluPower=0;
+	double totalResultbusPower=0;
+	double totalClockPower=0;
+
+	double totalRenamePowerCC1=0;
+	double totalBpredPowerCC1=0;
+	double totalWindowPowerCC1=0;
+	double totalLsqPowerCC1=0;
+	double totalRegfilePowerCC1=0;
+	double totalIcachePowerCC1=0;
+	double totalDcachePowerCC1=0;
+	double totalDcache2PowerCC1=0;
+	double totalAluPowerCC1=0;
+
+	double totalResultbusPowerCC1=0;
+	double totalClockPowerCC1=0;
+
+	double totalRenamePowerCC2=0;
+	double totalBpredPowerCC2=0;
+	double totalWindowPowerCC2=0;
+	double totalLsqPowerCC2=0;
+	double totalRegfilePowerCC2=0;
+	double totalIcachePowerCC2=0;
+	double totalDcachePowerCC2=0;
+	double totalDcache2PowerCC2=0;
+	double totalAluPowerCC2=0;
+	double totalResultbusPowerCC2=0;
+	double totalClockPowerCC2=0;
+
+	double totalRenamePowerCC3=0;
+	double totalBpredPowerCC3=0;
+	double totalWindowPowerCC3=0;
+	double totalLsqPowerCC3=0;
+	double totalRegfilePowerCC3=0;
+	double totalIcachePowerCC3=0;
+	double totalDcachePowerCC3=0;
+	double totalDcache2PowerCC3=0;
+	double totalAluPowerCC3=0;
+	double totalResultbusPowerCC3=0;
+	double totalClockPowerCC3=0;
 
 	double totalCyclePower;
 	double totalCyclePowerCC1;
@@ -313,7 +405,6 @@ public class Counters {
 		 dcachePower=0;
 		 dcache2Power=0;
 		 aluPower=0;
-		 faluPower=0;
 		 resultbusPower=0;
 		 clockPower=0;
 
@@ -367,15 +458,90 @@ public class Counters {
 		FloatRegfileAccess=0;
 		IntegerRenameAccess=0;
 		FloatRenameAccess=0;
-		
+
+		totalRenameAccess=0;
+		totalBpredAccess=0;
+		totalWindowAccess=0;
+		totalLsqAccess=0;
+		totalRegfileAccess=0;
+		totalIcacheAccess=0;
+		totalDcacheAccess=0;
+		totalDcache2Access=0;
+		totalAluAccess=0;
+		totalIaluAccess=0;
+		totalFaluAccess=0;
+		totalResultbusAccess=0;
+
+		totalWindowPregAccess=0;
+		totalWindowSelectionAccess=0;
+		totalWindowWakeupAccess=0;
+		totalLsqStoreDataAccess=0;
+		totalLsqLoadDataAccess=0;
+		totalLsqPregAccess=0;
+		totalLsqWakeupAccess=0;
+
 		totalIntegerRegfileAccess=0;
 		totalFloatRegfileAccess=0;
 		totalIntegerRenameAccess=0;
 		totalFloatRenameAccess=0;
+		
+		totalRenameAccessCycle=0;
+		totalBpredAccessCycle=0;
+		totalWindowAccessCycle=0;
+		totalLsqAccessCycle=0;
+		totalRegfileAccessCycle=0;
+
+		totalIntegerRegfileAccessCycle=0;
+		totalFloatRegfileAccessCycle=0;
+		totalIntegerRenameAccessCycle=0;
+		totalFloatRenameAccessCycle=0;
+		
+		totalIcacheAccessCycle=0;
+		totalDcacheAccessCycle=0;
+
+		totalDcache2AccessCycle=0;
+		totalAluAccessCycle=0;
+		totalIaluAccessCycle=0;
+		totalFaluAccessCycle=0;
+		totalResultbusAccessCycle=0;
+
+		totalWindowPregAccessCycle=0;
+		totalWindowSelectionAccessCycle=0;
+		totalWindowWakeupAccessCycle=0;
+		totalLsqStoreDataAccessCycle=0;
+		totalLsqLoadDataAccessCycle=0;
+		totalLsqPregAccessCycle=0;
+		totalLsqWakeupAccessCycle=0;
 	}
 	
 	public void clearAccessStats(){
 
+		totalRenameAccess += renameAccess;
+		totalBpredAccess += bpredAccess;
+		totalWindowAccess += windowAccess;
+		totalLsqAccess += lsqAccess;
+		totalRegfileAccess += regfileAccess;
+		totalIntegerRegfileAccess += IntegerRegfileAccess;
+		totalFloatRegfileAccess += FloatRegfileAccess;
+		totalIntegerRenameAccess += IntegerRenameAccess;
+		totalFloatRenameAccess += FloatRenameAccess;
+		totalIcacheAccess += icacheAccess;
+		totalDcacheAccess += dcacheAccess;
+		totalDcache2Access += dcache2Access;
+		totalAluAccess += aluAccess;
+		totalIaluAccess += ialuAccess;
+		totalFaluAccess += faluAccess;
+		
+		totalResultbusAccess += resultbusAccess;
+		
+		totalWindowPregAccess += windowPregAccess;
+		totalWindowSelectionAccess += windowSelectionAccess;
+		totalWindowWakeupAccess += windowWakeupAccess;
+		totalLsqLoadDataAccess += lsqLoadDataAccess;
+		totalLsqStoreDataAccess += lsqStoreDataAccess;
+		totalLsqWakeupAccess += lsqWakeupAccess;
+		totalLsqPregAccess += lsqWakeupAccess;
+		
 		/* counters added for Wattch */
 		 renameAccess=0;
 		 bpredAccess=0;
@@ -396,6 +562,7 @@ public class Counters {
 		 dcacheAccess=0;
 		 dcache2Access=0;
 		 aluAccess=0;
+		 
 		 ialuAccess=0;
 		 faluAccess=0;
 		 resultbusAccess=0;
@@ -416,7 +583,136 @@ public class Counters {
 		 regfileNumPopCountCycle=0;
 		 resultbusTotalPopCountCycle=0;
 		 resultbusNumPopCountCycle=0;
-				
+
+			totalRenameAccessCycle += renameAccessCycle;
+			totalBpredAccessCycle += bpredAccessCycle;
+			totalWindowAccessCycle += windowAccessCycle;
+			totalLsqAccessCycle += lsqAccessCycle;
+			totalRegfileAccessCycle += regfileAccessCycle;
+			totalIntegerRegfileAccessCycle += IntegerRegfileAccessCycle;
+			totalFloatRegfileAccessCycle += FloatRegfileAccessCycle;
+			totalIntegerRenameAccessCycle += IntegerRenameAccessCycle;
+			totalFloatRenameAccessCycle += FloatRenameAccessCycle;
+			totalIcacheAccessCycle += icacheAccessCycle;
+			totalDcacheAccessCycle += dcacheAccessCycle;
+			totalDcache2AccessCycle += dcache2AccessCycle;
+			totalAluAccessCycle += aluAccessCycle;
+			totalIaluAccessCycle += ialuAccessCycle;
+			totalFaluAccessCycle += faluAccessCycle;
+			
+			totalResultbusAccessCycle += resultbusAccessCycle;
+			
+			totalWindowPregAccessCycle += windowPregAccessCycle;
+			totalWindowSelectionAccessCycle += windowSelectionAccessCycle;
+			totalWindowWakeupAccessCycle += windowWakeupAccessCycle;
+			totalLsqLoadDataAccessCycle += lsqLoadDataAccessCycle;
+			totalLsqStoreDataAccessCycle += lsqStoreDataAccessCycle;
+			totalLsqWakeupAccessCycle += lsqWakeupAccessCycle;
+			totalLsqPregAccessCycle += lsqWakeupAccessCycle;
+			
+		 renameAccessCycle=0;
+		 bpredAccessCycle=0;
+		 windowAccessCycle=0;
+		 lsqAccessCycle=0;
+		 regfileAccessCycle=0;
+
+		 IntegerRegfileAccessCycle=0;
+		 FloatRegfileAccessCycle=0;
+		 IntegerRenameAccessCycle=0;
+		 FloatRenameAccessCycle=0;
+		
+		 icacheAccessCycle=0;
+		 dcacheAccessCycle=0;
+
+		 dcache2AccessCycle=0;
+		 aluAccessCycle=0;
+		 ialuAccessCycle=0;
+		 faluAccessCycle=0;
+		 resultbusAccessCycle=0;
+
+		 windowPregAccessCycle=0;
+		 windowSelectionAccessCycle=0;
+		 windowWakeupAccessCycle=0;
+		 lsqStoreDataAccessCycle=0;
+		 lsqLoadDataAccessCycle=0;
+		 lsqPregAccessCycle=0;
+		 lsqWakeupAccessCycle=0;
+		 prevrenameAccess=0;
+		 prevbpredAccess=0;
+		 prevwindowAccess=0;
+		 prevlsqAccess=0;
+		 prevregfileAccess=0;
+
+		 prevIntegerRegfileAccess=0;
+		 prevFloatRegfileAccess=0;
+		 prevIntegerRenameAccess=0;
+		 prevFloatRenameAccess=0;
+		
+		 previcacheAccess=0;
+		 prevdcacheAccess=0;
+
+		 prevdcache2Access=0;
+		 prevaluAccess=0;
+		 previaluAccess=0;
+		 prevfaluAccess=0;
+		 prevresultbusAccess=0;
+
+		 prevwindowPregAccess=0;
+		 prevwindowSelectionAccess=0;
+		 prevwindowWakeupAccess=0;
+		 prevlsqStoreDataAccess=0;
+		 prevlsqLoadDataAccess=0;
+		 prevlsqPregAccess=0;
+		 prevlsqWakeupAccess=0;
+
+		 renamePower=0;
+		 bpredPower=0;
+		 windowPower=0;
+		 lsqPower=0;
+		 regfilePower=0;
+		 icachePower=0;
+		 dcachePower=0;
+		 dcache2Power=0;
+		 aluPower=0;
+		 resultbusPower=0;
+		 clockPower=0;
+
+		 renamePowerCC1=0;
+		 bpredPowerCC1=0;
+		 windowPowerCC1=0;
+		 lsqPowerCC1=0;
+		 regfilePowerCC1=0;
+		 icachePowerCC1=0;
+		 dcachePowerCC1=0;
+		 dcache2PowerCC1=0;
+		 aluPowerCC1=0;
+		 resultbusPowerCC1=0;
+		 clockPowerCC1=0;
+
+		 renamePowerCC2=0;
+		 bpredPowerCC2=0;
+		 windowPowerCC2=0;
+		 lsqPowerCC2=0;
+		 regfilePowerCC2=0;
+		 icachePowerCC2=0;
+		 dcachePowerCC2=0;
+		 dcache2PowerCC2=0;
+		 aluPowerCC2=0;
+		 resultbusPowerCC2=0;
+		 clockPowerCC2=0;
+
+		 renamePowerCC3=0;
+		 bpredPowerCC3=0;
+		 windowPowerCC3=0;
+		 lsqPowerCC3=0;
+		 regfilePowerCC3=0;
+		 icachePowerCC3=0;
+		 dcachePowerCC3=0;
+		 dcache2PowerCC3=0;
+		 aluPowerCC3=0;
+		 resultbusPowerCC3=0;
+		 clockPowerCC3=0;
+
 	}
 	
 	public void perCycleAccessRecordUpdate(){
@@ -481,12 +777,11 @@ public class Counters {
 	/**
 	 * Call this function at the end of the simulation to compute the total energy dissipation
 	 * CC1 -> Total energy = num of accesses * per unit access energy 
-	 * CC2 -> for idle cycles, turnofffactor * num idle cycles * per unit access energy also added
+	 * CC3 -> for idle cycles, turnofffactor * num idle cycles * per unit access energy also added
 	 * */
 	
-	public void updatePowerAfterCompletion(long totalCycles){
+	public void updatePowerPeriodically(long totalCycles){
 		
-System.out.println("Total Cycles = "+totalCycles);
 		    renamePowerCC1+=PowerConfig.renamePower*renameAccess;
 		    renamePowerCC2+=((double)renameAccess/(double)PowerConfig.ruuDecodeWidth)*PowerConfig.renamePower;
 		    renamePowerCC3+=((double)renameAccess/(double)PowerConfig.ruuDecodeWidth)*PowerConfig.renamePower;
@@ -586,24 +881,23 @@ System.out.println("Total Cycles = "+totalCycles);
 		      regfilePowerCC3+=turnoffFactor*PowerConfig.regfilePower;
 		  #endif
 */
-		      /* don't scale icache because we assume 1 line is fetched, unless fetch stalls */
 		      icachePowerCC1+=(icacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
 		      icachePowerCC2+=(icacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
 		      icachePowerCC3+=(icacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
 		      icachePowerCC3+=(totalCycles - icacheAccessCycle)*turnoffFactor*(PowerConfig.icachePower+PowerConfig.itlb);
 
    			  dcachePowerCC1+=((double)dcacheAccessCycle)*(PowerConfig.dcachePower+PowerConfig.dtlb);
-			  temp = max(0,dcacheAccess - dcacheAccessCycle*PowerConfig.resMemport);
-	          dcachePowerCC1+=((double)temp/(double)PowerConfig.resMemport)*(PowerConfig.dcachePower +PowerConfig.dtlb);
-		      dcachePowerCC2+=((double)dcacheAccess/(double)PowerConfig.resMemport)*(PowerConfig.dcachePower +PowerConfig.dtlb);
-		      dcachePowerCC3+=((double)dcacheAccess/(double)PowerConfig.resMemport)*(PowerConfig.dcachePower +PowerConfig.dtlb);
+			  temp = max(0,dcacheAccess - dcacheAccessCycle*PowerConfig.dl1Port);
+	          dcachePowerCC1+=((double)temp/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
+		      dcachePowerCC2+=((double)dcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
+		      dcachePowerCC3+=((double)dcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
 		      dcachePowerCC3+=turnoffFactor*(PowerConfig.dcachePower+PowerConfig.dtlb)*(totalCycles - dcacheAccessCycle);
 
    			  dcache2PowerCC1+=((double)dcache2AccessCycle)*PowerConfig.dcache2Power;
-			  temp = max(0,dcache2Access - dcache2AccessCycle*PowerConfig.resMemport);
-	          dcache2PowerCC1+=((double)temp/(double)PowerConfig.resMemport)*PowerConfig.dcache2Power;
-		      dcache2PowerCC2+=((double)dcache2Access/(double)PowerConfig.resMemport)*PowerConfig.dcache2Power;
-		      dcache2PowerCC3+=((double)dcache2Access/(double)PowerConfig.resMemport)*PowerConfig.dcache2Power;
+			  temp = max(0,dcache2Access - dcache2AccessCycle*PowerConfig.dl2Port);
+	          dcache2PowerCC1+=((double)temp/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
+		      dcache2PowerCC2+=((double)dcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
+		      dcache2PowerCC3+=((double)dcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
 		      dcache2PowerCC3+=turnoffFactor*PowerConfig.dcache2Power*(totalCycles - dcache2AccessCycle);
 
 		  	  aluPowerCC1+=PowerConfig.ialuPower*ialuAccessCycle;
@@ -667,6 +961,450 @@ System.out.println("Total Cycles = "+totalCycles);
 //		    System.out.println("Total Cycle power = "+totalCyclePower + "Config power = "+PowerConfig.clockPower);
 		}
 	
+	public void updatePowerAfterCompletion(long totalCycles){
+		
+		System.out.println("Total Cycles = "+totalCycles);
+				    totalRenamePowerCC1+=PowerConfig.renamePower*totalRenameAccess;
+				    totalRenamePowerCC2+=((double)totalRenameAccess/(double)PowerConfig.ruuDecodeWidth)*PowerConfig.renamePower;
+				    totalRenamePowerCC3+=((double)totalRenameAccess/(double)PowerConfig.ruuDecodeWidth)*PowerConfig.renamePower;
+				    totalRenamePowerCC3+=turnoffFactor*PowerConfig.renamePower*(totalCycles - totalRenameAccessCycle);
+
+				    totalBpredPowerCC1+=(double)totalBpredAccessCycle * PowerConfig.bpredPower;
+				    double temp = max(0,totalBpredAccess - totalBpredAccessCycle*2);
+				    totalBpredPowerCC1+=((double)temp/2.0) * PowerConfig.bpredPower;
+				    totalBpredPowerCC2+=((double)totalBpredAccess/2.0) * PowerConfig.bpredPower;
+				    totalBpredPowerCC3+=((double)totalBpredAccess/2.0) * PowerConfig.bpredPower;
+				    totalBpredPowerCC3+=turnoffFactor*PowerConfig.bpredPower*(totalCycles - totalBpredAccessCycle);
+
+//				  #ifdef STATICAF
+				    totalWindowPowerCC1+=((double)totalWindowPregAccessCycle)*PowerConfig.rsPower;
+				    temp = max(0,totalWindowPregAccess - totalWindowPregAccessCycle*3*PowerConfig.ruuIssueWidth);
+				    totalWindowPowerCC1+=((double)temp/(3.0*(double)PowerConfig.ruuIssueWidth))*PowerConfig.rsPower;
+				    totalWindowPowerCC2+=((double)totalWindowPregAccess/(3.0*(double)PowerConfig.ruuIssueWidth))*PowerConfig.rsPower;
+				    totalWindowPowerCC3+=((double)totalWindowPregAccess/(3.0*(double)PowerConfig.ruuIssueWidth))*PowerConfig.rsPower;
+				    totalWindowPowerCC3+=turnoffFactor*PowerConfig.rsPower*(totalCycles - totalWindowPregAccessCycle);
+		/*		  #elif defined(DYNAMICAF)
+				    if(windowPregAccess) {
+				      if(windowPregAccess <= 3*PowerConfig.ruuIssueWidth)
+				        windowPowerCC1+=PowerConfig.rsPowerNobit + windowAfB*PowerConfig.rsBitline;
+				      else
+				        windowPowerCC1+=((double)windowPregAccess/(3.0*(double)PowerConfig.ruuIssueWidth))*(PowerConfig.rsPowerNobit + windowAfB*PowerConfig.rsBitline);
+				      windowPowerCC2+=((double)windowPregAccess/(3.0*(double)PowerConfig.ruuIssueWidth))*(PowerConfig.rsPowerNobit + windowAfB*PowerConfig.rsBitline);
+				      windowPowerCC3+=((double)windowPregAccess/(3.0*(double)PowerConfig.ruuIssueWidth))*(PowerConfig.rsPowerNobit + windowAfB*PowerConfig.rsBitline);
+				    }
+				    else
+				      windowPowerCC3+=turnoffFactor*PowerConfig.rsPower;
+				  #else
+				    panic("no AF-style defined\n");
+				  #endif
+		*/
+
+				    totalWindowPowerCC1+=((double)totalWindowSelectionAccessCycle)*PowerConfig.selection;
+				    temp = max(0,totalWindowSelectionAccess - totalWindowSelectionAccessCycle*PowerConfig.ruuIssueWidth);
+				    totalWindowPowerCC1+=((double)temp/((double)PowerConfig.ruuIssueWidth))*PowerConfig.selection;
+				    totalWindowPowerCC2+=((double)totalWindowSelectionAccess/((double)PowerConfig.ruuIssueWidth))*PowerConfig.selection;
+				    totalWindowPowerCC3+=((double)totalWindowSelectionAccess/((double)PowerConfig.ruuIssueWidth))*PowerConfig.selection;
+				    totalWindowPowerCC3+=turnoffFactor*PowerConfig.selection*(totalCycles - totalWindowSelectionAccessCycle);
+
+				    totalWindowPowerCC1+=((double)totalWindowWakeupAccessCycle)*PowerConfig.wakeupPower;
+				    temp = max(0,totalWindowWakeupAccess - totalWindowWakeupAccessCycle*PowerConfig.ruuIssueWidth);
+				    totalWindowPowerCC1+=((double)temp/((double)PowerConfig.ruuIssueWidth))*PowerConfig.wakeupPower;
+				    totalWindowPowerCC2+=((double)totalWindowWakeupAccess/((double)PowerConfig.ruuIssueWidth))*PowerConfig.wakeupPower;
+				    totalWindowPowerCC3+=((double)totalWindowWakeupAccess/((double)PowerConfig.ruuIssueWidth))*PowerConfig.wakeupPower;
+				    totalWindowPowerCC3+=turnoffFactor*PowerConfig.wakeupPower*(totalCycles - totalWindowWakeupAccessCycle);
+
+				    totalLsqPowerCC1+=(double)totalLsqWakeupAccessCycle*PowerConfig.lsqWakeupPower;
+				    temp = max(0,totalLsqWakeupAccess - totalLsqWakeupAccessCycle*PowerConfig.resMemport);
+				    totalLsqPowerCC1+=((double)(temp)/((double)PowerConfig.resMemport))*PowerConfig.lsqWakeupPower;
+				    totalLsqPowerCC2+=((double)totalLsqWakeupAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqWakeupPower;
+				    totalLsqPowerCC3+=((double)totalLsqWakeupAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqWakeupPower;
+				    totalLsqPowerCC3+=turnoffFactor*PowerConfig.lsqWakeupPower*(totalCycles - totalLsqWakeupAccessCycle);
+
+//				  #ifdef STATICAF
+				    
+				    totalLsqPowerCC1+=(double)totalLsqPregAccessCycle*PowerConfig.lsqWakeupPower;
+					temp = max(0,totalLsqPregAccess - totalLsqPregAccessCycle*PowerConfig.resMemport);
+					totalLsqPowerCC1+=((double)(temp)/((double)PowerConfig.resMemport))*PowerConfig.lsqWakeupPower;
+					totalLsqPowerCC2+=((double)totalLsqPregAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqRsPower;
+					totalLsqPowerCC3+=((double)totalLsqPregAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqRsPower;
+					totalLsqPowerCC3+=turnoffFactor*PowerConfig.lsqRsPower*(totalCycles-totalLsqPregAccessCycle);
+		/*		  #else
+				    if(lsqPregAccess) {
+				      if(lsqPregAccess <= PowerConfig.resMemport)
+				        lsqPowerCC1+=PowerConfig.lsqRsPowerNobit + lsqAfB*PowerConfig.lsqRsBitline;
+				      else
+				        lsqPowerCC1+=((double)lsqPregAccess/((double)PowerConfig.resMemport))*(PowerConfig.lsqRsPowerNobit + lsqAfB*PowerConfig.lsqRsBitline);
+				      lsqPowerCC2+=((double)lsqPregAccess/((double)PowerConfig.resMemport))*(PowerConfig.lsqRsPowerNobit + lsqAfB*PowerConfig.lsqRsBitline);
+				      lsqPowerCC3+=((double)lsqPregAccess/((double)PowerConfig.resMemport))*(PowerConfig.lsqRsPowerNobit + lsqAfB*PowerConfig.lsqRsBitline);
+				    }
+				    else
+				      lsqPowerCC3+=turnoffFactor*PowerConfig.lsqRsPower;
+				  #endif
+		*/
+//				  #ifdef STATICAF
+
+					totalRegfilePowerCC1+=((double)totalIntegerRegfileAccessCycle)*PowerConfig.regfilePower;
+					temp = max(0,totalIntegerRegfileAccess - totalIntegerRegfileAccessCycle*3*PowerConfig.ruuCommitWidth);
+					totalRegfilePowerCC1+=((double)temp/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+					totalRegfilePowerCC2+=((double)totalIntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+					totalRegfilePowerCC3+=((double)totalIntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+					totalRegfilePowerCC3+=turnoffFactor*PowerConfig.regfilePower*(totalCycles-totalIntegerRenameAccessCycle);
+				    
+		/*		  #else
+				    if(IntegerRegfileAccess) {
+				      if(IntegerRegfileAccess <= (3.0*PowerConfig.ruuCommitWidth))
+				        regfilePowerCC1+=PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline;
+				      else
+				        regfilePowerCC1+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
+				      regfilePowerCC2+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
+				      regfilePowerCC3+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*(PowerConfig.regfilePowerNobit + regfileAfB*PowerConfig.regfileBitline);
+				    }
+				    else
+				      regfilePowerCC3+=turnoffFactor*PowerConfig.regfilePower;
+				  #endif
+		*/
+					totalIcachePowerCC1+=(totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+					totalIcachePowerCC2+=(totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+					totalIcachePowerCC3+=(totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+					totalIcachePowerCC3+=(totalCycles - totalIcacheAccessCycle)*turnoffFactor*(PowerConfig.icachePower+PowerConfig.itlb);
+
+					totalDcachePowerCC1+=((double)totalDcacheAccessCycle)*(PowerConfig.dcachePower+PowerConfig.dtlb);
+					  temp = max(0,totalDcacheAccess - totalDcacheAccessCycle*PowerConfig.dl1Port);
+					  totalDcachePowerCC1+=((double)temp/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
+					  totalDcachePowerCC2+=((double)totalDcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
+					  totalDcachePowerCC3+=((double)totalDcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
+					  totalDcachePowerCC3+=turnoffFactor*(PowerConfig.dcachePower+PowerConfig.dtlb)*(totalCycles - totalDcacheAccessCycle);
+
+					  totalDcache2PowerCC1+=((double)totalDcache2AccessCycle)*PowerConfig.dcache2Power;
+					  temp = max(0,totalDcache2Access - totalDcache2AccessCycle*PowerConfig.dl2Port);
+					  totalDcache2PowerCC1+=((double)temp/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
+					  totalDcache2PowerCC2+=((double)totalDcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
+				      totalDcache2PowerCC3+=((double)totalDcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
+				      totalDcache2PowerCC3+=turnoffFactor*PowerConfig.dcache2Power*(totalCycles - totalDcache2AccessCycle);
+
+				      totalAluPowerCC1+=PowerConfig.ialuPower*totalIaluAccessCycle;
+				      totalAluPowerCC3+=turnoffFactor*PowerConfig.ialuPower*(totalCycles - totalIaluAccessCycle);
+				      totalAluPowerCC1+=PowerConfig.faluPower*totalFaluAccessCycle;
+				      totalAluPowerCC3+=turnoffFactor*PowerConfig.faluPower*(totalCycles - totalFaluAccessCycle);
+
+				      totalAluPowerCC2+=((double)totalIaluAccess/(double)PowerConfig.resIalu)*PowerConfig.ialuPower +
+				        ((double)totalFaluAccess/(double)PowerConfig.resFpalu)*PowerConfig.faluPower;
+				      totalAluPowerCC3+=((double)totalIaluAccess/(double)PowerConfig.resIalu)*PowerConfig.ialuPower +
+				        ((double)totalFaluAccess/(double)PowerConfig.resFpalu)*PowerConfig.faluPower;
+
+//				  #ifdef STATICAF
+				      totalResultbusPowerCC1+=PowerConfig.resultbus*totalResultbusAccessCycle;
+				      temp = max(0,totalResultbusAccess - PowerConfig.ruuIssueWidth*totalResultbusAccessCycle);
+				      totalResultbusPowerCC1+=((double)temp/(double)PowerConfig.ruuIssueWidth)*PowerConfig.resultbus;
+				      totalResultbusPowerCC2+=((double)totalResultbusAccess/(double)PowerConfig.ruuIssueWidth)*PowerConfig.resultbus;
+				      totalResultbusPowerCC3+=((double)totalResultbusAccess/(double)PowerConfig.ruuIssueWidth)*PowerConfig.resultbus;
+				      totalResultbusPowerCC3+=turnoffFactor*PowerConfig.resultbus*(totalCycles - totalResultbusAccessCycle);
+		/*		  #else
+				    if(resultbusAccess) {
+				      assert(PowerConfig.ruuIssueWidth != 0);
+				      if(resultbusAccess <= PowerConfig.ruuIssueWidth) {
+				        resultbusPowerCC1+=resultbusAfB*PowerConfig.resultbus;
+				      }
+				      else {
+				        resultbusPowerCC1+=((double)resultbusAccess/(double)PowerConfig.ruuIssueWidth)*resultbusAfB*PowerConfig.resultbus;
+				      }
+				      resultbusPowerCC2+=((double)resultbusAccess/(double)PowerConfig.ruuIssueWidth)*resultbusAfB*PowerConfig.resultbus;
+				      resultbusPowerCC3+=((double)resultbusAccess/(double)PowerConfig.ruuIssueWidth)*resultbusAfB*PowerConfig.resultbus;
+				    }
+				    else
+				      resultbusPowerCC3+=turnoffFactor*PowerConfig.resultbus;
+				  #endif
+		*/
+				      
+				    totalCyclePower = (PowerConfig.renamePower + PowerConfig.bpredPower + PowerConfig.windowPower + 
+				    		PowerConfig.lsqPower + PowerConfig.regfilePower + PowerConfig.icachePower + PowerConfig.dcachePower +
+				    		PowerConfig.ialuPower + PowerConfig.faluPower +PowerConfig.resultbus);
+
+				    totalCyclePowerCC1 = totalRenamePowerCC1 + totalBpredPowerCC1 + 
+				      totalWindowPowerCC1 + totalLsqPowerCC1 + totalRegfilePowerCC1 + 
+				      totalIcachePowerCC1 + totalDcachePowerCC1 + totalAluPowerCC1 + 
+				      totalResultbusPowerCC1;
+
+				    totalCyclePowerCC2 = totalRenamePowerCC2 + totalBpredPowerCC2 + 
+				      totalWindowPowerCC2 + totalLsqPowerCC2 + totalRegfilePowerCC2 + 
+				      totalIcachePowerCC2 + totalDcachePowerCC2 + totalAluPowerCC2 + 
+				      totalResultbusPowerCC2;
+
+				    totalCyclePowerCC3 = totalRenamePowerCC3 + totalBpredPowerCC3 + 
+				      totalWindowPowerCC3 + totalLsqPowerCC3 + totalRegfilePowerCC3 + 
+				      totalIcachePowerCC3 + totalDcachePowerCC3 + totalAluPowerCC3 + 
+				      totalResultbusPowerCC3;
+				  
+				    totalClockPowerCC1=PowerConfig.clockPower*(totalCyclePowerCC1/totalCyclePower);
+				    totalClockPowerCC2=PowerConfig.clockPower*(totalCyclePowerCC2/totalCyclePower);
+				    totalClockPowerCC3=PowerConfig.clockPower*(totalCyclePowerCC3/totalCyclePower);
+			
+				}
+			
+	public double getTotalRenamePowerCC1() {
+		return totalRenamePowerCC1;
+	}
+
+	public void setTotalRenamePowerCC1(double totalRenamePowerCC1) {
+		this.totalRenamePowerCC1 = totalRenamePowerCC1;
+	}
+
+	public double getTotalBpredPowerCC1() {
+		return totalBpredPowerCC1;
+	}
+
+	public void setTotalBpredPowerCC1(double totalBpredPowerCC1) {
+		this.totalBpredPowerCC1 = totalBpredPowerCC1;
+	}
+
+	public double getTotalWindowPowerCC1() {
+		return totalWindowPowerCC1;
+	}
+
+	public void setTotalWindowPowerCC1(double totalWindowPowerCC1) {
+		this.totalWindowPowerCC1 = totalWindowPowerCC1;
+	}
+
+	public double getTotalLsqPowerCC1() {
+		return totalLsqPowerCC1;
+	}
+
+	public void setTotalLsqPowerCC1(double totalLsqPowerCC1) {
+		this.totalLsqPowerCC1 = totalLsqPowerCC1;
+	}
+
+	public double getTotalRegfilePowerCC1() {
+		return totalRegfilePowerCC1;
+	}
+
+	public void setTotalRegfilePowerCC1(double totalRegfilePowerCC1) {
+		this.totalRegfilePowerCC1 = totalRegfilePowerCC1;
+	}
+
+	public double getTotalIcachePowerCC1() {
+		return totalIcachePowerCC1;
+	}
+
+	public void setTotalIcachePowerCC1(double totalIcachePowerCC1) {
+		this.totalIcachePowerCC1 = totalIcachePowerCC1;
+	}
+
+	public double getTotalDcachePowerCC1() {
+		return totalDcachePowerCC1;
+	}
+
+	public void setTotalDcachePowerCC1(double totalDcachePowerCC1) {
+		this.totalDcachePowerCC1 = totalDcachePowerCC1;
+	}
+
+	public double getTotalDcache2PowerCC1() {
+		return totalDcache2PowerCC1;
+	}
+
+	public void setTotalDcache2PowerCC1(double totalDcache2PowerCC1) {
+		this.totalDcache2PowerCC1 = totalDcache2PowerCC1;
+	}
+
+	public double getTotalAluPowerCC1() {
+		return totalAluPowerCC1;
+	}
+
+	public void setTotalAluPowerCC1(double totalAluPowerCC1) {
+		this.totalAluPowerCC1 = totalAluPowerCC1;
+	}
+
+	public double getTotalResultbusPowerCC1() {
+		return totalResultbusPowerCC1;
+	}
+
+	public void setTotalResultbusPowerCC1(double totalResultbusPowerCC1) {
+		this.totalResultbusPowerCC1 = totalResultbusPowerCC1;
+	}
+
+	public double getTotalclockPowerCC1() {
+		return totalClockPowerCC1;
+	}
+
+	public void setTotalclockPowerCC1(double totalClockPowerCC1) {
+		this.totalClockPowerCC1 = totalClockPowerCC1;
+	}
+
+	public double getTotalRenamePowerCC2() {
+		return totalRenamePowerCC2;
+	}
+
+	public void setTotalRenamePowerCC2(double totalRenamePowerCC2) {
+		this.totalRenamePowerCC2 = totalRenamePowerCC2;
+	}
+
+	public double getTotalBpredPowerCC2() {
+		return totalBpredPowerCC2;
+	}
+
+	public void setTotalBpredPowerCC2(double totalBpredPowerCC2) {
+		this.totalBpredPowerCC2 = totalBpredPowerCC2;
+	}
+
+	public double getTotalWindowPowerCC2() {
+		return totalWindowPowerCC2;
+	}
+
+	public void setTotalWindowPowerCC2(double totalWindowPowerCC2) {
+		this.totalWindowPowerCC2 = totalWindowPowerCC2;
+	}
+
+	public double getTotalLsqPowerCC2() {
+		return totalLsqPowerCC2;
+	}
+
+	public void setTotalLsqPowerCC2(double totalLsqPowerCC2) {
+		this.totalLsqPowerCC2 = totalLsqPowerCC2;
+	}
+
+	public double getTotalRegfilePowerCC2() {
+		return totalRegfilePowerCC2;
+	}
+
+	public void setTotalRegfilePowerCC2(double totalRegfilePowerCC2) {
+		this.totalRegfilePowerCC2 = totalRegfilePowerCC2;
+	}
+
+	public double getTotalIcachePowerCC2() {
+		return totalIcachePowerCC2;
+	}
+
+	public void setTotalIcachePowerCC2(double totalIcachePowerCC2) {
+		this.totalIcachePowerCC2 = totalIcachePowerCC2;
+	}
+
+	public double getTotalDcachePowerCC2() {
+		return totalDcachePowerCC2;
+	}
+
+	public void setTotalDcachePowerCC2(double totalDcachePowerCC2) {
+		this.totalDcachePowerCC2 = totalDcachePowerCC2;
+	}
+
+	public double getTotalDcache2PowerCC2() {
+		return totalDcache2PowerCC2;
+	}
+
+	public void setTotalDcache2PowerCC2(double totalDcache2PowerCC2) {
+		this.totalDcache2PowerCC2 = totalDcache2PowerCC2;
+	}
+
+	public double getTotalAluPowerCC2() {
+		return totalAluPowerCC2;
+	}
+
+	public void setTotalAluPowerCC2(double totalAluPowerCC2) {
+		this.totalAluPowerCC2 = totalAluPowerCC2;
+	}
+
+	public double getTotalResultbusPowerCC2() {
+		return totalResultbusPowerCC2;
+	}
+
+	public void setTotalResultbusPowerCC2(double totalResultbusPowerCC2) {
+		this.totalResultbusPowerCC2 = totalResultbusPowerCC2;
+	}
+
+	public double getTotalclockPowerCC2() {
+		return totalClockPowerCC2;
+	}
+
+	public void setTotalclockPowerCC2(double totalClockPowerCC2) {
+		this.totalClockPowerCC2 = totalClockPowerCC2;
+	}
+
+	public double getTotalRenamePowerCC3() {
+		return totalRenamePowerCC3;
+	}
+
+	public void setTotalRenamePowerCC3(double totalRenamePowerCC3) {
+		this.totalRenamePowerCC3 = totalRenamePowerCC3;
+	}
+
+	public double getTotalBpredPowerCC3() {
+		return totalBpredPowerCC3;
+	}
+
+	public void setTotalBpredPowerCC3(double totalBpredPowerCC3) {
+		this.totalBpredPowerCC3 = totalBpredPowerCC3;
+	}
+
+	public double getTotalWindowPowerCC3() {
+		return totalWindowPowerCC3;
+	}
+
+	public void setTotalWindowPowerCC3(double totalWindowPowerCC3) {
+		this.totalWindowPowerCC3 = totalWindowPowerCC3;
+	}
+
+	public double getTotalLsqPowerCC3() {
+		return totalLsqPowerCC3;
+	}
+
+	public void setTotalLsqPowerCC3(double totalLsqPowerCC3) {
+		this.totalLsqPowerCC3 = totalLsqPowerCC3;
+	}
+
+	public double getTotalRegfilePowerCC3() {
+		return totalRegfilePowerCC3;
+	}
+
+	public void setTotalRegfilePowerCC3(double totalRegfilePowerCC3) {
+		this.totalRegfilePowerCC3 = totalRegfilePowerCC3;
+	}
+
+	public double getTotalIcachePowerCC3() {
+		return totalIcachePowerCC3;
+	}
+
+	public void setTotalIcachePowerCC3(double totalIcachePowerCC3) {
+		this.totalIcachePowerCC3 = totalIcachePowerCC3;
+	}
+
+	public double getTotalDcachePowerCC3() {
+		return totalDcachePowerCC3;
+	}
+
+	public void setTotalDcachePowerCC3(double totalDcachePowerCC3) {
+		this.totalDcachePowerCC3 = totalDcachePowerCC3;
+	}
+
+	public double getTotalDcache2PowerCC3() {
+		return totalDcache2PowerCC3;
+	}
+
+	public void setTotalDcache2PowerCC3(double totalDcache2PowerCC3) {
+		this.totalDcache2PowerCC3 = totalDcache2PowerCC3;
+	}
+
+	public double getTotalAluPowerCC3() {
+		return totalAluPowerCC3;
+	}
+
+	public void setTotalAluPowerCC3(double totalAluPowerCC3) {
+		this.totalAluPowerCC3 = totalAluPowerCC3;
+	}
+
+	public double getTotalResultbusPowerCC3() {
+		return totalResultbusPowerCC3;
+	}
+
+	public void setTotalResultbusPowerCC3(double totalResultbusPowerCC3) {
+		this.totalResultbusPowerCC3 = totalResultbusPowerCC3;
+	}
+
+	public double getTotalclockPowerCC3() {
+		return totalClockPowerCC3;
+	}
+
+	public void setTotalclockPowerCC3(double totalClockPowerCC3) {
+		this.totalClockPowerCC3 = totalClockPowerCC3;
+	}
+
 	public void updatePowerStatsPerCycle(){
 		
 /*		  #ifdef DYNAMICAF
@@ -685,7 +1423,6 @@ System.out.println("Total Cycles = "+totalCycles);
 		    dcachePower+=PowerConfig.dcachePower+PowerConfig.dtlb;
 		    dcache2Power+=PowerConfig.dcache2Power;
 		    aluPower+=PowerConfig.ialuPower + PowerConfig.faluPower;
-		    faluPower+=PowerConfig.faluPower;
 		    resultbusPower+=PowerConfig.resultbus;
 		    clockPower+=PowerConfig.clockPower;
 
@@ -848,7 +1585,6 @@ System.out.println("Total Cycles = "+totalCycles);
 		  #endif
 */
 		    if(icacheAccess>0) {
-		      /* don't scale icache because we assume 1 line is fetched, unless fetch stalls */
 		      icachePowerCC1+=PowerConfig.icachePower+PowerConfig.itlb;
 		      icachePowerCC2+=PowerConfig.icachePower+PowerConfig.itlb;
 		      icachePowerCC3+=PowerConfig.icachePower+PowerConfig.itlb;
@@ -857,26 +1593,26 @@ System.out.println("Total Cycles = "+totalCycles);
 		      icachePowerCC3+=turnoffFactor*(PowerConfig.icachePower+PowerConfig.itlb);
 
 		    if(dcacheAccess>0) {
-		      if(dcacheAccess <= PowerConfig.resMemport)
+		      if(dcacheAccess <= PowerConfig.dl1Port)
 		        dcachePowerCC1+=PowerConfig.dcachePower+PowerConfig.dtlb;
 		      else
-		        dcachePowerCC1+=((double)dcacheAccess/(double)PowerConfig.resMemport)*(PowerConfig.dcachePower +
+		        dcachePowerCC1+=((double)dcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +
 		  						     PowerConfig.dtlb);
-		      dcachePowerCC2+=((double)dcacheAccess/(double)PowerConfig.resMemport)*(PowerConfig.dcachePower +
+		      dcachePowerCC2+=((double)dcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +
 		  						   PowerConfig.dtlb);
-		      dcachePowerCC3+=((double)dcacheAccess/(double)PowerConfig.resMemport)*(PowerConfig.dcachePower +
+		      dcachePowerCC3+=((double)dcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +
 		  						   PowerConfig.dtlb);
 		    }
 		    else
 		      dcachePowerCC3+=turnoffFactor*(PowerConfig.dcachePower+PowerConfig.dtlb);
 
 		    if(dcache2Access>0) {
-		      if(dcache2Access <= PowerConfig.resMemport)
+		      if(dcache2Access <= PowerConfig.dl2Port)
 		        dcache2PowerCC1+=PowerConfig.dcache2Power;
 		      else
-		        dcache2PowerCC1+=((double)dcache2Access/(double)PowerConfig.resMemport)*PowerConfig.dcache2Power;
-		      dcache2PowerCC2+=((double)dcache2Access/(double)PowerConfig.resMemport)*PowerConfig.dcache2Power;
-		      dcache2PowerCC3+=((double)dcache2Access/(double)PowerConfig.resMemport)*PowerConfig.dcache2Power;
+		        dcache2PowerCC1+=((double)dcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
+		      dcache2PowerCC2+=((double)dcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
+		      dcache2PowerCC3+=((double)dcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
 		    }
 		    else
 		      dcache2PowerCC3+=turnoffFactor*PowerConfig.dcache2Power;
@@ -1448,14 +2184,6 @@ System.out.println("Total Cycles = "+totalCycles);
 		this.aluPower = aluPower;
 	}
 
-	public double getFaluPower() {
-		return faluPower;
-	}
-
-	public void setFaluPower(double faluPower) {
-		this.faluPower = faluPower;
-	}
-
 	public double getResultbusPower() {
 		return resultbusPower;
 	}
@@ -1910,5 +2638,117 @@ System.out.println("Total Cycles = "+totalCycles);
 	public long getFloatRegfileAccess() {
 		return FloatRegfileAccess;
 	}
+	public double getTotalRenamePower() {
+		return totalRenamePower;
+	}
+
+	public void setTotalRenamePower(double totalRenamePower) {
+		this.totalRenamePower = totalRenamePower;
+	}
+
+	public double getTotalBpredPower() {
+		return totalBpredPower;
+	}
+
+	public void setTotalBpredPower(double totalBpredPower) {
+		this.totalBpredPower = totalBpredPower;
+	}
+
+	public double getTotalWindowPower() {
+		return totalWindowPower;
+	}
+
+	public void setTotalWindowPower(double totalWindowPower) {
+		this.totalWindowPower = totalWindowPower;
+	}
+
+	public double getTotalLsqPower() {
+		return totalLsqPower;
+	}
+
+	public void setTotalLsqPower(double totalLsqPower) {
+		this.totalLsqPower = totalLsqPower;
+	}
+
+	public double getTotalRegfilePower() {
+		return totaRegfilePower;
+	}
+
+	public void setTotalRegfilePower(double totaRegfilePower) {
+		this.totaRegfilePower = totaRegfilePower;
+	}
+
+	public double getTotalIcachePower() {
+		return totalIcachePower;
+	}
+
+	public void setTotalIcachePower(double totalIcachePower) {
+		this.totalIcachePower = totalIcachePower;
+	}
+
+	public double getTotalDcachePower() {
+		return totalDcachePower;
+	}
+
+	public void setTotalDcachePower(double totalDcachePower) {
+		this.totalDcachePower = totalDcachePower;
+	}
+
+	public double getTotalDcache2Power() {
+		return totalDcache2Power;
+	}
+
+	public void setTotalDcache2Power(double totalDcache2Power) {
+		this.totalDcache2Power = totalDcache2Power;
+	}
+
+	public double getTotalResultbusPower() {
+		return totalResultbusPower;
+	}
+
+	public void setTotalResultbusPower(double totalResultbusPower) {
+		this.totalResultbusPower = totalResultbusPower;
+	}
+
+	public double getTotalClockPower() {
+		return totalClockPower;
+	}
+
+	public void setTotalClockPower(double totalClockPower) {
+		this.totalClockPower = totalClockPower;
+	}
+
+	public double getTotalClockPowerCC1() {
+		return totalClockPowerCC1;
+	}
+
+	public void setTotalClockPowerCC1(double totalClockPowerCC1) {
+		this.totalClockPowerCC1 = totalClockPowerCC1;
+	}
+
+	public double getTotalClockPowerCC2() {
+		return totalClockPowerCC2;
+	}
+
+	public void setTotalClockPowerCC2(double totalClockPowerCC2) {
+		this.totalClockPowerCC2 = totalClockPowerCC2;
+	}
+
+	public double getTotalClockPowerCC3() {
+		return totalClockPowerCC3;
+	}
+
+	public void setTotalClockPowerCC3(double totalClockPowerCC3) {
+		this.totalClockPowerCC3 = totalClockPowerCC3;
+	}
+	public double getTotalAluPower() {
+		return totalAluPower;
+	}
+
+	public void setTotalAluPower(double totalAluPower) {
+		this.totalAluPower = totalAluPower;
+	}
+
+
 
 }

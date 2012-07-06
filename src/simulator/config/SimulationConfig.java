@@ -41,4 +41,7 @@ public class SimulationConfig
 	public static String InstructionsFilename;
 	public static boolean subsetSimulation;
 	public static long subsetSimSize;
+	public static int powerTrace;
+	public static long numInsForTrace;
+	public static long numCyclesForTrace;
 }

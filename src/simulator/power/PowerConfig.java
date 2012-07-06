@@ -37,5 +37,8 @@ public class PowerConfig {
 	  public static double resMemport;
 	  public static double resIalu;
 	  public static double resFpalu;
+	  public static double il1Port;
+	  public static double dl1Port;
+	  public static double dl2Port;
 	  	  
 }
