@@ -62,6 +62,10 @@ public abstract class SimulationElement implements Cloneable
 	protected void setLatency(long latency) {
 		this.latency = latency;
 	}
+	public void setPort(Port port){
+		this.port =port;
+	}
+	
 
 	public Port getPort()
 	{

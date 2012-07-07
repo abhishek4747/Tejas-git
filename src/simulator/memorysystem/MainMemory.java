@@ -1,5 +1,6 @@
 package memorysystem;
 
+import net.optical.EntryPoint;
 import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
 import config.SystemConfig;
@@ -33,21 +34,34 @@ public class MainMemory extends SimulationElement
 						event.update(
 								eventQ,
 								event.getRequestingElement().getLatency(),//2,//wire delay from main memory to cache
-								null,
+								this,
 								event.getRequestingElement(),
 								RequestType.Mem_Response));
 			}
 			else
 			{
-
+				
+				if(event.getRequestingElement().getClass() == NucaCacheBank.class){
 				NucaCacheBank requestingBank =  (NucaCacheBank) event.getRequestingElement();
+				System.out.println("From main memory" + ((AddressCarryingEvent) event).getSourceBankId() + " " + ((AddressCarryingEvent) event).getDestinationBankId());
 				requestingBank.getRouter().getPort().put(
 						event.update(
 								eventQ,
 								event.getRequestingElement().getLatencyDelay(),
-								null,
+								this,
 								requestingBank.getRouter(),
 								RequestType.Main_Mem_Response));
+				}
+				else{
+					SimulationElement requestingElement = event.getRequestingElement();
+					requestingElement.getPort().put(
+							event.update(
+									eventQ,
+									1,
+									this,
+									requestingElement,
+									RequestType.Main_Mem_Response));
+				}
 			}
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)

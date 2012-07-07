@@ -9,6 +9,7 @@ import memorysystem.nuca.SNuca;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import misc.Error;
+import net.optical.TopLevelTokenBus;
 import config.SimulationConfig;
 import config.SystemConfig;
 import config.XMLParser;
@@ -112,7 +113,8 @@ public class Newmain {
 		}
 
 		//Create the memory system
-		MemorySystem.initializeMemSys(cores); //TODO mem sys need not know eventQ during initialisation
+		TopLevelTokenBus tokenBus = new TopLevelTokenBus();
+		MemorySystem.initializeMemSys(cores,tokenBus); //TODO mem sys need not know eventQ during initialisation
 		
 		//different core components may work at different frequencies
 		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
@@ -124,9 +126,9 @@ public class Newmain {
 		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
 			if(SimulationConfig.Mode==0)
-				runners[i] = new RunnableFromFile(name,i, ipcBase, cores);
+				runners[i] = new RunnableFromFile(name,i, ipcBase, cores,tokenBus);
 			else if (SimulationConfig.Mode==1)
-				runners[i] = new RunnableShm(name,i, ipcBase, cores);
+				runners[i] = new RunnableShm(name,i, ipcBase, cores,tokenBus);
 			else System.out.println("\n\n This mode not implemented yet \n\n");
 		}
 		
@@ -149,18 +151,32 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
-			if (cache.getClass() == SNuca.class)
+			if (cache.getClass() == SNuca.class || cache.getClass() == DNuca.class)
 			{
 				((NucaCache)cache).setStatistics();
 				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
 				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
+				for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
+				{
+					for(int j=0; j< ((NucaCache)cache).cacheColumns;j++)
+					{
+						Statistics.hopcount += ((NucaCache)cache).cacheBank[i][j].getRouter().hopCounters; 
+					}
+				}
+				if(Statistics.nocTopology.equals("FATTREE") ||
+						Statistics.nocTopology.equals("OMEGA") ||
+						Statistics.nocTopology.equals("BUTTERFLY")) {
+					for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
+						Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
+					}
+				}
 			}
-			else if (cache.getClass() == DNuca.class)
+			/*else if (cache.getClass() == DNuca.class)
 			{
 				((NucaCache)cache).setStatistics();
 				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
 				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
-			}
+			}*/
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);

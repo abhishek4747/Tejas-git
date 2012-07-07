@@ -2,6 +2,8 @@ package emulatorinterface;
 
 import java.util.ArrayList;
 
+import net.optical.TopLevelTokenBus;
+
 import config.SimulationConfig;
 
 import emulatorinterface.communication.IpcBase;
@@ -14,8 +16,8 @@ public class RunnableShm extends RunnableThread implements Runnable {
 	IpcBase ipcType;
 
 	public RunnableShm(String threadName, int tid1, IpcBase ipcType,
-			Core[] cores) {
-		super(threadName, tid1, cores);
+			Core[] cores, TopLevelTokenBus tokenBus) {
+		super(threadName, tid1, cores, tokenBus);
 		// TODO Auto-generated constructor stub
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();

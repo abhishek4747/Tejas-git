@@ -24,15 +24,19 @@ import generic.Event;
 import generic.EventQueue;
 import generic.SimulationElement;
 import java.util.Vector;
+
+import net.NOC.CONNECTIONTYPE;
+import net.optical.OpticalNOC;
+import net.optical.TopLevelTokenBus;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
 
 public class DNuca extends NucaCache {
 
-	public DNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) 
+	public DNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus) 
 	{
-		super(cacheParameters,containingMemSys);
+		super(cacheParameters,containingMemSys,tokenBus);
 		System.out.println("Dnuca ");
 		for(int i=0;i<2;i++)
 		{
@@ -63,12 +67,23 @@ public class DNuca extends NucaCache {
 		//System.out.println(sourceBankId + " " + destinationBankId + " " + getBankNumber(address));
 		//System.exit(0);
 		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone();
+		if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL){
 		cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
 								getPort().put(((AddressCarryingEvent)event).
 														updateEvent(eventQ, 
 																	0,//to be  changed to some constant(wire delay) 
 																	requestingElement, 
 																	cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+																	event.getRequestType(), 
+																	sourceBankId, 
+																	destinationBankId));
+		}
+		else  //TODO  separate data packet and request packet
+			((OpticalNOC)(this.noc)).broadcastBus.elementAt(sourceBankId.get(0)).getPort().put(((AddressCarryingEvent)event).
+														updateEvent(eventQ, 
+																	0,//to be  changed to some constant(wire delay) 
+																	requestingElement, 
+																	((OpticalNOC)(this.noc)).broadcastBus.elementAt(sourceBankId.get(0)), 
 																	event.getRequestType(), 
 																	sourceBankId, 
 																	destinationBankId));

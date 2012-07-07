@@ -4,6 +4,8 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.util.Hashtable;
 import java.util.Iterator;
+
+import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
@@ -17,8 +19,8 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 	IpcBase ipcType;
 
 	public RunnableFromFile(String threadName, int tid1, IpcBase ipcType,
-			Core[] cores) {
-		super(threadName, tid1, cores);
+			Core[] cores, TopLevelTokenBus tokenBus) {
+		super(threadName, tid1, cores, tokenBus);
 		// TODO Auto-generated constructor stub
 		this.ipcType = ipcType;
 		(new Thread(this, threadName)).start();

@@ -27,6 +27,9 @@ import memorysystem.CoreMemorySystem;
 import misc.Util;
 import config.CacheConfig;
 import net.NOC;
+import net.NOC.CONNECTIONTYPE;
+import net.optical.OpticalNOC;
+import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
 
 public abstract class NucaCache extends Cache
@@ -44,8 +47,8 @@ public abstract class NucaCache extends Cache
 	}
     /*cache is assumed to in the form of a 2 dimensional array*/
     public NucaCacheBank cacheBank[][];
-    int cacheRows;
-    int cacheColumns;
+    public int cacheRows;
+    public int cacheColumns;
     int numOfCores;// number of cores present on system
     int cacheSize;//cache size in bytes
     int associativity;
@@ -53,7 +56,7 @@ public abstract class NucaCache extends Cache
     public NOC noc;
     public Mapping mapping;
     public int coreCacheMapping[][];
-    NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
+    NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus)
     {
     	super(cacheParameters, containingMemSys);
     	this.cacheRows = cacheParameters.getNumberOfBankRows();
@@ -65,6 +68,10 @@ public abstract class NucaCache extends Cache
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
         coreCacheMapping = SystemConfig.coreCacheMapping.clone();
         this.mapping = cacheParameters.mapping;
+        if(cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+        	noc = new NOC();
+        else
+        	noc = new OpticalNOC();
         for(int i=0;i<cacheRows;i++)
         {
             for(int j=0;j<cacheColumns;j++)
@@ -72,14 +79,13 @@ public abstract class NucaCache extends Cache
             	Vector<Integer> bankId = new Vector<Integer>(2);
             	bankId.add(i);
             	bankId.add(j);
-            	cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys);
+            	cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys,noc);
             }
         }
-        noc = new NOC();
-        makeCacheBanks(cacheParameters, containingMemSys);
+        makeCacheBanks(cacheParameters, containingMemSys, tokenbus);
     }
 
-    private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys)
+    private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus)
 	{
 		int bankColumns,bankRows,i,j;
 		
@@ -94,10 +100,10 @@ public abstract class NucaCache extends Cache
 				bankId.clear();
 				bankId.add(i);
 				bankId.add(j);
-				this.cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys);
+				this.cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys,noc);
 			}
 		}
-		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig);
+		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig,tokenBus);
 	}
 
     public Vector<Integer> integerToBankId(int bankNumber)

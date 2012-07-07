@@ -22,6 +22,10 @@
 package memorysystem.nuca;
 import java.util.Vector;
 
+import net.NOC.CONNECTIONTYPE;
+import net.optical.OpticalNOC;
+import net.optical.TopLevelTokenBus;
+
 import generic.Event;
 import generic.EventQueue;
 import generic.SimulationElement;
@@ -33,8 +37,8 @@ import config.SystemConfig;
 
 public class SNuca extends NucaCache
 {
-	public SNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) {
-        super(cacheParameters,containingMemSys);
+	public SNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus) {
+        super(cacheParameters,containingMemSys,tokenBus);
     }
 		
 	public long getTag(long addr) {
@@ -118,15 +122,28 @@ public class SNuca extends NucaCache
 		sourceBankId.clear();
 		sourceBankId.add(0);
 		sourceBankId.add(0);
-		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
-										getPort().put(((AddressCarryingEvent)event).
-																updateEvent(eventQ, 
-																			0,//to be  changed to some constant(wire delay) 
-																			requestingElement, 
-																			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-																			event.getRequestType(), 
-																			sourceBankId, 
-																			destinationBankId));
+		if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+											getPort().put(((AddressCarryingEvent)event).
+																	updateEvent(eventQ, 
+																				0,//to be  changed to some constant(wire delay) 
+																				requestingElement, 
+																				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+																				event.getRequestType(), 
+																				sourceBankId, 
+																				destinationBankId));
+		else{
+			System.out.println("Event to NOC" + "from" + sourceBankId + "to" +destinationBankId + "with address" + address);
+			((OpticalNOC)this.noc).entryPoint.
+			getPort().put(((AddressCarryingEvent)event).
+									updateEvent(eventQ, 
+												0,//to be  changed to some constant(wire delay) 
+												requestingElement, 
+												((OpticalNOC)this.noc).entryPoint, 
+												event.getRequestType(), 
+												sourceBankId, 
+												destinationBankId));
+		}
 
 	}
 
