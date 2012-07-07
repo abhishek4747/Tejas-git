@@ -322,7 +322,7 @@ public class NucaCacheBank extends Cache
 			
 		if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
-			System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 416"+((AddressCarryingEvent)event).getAddress());
+			System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 416 "+((AddressCarryingEvent)event).getAddress());
 			System.exit(1);
 		}
 		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
@@ -460,7 +460,15 @@ public class NucaCacheBank extends Cache
 															((OpticalNOC)noc).entryPoint, 
 															requestType,
 															sourceBankId,
-															destinationBankId));		
+															destinationBankId));
+//		this.getRouter().getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
+//				1, 
+//				this, 
+//				this.getRouter(), 
+//				requestType,
+//				sourceBankId,
+//				destinationBankId));		
+
 	}
 
 	/************************************************************************
@@ -543,5 +551,13 @@ public class NucaCacheBank extends Cache
 														 this,
 														 ((AddressCarryingEvent)event).oldRequestingElement,
 														 RequestType.Mem_Response));
+//		this.getRouter().getPort().put
+//			(event.update
+//					(eventQ, 
+//					 1 , 
+//					 this,
+//					 this.getRouter(),
+//					 RequestType.Mem_Response));
+
 	}
 }

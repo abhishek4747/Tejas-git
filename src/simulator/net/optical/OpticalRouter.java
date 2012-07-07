@@ -96,14 +96,26 @@ public class OpticalRouter extends Router{
 		else
 		{//TODO  incoming data directly send to bank
 		 //		 outgoing data kept in buffer
-			if(((AddressCarryingEvent)event).getRequestingElement().equals(this.bankReference)){
-				/*if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
-						((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Write){
-					readyToSend = true;
-					this.dataEvent.add((AddressCarryingEvent) event);
-				}
-				else  */
-				if(((AddressCarryingEvent) event).getDestinationBankId().elementAt(1) 
+//			if(((AddressCarryingEvent) event).getRequestType() == RequestType.Main_Mem_Read ||
+//					((AddressCarryingEvent) event).getRequestType() == RequestType.Main_Mem_Write)
+//			{
+//				System.err.println("Reached in router" + this.bankReference.getBankId());
+//			}
+			if(event.getRequestType() == RequestType.Mem_Response){
+				System.out.println("Optical router to dataEvent MemResponse" + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+				readyToSend = true;
+				this.dataEvent.add((AddressCarryingEvent) event);
+
+			}
+
+			else if(((AddressCarryingEvent)event).getRequestingElement().equals(this.bankReference)){
+//				if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
+//						((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Write){
+//					readyToSend = true;
+//					this.dataEvent.add((AddressCarryingEvent) event);
+//				}
+//				else
+					if(((AddressCarryingEvent) event).getDestinationBankId().elementAt(1) 
 								   == this.bankReference.getBankId().elementAt(1))
 				{
 					readyToSendLocally =true;
@@ -129,15 +141,6 @@ public class OpticalRouter extends Router{
 								this,
 								this.bankReference,
 								event.getRequestType()));
-			}
-			else if(event.getRequestType() == RequestType.Main_Mem_Response){
-				this.dataBus.getPort().put(event.
-						update(eventQ,
-								1,
-								this,
-								this.dataBus,
-								event.getRequestType()));
-
 			}
 			/*else if(reqType == RequestType.Main_Mem_Read || reqType == RequestType.Main_Mem_Response ||
 					reqType == RequestType.Main_Mem_Write || reqType == RequestType.Mem_Response ||

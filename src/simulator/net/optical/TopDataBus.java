@@ -48,18 +48,27 @@ public class TopDataBus extends SimulationElement {
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
 		Vector<Integer> destinationBankId = ((AddressCarryingEvent) event).getDestinationBankId();
-		
-		/*if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
-				((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Write){
-			this.entryPoint.getPort().put(
-					((AddressCarryingEvent)event).update(eventQ, 
-							1, 
-							this,
-							this.entryPoint,
-							event.getRequestType()));
+//		
+//		if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
+//				((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Write){
+//			this.entryPoint.getPort().put(
+//					((AddressCarryingEvent)event).update(eventQ, 
+//							1, 
+//							this,
+//							this.entryPoint,
+//							event.getRequestType()));
+//		}
+//		//TODO
+		if(event.getRequestType() == RequestType.Mem_Response){
+			this.entryPoint.getPort().put(event.update(
+					eventQ,
+					1,
+					this, 
+					this.entryPoint,
+					event.getRequestType()));
+			System.out.println("top data TO entryPoint Mem_Response  " + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 		}
-		//TODO
-		else*/
+		else
 			this.lowLevelData.elementAt(destinationBankId.elementAt(1)).getPort().put(
 															((AddressCarryingEvent)event).update(eventQ, 
 															1, 

@@ -54,7 +54,19 @@ public class EntryPoint extends SimulationElement{
 							requestType));
 		}
 		else{
-			if(requestType == RequestType.Cache_Read ||
+			if(event.getRequestType() == RequestType.Mem_Response){
+				System.out.println("entry Point to L1 Mem_Response  " + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+				((AddressCarryingEvent)event).oldRequestingElement.getPort().put
+						(event.update
+							(eventQ, 
+							((AddressCarryingEvent)event).oldRequestingElement.getLatencyDelay() , 
+							 this,
+							 ((AddressCarryingEvent)event).oldRequestingElement,
+							 RequestType.Mem_Response));
+
+			}
+
+			else if(requestType == RequestType.Cache_Read ||
 					requestType == RequestType.Cache_Read_from_iCache ||
 					requestType == RequestType.Cache_Write ){
 				Vector<Integer> bankId = ((AddressCarryingEvent)event).getDestinationBankId();
