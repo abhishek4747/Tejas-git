@@ -29,6 +29,7 @@ import generic.RequestType;
 import config.NocConfig;
 
 import memorysystem.AddressCarryingEvent;
+import memorysystem.SignalWavelengthEvent;
 import memorysystem.nuca.NucaCacheBank;
 import net.Router;
 
@@ -36,8 +37,8 @@ public class OpticalRouter extends Router{
 	
 	public boolean readyToSend;
 	public boolean readyToSendLocally;
-	Vector<AddressCarryingEvent> dataEvent;
-	Vector<AddressCarryingEvent> localDataEvent;
+	Vector<SignalWavelengthEvent> dataEvent;
+	Vector<SignalWavelengthEvent> localDataEvent;
 	AddressCarryingEvent tokenEvent;
 	DataBus dataBus;
 	TokenBus tokenBus;
@@ -47,8 +48,8 @@ public class OpticalRouter extends Router{
 		super(nocConfig, bankReference);
 		// TODO Auto-generated constructor stub
 		this.readyToSend = false;
-		this.dataEvent = new Vector<AddressCarryingEvent>();
-		this.localDataEvent = new Vector<AddressCarryingEvent>();
+		this.dataEvent = new Vector<SignalWavelengthEvent>();
+		this.localDataEvent = new Vector<SignalWavelengthEvent>();
 	}
 
 	@Override
@@ -99,9 +100,17 @@ public class OpticalRouter extends Router{
 			if(reqType == RequestType.Mem_Response ||
 					reqType == RequestType.Main_Mem_Read ||
 					reqType == RequestType.Main_Mem_Write){
-				System.out.println("Optical router to dataEvent "+  reqType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+				//System.out.println("Optical router to dataEvent "+  reqType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 				readyToSend = true;
-				this.dataEvent.add((AddressCarryingEvent) event);
+				
+				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+								(eventQ, 
+								0, 
+								event.getRequestingElement(),
+								event.getProcessingElement(),
+								reqType, 
+								((AddressCarryingEvent)event).getAddress(), -1);
+				this.dataEvent.add(WaveEvent);
 
 			}
 
@@ -110,16 +119,16 @@ public class OpticalRouter extends Router{
 								   == this.bankReference.getBankId().elementAt(1))
 				{
 					readyToSendLocally =true;
-					this.localDataEvent.add((AddressCarryingEvent) event);
+					this.localDataEvent.add((SignalWavelengthEvent) event);
 				}
 				else {
 					readyToSend = true;
-					this.dataEvent.add((AddressCarryingEvent) event);
+					this.dataEvent.add((SignalWavelengthEvent) event);
 				}
 			}
 			else if(this.bankReference.getBankId().equals(((AddressCarryingEvent)event).getDestinationBankId()))
 			{
-				System.out.println("Event to Bank " + "from" + ((AddressCarryingEvent)event).getSourceBankId() + "to" + ((AddressCarryingEvent)event).getDestinationBankId() + "with address" + ((AddressCarryingEvent)event).getAddress());
+				//System.out.println("Event to Bank " + "from" + ((AddressCarryingEvent)event).getSourceBankId() + "to" + ((AddressCarryingEvent)event).getDestinationBankId() + "with address" + ((AddressCarryingEvent)event).getAddress());
 				this.bankReference.getPort().put(event.
 						update(eventQ,
 								1,

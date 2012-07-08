@@ -55,7 +55,7 @@ public class EntryPoint extends SimulationElement{
 		else
 		{
 			if(event.getRequestType() == RequestType.Mem_Response){
-				System.out.println("entry Point to L1 Mem_Response  " + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+				//System.out.println("entry Point to L1 Mem_Response  " + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 				((AddressCarryingEvent)event).oldRequestingElement.getPort().put
 						(event.update
 							(eventQ, 
@@ -80,7 +80,7 @@ public class EntryPoint extends SimulationElement{
 			else if( requestType == RequestType.Main_Mem_Read ||
 					 requestType == RequestType.Main_Mem_Write )
 			{
-				System.out.println("Event to main memory from entry point   " + event.getRequestType());
+				//System.out.println("Event to main memory from entry point   " + event.getRequestType());
 				MemorySystem.mainMemory.getPort().put(event.update(eventQ, 
 																   MemorySystem.mainMemory.getLatencyDelay(), 
 																   this, 
@@ -88,7 +88,7 @@ public class EntryPoint extends SimulationElement{
 																   requestType));	
 			}
 			else{
-				System.out.println("put the event to dataEvent from entrypoint " + event.getRequestType());
+				//System.out.println("put the event to dataEvent from entrypoint " + event.getRequestType());
 				dataEvent.add((AddressCarryingEvent) event);
 //				dataBus.getPort().put(event.
 //						update(eventQ,

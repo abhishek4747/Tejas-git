@@ -277,7 +277,7 @@ public class NucaCacheBank extends Cache
 																RequestType.Mem_Response,
 																sourceBankId,
 																((AddressCarryingEvent)event).oldSourceBankId));
-		System.out.println("copy block Event to NOC" + "from"  + sourceBankId + "to" +((AddressCarryingEvent)event).oldSourceBankId+ "with address" + ((AddressCarryingEvent)event).getAddress());
+		//System.out.println("copy block Event to NOC" + "from"  + sourceBankId + "to" +((AddressCarryingEvent)event).oldSourceBankId+ "with address" + ((AddressCarryingEvent)event).getAddress());
 	}
 	
     /************************************************************************
@@ -288,7 +288,7 @@ public class NucaCacheBank extends Cache
      *************************************************************************/
 	private void handleMainMemoryResponse(EventQueue eventQ, Event event) {//changes are required....
 		counter++;
-		System.out.println("counter " + counter + "send counter " + sendcounter);
+		//System.out.println("counter " + counter + "send counter " + sendcounter);
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
 		CacheLine evictedLine = this.fill(addr);
 		//if condition to be  changed
@@ -314,7 +314,7 @@ public class NucaCacheBank extends Cache
 			
 			addressEvent.setSourceBankId(sourceBankId);
 			addressEvent.setDestinationBankId(destinationBankId);
-			System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)addressEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)addressEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)addressEvent).getAddress());
+			//System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)addressEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)addressEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)addressEvent).getAddress());
 			this.getRouter().getPort().put(addressEvent);
 		}
 		long blockAddr = addr >>> this.blockSizeBits;
@@ -352,7 +352,7 @@ public class NucaCacheBank extends Cache
 
 					addressEvent.setSourceBankId(sourceBankId);
 					addressEvent.setDestinationBankId(destinationBankId);
-					System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)addressEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)addressEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)addressEvent).getAddress());
+					//System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)addressEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)addressEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)addressEvent).getAddress());
 					this.getRouter().getPort().put(addressEvent);
 				}				
 			}
@@ -369,7 +369,7 @@ public class NucaCacheBank extends Cache
 																	((AddressCarryingEvent)
 																     tempevent).
 																	 getSourceBankId());
-				System.out.println("ssEvent to NOC" + "from" + sourceBankId + "to" + destinationBankId + "with address" + ((AddressCarryingEvent)event).getAddress());
+				//System.out.println("ssEvent to NOC" + "from" + sourceBankId + "to" + destinationBankId + "with address" + ((AddressCarryingEvent)event).getAddress());
 				this.getRouter().getPort().put(
 						((AddressCarryingEvent)tempevent).updateEvent(
 																	eventQ,
@@ -452,7 +452,7 @@ public class NucaCacheBank extends Cache
 															 getSourceBankId());
 		
 		RequestType requestType = event.getRequestType();
-		System.out.println("Event to main memory" + sourceBankId + "  " + destinationBankId + requestType);
+		//System.out.println("Event to main memory" + sourceBankId + "  " + destinationBankId + requestType);
 //		((OpticalNOC)noc).entryPoint.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
 //															1, 
 //															this, 
@@ -460,6 +460,17 @@ public class NucaCacheBank extends Cache
 //															requestType,
 //															sourceBankId,
 //															destinationBankId));
+		if(this.cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL){
+		MemorySystem.mainMemory.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
+															MemorySystem.mainMemory.getLatencyDelay(), 
+															event.getProcessingElement(), 
+															MemorySystem.mainMemory, 
+															requestType,
+															sourceBankId,
+															destinationBankId));
+		}
+		else{
+		/*	unwanted code */
 		this.getRouter().getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
 				1, 
 				this, 
@@ -467,7 +478,7 @@ public class NucaCacheBank extends Cache
 				requestType,
 				sourceBankId,
 				destinationBankId));		
-
+		}
 	}
 
 	/************************************************************************
@@ -516,7 +527,7 @@ public class NucaCacheBank extends Cache
 																				 ((AddressCarryingEvent)event).coreId);
 					addressEvent.setSourceBankId(sourceBankId);
 					addressEvent.setDestinationBankId(destinationBankId);
-					System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)addressEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)addressEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)addressEvent).getAddress());
+					//System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)addressEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)addressEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)addressEvent).getAddress());
 					this.getRouter().getPort().put(addressEvent);
 				}
 			}
@@ -527,7 +538,7 @@ public class NucaCacheBank extends Cache
 		{
 			AddressCarryingEvent tempEvent= policy.updateEventOnMiss(eventQ, (AddressCarryingEvent)event, this,nucaType,topology);
 			if(tempEvent != null){
-				System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)tempEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)tempEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)tempEvent).getAddress());
+				//System.out.println("Event to NOC" + "from" + ((AddressCarryingEvent)tempEvent).getSourceBankId() + "to" + ((AddressCarryingEvent)tempEvent).getDestinationBankId() + "with address" + ((AddressCarryingEvent)tempEvent).getAddress());
 					this.getRouter().getPort().put(tempEvent);
 			}
 		}
@@ -542,7 +553,7 @@ public class NucaCacheBank extends Cache
 	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
 		//System.out.println("served the request for address "+ ((AddressCarryingEvent)event).getAddress());
-		System.out.println("i dont know" + ((AddressCarryingEvent)event).getSourceBankId() + " " + ((AddressCarryingEvent)event).getDestinationBankId() + " " + ((AddressCarryingEvent)event).getAddress());
+		//System.out.println("i dont know" + ((AddressCarryingEvent)event).getSourceBankId() + " " + ((AddressCarryingEvent)event).getDestinationBankId() + " " + ((AddressCarryingEvent)event).getAddress());
 		((AddressCarryingEvent)event).oldRequestingElement.getPort().put
 											(event.update
 														(eventQ, 

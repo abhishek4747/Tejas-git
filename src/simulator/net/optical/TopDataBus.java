@@ -69,7 +69,7 @@ public class TopDataBus extends SimulationElement {
 					this, 
 					this.entryPoint,
 					requestType));
-			System.out.println("top data TO entryPoint Mem_Response  " + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+			//System.out.println("top data TO entryPoint Mem_Response  " + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 		}
 		else
 			this.lowLevelData.elementAt(destinationBankId.elementAt(1)).getPort().put(

@@ -133,7 +133,7 @@ public class SNuca extends NucaCache
 																				sourceBankId, 
 																				destinationBankId));
 		else{
-			System.out.println("Event to NOC" + "from" + sourceBankId + "to" +destinationBankId + "with address" + address);
+//			System.out.println("Event to NOC" + "from" + sourceBankId + "to" +destinationBankId + "with address" + address);
 			((OpticalNOC)this.noc).entryPoint.
 			getPort().put(((AddressCarryingEvent)event).
 									updateEvent(eventQ, 

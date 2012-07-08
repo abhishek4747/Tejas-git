@@ -63,7 +63,7 @@ public class DataBus extends SimulationElement {
 		if(requestType == RequestType.Mem_Response||
 				requestType == RequestType.Main_Mem_Read ||
 				requestType == RequestType.Main_Mem_Write){
-			System.out.println("Local data to top data" + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+			//System.out.println("Local data to top data" + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 			this.topDataBus.getPort().put(event.update(
 					eventQ,
 					1,

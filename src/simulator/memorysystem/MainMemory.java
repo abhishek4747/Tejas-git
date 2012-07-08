@@ -65,7 +65,7 @@ public class MainMemory extends SimulationElement
 									 getSourceBankId());
 					((AddressCarryingEvent)event).setSourceBankId(sourceBankId);
 					((AddressCarryingEvent)event).setDestinationBankId(destinationBankId);
-					System.out.println("From main memory" + ((AddressCarryingEvent) event).getSourceBankId() + " " + ((AddressCarryingEvent) event).getDestinationBankId());
+	//				System.out.println("From main memory" + ((AddressCarryingEvent) event).getSourceBankId() + " " + ((AddressCarryingEvent) event).getDestinationBankId());
 					requestingElement.getPort().put(
 							event.update(
 									eventQ,
