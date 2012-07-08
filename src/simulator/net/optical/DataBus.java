@@ -59,36 +59,39 @@ public class DataBus extends SimulationElement {
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
 		Vector<Integer> destinationBankId = ((AddressCarryingEvent) event).getDestinationBankId();
-		if(event.getRequestType() == RequestType.Mem_Response){
-			System.out.println("Local data to top data" + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+		RequestType requestType = event.getRequestType();
+		if(requestType == RequestType.Mem_Response||
+				requestType == RequestType.Main_Mem_Read ||
+				requestType == RequestType.Main_Mem_Write){
+			System.out.println("Local data to top data" + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 			this.topDataBus.getPort().put(event.update(
 					eventQ,
 					1,
 					this, 
 					this.topDataBus,
-					event.getRequestType()));
+					requestType));
 		}
 
 		
 		
 		else if(clusterId == destinationBankId.elementAt(1)) 
 //				&& 
-//				!(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
-//				((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Write))
+//				!(requestType == RequestType.Main_Mem_Read ||
+//				requestType == RequestType.Main_Mem_Write))
 			this.cacheBank[destinationBankId.elementAt(0)][clusterId].getRouter().getPort().put(event.
 					update(
 						eventQ,
 						1,
 						this, 
 						this.cacheBank[destinationBankId.elementAt(0)][clusterId].getRouter(),
-						event.getRequestType()));
+						requestType));
 		else{
 			this.topDataBus.getPort().put(event.update(
 					eventQ,
 					1,
 					this, 
 					this.topDataBus,
-					event.getRequestType()));
+					requestType));
 		}
 		
 	}

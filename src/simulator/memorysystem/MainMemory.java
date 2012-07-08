@@ -1,6 +1,7 @@
 package memorysystem;
 
-import net.optical.EntryPoint;
+import java.util.Vector;
+
 import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
 import config.SystemConfig;
@@ -54,6 +55,17 @@ public class MainMemory extends SimulationElement
 				}
 				else{
 					SimulationElement requestingElement = event.getRequestingElement();
+					Vector<Integer> sourceBankId = new Vector<Integer>(
+							   ((AddressCarryingEvent)
+							    (event)).
+							    getDestinationBankId());
+					Vector<Integer> destinationBankId = new Vector<Integer>(
+									((AddressCarryingEvent)
+								     (event)).
+									 getSourceBankId());
+					((AddressCarryingEvent)event).setSourceBankId(sourceBankId);
+					((AddressCarryingEvent)event).setDestinationBankId(destinationBankId);
+					System.out.println("From main memory" + ((AddressCarryingEvent) event).getSourceBankId() + " " + ((AddressCarryingEvent) event).getDestinationBankId());
 					requestingElement.getPort().put(
 							event.update(
 									eventQ,

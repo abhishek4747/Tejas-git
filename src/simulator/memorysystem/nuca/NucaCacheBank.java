@@ -27,7 +27,6 @@ import generic.SimulationElement;
 import net.*;
 import net.NOC.CONNECTIONTYPE;
 import net.NOC.TOPOLOGY;
-import net.optical.OpticalNOC;
 import net.optical.OpticalRouter;
 
 import java.util.ArrayList;
@@ -59,10 +58,10 @@ public class NucaCacheBank extends Cache
 	int cacheBankColumns;
 	int counter = 0;
 	int sendcounter =0;
-	NOC noc;
+//	NOC noc;
 	protected Vector<Integer> bankId = new Vector<Integer>(2); //bank id of router(vector <row,column>)
 	
-	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NOC noc)
+	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
     {
         super(cacheParameters,containingMemSys);
     	this.timestamp = 0;
@@ -80,7 +79,7 @@ public class NucaCacheBank extends Cache
         this.cacheBankColumns = cacheParameters.getNumberOfBankColumns();
         this.cacheBankRows = cacheParameters.getNumberOfBankRows();
         this.bankId  = bankId;
-        this.noc = noc;
+  //      this.noc = noc;
     }
     
     public Router getRouter()
@@ -454,20 +453,20 @@ public class NucaCacheBank extends Cache
 		
 		RequestType requestType = event.getRequestType();
 		System.out.println("Event to main memory" + sourceBankId + "  " + destinationBankId + requestType);
-		((OpticalNOC)noc).entryPoint.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
-															1, 
-															this, 
-															((OpticalNOC)noc).entryPoint, 
-															requestType,
-															sourceBankId,
-															destinationBankId));
-//		this.getRouter().getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
-//				1, 
-//				this, 
-//				this.getRouter(), 
-//				requestType,
-//				sourceBankId,
-//				destinationBankId));		
+//		((OpticalNOC)noc).entryPoint.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
+//															1, 
+//															this, 
+//															((OpticalNOC)noc).entryPoint, 
+//															requestType,
+//															sourceBankId,
+//															destinationBankId));
+		this.getRouter().getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
+				1, 
+				this, 
+				this.getRouter(), 
+				requestType,
+				sourceBankId,
+				destinationBankId));		
 
 	}
 

@@ -48,6 +48,7 @@ public class TopDataBus extends SimulationElement {
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
 		Vector<Integer> destinationBankId = ((AddressCarryingEvent) event).getDestinationBankId();
+		RequestType requestType = event.getRequestType();
 //		
 //		if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
 //				((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Write){
@@ -56,17 +57,19 @@ public class TopDataBus extends SimulationElement {
 //							1, 
 //							this,
 //							this.entryPoint,
-//							event.getRequestType()));
+//							requestType));
 //		}
 //		//TODO
-		if(event.getRequestType() == RequestType.Mem_Response){
+		if(requestType == RequestType.Mem_Response||
+				requestType == RequestType.Main_Mem_Read ||
+				requestType == RequestType.Main_Mem_Write){
 			this.entryPoint.getPort().put(event.update(
 					eventQ,
 					1,
 					this, 
 					this.entryPoint,
-					event.getRequestType()));
-			System.out.println("top data TO entryPoint Mem_Response  " + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
+					requestType));
+			System.out.println("top data TO entryPoint Mem_Response  " + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 		}
 		else
 			this.lowLevelData.elementAt(destinationBankId.elementAt(1)).getPort().put(
@@ -74,7 +77,7 @@ public class TopDataBus extends SimulationElement {
 															1, 
 															this,
 															this.lowLevelData.elementAt(destinationBankId.elementAt(1)),
-															event.getRequestType()));
+															requestType));
 		
 	}
 

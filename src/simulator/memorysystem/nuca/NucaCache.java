@@ -68,20 +68,6 @@ public abstract class NucaCache extends Cache
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
         coreCacheMapping = SystemConfig.coreCacheMapping.clone();
         this.mapping = cacheParameters.mapping;
-        if(cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-        	noc = new NOC();
-        else
-        	noc = new OpticalNOC();
-        for(int i=0;i<cacheRows;i++)
-        {
-            for(int j=0;j<cacheColumns;j++)
-            {
-            	Vector<Integer> bankId = new Vector<Integer>(2);
-            	bankId.add(i);
-            	bankId.add(j);
-            	cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys,noc);
-            }
-        }
         makeCacheBanks(cacheParameters, containingMemSys, tokenbus);
     }
 
@@ -100,9 +86,13 @@ public abstract class NucaCache extends Cache
 				bankId.clear();
 				bankId.add(i);
 				bankId.add(j);
-				this.cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys,noc);
+				this.cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys);
 			}
 		}
+	    if(cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+        	noc = new NOC();
+        else
+        	noc = new OpticalNOC();
 		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig,tokenBus);
 	}
 

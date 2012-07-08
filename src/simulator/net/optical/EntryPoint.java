@@ -3,7 +3,6 @@ package net.optical;
 import java.util.Vector;
 
 import memorysystem.AddressCarryingEvent;
-import memorysystem.MainMemory;
 import memorysystem.MemorySystem;
 
 import config.NocConfig;
@@ -53,7 +52,8 @@ public class EntryPoint extends SimulationElement{
 							this.tokenBus, 
 							requestType));
 		}
-		else{
+		else
+		{
 			if(event.getRequestType() == RequestType.Mem_Response){
 				System.out.println("entry Point to L1 Mem_Response  " + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 				((AddressCarryingEvent)event).oldRequestingElement.getPort().put
@@ -80,43 +80,23 @@ public class EntryPoint extends SimulationElement{
 			else if( requestType == RequestType.Main_Mem_Read ||
 					 requestType == RequestType.Main_Mem_Write )
 			{
-				System.out.println("Event to main memory from entry point");
+				System.out.println("Event to main memory from entry point   " + event.getRequestType());
 				MemorySystem.mainMemory.getPort().put(event.update(eventQ, 
 																   MemorySystem.mainMemory.getLatencyDelay(), 
 																   this, 
 																   MemorySystem.mainMemory, 
 																   requestType));	
 			}
-				
-			/*else if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
-					((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Write){
-				Vector<Integer> sourceBankId = new Vector<Integer>(
-						   ((AddressCarryingEvent)
-						    event).
-						    getDestinationBankId());
-				Vector<Integer> destinationBankId = new Vector<Integer>(
-							((AddressCarryingEvent)
-						     event).
-							 getSourceBankId());
-				MemorySystem.mainMemory.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
-						MemorySystem.mainMemory.getLatencyDelay(), 
-						this, 
-						MemorySystem.mainMemory, 
-						requestType,
-						sourceBankId,
-						destinationBankId));	
-			}*/
 			else{
 				System.out.println("put the event to dataEvent from entrypoint " + event.getRequestType());
 				dataEvent.add((AddressCarryingEvent) event);
-			/*	dataBus.getPort().put(event.
-						update(eventQ,
-								1, 
-								this, 
-								this.dataBus, 
-								requestType));*/
+//				dataBus.getPort().put(event.
+//						update(eventQ,
+//								1, 
+//								this, 
+//								this.dataBus, 
+//								requestType));
 			}
 		}
 	}
-
 }
