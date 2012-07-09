@@ -21,20 +21,33 @@
 
 package memorysystem;
 
+import java.util.Stack;
+import java.util.Vector;
+
 import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 
 public class SignalWavelengthEvent  extends AddressCarryingEvent{
 
-	int wavelength;
-	public SignalWavelengthEvent(EventQueue eventQ, long eventTime,
-			SimulationElement requestingElement,
-			SimulationElement processingElement, RequestType requestType,
-			long address, int wavelength) {
-		super(eventQ, eventTime, requestingElement, processingElement, requestType,
-				address);
+	private int wavelength;
+	public SignalWavelengthEvent(EventQueue eventQ, 
+			long eventTime, SimulationElement requestingElement, SimulationElement processingElement,
+			RequestType requestType, long address, int wavelength, Vector<Integer> sourceBankId, 
+			Vector<Integer> destinationBankId, int coreId, Vector<Integer> oldSourceBankId,
+			SimulationElement oldReqElement, Stack<SimulationElement> simStack, Stack<RequestType> reqStack) {
+		
+		super(eventQ, eventTime, requestingElement, processingElement, requestType, address);
+		
 		this.wavelength = wavelength; 
+		this.setSourceBankId(sourceBankId);
+		this.setDestinationBankId(destinationBankId);
+		this.oldSourceBankId = oldSourceBankId;
+		this.coreId = coreId;
+		this.oldRequestingElement = oldReqElement;
+		this.requestingElementStack = simStack;
+		this.requestTypeStack = reqStack;
+		
 	}
 	
 	public void setWavelength(int wavelength){

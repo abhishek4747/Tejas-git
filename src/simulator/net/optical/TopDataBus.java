@@ -26,6 +26,7 @@ import java.util.Vector;
 import config.NocConfig;
 
 import memorysystem.AddressCarryingEvent;
+import memorysystem.SignalWavelengthEvent;
 import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
@@ -33,8 +34,8 @@ import generic.SimulationElement;
 
 public class TopDataBus extends SimulationElement {
 	
-	public Vector<DataBus> lowLevelData;
-	public EntryPoint entryPoint;
+	protected Vector<DataBus> lowLevelData;
+	protected EntryPoint entryPoint;
 	
 	public TopDataBus(NocConfig nocConfig, Vector<DataBus> lowData) {
 		super(nocConfig.portType, nocConfig.getAccessPorts(), nocConfig.getPortOccupancy(), 
@@ -60,9 +61,10 @@ public class TopDataBus extends SimulationElement {
 //							requestType));
 //		}
 //		//TODO
-		if(requestType == RequestType.Mem_Response||
-				requestType == RequestType.Main_Mem_Read ||
-				requestType == RequestType.Main_Mem_Write){
+//		if(requestType == RequestType.Mem_Response||
+//				requestType == RequestType.Main_Mem_Read ||
+//				requestType == RequestType.Main_Mem_Write){
+		if(event.getClass() == SignalWavelengthEvent.class && ((SignalWavelengthEvent) event).getWavelength() == -1){
 			this.entryPoint.getPort().put(event.update(
 					eventQ,
 					1,

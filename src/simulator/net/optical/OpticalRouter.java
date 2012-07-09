@@ -52,6 +52,11 @@ public class OpticalRouter extends Router{
 		this.localDataEvent = new Vector<SignalWavelengthEvent>();
 	}
 
+	public int calculateWavelength(Vector<Integer> destBank)
+	{
+		return(this.numberOfRows * destBank.elementAt(1) + destBank.elementAt(0));
+	}
+
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event){
 		RequestType reqType = event.getRequestType();
@@ -109,8 +114,17 @@ public class OpticalRouter extends Router{
 								event.getRequestingElement(),
 								event.getProcessingElement(),
 								reqType, 
-								((AddressCarryingEvent)event).getAddress(), -1);
+								((AddressCarryingEvent)event).getAddress(),
+								-1,
+								((AddressCarryingEvent)event).getSourceBankId(),
+								((AddressCarryingEvent)event).getDestinationBankId(),
+								((AddressCarryingEvent)event).coreId,
+								((AddressCarryingEvent)event).oldSourceBankId,
+								((AddressCarryingEvent)event).oldRequestingElement,
+								((AddressCarryingEvent)event).requestingElementStack,
+								((AddressCarryingEvent)event).requestTypeStack);
 				this.dataEvent.add(WaveEvent);
+//				this.dataEvent.add((AddressCarryingEvent)event);
 
 			}
 
@@ -119,11 +133,43 @@ public class OpticalRouter extends Router{
 								   == this.bankReference.getBankId().elementAt(1))
 				{
 					readyToSendLocally =true;
-					this.localDataEvent.add((SignalWavelengthEvent) event);
+					SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+							(eventQ, 
+							0, 
+							event.getRequestingElement(),
+							event.getProcessingElement(),
+							reqType, 
+							((AddressCarryingEvent)event).getAddress(),
+							calculateWavelength(((AddressCarryingEvent)event).getDestinationBankId()),
+							((AddressCarryingEvent)event).getSourceBankId(),
+							((AddressCarryingEvent)event).getDestinationBankId(),
+							((AddressCarryingEvent)event).coreId,
+							((AddressCarryingEvent)event).oldSourceBankId,
+							((AddressCarryingEvent)event).oldRequestingElement,
+							((AddressCarryingEvent)event).requestingElementStack,
+							((AddressCarryingEvent)event).requestTypeStack);
+					this.localDataEvent.add(WaveEvent);
+//					this.dataEvent.add((AddressCarryingEvent)event);
 				}
 				else {
 					readyToSend = true;
-					this.dataEvent.add((SignalWavelengthEvent) event);
+					SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+							(eventQ, 
+							0, 
+							event.getRequestingElement(),
+							event.getProcessingElement(),
+							reqType, 
+							((AddressCarryingEvent)event).getAddress(),
+							calculateWavelength(((AddressCarryingEvent)event).getDestinationBankId()),
+							((AddressCarryingEvent)event).getSourceBankId(),
+							((AddressCarryingEvent)event).getDestinationBankId(),
+							((AddressCarryingEvent)event).coreId,
+							((AddressCarryingEvent)event).oldSourceBankId,
+							((AddressCarryingEvent)event).oldRequestingElement,
+							((AddressCarryingEvent)event).requestingElementStack,
+							((AddressCarryingEvent)event).requestTypeStack);
+					this.dataEvent.add(WaveEvent);
+//					this.dataEvent.add((AddressCarryingEvent)event);
 				}
 			}
 			else if(this.bankReference.getBankId().equals(((AddressCarryingEvent)event).getDestinationBankId()))
