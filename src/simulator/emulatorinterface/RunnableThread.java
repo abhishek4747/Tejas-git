@@ -72,6 +72,7 @@ public class RunnableThread implements Encoding {
 				fileOut = new FileOutputStream( fileName );
 				bufferOut = new BufferedOutputStream( fileOut );
 				output = new ObjectOutputStream( bufferOut );
+				SimulationConfig.output = this.output;
 
 				/*	    fileIn = new FileInputStream( "microOps.ser" );
 		    bufferIn = new BufferedInputStream( fileIn );
@@ -283,7 +284,11 @@ public class RunnableThread implements Encoding {
 	}
 	
 	protected void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
-		if (doNotProcess) return;
+		if (doNotProcess)
+		{ 
+			System.out.println("returning from here");
+			return;
+		}
 		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
 		if (pnew.value == TIMER) {
@@ -329,21 +334,25 @@ public class RunnableThread implements Encoding {
 			}
 */
 			// Writing 20million instructions to a file
-			if (writeToFile) {
-				if (noOfMicroOps[0]>numInsToWrite) doNotProcess=true;
-				if (noOfMicroOps[0]>numInsToWrite && noOfMicroOps[0]< 20000005)
-					System.out.println("Done writing to file");
-				for (Instruction ins : tempList.instructionLinkedList) {
-					try {
-						this.output.writeObject(ins);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+			//System.out.println("noOfMicroOps " + noOfMicroOps[0]);
+			
+			if(ignoredInstructions >= SimulationConfig.NumInsToIgnore)
+			{
+				if (writeToFile) {
+					if (noOfMicroOps[0]>numInsToWrite) doNotProcess=true;
+					if (noOfMicroOps[0]>numInsToWrite && noOfMicroOps[0]< 20000005)
+						System.out.println("Done writing to file");
+					for (Instruction ins : tempList.instructionLinkedList) {
+						try {
+							this.output.writeObject(ins);
+							//System.out.println("instruction " + ins);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
-			}
-			else if(ignoredInstructions >= SimulationConfig.NumInsToIgnore)
-			{
+				
 				this.inputToPipeline[tidEmu].appendInstruction(tempList);
 				if(!thread.halted && this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)
 				{

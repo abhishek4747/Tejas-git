@@ -27,6 +27,7 @@ import generic.SimulationElement;
 import net.*;
 import net.NOC.TOPOLOGY;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -34,6 +35,7 @@ import java.util.Hashtable;
 
 import pipeline.inorder.MemUnitIn;
 import config.CacheConfig;
+import config.SimulationConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CacheLine;
@@ -299,7 +301,16 @@ public class NucaCacheBank extends Cache
 			
 		if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
-			System.err.println("Cache Error : request not present in cache bank" +((AddressCarryingEvent)(event)).getSourceBankId() + ((AddressCarryingEvent)(event)).getDestinationBankId() + this.getRouter().getBankId() );
+			if (SimulationConfig.writeToFile) {
+				try {
+					SimulationConfig.output.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			System.err.println("Cache Error : request not present in cache bank" +((AddressCarryingEvent)(event)).getSourceBankId() + ((AddressCarryingEvent)(event)).getDestinationBankId() + this.getRouter().getBankId() + "event Time " +event.getEventTime() + " address " + blockAddr );
 			System.exit(1);
 		}
 		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
@@ -416,7 +427,7 @@ public class NucaCacheBank extends Cache
      * Return       : None
      *************************************************************************/
 	private void handleMemoryReadWrite(EventQueue eventQ, Event event) {
-		System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
+		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
 		Vector<Integer> sourceBankId = new Vector<Integer>(
 														   ((AddressCarryingEvent)
 														    event).
@@ -491,7 +502,7 @@ public class NucaCacheBank extends Cache
 		//IF MISS
 		else 		
 		{
-			AddressCarryingEvent tempEvent= policy.updateEventOnMiss(eventQ, (AddressCarryingEvent)event, this,nucaType,topology);
+			AddressCarryingEvent tempEvent= policy.updateEventOnMiss(eventQ, (AddressCarryingEvent)event, this,topology);
 			if(tempEvent != null)
 				this.getRouter().getPort().put(tempEvent);
 		}

@@ -20,6 +20,10 @@
 *****************************************************************************/
 package config;
 
+import java.io.ObjectOutput;
+
+import memorysystem.nuca.NucaCache.NucaType;
+
 public class SimulationConfig 
 {
 	public static int Mode;  // Mode for simulator to run
@@ -40,4 +44,6 @@ public class SimulationConfig
 	public static String InstructionsFilename;
 	public static boolean subSetSim;
 	public static long subSetSimSize;
+	public static ObjectOutput output;
+	public static NucaType nucaType;
 }

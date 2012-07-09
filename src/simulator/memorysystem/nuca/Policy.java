@@ -5,6 +5,8 @@ import generic.RequestType;
 import generic.SimulationElement;
 
 import java.util.Vector;
+
+import config.SimulationConfig;
 import net.NOC.TOPOLOGY;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
@@ -17,13 +19,14 @@ public class Policy {
 	{
 		this.nucaCache = nucaCache;
 	}
-	AddressCarryingEvent updateEventOnMiss(EventQueue eventQ,AddressCarryingEvent event,NucaCacheBank cacheBank,NucaType nucaType,TOPOLOGY topology)
+	AddressCarryingEvent updateEventOnMiss(EventQueue eventQ,AddressCarryingEvent event,NucaCacheBank cacheBank,TOPOLOGY topology)
 	{
 
 		Vector<Integer> sourceBankId = null;
 		Vector<Integer> destinationBankId = null;
 		long address = event.getAddress();
 		RequestType requestType = RequestType.Main_Mem_Read;
+		NucaType nucaType = SimulationConfig.nucaType;
 		if(nucaType == NucaType.S_NUCA)
 		{			
 			//Add the request to the outstanding request buffer
@@ -33,6 +36,7 @@ public class Policy {
 			//System.out.println("added a new event in bankid " + router.getBankId());
 			if (alreadyRequested==0)
 			{
+				//System.out.println("outstanding request size "+ cacheBank.missStatusHoldingRegister.get((address >>> cacheBank.blockSizeBits)).outStandingEvents.size() + "address " + (address >> cacheBank.blockSizeBits) + destinationBankId + sourceBankId  + " core Id "+ event.coreId + "event time " + event.getEventTime());
 				event.oldRequestType = event.getRequestType();
 				event.requestTypeStack.push(event.getRequestType());
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
@@ -192,7 +196,7 @@ public class Policy {
 				{
 					event.oldRequestType = event.getRequestType();
 					event.requestTypeStack.push(event.getRequestType());
-					System.out.println("cachebank id" + cacheBank.getRouter().getBankId() + event.getDestinationBankId() + event.getSourceBankId());
+					//System.out.println("cachebank id" + cacheBank.getRouter().getBankId() + event.getDestinationBankId() + event.getSourceBankId());
 					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																				 0,
 																				 cacheBank, 
