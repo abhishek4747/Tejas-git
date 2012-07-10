@@ -92,7 +92,7 @@ public class Policy {
 				return null;
 			}
 		} 
-	/*	else if(nucaType == NucaType.CB_D_NUCA)
+		else if(nucaType == NucaType.CB_D_NUCA)
 		{
 			int setIndex = nucaCache.getSetIndex(address);
 			if(event.index == nucaCache.cacheMapping.get(event.coreId).get(setIndex).size())
@@ -100,7 +100,9 @@ public class Policy {
 				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
 				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).oldSourceBankId);
 				event.oldRequestType = event.getRequestType();
+				//nucaCache.printMshrStatus(cacheBank);
 				int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
+				//nucaCache.printMshrStatus(cacheBank);
 				if (alreadyRequested==0)
 				{
 					event.oldRequestType = event.getRequestType();
@@ -179,8 +181,8 @@ public class Policy {
 								  address);
 			}
 			
-		}*/
-		else
+		}
+		else //if(nucaType == NucaType.D_NUCA)
 		{
 			if(cacheBank.isFirstLevel)
 			{
@@ -188,15 +190,23 @@ public class Policy {
 			}
 			if(cacheBank.isLastLevel)
 			{
-				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).oldSourceBankId);
+				sourceBankId = new Vector<Integer>(cacheBank.getRouter().getBankId());
+				destinationBankId = new Vector<Integer>();
+				destinationBankId.add(0);
+				destinationBankId.add(sourceBankId.get(1));
 				event.oldRequestType = event.getRequestType();
+				//System.out.println("before calling ");
+				//nucaCache.printMshrStatus(cacheBank);
 				int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
+				
 				if (alreadyRequested==0)
 				{
+					//System.out.println("after calling and change is there");
+					//nucaCache.printMshrStatus(cacheBank);
 					event.oldRequestType = event.getRequestType();
 					event.requestTypeStack.push(event.getRequestType());
-					//System.out.println("cachebank id" + cacheBank.getRouter().getBankId() + event.getDestinationBankId() + event.getSourceBankId());
+					//System.out.println("outstanding request size "+ cacheBank.missStatusHoldingRegister.get((address >>> cacheBank.blockSizeBits)).outStandingEvents.size() + "address " + (address >> cacheBank.blockSizeBits)  +destinationBankId + sourceBankId + "this " + cacheBank.getRouter().getBankId() + " core Id "+ event.coreId + "event time " + event.getEventTime());
+					//System.out.println("event destination bank id "+ event.getDestinationBankId() + " event source bank id " + event.getSourceBankId());
 					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
 																				 0,
 																				 cacheBank, 
@@ -247,15 +257,19 @@ public class Policy {
 				}
 				else
 				{
+					//System.out.println("after calling slight change");
+					//nucaCache.printMshrStatus(cacheBank);
 					return null;
 				}
 			}
 			else
 			{
 				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-				int id = destinationBankId.remove(0);
-				destinationBankId.add(0,id +1);
+				destinationBankId = new Vector<Integer>();
+				destinationBankId.add(sourceBankId.get(0)+1);
+				destinationBankId.add(sourceBankId.get(1));
+				//int id = destinationBankId.remove(0);
+				//destinationBankId.add(0,id +1);
 				requestType = event.getRequestType();
 				return event.updateEvent(eventQ,
 										 cacheBank.getLatencyDelay(), 
@@ -269,12 +283,13 @@ public class Policy {
 	}
 	
 	AddressCarryingEvent updateEventOnHit(EventQueue eventQ,AddressCarryingEvent event,
-										  NucaCacheBank cacheBank,NucaType nucaType,TOPOLOGY topology)
+										  NucaCacheBank cacheBank,TOPOLOGY topology)
 	{
 		//Just return the read block
 		Vector<Integer> sourceBankId = new Vector<Integer>(event.getDestinationBankId());
 		Vector<Integer> destinationBankId;
 		RequestType requestType = RequestType.Mem_Response;
+		NucaType nucaType = SimulationConfig.nucaType;
 		if(nucaType == NucaType.S_NUCA)
 		{
 			destinationBankId= new Vector<Integer>(event.getSourceBankId());
@@ -284,6 +299,17 @@ public class Policy {
 			//give proper value to destination bank id
 			destinationBankId = null;
 		}*/
+		if(nucaType == NucaType.CB_D_NUCA)
+		{
+			long address = event.getAddress();
+			int setIndex = nucaCache.getSetIndex(address);
+			if(event.index != 0)
+			{
+				destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index -1 ));
+			}
+			else 
+				destinationBankId = sourceBankId;
+		}
 		else if(cacheBank.isFirstLevel)
 		{
 			destinationBankId = sourceBankId;

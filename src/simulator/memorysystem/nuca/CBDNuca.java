@@ -20,6 +20,7 @@ public class CBDNuca extends DNuca {
 	public Vector<Integer> getNearestBankId(long address,int coreId)
 	{
 		int setIndex = getSetIndex(address);
+		//System.out.println("set index" + setIndex + "coreid "+ coreId + "coreMapping size "+cacheMapping.size());
 		return integerToBankId(cacheMapping.get(coreId).get(setIndex).get(0));
 	}
 	

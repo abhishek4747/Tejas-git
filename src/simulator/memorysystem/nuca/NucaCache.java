@@ -21,6 +21,9 @@
 
 
 package memorysystem.nuca;
+import generic.OMREntry;
+
+import java.util.Enumeration;
 import java.util.Vector;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
@@ -179,6 +182,38 @@ public abstract class NucaCache extends Cache
     		{
     			Vector<Integer> set= cacheMapping.get(i).remove(j);
     			cacheMapping.get(i).add(j,sort(i,set));
+    		}
+    	}
+    	Vector<Vector<Integer>> temp = new Vector<Vector<Integer>>(cacheMapping.get(0));
+    	cacheMapping.add(0,temp);
+    }
+    
+    public void printMshrStatus(NucaCacheBank nucaCacheBank)
+    {
+    	//for(int i=0;i<cacheColumns;i++)
+    	{
+    		//for(int j=0;j<cacheRows;j++)
+    		{
+    			Enumeration<OMREntry> tempIte = nucaCacheBank.missStatusHoldingRegister.elements();
+    			Enumeration<Long> tempIte1 = nucaCacheBank.missStatusHoldingRegister.keys();
+    			System.out.println("bank id " + nucaCacheBank.getRouter().getBankId());
+    			while(tempIte.hasMoreElements())
+    			{
+    				System.out.println("address "+ tempIte1.nextElement()  + "outstanding request size " + tempIte.nextElement().outStandingEvents.size());
+    			}
+    			System.out.println("\n \n");
+    		}
+    	}
+    }
+    
+    public void printidTOBankMapping()
+    {
+    	for(int i=0;i< cacheRows ; i++)
+    	{
+    		for(int j=0;j<cacheColumns ; j++)
+    		{
+    			System.out.println("bank number ["+ i + "]["+j+"]");
+    			System.out.println("bank id"+ cacheBank[i][j].getRouter().getBankId());
     		}
     	}
     }

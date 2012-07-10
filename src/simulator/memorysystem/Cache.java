@@ -687,7 +687,7 @@ public class Cache extends SimulationElement
 					if (this.levelFromTop != CacheType.L1 || (!MemorySystem.bypassLSQ))
 						outstandingRequestList.get(0).getRequestingElement().getPort().put(
 								outstandingRequestList.get(0).update(
-										eventQ,
+										outstandingRequestList.get(0).getEventQ(),
 										0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 										this,
 										outstandingRequestList.get(0).getRequestingElement(),
@@ -708,7 +708,7 @@ public class Cache extends SimulationElement
 				{
 					outstandingRequestList.get(0).getRequestingElement().getPort().put(
 							outstandingRequestList.get(0).update(
-									eventQ,
+									outstandingRequestList.get(0).getEventQ(),
 									0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 									this,
 									outstandingRequestList.get(0).getRequestingElement(),
