@@ -56,6 +56,16 @@ public class OpticalRouter extends Router{
 	{
 		return(this.numberOfRows * destBank.elementAt(1) + destBank.elementAt(0));
 	}
+	
+	synchronized public boolean CheckBuffer()
+	{
+		if(this.availBuff == 0)
+			return false;
+		else{
+			this.availBuff --;
+			return true;
+		}
+	}
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event){
@@ -124,7 +134,6 @@ public class OpticalRouter extends Router{
 								((AddressCarryingEvent)event).requestingElementStack,
 								((AddressCarryingEvent)event).requestTypeStack);
 				this.dataEvent.add(WaveEvent);
-//				this.dataEvent.add((AddressCarryingEvent)event);
 
 			}
 
@@ -149,7 +158,6 @@ public class OpticalRouter extends Router{
 							((AddressCarryingEvent)event).requestingElementStack,
 							((AddressCarryingEvent)event).requestTypeStack);
 					this.localDataEvent.add(WaveEvent);
-//					this.dataEvent.add((AddressCarryingEvent)event);
 				}
 				else {
 					readyToSend = true;
@@ -169,7 +177,6 @@ public class OpticalRouter extends Router{
 							((AddressCarryingEvent)event).requestingElementStack,
 							((AddressCarryingEvent)event).requestTypeStack);
 					this.dataEvent.add(WaveEvent);
-//					this.dataEvent.add((AddressCarryingEvent)event);
 				}
 			}
 			else if(this.bankReference.getBankId().equals(((AddressCarryingEvent)event).getDestinationBankId()))
@@ -182,17 +189,6 @@ public class OpticalRouter extends Router{
 								this.bankReference,
 								reqType));
 			}
-			/*else if(reqType == RequestType.Main_Mem_Read || reqType == RequestType.Main_Mem_Response ||
-					reqType == RequestType.Main_Mem_Write || reqType == RequestType.Mem_Response ||
-					reqType == RequestType.Cache_Read || reqType == RequestType.Cache_Read_from_iCache)
-			{
-				this.bankReference.getPort().put(event.update(
-						eventQ,
-						1,	//this.getLatency()
-						this, 
-						this.bankReference,
-						reqType));
-			}*/
 		}
 	}
 }
