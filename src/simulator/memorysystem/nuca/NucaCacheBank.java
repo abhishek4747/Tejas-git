@@ -326,14 +326,6 @@ public class NucaCacheBank extends Cache
 			
 		if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
-			if (SimulationConfig.writeToFile) {
-				try {
-					SimulationConfig.output.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 			nucaCache.printidTOBankMapping();
 			System.err.println("Cache Error : request not present in cache bank" +((AddressCarryingEvent)(event)).getSourceBankId() + ((AddressCarryingEvent)(event)).getDestinationBankId() + this.getRouter().getBankId() + "event Time " +event.getEventTime() + " address " + blockAddr );
 			System.exit(1);

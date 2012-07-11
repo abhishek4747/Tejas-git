@@ -120,7 +120,7 @@ public class Newmain {
 		MemorySystem.initializeMemSys(cores); //TODO mem sys need not know eventQ during initialisation
 		
 		//different core components may work at different frequencies
-		GlobalClock.systemTimingSetUp(cores, MemorySystem.getCacheList());
+		GlobalClock.systemTimingSetUp(cores);
 		
 		//Initialize counters
 //		Counters powerCounters[] = new Counters[SystemConfig.NoOfCores];

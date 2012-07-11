@@ -160,10 +160,10 @@ private static void setSimulationParameters()
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
-		if(getImmediateString("subsetsim", simulationElmnt).equals("true"))
+		if(getImmediateString("subsetSim", simulationElmnt).equals("true"))
 		{
-			SimulationConfig.subSetSim = true;
-			SimulationConfig.subSetSimSize = Long.parseLong(getImmediateString("subsetsimsize", simulationElmnt));
+			SimulationConfig.subsetSimulation = true;
+			SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
 		}
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
