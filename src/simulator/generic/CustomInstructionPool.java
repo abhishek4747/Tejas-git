@@ -27,6 +27,20 @@ public class CustomInstructionPool {
 		if(head == -1)
 		{
 			System.out.println("instruction pool empty!!");
+			String cmd[] = {"/bin/sh",
+				      "-c",
+				      "killall -9 " + Newmain.executableFile};
+			try
+			{
+				Process process = Runtime.getRuntime().exec(cmd);
+				int ret = process.waitFor();
+				System.out.println("ret :" + ret);
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+			System.exit(1);
 			return null;
 		}
 		
