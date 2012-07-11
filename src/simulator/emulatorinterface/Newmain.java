@@ -4,6 +4,7 @@ import java.util.Enumeration;
 
 import power.Counters;
 
+import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
@@ -165,6 +166,12 @@ public class Newmain {
 				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
 			}
 			else if (cache.getClass() == DNuca.class)
+			{
+				((NucaCache)cache).setStatistics();
+				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
+				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
+			}
+			else if (cache.getClass() == CBDNuca.class)
 			{
 				((NucaCache)cache).setStatistics();
 				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();

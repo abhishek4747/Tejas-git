@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.SNuca;
@@ -93,6 +94,13 @@ public class MemorySystem
 					flag = true;
 					newCache = new DNuca(cacheParameterObj,null);
 				}
+				else if (cacheParameterObj.getNucaType() == NucaType.CB_D_NUCA)
+				{	
+					nucaType = NucaType.CB_D_NUCA;
+					flag = true;
+					newCache = new CBDNuca(cacheParameterObj,null);
+				}
+
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
 			}

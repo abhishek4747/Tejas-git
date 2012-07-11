@@ -43,29 +43,6 @@ public class SNuca extends NucaCache
 		return tag;
 	}
 
-	public int getBankNumber(long addr)
-	{
-		if(mapping == Mapping.SET_ASSOCIATIVE)
-			return (int)((addr>>>blockSizeBits)%getNumOfBanks());
-		else if(mapping == Mapping.ADDRESS)
-		{
-			long tag = (addr>>>blockSizeBits);
-			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
-			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
-			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
-	//		System.out.println(bankId);
-			return bankId;
-		}else
-		{
-			long tag = (addr>>>blockSizeBits);
-			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
-			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
-			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
-	//		System.out.println(bankId);
-			return bankId;
-		}
-	}
-	
 	public Vector<Integer> getDestinationBankId(long addr)
 	{
 		Vector<Integer> bankId = new Vector<Integer>();

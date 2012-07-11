@@ -160,6 +160,11 @@ private static void setSimulationParameters()
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
+		if(getImmediateString("subsetsim", simulationElmnt).equals("true"))
+		{
+			SimulationConfig.subSetSim = true;
+			SimulationConfig.subSetSimSize = Long.parseLong(getImmediateString("subsetsimsize", simulationElmnt));
+		}
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
 			SimulationConfig.IndexAddrModeEnable = false;
@@ -262,16 +267,16 @@ private static void setSimulationParameters()
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		StringTokenizer coreNucaMapping = new StringTokenizer((getImmediateString("NearestBankToCores", systemElmnt)));
-//		SystemConfig.coreCacheMapping = new int[numOfCores][2];
+		SystemConfig.coreCacheMapping = new int[SystemConfig.NoOfCores][2];
 		
-//		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
-//		{
-//			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
-//			for(int j=0;tempTok.hasMoreTokens();j++)
-//			{
-//				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
-//			}
-//		}
+		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
+		{
+			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
+			for(int j=0;tempTok.hasMoreTokens();j++)
+			{
+				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
+			}
+		}
 		/*for(int i=0;i<numOfCores;i++)
 		{
 			for(int j=0;j<2;j++)
@@ -464,9 +469,20 @@ private static void setSimulationParameters()
 		if (tempStr.equalsIgnoreCase("N"))
 			cache.nucaType = NucaType.NONE;
 		else if (tempStr.equalsIgnoreCase("S"))
+		{
+			SimulationConfig.nucaType = NucaType.S_NUCA;
 			cache.nucaType = NucaType.S_NUCA;
+		}
 		else if (tempStr.equalsIgnoreCase("D"))
+		{
+			SimulationConfig.nucaType = NucaType.D_NUCA;
 			cache.nucaType = NucaType.D_NUCA;
+		}
+		else if (tempStr.equalsIgnoreCase("CBD"))
+		{
+			SimulationConfig.nucaType = NucaType.CB_D_NUCA;
+			cache.nucaType = NucaType.CB_D_NUCA;
+		}
 		else
 		{
 			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");

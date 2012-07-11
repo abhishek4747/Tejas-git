@@ -27,6 +27,7 @@ import generic.SimulationElement;
 import net.*;
 import net.NOC.TOPOLOGY;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -34,6 +35,7 @@ import java.util.Hashtable;
 
 import pipeline.inorder.MemUnitIn;
 import config.CacheConfig;
+import config.SimulationConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CacheLine;
@@ -53,8 +55,10 @@ public class NucaCacheBank extends Cache
 	TOPOLOGY topology;
 	Policy policy;
 	int cacheBankRows;
+	int cacheNumber;
 	int cacheBankColumns;
-	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
+	NucaCache nucaCache;
+	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NucaCache nucaCache)
     {
         super(cacheParameters,containingMemSys);
     	this.timestamp = 0;
@@ -65,7 +69,8 @@ public class NucaCacheBank extends Cache
         isFirstLevel = false;
         nucaType = NucaType.S_NUCA;
         topology = cacheParameters.nocConfig.topology;
-        policy = new Policy();
+        policy = new Policy(nucaCache);
+        this.nucaCache = nucaCache;
         this.cacheBankColumns = cacheParameters.getNumberOfBankColumns();
         this.cacheBankRows = cacheParameters.getNumberOfBankRows();
     }
@@ -203,6 +208,12 @@ public class NucaCacheBank extends Cache
      *************************************************************************/
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event){
+		if(!((AddressCarryingEvent)event).getDestinationBankId().equals(this.getRouter().getBankId()))
+		{
+			
+			System.out.println("error routed to different router");
+			System.exit(1);
+		}
 		if (event.getRequestType() == RequestType.Cache_Read
 				|| event.getRequestType() == RequestType.Cache_Write
 				|| event.getRequestType() == RequestType.Cache_Read_from_iCache)
@@ -228,7 +239,8 @@ public class NucaCacheBank extends Cache
      *************************************************************************/
 	protected void handleCopyBlock(EventQueue eventQ,Event event)
 	{
-		CacheLine evictedLine = this.fill(((AddressCarryingEvent)event).getAddress());
+		long address = ((AddressCarryingEvent)event).getAddress();
+		CacheLine evictedLine = this.fill(address);
 		//if condition to be  changed
 		if (evictedLine != null)
 		{
@@ -251,15 +263,31 @@ public class NucaCacheBank extends Cache
 			this.getPort().put(addressEvent);
 			
 		}
-		Vector<Integer> sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-		this.getRouter().getPort().put(((AddressCarryingEvent)event).
-														updateEvent(eventQ,
-																	0, 
-																	this, 
-																	this.getRouter(), 
-																	RequestType.Mem_Response,
-																	sourceBankId,
-																	((AddressCarryingEvent)event).oldSourceBankId));
+		if(SimulationConfig.nucaType == NucaType.D_NUCA)
+		{
+			Vector<Integer> sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
+			this.getRouter().getPort().put(((AddressCarryingEvent)event).
+															updateEvent(eventQ,
+																		0, 
+																		this, 
+																		this.getRouter(), 
+																		RequestType.Mem_Response,
+																		sourceBankId,
+																		((AddressCarryingEvent)event).oldSourceBankId));
+		}
+		else
+		{
+			Vector<Integer> sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
+			int setIndex =  nucaCache.getSetIndex(address);
+			this.getRouter().getPort().put(((AddressCarryingEvent)event).
+															updateEvent(eventQ,
+																		0, 
+																		this, 
+																		this.getRouter(), 
+																		RequestType.Mem_Response,
+																		sourceBankId,
+																		nucaCache.integerToBankId(nucaCache.cacheMapping.get(((AddressCarryingEvent)event).coreId).get(setIndex).get(0))));
+		}
 	}
 	
     /************************************************************************
@@ -298,9 +326,19 @@ public class NucaCacheBank extends Cache
 			
 		if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
-			System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write from line 416");
+			if (SimulationConfig.writeToFile) {
+				try {
+					SimulationConfig.output.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			nucaCache.printidTOBankMapping();
+			System.err.println("Cache Error : request not present in cache bank" +((AddressCarryingEvent)(event)).getSourceBankId() + ((AddressCarryingEvent)(event)).getDestinationBankId() + this.getRouter().getBankId() + "event Time " +event.getEventTime() + " address " + blockAddr );
 			System.exit(1);
 		}
+		//System.out.println("block address removed "+ blockAddr);
 		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
 		while (!/*NOT*/outstandingRequestList.isEmpty())
 		{				
@@ -347,7 +385,7 @@ public class NucaCacheBank extends Cache
 
 				this.getRouter().getPort().put(
 						((AddressCarryingEvent)tempevent).updateEvent(
-																	eventQ,
+																	tempevent.getEventQ(),
 																	0, //For same cycle response //outstandingRequestList.get(0).getRequestingElement().getLatencyDelay(),
 																	this,
 																	this.getRouter(),
@@ -374,7 +412,7 @@ public class NucaCacheBank extends Cache
 			{
 				OMREntry omrEntry = omrIte.nextElement();
 				Long key = omrKeys.nextElement();
-				if(omrEntry.readyToProceed)
+				if(omrEntry.readyToProceed && ((AddressCarryingEvent)omrEntry.eventToForward).getDestinationBankId().equals(this.getRouter().getBankId()))
 				{
 					readyToProceedCount++;
 					SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
@@ -382,7 +420,7 @@ public class NucaCacheBank extends Cache
 					{
 						omrEntry.readyToProceed = false;
 					}
-					handleAccess(eventQ, omrEntry.eventToForward);
+					handleAccess(omrEntry.eventToForward.getEventQ(), omrEntry.eventToForward);
 					if(!omrEntry.readyToProceed)
 					{
 						instructionProceeded++;
@@ -415,6 +453,7 @@ public class NucaCacheBank extends Cache
      * Return       : None
      *************************************************************************/
 	private void handleMemoryReadWrite(EventQueue eventQ, Event event) {
+		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
 		Vector<Integer> sourceBankId = new Vector<Integer>(
 														   ((AddressCarryingEvent)
 														    event).
@@ -442,6 +481,12 @@ public class NucaCacheBank extends Cache
      *************************************************************************/
 	protected void handleAccess(EventQueue eventQ, Event event)
 	{
+		/*if(!((AddressCarryingEvent)event).getDestinationBankId().equals(this.getRouter().getBankId()))
+		{
+			System.out.println("before else");
+			System.out.println("destination bank id "+((AddressCarryingEvent)event).getDestinationBankId() + "this " + this.getRouter().getBankId());
+			System.exit(1);
+		}*/
 		RequestType requestType = event.getRequestType();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
 		
@@ -457,7 +502,7 @@ public class NucaCacheBank extends Cache
 			if (requestType == RequestType.Cache_Read || requestType == RequestType.Cache_Read_from_iCache ) 
 			{
 				//Just return the read block
-				this.getRouter().getPort().put(policy.updateEventOnHit(eventQ, (AddressCarryingEvent)event, this,nucaType,topology));
+				this.getRouter().getPort().put(policy.updateEventOnHit(eventQ, (AddressCarryingEvent)event, this,topology));
 			}
 			else if (requestType == RequestType.Cache_Write)
 			{
@@ -489,9 +534,31 @@ public class NucaCacheBank extends Cache
 		//IF MISS
 		else 		
 		{
-			AddressCarryingEvent tempEvent= policy.updateEventOnMiss(eventQ, (AddressCarryingEvent)event, this,nucaType,topology);
+			/*if(!((AddressCarryingEvent)event).getDestinationBankId().equals(this.getRouter().getBankId()))
+			{
+				System.out.println("inside else");
+				System.out.println("destination bank id "+((AddressCarryingEvent)event).getDestinationBankId() + "this " + this.getRouter().getBankId());
+				System.exit(1);
+			}*/
+
+			AddressCarryingEvent tempEvent= policy.updateEventOnMiss(eventQ, (AddressCarryingEvent)event, this,topology);
 			if(tempEvent != null)
+			{
+				if(!((AddressCarryingEvent)tempEvent).getSourceBankId().equals(this.getRouter().getBankId()))
+				{
+					
+					System.out.println("reached wrong cache column ");
+					//System.out.println("error routed to different router 527");
+					//System.exit(1);
+				}
+
+				if(tempEvent.getRequestType() == RequestType.Main_Mem_Read)
+				{
+					//System.out.println("address added to mshr " + (tempEvent.getAddress() >> blockSizeBits) );
+					//System.out.println("outstanding request size " + missStatusHoldingRegister.get((tempEvent.getAddress() >> blockSizeBits)).outStandingEvents.size());
+				}
 				this.getRouter().getPort().put(tempEvent);
+			}
 		}
 	}
 

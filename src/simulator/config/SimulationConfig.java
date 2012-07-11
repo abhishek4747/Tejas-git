@@ -20,6 +20,10 @@
 *****************************************************************************/
 package config;
 
+import java.io.ObjectOutput;
+
+import memorysystem.nuca.NucaCache.NucaType;
+
 public class SimulationConfig 
 {
 	public static int Mode;  // Mode for simulator to run
@@ -44,4 +48,5 @@ public class SimulationConfig
 	public static int powerTrace;
 	public static long numInsForTrace;
 	public static long numCyclesForTrace;
+	public static NucaType nucaType;
 }

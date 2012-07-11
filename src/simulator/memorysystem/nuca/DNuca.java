@@ -33,7 +33,7 @@ public class DNuca extends NucaCache {
 	public DNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) 
 	{
 		super(cacheParameters,containingMemSys);
-		System.out.println("Dnuca ");
+		//System.out.println("Dnuca ");
 		for(int i=0;i<2;i++)
 		{
 			for(int j=0;j<cacheColumns;j++)
@@ -42,7 +42,7 @@ public class DNuca extends NucaCache {
 					cacheBank[i][j].isFirstLevel = true;
 				if(i==1)
 				{
-					cacheBank[cacheRows-1][j].isLastLevel = false; 
+					cacheBank[cacheRows-1][j].isLastLevel = true; 
 				}
 			}
 		}
@@ -58,7 +58,7 @@ public class DNuca extends NucaCache {
 		// TODO Auto-generated method stub
 		SimulationElement requestingElement = event.getRequestingElement();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
-		Vector<Integer> sourceBankId = getNearestBankId(address, ((AddressCarryingEvent)(event)).coreId);
+		Vector<Integer> sourceBankId = getSourceBankId(address);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
 		//System.out.println(sourceBankId + " " + destinationBankId + " " + getBankNumber(address));
 		//System.exit(0);
@@ -74,28 +74,7 @@ public class DNuca extends NucaCache {
 																	destinationBankId));
 	}
 
-	public int getBankNumber(long addr)
-	{
-		if(mapping == Mapping.SET_ASSOCIATIVE)
-			return (int)((addr>>>blockSizeBits)%getNumOfBanks());
-		else if(mapping == Mapping.ADDRESS)
-		{
-			long tag = (addr>>>blockSizeBits);
-			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
-			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
-			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
-	//		System.out.println(bankId);
-			return bankId;
-		}else
-		{
-			long tag = (addr>>>blockSizeBits);
-			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
-			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
-			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
-	//		System.out.println(bankId);
-			return bankId;
-		}
-	}
+	
 	
 	public Vector<Integer> getDestinationBankId(long addr)
 	{

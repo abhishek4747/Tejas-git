@@ -14,7 +14,7 @@ public class GlobalClock {
 	static long currentTime;
 	static int stepSize;
 
-	public static void systemTimingSetUp(Core[] cores, Hashtable<String, Cache> cacheList)
+	public static void systemTimingSetUp(Core[] cores)
 	{
 		currentTime = 0;
 		stepSize = 1;
@@ -22,7 +22,7 @@ public class GlobalClock {
 		//TODO setting up of a heterogeneous clock environment
 		
 		//populate time_periods[]
-		int[] time_periods = new int[SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1];
+		int[] time_periods = new int[SystemConfig.NoOfCores];
 		int i = 0;
 		int seed = Integer.MAX_VALUE;
 		String cacheName;
@@ -110,20 +110,14 @@ public class GlobalClock {
 		
 		*/
 		
-		int[] freq_list = new int[SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1];
+		int[] freq_list = new int[SystemConfig.NoOfCores];
 		
 		for(i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			freq_list[i] = Math.round(cores[i].getFrequency()/100);
 		}
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); )
-		{
-			cacheName = cacheNameSet.nextElement();
-			cache = cacheList.get(cacheName);
-			freq_list[i] = Math.round(cache.getFrequency()/100);
-			i++;
-		}
-		freq_list[i] = Math.round(MemorySystem.mainMemory.getFrequency()/100);
+		
+		//freq_list[i] = Math.round(MemorySystem.mainMemory.getFrequency()/100);
 		
 		//compute HCF
 		//TODO look for a better algorithm
@@ -134,7 +128,7 @@ public class GlobalClock {
 		for(i = 1; ; i++)
 		{
 			flag = true;
-			for(j = 0; j < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1; j++)
+			for(j = 0; j < SystemConfig.NoOfCores; j++)
 			{
 				if(freq_list[j]%i != 0)
 				{
@@ -159,7 +153,7 @@ public class GlobalClock {
 		
 		System.out.println("HCF = " + HCF);
 		
-		for(i = 0; i < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1; i++)
+		for(i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			freq_list[i] = freq_list[i]/HCF;
 		}
@@ -169,7 +163,7 @@ public class GlobalClock {
 		while(true)
 		{
 			flag = true;
-			for(i = 0; i < SystemConfig.NoOfCores + SystemConfig.declaredCaches.size() + 1; i++)
+			for(i = 0; i < SystemConfig.NoOfCores ; i++)
 			{
 				if(cur%freq_list[i] != 0)
 				{
@@ -202,26 +196,26 @@ public class GlobalClock {
 			else
 				coreMemSys = cores[i].getExecEngine().coreMemSys;
 			
-			coreMemSys.getL1Cache().setStepSize(cores[i].getStepSize());
-			coreMemSys.getLsqueue().setStepSize(cores[i].getStepSize());
-			coreMemSys.getTLBuffer().setStepSize(cores[i].getStepSize());
+			//coreMemSys.getL1Cache().setStepSize(cores[i].getStepSize());
+			//coreMemSys.getLsqueue().setStepSize(cores[i].getStepSize());
+			//coreMemSys.getTLBuffer().setStepSize(cores[i].getStepSize());
 			//System.out.println(cores[i].getStepSize());
 		}
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		/*for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); Nothing)
 		{
 			cacheName = cacheNameSet.nextElement();
 			cache = cacheList.get(cacheName);
 			cache.setStepSize(LCM/freq_list[i++]);
 			//System.out.println(cache.getStepSize());
 		}
-		MemorySystem.mainMemory.setStepSize(LCM/freq_list[i]);
+		MemorySystem.mainMemory.setStepSize(LCM/freq_list[i]);*/
 		//System.out.println(MemorySystem.mainMemStepSize);
 		
 		for(i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			System.out.println("step size of core " + i + " is " + cores[i].getStepSize());
 		}
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		/*for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); )
 		{
 			cacheName = cacheNameSet.nextElement();
 			cache = cacheList.get(cacheName);
@@ -229,7 +223,7 @@ public class GlobalClock {
 			//System.out.println(cache.getStepSize());
 		}
 		System.out.println("step size of main memory is " + MemorySystem.mainMemory.getStepSize());
-		
+		*/
 	}
 
 	public static long getCurrentTime() {
