@@ -100,7 +100,7 @@ public class MemorySystem
 				{	
 					nucaType = NucaType.CB_D_NUCA;
 					flag = true;
-					newCache = new CBDNuca(cacheParameterObj,null);
+					newCache = new CBDNuca(cacheParameterObj,null,tokenBus);
 				}
 
 				//Put the newly formed cache into the new list of caches

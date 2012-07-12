@@ -177,6 +177,9 @@
 			<NocTopology>OMEGA</NocTopology>     <!--NOCTopology-->
 			<NocRoutingAlgorithm>OMEGA</NocRoutingAlgorithm>
 			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+			<NocRouterArbiter>RR</NocRouterArbiter>
+			<TechPoint>90</TechPoint>
+			<NocConnection>OPTICAL</NocConnection>
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -207,6 +210,9 @@
 			<NocTopology>OMEGA</NocTopology>     <!--NOCTopology-->
 			<NocRoutingAlgorithm>OMEGA</NocRoutingAlgorithm>
 			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+			<NocRouterArbiter>RR</NocRouterArbiter>
+			<TechPoint>90</TechPoint>
+			<NocConnection>OPTICAL</NocConnection>
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -235,8 +241,11 @@
 			<NocLatency>1</NocLatency>
 			<NocOperatingFreq>2000</NocOperatingFreq>
 			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
-			<NocRoutingAlgorithm>NORTHLAST</NocRoutingAlgorithm>
-			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
+			<NocLatencyBetweenBanks>2</NocLatencyBetweenBanks>
+			<NocRouterArbiter>RR</NocRouterArbiter>
+			<TechPoint>90</TechPoint>
+			<NocConnection>OPTICAL</NocConnection>
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -267,6 +276,9 @@
 			<NocTopology>OMEGA</NocTopology>     <!--NOCTopology-->
 			<NocRoutingAlgorithm>OMEGA</NocRoutingAlgorithm>
 			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+			<NocRouterArbiter>RR</NocRouterArbiter>
+			<TechPoint>90</TechPoint>
+			<NocConnection>ELECTRICAL</NocConnection>
 		</Type3>
 	</Library>
 			<Power>

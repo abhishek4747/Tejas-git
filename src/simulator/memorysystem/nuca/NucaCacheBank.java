@@ -224,7 +224,7 @@ public class NucaCacheBank extends Cache
      *************************************************************************/
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event){
-		if(!((AddressCarryingEvent)event).getDestinationBankId().equals(this.getRouter().getBankId()))
+		if(!((AddressCarryingEvent)event).getDestinationBankId().equals(this.getBankId()))
 		{
 			
 			System.out.println("error routed to different router");
@@ -268,7 +268,7 @@ public class NucaCacheBank extends Cache
 																		 evictedLine.getTag() << this.blockSizeBits,
 																		 ((AddressCarryingEvent)event).coreId);
 			Vector<Integer> sourceBankId = new Vector<Integer>(
-															this.getRouter().getBankId());
+															this.getBankId());
 			Vector<Integer> destinationBankId = new Vector<Integer>(
 																	((AddressCarryingEvent)
 																     (event)).
@@ -346,7 +346,7 @@ public class NucaCacheBank extends Cache
 		if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 		{
 			nucaCache.printidTOBankMapping();
-			System.err.println("Cache Error : request not present in cache bank" +((AddressCarryingEvent)(event)).getSourceBankId() + ((AddressCarryingEvent)(event)).getDestinationBankId() + this.getRouter().getBankId() + "event Time " +event.getEventTime() + " address " + blockAddr );
+			System.err.println("Cache Error : request not present in cache bank" +((AddressCarryingEvent)(event)).getSourceBankId() + ((AddressCarryingEvent)(event)).getDestinationBankId() + this.getBankId() + "event Time " +event.getEventTime() + " address " + blockAddr );
 			System.exit(1);
 		}
 		//System.out.println("block address removed "+ blockAddr);
@@ -424,7 +424,7 @@ public class NucaCacheBank extends Cache
 			{
 				OMREntry omrEntry = omrIte.nextElement();
 				Long key = omrKeys.nextElement();
-				if(omrEntry.readyToProceed && ((AddressCarryingEvent)omrEntry.eventToForward).getDestinationBankId().equals(this.getRouter().getBankId()))
+				if(omrEntry.readyToProceed && ((AddressCarryingEvent)omrEntry.eventToForward).getDestinationBankId().equals(this.getBankId()))
 				{
 					readyToProceedCount++;
 					SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
@@ -577,7 +577,7 @@ public class NucaCacheBank extends Cache
 			AddressCarryingEvent tempEvent= policy.updateEventOnMiss(eventQ, (AddressCarryingEvent)event, this,topology);
 			if(tempEvent != null)
 			{
-				if(!((AddressCarryingEvent)tempEvent).getSourceBankId().equals(this.getRouter().getBankId()))
+				if(!((AddressCarryingEvent)tempEvent).getSourceBankId().equals(this.getBankId()))
 				{
 					
 					System.out.println("reached wrong cache column ");

@@ -1,6 +1,6 @@
-package generic;
-
-public class RelayingElement implements SimulationElement 
-{
-	outStandingRequests;
-}
+//package generic;
+//
+//public class RelayingElement implements SimulationElement 
+//{
+//	outStandingRequests;
+//}

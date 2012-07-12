@@ -29,7 +29,6 @@ import memorysystem.AddressCarryingEvent;
 
 import generic.Event;
 import generic.EventQueue;
-import generic.Port;
 import generic.RequestType;
 import generic.SimulationElement;
 
@@ -41,10 +40,12 @@ public class TopLevelTokenBus extends SimulationElement{
 	public Token token;
 	public EntryPoint entryPoint;
 	public EventQueue eq;
+	public long frequency;
 	
 	public TopLevelTokenBus()
 	{
 		super(generic.PortType.Unlimited,-1,0,0,-100);
+		this.frequency = -1;
 	}
 	
 	public TopLevelTokenBus(NocConfig nocConfig, Vector<TokenBus> lowTokenBus, EntryPoint ePoint) {
@@ -79,9 +80,16 @@ public class TopLevelTokenBus extends SimulationElement{
 		}
 	}
 	
+	public void setFrequency(long frequency){
+		this.frequency = frequency;
+	}
+	
+	public long getFrequency(){
+		return this.frequency;
+	}
 	public void setParameters(NocConfig nocConfig, Vector<TokenBus> lowTokenBus, EntryPoint ePoint){
 		
-		this.setPort(new Port(nocConfig.portType,nocConfig.getAccessPorts(),nocConfig.getPortOccupancy()));
+//		this.setPort(new Port(nocConfig.portType,nocConfig.getAccessPorts(),nocConfig.getPortOccupancy()));
 		this.setLatency(nocConfig.getLatency());
 		this.setFrequency(nocConfig.operatingFreq);
 		this.tokenbus = lowTokenBus;

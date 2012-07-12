@@ -6,14 +6,17 @@ import generic.SimulationElement;
 
 import java.util.Vector;
 
+import net.optical.TokenBus;
+import net.optical.TopLevelTokenBus;
+
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
 
 public class CBDNuca extends DNuca {
-	public CBDNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) 
+	public CBDNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus) 
 	{
-		super(cacheParameters,containingMemSys);
+		super(cacheParameters,containingMemSys, tokenBus);
 		System.out.println("CBDnuca ");
 	}
 	

@@ -199,7 +199,7 @@ public abstract class NucaCache extends Cache
     		{
     			Enumeration<OMREntry> tempIte = nucaCacheBank.missStatusHoldingRegister.elements();
     			Enumeration<Long> tempIte1 = nucaCacheBank.missStatusHoldingRegister.keys();
-    			System.out.println("bank id " + nucaCacheBank.getRouter().getBankId());
+    			System.out.println("bank id " + nucaCacheBank.getBankId());
     			while(tempIte.hasMoreElements())
     			{
     				System.out.println("address "+ tempIte1.nextElement()  + "outstanding request size " + tempIte.nextElement().outStandingEvents.size());
@@ -216,7 +216,7 @@ public abstract class NucaCache extends Cache
     		for(int j=0;j<cacheColumns ; j++)
     		{
     			System.out.println("bank number ["+ i + "]["+j+"]");
-    			System.out.println("bank id"+ cacheBank[i][j].getRouter().getBankId());
+    			System.out.println("bank id"+ cacheBank[i][j].getBankId());
     		}
     	}
     }

@@ -64,13 +64,15 @@ public abstract class SimulationElement implements Cloneable
 		return this.port;
 	}	
 	
+	public void setPort(Port port){
+		this.port = port;
+	}
+	
 	/*public long getFrequency() {
 		return frequency;
 	}
 
-	public void setFrequency(long frequency) {
-		this.frequency = frequency;
-	}
+	
 
 	public int getStepSize() {
 		return stepSize;
