@@ -25,6 +25,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import memorysystem.nuca.CBDNuca;
+import net.optical.TopLevelTokenBus;
+
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.SNuca;
@@ -51,7 +53,7 @@ public class MemorySystem
 		return cacheList;
 	}
 
-	public static void initializeMemSys(Core[] cores)
+	public static void initializeMemSys(Core[] cores, TopLevelTokenBus tokenBus)
 	{
 		MemorySystem.cores = cores;
 		
@@ -86,13 +88,13 @@ public class MemorySystem
 				{	
 					nucaType = NucaType.S_NUCA;
 					flag = true;
-					newCache = new SNuca(cacheParameterObj,null);
+					newCache = new SNuca(cacheParameterObj,null,tokenBus);
 				}
 				else if (cacheParameterObj.getNucaType() == NucaType.D_NUCA)
 				{	
 					nucaType = NucaType.D_NUCA;
 					flag = true;
-					newCache = new DNuca(cacheParameterObj,null);
+					newCache = new DNuca(cacheParameterObj,null,tokenBus);
 				}
 				else if (cacheParameterObj.getNucaType() == NucaType.CB_D_NUCA)
 				{	

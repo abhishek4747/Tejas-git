@@ -184,6 +184,7 @@ public class Statistics {
 	static long noOfIMisses[];
 	public static String nocTopology;
 	public static String nocRoutingAlgo;
+	public static int hopcount=0;
 	
 	public static void printMemorySystemStatistics()
 	{
@@ -253,6 +254,10 @@ public class Statistics {
 			{
 				outputFileWriter.write("L2 noc Topology\t=\t" + nocTopology + "\n");
 				outputFileWriter.write("L2 noc Routing Algorithm\t=\t" + nocRoutingAlgo + "\n");
+			}
+			if (hopcount != 0)
+			{
+				outputFileWriter.write("Router Hops\t=\t" + hopcount + "\n");
 			}
 			outputFileWriter.write("\n");
 		}

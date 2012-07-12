@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.*;
+import net.NOC.CONNECTIONTYPE;
 import memorysystem.Cache;
 import memorysystem.Cache.CacheType;
 import memorysystem.Cache.CoherenceType;
@@ -549,6 +550,19 @@ private static void setSimulationParameters()
 			cache.nocConfig.selScheme = RoutingAlgo.SELSCHEME.STATIC;
 		else
 			cache.nocConfig.selScheme = RoutingAlgo.SELSCHEME.ADAPTIVE;
+		tempStr = getImmediateString("NocRouterArbiter", CacheType);
+		if(tempStr.equalsIgnoreCase("RR"))
+			cache.nocConfig.arbiterType = RoutingAlgo.ARBITER.RR_ARBITER;
+		else if(tempStr.equalsIgnoreCase("MATRIX"))
+			cache.nocConfig.arbiterType = RoutingAlgo.ARBITER.MATRIX_ARBITER;
+		else
+			cache.nocConfig.arbiterType = RoutingAlgo.ARBITER.QUEUE_ARBITER;
+		cache.nocConfig.technologyPoint = Integer.parseInt(getImmediateString("TechPoint", CacheType));
+		tempStr = getImmediateString("NocConnection", CacheType);
+		if(tempStr.equalsIgnoreCase("ELECTRICAL"))
+			cache.nocConfig.ConnType = CONNECTIONTYPE.ELECTRICAL;
+		else
+			cache.nocConfig.ConnType = CONNECTIONTYPE.OPTICAL;
 	}
 	
 	private static boolean setDirectoryCoherent(String immediateString) {

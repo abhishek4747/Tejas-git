@@ -20,12 +20,22 @@
 *****************************************************************************/
 package net;
 
+import java.util.ArrayList;
 import java.util.Vector;
+
+import net.optical.TopLevelTokenBus;
 
 import config.NocConfig;
 import memorysystem.nuca.NucaCacheBank;
 
 public class NOC{
+	
+	public ArrayList<Switch> intermediateSwitch;
+	
+	public NOC() {
+		this.intermediateSwitch = new ArrayList<Switch>();
+	}
+	
 	public static enum TOPOLOGY{
 		MESH,
 		TORUS,
@@ -38,8 +48,12 @@ public class NOC{
 		OMEGA,
 		BUTTERFLY
 	}
+	public static enum CONNECTIONTYPE{
+		ELECTRICAL,
+		OPTICAL
+	}
 	
-	public void ConnectBanks(NucaCacheBank cacheBank[][],int bankRows,int bankColumns,NocConfig nocConfig)
+	public void ConnectBanks(NucaCacheBank cacheBank[][],int bankRows,int bankColumns,NocConfig nocConfig, TopLevelTokenBus tokenBus)
 	{
 		switch (nocConfig.topology) {
 		case MESH:
@@ -197,6 +211,7 @@ public class NOC{
 		}
 	}
 	
+	/* Following method is abandoned. Kept it for reference */
 	public memorysystem.nuca.NucaCacheBank connectFatTree(NucaCacheBank cacheBank[][], int start, int end)
 	{
 		if (start > end)
@@ -224,6 +239,18 @@ public class NOC{
 		return root;
 	}
 	
+	/************************************************************************
+     * Method Name  : ConnectBanksFatTree
+     * Purpose      : Connect the cache banks in fat tree topology. Initially
+     *                it takes a list of cache banks. Create a new element,
+     *                add it to head of the list, take last two elements and 
+     *                make these two as the children of the head element. 
+     *                Repeat this until a single element remains.
+     * Parameters   : matrix of cache banks, number of bank columns,
+     * 				  NOC configuration
+     * Return       : void
+     *************************************************************************/
+	
 	public void ConnectBanksFatTree(NucaCacheBank cacheBank[][], int bankColumns,NocConfig nocConfig)
 	{	
 		int lastElement;
@@ -236,9 +263,10 @@ public class NOC{
 		do{
 			newOne = new Switch(nocConfig);
 			nodes.add(0,newOne);                                                 //put in front of nodes
+			intermediateSwitch.add(newOne);
 			newOne.connection[1] = nodes.lastElement();                          //right connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
-				newOne.range[1] = ((Router)(nodes.lastElement())).bankId.elementAt(1);
+				newOne.range[1] = ((Router)(nodes.lastElement())).bankReference.getBankId().elementAt(1);
 			else
 				newOne.range[1] = nodes.lastElement().range[1];                  //right range
 			nodes.lastElement().connection[0] = newOne;
@@ -246,7 +274,7 @@ public class NOC{
 			nodes.removeElementAt(lastElement - 1);                             //right is connected to rightmost end router in node list
 			newOne.connection[3] = nodes.lastElement();                         //left connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
-				newOne.range[0] = ((Router)(nodes.lastElement())).bankId.elementAt(1);
+				newOne.range[0] = ((Router)(nodes.lastElement())).bankReference.getBankId().elementAt(1);
 			else
 				newOne.range[0] = nodes.lastElement().range[0];                 //left range
 			nodes.lastElement().connection[0] = newOne;
@@ -268,9 +296,12 @@ public class NOC{
 	{
 		Vector<Switch> switchList = new Vector<Switch>();
 		int i;
+		Switch newOne;
 		for(i=0;i<bankColumns/2;i++)             //connecting first half to first level switch
 		{
-			switchList.add(new Switch(nocConfig,0));
+			newOne = new Switch(nocConfig,0);
+			switchList.add(newOne);
+			intermediateSwitch.add(newOne);
 			cacheBank[0][i].getRouter().connection[0] = switchList.elementAt(i);
 			switchList.elementAt(i).connection[0] = cacheBank[0][i].getRouter();
 			cacheBank[0][i+bankColumns/2].getRouter().connection[0] = switchList.elementAt(i);  //connecting second half to first level switch
@@ -298,7 +329,7 @@ public class NOC{
 	/************************************************************************
      * Method Name  : ConnectBanksOmega
      * Purpose      : connect a matrix of cachebank in Omega topology.
-     * 				  Row number should be 1.
+     * 				  Row number should be 1. Column should be 2^n.
      * 				  Connection consisting of input connection part, output
      * 				  connection part and connection of rest of the parts. 
      * 				  First for loop creates a column of switches and next 
@@ -311,11 +342,16 @@ public class NOC{
 		int numberOfSwitchLevels = (int)(Math.log(bankColumns)/Math.log(2));
 		int i,j;
 		Vector<Switch> switchList;
+		Switch newOne;
 		switchList = connectInputOmega(cacheBank,bankColumns,nocConfig);
 		for(i=0;i<numberOfSwitchLevels-1;i++)               //middle connections(note "-1")
 		{
 			for(j=0;j<bankColumns/2;j++)                    //creating one column on new switches
-				switchList.add(new Switch(nocConfig,i+1));
+			{
+				newOne = new Switch(nocConfig,i+1);
+				switchList.add(newOne);
+				intermediateSwitch.add(newOne);
+			}
 			for(j=0;j<bankColumns/2;j++)
 			{												//shuffled connections
 				switchList.elementAt(i* bankColumns/2 +j).connection[2] = switchList.elementAt((i+1)* bankColumns/2 + (2*j)%(bankColumns/2));
@@ -337,9 +373,12 @@ public class NOC{
 	public Vector<Switch> connectInputButterfly(NucaCacheBank cacheBank[][],int bankColumns,NocConfig nocConfig)
 	{
 		int i;
+		Switch newOne;
 		Vector<Switch> switchList = new Vector<Switch>();
 		for(i=0;i<bankColumns/2;i++){
-			switchList.add(new Switch(nocConfig,0));
+			newOne = new Switch(nocConfig,0);
+			switchList.add(newOne);
+			intermediateSwitch.add(newOne);
 			cacheBank[0][2*i].getRouter().connection[0] = switchList.elementAt(i);
 			cacheBank[0][2*i+1].getRouter().connection[0] = switchList.elementAt(i);
 		}
@@ -368,7 +407,7 @@ public class NOC{
 	/************************************************************************
      * Method Name  : ConnectBanksButterfly
      * Purpose      : connect a matrix of cachebank in butterfly topology.
-     * 				  Row number should be 1.
+     * 				  Row number should be 1. Column should be 2^n.
      * 				  Connection consisting of input connection part, output
      * 				  connection part and connection of rest of the parts. 
      * 				  First for loop creates a column of switches and next 
@@ -381,12 +420,17 @@ public class NOC{
 	{
 		Vector<Switch> switchList;
 		int i,j,k;
+		Switch newOne;
 		switchList = connectInputButterfly(cacheBank,bankColumns,nocConfig);
 		int numberOfSwitchLevels = (int)(Math.log(bankColumns)/Math.log(2));
 		for(i=0;i<numberOfSwitchLevels-1;i++) //middle connections... 
 		{
 			for(j=0;j<bankColumns/2;j++)                    //creating one column on new switches
-				switchList.add(new Switch(nocConfig,i+1));
+			{
+				newOne = new Switch(nocConfig,i+1);
+				switchList.add(newOne);
+				intermediateSwitch.add(newOne);
+			}
 			for(j=0;j<bankColumns/2;j++)
 			{												//shuffled connections
 				for(k=0;k<bankColumns/Math.pow(2, i+2);k++)

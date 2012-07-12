@@ -12,6 +12,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.Iterator;
+
+import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
@@ -29,6 +31,8 @@ import generic.Statistics;
  * to its index(taken care in the jni C file).
  */
 public class RunnableThread implements Encoding {
+	
+	TopLevelTokenBus tokenBus;
 
 	public static final int INSTRUCTION_THRESHOLD = 2000;
 	//private static final int PACKET_THRESHOLD = 000;
@@ -68,7 +72,7 @@ public class RunnableThread implements Encoding {
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
-	public RunnableThread(String threadName, int tid1, Core[] cores) {
+	public RunnableThread(String threadName, int tid1, Core[] cores, TopLevelTokenBus tokenBus) {
 
 		if (writeToFile) {
 			try {
@@ -84,6 +88,7 @@ public class RunnableThread implements Encoding {
 				e.printStackTrace();
 			}
 		}
+		this.tokenBus = tokenBus;
 		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
 		
@@ -167,6 +172,8 @@ public class RunnableThread implements Encoding {
 			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
 			}
+			if(tokenBus.getFrequency() > 0)
+				tokenBus.eq.processEvents();
 			GlobalClock.incrementClock();
 		}
 		if(prevTotalInstructions == -1){
@@ -263,6 +270,8 @@ public class RunnableThread implements Encoding {
 				for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 						pipelineInterfaces[tidEmu].oneCycleOperation();
 				}
+				if(tokenBus.getFrequency() > 0)
+					tokenBus.eq.processEvents();
 				GlobalClock.incrementClock();
 				if(SimulationConfig.powerTrace==1){
 					for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {

@@ -47,6 +47,11 @@ public class RoutingAlgo{
 		DOWN,
 		LEFT
 	}
+	public static enum ARBITER{
+		MATRIX_ARBITER ,
+		RR_ARBITER, 
+		QUEUE_ARBITER
+	}
 	
 	public RoutingAlgo.DIRECTION nextBank(Vector<Integer> current, Vector<Integer> destination){
 		
@@ -90,9 +95,9 @@ public class RoutingAlgo{
 		{
 			int hop;
 			if(x2>x1)
-				hop = (x2-x1-1) + (numColums - y1) + (y2) ; //number of hops
+				hop = (x2-x1-1) * (numColums-1) + (numColums - y1 - 1) + (y2) ; //number of hops
 			else if(x2<x1)
-				hop = (x1-x2-1) + (numColums - y2) + (y1) ; //number of hops
+				hop = (x1-x2-1) * (numColums-1) + (numColums - y2 - 1) + (y1) ; //number of hops
 			else
 				hop = Math.abs(y2-y1);
 			if((numColums * numRows)/2 >= hop)
@@ -296,17 +301,5 @@ public class RoutingAlgo{
 			//return null;
 		}
 		return path;
-	}
-	public RoutingAlgo.DIRECTION fatTreenextBank(Vector<Integer> current, Vector<Integer> destination,int numColums)
-	{
-	/*	int x1,y1,x2,y2;
-		x1 = current.elementAt(0);
-		y1 = current.elementAt(1);
-		x2 = destination.elementAt(0);
-		y2 = destination.elementAt(1);
-		if(y1<y2)
-			return DIRECTION.LEFT;*/
-		return null;
-	}
-	
+	}	
 }

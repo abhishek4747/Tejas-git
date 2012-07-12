@@ -55,10 +55,9 @@ public class Router extends Switch{
      * Return       : void
      *************************************************************************/
 	
-	public Router(Vector<Integer> bankId, NocConfig nocConfig, NucaCacheBank bankReference)
+	public Router(NocConfig nocConfig, NucaCacheBank bankReference)
 	{
 		super(nocConfig);
-		this.bankId = bankId;
 		this.topology = nocConfig.topology;
 		this.rAlgo = nocConfig.rAlgo;
 		this.numberOfRows = nocConfig.numberOfRows;
@@ -66,12 +65,8 @@ public class Router extends Switch{
 		this.bankReference = bankReference;
 		this.latencyBetweenBanks = nocConfig.latencyBetweenBanks;
 		this.neighbours= new Vector<Router>(4);
+		this.hopCounters = 0;
 	}
-	
-	public Vector<Integer> getBankId()
-	{
-		return this.bankId;
-	}	
 
 	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir,NucaCacheBank cacheBank)
 	{
@@ -116,8 +111,6 @@ public class Router extends Switch{
 		case SIMPLE :
 			choices = routingAlgo.XYnextBank(current, destination,this.topology,this.numberOfRows,this.numberOfColumns);
 			break;
-		case FATTREE:
-			return routingAlgo.fatTreenextBank(current, destination,this.numberOfColumns);
 		}
 		if(selScheme == SELSCHEME.ADAPTIVE && choices.size()>1)
 		{
@@ -142,12 +135,13 @@ public class Router extends Switch{
 		// TODO Auto-generated method stub
 		RoutingAlgo.DIRECTION nextID;
 		boolean reqOrReply;
-		Vector<Integer> currentId = this.getBankId();
+		Vector<Integer> currentId = this.bankReference.getBankId();
 		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
 		RequestType requestType = event.getRequestType();
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
 				&& !currentId.equals(destinationId))  //event passed to switch in omega/buttrfly/fat tree connection
 		{
+			this.hopCounters++;
 			this.connection[0].getPort().put(
 					event.update(
 							eventQ,
@@ -155,6 +149,31 @@ public class Router extends Switch{
 							this, 
 							this.connection[0],
 							requestType));
+		}
+		else if(currentId.equals(destinationId))
+		{
+			if(requestType == RequestType.CacheBank_Read)
+				requestType = RequestType.Cache_Read;
+			else if(requestType == RequestType.CacheBank_Write)
+				requestType = RequestType.Cache_Write;
+			else if(requestType == RequestType.CacheBank_Read_from_iCache)
+				requestType = RequestType.Cache_Read_from_iCache;
+			else if(requestType == RequestType.MemBank_Response)
+				requestType = RequestType.Mem_Response;
+			else if(requestType == RequestType.Main_MemBank_Read)
+				requestType = RequestType.Main_Mem_Read;
+			else if(requestType == RequestType.Main_MemBank_Write)
+				requestType = RequestType.Main_Mem_Write;
+			else if(requestType == RequestType.Main_MemBank_Response)
+				requestType = RequestType.Main_Mem_Response;
+			this.bankReference.getPort().put(
+					event.update(
+							eventQ,
+							0,
+							this, 
+							this.bankReference,
+							requestType));
+			this.FreeBuffer();
 		}
 		else if(requestType == RequestType.Cache_Read)
 		{
@@ -338,31 +357,7 @@ public class Router extends Switch{
 				//System.out.println(event.getRequestingElement());
 			}
 		}
-		else if(currentId.equals(destinationId))
-		{
-			if(requestType == RequestType.CacheBank_Read)
-				requestType = RequestType.Cache_Read;
-			else if(requestType == RequestType.CacheBank_Write)
-				requestType = RequestType.Cache_Write;
-			else if(requestType == RequestType.CacheBank_Read_from_iCache)
-				requestType = RequestType.Cache_Read_from_iCache;
-			else if(requestType == RequestType.MemBank_Response)
-				requestType = RequestType.Mem_Response;
-			else if(requestType == RequestType.Main_MemBank_Read)
-				requestType = RequestType.Main_Mem_Read;
-			else if(requestType == RequestType.Main_MemBank_Write)
-				requestType = RequestType.Main_Mem_Write;
-			else if(requestType == RequestType.Main_MemBank_Response)
-				requestType = RequestType.Main_Mem_Response;
-			this.bankReference.getPort().put(
-					event.update(
-							eventQ,
-							0,
-							this, 
-							this.bankReference,
-							requestType));
-			this.FreeBuffer();
-		}
+		
 		else
 		{
 			nextID = this.RouteComputation(currentId, destinationId);
@@ -376,6 +371,7 @@ public class Router extends Switch{
 			if(this.CheckNeighbourBuffer(nextID,reqOrReply))
 			{
 				//post event to nextID
+				this.hopCounters++;
 				this.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
 								eventQ,

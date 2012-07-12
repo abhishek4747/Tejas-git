@@ -23,6 +23,7 @@ public class Switch extends SimulationElement{
 	public TOPOLOGY topology;
 	public ALGO rAlgo;
 	protected int availBuff;           //available number of buffers
+	public int hopCounters;
 	//0 - up ; 1 - right ; 2- down ; 3- left (clockwise) 
 	
 	public Switch(NocConfig nocConfig,int level){
@@ -38,6 +39,7 @@ public class Switch extends SimulationElement{
 		this.topology = nocConfig.topology;
 		this.rAlgo = nocConfig.rAlgo;
 		this.availBuff = nocConfig.numberOfBuffers;
+		this.hopCounters = 0;
 		
 	}
 	public Switch(NocConfig nocConfig){
@@ -50,6 +52,7 @@ public class Switch extends SimulationElement{
 		this.connection = new Switch[4];
 		this.availBuff = nocConfig.numberOfBuffers;
 		this.range = new int[2]; // used in fat tree
+		this.hopCounters = 0;
 	}
 	
 	public int nextIdbutterflyOmega(String binary)
@@ -120,23 +123,11 @@ public class Switch extends SimulationElement{
 		String binary = Integer.toBinaryString(cacheBankColumns | bankNumber).substring(1);
 		RequestType requestType = event.getRequestType();
 		
-		String routerClassName = new String("net.Router");
-		//System.out.println("WORNG PLACE");
-		//System.exit(0);
-		
-		if(this.getClass().getName().equals(routerClassName))
-			((Router)(this)).bankReference.getPort().put(
-					event.update(
-							eventQ,
-							0,
-							this, 
-							((Router)(this)).bankReference,
-							requestType));
 		if(topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.OMEGA)
 			nextID = nextIdbutterflyOmega(binary);
 		else //if(topology == TOPOLOGY.FATTREE)
 			nextID = nextIdFatTree(bankNumber);
-		
+		this.hopCounters++;
 		this.connection[nextID].getPort().put(
 				event.update(
 						eventQ,
