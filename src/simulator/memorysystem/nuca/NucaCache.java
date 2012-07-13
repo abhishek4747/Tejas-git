@@ -301,6 +301,4 @@ public abstract class NucaCache extends Cache
 	}
 
 	public abstract long getTag(long addr);
-	public abstract Vector<Integer> getDestinationBankId(long addr);
-	public abstract Vector<Integer> getNearestBankId(long addr,int coreId);
 }

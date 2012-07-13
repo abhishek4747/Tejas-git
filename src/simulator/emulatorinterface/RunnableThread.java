@@ -362,11 +362,10 @@ public class RunnableThread implements Encoding {
 		if (SimulationConfig.subsetSimulation)
 		{
 			Process process;
-			String[] cmd = {
-					"/bin/sh",
-					"-c",
-					"kill -9 `ps -ef | grep " + Newmain.executableFile + " | awk {'print $2'} | head -n 3 | tail -n 1`"
-					};
+			String cmd[] = {"/bin/sh",
+				      "-c",
+				      "killall -9 " + Newmain.executableFile
+			};
 
 			try 
 			{

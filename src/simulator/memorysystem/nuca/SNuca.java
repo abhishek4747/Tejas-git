@@ -52,6 +52,15 @@ public class SNuca extends NucaCache
 		return bankId;
 	}
 	
+	public Vector<Integer> getSourceBankId(long addr,int coreId)
+	{
+		Vector<Integer> bankId = new Vector<Integer>();
+		//int bankNumber = getBankNumber(addr);
+		bankId.add(coreId/cacheColumns);
+		bankId.add(coreId%cacheColumns);
+		return bankId;
+	}
+	
 	double getDistance(int x1,int y1,int x2,int y2)
 	{
 		return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
@@ -89,7 +98,7 @@ public class SNuca extends NucaCache
 	public void handleEvent(EventQueue eventQ, Event event) {
 		SimulationElement requestingElement = event.getRequestingElement();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
-		Vector<Integer> sourceBankId = getNearestBankId(address,((AddressCarryingEvent)(event)).coreId);
+		Vector<Integer> sourceBankId = getSourceBankId(address,((AddressCarryingEvent)(event)).coreId);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
 		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone();
 		sourceBankId.clear();
