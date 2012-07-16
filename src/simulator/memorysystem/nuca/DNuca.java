@@ -79,8 +79,9 @@ public class DNuca extends NucaCache {
 	public Vector<Integer> getDestinationBankId(long addr,int coreId)
 	{
 		Vector<Integer> destinationBankId = new Vector<Integer>();
+		int banknumber= getBankNumber(addr);
 		destinationBankId.add(cacheRows/2);
-		destinationBankId.add(getSourceBankId(addr,coreId).get(1));
+		destinationBankId.add(banknumber%cacheColumns);
 		return destinationBankId;
 	}
 	
