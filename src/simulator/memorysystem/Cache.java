@@ -99,36 +99,66 @@ public class Cache extends SimulationElement
 		
 		public static final long NOT_EVICTED = -1;
 		
+		private long getTag(long addr)
+		{
+			long tag =  addr >>> ( blockSizeBits + assocBits);
+			return tag;
+		}
+		
+		long getStartingLine(long addr)
+		{
+		        // remove word bits
+		        addr = addr >>> blockSizeBits;
+
+		        // determine the set
+		        long num_sets = numLines / assoc;
+		        long set_id = addr % num_sets;
+		        long starting_line = set_id * assoc;
+
+		        return starting_line;
+		}
+
+		
 		public CacheLine access(long addr)
 		{
-			/* remove the block size */
-			long tag = addr >>> this.blockSizeBits;
-
-			/* search all the lines that might match */
+//			/* remove the block size */
+//			long tag = addr >>> this.blockSizeBits;
+//
+//			/* search all the lines that might match */
+//			
+//			long laddr = tag >>> this.assocBits;
+//			laddr = laddr << assocBits; //Replace the associativity bits with zeros.
+//
+//			/* remove the tag portion */
+//			laddr = laddr & numLinesMask;
+//
+//			/* search in a set */
+//			for(int idx = 0; idx < assoc; idx++) 
+//			{
+//				CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
+//				if(ll.hasTagMatch(tag) && (ll.getState() != MESI.INVALID))
+//					return  ll;
+//			}
+//			return null;
 			
-			long laddr = tag >>> this.assocBits;
-			laddr = laddr << assocBits; //Replace the associativity bits with zeros.
-
-			/* remove the tag portion */
-			laddr = laddr & numLinesMask;
-
-			/* search in a set */
-			for(int idx = 0; idx < assoc; idx++) 
-			{
-				CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
-				if(ll.hasTagMatch(tag) && (ll.getState() != MESI.INVALID))
+			long tag =  getTag(addr);
+						
+			for (long i=0;  i<assoc;  i++) {
+					CacheLine ll = this.lines[(int)(getStartingLine(addr) + i)];
+					if(ll.hasTagMatch(tag) && (ll.getState() != MESI.INVALID))
 					return  ll;
 			}
+			
 			return null;
 		}
 		
-		protected void mark(CacheLine ll, long tag)
-		{
-			ll.setTag(tag);
-			mark(ll);
-		}
+//		protected void mark(CacheLine ll, long tag)
+//		{
+//			ll.setTag(tag);
+//			mark(ll);
+//		}
 		
-		private void mark(CacheLine ll)
+		private void setTimeStamp(CacheLine ll)
 		{
 			ll.setTimestamp(timestamp);
 			timestamp += 1.0;
@@ -184,6 +214,10 @@ public class Cache extends SimulationElement
 			this.misses = 0;
 			this.evictions = 0;
 			this.MSHRSize = cacheParameters.mshrSize;
+			
+			long num_sets = ( numLines/assoc);
+			System.out.print("For size = " + size + " and assoc =" + assoc + ", num_lines = " + numLines + " and num_sets = " + num_sets + "\n" );
+			
 			// make the cache
 			makeCache();
 		}
@@ -191,42 +225,43 @@ public class Cache extends SimulationElement
 		protected CacheLine read(long addr)
 		{
 			CacheLine cl = access(addr);
-			if(cl != null)
-				mark(cl);
+			
+			if(cl != null) {
+				setTimeStamp(cl);
+			}
+			
 			return cl;
 		}
 		
 		protected CacheLine write(long addr)
 		{
 			CacheLine cl = access(addr);
-			if(cl != null) 
-				mark(cl);
+			
+			if(cl != null) { 
+				setTimeStamp(cl);
+			}
+			
 			return cl;
 		}
+		
 		
 		protected CacheLine fill(long addr, MESI stateToSet) //Returns a copy of the evicted line
 		{
 			CacheLine evictedLine = null;
 			
-			/* remove the block size */
-			long tag = addr >>> this.blockSizeBits;
-
-			/* search all the lines that might match */
-			long laddr = tag >>> this.assocBits;
-			laddr = laddr << assocBits; // replace the associativity bits with zeros.
-
-			/* remove the tag portion */
-			laddr = laddr & numLinesMask;
-
+			long tag =  getTag(addr);
+					
 			/* find any invalid lines -- no eviction */
 			CacheLine fillLine = null;
+			
 			boolean evicted = false;
-			for (int idx = 0; idx < assoc; idx++) 
+			for (int idx = 0;  idx < assoc;  idx++) 
 			{
-				CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
+				CacheLine ll = this.lines[(int)(getStartingLine(addr) +idx)];
 				if (!(ll.isValid())) 
 				{
 					fillLine = ll;
+					evicted = false;
 					break;
 				}
 			}
@@ -238,7 +273,7 @@ public class Cache extends SimulationElement
 				double minTimeStamp = Double.MAX_VALUE;
 				for(int idx=0; idx<assoc; idx++) 
 				{
-					CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
+					CacheLine ll = this.lines[(int)(getStartingLine(addr) +idx)];
 					if(minTimeStamp > ll.getTimestamp()) 
 					{
 						minTimeStamp = ll.getTimestamp();
@@ -265,7 +300,10 @@ public class Cache extends SimulationElement
 			/* This is the new fill line */
 			fillLine.setState(stateToSet);
 			//fillLine.setValid(true);
-			mark(fillLine, tag);
+			
+			fillLine.setTag(tag);
+			setTimeStamp(fillLine);
+			
 			return evictedLine;
 		}
 	
@@ -275,10 +313,12 @@ public class Cache extends SimulationElement
 			//boolean isHit;
 			/* access the Cache */
 			CacheLine ll = null;
-			if(requestType == RequestType.Cache_Read)
+			
+			if(requestType == RequestType.Cache_Read || requestType == RequestType.Cache_Read_from_iCache ) {
 				ll = this.read(addr);
-			else if (requestType == RequestType.Cache_Write)
+			} else if (requestType == RequestType.Cache_Write) {
 				ll = this.write(addr);
+			}
 			
 			if(ll == null)
 			{

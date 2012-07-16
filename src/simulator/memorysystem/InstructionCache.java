@@ -177,8 +177,8 @@ public class InstructionCache extends Cache
 	{
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
 		
-		CacheLine evictedLine = this.fill(addr, MESI.EXCLUSIVE);
-		if (evictedLine != null)
+		this.fill(addr, MESI.EXCLUSIVE);
+	/*	if (evictedLine != null)
 		{
 			if (this.isLastLevel)
 				MemorySystem.mainMemory.getPort().put(
@@ -200,7 +200,7 @@ public class InstructionCache extends Cache
 								RequestType.Cache_Write,
 								evictedLine.getTag() << this.blockSizeBits,
 								((AddressCarryingEvent)event).coreId));
-		}
+		}*/
 		
 		long blockAddr = addr >>> this.blockSizeBits;
 
