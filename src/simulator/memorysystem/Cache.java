@@ -62,6 +62,7 @@ public class Cache extends SimulationElement
 		protected int size; // MegaBytes
 		protected int numLines;
 		protected int numLinesBits;
+		protected int numSetsBits;
 		protected double timestamp;
 		protected int numLinesMask;
 		protected Vector<Long> evictedLines = new Vector<Long>();
@@ -98,24 +99,38 @@ public class Cache extends SimulationElement
 		public int evictions;
 		
 		public static final long NOT_EVICTED = -1;
-		
+	
+		private long computeTag(long addr) {
+			long tag = addr >>> (numSetsBits + blockSizeBits);
+			return tag;
+		}
+		private int getStartIdx(long addr) {
+			long SetMask = 1 << (numSetsBits) - 1;
+			int startIdx = (addr >>> blockSizeBits) & (SetMask);
+			return startIdx;
+		}
+		private int getNextIdx(startIdx,int idx) {
+			int index = startIdx + idx << numSetsBits;
+			return index;
+		}
+
+
 		public CacheLine access(long addr)
 		{
-			/* remove the block size */
-			long tag = addr >>> this.blockSizeBits;
-
-			/* search all the lines that might match */
-			
-			long laddr = tag >>> this.assocBits;
-			laddr = laddr << assocBits; //Replace the associativity bits with zeros.
-
-			/* remove the tag portion */
-			laddr = laddr & numLinesMask;
+			/* compute startIdx and the tag */
+			int startIdx = getStartIdx(addr);
+			long tag = computeTag(addr);
 
 			/* search in a set */
 			for(int idx = 0; idx < assoc; idx++) 
 			{
-				CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
+				// calculate the index
+				int index = getNextIdx(startIdx,idx);
+
+				// fetch the cache line
+				CacheLine ll = this.lines[index];
+
+				// If the tag is matching, we have a hit
 				if(ll.hasTagMatch(tag) && (ll.getState() != MESI.INVALID))
 					return  ll;
 			}
@@ -161,11 +176,13 @@ public class Cache extends SimulationElement
 			// set the parameters
 			this.blockSize = cacheParameters.getBlockSize();
 			this.assoc = cacheParameters.getAssoc();
-			this.size = cacheParameters.getSize();
+			this.size = cacheParameters.getSize(); // in kilobytes
 			this.blockSizeBits = Util.logbase2(blockSize);
 			this.assocBits = Util.logbase2(assoc);
 			this.numLines = getNumLines();
-			
+			this.numLinesBits = Util.logbase2(numLines);
+			this.numSetsBits = numLinesBits - assocBits;
+	
 			this.writePolicy = cacheParameters.getWritePolicy();
 			this.levelFromTop = cacheParameters.getLevelFromTop();
 			this.isLastLevel = cacheParameters.isLastLevel();
@@ -176,7 +193,7 @@ public class Cache extends SimulationElement
 			if (this.coherence == CoherenceType.Snoopy)
 				busController = new BusController(prevLevel, this, numberOfBuses, this, cacheParameters.getBusOccupancy());
 			
-			this.numLinesBits = Util.logbase2(numLines);
+			
 			this.timestamp = 0;
 			this.numLinesMask = numLines - 1;
 			this.noOfRequests = 0;
