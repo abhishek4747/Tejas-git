@@ -114,7 +114,8 @@ public class CoreMemorySystem
 						requestingElement, //Requesting Element
 						lsqueue, 
 						RequestType.Tell_LSQ_Addr_Ready,
-						robEntry.getLsqEntry()));
+						robEntry.getLsqEntry(),
+						this.coreID));
 	}
 	
 	//To commit Store in LSQ
@@ -127,7 +128,8 @@ public class CoreMemorySystem
 						null,
 						lsqueue, 
 						RequestType.LSQ_Commit, 
-						robEntry.getLsqEntry()));
+						robEntry.getLsqEntry(),
+						this.coreID));
 	}
 	
 	//To issue the request directly to L1 cache

@@ -57,7 +57,8 @@ public class DelayGenerator
 						null,
 						lsqueue,
 						RequestType.Tell_LSQ_Addr_Ready,
-						lsqEntry));
+						lsqEntry,
+						core.getCore_number()));
 	}
 	
 	public static int getRandomDelay()

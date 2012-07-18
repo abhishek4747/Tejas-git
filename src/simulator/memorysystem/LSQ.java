@@ -234,7 +234,8 @@ public class LSQ extends SimulationElement
 								this,
 								this.containingMemSys.l1Cache,
 								RequestType.Cache_Write,
-								entry));
+								entry,
+								this.containingMemSys.coreID));
 			}
 //			else
 //				Core.outstandingMemRequests--;
