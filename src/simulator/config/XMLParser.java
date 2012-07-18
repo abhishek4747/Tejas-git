@@ -359,6 +359,7 @@ private static void setSimulationParameters()
 			Element typeElmnt = searchLibraryForItem(cacheType);
 //			core.iCache.isFirstLevel = true;
 			core.iCache.levelFromTop = CacheType.iCache;
+			System.out.println("CALLED for icache");
 			setCacheProperties(typeElmnt, core.iCache);
 			core.iCache.nextLevel = iCacheElmnt.getAttribute("nextLevel");
 			core.iCache.operatingFreq = core.frequency;
@@ -370,6 +371,7 @@ private static void setSimulationParameters()
 			typeElmnt = searchLibraryForItem(cacheType);
 //			core.l1Cache.isFirstLevel = true;
 			core.l1Cache.levelFromTop = CacheType.L1;
+			System.out.println("called for l1cache ");
 			setCacheProperties(typeElmnt, core.l1Cache);
 			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
 			core.l1Cache.operatingFreq = core.frequency;
@@ -404,6 +406,7 @@ private static void setSimulationParameters()
 				newCacheConfigEntry.levelFromTop = Cache.CacheType.Lower;
 				String cacheType = cacheElmnt.getAttribute("type");
 				Element cacheTypeElmnt = searchLibraryForItem(cacheType);
+				System.out.println("called for " + cacheName);
 				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);
 				newCacheConfigEntry.nextLevel = cacheElmnt.getAttribute("nextLevel");
 				newCacheConfigEntry.operatingFreq = Long.parseLong(cacheElmnt.getAttribute("frequency"));
@@ -432,6 +435,7 @@ private static void setSimulationParameters()
 		cache.blockSize = Integer.parseInt(getImmediateString("BlockSize", CacheType));
 		cache.assoc = Integer.parseInt(getImmediateString("Associativity", CacheType));
 		cache.size = Integer.parseInt(getImmediateString("Size", CacheType));
+		System.out.println("size from cache config "+ cache.size);
 		cache.latency = Integer.parseInt(getImmediateString("Latency", CacheType));
 		cache.portType = setPortType(getImmediateString("PortType", CacheType));
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));

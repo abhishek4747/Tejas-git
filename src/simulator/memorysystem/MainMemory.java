@@ -36,6 +36,7 @@ public class MainMemory extends SimulationElement
 								null,
 								event.getRequestingElement(),
 								RequestType.Mem_Response));
+				
 			}
 			else
 			{

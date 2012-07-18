@@ -105,12 +105,12 @@ public class Cache extends SimulationElement
 			return tag;
 		}
 		private int getStartIdx(long addr) {
-			long SetMask = 1 << (numSetsBits) - 1;
+			long SetMask =( 1 << (numSetsBits) )- 1;
 			int startIdx = (int) ((addr >>> blockSizeBits) & (SetMask));
 			return startIdx;
 		}
 		private int getNextIdx(int startIdx,int idx) {
-			int index = startIdx + idx << numSetsBits;
+			int index = startIdx +( idx << numSetsBits);
 			return index;
 		}
 
@@ -120,13 +120,13 @@ public class Cache extends SimulationElement
 			/* compute startIdx and the tag */
 			int startIdx = getStartIdx(addr);
 			long tag = computeTag(addr);
+			//System.out.println("address\t"  + addr+"  starting line\t" + startIdx +  " number of cache lines\t" + numLines  + " size\t"  + size + " tag\t" + tag)  ;
 
 			/* search in a set */
 			for(int idx = 0; idx < assoc; idx++) 
 			{
 				// calculate the index
 				int index = getNextIdx(startIdx,idx);
-
 				// fetch the cache line
 				CacheLine ll = this.lines[index];
 
@@ -205,7 +205,10 @@ public class Cache extends SimulationElement
 			this.MSHRSize = cacheParameters.mshrSize;
 			// make the cache
 			makeCache();
-		}
+			
+		/*	System.out.println("cache size " + size  + "block size " + blockSize  + " number of lines  " + numLines + "cache name " + nextLevelName) ;
+			System.exit(1);
+		*/}
 
 		protected CacheLine read(long addr)
 		{
@@ -350,7 +353,6 @@ public class Cache extends SimulationElement
 			SimulationElement requestingElement = event.getRequestingElement();
 			RequestType requestType = event.getRequestType();
 			long address = ((AddressCarryingEvent)(event)).getAddress();
-			
 			//Process the access
 			CacheLine cl = this.processRequest(requestType, address);
 			if(this.isLastLevel){
@@ -487,7 +489,7 @@ public class Cache extends SimulationElement
 		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{
 			/*Response for a read/write miss. Thus incrementing counters here as well*/
-			if(this.isLastLevel){
+		if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
 			}
 			else{
@@ -648,6 +650,7 @@ public class Cache extends SimulationElement
 								this,
 								simElement,
 								requestType,
+								((AddressCarryingEvent)event).getAddress(),
 								((AddressCarryingEvent)event).coreId));
 			}
 		}
