@@ -39,7 +39,7 @@ public class DNuca extends NucaCache {
 			for(int j=0;j<cacheColumns;j++)
 			{
 				if(i==0)
-					cacheBank[i][j].isFirstLevel = true;
+					cacheBank[cacheRows/2][j].isFirstLevel = true;
 				if(i==1)
 				{
 					cacheBank[cacheRows-1][j].isLastLevel = true; 
@@ -58,8 +58,8 @@ public class DNuca extends NucaCache {
 		// TODO Auto-generated method stub
 		SimulationElement requestingElement = event.getRequestingElement();
 		long address = ((AddressCarryingEvent)(event)).getAddress();
-		Vector<Integer> sourceBankId = getSourceBankId(address);
-		Vector<Integer> destinationBankId = getDestinationBankId(address);
+		Vector<Integer> sourceBankId = getSourceBankId(address, ((AddressCarryingEvent)(event)).coreId);
+		Vector<Integer> destinationBankId = getDestinationBankId(address,((AddressCarryingEvent)(event)).coreId);
 		//System.out.println(sourceBankId + " " + destinationBankId + " " + getBankNumber(address));
 		//System.exit(0);
 		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone();
@@ -76,17 +76,21 @@ public class DNuca extends NucaCache {
 
 	
 	
-	public Vector<Integer> getDestinationBankId(long addr)
+	public Vector<Integer> getDestinationBankId(long addr,int coreId)
 	{
-		return getSourceBankId(addr);
+		Vector<Integer> destinationBankId = new Vector<Integer>();
+		int banknumber= getBankNumber(addr);
+		destinationBankId.add(cacheRows/2);
+		destinationBankId.add(banknumber%cacheColumns);
+		return destinationBankId;
 	}
 	
-	public Vector<Integer> getSourceBankId(long addr)
+	public Vector<Integer> getSourceBankId(long addr,int coreId)
 	{
 		Vector<Integer> bankId = new Vector<Integer>();
-		int bankNumber = getBankNumber(addr);
-		bankId.add(0);
-		bankId.add(bankNumber%cacheColumns);
+		//int bankNumber = getBankNumber(addr);
+		bankId.add(coreId/cacheColumns);
+		bankId.add(coreId%cacheColumns);
 		return bankId;
 	}
 
@@ -95,10 +99,9 @@ public class DNuca extends NucaCache {
 		return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 	}
 	
-	@Override
 	public Vector<Integer> getNearestBankId(long addr, int coreId)
 	{
-		Vector<Integer> destinationBankId = getDestinationBankId(addr);
+		Vector<Integer> destinationBankId = getDestinationBankId(addr,coreId);
 		Vector<Integer> nearestBankId = new Vector<Integer>();
 		nearestBankId.add(coreCacheMapping[coreId][0]/cacheColumns);
 		nearestBankId.add(coreCacheMapping[coreId][0]%cacheColumns);

@@ -299,7 +299,7 @@ public class Policy {
 			//give proper value to destination bank id
 			destinationBankId = null;
 		}*/
-		if(nucaType == NucaType.CB_D_NUCA)
+		else if(nucaType == NucaType.CB_D_NUCA)
 		{
 			long address = event.getAddress();
 			int setIndex = nucaCache.getSetIndex(address);

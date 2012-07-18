@@ -103,103 +103,14 @@ public class NucaCacheBank extends Cache
      * Parameters   : Request-type,Address in cache which will be processed
      * Return       : CacheLine which was replaced by the new line
      *************************************************************************/
-    public CacheLine processRequest(RequestType requestType, long addr)
-	{
-		noOfRequests++;
-		//boolean isHit;
-		/* access the Cache */
-		CacheLine ll = null;
-		if(requestType == RequestType.Cache_Read || requestType == RequestType.Cache_Read_from_iCache)
-			ll = this.read(addr);
-		else if (requestType == RequestType.Cache_Write)
-			ll = this.write(addr);
-		
-		if(ll == null)
-		{
-			/* Miss */
-//			if (!(request.isWriteThrough()))//TODO For testing purposes only
-			this.misses++;
-		} 
-		else 
-		{
-			/* Hit */
-			/* do nothing */
-//			if (!(request.isWriteThrough()))//TODO For testing purposes only
-			this.hits++;				
-		}
-		return ll;
-	}
-
+   
     /************************************************************************
      * Method Name  : fill
      * Purpose      : fill the cache line with data specified by the address
      * Parameters   : address
      * Return       : CacheLine which will be replaced during filling cache
      *************************************************************************/
-	public CacheLine fill(long addr) //Returns a copy of the evicted line
-	{
-		CacheLine evictedLine = null;
-		
-		/* remove the block size */
-		long tag = addr >>> this.blockSizeBits;
-
-		/* search all the lines that might match */
-		long laddr = tag >>> this.assocBits;
-		laddr = laddr << assocBits; // replace the associativity bits with zeros.
-
-		/* remove the tag portion */
-		laddr = laddr & numLinesMask;
-
-		/* find any invalid lines -- no eviction */
-		CacheLine fillLine = null;
-		boolean evicted = false;
-		for (int idx = 0; idx < assoc; idx++) 
-		{
-			CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
-			if (!(ll.isValid())) 
-			{
-				fillLine = ll;
-				break;
-			}
-		}
-		
-		/* LRU replacement policy -- has eviction*/
-		if (fillLine == null) 
-		{
-			evicted = true; // We need eviction in this case
-			double minTimeStamp = Double.MAX_VALUE;
-			for(int idx=0; idx<assoc; idx++) 
-			{
-				CacheLine ll = this.lines[(int)(laddr + (long)(idx))];
-				if(minTimeStamp > ll.getTimestamp()) 
-				{
-					minTimeStamp = ll.getTimestamp();
-					fillLine = ll;
-				}
-			}
-		}
-
-		/* if there has been an eviction */
-		if (evicted) 
-		{
-			evictedLine = fillLine.copy();
-			
-			//if (fillLine.getPid() != request.getThreadID()) //TODO I didn't understand the logic
-			//{
-				/* increase eviction count */
-				this.evictions++;
-
-				/* log the line */
-				evictedLines.addElement(fillLine.getTag());
-			//}
-		}
-		/* This is the new fill line */
-		fillLine.setState(MESI.SHARED);
-		//fillLine.setValid(true);
-		mark(fillLine, tag);
-		return evictedLine;
-	}
-
+	
     /************************************************************************
      * Method Name  : handleEvent
      * Purpose      : handle the event posted by upper level cache because of miss
@@ -240,7 +151,7 @@ public class NucaCacheBank extends Cache
 	protected void handleCopyBlock(EventQueue eventQ,Event event)
 	{
 		long address = ((AddressCarryingEvent)event).getAddress();
-		CacheLine evictedLine = this.fill(address);
+		CacheLine evictedLine = this.fill(address,MESI.EXCLUSIVE);
 		//if condition to be  changed
 		if (evictedLine != null)
 		{
@@ -298,7 +209,7 @@ public class NucaCacheBank extends Cache
      *************************************************************************/
 	private void handleMainMemoryResponse(EventQueue eventQ, Event event) {//changes are required....
 		long addr = ((AddressCarryingEvent)(event)).getAddress();
-		CacheLine evictedLine = this.fill(addr);
+		CacheLine evictedLine = this.fill(addr,MESI.EXCLUSIVE);
 		//if condition to be  changed
 		if (evictedLine != null)
 		{
