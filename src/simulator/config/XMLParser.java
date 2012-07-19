@@ -218,6 +218,8 @@ private static void setSimulationParameters()
 		else{
 			System.err.println("Please specify any of the four pipeline types in the config file");
 		}
+		SimulationConfig.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", simulationElmnt));
+		
 		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
 		{
@@ -291,7 +293,12 @@ private static void setSimulationParameters()
 		SystemConfig.invalidationSendDelay = Integer.parseInt(getImmediateString("invalidationSendDelay", systemElmnt));
 		SystemConfig.invalidationAckCollectDelay = Integer.parseInt(getImmediateString("invalidationAckCollectDelay", systemElmnt));
 		SystemConfig.ownershipChangeDelay = Integer.parseInt(getImmediateString("ownershipChangeDelay", systemElmnt));
-		
+	
+		NodeList powerLst = doc.getElementsByTagName("Power");
+		Node powerNode = powerLst.item(0);
+		Element powerElmnt = (Element) powerNode;
+		SystemConfig.clockGatingStyle = Integer.parseInt(getImmediateString("clockGatingStyle", powerElmnt));
+
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
 		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
@@ -359,7 +366,7 @@ private static void setSimulationParameters()
 			Element typeElmnt = searchLibraryForItem(cacheType);
 //			core.iCache.isFirstLevel = true;
 			core.iCache.levelFromTop = CacheType.iCache;
-			System.out.println("CALLED for icache");
+		//	System.out.println("CALLED for icache");
 			setCacheProperties(typeElmnt, core.iCache);
 			core.iCache.nextLevel = iCacheElmnt.getAttribute("nextLevel");
 			core.iCache.operatingFreq = core.frequency;
@@ -371,7 +378,7 @@ private static void setSimulationParameters()
 			typeElmnt = searchLibraryForItem(cacheType);
 //			core.l1Cache.isFirstLevel = true;
 			core.l1Cache.levelFromTop = CacheType.L1;
-			System.out.println("called for l1cache ");
+			//System.out.println("called for l1cache ");
 			setCacheProperties(typeElmnt, core.l1Cache);
 			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
 			core.l1Cache.operatingFreq = core.frequency;
@@ -414,7 +421,13 @@ private static void setSimulationParameters()
 			}
 		}
 		
-		//System.out.println(SystemConfig.NoOfCores + ", " + SystemConfig.core[0].ROBSize);
+		//Set Directory Parameters
+		SystemConfig.directoryConfig = new CacheConfig();
+		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
+		Element dirElmnt = (Element) dirLst.item(0);
+		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
+		
+		
 	}
 	
 	private static void setCacheProperties(Element CacheType, CacheConfig cache)
@@ -435,7 +448,7 @@ private static void setSimulationParameters()
 		cache.blockSize = Integer.parseInt(getImmediateString("BlockSize", CacheType));
 		cache.assoc = Integer.parseInt(getImmediateString("Associativity", CacheType));
 		cache.size = Integer.parseInt(getImmediateString("Size", CacheType));
-		System.out.println("size from cache config "+ cache.size);
+		//System.out.println("size from cache config "+ cache.size);
 		cache.latency = Integer.parseInt(getImmediateString("Latency", CacheType));
 		cache.portType = setPortType(getImmediateString("PortType", CacheType));
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));

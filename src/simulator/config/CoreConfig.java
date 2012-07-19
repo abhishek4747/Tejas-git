@@ -79,6 +79,5 @@ public class CoreConfig
 	public CacheConfig l2Cache = new CacheConfig();
 	public CacheConfig l3Cache = new CacheConfig();
 
-	public int numInorderPipelines;
 
 }

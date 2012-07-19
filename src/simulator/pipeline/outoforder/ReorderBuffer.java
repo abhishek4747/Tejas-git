@@ -1,5 +1,7 @@
 package pipeline.outoforder;
 
+import memorysystem.MainMemory;
+import memorysystem.MemorySystem;
 import config.SimulationConfig;
 import emulatorinterface.Newmain;
 import generic.Core;
@@ -228,7 +230,7 @@ public class ReorderBuffer extends SimulationElement{
 					
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
-					if(core.getNoOfInstructionsExecuted()%1000000==0){
+					if(core.getNoOfInstructionsExecuted()%10000==0){
 						System.out.println(this.j++ + " million done");
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
@@ -507,9 +509,17 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setNoOfIRequests(core.getExecEngine().coreMemSys.getiCache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfIHits(core.getExecEngine().coreMemSys.getiCache().hits, core.getCore_number());
 		Statistics.setNoOfIMisses(core.getExecEngine().coreMemSys.getiCache().misses, core.getCore_number());
+		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
+		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().misses);
+		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
+		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
+		Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
+
 	}
 
 	public void setPerCorePowerStatistics(){
+		//Clear access stats so that all counts can be transferred to total counts  
+		core.powerCounters.clearAccessStats();
 		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
