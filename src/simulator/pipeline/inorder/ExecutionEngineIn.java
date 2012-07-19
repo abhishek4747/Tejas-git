@@ -197,6 +197,7 @@ public class ExecutionEngineIn {
 	}
 
 	public void setPerCorePowerStatistics(){
+		core.powerCounters.clearAccessStats();
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
 	private long getNoOfSt() {

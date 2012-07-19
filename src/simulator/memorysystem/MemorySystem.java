@@ -31,7 +31,7 @@ import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
 
-import memorysystem.directory.CentralizedDirectory;
+import memorysystem.directory.CentralizedDirectoryCache;
 
 import generic.*;
 import config.CacheConfig;
@@ -44,6 +44,7 @@ public class MemorySystem
 	static Core[] cores;
 	static Hashtable<String, Cache> cacheList;
 	public static MainMemory mainMemory;
+	public static CentralizedDirectoryCache centralizedDirectory;
 	
 	public static boolean bypassLSQ = false;
 	
@@ -107,8 +108,8 @@ public class MemorySystem
 		}
 		mainMemory = new MainMemory(nucaType);
 		//Initialize centralized directory
-		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
-		CentralizedDirectory centralizedDirectory = new CentralizedDirectory(numCacheLines, SystemConfig.NoOfCores);
+//		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
+		centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig,null,cores.length,cores);
 		//Link all the initialised caches to their next levels
 		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{

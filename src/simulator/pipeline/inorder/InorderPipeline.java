@@ -163,6 +163,7 @@ public class InorderPipeline implements PipelineInterface{
 		Statistics.setNoOfIMisses(coreMemSys.getiCache().misses, core.getCore_number());
 	}
 	public void setPerCorePowerStatistics(){
+		core.powerCounters.clearAccessStats();
 		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}

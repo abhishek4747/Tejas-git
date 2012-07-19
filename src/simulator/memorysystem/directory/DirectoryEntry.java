@@ -8,18 +8,20 @@ public class DirectoryEntry {
 	boolean[] presenceBits;
 	int numPresenceBits;
 	private long tag;
-	private int line_num;
+	private long line_num;
 //	private boolean valid;
 	private double timestamp;
 //	private boolean modified;
 	private int pid;
 	public long address;
 	
-	public DirectoryEntry(int noOfCores, int lineNum){
-		state=DirectoryState.uncached;
+	public DirectoryEntry(int noOfCores, long lineNum){
+		state=DirectoryState.Invalid;
 		presenceBits=new boolean[noOfCores];
 		numPresenceBits=noOfCores;
 		line_num=lineNum;
+		for(int i=0;i<numPresenceBits;i++)
+			presenceBits[i]=false;
 	}
 	
 	protected DirectoryEntry copy()
@@ -33,6 +35,7 @@ public class DirectoryEntry {
 	}
 	
 	public int getOwner(){
+		//This should be called only when the state of the directory entry is "modified"
 		for(int i=0;i<numPresenceBits;i++){
 			if(presenceBits[i])
 				return i;
@@ -67,11 +70,11 @@ public class DirectoryEntry {
 		this.tag = tag;
 	}
 
-	protected int getLine_num() {
+	protected long getLine_num() {
 		return line_num;
 	}
 
-	protected void setLine_num(int lineNum) {
+	protected void setLine_num(long lineNum) {
 		line_num = lineNum;
 	}
 	protected double getTimestamp() {
@@ -83,7 +86,7 @@ public class DirectoryEntry {
 	}
 
 	public boolean isValid() {
-		if(this.getState()!=DirectoryState.uncached)
+		if(this.getState()!=DirectoryState.Invalid)
 			return true;
 		else
 			return false;

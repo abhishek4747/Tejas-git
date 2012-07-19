@@ -28,7 +28,7 @@ import pipeline.inorder.MemUnitIn;
 
 import net.NOC.TOPOLOGY;
 
-import memorysystem.directory.CentralizedDirectory;
+import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.directory.DirectoryEntry;
 import memorysystem.directory.DirectoryState;
 import memorysystem.snoopyCoherence.BusController;
@@ -76,13 +76,13 @@ public class Cache extends SimulationElement
 		public BusController busController = null;
 		
 //		protected boolean isFirstLevel = false;
-		protected CacheType levelFromTop; 
-		protected boolean isLastLevel; //Tells whether there are any more levels of cache
+		public CacheType levelFromTop; 
+		public boolean isLastLevel; //Tells whether there are any more levels of cache
 		protected CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
 		
-		protected String nextLevelName; //Name of the next level cache according to the configuration file
-		protected ArrayList<Cache> prevLevel = new ArrayList<Cache>(); //Points towards the previous level in the cache hierarchy
-		protected Cache nextLevel; //Points towards the next level in the cache hierarchy
+		public String nextLevelName; //Name of the next level cache according to the configuration file
+		public ArrayList<Cache> prevLevel = new ArrayList<Cache>(); //Points towards the previous level in the cache hierarchy
+		public Cache nextLevel; //Points towards the next level in the cache hierarchy
         protected final int MSHRSize;
 		protected CacheLine lines[];
 		
@@ -503,7 +503,14 @@ public class Cache extends SimulationElement
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			if (evictedLine != null && evictedLine.getState() == MESI.MODIFIED) //This does not ensure inclusiveness
 			{
-				if (this.isLastLevel) {
+
+				//Update directory in case of eviction
+				if((!this.isLastLevel) && this.nextLevel.coherence==CoherenceType.Directory){
+					int requestingCore = containingMemSys.getCore().getCore_number();
+					long address=evictedLine.getTag() << this.blockSizeBits;	//Generating an address of this cache line
+					evictionUpdateDirectory(requestingCore,evictedLine.getTag(),event,address);
+				}
+			if (this.isLastLevel) {
 					putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
 				}else {
 						putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
@@ -651,4 +658,73 @@ public class Cache extends SimulationElement
 								((AddressCarryingEvent)event).coreId));
 			}
 		}
+		/**
+		 * 
+		 * PROCESS DIRECTORY WRITE HIT
+		 * Change cache line state to modified
+		 * Directory state:
+		 * invalid -> modified 
+		 * modified -> modified,
+		 * shared -> modified , invalidate,writeback others
+		 * 
+		 * */
+		private void writeHitUpdateDirectory(int requestingCore, long dirAddress, Event event, long address){
+			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			centralizedDirectory.getPort().put(
+							new AddressCarryingEvent(
+									event.getEventQ(),
+									centralizedDirectory.getLatencyDelay(),
+									this,
+									centralizedDirectory,
+									RequestType.WriteHitDirectoryUpdate,
+									address,
+									(event).coreId));
+
+		}
+
+		/**
+		 * PROCESS DIRECTORY READ MISS
+		 *Cache block state -> 
+		 *invalid -> shared
+		 *modified -> shared 
+		 *writeback to memory!
+		 *
+		 * Directory state:
+		 *invalid -> shared
+		 *modified -> shared
+		 * */
+		
+		private void readMissUpdateDirectory(int requestingCore,long dirAddress, Event event, long address) {
+			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			centralizedDirectory.getPort().put(
+							new AddressCarryingEvent(
+									event.getEventQ(),
+									centralizedDirectory.getLatencyDelay(),
+									this,
+									centralizedDirectory,
+									RequestType.ReadMissDirectoryUpdate,
+									address,
+									(event).coreId));
+
+		}
+
+		/**
+		 * UPDATE DIRECTORY FOR EVICTION
+		 * Update directory for evictedLine
+		 * If modified, writeback, else just update sharers
+		 * */
+		private void evictionUpdateDirectory(int requestingCore, long dirAddress,Event event, long address) {
+			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			centralizedDirectory.getPort().put(
+							new AddressCarryingEvent(
+									event.getEventQ(),
+									centralizedDirectory.getLatencyDelay(),
+									this,
+									centralizedDirectory,
+									RequestType.EvictionDirectoryUpdate,
+									address,
+									(event).coreId));
+		}
+
+
 }

@@ -141,7 +141,7 @@ public class Core {
 		setRegFileOccupancy(coreConfig.RegFileOccupancy);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
-		setNumInorderPipelines(coreConfig.numInorderPipelines);
+		setNumInorderPipelines(SimulationConfig.numInorderPipelines);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
