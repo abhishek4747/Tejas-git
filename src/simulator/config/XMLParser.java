@@ -357,7 +357,7 @@ private static void setSimulationParameters()
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
 			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
 			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
-			core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
+			//core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
 		
 			//Code for instruction cache configurations for each core
 			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
@@ -422,11 +422,11 @@ private static void setSimulationParameters()
 		}
 		
 		//Set Directory Parameters
-	/*	SystemConfig.directoryConfig = new CacheConfig();
+		SystemConfig.directoryConfig = new CacheConfig();
 		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
 		Element dirElmnt = (Element) dirLst.item(0);
 		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
-		*/
+		
 		
 	}
 	
