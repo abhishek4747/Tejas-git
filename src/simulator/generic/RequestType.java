@@ -69,7 +69,14 @@ public enum RequestType {
 	Reply_with_shared_copy,
 	Write_Modified_to_sharedmem, 
 	Main_Mem_Response,
-	COPY_BLOCK
+	COPY_BLOCK,
+	ReadMissDirectoryUpdate,
+	WriteMissDirectoryUpdate,
+	WriteHitDirectoryUpdate,
+	EvictionDirectoryUpdate,
+	Cache_Read_Writeback,
+	Cache_Read_Writeback_Invalidate
+	
 	
 //	MEM_READ,
 //	MEM_WRI

@@ -249,6 +249,11 @@ public class MemorySystem
 //		}
 //	}
 	
+	public static   CentralizedDirectoryCache getDirectoryCache()
+	{
+		return centralizedDirectory;
+	}
+	
 	public static void printMemSysResults()
 	{
 		System.out.println("\n Memory System results\n");

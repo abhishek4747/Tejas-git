@@ -140,7 +140,7 @@ public class CentralizedDirectoryNew extends SimulationElement
 			for(int idx = 0; idx < assoc; idx++) 
 			{
 				DirectoryEntry ll = this.lines[(int)(laddr + (long)(idx))];
-				int lineNum = ll.getLine_num();
+				int lineNum = (int) ll.getLine_num();
 				if(ll.hasTagMatch(tag) && (ll.getState() != DirectoryState.uncached)){
 					this.lines[(int)(laddr + (long)(idx))]=dirEntry;
 					this.lines[(int)(laddr + (long)(idx))].setLine_num(lineNum);
