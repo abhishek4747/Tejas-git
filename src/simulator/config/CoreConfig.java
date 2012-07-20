@@ -73,6 +73,7 @@ public class CoreConfig
 	public int FloatMulLatency;
 	public int FloatDivLatency;
 	public int AddressFULatency;
+	public int numInorderPipelines;
 	
 	public CacheConfig iCache = new CacheConfig();
 	public CacheConfig l1Cache = new CacheConfig();
