@@ -337,10 +337,31 @@ public class Cache extends SimulationElement
 //				if(this.isLastLevel && event.getRequestType()==RequestType.Cache_Read_from_iCache)
 					//this.prevLevel.get(0).containingMemSys.getCore().getExecutionEngineIn().l2accesses++;
 				this.handleAccess(eventQ, event);
-			}else if (event.getRequestType() == RequestType.Mem_Response)
+			}
+			else if (event.getRequestType() == RequestType.Cache_Read_Writeback
+					|| event.getRequestType() == RequestType.Cache_Read_Writeback_Invalidate){
+				this.handleAccessWithDirectoryUpdates(eventQ, event);
+			}
+			else if (event.getRequestType() == RequestType.Mem_Response)
 				this.handleMemResponse(eventQ, event);
 			else if (event.getRequestType() == RequestType.MESI_Invalidate)
 				this.handleInvalidate(event);
+		}
+
+		private void handleAccessWithDirectoryUpdates(EventQueue eventQ,
+				Event event) {
+			//Writeback
+			if (this.isLastLevel)
+				putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, true, true);
+			else
+				putEventToPort(event,this.nextLevel, RequestType.Cache_Write, true, true);
+
+			event.update(event.getEventQ(),	event.getEventTime(),event.getRequestingElement(),event.getProcessingElement(),	RequestType.Cache_Read);
+			handleAccess(eventQ,event);
+
+			//invalidate self
+			handleInvalidate(event);
+			
 		}
 
 
@@ -382,14 +403,19 @@ public class Cache extends SimulationElement
 				
 				else if (requestType == RequestType.Cache_Write)
 				{
-						if (this.isLastLevel)
-						{
-							putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, true,true);		
+						if(this.coherence==CoherenceType.Directory){
+							writeHitUpdateDirectory(this.containingMemSys.getCore().getCore_number(), computeTag(address), event, address);
 						}
-						else if((this.nextLevel.coherence == CoherenceType.None) 
-								&& (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH))
-						{
-							putEventToPort(event, this.nextLevel, RequestType.Cache_Write, true,true);
+						else{//FIXME This logic seems incorrect. In case of a cache write no need to write main memory if it is not write through!
+								if (this.isLastLevel)
+							{
+								putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, true,true);		
+							}
+							else if((this.coherence == CoherenceType.None) 
+									&& (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH))
+							{
+								putEventToPort(event, this.nextLevel, RequestType.Cache_Write, true,true);
+							}
 						}
 				}
 			}
@@ -398,8 +424,15 @@ public class Cache extends SimulationElement
 			else
 			{	
 				int alreadyRequested = this.addOutstandingRequest(event, address);
+				
 				if (alreadyRequested == 0)
 				{
+					if(this.coherence==CoherenceType.Directory){
+						if(requestType==RequestType.Cache_Read)
+							readMissUpdateDirectory(this.containingMemSys.getCore().getCore_number(), computeTag(address), event, address);
+						else if(requestType==RequestType.Cache_Write)
+							writeMissUpdateDirectory(this.containingMemSys.getCore().getCore_number(), computeTag(address), event, address);
+					}
 					/*if(requestingElement != null){
 						if(requestingElement.getClass() == MemUnitIn.class)
 						{
@@ -505,7 +538,7 @@ public class Cache extends SimulationElement
 			{
 
 				//Update directory in case of eviction
-				if((!this.isLastLevel) && this.nextLevel.coherence==CoherenceType.Directory){
+				if(this.coherence==CoherenceType.Directory){
 					int requestingCore = containingMemSys.getCore().getCore_number();
 					long address=evictedLine.getTag() << this.blockSizeBits;	//Generating an address of this cache line
 					evictionUpdateDirectory(requestingCore,evictedLine.getTag(),event,address);
@@ -543,7 +576,7 @@ public class Cache extends SimulationElement
 						{
 							putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);	
 						}
-						else if (this.nextLevel.coherence != CoherenceType.Snoopy)
+						else if (this.coherence == CoherenceType.None)
 						{
 							putEventToPort(event,this.nextLevel, RequestType.Cache_Write, true,true);	
 						}
@@ -709,6 +742,29 @@ public class Cache extends SimulationElement
 		}
 
 		/**
+		 * 
+		 * PROCESS DIRECTORY WRITE MISS
+		 *cache state modified
+		 *directory state:
+		 *invalid -> modified
+		 *modified -> modified , invalidate, update sharers
+		 *shared -> modified, invalidate , update sharers
+		 * 
+		 * */
+		private void writeMissUpdateDirectory(int requestingCore, long dirAddress, Event event, long address) {
+			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			centralizedDirectory.getPort().put(
+							new AddressCarryingEvent(
+									event.getEventQ(),
+									centralizedDirectory.getLatencyDelay(),
+									this,
+									centralizedDirectory,
+									RequestType.WriteMissDirectoryUpdate,
+									address,
+									(event).coreId));
+
+		}
+		/**
 		 * UPDATE DIRECTORY FOR EVICTION
 		 * Update directory for evictedLine
 		 * If modified, writeback, else just update sharers
@@ -725,6 +781,5 @@ public class Cache extends SimulationElement
 									address,
 									(event).coreId));
 		}
-
 
 }

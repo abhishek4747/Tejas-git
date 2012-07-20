@@ -300,4 +300,9 @@ public class MemorySystem
 					+ cache.misses);
 		}
 	}
+
+	public static CentralizedDirectoryCache getDirectoryCache() {
+		// TODO Auto-generated method stub
+		return centralizedDirectory;
+	}
 }

@@ -111,56 +111,14 @@ public class CentralizedDirectoryCache extends Cache{
 			//FIXME The following if-else should be present
 			//This owner should be this node itself
 			if(prevOwner==requestingCore){
-				//If this core itself is the owner of the line, writeback and update the directory
-				if (((Cache)requestingElement).isLastLevel)
-				{
-					/*if (((Cache)requestingElement).levelFromTop == CacheType.L1)
-						MemorySystem.mainMemory.getPort().put(
-								new AddressCarryingEvent(
-										eventQ,
-										MemorySystem.mainMemory.getLatencyDelay(),
-										((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-										MemorySystem.mainMemory,
-										RequestType.Main_Mem_Write,
-										address,
-										(event).coreId));
-					else
-					*/	MemorySystem.mainMemory.getPort().put(
-								event.update(
-										eventQ,
-										MemorySystem.mainMemory.getLatencyDelay(),
-										((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-										MemorySystem.mainMemory,
-										RequestType.Main_Mem_Write));
-				}
-				else
-				{
-					/*if (((Cache)requestingElement).levelFromTop == CacheType.L1)
-						((Cache)requestingElement).nextLevel.getPort().put(
-								new AddressCarryingEvent(
-										eventQ,
-										((Cache)requestingElement).nextLevel.getLatencyDelay(),
-										((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-										((Cache)requestingElement).nextLevel,
-										RequestType.Cache_Write,
-										address,
-										(event).coreId));
-					else
-					*/	((Cache)requestingElement).nextLevel.getPort().put(
-								event.update(
-										eventQ,
-										((Cache)requestingElement).nextLevel.getLatencyDelay(),
-										((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-										((Cache)requestingElement).nextLevel,
-										RequestType.Cache_Write));
-				}
+				//If this core itself is the owner of the line, it will be written back in the cache logic itself. Update the directory
 				//Unset the presence bit
 				dirEntry.setPresenceBit(prevOwner, false);
 				//Set the state to invalid - i.e. uncached
 				dirEntry.setState(DirectoryState.Invalid);
 			}
 			else{
-				dirEntry.setPresenceBit(prevOwner, false);	//Redundant
+				dirEntry.setPresenceBit(requestingCore, false);	//Redundant
 				//If some other node is the owner, that means that the line in this node was already invalid.
 				//No need to do anything.
 			}
@@ -215,49 +173,6 @@ public class CentralizedDirectoryCache extends Cache{
 			//Writeback from the previous owner to the lower levels
 			incrementWritebacks(1);
 			int prevOwner = dirEntry.getOwner();
-			if (((Cache)requestingElement).isLastLevel)
-			{
-				/*if (((Cache)requestingElement).levelFromTop == CacheType.L1)
-					MemorySystem.mainMemory.getPort().put(
-							new AddressCarryingEvent(
-									eventQ,
-									MemorySystem.mainMemory.getLatencyDelay(),
-									((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-									MemorySystem.mainMemory,
-									RequestType.Main_Mem_Write,
-									address,
-									(event).coreId));
-				else
-					*/MemorySystem.mainMemory.getPort().put(
-							event.update(
-									eventQ,
-									MemorySystem.mainMemory.getLatencyDelay(),
-									((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-									MemorySystem.mainMemory,
-									RequestType.Main_Mem_Write));
-			}
-			else
-			{
-				if (((Cache)requestingElement).levelFromTop == CacheType.L1)
-					/*((Cache)requestingElement).nextLevel.getPort().put(
-							new AddressCarryingEvent(
-									eventQ,
-									((Cache)requestingElement).nextLevel.getLatencyDelay(),
-									((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-									((Cache)requestingElement).nextLevel,
-									RequestType.Cache_Write,
-									address,
-									(event).coreId));
-				else
-					*/((Cache)requestingElement).nextLevel.getPort().put(
-							event.update(
-									eventQ,
-									((Cache)requestingElement).nextLevel.getLatencyDelay(),
-									((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-									((Cache)requestingElement).nextLevel,
-									RequestType.Cache_Write));
-			}
-			
 			
 			//Request the owner for the block
 			incrementDataForwards(1);
@@ -358,8 +273,6 @@ public class CentralizedDirectoryCache extends Cache{
 							RequestType.Cache_Read_Writeback_Invalidate));
 			dirEntry.setPresenceBit(prevOwner, false);
 			
-			//TODO invalidate previous owner!!
-
 		}
 		else if(state==DirectoryState.Shared){
 			//request for the blocks from any of the owners
@@ -390,7 +303,6 @@ public class CentralizedDirectoryCache extends Cache{
 									(event).coreId));
 				}
 			}
-			//TODO also invalidate the previous owner!!
 		}
 		dirEntry.setPresenceBit(requestingCore, true);
 		dirEntry.setState(DirectoryState.Modified);
