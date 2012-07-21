@@ -5,12 +5,16 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
+import emulatorinterface.communication.Packet;
 
 class ResumeSleep {
 	ArrayList<Integer> resume=new ArrayList<Integer>();
 	ArrayList<Integer> sleep=new ArrayList<Integer>();
+	
+	
 	
 	void addSleeper(int t){
 		this.sleep.add(t);
@@ -44,7 +48,12 @@ public final class GlobalTable implements Encoding {
 	private Hashtable<Long, SynchPrimitive> synchTable;
 	private Hashtable<Integer, ThreadState> stateTable;
 	private IpcBase ipcType;
-
+	Hashtable<Long, Barrier> barrierList = new Hashtable<Long, Barrier>();
+	
+	public void barrierListAdd(Packet packet){
+		Barrier barrier = new Barrier(packet.tgt, (int) packet.ip);
+		barrierList.put(packet.tgt, barrier);
+	}
 	public GlobalTable(IpcBase ipcType) {
 		this.ipcType = ipcType;
 		this.synchTable = new Hashtable<Long, SynchPrimitive>();
@@ -98,8 +107,9 @@ public final class GlobalTable implements Encoding {
 			ret = s.waitEnter(thread, time, value);
 			break;
 		case (BARRIERWAIT):
-			ret = s.barrierEnter(thread, time, value);
+		//	ret = s.barrierEnter(thread, time, value);
 			System.out.println(thread+"  barrier enter");
+			
 			break;
 		case (BCAST + 1):
 			// TODO
@@ -119,8 +129,23 @@ public final class GlobalTable implements Encoding {
 			ret = s.waitExit(thread, time, value);
 			break;
 		case (BARRIERWAIT + 1):
-			ret = s.barrierExit(thread, time, value);
+		//	ret = s.barrierExit(thread, time, value);
 			System.out.println(thread+"  barrier exit");
+			Barrier bar = barrierList.get(addressSynchItem);
+			if(bar != null){
+				bar.incrementThreads(thread);
+				System.out.println("total barrier exit " + bar.numThreadsArrived);
+				if(bar.timeToCross()){
+					for(int i=0; i<bar.numThreads; i++ ){
+						ret.addResumer(bar.blockedThreads.elementAt(i));
+					}
+					barrierList.remove(addressSynchItem);
+				}
+				else{
+					barrierList.put(addressSynchItem, bar);
+					ret.addSleeper(thread);
+				}
+			}
 			break;
 		}
 		
@@ -191,6 +216,7 @@ public final class GlobalTable implements Encoding {
 		}
 		return ret;
 	}
+
 
 
 }

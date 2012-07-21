@@ -233,6 +233,42 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 
 }
 
+VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
+//        uint64_t time = ClockGetTime();
+/*
+        if (!isActive(tid)) {
+                //              printf("tid %d could not register %d entry as not active\n", tid,
+                //                              encode);
+                //              fflush(stdout);
+                return;
+        }
+        deActivate(tid, first_arg);
+*/
+
+        sendTimerPacket(tid,true);
+/*
+
+        if (encode == LOCK || encode == UNLOCK) {
+                char *temp = findType(encode);
+                GetLock(&lock, tid + 1);
+                printf("%d %s with first arg %p    --%llu \n", tid, temp,
+                                (void *) first_arg, time);
+                fflush(stdout);
+                ReleaseLock(&lock);
+        }
+*/
+
+        GetLock(&lock, tid + 1);
+        checkSum +=encode;
+        ReleaseLock(&lock);
+
+        uint64_t uarg = MASK & (uint64_t) first_arg;
+        uint64_t value = MASK & (uint64_t) val;
+        while (tst->analysisFn(tid, value, encode, uarg) == -1) {
+                PIN_Yield();
+        }
+}
+
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v) {
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
@@ -284,10 +320,14 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 		encode = CONDWAIT;
 	else if (cmp("pthread_barrier_wait"))
 		encode = BARRIERWAIT;
+	else if (cmp("pthread_barrier_init")) {
+		printf("barrier init encountered !!\n");
+		encode = BARRIERINIT;
+	}
 	else
 		encode = -1;
 
-	if (encode != -1 && RTN_Valid(rtn)) {
+	if (encode != -1 && RTN_Valid(rtn) && encode != BARRIERINIT) {
 		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) FunEntry,
 				IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_UINT32, encode,
 				IARG_THREAD_ID, IARG_END);
@@ -297,12 +337,17 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 				IARG_THREAD_ID, IARG_END);
 
 	}
+	else if(encode != -1 && RTN_Valid(rtn)){
+		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) BarrierInit,
+				IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_UINT32, encode,
+				IARG_THREAD_ID, IARG_END);
+	}
 	RTN_Close(rtn);
 }
 
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v) {
-	printf("checkSum is %lld\n", checkSum);
+//	printf("checkSum is %lld\n", checkSum);
 	tst->unload();
 }
 
@@ -324,7 +369,7 @@ INT32 Usage() {
 int main(int argc, char * argv[]) {
 
 	UINT64 mask = KnobLong;
-	printf("mask for pin %lld\n", mask);
+	//printf("mask for pin %lld\n", mask);
 	fflush(stdout);
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *) &mask) < 0) {
 		perror("sched_setaffinity");

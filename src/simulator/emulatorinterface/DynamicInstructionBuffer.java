@@ -89,7 +89,8 @@ public class DynamicInstructionBuffer implements Encoding
 					break;
 					
 				default:
-					misc.Error.showErrorAndExit("error in configuring packets"+p.value);
+					System.out.println("error in configuring packets"+p.value);
+//					misc.Error.showErrorAndExit("error in configuring packets"+p.value);
 					
 			}
 		}

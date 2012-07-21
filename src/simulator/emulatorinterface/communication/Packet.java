@@ -33,6 +33,14 @@ public class Packet
 		this.value = value;
 		this.tgt = tgt;
 	}
-	
+	/*
+	public Long getTgt()
+	{
+		return tgt;
+	}
+	public Long getIp()
+	{
+		return ip;
+	}*/
 	
 }

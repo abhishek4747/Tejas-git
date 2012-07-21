@@ -416,7 +416,16 @@ public class RunnableThread implements Encoding {
 			return;
 		}
 		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
+			if(pnew.value == 22 || pnew.value == 23)
+				System.out.println("Packet is " + pnew.toString());
 			resumeSleep(IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value));
+			return;
+		}
+		if(pnew.value == BARRIERINIT)
+		{
+			System.out.println("It is the barrier init");
+			System.out.println("Packet is " + pnew.toString());
+			IpcBase.glTable.barrierListAdd(pnew);
 			return;
 		}
 		if (thread.isFirstPacket) {

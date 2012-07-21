@@ -16,6 +16,7 @@
 #define	JOIN	18
 #define	CONDWAIT	20
 #define	BARRIERWAIT	22
+#define BARRIERINIT 26
 
 
 const char* findType(int type){
@@ -62,6 +63,8 @@ const char* findType(int type){
 				return "BARRIER EXIT";
 	case(TIMER) :
 				return "Timer packet";
+	case(BARRIERINIT) :
+				return "BARRIER INIT";
 	default:
 		return "ADD THIS IN encoding.h";
 	}
