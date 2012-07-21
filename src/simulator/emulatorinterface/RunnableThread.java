@@ -412,13 +412,13 @@ public class RunnableThread implements Encoding {
 		int tidApp = tid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
 		if (pnew.value == TIMER) {
-			resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
+			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
 			return;
 		}
 		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
 			if(pnew.value == 22 || pnew.value == 23)
 				System.out.println("Packet is " + pnew.toString());
-			resumeSleep(IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value));
+			IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
 			return;
 		}
 		if(pnew.value == BARRIERINIT)

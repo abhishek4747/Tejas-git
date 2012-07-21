@@ -16,6 +16,7 @@ import config.SimulationConfig;
 import emulatorinterface.communication.*;
 import emulatorinterface.*;
 import generic.Core;
+import generic.CoreBcastBus;
 import generic.InstructionTable;
 
 
@@ -24,9 +25,9 @@ public class SharedMem extends  IpcBase
 	// Must ensure that this is same as COUNT in shmem.h
 	public static final int COUNT = 1000;
 	
-	public SharedMem() 
+	public SharedMem(CoreBcastBus coreBcastBus) 
 	{
-		super();
+		super(coreBcastBus);
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h

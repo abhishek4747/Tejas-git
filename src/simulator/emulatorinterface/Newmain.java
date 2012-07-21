@@ -20,6 +20,7 @@ import emulatorinterface.communication.*;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
+import generic.CoreBcastBus;
 import generic.CustomInstructionPool;
 import generic.CustomOperandPool;
 import generic.GlobalClock;
@@ -44,7 +45,7 @@ public class Newmain {
 	public static boolean subsetSimulation = true; //test added
 	public static String executableArguments=" ";
 	public static String executableFile = " ";
-
+	
 	public static void main(String[] arguments) throws Exception 
 	{
 //		String executableArguments=" ";
@@ -109,10 +110,11 @@ public class Newmain {
 
 		
 		//create cores
-		Core[] cores = initCores();
-		
+		CoreBcastBus coreBcastBus = new CoreBcastBus();
+
+		Core[] cores = initCores(coreBcastBus);
 		// create PIN interface
-		IpcBase ipcBase = new SharedMem();
+		IpcBase ipcBase = new SharedMem(coreBcastBus);
 		if (SimulationConfig.Mode!=0) {
 			Process process = createPINinterface(ipcBase, executableArguments);
 		}
@@ -308,9 +310,10 @@ public class Newmain {
 	//TODO read a config file
 	//create specified number of cores
 	//map threads to cores
-	static Core[] initCores()
+	static Core[] initCores(CoreBcastBus coreBBus)
 	{
 		System.out.println("initializing cores...");
+		System.out.println("Initializing core broadcast bus...");
 		
 		Core[] cores = new Core[IpcBase.EmuThreadsPerJavaThread];
 		for (int i=0; i<IpcBase.EmuThreadsPerJavaThread; i++) {
@@ -320,6 +323,13 @@ public class Newmain {
 							null,
 							new int[]{0});
 		}
+		
+		coreBBus.setEventQueue(cores[0].eventQueue);
+		
+		for(int i=0 ; i < cores.length ; i++){
+			coreBBus.addToCoreList(cores[i]);
+		}
+		
 		//TODO wont work in case of multiple runnable threads
 		for(int i = SystemConfig.NoOfCores; i<IpcBase.EmuThreadsPerJavaThread; i++)
 		{

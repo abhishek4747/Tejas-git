@@ -27,7 +27,7 @@ public class FetchUnitIn extends SimulationElement{
 	private int fetchBufferIndex;	//Index to first instruction to be popped out of fetch buffer
 	private int stall;
 	private boolean sleep;		//The boolean to stall the pipeline when a sync request is received
-	InstructionLinkedList inputToPipeline;
+	public InstructionLinkedList inputToPipeline;
 	EventQueue eventQueue;
 	int syncCount;
 	int numRequestsSent;

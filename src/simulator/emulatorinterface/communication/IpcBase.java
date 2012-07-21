@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import emulatorinterface.*;
+import generic.CoreBcastBus;
 import generic.InstructionTable;
 
 public abstract class IpcBase {
@@ -41,8 +42,8 @@ public abstract class IpcBase {
 	StreamGobbler s2;
 	
 	// Initialise structures and objects
-	public IpcBase () {
-		glTable = new GlobalTable(this);
+	public IpcBase (CoreBcastBus coreBcastBus) {
+		glTable = new GlobalTable(this, coreBcastBus);
 	}
 
 	// Start the PIN process. Parse the cmd accordingly

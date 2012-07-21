@@ -71,7 +71,9 @@ public enum RequestType {
 	Main_Mem_Response,
 	COPY_BLOCK,
 	TOKEN,
-	LOCAL_TOKEN
+	LOCAL_TOKEN,
+	PIPELINE_RESUME,
+	PIPELINE_SLEEP
 	
 //	MEM_READ,
 //	MEM_WRI

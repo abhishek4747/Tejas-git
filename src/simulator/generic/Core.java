@@ -1,5 +1,7 @@
 package generic;
 
+import java.util.LinkedList;
+
 import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.ExecutionEnginePerfect;
 //import pipeline.perfect.PerformDecodeEventPerfect;
@@ -36,7 +38,7 @@ public class Core {
 	int stepSize;
 	long frequency;
 	ExecutionEngine execEngine;
-	EventQueue eventQueue;
+	public EventQueue eventQueue;
 	ExecutionEngineIn execEngineIn;
 	
 	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
@@ -190,6 +192,14 @@ public class Core {
 	{
 		this.clock++;
 	}*/
+	
+	public void activatePipeline(){
+		this.pipelineInterface.resumePipeline();
+	}
+	public void sleepPipeline(){
+		
+		this.getExecutionEngineIn().getFetchUnitIn().inputToPipeline.appendInstruction(new Instruction(OperationType.sync,null, null, null));
+	}
 
 	public int getIssueWidth() {
 		return issueWidth;

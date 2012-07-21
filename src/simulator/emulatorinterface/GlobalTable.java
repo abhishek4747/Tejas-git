@@ -5,10 +5,14 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import memorysystem.AddressCarryingEvent;
+
 
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
+import generic.CoreBcastBus;
+import generic.RequestType;
 
 class ResumeSleep {
 	ArrayList<Integer> resume=new ArrayList<Integer>();
@@ -49,15 +53,18 @@ public final class GlobalTable implements Encoding {
 	private Hashtable<Integer, ThreadState> stateTable;
 	private IpcBase ipcType;
 	Hashtable<Long, Barrier> barrierList = new Hashtable<Long, Barrier>();
+	public CoreBcastBus coreBcastBus;
+	
 	
 	public void barrierListAdd(Packet packet){
 		Barrier barrier = new Barrier(packet.tgt, (int) packet.ip);
 		barrierList.put(packet.tgt, barrier);
 	}
-	public GlobalTable(IpcBase ipcType) {
+	public GlobalTable(IpcBase ipcType, CoreBcastBus coreBcastBus) {
 		this.ipcType = ipcType;
 		this.synchTable = new Hashtable<Long, SynchPrimitive>();
 		this.stateTable = new Hashtable<Integer, ThreadState>();
+		this.coreBcastBus = coreBcastBus;
 	}
 
 	public Hashtable<Long, SynchPrimitive> getSynchTable() {
@@ -89,25 +96,25 @@ public final class GlobalTable implements Encoding {
 		ResumeSleep ret = new ResumeSleep();
 		switch ((int)value) {
 		case (BCAST):
-			ret = s.broadcastEnter(thread,time,value);
+//			ret = s.broadcastEnter(thread,time,value);
 			break;
 		case (SIGNAL):
-			ret = s.sigEnter(thread, time, value);
+//			ret = s.sigEnter(thread, time, value);
 			break;
 		case (LOCK):
-			ret = s.lockEnter(thread, time, value);
+//			ret = s.lockEnter(thread, time, value);
 			break;
 		case (UNLOCK):
-			ret = s.unlockEnter(thread, time, value);
+//			ret = s.unlockEnter(thread, time, value);
 			break;
 		case (JOIN):
 			//TODO
 			break;
 		case (CONDWAIT):
-			ret = s.waitEnter(thread, time, value);
+//			ret = s.waitEnter(thread, time, value);
 			break;
 		case (BARRIERWAIT):
-		//	ret = s.barrierEnter(thread, time, value);
+//			ret = s.barrierEnter(thread, time, value);
 			System.out.println(thread+"  barrier enter");
 			
 			break;
@@ -118,7 +125,7 @@ public final class GlobalTable implements Encoding {
 			// ignore
 			break;
 		case (LOCK + 1):
-			ret = s.lockExit(thread, time, value);
+//			ret = s.lockExit(thread, time, value);
 			break;
 		case (UNLOCK + 1):
 			// ignore
@@ -126,10 +133,10 @@ public final class GlobalTable implements Encoding {
 		case (JOIN + 1):
 			break;
 		case (CONDWAIT + 1):
-			ret = s.waitExit(thread, time, value);
+//			ret = s.waitExit(thread, time, value);
 			break;
 		case (BARRIERWAIT + 1):
-		//	ret = s.barrierExit(thread, time, value);
+//			ret = s.barrierExit(thread, time, value);
 			System.out.println(thread+"  barrier exit");
 			Barrier bar = barrierList.get(addressSynchItem);
 			if(bar != null){
@@ -137,9 +144,16 @@ public final class GlobalTable implements Encoding {
 				System.out.println("total barrier exit " + bar.numThreadsArrived);
 				if(bar.timeToCross()){
 					for(int i=0; i<bar.numThreads; i++ ){
-						ret.addResumer(bar.blockedThreads.elementAt(i));
+						coreBcastBus.addToResumeCore(bar.blockedThreads.elementAt(i));
 					}
 					barrierList.remove(addressSynchItem);
+					this.coreBcastBus.getPort().put(new AddressCarryingEvent(
+							this.coreBcastBus.getCore(thread).eventQueue,
+							 1,
+							 this.coreBcastBus, 
+							 this.coreBcastBus, 
+							 RequestType.PIPELINE_RESUME, 
+							 thread));
 				}
 				else{
 					barrierList.put(addressSynchItem, bar);
