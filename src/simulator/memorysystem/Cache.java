@@ -311,11 +311,27 @@ public class Cache extends SimulationElement
 		public int addOutstandingRequest(Event event, long addr)
 		{
 			int entryAlreadyThere = 0;
-			
+			Enumeration<OMREntry> tempEntry = missStatusHoldingRegister.elements();
+			while(tempEntry.hasMoreElements())
+			{
+				OMREntry omrEntry = tempEntry.nextElement();
+				for(int i=0; i<omrEntry.outStandingEvents.size();i++)
+				{
+					if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Mem_Response)
+					{
+						System.err.println("mem response into mshr ");
+						System.exit(1);
+					}
+				}
+			}
 			long blockAddr = addr >>> blockSizeBits;
 			
 			if (!/*NOT*/missStatusHoldingRegister.containsKey(blockAddr))
 			{
+				if(missStatusHoldingRegister.size() > MSHRSize) {
+					System.out.println("mshr full");
+					return 2;
+				}
 				entryAlreadyThere = 0;
 				missStatusHoldingRegister.put(blockAddr, new OMREntry(new ArrayList<Event>(), false, null));
 				missStatusHoldingRegister.get(blockAddr).outStandingEvents.add(event);
@@ -323,10 +339,15 @@ public class Cache extends SimulationElement
 			else{
 				if(missStatusHoldingRegister.get(blockAddr).outStandingEvents.isEmpty())
 					entryAlreadyThere = 0;
-				else
+				else if(missStatusHoldingRegister.get(blockAddr).outStandingEvents.size() < MSHRSize)
 					entryAlreadyThere = 1;
+				else {
+					System.out.println("mshr full");
+					return 2;
+				}
 				missStatusHoldingRegister.get(blockAddr).outStandingEvents.add(event);
 			}
+			
 			if(event.getRequestType()==RequestType.Mem_Response)
 				System.err.println("Adding a mem response event to mshr!");
 			return entryAlreadyThere;
@@ -386,7 +407,7 @@ public class Cache extends SimulationElement
 			if (cl != null)
 			{
 				
-/*				if(requestingElement!=null){
+				if(requestingElement!=null){
 					if(requestingElement.getClass() == MemUnitIn.class)
 					{
 						((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
@@ -395,7 +416,7 @@ public class Cache extends SimulationElement
 						((LSQ)requestingElement).getMissStatusHoldingRegister().remove(address);
 					}
 				}
-				*/
+
 				//Schedule the requesting element to receive the block TODO (for LSQ)
 				if (requestType == RequestType.Cache_Read  || requestType == RequestType.Cache_Read_from_iCache)
 				{
@@ -434,7 +455,7 @@ public class Cache extends SimulationElement
 						else if(requestType==RequestType.Cache_Write)
 							writeMissUpdateDirectory(this.containingMemSys.getCore().getCore_number(), computeTag(address), event, address);
 					}
-					/*if(requestingElement != null){
+					if(requestingElement != null){
 						if(requestingElement.getClass() == MemUnitIn.class)
 						{
 							((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
@@ -443,24 +464,24 @@ public class Cache extends SimulationElement
 						{
 							((LSQ)requestingElement).getMissStatusHoldingRegister().remove(address);
 						}
-					}*/
+					}
 										// access the next level
 						if (this.isLastLevel)
 						{
-							putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Read,false,true);
-//							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
+							AddressCarryingEvent addressEvent =   putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Read,false,true);
+							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 							return;
 						}
 						else
 						{
-							putEventToPort(event, this.nextLevel, RequestType.Cache_Read, false,true);
-//							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
+							AddressCarryingEvent addressEvent = putEventToPort(event, this.nextLevel, RequestType.Cache_Read, false,true);
+							missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 						}
 					}
 				
 				else if(alreadyRequested == 1 && requestingElement!=null)
 				{
-						/*if(requestingElement.getClass() == MemUnitIn.class)
+						if(requestingElement.getClass() == MemUnitIn.class)
 						{
 							if(((MemUnitIn)requestingElement).getMissStatusHoldingRegister().containsKey(address))
 								((MemUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
@@ -470,11 +491,11 @@ public class Cache extends SimulationElement
 						else if(requestingElement.getClass() == LSQ.class){
 							if(((LSQ)requestingElement).getMissStatusHoldingRegister().containsKey(address))
 								((LSQ)requestingElement).getMissStatusHoldingRegister().remove(address);
-						}*/
+						}
 				}
 				else if(alreadyRequested == 2 && requestingElement != null)
 				{
-/*					if(requestingElement.getClass() == Cache.class)
+					if(requestingElement.getClass() == Cache.class)
 					{
 						if(!this.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
 							this.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
@@ -514,7 +535,7 @@ public class Cache extends SimulationElement
 						if(!this.connectedMSHR.contains(((LSQ)requestingElement).getMissStatusHoldingRegister()))
 							this.connectedMSHR.add(((LSQ)requestingElement).getMissStatusHoldingRegister());
 					}
-	*/			}
+				}
 			}
 		}
 		
@@ -534,73 +555,86 @@ public class Cache extends SimulationElement
 		{		
 			long addr = ((AddressCarryingEvent)(event)).getAddress();
 			
+			Enumeration<OMREntry> tempEntry = missStatusHoldingRegister.elements();
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			if (evictedLine != null && evictedLine.getState() == MESI.MODIFIED) //This does not ensure inclusiveness
 			{
 
 				//Update directory in case of eviction
-				if(this.coherence==CoherenceType.Directory){
-					int requestingCore = containingMemSys.getCore().getCore_number();
-					long address=evictedLine.getTag() << this.blockSizeBits;	//Generating an address of this cache line
-					evictionUpdateDirectory(requestingCore,evictedLine.getTag(),event,address);
-				}
-			if (this.isLastLevel) {
-					putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
-				}else {
-						putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
-				}
+					if(this.coherence==CoherenceType.Directory){
+							int requestingCore = containingMemSys.getCore().getCore_number();
+							long address=evictedLine.getTag() << this.blockSizeBits;	//Generating an address of this cache line
+							evictionUpdateDirectory(requestingCore,evictedLine.getTag(),event,address);
+					}
+					if (this.isLastLevel) {
+							putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
+					}else {
+							putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
+					}
 			}
 			long blockAddr = addr >>> this.blockSizeBits;
 			if (!this.missStatusHoldingRegister.containsKey(blockAddr))
 			{
-				System.err.println("Memory System Error : An outstanding request not found in the requesting element" + event.getRequestType() + event.getProcessingElement().getClass() + "  " + ((Cache)event.getProcessingElement()).levelFromTop);
+				System.err.println("Memory System Error : An outstanding request not found in the requesting element" +
+															event.getRequestType() + event.getProcessingElement().getClass() + "  " + ((Cache)event.getProcessingElement()).levelFromTop);
 				System.exit(1);
 			}
-			Event eventPoppedOut;
+			//Event eventPoppedOut = null;
 			ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.remove(blockAddr).outStandingEvents;
-			while (!/*NOT*/outstandingRequestList.isEmpty())
+			while (!outstandingRequestList.isEmpty())
 			{	
-				eventPoppedOut = outstandingRequestList.remove(0);		
-				if (eventPoppedOut.getRequestType() == RequestType.Cache_Read  || eventPoppedOut.getRequestType() == RequestType.Cache_Read_from_iCache)
-				{
-						putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Mem_Response, true,false);	
-				}
-				
-				else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
-				{
-					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+					Event eventPoppedOut = outstandingRequestList.remove(0); 
+					
+					if (eventPoppedOut.getRequestType() == RequestType.Cache_Read  
+							|| eventPoppedOut.getRequestType() == RequestType.Cache_Read_from_iCache)
 					{
-						long address;
-						address = ((AddressCarryingEvent)(event)).getAddress();
-						
-						if (this.isLastLevel)
-						{
-							putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);	
-						}
-						else if (this.coherence == CoherenceType.None)
-						{
-							putEventToPort(event,this.nextLevel, RequestType.Cache_Write, true,true);	
-						}
+						eventPoppedOut.getRequestingElement().getPort().put(
+								eventPoppedOut.update(
+										eventPoppedOut.getEventQ(),
+										1,
+										eventPoppedOut.getProcessingElement(),
+										eventPoppedOut.getRequestingElement(),
+										RequestType.Mem_Response));
+						eventPoppedOut = null;
+					}
+					else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
+					{
+							if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+							{
+									if (this.isLastLevel)
+									{
+											putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);	
+									}
+									else if (this.coherence == CoherenceType.None)
+									{
+											putEventToPort(event,this.nextLevel, RequestType.Cache_Write, true,true);	
+									}
+							}
+							else
+							{
+									CacheLine cl = this.access(addr);
+									if (cl != null)
+											cl.setState(MESI.MODIFIED);
+							}
 					}
 					else
 					{
-						CacheLine cl = this.access(addr);
-						if (cl != null)
-							cl.setState(MESI.MODIFIED);
+						eventPoppedOut.getProcessingElement().getPort().put(
+								eventPoppedOut.update(
+										eventPoppedOut.getEventQ(),
+										1,
+										eventPoppedOut.getRequestingElement(),
+										eventPoppedOut.getProcessingElement(),
+										RequestType.Mem_Response));	
+						/*System.out.println("Cache Error : A request was of type other than Cache_Read" +
+																	 " or Cache_Write. The encountered request type was : " + eventPoppedOut.getRequestType());
+							System.out.println("Event details \n"+"req element"+eventPoppedOut.getRequestingElement()
+												+"processing element"+eventPoppedOut.getProcessingElement());
+							System.exit(1);*/
 					}
-				}
-				else
-				{
-					System.err.println("Cache Error : A request was of type other than Cache_Read or Cache_Write. The encountered request type was : " + eventPoppedOut.getRequestType());
-					System.err.println("Event details \n"+"req element"+eventPoppedOut.getRequestingElement()
-										+"processing element"+eventPoppedOut.getProcessingElement());
-//					System.exit(1);
-				}
-				
-				//Remove the processed entry from the outstanding request list
-//				outstandingRequestList.remove(0);
 			}
-			/*Vector<Integer> indexToRemove = new Vector<Integer>();
+
+			Vector<Integer> indexToRemove = new Vector<Integer>();
 			for(int i=0; i < connectedMSHR.size();i++)
 			{
 				
@@ -616,6 +650,14 @@ public class Cache extends SimulationElement
 					if(omrEntry.readyToProceed)
 					{
 						readyToProceedCount++;
+						if(omrEntry.eventToForward == null) {
+							System.err.println("event to forward null ");
+							System.exit(1);
+						} else if(omrEntry.eventToForward.getRequestingElement() == null) {
+							System.err.println(" requesting element null ");
+							System.exit(1);
+							
+						}
 						SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
 						if(requestingElement != null){
 							if(requestingElement.getClass() != MemUnitIn.class && requestingElement.getClass() != LSQ.class)
@@ -647,14 +689,6 @@ public class Cache extends SimulationElement
 			{
 				this.connectedMSHR.remove(indexToRemove.get(i));
 			}
-			*/
-			
-			/*}
-			else
-			{
-				System.err.println("Memory System Error : An outstanding request not found in the requesting element" + event.getRequestType() + event.getProcessingElement().getClass() + "  " + ((Cache)event.getProcessingElement()).levelFromTop);
-				System.exit(1);
-			}*/
 		}
 		
 		private void handleInvalidate(Event event)
@@ -664,14 +698,14 @@ public class Cache extends SimulationElement
 				cl.setState(MESI.INVALID);
 		}
 		
-		private void  putEventToPort(Event event, SimulationElement simElement, RequestType requestType, boolean flag, boolean time  )
+		private AddressCarryingEvent  putEventToPort(Event event, SimulationElement simElement, RequestType requestType, boolean flag, boolean time  )
 		{
 			long eventTime = 0;
 			if(time) {
 				eventTime = simElement.getLatency();
 			}
 			else {
-				eventTime = 0;
+				eventTime = 1;
 			}
 			if(flag){
 				simElement.getPort().put(
@@ -681,16 +715,17 @@ public class Cache extends SimulationElement
 								this,
 								simElement,
 								requestType));
+				return null;
 			} else {
-				simElement.getPort().put(
-						new AddressCarryingEvent(
-								event.getEventQ(),
-								eventTime,
-								this,
-								simElement,
-								requestType,
-								((AddressCarryingEvent)event).getAddress(),
-								((AddressCarryingEvent)event).coreId));
+				AddressCarryingEvent addressEvent = 	new AddressCarryingEvent( 	event.getEventQ(),
+																																									    eventTime,
+																																									   this,
+																																									   simElement,
+																																									  requestType,
+																																									  ((AddressCarryingEvent)event).getAddress(),
+																																									  ((AddressCarryingEvent)event).coreId); 
+				simElement.getPort().put(addressEvent);
+				return addressEvent;
 			}
 		}
 		/**

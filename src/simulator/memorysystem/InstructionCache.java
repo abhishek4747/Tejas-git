@@ -49,8 +49,8 @@ public class InstructionCache extends Cache
 		if (cl != null)
 		{
 			OMREntry omrEntry = null;
-			/*
-			 * if(requestingElement.getClass() == FetchUnitIn.class)
+			
+			  if(requestingElement.getClass() == FetchUnitIn.class)
 			{
 				 omrEntry = ((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 			}
@@ -58,7 +58,7 @@ public class InstructionCache extends Cache
 			{
 				 omrEntry = ((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
 			}
-			*/
+			
 			//Just return the read block
 			requestingElement.getPort().put(
 					event.update(
@@ -102,8 +102,8 @@ public class InstructionCache extends Cache
 			
 			if (alreadyRequested==0)
 			{		
-				/*
-				 * if(requestingElement.getClass() == FetchUnitIn.class)
+				
+				 if(requestingElement.getClass() == FetchUnitIn.class)
 				{
 					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
@@ -111,7 +111,7 @@ public class InstructionCache extends Cache
 				{
 					((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
-				*/
+				
 				// access the next level
 		
 				if (this.isLastLevel)
@@ -139,7 +139,7 @@ public class InstructionCache extends Cache
 																				RequestType.Cache_Read_from_iCache, 
 																				address,
 																				((AddressCarryingEvent)event).coreId);
-//					missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
+					missStatusHoldingRegister.get((address >> blockSizeBits)).eventToForward = addressEvent;
 					this.nextLevel.getPort().put(addressEvent);
 					return;
 				}
@@ -148,7 +148,7 @@ public class InstructionCache extends Cache
 			else if(alreadyRequested == 1)
 			{
 //				this.containingMemSys.getCore().getExecutionEngineIn().incrementDataHazardStall(1);
-			/*	if(requestingElement.getClass() == FetchUnitIn.class)
+				if(requestingElement.getClass() == FetchUnitIn.class)
 				{
 					((FetchUnitIn)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
@@ -156,7 +156,7 @@ public class InstructionCache extends Cache
 				{
 					((FetchLogic)requestingElement).getMissStatusHoldingRegister().remove(address);
 				}
-			*/
+			
 			}
 			else if (alreadyRequested ==2)
 			{
@@ -242,7 +242,7 @@ public class InstructionCache extends Cache
 			//Remove the processed entry from the outstanding request list
 //			outstandingRequestList.remove(0);
 		}
-/*		Vector<Integer> indexToRemove = new Vector<Integer>();
+		Vector<Integer> indexToRemove = new Vector<Integer>();
 		for(int i=0; i < connectedMSHR.size();i++)
 		{
 			
@@ -283,6 +283,6 @@ public class InstructionCache extends Cache
 		{
 			this.connectedMSHR.remove(indexToRemove.get(i));
 		}
-*/
+
 	}
 }

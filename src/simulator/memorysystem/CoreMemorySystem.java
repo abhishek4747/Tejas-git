@@ -146,7 +146,7 @@ public class CoreMemorySystem
 																	 address,
 																	 coreId);
 		l1Cache.getPort().put(addressEvent);
-/*		Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
+		Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
 		if(!missStatusHoldingRegister.containsKey(address))
 		{
 			ArrayList<Event> eventList = new ArrayList<Event>();
@@ -157,7 +157,6 @@ public class CoreMemorySystem
 		{
 			missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
 		}
-*/
 	}
 	
 	//To issue the request to instruction cache
@@ -194,27 +193,26 @@ public class CoreMemorySystem
 	public void issueRequestToInstrCacheFromInorder(SimulationElement requestingElement,
 											long address,int coreId)
 	{
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
+			AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 																	iCache.getLatencyDelay(),
 																	requestingElement, 
 																	iCache,
 																	RequestType.Cache_Read, 
 																	address,
 																	coreId);
-		iCache.getPort().put(addressEvent);
+			iCache.getPort().put(addressEvent);
 
-/*		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
-		if(!missStatusHoldingRegister.containsKey(address))
-		{
-			ArrayList<Event> eventList = new ArrayList<Event>();
-			eventList.add(addressEvent);
-			missStatusHoldingRegister.put(address,new OMREntry(eventList,true,addressEvent));
-		}
-		else
-		{
-			missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
-		}
-		*/
+			Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
+			if(!missStatusHoldingRegister.containsKey(address))
+			{
+				ArrayList<Event> eventList = new ArrayList<Event>();
+				eventList.add(addressEvent);
+				missStatusHoldingRegister.put(address,new OMREntry(eventList,true,addressEvent));
+			}
+			else
+			{
+				missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
+			}
 	}
 
 	public void issueRequestToInstrCacheFromOutofOrder(SimulationElement requestingElement,
