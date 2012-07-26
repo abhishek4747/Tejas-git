@@ -145,13 +145,14 @@ public class CoreMemorySystem
 																	 requestType, 
 																	 address,
 																	 coreId);
-		l1Cache.getPort().put(addressEvent);
+
 		Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
 		if(!missStatusHoldingRegister.containsKey(address))
 		{
 			ArrayList<Event> eventList = new ArrayList<Event>();
 			eventList.add(addressEvent);
 			missStatusHoldingRegister.put(address, new OMREntry(eventList,true,addressEvent));
+			l1Cache.getPort().put(addressEvent);
 		}
 		else
 		{
@@ -200,7 +201,7 @@ public class CoreMemorySystem
 																	RequestType.Cache_Read, 
 																	address,
 																	coreId);
-			iCache.getPort().put(addressEvent);
+
 
 			Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
 			if(!missStatusHoldingRegister.containsKey(address))
@@ -208,6 +209,7 @@ public class CoreMemorySystem
 				ArrayList<Event> eventList = new ArrayList<Event>();
 				eventList.add(addressEvent);
 				missStatusHoldingRegister.put(address,new OMREntry(eventList,true,addressEvent));
+				iCache.getPort().put(addressEvent);
 			}
 			else
 			{
