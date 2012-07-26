@@ -44,7 +44,7 @@ public class MemUnitIn extends SimulationElement{
 			idExLatch.setStallCount(1);
 			return;
 		}
-		if(!exMemLatch.getMemDone() /*|| !missStatusHoldingRegister.isEmpty()*/){
+		if(!exMemLatch.getMemDone() || !missStatusHoldingRegister.isEmpty()){
 			/*if(!missStatusHoldingRegister.isEmpty()){
 				this.core.getExecutionEngineIn().getFetchUnitIn().incrementStallLowerMSHRFull(1);
 				System.err.println("Stalling pipeline coz MSHR of the next level can't take any more requests");
