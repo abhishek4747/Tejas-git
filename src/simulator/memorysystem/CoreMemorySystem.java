@@ -28,7 +28,9 @@ import pipeline.inorder.MemUnitIn;
 import pipeline.outoforder.FetchLogic;
 import pipeline.outoforder.ReorderBufferEntry;
 import generic.Event;
+import generic.MissStatusHoldingRegister;
 import generic.OMREntry;
+import generic.PortType;
 import generic.SimulationElement;
 import generic.EventQueue;
 import generic.Core;
@@ -36,19 +38,20 @@ import generic.RequestType;
 import config.SystemConfig;
 import config.CacheConfig;
 
-public class CoreMemorySystem 
+public abstract class CoreMemorySystem extends SimulationElement
 {
 	protected int coreID;
-	private Core core;
+	protected Core core;
 	protected Cache iCache;
 	protected Cache l1Cache;
-	//protected Cache l2Cache;
-	//protected Cache l3Cache;
 	protected TLB TLBuffer;
 	protected LSQ lsqueue;
+	protected MissStatusHoldingRegister missStatusHoldingRegister;
 	
-	public CoreMemorySystem(Core core)
+	protected CoreMemorySystem(Core core)
 	{
+		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
+		
 		this.setCore(core);
 		this.coreID = core.getCore_number();
 		
@@ -64,7 +67,7 @@ public class CoreMemorySystem
 		//Initialise the  instruction cache
 		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].iCache;
-		iCache = new InstructionCache(cacheParameterObj, this);
+		iCache = new Cache(cacheParameterObj, this);
 		
 		//Initialise the  L1 cache
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
@@ -87,6 +90,7 @@ public class CoreMemorySystem
 							this, 
 							SystemConfig.core[coreID].LSQSize);
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
+		missStatusHoldingRegister = new MissStatusHoldingRegister(0, 2*cacheParameterObj.mshrSize);
 	}
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
@@ -132,34 +136,6 @@ public class CoreMemorySystem
 						this.coreID));
 	}
 	
-	//To issue the request directly to L1 cache
-	//missPenalty field has been added to accomodate the missPenalty incurred due to TLB miss
-	public void issueRequestToL1CacheFromInorder(SimulationElement requestingElement, 
-											RequestType requestType, 
-											long address,int coreId,int missPenalty)
-	{
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-																	 l1Cache.getLatencyDelay()+missPenalty,
-																	 requestingElement, 
-																	 l1Cache,
-																	 requestType, 
-																	 address,
-																	 coreId);
-
-		Hashtable<Long,OMREntry> missStatusHoldingRegister =((MemUnitIn)requestingElement).getMissStatusHoldingRegister();
-		if(!missStatusHoldingRegister.containsKey(address))
-		{
-			ArrayList<Event> eventList = new ArrayList<Event>();
-			eventList.add(addressEvent);
-			missStatusHoldingRegister.put(address, new OMREntry(eventList,true,addressEvent));
-			l1Cache.getPort().put(addressEvent);
-		}
-		else
-		{
-			missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
-		}
-	}
-	
 	//To issue the request to instruction cache
 	/*
 	 * public void issueRequestToInstrCacheFromInorder(SimulationElement requestingElement,
@@ -190,32 +166,7 @@ public class CoreMemorySystem
 		iCache.getPort().put(addressEvent);
 	}
 	*/
-	//To issue the request to instruction cache
-	public void issueRequestToInstrCacheFromInorder(SimulationElement requestingElement,
-											long address,int coreId)
-	{
-			AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-																	iCache.getLatencyDelay(),
-																	requestingElement, 
-																	iCache,
-																	RequestType.Cache_Read, 
-																	address,
-																	coreId);
-
-
-			Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
-			if(!missStatusHoldingRegister.containsKey(address))
-			{
-				ArrayList<Event> eventList = new ArrayList<Event>();
-				eventList.add(addressEvent);
-				missStatusHoldingRegister.put(address,new OMREntry(eventList,true,addressEvent));
-				iCache.getPort().put(addressEvent);
-			}
-			else
-			{
-				missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
-			}
-	}
+	
 
 	public void issueRequestToInstrCacheFromOutofOrder(SimulationElement requestingElement,
 			long address,int coreId)
@@ -263,5 +214,10 @@ public class CoreMemorySystem
 
 	public Core getCore() {
 		return core;
+	}
+	
+	public MissStatusHoldingRegister getMSHR()
+	{
+		return missStatusHoldingRegister;
 	}
 }

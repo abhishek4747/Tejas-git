@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import pipeline.inorder.InorderCoreMemorySystem;
+
 import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
@@ -151,16 +153,25 @@ public class MemorySystem
 		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			CoreMemorySystem coreMemSys = new CoreMemorySystem(cores[i]);
+			CoreMemorySystem coreMemSys = null;
 			
 			if(cores[i].isPipelineInorder)
-				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
+			{
+				coreMemSys = new InorderCoreMemorySystem(cores[i]);
+				cores[i].getExecutionEngineIn().coreMemorySystem=(InorderCoreMemorySystem)coreMemSys;
+			}
 			else if (cores[i].isPipelineStatistical)
+			{
 				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
+			}
 			else if(cores[i].isPipelineMultiIssueInorder)
-				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
+			{
+				//cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
+			}
 			else
+			{
 				cores[i].getExecEngine().coreMemSys = coreMemSys;
+			}
 			
 			//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			

@@ -9,6 +9,7 @@ import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
 import memorysystem.nuca.SNuca;
+import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import misc.Error;
@@ -21,6 +22,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.CustomInstructionPool;
 import generic.CustomOperandPool;
+import generic.GenericCircularBuffer;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
@@ -37,6 +39,7 @@ public class Newmain {
 	//public static GenericObjectPool<Instruction> instructionPool;
 	public static CustomOperandPool operandPool;
 	public static CustomInstructionPool instructionPool;
+	public static GenericCircularBuffer<AddressCarryingEvent> addressCarryingEventPool;
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
@@ -68,8 +71,9 @@ public class Newmain {
 		// Create a hash-table for the static representation of the executable
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
-		// Create Pools of Instructions and Operands
+		// Create Pools of Instructions, Operands and AddressCarryingEvents
 		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.EmuThreadsPerJavaThread*2;
+		int numAddressCarryingEvents = 50000;
 		
 		/* "apache pool"
 		System.out.println("creating operand pool..");
@@ -98,6 +102,11 @@ public class Newmain {
 		operandPool = new CustomOperandPool(numInstructionsInPool *3);
 		System.out.println("creating instruction pool..");
 		instructionPool = new CustomInstructionPool(numInstructionsInPool);
+		System.out.println("creating addressCarryingEvent pool..");
+		addressCarryingEventPool = new GenericCircularBuffer<AddressCarryingEvent>(
+															AddressCarryingEvent.class,
+															numAddressCarryingEvents,
+															true);
 		
 		
 /*		// Create a new dynamic instruction buffer

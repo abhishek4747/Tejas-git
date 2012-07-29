@@ -94,4 +94,9 @@ public class MemUnitIn extends SimulationElement{
 		core.getExecutionEngineIn().setMemDone(((AddressCarryingEvent)event).getAddress(),true);
 //		core.getExecutionEngineIn().getExMemLatch(0).setMemDone(true);
 	}
+	
+	public void processCompletionOfMemRequest(long requestedAddress)
+	{
+		core.getExecutionEngineIn().setMemDone(requestedAddress,true);
+	}
 }

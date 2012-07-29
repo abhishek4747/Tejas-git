@@ -26,7 +26,7 @@ public class ExecutionEngineIn {
 	private WriteBackUnitIn writeBackUnitIn;
 	private boolean executionComplete;
 	private boolean fetchComplete;
-	public CoreMemorySystem coreMemorySystem;
+	public InorderCoreMemorySystem coreMemorySystem;
 	private int noOfMemRequests;
 	private int noOfLd;
 	private int noOfSt;
@@ -88,6 +88,7 @@ public class ExecutionEngineIn {
 			wbDoneLatch[i]= new StageLatch(_core);
 		}
 		this.numPipelines = numPipelines;
+		coreMemorySystem = new InorderCoreMemorySystem(core);
 	}
 
 	public int getNumPipelines() {

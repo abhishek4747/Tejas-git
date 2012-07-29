@@ -8,7 +8,7 @@ import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 
-public class AddressCarryingEvent extends Event
+public class AddressCarryingEvent extends Event implements Cloneable
 {
 	private long address;
 	private Vector<Integer> sourceBankId;
@@ -34,6 +34,29 @@ public class AddressCarryingEvent extends Event
 		index = 0 ;
 	}
 
+	public Object clone()
+    {
+        try
+        {
+            // call clone in Object.
+            return super.clone();
+        } catch(CloneNotSupportedException e)
+        {
+            System.out.println("Cloning not allowed.");
+            return this;
+        }
+    }
+	public AddressCarryingEvent()
+	{
+		super(null, -1, null, null, RequestType.Cache_Read);
+		this.address = -1;
+		sourceBankId = null;
+		destinationBankId = null;
+		oldSourceBankId = null;
+		copyLine = false;
+		this.coreId = -1;
+	}
+	
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -51,8 +74,9 @@ public class AddressCarryingEvent extends Event
 	public AddressCarryingEvent updateEvent(EventQueue eventQ, long eventTime, 
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
-			RequestType requestType, long address) {
+			RequestType requestType, long address,int coreId) {
 		this.address = address;
+		this.coreId = coreId;
 		return (AddressCarryingEvent)this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
 	}
 	

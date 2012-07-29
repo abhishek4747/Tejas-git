@@ -4,7 +4,7 @@ import emulatorinterface.Newmain;
 
 public class CustomInstructionPool {
 	
-	Instruction[] pool;
+	/*Instruction[] pool;
 	public int head;
 	public int tail;
 	public int poolSize;
@@ -95,7 +95,63 @@ public class CustomInstructionPool {
 		}
 		return (poolSize - head + tail + 1);
 	}
+	*/
 	
+	GenericCircularBuffer<Instruction> pool;
+	
+	public CustomInstructionPool(int poolSize)
+	{
+		pool = new GenericCircularBuffer<Instruction>(Instruction.class, poolSize, false);
+	}
+	
+	public Instruction borrowObject()
+	{
+		if(pool.isEmpty())
+		{
+			System.out.println("instruction pool empty!!");
+			String cmd[] = {"/bin/sh",
+				      "-c",
+				      "killall -9 " + Newmain.executableFile};
+			try
+			{
+				Process process = Runtime.getRuntime().exec(cmd);
+				int ret = process.waitFor();
+				System.out.println("ret :" + ret);
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+			System.exit(1);
+			return null;
+		}
+		
+		return pool.removeObjectAtHead();		
+	}
+	
+	public void returnObject(Instruction arg0)
+	{
+//		System.out.println("return"+head+" "+tail);
+		if(arg0.getSourceOperand1() != null)
+		{
+			Newmain.operandPool.returnObject(arg0.getSourceOperand1());
+		}
+		if(arg0.getSourceOperand2() != null)
+		{
+			Newmain.operandPool.returnObject(arg0.getSourceOperand2());
+		}
+		if(arg0.getDestinationOperand() != null)
+		{
+			Newmain.operandPool.returnObject(arg0.getDestinationOperand());
+		}
+		
+		pool.append(arg0);
+	}
+	
+	public int getNumIdle()
+	{
+		return pool.size();
+	}
 }
 
 

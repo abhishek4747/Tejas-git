@@ -98,59 +98,28 @@ public class ExecUnitIn extends SimulationElement{
 					if(ins.getOperationType()==OperationType.load){
 						core.getExecutionEngineIn().updateNoOfLd(1);
 						core.getExecutionEngineIn().updateNoOfMemRequests(1);
-						//Search TLB for address hit
-						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.getTLBuffer();
-						boolean TLBHit=TlbBuffer.searchTLBForPhyAddr(ins.getSourceOperand1().getValue());
-						int missPenalty=0;
-						if(!TLBHit){
-							missPenalty =TlbBuffer.getMissPenalty(); 
-//System.out.println("TLB Miss for"+ins.getSourceOperand1().getValue());
-							//Set appropriate stalls - Stall fetch, stall execute stages and stall this pipeline's decode
-							//Stall Logic:
-							//Stall fetch of all the pipelines for cycles = missPenalty
-							//Do Not stall execute of this pipeline, complete the execute in this cycle itself
-							//Account for the TLB miss penalty in the request sent to the cache (missPenalty field)
-							//Stall the decode of this pipeline for missPenalty cycle
-							this.core.getExecutionEngineIn().setStallFetch(missPenalty);
-							this.core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(),missPenalty);
-							ifIdLatch.incrementStallCount(missPenalty);
-						}
-				
+										
 						//Schedule a mem read event now so that it can be completed in the mem stage
 						if(!SimulationConfig.detachMemSys){
 							exMemLatch.setMemDone(false);
 			
-							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1CacheFromInorder(
-									core.getExecutionEngineIn().getMemUnitIn(),
+							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 									RequestType.Cache_Read,
-									ins.getSourceOperand1().getValue(),this.core.getCore_number(),
-									missPenalty);
+									ins.getSourceOperand1().getValue(),
+									inorderPipeline);
 						}
 					}
 					else if(ins.getOperationType()==OperationType.store){
 						core.getExecutionEngineIn().updateNoOfSt(1);
 						core.getExecutionEngineIn().updateNoOfMemRequests(1);
 						exMemLatch.setMemDone(true); //FIXME Pipeline doesn't wait for the store to complete! 
-						//Search TLB for address hit
-						TLB TlbBuffer = this.core.getExecutionEngineIn().coreMemorySystem.getTLBuffer();
-						boolean TLBHit=TlbBuffer.searchTLBForPhyAddr(ins.getSourceOperand1().getValue());
-						int missPenalty=0;
-						if(!TLBHit){
-							missPenalty =TlbBuffer.getMissPenalty(); 
-//System.out.println("TLB Miss for"+ins.getSourceOperand1().getValue());
-							//Set appropriate stalls - Stall fetch, stall execute stages and stall this pipeline's decode 
-							this.core.getExecutionEngineIn().setStallFetch(missPenalty);
-							this.core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(),missPenalty);
-							ifIdLatch.incrementStallCount(missPenalty);
-						}
+						
 						//Schedule a mem read event now so that it can be completed in the mem stage
 						if(!SimulationConfig.detachMemSys){
-							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1CacheFromInorder(
-									core.getExecutionEngineIn().getMemUnitIn(),
+							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 									RequestType.Cache_Write,
 									ins.getSourceOperand1().getValue(),
-									this.core.getCore_number(),
-									missPenalty);
+									inorderPipeline);
 						}
 					}
 					else{
