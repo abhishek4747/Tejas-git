@@ -30,7 +30,8 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 																	 address,
 																	 core.getCore_number());
 		
-		//add event to own mshr
+		// Check mshr isfull and do something
+		//if not full add event to own mshr
 		boolean newOMREntryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
 		//if new OMREntry has been created, then request should be forwarded to lower cache
@@ -42,7 +43,18 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				missStatusHoldingRegister.handleLowerMshrFull(addressEvent);
+				if(addressEvent.getRequestType() == RequestType.Cache_Write)
+				{
+					addressEvent.setRequestType(RequestType.Cache_Write_Requiring_Response);
+				}
+				missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
+			}
+			else
+			{
+				if(addressEvent.getRequestType() == RequestType.Cache_Write)
+				{
+					missStatusHoldingRegister.removeEvent(addressEvent);
+				}
 			}
 		}
 	}
@@ -72,7 +84,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				missStatusHoldingRegister.handleLowerMshrFull(addressEvent);
+				missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
 			}
 		}
 	}

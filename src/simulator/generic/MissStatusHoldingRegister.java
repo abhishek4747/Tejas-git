@@ -52,8 +52,14 @@ public class MissStatusHoldingRegister {
 	 * */
 	public boolean addOutstandingRequest(AddressCarryingEvent event)
 	{
+		if(event.getRequestType() == RequestType.Mem_Response)
+		{
+			System.err.println("mem response being pushed into the mshr!!");
+		}
 		long addr = event.getAddress();
 		long blockAddr = addr >>> offset;
+		
+		//System.out.println("adding event " + event.getRequestType() + " : " + addr + " : " + blockAddr);
 		
 		if (!/*NOT*/mshr.containsKey(blockAddr))
 		{
@@ -64,6 +70,7 @@ public class MissStatusHoldingRegister {
 				return 2;
 			}
 			*/
+			//System.out.println("creating new omr entry for blockAddr = " + blockAddr);
 			OMREntry newOMREntry = new OMREntry(new ArrayList<Event>(), false, null);
 			newOMREntry.outStandingEvents.add(event);
 			mshr.put(blockAddr, newOMREntry);
@@ -81,11 +88,39 @@ public class MissStatusHoldingRegister {
 		long blockAddr = address >>> offset;
 		if (!this.mshr.containsKey(blockAddr))
 		{
-			System.err.println("Memory System Error : An outstanding request not found in the requesting element");
-			System.exit(1);
+			System.err.println("Memory System Error : An outstanding request not found in the requesting element : " + address + " : " + blockAddr);
+			return new ArrayList<Event>();
+			//System.exit(1);
 		}
 		ArrayList<Event> outstandingRequestList = this.mshr.remove(blockAddr).outStandingEvents;
+		
+		for(int i = 0; i < outstandingRequestList.size(); i++)
+		{
+			AddressCarryingEvent event = (AddressCarryingEvent) outstandingRequestList.get(i);
+			//System.out.println("removing event " + event.getRequestType() + " : " + event.getAddress() + " : " + blockAddr);
+		}
+		
 		return outstandingRequestList;
+	}
+	
+	public boolean removeEvent(AddressCarryingEvent addrevent)
+	{
+		long addr = addrevent.getAddress();
+		long blockAddr = addr >>> offset;
+		OMREntry omrEntry = mshr.get(blockAddr);
+		if(omrEntry.outStandingEvents.contains(addrevent))
+		{
+			omrEntry.outStandingEvents.remove(addrevent);
+			if(omrEntry.outStandingEvents.size() == 0)
+			{
+				mshr.remove(blockAddr);
+			}
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	public boolean contains(long address)
@@ -110,7 +145,7 @@ public class MissStatusHoldingRegister {
 	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent)
 	{
 		OMREntry omrEntry =  getMshrEntry(eventToBeSent.getAddress());
-		omrEntry.eventToForward = eventToBeSent;
+		omrEntry.eventToForward = (AddressCarryingEvent) eventToBeSent.clone();
 		omrEntry.readyToProceed = true;
 	}
 	

@@ -113,41 +113,7 @@ public class MemorySystem
 //		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
 		centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig,null,cores.length,cores);
 		//Link all the initialised caches to their next levels
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
-		{
-			String cacheName = cacheNameSet.nextElement();
-			Cache cacheToSetNextLevel = cacheList.get(cacheName);
-				
-			if (cacheToSetNextLevel.isLastLevel == true) //If this is the last level, don't set anything
-			{
-				continue;
-			}
-			
-			String nextLevelName = cacheToSetNextLevel.nextLevelName;
-			
-			if (nextLevelName.isEmpty())
-			{
-				System.err.println("Memory system configuration error : The cache \""+ cacheName +"\" is not last level but the next level is not specified");
-				System.exit(1);
-			}
-			if (cacheName.equals(nextLevelName)) //If the cache is itself given as its next level
-			{
-				System.err.println("Memory system configuration error : The cache \""+ cacheName +"\" is specified as a next level of itself");
-				System.exit(1);
-			}
-				
-			if (cacheList.containsKey(nextLevelName)) 
-			{
-				//Point the cache to its next level
-				cacheToSetNextLevel.nextLevel = cacheList.get(nextLevelName);
-				cacheToSetNextLevel.nextLevel.prevLevel.add(cacheToSetNextLevel);
-			}
-			else
-			{
-				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
-				System.exit(1);
-			}
-		}
+
 		
 		//Initialise the core memory systems
 		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
@@ -194,6 +160,7 @@ public class MemorySystem
 				//Point the cache to its next level
 				coreMemSys.iCache.nextLevel = cacheList.get(nextLevelName);
 				coreMemSys.iCache.nextLevel.prevLevel.add(coreMemSys.iCache);
+				coreMemSys.iCache.connectedMSHR.add(coreMemSys.getMSHR());
 			}
 			else
 			{
@@ -220,12 +187,56 @@ public class MemorySystem
 				//Point the cache to its next level
 				coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
 				coreMemSys.l1Cache.nextLevel.prevLevel.add(coreMemSys.l1Cache);
+				coreMemSys.l1Cache.connectedMSHR.add(coreMemSys.getMSHR());
+			}
+			else
+			{
+				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
+				System.exit(1);
+			}			
+		}
+		
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cacheToSetNextLevel = cacheList.get(cacheName);
+				
+			if (cacheToSetNextLevel.isLastLevel == true) //If this is the last level, don't set anything
+			{
+				continue;
+			}
+			
+			String nextLevelName = cacheToSetNextLevel.nextLevelName;
+			
+			if (nextLevelName.isEmpty())
+			{
+				System.err.println("Memory system configuration error : The cache \""+ cacheName +"\" is not last level but the next level is not specified");
+				System.exit(1);
+			}
+			if (cacheName.equals(nextLevelName)) //If the cache is itself given as its next level
+			{
+				System.err.println("Memory system configuration error : The cache \""+ cacheName +"\" is specified as a next level of itself");
+				System.exit(1);
+			}
+				
+			if (cacheList.containsKey(nextLevelName)) 
+			{
+				//Point the cache to its next level
+				cacheToSetNextLevel.nextLevel = cacheList.get(nextLevelName);
+				cacheToSetNextLevel.nextLevel.prevLevel.add(cacheToSetNextLevel);
 			}
 			else
 			{
 				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
 				System.exit(1);
 			}
+		}
+		
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cacheToSetConnectedMSHR = cacheList.get(cacheName);
+			cacheToSetConnectedMSHR.populateConnectedMSHR();
 		}
 /*		
 		//Initialising the BUS for cache coherence
@@ -242,6 +253,13 @@ public class MemorySystem
 		Bus.lowerLevel.enforcesCoherence = true;
 		
 		propagateCoherencyUpwards(Bus.upperLevels);*/
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cacheToSetNextLevel = cacheList.get(cacheName);
+			
+			System.out.println(cacheName + " : " + cacheToSetNextLevel.connectedMSHR.size());
+		}
 	}
 	
 

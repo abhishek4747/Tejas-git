@@ -45,7 +45,8 @@ public enum RequestType {
 	Tell_LSQ_Addr_Ready,
 	Validate_LSQ_Addr,
 	Cache_Read,
-	Cache_Write,
+	Cache_Write,// Lower MSHR was not full so event is not saved at top and no response required
+	Cache_Write_Requiring_Response,//Lower MSHR was full at time of write so response of this write is required
 	Main_Mem_Read,
 	Main_Mem_Write,
 	Mem_Response,

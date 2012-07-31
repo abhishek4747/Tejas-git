@@ -78,12 +78,12 @@ public class FetchUnitIn extends SimulationElement{
 						this.fetchBufferStatus[i]=true;
 						this.fetchFillCount++;
 			}
-			else if (newInstruction.getOperationType() == OperationType.store)
-			{
-				Newmain.instructionPool.returnObject(newInstruction);
-				i--;
-				continue;
-			}
+			//else if (newInstruction.getOperationType() == OperationType.store)
+			//{
+			//	Newmain.instructionPool.returnObject(newInstruction);
+			//	i--;
+			//	continue;
+			//}
 			else{
 				this.fetchBuffer[i]= newInstruction;//inputToPipeline.pollFirst();
 				this.fetchFillCount++;

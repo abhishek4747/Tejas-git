@@ -119,6 +119,11 @@ public abstract class Event
 	{
 		return requestType;
 	}
+	
+	public void setRequestType(RequestType requestType)
+	{
+		this.requestType = requestType;
+	}
 
 	//If the event cannot be handled in the current clock-cycle,
 	//then the eventPriority and eventTime will be changed and then 
