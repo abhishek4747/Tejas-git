@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import emulatorinterface.Newmain;
+
 import pipeline.inorder.MemUnitIn;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
+import memorysystem.CoreMemorySystem;
 import memorysystem.LSQ;
 
 public class MissStatusHoldingRegister {
@@ -44,6 +47,7 @@ public class MissStatusHoldingRegister {
 		}
 		else
 		{
+			System.out.println("mshr full");
 			return true;
 		}
 	}
@@ -54,12 +58,13 @@ public class MissStatusHoldingRegister {
 	{
 		if(event.getRequestType() == RequestType.Mem_Response)
 		{
-			System.err.println("mem response being pushed into the mshr!!");
+			System.err.println("mem response being pushed into the mshr!!" + event.getAddress() + " : " + offset + " : " + event.coreId);
+			System.exit(1);
 		}
 		long addr = event.getAddress();
 		long blockAddr = addr >>> offset;
 		
-		//System.out.println("adding event " + event.getRequestType() + " : " + addr + " : " + blockAddr);
+		System.out.println("adding event " + event.getRequestType() + " : " + addr + " : " + blockAddr);
 		
 		if (!/*NOT*/mshr.containsKey(blockAddr))
 		{
@@ -70,7 +75,7 @@ public class MissStatusHoldingRegister {
 				return 2;
 			}
 			*/
-			//System.out.println("creating new omr entry for blockAddr = " + blockAddr);
+			System.out.println("creating new omr entry for blockAddr = " + blockAddr);
 			OMREntry newOMREntry = new OMREntry(new ArrayList<Event>(), false, null);
 			newOMREntry.outStandingEvents.add(event);
 			mshr.put(blockAddr, newOMREntry);
@@ -88,16 +93,18 @@ public class MissStatusHoldingRegister {
 		long blockAddr = address >>> offset;
 		if (!this.mshr.containsKey(blockAddr))
 		{
-			System.err.println("Memory System Error : An outstanding request not found in the requesting element : " + address + " : " + blockAddr);
-			return new ArrayList<Event>();
-			//System.exit(1);
+			Newmain.dumpAllMSHRs();			
+			
+			System.err.println("Memory System Error : An outstanding request not found in the requesting element : " + address + " : " + blockAddr +"  : " + offset);
+			//return new ArrayList<Event>();
+			System.exit(1);
 		}
 		ArrayList<Event> outstandingRequestList = this.mshr.remove(blockAddr).outStandingEvents;
 		
 		for(int i = 0; i < outstandingRequestList.size(); i++)
 		{
 			AddressCarryingEvent event = (AddressCarryingEvent) outstandingRequestList.get(i);
-			//System.out.println("removing event " + event.getRequestType() + " : " + event.getAddress() + " : " + blockAddr);
+			System.out.println("removing event " + event.getRequestType() + " : " + event.getAddress() + " : " + blockAddr);
 		}
 		
 		return outstandingRequestList;
@@ -145,6 +152,11 @@ public class MissStatusHoldingRegister {
 	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent)
 	{
 		OMREntry omrEntry =  getMshrEntry(eventToBeSent.getAddress());
+		if(omrEntry.eventToForward != null)
+		{
+			omrEntry.readyToProceed = false;
+			return;
+		}
 		omrEntry.eventToForward = (AddressCarryingEvent) eventToBeSent.clone();
 		omrEntry.readyToProceed = true;
 	}
@@ -158,9 +170,32 @@ public class MissStatusHoldingRegister {
 			OMREntry omrEntry = omrEntries.nextElement();
 			if(omrEntry.readyToProceed)
 			{
+				if(omrEntry.eventToForward.getRequestType() == RequestType.Mem_Response)
+				{
+					System.err.println(" mem response in mshr!!!!!!!!!!   ");
+					System.exit(1);
+				}
 				eventsReadyToProceed.add(omrEntry);
 			}
 		}
 		return eventsReadyToProceed;
+	}
+	
+	public void dump()
+	{
+		Enumeration<OMREntry> omrEntries = mshr.elements();
+		while(omrEntries.hasMoreElements())
+		{
+			OMREntry omrEntry = omrEntries.nextElement();
+			ArrayList<Event> events = omrEntry.outStandingEvents;
+			AddressCarryingEvent addrEvent = (AddressCarryingEvent) events.get(0);
+			System.out.println("block address = " + (addrEvent.getAddress() >>> offset));
+			for(int i = 0; i < events.size(); i++)
+			{
+				addrEvent = (AddressCarryingEvent) events.get(i);				
+				System.out.print(addrEvent.getAddress() + "," + addrEvent.getRequestType() + "\t");
+			}
+			System.out.println();
+		}
 	}
 }

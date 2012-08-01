@@ -153,6 +153,7 @@ public class Cache extends SimulationElement
 		{
 			RequestType requestType = event.getRequestType();
 			long address = event.getAddress();
+			System.out.println(levelFromTop + " handling : " + requestType + " : " + address + " : " + event.coreId);
 			CacheLine cl = this.processRequest(requestType, address);
 			if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
@@ -169,11 +170,12 @@ public class Cache extends SimulationElement
 					pullFromTop = true;
 				}
 				ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(address); 
-				//System.out.println("remove : " + this.levelFromTop + " : " + address + " : " + (address >>> blockSizeBits));
+				System.out.println("remove : " + this.levelFromTop + " : " + address + " : " + (address >>> blockSizeBits) + "  :  " + event.coreId);
 				
 				sendResponseToWaitingEvent(eventsToBeServed);
 				if(pullFromTop)
 				{
+					System.out.println("pulling from handleaccess - HIT case\n\n");
 					pullFromUpperMshrs();
 				}
 			}
@@ -314,22 +316,29 @@ public class Cache extends SimulationElement
 				if( !isAdded )
 				{
 					eventToForward.setRequestType(RequestType.Cache_Write_Requiring_Response);
-					//System.out.println("from sendResponse added");
+					System.out.println("from sendResponse added");
 					boolean entryCreated =  missStatusHoldingRegister.addOutstandingRequest( eventToForward );
-					if (entryCreated)
-					//System.out.println("add : " + this.levelFromTop + " : " + eventToForward.getAddress() + " : " + (eventToForward.getAddress() >>> blockSizeBits));
-					missStatusHoldingRegister.handleLowerMshrFull( (AddressCarryingEvent) eventToForward.clone() );
+					if (entryCreated) {
+						System.out.println("add from sendResponseToWaitngEvents: " + this.levelFromTop + " : " + eventToForward.getAddress() + " : " + (eventToForward.getAddress() >>> blockSizeBits) + "  :  " + eventToForward.coreId);
+						missStatusHoldingRegister.handleLowerMshrFull( (AddressCarryingEvent) eventToForward.clone() );
+					}
 				} 
 			}
 		}
 		
 		private void pullFromUpperMshrs()
 		{
-			long currentTime = GlobalClock.getCurrentTime();
-			for(int i=0, j= (int)(currentTime%connectedMSHR.size())  ; i < connectedMSHR.size();i++,j=(j+1)%connectedMSHR.size())
+			Random rand = new Random();
+			int startIdx = rand.nextInt();
+			if(startIdx < 0 )
+			{
+				startIdx = -startIdx;
+			}
+			startIdx = startIdx%connectedMSHR.size();
+			for(int i=0, j= startIdx  ; i < connectedMSHR.size();i++,j=(j+1)%connectedMSHR.size())
 			{
 				MissStatusHoldingRegister tempMshr = connectedMSHR.get(j);
-				//System.out.println(this.levelFromTop + " pulling from above " + j);
+				System.out.println(this.levelFromTop + " pulling from above " + j);
 				ArrayList<OMREntry> eventToProceed = tempMshr.getElementsReadyToProceed();
 				for(int k = 0;k< eventToProceed.size();k++)
 				{
@@ -341,19 +350,20 @@ public class Cache extends SimulationElement
 //					SimulationElement requestingElement = omrEntry.eventToForward.getRequestingElement();
 					omrEntry.readyToProceed = false;
 					//if (omrEntry.eventToForward.get)
-					boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
+					AddressCarryingEvent clone = (AddressCarryingEvent) omrEntry.eventToForward.clone();
+					boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(clone);//####
 					if(entryCreated)
 					{
-						//System.out.println("add : " + this.levelFromTop + " : " + omrEntry.eventToForward.getAddress() + " : " + (omrEntry.eventToForward.getAddress() >>> blockSizeBits));
-						handleAccess(omrEntry.eventToForward.getEventQ() , omrEntry.eventToForward);
+						System.out.println("add from pull: " + this.levelFromTop + " : " + omrEntry.eventToForward.getAddress() + " : " + (omrEntry.eventToForward.getAddress() >>> blockSizeBits) + "  :  " +  omrEntry.eventToForward.coreId );
+						handleAccess(omrEntry.eventToForward.getEventQ() , clone);
 					}
-					
 				}
 				if(missStatusHoldingRegister.isFull())
 				{
 					break;
 				}
 			}
+			System.out.println(levelFromTop + " pulling complete");
 		}
 		
 		/*
@@ -374,8 +384,12 @@ public class Cache extends SimulationElement
 			{
 				missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) eventToBeSent.clone());
 			}
-			//System.out.println("issued : " + levelFromTop + " : " + eventToBeSent.getAddress() + " : " + GlobalClock.getCurrentTime() +
-			//		this.levelFromTop + "," + this.nextLevel.levelFromTop);
+			else
+			{
+				System.out.println("issued : " + levelFromTop + " : " + eventToBeSent.getAddress() + " : " + GlobalClock.getCurrentTime() +
+						this.levelFromTop + "," + this.nextLevel.levelFromTop );
+			}
+			
 		}
 		
 		/*
@@ -393,7 +407,7 @@ public class Cache extends SimulationElement
 			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(clone);
 			if(entryCreated)
 			{
-				//System.out.println("add : " + this.levelFromTop + " : " + addressEvent.getAddress() + " : " + (addressEvent.getAddress() >>> blockSizeBits));
+				System.out.println("add from add event: " + this.levelFromTop + " : " + addressEvent.getAddress() + " : " + (addressEvent.getAddress() >>> blockSizeBits ) + "  :  " +  addressEvent.coreId );
 				this.getPort().put(clone);
 			}
 			return true;
@@ -426,12 +440,13 @@ public class Cache extends SimulationElement
 						if( !isAdded )
 						{
 							eventToForward.setRequestType(RequestType.Cache_Write_Requiring_Response);
-							//System.out.println("eviction case");
+							System.out.println("eviction case");
 							boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest( eventToForward );
-							if (entryCreated)
-								//System.out.println("add : " + this.levelFromTop + " : " + eventToForward.getAddress() + " : " + (eventToForward.getAddress() >>> blockSizeBits));
+							if (entryCreated){
+								System.out.println("add from fillAndSatisfyRequests : " + this.levelFromTop + " : " + eventToForward.getAddress() + " : " + (eventToForward.getAddress() >>> blockSizeBits) + " : " + eventToForward.coreId);
 
 							missStatusHoldingRegister.handleLowerMshrFull( (AddressCarryingEvent) eventToForward.clone() );
+							}
 						} 
 						//putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
 					}
@@ -440,23 +455,24 @@ public class Cache extends SimulationElement
 			if (missStatusHoldingRegister.isFull()) 
 			{
 				pullFromTop = true;
-				//System.out.println("mshr full " + this.levelFromTop);
+				System.out.println("mshr full " + this.levelFromTop);
 			}
 			ArrayList<Event> eventsToBeServiced = this.missStatusHoldingRegister.removeRequests(addr);
-			//System.out.println("remove : " + this.levelFromTop + " : " + addr + " : " + (addr >>> blockSizeBits));
+			System.out.println("remove : " + this.levelFromTop + " : " + addr + " : " + (addr >>> blockSizeBits) );
 			
 			
 			sendResponseToWaitingEvent(eventsToBeServiced);
 			if(this.isLastLevel)
 			{
-				//System.out.println("L2");
+				System.out.println("L2");
 			}
 			else
 			{
-				//System.out.println("L1 | icache" );
+				System.out.println("L1 | icache" );
 			}
 			if(pullFromTop)
 			{
+				System.out.println("pullng from fillandsatisfy\n\n");
 				pullFromUpperMshrs();
 			}
 		}
@@ -602,7 +618,7 @@ public class Cache extends SimulationElement
 			/* compute startIdx and the tag */
 			int startIdx = getStartIdx(addr);
 			long tag = computeTag(addr);
-			//System.out.println("address\t"  + addr+"  starting line\t" + startIdx +  " number of cache lines\t" + numLines  + " size\t"  + size + " tag\t" + tag)  ;
+			System.out.println("address\t"  + addr+"  starting line\t" + startIdx +  " number of cache lines\t" + numLines  + " size\t"  + size + " tag\t" + tag)  ;
 
 			/* search in a set */
 			for(int idx = 0; idx < assoc; idx++) 

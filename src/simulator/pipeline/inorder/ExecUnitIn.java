@@ -95,6 +95,8 @@ public class ExecUnitIn extends SimulationElement{
 						
 				}
 */
+				
+				boolean memReqIssued = true;	//if corememsys' mshr is full, issue not possible; pipeline's preceding stages must stall
 					if(ins.getOperationType()==OperationType.load){
 						core.getExecutionEngineIn().updateNoOfLd(1);
 						core.getExecutionEngineIn().updateNoOfMemRequests(1);
@@ -103,7 +105,7 @@ public class ExecUnitIn extends SimulationElement{
 						if(!SimulationConfig.detachMemSys){
 							exMemLatch.setMemDone(false);
 			
-							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							memReqIssued = this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 									RequestType.Cache_Read,
 									ins.getSourceOperand1().getValue(),
 									inorderPipeline);
@@ -116,7 +118,7 @@ public class ExecUnitIn extends SimulationElement{
 						
 						//Schedule a mem read event now so that it can be completed in the mem stage
 						if(!SimulationConfig.detachMemSys){
-							this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+							memReqIssued = this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 									RequestType.Cache_Write,
 									ins.getSourceOperand1().getValue(),
 									inorderPipeline);
@@ -133,15 +135,23 @@ public class ExecUnitIn extends SimulationElement{
 							ins.getOperationType()==OperationType.integerMul)
 						this.core.getExecutionEngineIn().getDestRegisters().remove(ins.getDestinationOperand());
 										
-					exMemLatch.setInstruction(ins);
-					exMemLatch.setIn1(idExLatch.getIn1());
-					exMemLatch.setIn2(idExLatch.getIn2());
-					exMemLatch.setOut1(idExLatch.getOut1());
-					exMemLatch.setOperationType(idExLatch.getOperationType());
-//					exMemLatch.setMemDone(true);
-					exMemLatch.setLoadFlag(idExLatch.getLoadFlag());
-					
-					idExLatch.clear();
+					if(memReqIssued)
+					{
+						exMemLatch.setInstruction(ins);
+						exMemLatch.setIn1(idExLatch.getIn1());
+						exMemLatch.setIn2(idExLatch.getIn2());
+						exMemLatch.setOut1(idExLatch.getOut1());
+						exMemLatch.setOperationType(idExLatch.getOperationType());
+	//					exMemLatch.setMemDone(true);
+						exMemLatch.setLoadFlag(idExLatch.getLoadFlag());
+						
+						idExLatch.clear();
+					}
+					else
+					{
+						ifIdLatch.incrementStallCount(1);
+						this.core.getExecutionEngineIn().incrementStallFetch(1);
+					}
 
 				}
 				else{

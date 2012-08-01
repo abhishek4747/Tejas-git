@@ -16,7 +16,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	
 	//To issue the request directly to L1 cache
 	//missPenalty field has been added to accomodate the missPenalty incurred due to TLB miss
-	public void issueRequestToL1Cache(RequestType requestType, 
+	public boolean issueRequestToL1Cache(RequestType requestType, 
 											long address,
 											InorderPipeline inorderPipeline)
 	{
@@ -31,6 +31,11 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 																	 core.getCore_number());
 		
 		// Check mshr isfull and do something
+		if(missStatusHoldingRegister.isFull())
+		{
+			return false;
+		}
+		
 		//if not full add event to own mshr
 		boolean newOMREntryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
@@ -39,7 +44,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		if(newOMREntryCreated)
 		{
 			//attempt issue to lower level cache
-			boolean isAddedinLowerMshr = this.l1Cache.addEvent(addressEvent);
+			boolean isAddedinLowerMshr = this.l1Cache.addEvent((AddressCarryingEvent) addressEvent.clone());
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
@@ -57,6 +62,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 				}
 			}
 		}
+		return true;
 	}
 	
 	//To issue the request to instruction cache
@@ -80,7 +86,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		if(newOMREntryCreated)
 		{
 			//attempt issue to lower level cache
-			boolean isAddedinLowerMshr = this.iCache.addEvent(addressEvent);
+			boolean isAddedinLowerMshr = this.iCache.addEvent((AddressCarryingEvent) addressEvent.clone());
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full

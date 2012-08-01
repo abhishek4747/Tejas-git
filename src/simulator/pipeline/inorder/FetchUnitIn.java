@@ -26,7 +26,6 @@ public class FetchUnitIn extends SimulationElement{
 	int syncCount;
 	int numRequestsSent;
 	int numRequestsAcknowledged;
-	Hashtable<Long,OMREntry> missStatusHoldingRegister;
 	private boolean fetchBufferStatus[];
 
 
@@ -41,21 +40,11 @@ public class FetchUnitIn extends SimulationElement{
 		this.eventQueue = eventQueue;
 		this.sleep=false;
 		this.syncCount=0;
-		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
 		this.numRequestsSent=0;
 		this.numRequestsAcknowledged=0;
 		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];
 		for(int i=0;i<this.fetchBufferCapacity;i++)
 			this.fetchBufferStatus[i]=false;
-	}
-
-	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
-		return missStatusHoldingRegister;
-	}
-
-	public void setMissStatusHoldingRegister(
-			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
-		this.missStatusHoldingRegister = missStatusHoldingRegister;
 	}
 	
 	public void fillFetchBuffer(InorderPipeline inorderPipeline){
@@ -65,7 +54,7 @@ public class FetchUnitIn extends SimulationElement{
 		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity
 				;i = (i+1)%this.fetchBufferCapacity){
 			
-			if( missStatusHoldingRegister.size() >= this.fetchBufferCapacity){
+			if( this.core.getExecutionEngineIn().coreMemorySystem.getMSHR().isFull() ){
 				System.err.println("Exiting due to size exceed");
 				break;
 			}
@@ -78,12 +67,12 @@ public class FetchUnitIn extends SimulationElement{
 						this.fetchBufferStatus[i]=true;
 						this.fetchFillCount++;
 			}
-			//else if (newInstruction.getOperationType() == OperationType.store)
-			//{
-			//	Newmain.instructionPool.returnObject(newInstruction);
-			//	i--;
-			//	continue;
-			//}
+			/*else if (newInstruction.getOperationType() == OperationType.store)
+			{
+				Newmain.instructionPool.returnObject(newInstruction);
+				i--;
+				continue;
+			}*/
 			else{
 				this.fetchBuffer[i]= newInstruction;//inputToPipeline.pollFirst();
 				this.fetchFillCount++;
@@ -178,7 +167,8 @@ public class FetchUnitIn extends SimulationElement{
 	public void processCompletionOfMemRequest(long requestedAddress)
 	{
 		for(int i=0;i<this.fetchBufferCapacity;i++){
-			if(this.fetchBuffer[i].getRISCProgramCounter() == requestedAddress &&
+			if(this.fetchBuffer[i] != null &&
+					this.fetchBuffer[i].getRISCProgramCounter() == requestedAddress &&
 					this.fetchBufferStatus[i]==false){
 				this.fetchBufferStatus[i]=true;
 			}

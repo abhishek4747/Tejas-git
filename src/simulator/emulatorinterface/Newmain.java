@@ -11,6 +11,7 @@ import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.SNuca;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
+import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
 import misc.Error;
 import config.SimulationConfig;
@@ -46,6 +47,8 @@ public class Newmain {
 	public static boolean subsetSimulation = true; //test added
 	public static String executableArguments=" ";
 	public static String executableFile = " ";
+	
+	public static Core[] cores;
 
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -72,7 +75,7 @@ public class Newmain {
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// Create Pools of Instructions, Operands and AddressCarryingEvents
-		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.EmuThreadsPerJavaThread*2;
+		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.EmuThreadsPerJavaThread*5;
 		int numAddressCarryingEvents = 50000;
 		
 		/* "apache pool"
@@ -117,7 +120,7 @@ public class Newmain {
 
 		
 		//create cores
-		Core[] cores = initCores();
+		cores = initCores();
 		
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
@@ -315,5 +318,27 @@ public class Newmain {
 			
 			System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
 			System.out.println("\n");
+	}
+	
+	public static void dumpAllMSHRs()
+	{
+		CoreMemorySystem coreMemSys = null;
+		for(int i = 0; i < Newmain.cores.length; i++)
+		{
+			coreMemSys = Newmain.cores[i].getExecutionEngineIn().coreMemorySystem;
+			System.out.println("---------------------------------------------------------------------------");
+			System.out.println("CORE " + i);
+			System.out.println("coreMemSys");
+			coreMemSys.getMSHR().dump();
+			System.out.println("iCache");
+			coreMemSys.getiCache().getMissStatusHoldingRegister().dump();
+			System.out.println("L1");
+			coreMemSys.getL1Cache().getMissStatusHoldingRegister().dump();
+		}
+		
+		System.out.println("---------------------------------------------------------------------------");
+		System.out.println("L2");
+		coreMemSys.getiCache().nextLevel.getMissStatusHoldingRegister().dump();
+		
 	}
 }

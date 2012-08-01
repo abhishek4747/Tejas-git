@@ -22,7 +22,7 @@ public abstract class IpcBase {
 	// Must ensure that MAXNUMTHREADS*EMUTHREADS == MaxNumThreads on the PIN side
 	// Do not move it to config file unless you can satisfy the first constraint
 	public static final int MaxNumJavaThreads = 1;
-	public static final int EmuThreadsPerJavaThread = 70; 
+	public static final int EmuThreadsPerJavaThread = 34; 
 
 	// state management for reader threads
 	public boolean[] termination=new boolean[MaxNumJavaThreads];
