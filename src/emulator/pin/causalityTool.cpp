@@ -245,7 +245,7 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
         deActivate(tid, first_arg);
 */
 
-        sendTimerPacket(tid,true);
+//        sendTimerPacket(tid,true);
 /*
 
         if (encode == LOCK || encode == UNLOCK) {

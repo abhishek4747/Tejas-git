@@ -11,6 +11,8 @@ import memorysystem.AddressCarryingEvent;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
+import generic.Barrier;
+import generic.BarrierTable;
 import generic.CoreBcastBus;
 import generic.RequestType;
 
@@ -18,7 +20,7 @@ class ResumeSleep {
 	ArrayList<Integer> resume=new ArrayList<Integer>();
 	ArrayList<Integer> sleep=new ArrayList<Integer>();
 	
-	
+	long barrierAddress;
 	
 	void addSleeper(int t){
 		this.sleep.add(t);
@@ -44,6 +46,9 @@ class ResumeSleep {
 			this.addSleeper(slp);
 		} 
 	}
+	public void setBarrierAddress(int add){
+		this.barrierAddress = add;
+	}
 	
 }
 
@@ -52,19 +57,19 @@ public final class GlobalTable implements Encoding {
 	private Hashtable<Long, SynchPrimitive> synchTable;
 	private Hashtable<Integer, ThreadState> stateTable;
 	private IpcBase ipcType;
-	Hashtable<Long, Barrier> barrierList = new Hashtable<Long, Barrier>();
-	public CoreBcastBus coreBcastBus;
-	
-	
-	public void barrierListAdd(Packet packet){
-		Barrier barrier = new Barrier(packet.tgt, (int) packet.ip);
-		barrierList.put(packet.tgt, barrier);
-	}
-	public GlobalTable(IpcBase ipcType, CoreBcastBus coreBcastBus) {
+//	Hashtable<Long, Barrier> barrierList = new Hashtable<Long, Barrier>();
+//	public CoreBcastBus coreBcastBus;
+//	
+//	
+//	public void barrierListAdd(Packet packet){
+//		Barrier barrier = new Barrier(packet.tgt, (int) packet.ip);
+//		barrierList.put(packet.tgt, barrier);
+//	}
+	public GlobalTable(IpcBase ipcType) {
 		this.ipcType = ipcType;
 		this.synchTable = new Hashtable<Long, SynchPrimitive>();
 		this.stateTable = new Hashtable<Integer, ThreadState>();
-		this.coreBcastBus = coreBcastBus;
+//		this.coreBcastBus = coreBcastBus;
 	}
 
 	public Hashtable<Long, SynchPrimitive> getSynchTable() {
@@ -115,7 +120,7 @@ public final class GlobalTable implements Encoding {
 			break;
 		case (BARRIERWAIT):
 //			ret = s.barrierEnter(thread, time, value);
-			System.out.println(thread+"  barrier enter");
+			//System.out.println(thread+"  barrier enter");
 			
 			break;
 		case (BCAST + 1):
@@ -137,34 +142,40 @@ public final class GlobalTable implements Encoding {
 			break;
 		case (BARRIERWAIT + 1):
 //			ret = s.barrierExit(thread, time, value);
-			System.out.println(thread+"  barrier exit");
-			Barrier bar = barrierList.get(addressSynchItem);
+			//System.out.println(thread+"  barrier exit");
+			Barrier bar = BarrierTable.barrierList.get(addressSynchItem);
 			if(bar != null){
-				bar.incrementThreads(thread);
-				System.out.println("total barrier exit " + bar.numThreadsArrived);
-				if(bar.timeToCross()){
-					for(int i=0; i<bar.numThreads; i++ ){
-						coreBcastBus.addToResumeCore(bar.blockedThreads.elementAt(i));
-					}
-					barrierList.remove(addressSynchItem);
-					this.coreBcastBus.getPort().put(new AddressCarryingEvent(
-							this.coreBcastBus.getCore(thread).eventQueue,
-							 1,
-							 this.coreBcastBus, 
-							 this.coreBcastBus, 
-							 RequestType.PIPELINE_RESUME, 
-							 thread));
-				}
-				else{
-					barrierList.put(addressSynchItem, bar);
-					ret.addSleeper(thread);
-				}
+				bar.addThread(thread);
+				ret.setBarrierAddress((int)addressSynchItem);
+				ret.addSleeper(thread);
+				return ret;
 			}
-			break;
+//				//System.out.println("total barrier exit " + bar.numThreadsArrived);
+//				if(bar.timeToCross()){
+//					for(int i=0; i<bar.getNumThreads(); i++ ){
+//						coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
+//						//System.out.println("Resuming thread number " + bar.blockedThreads.elementAt(i));
+//					}
+//					barrierList.remove(addressSynchItem);
+//					barrierList.put(addressSynchItem, bar);
+//					for(int th : coreBcastBus.toResume){
+//						ret.addResumer(th);
+//					}
+//					return ret;
+//				}
+//				else{
+//					barrierList.put(addressSynchItem, bar);
+//					ret.addSleeper(thread);
+//					return ret;
+//					//System.out.println("Sleeping thread number " + thread);
+//				}
+//			}
+			
+//			break;
 		}
 		
+		return null;
 		
-		return ret;
 	}
 	
 	ResumeSleep resumePipelineTimer(int tidToResume) {
@@ -172,7 +183,7 @@ public final class GlobalTable implements Encoding {
 		int numResumes=IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep;
 		IpcBase.glTable.getStateTable().get(tidToResume).countTimedSleep=0;
 		for (int i=0; i<numResumes; i++) {
-			System.out.println("Resuming by timer"+tidToResume);
+			//System.out.println("Resuming by timer"+tidToResume);
 			//this.pipelineInterfaces[tidToResume].resumePipeline();
 			ret.addResumer(tidToResume);
 		}

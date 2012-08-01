@@ -42,8 +42,8 @@ public abstract class IpcBase {
 	StreamGobbler s2;
 	
 	// Initialise structures and objects
-	public IpcBase (CoreBcastBus coreBcastBus) {
-		glTable = new GlobalTable(this, coreBcastBus);
+	public IpcBase () {
+		glTable = new GlobalTable(this);
 	}
 
 	// Start the PIN process. Parse the cmd accordingly

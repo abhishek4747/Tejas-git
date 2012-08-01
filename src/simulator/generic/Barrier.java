@@ -19,7 +19,7 @@
 	Contributors:  Eldhose Peter
 *****************************************************************************/
 
-package emulatorinterface;
+package generic;
 
 import java.util.Vector;
 
@@ -46,14 +46,26 @@ public class Barrier {
 	{
 		return this.numThreads;
 	}
-	public void incrementThreads(int tid)
+	public void incrementThreads()
 	{
 		this.numThreadsArrived ++;
+//		this.blockedThreads.add(tid);
+	}
+	public void addThread(int tid){
 		this.blockedThreads.add(tid);
 	}
 	public boolean timeToCross()
 	{
 		return(this.numThreads == this.numThreadsArrived);
+	}
+	public int getNumThreads(){
+		return this.numThreads;
+	}
+	public int getNumThreadsArrived(){
+		return this.numThreadsArrived;
+	}
+	public Vector<Integer> getBlockedThreads(){
+		return this.blockedThreads;
 	}
 
 }

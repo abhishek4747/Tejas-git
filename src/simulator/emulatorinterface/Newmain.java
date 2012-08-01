@@ -114,7 +114,7 @@ public class Newmain {
 
 		Core[] cores = initCores(coreBcastBus);
 		// create PIN interface
-		IpcBase ipcBase = new SharedMem(coreBcastBus);
+		IpcBase ipcBase = new SharedMem();
 		if (SimulationConfig.Mode!=0) {
 			Process process = createPINinterface(ipcBase, executableArguments);
 		}
@@ -322,6 +322,7 @@ public class Newmain {
 							1,
 							null,
 							new int[]{0});
+			cores[i].setCoreBcastBus(coreBBus);
 		}
 		
 		coreBBus.setEventQueue(cores[0].eventQueue);

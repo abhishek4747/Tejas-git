@@ -8,7 +8,10 @@ import memorysystem.InstructionCache;
 
 import config.SimulationConfig;
 import config.SystemConfig;
+import generic.Barrier;
+import generic.BarrierTable;
 import generic.Core;
+import generic.CoreBcastBus;
 import generic.Event;
 import generic.EventQueue;
 import generic.Instruction;
@@ -35,6 +38,7 @@ public class FetchUnitIn extends SimulationElement{
 	Hashtable<Long,OMREntry> missStatusHoldingRegister;
 	private boolean fetchBufferStatus[];
 	private int stallLowerMSHRFull;
+//	public CoreBcastBus coreBcastBus;
 
 
 	public FetchUnitIn(Core core, EventQueue eventQueue) {
@@ -53,6 +57,7 @@ public class FetchUnitIn extends SimulationElement{
 		this.numRequestsAcknowledged=0;
 		this.stallLowerMSHRFull=0;
 		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];
+//		this.coreBcastBus = coreBcastBus;
 		for(int i=0;i<this.fetchBufferCapacity;i++)
 			this.fetchBufferStatus[i]=false;
 	}
@@ -143,19 +148,40 @@ public class FetchUnitIn extends SimulationElement{
 					&& this.fetchBufferStatus[this.fetchBufferIndex]){
 					
 					ins = this.fetchBuffer[this.fetchBufferIndex];
+//					System.out.println("instruction info " + ins.getRISCProgramCounter() +" : " + ins.getOperationType() + " core id  " + this.core.getCore_number());
+
 	//System.out.println("Fetch "+ins.getSerialNo());			
 					if(ins.getOperationType()==OperationType.sync){
-						this.fetchFillCount--;			
+							
+						this.fetchFillCount--;
 						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
-						ins = this.fetchBuffer[fetchBufferIndex];
-						if(this.syncCount>0){
-							this.syncCount--;
+						
+						
+						long barrierAddress = ins.getRISCProgramCounter();
+						Barrier bar = BarrierTable.barrierList.get(barrierAddress);
+						bar.incrementThreads();
+						if(bar.timeToCross())
+						{
+							for(int i=0; i<bar.getNumThreads(); i++ ){
+								this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
+								//System.out.println("Resuming thread number " + bar.blockedThreads.elementAt(i));
+							}
+							BarrierTable.barrierList.remove(barrierAddress);
+							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+									this.core.eventQueue,
+									 1,
+									 this.core.coreBcastBus, 
+									 this.core.coreBcastBus, 
+									 RequestType.PIPELINE_RESUME, 
+									 0));
+
 						}
 						else{
 							ifIdLatch.setInstruction(null);
 							sleepThePipeline();
 							return;
 						}
+						ins = this.fetchBuffer[fetchBufferIndex];
 					}
 					else{
 						inorderPipeline.getIfIdLatch().setInstruction(ins);
@@ -187,7 +213,7 @@ public class FetchUnitIn extends SimulationElement{
 		return this.sleep;
 	}
 	public void sleepThePipeline(){
-		//System.out.println("sleeping ..!!");
+		System.out.println("sleeping pipeline" + this.core.getCore_number()+ "...!!");
 		this.syncCount--;
 		this.sleep=true;
 	}
@@ -199,7 +225,7 @@ public class FetchUnitIn extends SimulationElement{
 		this.inputToPipeline = inpList;
 	}
 	public void resumePipeline(){
-//System.out.println("Inside Inorder :: Resuming the pipeline");
+		System.out.println("Resuming the pipeline "+this.core.getCore_number() + "...!!");
 		this.syncCount++;
 		this.sleep=false;
 	}
@@ -215,7 +241,7 @@ public class FetchUnitIn extends SimulationElement{
 
 //System.out.println("Address in handle event="+address);
 		for(int i=0;i<this.fetchBufferCapacity;i++){
-			if(this.fetchBuffer[i].getRISCProgramCounter() == address && this.fetchBufferStatus[i]==false){
+			if(this.fetchBuffer[i] != null && this.fetchBuffer[i].getRISCProgramCounter() == address && this.fetchBufferStatus[i]==false){
 				this.fetchBufferStatus[i]=true;
 //				break;
 			}

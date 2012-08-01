@@ -25,9 +25,9 @@ public class SharedMem extends  IpcBase
 	// Must ensure that this is same as COUNT in shmem.h
 	public static final int COUNT = 1000;
 	
-	public SharedMem(CoreBcastBus coreBcastBus) 
+	public SharedMem() 
 	{
-		super(coreBcastBus);
+		super();
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h

@@ -79,6 +79,7 @@ public class Core {
 	public int numReturns;
 	public Counters powerCounters;
 	private int numInorderPipelines;
+	public CoreBcastBus coreBcastBus;
 
 
 //	private InorderPipeline inorderPipeline;
@@ -123,7 +124,9 @@ public class Core {
 			this.pipelineInterface = new PipelineInterface(this, eventQueue);
 		this.powerCounters = new Counters();
 	}
-
+	public void setCoreBcastBus(CoreBcastBus coreBcastBus){
+		this.coreBcastBus = coreBcastBus;
+	}
 	private void initializeCoreParameters(CoreConfig coreConfig)
 	{
 		//TODO parameters to be set according to contents of an XML configuration file

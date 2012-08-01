@@ -62,13 +62,13 @@ public class RunnableShm extends RunnableThread implements Runnable {
 			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
 
 				thread = threadParams[tidEmu];
-				if(thread.packets.size() != 0){
-					for(Packet p : thread.packets)
-					{
-						if(p.value > 9 && p.value <24)
-							System.out.println("starting stage " + p);
-					}
-				}
+//				if(thread.packets.size() != 0){
+//					for(Packet p : thread.packets)
+//					{
+//						if(p.value > 9 && p.value <24)
+//							System.out.println("starting stage " + tidEmu + "  " + p);
+//					}
+//				}
 				if (thread.halted || thread.finished) {
 					continue;
 				}

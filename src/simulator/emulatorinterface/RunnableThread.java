@@ -20,6 +20,7 @@ import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import generic.BarrierTable;
 import generic.Core;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -416,16 +417,16 @@ public class RunnableThread implements Encoding {
 			return;
 		}
 		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
-			if(pnew.value == 22 || pnew.value == 23)
-				System.out.println("Packet is " + pnew.toString());
-			IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
+			ResumeSleep ret = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
+			if(ret!=null)
+				resumeSleep(ret);
 			return;
 		}
 		if(pnew.value == BARRIERINIT)
 		{
-			System.out.println("It is the barrier init");
-			System.out.println("Packet is " + pnew.toString());
-			IpcBase.glTable.barrierListAdd(pnew);
+//			System.out.println("It is the barrier init");
+//			System.out.println("Packet is " + pnew.toString());
+			BarrierTable.barrierListAdd(pnew);
 			return;
 		}
 		if (thread.isFirstPacket) {
@@ -521,12 +522,12 @@ public class RunnableThread implements Encoding {
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {
-			System.out.println("Resuming "+update.resume.get(i));
 			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
 		}
 		for (int i=0; i<update.getNumSleepers(); i++) {
-			System.out.println("Sleeping "+update.sleep.get(i));
-			this.inputToPipeline[update.sleep.get(i)].appendInstruction(new Instruction(OperationType.sync,null, null, null));
+			Instruction ins = new Instruction(OperationType.sync,null, null, null);
+			ins.setRISCProgramCounter(update.barrierAddress);
+			this.inputToPipeline[update.sleep.get(i)].appendInstruction(ins);
 		}
 	}
 

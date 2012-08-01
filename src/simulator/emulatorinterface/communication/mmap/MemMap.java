@@ -175,13 +175,13 @@ public class MemMap extends IpcBase
 		  return queue_size;
 	}
 
-	public void fetchManyPackets(int tidApp, int index, int numPackets,
+	public int fetchManyPackets(int tidApp, int index, int numPackets,
 			ArrayList<Packet> fromPIN) {
+				return 0;
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public ArrayList<Packet> fetchManyPackets(int tidApp, int readerLocation,
 			int numReads) {
 		// TODO Auto-generated method stub

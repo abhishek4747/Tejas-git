@@ -90,4 +90,10 @@ public class StatisticalPipelineInterface implements pipeline.PipelineInterface 
 		
 	}
 
+	@Override
+	public void setPerCorePowerStatistics() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
