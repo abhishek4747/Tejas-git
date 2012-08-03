@@ -19,12 +19,16 @@ public class MissStatusHoldingRegister {
 	int offset;
 	final int mshrSize;
 	Hashtable<Long, OMREntry> mshr;
+	int numberOfEntriesReadyToProceed;
+	
+	boolean debugMode = false;
 	
 	public MissStatusHoldingRegister(int offset, int mshrSize) {
 		
 		this.offset = offset;
 		this.mshrSize = mshrSize;
 		mshr = new Hashtable<Long, OMREntry>(mshrSize);
+		numberOfEntriesReadyToProceed = 0;
 	}
 	
 	int getSize()
@@ -47,7 +51,7 @@ public class MissStatusHoldingRegister {
 		}
 		else
 		{
-			System.out.println("mshr full");
+			if(debugMode) System.out.println("mshr full ; offset = " + offset);
 			return true;
 		}
 	}
@@ -64,7 +68,7 @@ public class MissStatusHoldingRegister {
 		long addr = event.getAddress();
 		long blockAddr = addr >>> offset;
 		
-		System.out.println("adding event " + event.getRequestType() + " : " + addr + " : " + blockAddr);
+		if(debugMode) System.out.println("adding event " + event.getRequestType() + " : " + addr + " : " + blockAddr);
 		
 		if (!/*NOT*/mshr.containsKey(blockAddr))
 		{
@@ -75,7 +79,7 @@ public class MissStatusHoldingRegister {
 				return 2;
 			}
 			*/
-			System.out.println("creating new omr entry for blockAddr = " + blockAddr);
+			if(debugMode) System.out.println("creating new omr entry for blockAddr = " + blockAddr);
 			OMREntry newOMREntry = new OMREntry(new ArrayList<Event>(), false, null);
 			newOMREntry.outStandingEvents.add(event);
 			mshr.put(blockAddr, newOMREntry);
@@ -104,7 +108,7 @@ public class MissStatusHoldingRegister {
 		for(int i = 0; i < outstandingRequestList.size(); i++)
 		{
 			AddressCarryingEvent event = (AddressCarryingEvent) outstandingRequestList.get(i);
-			System.out.println("removing event " + event.getRequestType() + " : " + event.getAddress() + " : " + blockAddr);
+			if(debugMode) System.out.println("removing event " + event.getRequestType() + " : " + event.getAddress() + " : " + blockAddr);
 		}
 		
 		return outstandingRequestList;
@@ -146,7 +150,14 @@ public class MissStatusHoldingRegister {
 	public OMREntry getMshrEntry(long address)
 	{
 		long blockaddr = address >>> offset;
-		return mshr.get(blockaddr);
+		if(mshr.containsKey(blockaddr))
+		{
+			return mshr.get(blockaddr);
+		}
+		else
+		{
+			return null;
+		}
 	}
 	
 	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent)
@@ -159,6 +170,7 @@ public class MissStatusHoldingRegister {
 		}
 		omrEntry.eventToForward = (AddressCarryingEvent) eventToBeSent.clone();
 		omrEntry.readyToProceed = true;
+		incrementNumberOfEntriesReadyToProceed();
 	}
 	
 	public ArrayList<OMREntry> getElementsReadyToProceed()
@@ -179,6 +191,84 @@ public class MissStatusHoldingRegister {
 			}
 		}
 		return eventsReadyToProceed;
+	}
+	
+	public boolean containsWriteOfEvictedLine(long address)
+	{
+		//if the MSHR contains a write to given address
+		// AND if the eventToForward of the omrEntry is a Write
+		//  then
+		//    this either refers to a write to a block that is contained in the cache
+		//    OR this refers to an evicted block
+		OMREntry omrEntry = getMshrEntry(address >>> offset);
+		if(omrEntry != null && omrEntry.containsWrite())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	/*
+	 * at the time of pulling, and eventToForward being pulled is of type WRITE
+	 * case 1 : if pulling from another cache
+	 * 		the omrEntry can only consist of writes. since these are being pulled,
+	 * 		omrEntry can be removed
+	 * case 2 : if pulling from pipeline
+	 * 		the omrEntry can consist of reads and writes, but it starts with a write
+	 * 		here, we remove all the contiguous writes that appear at the beginning
+	 * 		from the first read onwards, the events are allowed to remain
+	 * 		if the omrEntry is empty, delete it
+	 * 		else change eventToForward to READ
+	 */
+	public void removeStartingWrites(long address)
+	{
+		OMREntry omrEntry = getMshrEntry(address);
+		boolean readFound = false;
+		AddressCarryingEvent sampleReadEvent = null;
+		
+		int listSize = omrEntry.outStandingEvents.size();
+		for(int i = 0; i < listSize; i++)
+		{
+			if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Cache_Write)
+			{
+				omrEntry.outStandingEvents.remove(i);
+				i--;
+				listSize--;
+			}
+			else if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Cache_Read)
+			{
+				readFound = true;
+				sampleReadEvent = (AddressCarryingEvent) omrEntry.outStandingEvents.get(i);
+				break;
+			}
+		}
+		
+		if(readFound == false)
+		{
+			mshr.remove(address);
+		}
+		else
+		{
+			omrEntry.eventToForward = (AddressCarryingEvent) sampleReadEvent.clone();
+		}
+	}
+	
+	public void incrementNumberOfEntriesReadyToProceed()
+	{
+		numberOfEntriesReadyToProceed++;
+	}
+	
+	public void decrementNumberOfEntriesReadyToProceed()
+	{
+		numberOfEntriesReadyToProceed--;
+	}
+	
+	public int getNumberOfEntriesReadyToProceed()
+	{
+		return numberOfEntriesReadyToProceed;
 	}
 	
 	public void dump()

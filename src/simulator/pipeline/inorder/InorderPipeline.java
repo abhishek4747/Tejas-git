@@ -38,6 +38,8 @@ public class InorderPipeline implements PipelineInterface{
 			writeback();
 		}
 		drainEventQueue();
+		this.core.getExecutionEngineIn().coreMemorySystem.getiCache().pullFromUpperMshrs();
+		this.core.getExecutionEngineIn().coreMemorySystem.getL1Cache().pullFromUpperMshrs();
 		if(currentTime % getCoreStepSize()==0 && !core.getExecutionEngineIn().getExecutionComplete()){
 			mem();
 			exec();

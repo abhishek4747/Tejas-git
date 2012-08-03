@@ -48,10 +48,6 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				if(addressEvent.getRequestType() == RequestType.Cache_Write)
-				{
-					addressEvent.setRequestType(RequestType.Cache_Write_Requiring_Response);
-				}
 				missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
 			}
 			else
