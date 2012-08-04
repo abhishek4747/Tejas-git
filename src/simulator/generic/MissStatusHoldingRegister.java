@@ -21,7 +21,7 @@ public class MissStatusHoldingRegister {
 	Hashtable<Long, OMREntry> mshr;
 	int numberOfEntriesReadyToProceed;
 	
-	boolean debugMode = false;
+	boolean debugMode =false;
 	
 	public MissStatusHoldingRegister(int offset, int mshrSize) {
 		
@@ -87,7 +87,16 @@ public class MissStatusHoldingRegister {
 		}
 		else
 		{
-			mshr.get(blockAddr).outStandingEvents.add(event);
+			
+			ArrayList<Event> tempList = mshr.get(blockAddr).outStandingEvents;
+			if(tempList.size() == 0)
+			{
+				System.err.println(" outstanding request list empty  ");
+				Newmain.dumpAllMSHRs();
+				Newmain.dumpAllEventQueues();
+				System.exit(1);
+			}
+			tempList.add(event);
 			return false;
 		}
 	}
@@ -97,7 +106,8 @@ public class MissStatusHoldingRegister {
 		long blockAddr = address >>> offset;
 		if (!this.mshr.containsKey(blockAddr))
 		{
-			Newmain.dumpAllMSHRs();			
+			Newmain.dumpAllMSHRs();		
+			Newmain.dumpAllEventQueues();
 			
 			System.err.println("Memory System Error : An outstanding request not found in the requesting element : " + address + " : " + blockAddr +"  : " + offset);
 			//return new ArrayList<Event>();
@@ -234,7 +244,8 @@ public class MissStatusHoldingRegister {
 		{
 			if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Cache_Write)
 			{
-				omrEntry.outStandingEvents.remove(i);
+				AddressCarryingEvent addrEvent =  (AddressCarryingEvent) omrEntry.outStandingEvents.remove(i);
+				System.out.println(" removing from removeStartingWrites  "+  addrEvent.getRequestType() +addrEvent.getAddress() +  " : " + ( addrEvent.getAddress() >>> offset) );
 				i--;
 				listSize--;
 			}
@@ -248,7 +259,7 @@ public class MissStatusHoldingRegister {
 		
 		if(readFound == false)
 		{
-			mshr.remove(address);
+			mshr.remove(address >>> offset);
 		}
 		else
 		{
@@ -274,16 +285,27 @@ public class MissStatusHoldingRegister {
 	public void dump()
 	{
 		Enumeration<OMREntry> omrEntries = mshr.elements();
+		System.out.println("size = " + getSize());
 		while(omrEntries.hasMoreElements())
 		{
 			OMREntry omrEntry = omrEntries.nextElement();
 			ArrayList<Event> events = omrEntry.outStandingEvents;
+			/*if(events.size() == 0)
+			{
+				System.err.println(" outstanding event empty ");
+				continue;
+			}*/
 			AddressCarryingEvent addrEvent = (AddressCarryingEvent) events.get(0);
-			System.out.println("block address = " + (addrEvent.getAddress() >>> offset));
+			System.out.print("block address = " + (addrEvent.getAddress() >>> offset));
+			if(omrEntry.eventToForward != null)
+			{
+				System.out.print(" : " + omrEntry.eventToForward.getRequestType() + " : " + omrEntry.readyToProceed );
+			}
+			System.out.println();
 			for(int i = 0; i < events.size(); i++)
 			{
 				addrEvent = (AddressCarryingEvent) events.get(i);				
-				System.out.print(addrEvent.getAddress() + "," + addrEvent.getRequestType() + "\t");
+				System.out.print(addrEvent.getAddress() + "," + addrEvent.getRequestType() + "," + addrEvent.coreId + "\t");
 			}
 			System.out.println();
 		}

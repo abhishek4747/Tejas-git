@@ -53,8 +53,8 @@ public class WriteBackUnitIn extends SimulationElement{
 				
 			}
 			else {
-				if(core.getNoOfInstructionsExecuted()%1000000==0){
-					System.out.println(this.j++ + " million done");
+				if(core.getNoOfInstructionsExecuted()%100000==0){
+					System.out.println(this.j++ + " lakhs done");
 				}
 //				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
 //System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());

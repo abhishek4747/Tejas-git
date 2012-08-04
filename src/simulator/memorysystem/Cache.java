@@ -26,6 +26,7 @@ import power.Counters;
 import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.snoopyCoherence.BusController;
 import config.CacheConfig;
+import emulatorinterface.Newmain;
 import misc.Util;
 import generic.*;
 
@@ -81,7 +82,7 @@ public class Cache extends SimulationElement
 		
 		public static final long NOT_EVICTED = -1;
 		
-		boolean debugMode = false;
+		boolean debugMode =false;
 	
 		
 		
@@ -164,7 +165,7 @@ public class Cache extends SimulationElement
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
 			}
 			//IF HIT
-			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address))
+			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 			{
 				if(debugMode) System.out.println("remove : " + this.levelFromTop + " : " + address + " : " + (address >>> blockSizeBits) + "  :  " + event.coreId);
 				processBlockAvailable(address);				
@@ -214,6 +215,10 @@ public class Cache extends SimulationElement
 			}
 			else{
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
+			}
+			if(event.getRequestingElement() == null)
+			{
+				System.out.println("response came from main memory : " + ((AddressCarryingEvent)event).getAddress());
 			}
 			this.fillAndSatisfyRequests(eventQ, event, MESI.EXCLUSIVE);
 		}
@@ -508,12 +513,18 @@ public class Cache extends SimulationElement
 				{
 					missStatusHoldingRegister.handleLowerMshrFull( (AddressCarryingEvent) eventToForward.clone() );
 				}
-				else
+				else if(missStatusHoldingRegister.isFull())
 				{
-					System.err.println("entry not created for write so cannot propogate!!!!");
-					System.exit(1);
+					Newmain.dumpAllMSHRs();	
+					Newmain.dumpAllEventQueues();
+					System.err.println( levelFromTop +  "entry not created for write so cannot propogate!!!! " +  event.getAddress() + "  :  " + (event.getAddress() >>> blockSizeBits) + " : " + event.coreId);
+					//System.exit(1);
 				}
-			} 
+			/*	else
+				{
+					System.err.println("write already present but mshr not full");
+				}*/
+			}
 		}
 		
 		private void processBlockAvailable(long address)

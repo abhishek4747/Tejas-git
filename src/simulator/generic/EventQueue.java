@@ -1,6 +1,9 @@
 package generic;
 
+import java.util.Iterator;
 import java.util.PriorityQueue;
+
+import memorysystem.AddressCarryingEvent;
 
 public class EventQueue 
 {
@@ -46,5 +49,18 @@ public class EventQueue
 	public boolean isEmpty()
 	{
 		return priorityQueue.isEmpty();
+	}
+	
+	public void dump()
+	{
+		System.out.println("------------------------------------------------------------------------------------");
+		System.out.println("event queue size = " + priorityQueue.size());
+		Iterator<Event> iterator = priorityQueue.iterator();
+		while(iterator.hasNext())
+		{
+			AddressCarryingEvent event = (AddressCarryingEvent) iterator.next();
+			System.out.println(event.getRequestType() + "," + event.getAddress() + "," + event.coreId);
+		}
+		System.out.println("------------------------------------------------------------------------------------");
 	}
 }

@@ -44,6 +44,13 @@ public class MemUnitIn extends SimulationElement{
 			idExLatch.setStallCount(1);
 			return;
 		}
+		/*
+		 * FIXME
+		 */
+		if(exMemLatch.getInstruction() == null)
+		{
+			exMemLatch.setMemDone(true);
+		}
 		if(!exMemLatch.getMemDone()/* || !missStatusHoldingRegister.isEmpty()*/){
 			/*if(!missStatusHoldingRegister.isEmpty()){
 				this.core.getExecutionEngineIn().getFetchUnitIn().incrementStallLowerMSHRFull(1);

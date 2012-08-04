@@ -160,7 +160,7 @@ public class MemorySystem
 				//Point the cache to its next level
 				coreMemSys.iCache.nextLevel = cacheList.get(nextLevelName);
 				coreMemSys.iCache.nextLevel.prevLevel.add(coreMemSys.iCache);
-				coreMemSys.iCache.connectedMSHR.add(coreMemSys.getMSHR());
+				coreMemSys.iCache.connectedMSHR.add(coreMemSys.getiMSHR());
 			}
 			else
 			{
@@ -187,7 +187,7 @@ public class MemorySystem
 				//Point the cache to its next level
 				coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
 				coreMemSys.l1Cache.nextLevel.prevLevel.add(coreMemSys.l1Cache);
-				coreMemSys.l1Cache.connectedMSHR.add(coreMemSys.getMSHR());
+				coreMemSys.l1Cache.connectedMSHR.add(coreMemSys.getL1MSHR());
 			}
 			else
 			{

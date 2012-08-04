@@ -23,6 +23,7 @@ import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Core;
 import generic.CustomInstructionPool;
 import generic.CustomOperandPool;
+import generic.EventQueue;
 import generic.GenericCircularBuffer;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -329,7 +330,10 @@ public class Newmain {
 			System.out.println("---------------------------------------------------------------------------");
 			System.out.println("CORE " + i);
 			System.out.println("coreMemSys");
-			coreMemSys.getMSHR().dump();
+			System.out.println("i - mshr");
+			coreMemSys.getiMSHR().dump();
+			System.out.println("l1-mshr");
+			coreMemSys.getL1MSHR().dump();
 			System.out.println("iCache");
 			coreMemSys.getiCache().getMissStatusHoldingRegister().dump();
 			System.out.println("L1");
@@ -340,5 +344,17 @@ public class Newmain {
 		System.out.println("L2");
 		coreMemSys.getiCache().nextLevel.getMissStatusHoldingRegister().dump();
 		
+	}
+	
+	public static void dumpAllEventQueues()
+	{
+		EventQueue eventQueue = null;
+		for(int i = 0; i < Newmain.cores.length; i++)
+		{
+			eventQueue = Newmain.cores[i].getEventQueue();
+			System.out.println("---------------------------------------------------------------------------");
+			System.out.println("CORE " + i);
+			eventQueue.dump();
+		}
 	}
 }

@@ -27,6 +27,7 @@ public class FetchUnitIn extends SimulationElement{
 	int numRequestsSent;
 	int numRequestsAcknowledged;
 	private boolean fetchBufferStatus[];
+	private int notDoneAnyThing = 0;
 
 
 	public FetchUnitIn(Core core, EventQueue eventQueue) {
@@ -54,8 +55,8 @@ public class FetchUnitIn extends SimulationElement{
 		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity
 				;i = (i+1)%this.fetchBufferCapacity){
 			
-			if( this.core.getExecutionEngineIn().coreMemorySystem.getMSHR().isFull() ){
-				System.err.println("Exiting due to size exceed");
+			if( this.core.getExecutionEngineIn().coreMemorySystem.getiMSHR().isFull() ){
+				//System.err.println("Exiting due to size exceed");
 				break;
 			}
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
@@ -100,7 +101,7 @@ public class FetchUnitIn extends SimulationElement{
 			this.core.getExecutionEngineIn().incrementInstructionMemStall(1); 
 		if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && this.core.getExecutionEngineIn().getStallFetch()==0 
 					&& this.fetchBufferStatus[this.fetchBufferIndex]){
-					
+					notDoneAnyThing = 0;
 					ins = this.fetchBuffer[this.fetchBufferIndex];
 					if(ins.getOperationType()==OperationType.sync){
 						this.fetchFillCount--;			
@@ -121,6 +122,21 @@ public class FetchUnitIn extends SimulationElement{
 						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
 					}
 			}
+		else
+		{
+			notDoneAnyThing++;
+		}
+		if(notDoneAnyThing > 10000  && inputToPipeline.getListSize() > 0)
+		{
+			Newmain.dumpAllMSHRs();
+			Newmain.dumpAllEventQueues();
+			System.out.println(" not done anything for long  time " + notDoneAnyThing + "\tinputToPipeline size = "+ inputToPipeline.getListSize() + "\tstallfFetch = " + this.core.getExecutionEngineIn().getStallFetch());
+			System.exit(1);
+		}
+		else if (inputToPipeline.getListSize() == 0)
+		{
+			notDoneAnyThing = 0;
+		}
 			if(this.stall>0){
 				this.stall--;
 			}

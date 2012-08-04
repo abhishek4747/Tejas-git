@@ -37,7 +37,7 @@
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>500000000</subsetSimSize>
+		<subsetSimSize>200000000</subsetSimSize>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsForTrace>100000</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
@@ -46,7 +46,7 @@
 	<!--System Parameters-->
 	<System>
 		<NoOfCores>4</NoOfCores>				<!--(!!!Not used!!!) Number of cores in the simulated system-->
-		<MainMemoryLatency>200</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
+		<MainMemoryLatency>0</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<MainMemoryFrequency>3600</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
 		<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 		<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
@@ -183,8 +183,8 @@
 		<Type0>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
-			<Associativity>8</Associativity>
+			<BlockSize>32</BlockSize>			<!--In bytes-->
+			<Associativity>4</Associativity>
 			<Size>16</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
@@ -193,7 +193,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>32</MSHRSize>
+			<MSHRSize>2</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
@@ -213,8 +213,8 @@
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
-			<Associativity>8</Associativity>
+			<BlockSize>32</BlockSize>			<!--In bytes-->
+			<Associativity>4</Associativity>
 			<Size>16</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
@@ -223,7 +223,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>32</MSHRSize>
+			<MSHRSize>2</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
@@ -243,7 +243,7 @@
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>128</BlockSize>			<!--In bytes-->
+			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
 			<Size>8192</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
@@ -253,7 +253,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>32</MSHRSize>
+			<MSHRSize>2</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->

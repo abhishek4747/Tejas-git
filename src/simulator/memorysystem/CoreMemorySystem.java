@@ -46,7 +46,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 	protected Cache l1Cache;
 	protected TLB TLBuffer;
 	protected LSQ lsqueue;
-	protected MissStatusHoldingRegister missStatusHoldingRegister;
+	protected MissStatusHoldingRegister L1MissStatusHoldingRegister;
+	protected MissStatusHoldingRegister iMissStatusHoldingRegister;
 	
 	protected CoreMemorySystem(Core core)
 	{
@@ -90,7 +91,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 							this, 
 							SystemConfig.core[coreID].LSQSize);
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
-		missStatusHoldingRegister = new MissStatusHoldingRegister(0, 2*cacheParameterObj.mshrSize);
+		L1MissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
+		iMissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
 	}
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
@@ -216,8 +218,13 @@ public abstract class CoreMemorySystem extends SimulationElement
 		return core;
 	}
 	
-	public MissStatusHoldingRegister getMSHR()
+	public MissStatusHoldingRegister getL1MSHR()
 	{
-		return missStatusHoldingRegister;
+		return L1MissStatusHoldingRegister;
+	}
+	
+	public MissStatusHoldingRegister getiMSHR()
+	{
+		return iMissStatusHoldingRegister;
 	}
 }

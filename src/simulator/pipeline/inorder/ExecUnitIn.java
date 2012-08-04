@@ -150,7 +150,7 @@ public class ExecUnitIn extends SimulationElement{
 					else
 					{
 						ifIdLatch.incrementStallCount(1);
-						this.core.getExecutionEngineIn().incrementStallFetch(1);
+						this.core.getExecutionEngineIn().setStallFetch(1);
 					}
 
 				}

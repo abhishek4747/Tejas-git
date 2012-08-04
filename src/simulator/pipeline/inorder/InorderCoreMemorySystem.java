@@ -31,13 +31,13 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 																	 core.getCore_number());
 		
 		// Check mshr isfull and do something
-		if(missStatusHoldingRegister.isFull())
+		if(L1MissStatusHoldingRegister.isFull())
 		{
 			return false;
 		}
 		
 		//if not full add event to own mshr
-		boolean newOMREntryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
+		boolean newOMREntryCreated = L1MissStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
 		//if new OMREntry has been created, then request should be forwarded to lower cache
 		//else, then a request for the same address exists in the mshr, hence another request is unnecessary
@@ -48,13 +48,14 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
+				L1MissStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
 			}
 			else
 			{
 				if(addressEvent.getRequestType() == RequestType.Cache_Write)
 				{
-					missStatusHoldingRegister.removeEvent(addressEvent);
+		//.out.println(" removing from inorder corememsys " + addressEvent.getAddress() + " : "+addressEvent.getRequestType());
+					L1MissStatusHoldingRegister.removeEvent(addressEvent);
 				}
 			}
 		}
@@ -75,7 +76,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 				 core.getCore_number());
 
 		//add event to own mshr
-		boolean newOMREntryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
+		boolean newOMREntryCreated = iMissStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
 		//if new OMREntry has been created, then request should be forwarded to lower cache
 		//else, then a request for the same address exists in the mshr, hence another request is unnecessary
@@ -86,7 +87,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
+				iMissStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
 			}
 		}
 	}
@@ -112,12 +113,10 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		AddressCarryingEvent memResponse = (AddressCarryingEvent) event;
 		long address = memResponse.getAddress();
 		
-		//remove entry(ies) from own mshr
-		missStatusHoldingRegister.removeRequests(address);
-		
 		//if response comes from iCache, inform fetchunit
 		if(memResponse.getRequestingElement() == iCache)
 		{
+			iMissStatusHoldingRegister.removeRequests(address);
 			core.getExecutionEngineIn().getFetchUnitIn().processCompletionOfMemRequest(address);
 		}
 		
@@ -125,6 +124,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
 			//TODO currently handling only reads
+			L1MissStatusHoldingRegister.removeRequests(address);
 			core.getExecutionEngineIn().getMemUnitIn().processCompletionOfMemRequest(address);
 		}
 		
@@ -132,6 +132,15 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		{
 			System.out.println("mem response received by inordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
 		}
+	}
+	
+	public boolean isMshrFull()
+	{
+		if(L1MissStatusHoldingRegister.isFull() && iMissStatusHoldingRegister.isFull())
+		{
+			return true;
+		}
+		return false;
 	}
 
 }
