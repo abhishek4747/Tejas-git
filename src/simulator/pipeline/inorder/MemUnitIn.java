@@ -2,6 +2,8 @@ package pipeline.inorder;
 
 import java.util.Hashtable;
 
+import emulatorinterface.Newmain;
+
 import memorysystem.AddressCarryingEvent;
 
 import generic.Core;
@@ -47,10 +49,10 @@ public class MemUnitIn extends SimulationElement{
 		/*
 		 * FIXME
 		 */
-		if(exMemLatch.getInstruction() == null)
+		/*if(exMemLatch.getInstruction() == null)
 		{
 			exMemLatch.setMemDone(true);
-		}
+		}*/
 		if(!exMemLatch.getMemDone()/* || !missStatusHoldingRegister.isEmpty()*/){
 			/*if(!missStatusHoldingRegister.isEmpty()){
 				this.core.getExecutionEngineIn().getFetchUnitIn().incrementStallLowerMSHRFull(1);
@@ -105,5 +107,14 @@ public class MemUnitIn extends SimulationElement{
 	public void processCompletionOfMemRequest(long requestedAddress)
 	{
 		core.getExecutionEngineIn().setMemDone(requestedAddress,true);
+		core.getExecutionEngineIn().noOfOutstandingLoads--;
+		//System.out.println("pipeline received : " + requestedAddress);
+		if(core.getExecutionEngineIn().noOfOutstandingLoads < 0)
+		{
+			Newmain.dumpAllMSHRs();
+			Newmain.dumpAllEventQueues();
+			System.err.println("no of outstanding loads < 0 ");
+			System.exit(1);
+		}
 	}
 }

@@ -124,7 +124,7 @@ public class Operand implements Serializable
 	
 	public String toString()
 	{
-			return ("(" + type + ")" + Long.toHexString(value));
+			return ("(" + type + ")" + value);
 	}
 
 	public OperandType getOperandType()

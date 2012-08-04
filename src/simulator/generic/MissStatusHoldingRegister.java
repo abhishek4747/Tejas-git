@@ -21,7 +21,7 @@ public class MissStatusHoldingRegister {
 	Hashtable<Long, OMREntry> mshr;
 	int numberOfEntriesReadyToProceed;
 	
-	boolean debugMode =true;
+	public static boolean debugMode =false;
 	
 	public MissStatusHoldingRegister(int offset, int mshrSize) {
 		

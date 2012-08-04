@@ -82,7 +82,7 @@ public class Cache extends SimulationElement
 		
 		public static final long NOT_EVICTED = -1;
 		
-		boolean debugMode =true;
+		public static boolean debugMode =false;
 	
 		
 		

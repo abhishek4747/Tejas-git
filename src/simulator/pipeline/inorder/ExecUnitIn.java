@@ -31,6 +31,17 @@ public class ExecUnitIn extends SimulationElement{
 		StageLatch idExLatch = inorderPipeline.getIdExLatch();
 		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();
 		Instruction ins = idExLatch.getInstruction();
+		/*System.out.println("time = " + GlobalClock.getCurrentTime());
+		if(ins != null)
+		{
+			System.out.println("idex latch instruction ");
+			System.out.println(ins);
+		}
+		if(exMemLatch.getInstruction() != null)
+		{
+			System.out.println("exMem latch instruction ");
+			System.out.println(exMemLatch.getInstruction());
+		}*/
 //		if(exMemLatch.getStallCount()>0){
 //			exMemLatch.decrementStallCount();
 //			idExLatch.incrementStallCount();
@@ -102,8 +113,7 @@ public class ExecUnitIn extends SimulationElement{
 						core.getExecutionEngineIn().updateNoOfMemRequests(1);
 										
 						//Schedule a mem read event now so that it can be completed in the mem stage
-						if(!SimulationConfig.detachMemSys){
-							exMemLatch.setMemDone(false);
+						if(!SimulationConfig.detachMemSys){		
 			
 							memReqIssued = this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 									RequestType.Cache_Read,
@@ -117,7 +127,8 @@ public class ExecUnitIn extends SimulationElement{
 						exMemLatch.setMemDone(true); //FIXME Pipeline doesn't wait for the store to complete! 
 						
 						//Schedule a mem read event now so that it can be completed in the mem stage
-						if(!SimulationConfig.detachMemSys){
+						if(!SimulationConfig.detachMemSys)
+						{
 							memReqIssued = this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
 									RequestType.Cache_Write,
 									ins.getSourceOperand1().getValue(),
@@ -132,9 +143,10 @@ public class ExecUnitIn extends SimulationElement{
 							ins.getOperationType()==OperationType.floatALU ||
 							ins.getOperationType()==OperationType.integerALU ||
 							ins.getOperationType()==OperationType.integerDiv ||
-							ins.getOperationType()==OperationType.integerMul)
+							ins.getOperationType()==OperationType.integerMul) 
+					{
 						this.core.getExecutionEngineIn().getDestRegisters().remove(ins.getDestinationOperand());
-										
+					}					
 					if(memReqIssued)
 					{
 						exMemLatch.setInstruction(ins);
@@ -144,6 +156,13 @@ public class ExecUnitIn extends SimulationElement{
 						exMemLatch.setOperationType(idExLatch.getOperationType());
 	//					exMemLatch.setMemDone(true);
 						exMemLatch.setLoadFlag(idExLatch.getLoadFlag());
+						
+						if(ins.getOperationType() == OperationType.load)
+						{
+							exMemLatch.setMemDone(false);
+							this.core.getExecutionEngineIn().noOfOutstandingLoads++;
+							//System.out.println("pipeline issued : " + ins.getSourceOperand1().getValue());
+						}
 						
 						idExLatch.clear();
 					}

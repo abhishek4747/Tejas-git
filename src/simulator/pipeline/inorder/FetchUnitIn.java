@@ -126,11 +126,13 @@ public class FetchUnitIn extends SimulationElement{
 		{
 			notDoneAnyThing++;
 		}
-		if(notDoneAnyThing > 10000  && inputToPipeline.getListSize() > 0)
+		if(notDoneAnyThing > 100000  && inputToPipeline.getListSize() > 0)
 		{
 			Newmain.dumpAllMSHRs();
 			Newmain.dumpAllEventQueues();
-			System.out.println(" not done anything for long  time " + notDoneAnyThing + "\tinputToPipeline size = "+ inputToPipeline.getListSize() + "\tstallfFetch = " + this.core.getExecutionEngineIn().getStallFetch());
+			System.out.println(core.getCore_number() + " not done anything for long  time " + notDoneAnyThing + "\tinputToPipeline size = "+ inputToPipeline.getListSize() + "\tstallfFetch = " + this.core.getExecutionEngineIn().getStallFetch());
+			this.core.getExecutionEngineIn().dumpAllLatches();
+			System.out.println("no of insts executed = " + Newmain.getNoOfInstsExecuted());
 			System.exit(1);
 		}
 		else if (inputToPipeline.getListSize() == 0)

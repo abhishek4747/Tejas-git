@@ -1,11 +1,13 @@
 package pipeline.inorder;
 
+import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 import power.Counters;
 import emulatorinterface.Newmain;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.MissStatusHoldingRegister;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -53,8 +55,13 @@ public class WriteBackUnitIn extends SimulationElement{
 				
 			}
 			else {
-				if(core.getNoOfInstructionsExecuted()%100000==0){
-					System.out.println(this.j++ + " lakhs done");
+				if(core.getNoOfInstructionsExecuted()%1000000==0){
+					System.out.println(this.j++ + "million done");
+				}
+				if(Newmain.getNoOfInstsExecuted() >= 20400000)
+				{
+					//Cache.debugMode = true;
+					//MissStatusHoldingRegister.debugMode = true;
 				}
 //				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
 //System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());

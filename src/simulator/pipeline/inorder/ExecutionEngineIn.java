@@ -49,6 +49,8 @@ public class ExecutionEngineIn {
 
 	private FunctionalUnitSet functionalUnitSet;
 	StageLatch[] ifIdLatch,idExLatch,exMemLatch,memWbLatch,wbDoneLatch;
+	
+	public int noOfOutstandingLoads = 0;
 
 
 	public ExecutionEngineIn(Core _core, int numPipelines){
@@ -345,5 +347,18 @@ public class ExecutionEngineIn {
 //				idExLatch[i].setStallCount(0);
 			}
 		}
+	}
+	
+	public void dumpAllLatches()
+	{
+		System.out.println("ifid stall = " + ifIdLatch[0].getStallCount());
+		System.out.println(ifIdLatch[0].getInstruction());
+		System.out.println("idex stall = " + idExLatch[0].getStallCount());
+		System.out.println(idExLatch[0].getInstruction());		
+		System.out.println("exMem stall = " + exMemLatch[0].getStallCount());
+		System.out.println("exmem memdone = " + exMemLatch[0].getMemDone());
+		System.out.println(exMemLatch[0].getInstruction());
+		System.out.println("memWb stall = " + memWbLatch[0].getStallCount());
+		System.out.println(memWbLatch[0].getInstruction());
 	}
 }

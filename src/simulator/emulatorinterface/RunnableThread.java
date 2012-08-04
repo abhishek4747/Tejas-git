@@ -337,6 +337,11 @@ public class RunnableThread implements Encoding {
 			dataRead += threadParams[i].totalRead;
 			totNumIns += numInstructions[i];
 		}
+		
+		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+			System.out.println("core " + tidEmu + " = " + pipelineInterfaces[tidEmu].getCore().getExecutionEngineIn().noOfOutstandingLoads);
+	}
+		
 		long timeTaken = System.currentTimeMillis() - Newmain.start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
 				+ " instructions-" + numInstructions[tid] 

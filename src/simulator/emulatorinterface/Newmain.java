@@ -357,4 +357,14 @@ public class Newmain {
 			eventQueue.dump();
 		}
 	}
+	
+	public static long getNoOfInstsExecuted()
+	{
+		long noOfInstsExecuted = 0;
+		for(int i = 0; i < cores.length; i++)
+		{
+			noOfInstsExecuted += cores[i].getNoOfInstructionsExecuted();
+		}
+		return noOfInstsExecuted;
+	}
 }
