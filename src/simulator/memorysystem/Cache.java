@@ -216,9 +216,12 @@ public class Cache extends SimulationElement
 			else{
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
 			}
-			if(event.getRequestingElement() == null)
+			if(debugMode)
 			{
-				System.out.println("response came from main memory : " + ((AddressCarryingEvent)event).getAddress());
+				if(event.getRequestingElement() == null)
+				{
+					System.out.println("response came from main memory : " + ((AddressCarryingEvent)event).getAddress());
+				}
 			}
 			this.fillAndSatisfyRequests(eventQ, event, MESI.EXCLUSIVE);
 		}
@@ -449,7 +452,9 @@ public class Cache extends SimulationElement
 			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(addr);
 			
 			CacheLine evictedLine = this.fill(addr, stateToSet);
-			if (evictedLine != null && evictedLine.getState() == MESI.MODIFIED) //This does not ensure inclusiveness
+			if (evictedLine != null 
+			    && evictedLine.getState() == MESI.MODIFIED 
+			    && this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH) //This does not ensure inclusiveness
 			{
 				//Update directory in case of eviction
 					if(this.coherence==CoherenceType.Directory)
@@ -512,17 +517,20 @@ public class Cache extends SimulationElement
 			boolean isAdded = this.nextLevel.addEvent(eventToForward);
 			if( !isAdded )
 			{
-				boolean entryCreated =  missStatusHoldingRegister.addOutstandingRequest( eventToForward );
-				if (entryCreated)
-				{
-					missStatusHoldingRegister.handleLowerMshrFull( (AddressCarryingEvent) eventToForward.clone() );
-				}
-				else if(missStatusHoldingRegister.isFull())
+				if(missStatusHoldingRegister.isFull())
 				{
 					Newmain.dumpAllMSHRs();	
 					Newmain.dumpAllEventQueues();
-					System.err.println( levelFromTop +  "entry not created for write so cannot propogate!!!! " +  event.getAddress() + "  :  " + (event.getAddress() >>> blockSizeBits) + " : " + event.coreId);
+					System.err.println( levelFromTop + " entry not created for write so cannot propogate!!!! " +  event.getAddress() + "  :  " + (event.getAddress() >>> blockSizeBits) + " : " + event.coreId);
 					//System.exit(1);
+				}
+				else
+				{
+					boolean entryCreated =  missStatusHoldingRegister.addOutstandingRequest( eventToForward );
+					if (entryCreated)
+					{
+						missStatusHoldingRegister.handleLowerMshrFull( (AddressCarryingEvent) eventToForward.clone() );
+					}
 				}
 			/*	else
 				{
