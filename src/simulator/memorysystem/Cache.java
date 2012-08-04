@@ -82,7 +82,7 @@ public class Cache extends SimulationElement
 		
 		public static final long NOT_EVICTED = -1;
 		
-		boolean debugMode =false;
+		boolean debugMode =true;
 	
 		
 		
@@ -351,7 +351,7 @@ public class Cache extends SimulationElement
 					//if (omrEntry.eventToForward.get)
 					AddressCarryingEvent clone = (AddressCarryingEvent) omrEntry.eventToForward.clone();
 					boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(clone);//####
-					missStatusHoldingRegister.decrementNumberOfEntriesReadyToProceed();
+					//tempMshr.decrementNumberOfEntriesReadyToProceed();
 					
 					if(debugMode) System.out.println("pulled " + omrEntry.eventToForward.getRequestType() + "," + omrEntry.eventToForward.getAddress());
 					
@@ -372,6 +372,10 @@ public class Cache extends SimulationElement
 								}
 							}
 						}
+					}
+					if(tempMshr.getMshrEntry(omrEntry.eventToForward.getAddress()) == null)
+					{
+						tempMshr.decrementNumberOfEntriesReadyToProceed();
 					}
 					
 					if(entryCreated)

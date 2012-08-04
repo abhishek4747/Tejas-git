@@ -21,7 +21,7 @@ public class MissStatusHoldingRegister {
 	Hashtable<Long, OMREntry> mshr;
 	int numberOfEntriesReadyToProceed;
 	
-	boolean debugMode =false;
+	boolean debugMode =true;
 	
 	public MissStatusHoldingRegister(int offset, int mshrSize) {
 		
@@ -245,7 +245,8 @@ public class MissStatusHoldingRegister {
 			if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Cache_Write)
 			{
 				AddressCarryingEvent addrEvent =  (AddressCarryingEvent) omrEntry.outStandingEvents.remove(i);
-				System.out.println(" removing from removeStartingWrites  "+  addrEvent.getRequestType() +addrEvent.getAddress() +  " : " + ( addrEvent.getAddress() >>> offset) );
+				if(debugMode)
+					System.out.println(" removing from removeStartingWrites  "+  addrEvent.getRequestType() +addrEvent.getAddress() +  " : " + ( addrEvent.getAddress() >>> offset) );
 				i--;
 				listSize--;
 			}
@@ -264,6 +265,7 @@ public class MissStatusHoldingRegister {
 		else
 		{
 			omrEntry.eventToForward = (AddressCarryingEvent) sampleReadEvent.clone();
+			omrEntry.readyToProceed = true;
 		}
 	}
 	
