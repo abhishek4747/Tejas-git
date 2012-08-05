@@ -175,7 +175,7 @@ public class MissStatusHoldingRegister {
 		OMREntry omrEntry =  getMshrEntry(eventToBeSent.getAddress());
 		if(omrEntry.eventToForward != null)
 		{
-			omrEntry.readyToProceed = false;
+			//omrEntry.readyToProceed = false;
 			return;
 		}
 		omrEntry.eventToForward = (AddressCarryingEvent) eventToBeSent.clone();
@@ -266,6 +266,7 @@ public class MissStatusHoldingRegister {
 		{
 			omrEntry.eventToForward = (AddressCarryingEvent) sampleReadEvent.clone();
 			omrEntry.readyToProceed = true;
+			incrementNumberOfEntriesReadyToProceed();
 		}
 	}
 	
@@ -292,6 +293,7 @@ public class MissStatusHoldingRegister {
 		{
 			OMREntry omrEntry = omrEntries.nextElement();
 			ArrayList<Event> events = omrEntry.outStandingEvents;
+			System.out.println("no of entries ready to proceed = " + numberOfEntriesReadyToProceed);
 			/*if(events.size() == 0)
 			{
 				System.err.println(" outstanding event empty ");

@@ -58,7 +58,7 @@ public class WriteBackUnitIn extends SimulationElement{
 				if(core.getNoOfInstructionsExecuted()%1000000==0){
 					System.out.println(this.j++ + "million done");
 				}
-				if(Newmain.getNoOfInstsExecuted() >= 20400000)
+				//if(Newmain.getNoOfInstsExecuted() >= 20400000)
 				{
 					//Cache.debugMode = true;
 					//MissStatusHoldingRegister.debugMode = true;

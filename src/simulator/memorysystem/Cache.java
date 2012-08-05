@@ -376,15 +376,21 @@ public class Cache extends SimulationElement
 							}
 						}
 					}
-					if(tempMshr.getMshrEntry(omrEntry.eventToForward.getAddress()) == null)
-					{
-						tempMshr.decrementNumberOfEntriesReadyToProceed();
-					}
+					tempMshr.decrementNumberOfEntriesReadyToProceed();
 					
 					if(entryCreated)
 					{
 						if(debugMode) System.out.println("add from pull: " + this.levelFromTop + " : " + omrEntry.eventToForward.getAddress() + " : " + (omrEntry.eventToForward.getAddress() >>> blockSizeBits) + "  :  " +  omrEntry.eventToForward.coreId );
 						handleAccess(omrEntry.eventToForward.getEventQ() , clone);
+					}
+					else
+					{
+						AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(clone.getAddress()).eventToForward; 
+						if(eventToForward != null &&
+								eventToForward.getRequestType() == RequestType.Cache_Write)
+						{
+							handleAccess(clone.getEventQ(), clone);
+						}
 					}
 				}
 				if(missStatusHoldingRegister.isFull())
@@ -438,6 +444,15 @@ public class Cache extends SimulationElement
 			{
 				if(debugMode) System.out.println("add from add event: " + this.levelFromTop + " : " + addressEvent.getAddress() + " : " + (addressEvent.getAddress() >>> blockSizeBits ) + "  :  " +  addressEvent.coreId );
 				this.getPort().put(clone);
+			}
+			else
+			{
+				AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(clone.getAddress()).eventToForward; 
+				if(eventToForward != null &&
+						eventToForward.getRequestType() == RequestType.Cache_Write)
+				{
+					handleAccess(clone.getEventQ(), clone);
+				}
 			}
 			return true;
 		}

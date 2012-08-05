@@ -27,7 +27,7 @@
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
+		<NumInsToIgnore>20000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<Mode>1</Mode>   					<!--From file 0,  From shmem 1, TODO add others -->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
@@ -216,7 +216,7 @@
 			<BlockSize>32</BlockSize>			<!--In bytes-->
 			<Associativity>4</Associativity>
 			<Size>16</Size>					<!--In KBs-->
-			<Latency>2</Latency>				<!--In clock cycles-->
+			<Latency>32</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
