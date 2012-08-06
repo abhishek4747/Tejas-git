@@ -79,28 +79,6 @@ public class Newmain {
 		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.EmuThreadsPerJavaThread*5;
 		int numAddressCarryingEvents = 50000;
 		
-		/* "apache pool"
-		System.out.println("creating operand pool..");
-		operandPool = new GenericObjectPool<Operand>(new PoolableOperandFactory());
-		operandPool.setMaxActive(numInstructionsInPool * 3);
-		operandPool.setMaxIdle(numInstructionsInPool * 3);
-		for(int i = 0; i < numInstructionsInPool * 3; i++)
-		{
-			operandPool.addObject();
-		}
-		
-		System.out.println("creating instruction pool..");
-		instructionPool = new GenericObjectPool<Instruction>(new PoolableInstructionFactory());
-		instructionPool.setMaxActive(numInstructionsInPool);
-		instructionPool.setMaxIdle(numInstructionsInPool);
-		for(int i = 0; i < numInstructionsInPool; i++)
-		{
-			instructionPool.addObject();
-		}
-		
-		System.out.println("number of operands in pool = " + operandPool.getNumIdle());
-		System.out.println("number of instructions in pool = " + instructionPool.getNumIdle());
-		*/
 		/* custom pool */
 		System.out.println("creating operand pool..");
 		operandPool = new CustomOperandPool(numInstructionsInPool *3);
@@ -303,6 +281,10 @@ public class Newmain {
 		}
 		return cores;
 	}
+	
+	/*
+	 * debug helper functions
+	 */
 
 	/**
 	 * @author Moksh

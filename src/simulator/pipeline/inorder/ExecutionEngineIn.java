@@ -90,7 +90,6 @@ public class ExecutionEngineIn {
 			wbDoneLatch[i]= new StageLatch(_core);
 		}
 		this.numPipelines = numPipelines;
-		coreMemorySystem = new InorderCoreMemorySystem(core);
 	}
 
 	public int getNumPipelines() {

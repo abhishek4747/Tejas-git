@@ -27,8 +27,8 @@ import pipeline.inorder.FetchUnitIn;
 import pipeline.inorder.MemUnitIn;
 import pipeline.outoforder.FetchLogic;
 import pipeline.outoforder.ReorderBufferEntry;
+import generic.CachePullEvent;
 import generic.Event;
-import generic.MissStatusHoldingRegister;
 import generic.OMREntry;
 import generic.PortType;
 import generic.SimulationElement;
@@ -69,10 +69,26 @@ public abstract class CoreMemorySystem extends SimulationElement
 		CacheConfig cacheParameterObj;
 		cacheParameterObj = SystemConfig.core[coreID].iCache;
 		iCache = new Cache(cacheParameterObj, this);
+		//add initial cachepull event
+		this.core.getEventQueue().addEvent(
+									new CachePullEvent(
+											this.core.getEventQueue(),
+											0,
+											iCache,
+											iCache,
+											RequestType.PerformPulls));
 		
 		//Initialise the  L1 cache
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
 		l1Cache = new Cache(cacheParameterObj, this);
+		//add initial cachepull event
+		this.core.getEventQueue().addEvent(
+				new CachePullEvent(
+						this.core.getEventQueue(),
+						0,
+						l1Cache,
+						l1Cache,
+						RequestType.PerformPulls));
 		
 		//Initialise the TLB
 		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,

@@ -44,17 +44,17 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		if(newOMREntryCreated)
 		{
 			//attempt issue to lower level cache
-			boolean isAddedinLowerMshr = this.l1Cache.addEvent((AddressCarryingEvent) addressEvent.clone());
+			AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
+			boolean isAddedinLowerMshr = this.l1Cache.addEvent(clone);
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				L1MissStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
+				L1MissStatusHoldingRegister.handleLowerMshrFull(clone);
 			}
 			else
 			{
 				if(addressEvent.getRequestType() == RequestType.Cache_Write)
 				{
-		//.out.println(" removing from inorder corememsys " + addressEvent.getAddress() + " : "+addressEvent.getRequestType());
 					L1MissStatusHoldingRegister.removeEvent(addressEvent);
 				}
 			}
@@ -83,11 +83,12 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		if(newOMREntryCreated)
 		{
 			//attempt issue to lower level cache
-			boolean isAddedinLowerMshr = this.iCache.addEvent((AddressCarryingEvent) addressEvent.clone());
+			AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
+			boolean isAddedinLowerMshr = this.iCache.addEvent(clone);
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				iMissStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent) addressEvent.clone());
+				iMissStatusHoldingRegister.handleLowerMshrFull(clone);
 			}
 		}
 	}

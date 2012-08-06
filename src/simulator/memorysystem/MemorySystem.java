@@ -20,7 +20,6 @@
 *****************************************************************************/
 package memorysystem;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -28,17 +27,18 @@ import pipeline.inorder.InorderCoreMemorySystem;
 
 import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.DNuca;
-import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
 
+import memorysystem.Cache.CacheType;
 import memorysystem.directory.CentralizedDirectoryCache;
 
 import generic.*;
 import config.CacheConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
+import emulatorinterface.Newmain;
 
 
 public class MemorySystem
@@ -106,6 +106,18 @@ public class MemorySystem
 
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
+				
+				//add initial cachepull event
+				if(newCache.levelFromTop == CacheType.Lower)
+				{
+					Newmain.cores[0].getEventQueue().addEvent(
+											new CachePullEvent(
+													Newmain.cores[0].getEventQueue(),
+													0,
+													newCache,
+													newCache,
+													RequestType.PerformPulls));
+				}
 			}
 		}
 		mainMemory = new MainMemory(nucaType);

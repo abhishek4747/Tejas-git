@@ -1,17 +1,12 @@
-package generic;
+package memorysystem;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import generic.Event;
+import generic.OMREntry;
+import generic.RequestType;
 
-import emulatorinterface.Newmain;
-
-import pipeline.inorder.MemUnitIn;
-
-import memorysystem.AddressCarryingEvent;
-import memorysystem.Cache;
-import memorysystem.CoreMemorySystem;
-import memorysystem.LSQ;
 
 public class MissStatusHoldingRegister {
 	
@@ -20,8 +15,6 @@ public class MissStatusHoldingRegister {
 	final int mshrSize;
 	Hashtable<Long, OMREntry> mshr;
 	int numberOfEntriesReadyToProceed;
-	
-	public static boolean debugMode =false;
 	
 	public MissStatusHoldingRegister(int offset, int mshrSize) {
 		
@@ -51,51 +44,31 @@ public class MissStatusHoldingRegister {
 		}
 		else
 		{
-			if(debugMode) System.out.println("mshr full ; offset = " + offset);
 			return true;
 		}
 	}
+	
 	/*
 	 * return value signifies whether new omrentry created or not
 	 * */
 	public boolean addOutstandingRequest(AddressCarryingEvent event)
 	{
-		if(event.getRequestType() == RequestType.Mem_Response)
-		{
-			System.err.println("mem response being pushed into the mshr!!" + event.getAddress() + " : " + offset + " : " + event.coreId);
-			System.exit(1);
-		}
 		long addr = event.getAddress();
 		long blockAddr = addr >>> offset;
-		
-		if(debugMode) System.out.println("adding event " + event.getRequestType() + " : " + addr + " : " + blockAddr);
 		
 		if (!/*NOT*/mshr.containsKey(blockAddr))
 		{
 			/*
 			 * the higher level cache must check if mshr is full before requesting
-			if(mshr.size() > mshrSize) {
-				System.out.println("mshr full");
-				return 2;
-			}
-			*/
-			if(debugMode) System.out.println("creating new omr entry for blockAddr = " + blockAddr);
+			 */
 			OMREntry newOMREntry = new OMREntry(new ArrayList<Event>(), false, null);
 			newOMREntry.outStandingEvents.add(event);
 			mshr.put(blockAddr, newOMREntry);
 			return true;
 		}
 		else
-		{
-			
+		{			
 			ArrayList<Event> tempList = mshr.get(blockAddr).outStandingEvents;
-			if(tempList.size() == 0)
-			{
-				System.err.println(" outstanding request list empty  ");
-				Newmain.dumpAllMSHRs();
-				Newmain.dumpAllEventQueues();
-				System.exit(1);
-			}
 			tempList.add(event);
 			return false;
 		}
@@ -104,23 +77,7 @@ public class MissStatusHoldingRegister {
 	public ArrayList<Event> removeRequests(long address)
 	{
 		long blockAddr = address >>> offset;
-		if (!this.mshr.containsKey(blockAddr))
-		{
-			Newmain.dumpAllMSHRs();		
-			Newmain.dumpAllEventQueues();
-			
-			System.err.println("Memory System Error : An outstanding request not found in the requesting element : " + address + " : " + blockAddr +"  : " + offset);
-			//return new ArrayList<Event>();
-			System.exit(1);
-		}
 		ArrayList<Event> outstandingRequestList = this.mshr.remove(blockAddr).outStandingEvents;
-		
-		for(int i = 0; i < outstandingRequestList.size(); i++)
-		{
-			AddressCarryingEvent event = (AddressCarryingEvent) outstandingRequestList.get(i);
-			if(debugMode) System.out.println("removing event " + event.getRequestType() + " : " + event.getAddress() + " : " + blockAddr);
-		}
-		
 		return outstandingRequestList;
 	}
 	
@@ -175,10 +132,9 @@ public class MissStatusHoldingRegister {
 		OMREntry omrEntry =  getMshrEntry(eventToBeSent.getAddress());
 		if(omrEntry.eventToForward != null)
 		{
-			//omrEntry.readyToProceed = false;
 			return;
 		}
-		omrEntry.eventToForward = (AddressCarryingEvent) eventToBeSent.clone();
+		omrEntry.eventToForward = eventToBeSent;
 		omrEntry.readyToProceed = true;
 		incrementNumberOfEntriesReadyToProceed();
 	}
@@ -192,11 +148,6 @@ public class MissStatusHoldingRegister {
 			OMREntry omrEntry = omrEntries.nextElement();
 			if(omrEntry.readyToProceed)
 			{
-				if(omrEntry.eventToForward.getRequestType() == RequestType.Mem_Response)
-				{
-					System.err.println(" mem response in mshr!!!!!!!!!!   ");
-					System.exit(1);
-				}
 				eventsReadyToProceed.add(omrEntry);
 			}
 		}
@@ -244,9 +195,7 @@ public class MissStatusHoldingRegister {
 		{
 			if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Cache_Write)
 			{
-				AddressCarryingEvent addrEvent =  (AddressCarryingEvent) omrEntry.outStandingEvents.remove(i);
-				if(debugMode)
-					System.out.println(" removing from removeStartingWrites  "+  addrEvent.getRequestType() +addrEvent.getAddress() +  " : " + ( addrEvent.getAddress() >>> offset) );
+				omrEntry.outStandingEvents.remove(i);
 				i--;
 				listSize--;
 			}

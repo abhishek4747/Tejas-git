@@ -13,7 +13,8 @@ import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
 
-public class FetchUnitIn extends SimulationElement{
+public class FetchUnitIn extends SimulationElement
+{
 	Core core;
 	Instruction fetchBuffer[];
 	public int fetchBufferCapacity;
@@ -27,10 +28,10 @@ public class FetchUnitIn extends SimulationElement{
 	int numRequestsSent;
 	int numRequestsAcknowledged;
 	private boolean fetchBufferStatus[];
-	private int notDoneAnyThing = 0;
 
 
-	public FetchUnitIn(Core core, EventQueue eventQueue) {
+	public FetchUnitIn(Core core, EventQueue eventQueue)
+	{
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.fetchBufferCapacity=8;
@@ -44,14 +45,19 @@ public class FetchUnitIn extends SimulationElement{
 		this.numRequestsSent=0;
 		this.numRequestsAcknowledged=0;
 		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];
+		
 		for(int i=0;i<this.fetchBufferCapacity;i++)
+		{
 			this.fetchBufferStatus[i]=false;
+		}
 	}
 	
-	public void fillFetchBuffer(InorderPipeline inorderPipeline){
+	public void fillFetchBuffer(InorderPipeline inorderPipeline)
+	{
 		if(inputToPipeline.isEmpty())
 			return;
-		Instruction newInstruction=null;// = inputToPipeline.peekInstructionAt(0);
+		
+		Instruction newInstruction=null;
 		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity
 				;i = (i+1)%this.fetchBufferCapacity){
 			
@@ -59,29 +65,30 @@ public class FetchUnitIn extends SimulationElement{
 				//System.err.println("Exiting due to size exceed");
 				break;
 			}
+			
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
 			if(newInstruction == null)
 				return;
-			if(newInstruction.getOperationType() == OperationType.inValid){
-				core.getExecutionEngineIn().setFetchComplete(true);
-				this.fetchBuffer[i] = newInstruction;//inputToPipeline.pollFirst();
-						this.fetchBufferStatus[i]=true;
-						this.fetchFillCount++;
-			}
-			/*else if (newInstruction.getOperationType() == OperationType.store)
+			
+			if(newInstruction.getOperationType() == OperationType.inValid)
 			{
-				Newmain.instructionPool.returnObject(newInstruction);
-				i--;
-				continue;
-			}*/
-			else{
-				this.fetchBuffer[i]= newInstruction;//inputToPipeline.pollFirst();
+				core.getExecutionEngineIn().setFetchComplete(true);
+				this.fetchBuffer[i] = newInstruction;
+				this.fetchBufferStatus[i]=true;
+				this.fetchFillCount++;
+			}
+			
+			else
+			{
+				this.fetchBuffer[i]= newInstruction;
 				this.fetchFillCount++;
 
-				if(SimulationConfig.detachMemSys){
+				if(SimulationConfig.detachMemSys)
+				{
 					this.fetchBufferStatus[i]=true;
 				}
-				else{
+				else
+				{
 					this.fetchBufferStatus[i]=false;
 					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
 							newInstruction.getRISCProgramCounter(),
@@ -91,57 +98,52 @@ public class FetchUnitIn extends SimulationElement{
 		}
 	}
 	
-	public void performFetch(InorderPipeline inorderPipeline){
+	public void performFetch(InorderPipeline inorderPipeline)
+	{		
 		if(!core.getExecutionEngineIn().getFetchComplete())
 			fillFetchBuffer(inorderPipeline);
+		
 		Instruction ins;
 		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();
 			
 		if(!this.fetchBufferStatus[this.fetchBufferIndex])
 			this.core.getExecutionEngineIn().incrementInstructionMemStall(1); 
-		if(!this.sleep && this.fetchFillCount > 0 && this.stall==0 && this.core.getExecutionEngineIn().getStallFetch()==0 
-					&& this.fetchBufferStatus[this.fetchBufferIndex]){
-					notDoneAnyThing = 0;
-					ins = this.fetchBuffer[this.fetchBufferIndex];
-					if(ins.getOperationType()==OperationType.sync){
-						this.fetchFillCount--;			
-						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
-						ins = this.fetchBuffer[fetchBufferIndex];
-						if(this.syncCount>0){
-							this.syncCount--;
-						}
-						else{
-							ifIdLatch.setInstruction(null);
-							sleepThePipeline();
-							return;
-						}
-					}
-					else{
-						inorderPipeline.getIfIdLatch().setInstruction(ins);
-						this.fetchFillCount--;			
-						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
-					}
+		
+		if(!this.sleep && this.fetchFillCount > 0 &&
+				this.stall==0 &&
+				this.core.getExecutionEngineIn().getStallFetch()==0 
+				&& this.fetchBufferStatus[this.fetchBufferIndex])
+		{
+			ins = this.fetchBuffer[this.fetchBufferIndex];
+			
+			if(ins.getOperationType()==OperationType.sync)
+			{
+				this.fetchFillCount--;			
+				this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
+				ins = this.fetchBuffer[fetchBufferIndex];
+				if(this.syncCount>0)
+				{
+					this.syncCount--;
+				}
+				else
+				{
+					ifIdLatch.setInstruction(null);
+					sleepThePipeline();
+					return;
+				}
 			}
-		else
-		{
-			notDoneAnyThing++;
-		}
-		if(notDoneAnyThing > 100000  && inputToPipeline.getListSize() > 0)
-		{
-			Newmain.dumpAllMSHRs();
-			Newmain.dumpAllEventQueues();
-			System.out.println(core.getCore_number() + " not done anything for long  time " + notDoneAnyThing + "\tinputToPipeline size = "+ inputToPipeline.getListSize() + "\tstallfFetch = " + this.core.getExecutionEngineIn().getStallFetch());
-			this.core.getExecutionEngineIn().dumpAllLatches();
-			System.out.println("no of insts executed = " + Newmain.getNoOfInstsExecuted());
-			System.exit(1);
-		}
-		else if (inputToPipeline.getListSize() == 0)
-		{
-			notDoneAnyThing = 0;
-		}
-			if(this.stall>0){
-				this.stall--;
+			else
+			{
+				inorderPipeline.getIfIdLatch().setInstruction(ins);
+				this.fetchFillCount--;			
+				this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
 			}
+		}
+		
+		if(this.stall>0)
+		{
+			this.stall--;
+		}
 	}
 	
 	public int getStall(){
@@ -191,7 +193,6 @@ public class FetchUnitIn extends SimulationElement{
 				this.fetchBufferStatus[i]=true;
 			}
 		}
-		//System.out.println("recevied : " + requestedAddress + " : " + GlobalClock.getCurrentTime());
 	}
 
 }

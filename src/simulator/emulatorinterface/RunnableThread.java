@@ -167,7 +167,6 @@ public class RunnableThread implements Encoding {
 			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
 			}
-			pipelineInterfaces[0].getCore().getExecutionEngineIn().coreMemorySystem.getL1Cache().nextLevel.pullFromUpperMshrs();
 			GlobalClock.incrementClock();
 		}
 		if(prevTotalInstructions == -1){
@@ -264,7 +263,6 @@ public class RunnableThread implements Encoding {
 				for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
 						pipelineInterfaces[tidEmu].oneCycleOperation();
 				}
-				pipelineInterfaces[0].getCore().getExecutionEngineIn().coreMemorySystem.getL1Cache().nextLevel.pullFromUpperMshrs();
 				GlobalClock.incrementClock();
 				if(SimulationConfig.powerTrace==1){
 					for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
