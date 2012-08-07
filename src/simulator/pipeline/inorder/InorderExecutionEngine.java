@@ -1,19 +1,18 @@
 package pipeline.inorder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import pipeline.outoforder.FunctionalUnitSet;
-
-import config.SystemConfig;
 import memorysystem.CoreMemorySystem;
+import pipeline.ExecutionEngine;
+import pipeline.outoforder.FunctionalUnitSet;
 import generic.Core;
 import generic.GlobalClock;
+import generic.InstructionLinkedList;
 import generic.Operand;
 import generic.OperationType;
 import generic.Statistics;
 
-public class ExecutionEngineIn {
+public class InorderExecutionEngine extends ExecutionEngine{
 	
 	Core core;
 	
@@ -26,7 +25,7 @@ public class ExecutionEngineIn {
 	private WriteBackUnitIn writeBackUnitIn;
 	private boolean executionComplete;
 	private boolean fetchComplete;
-	public InorderCoreMemorySystem coreMemorySystem;
+	public InorderCoreMemorySystem inorderCoreMemorySystem;
 	private int noOfMemRequests;
 	private int noOfLd;
 	private int noOfSt;
@@ -53,15 +52,18 @@ public class ExecutionEngineIn {
 	public int noOfOutstandingLoads = 0;
 
 
-	public ExecutionEngineIn(Core _core, int numPipelines){
+	public InorderExecutionEngine(Core _core, int numPipelines){
+		
+		super();
+		
 		this.core = _core;
 
-		this.setFetchUnitIn(new FetchUnitIn(core,core.getEventQueue()));
-		this.setDecodeUnitIn(new DecodeUnitIn(core));
+		this.setFetchUnitIn(new FetchUnitIn(core,core.getEventQueue(),this));
+		this.setDecodeUnitIn(new DecodeUnitIn(core,this));
 		this.setRegFileIn(new RegFileIn(core));
-		this.setExecUnitIn(new ExecUnitIn(core));
-		this.setMemUnitIn(new MemUnitIn(core));
-		this.setWriteBackUnitIn(new WriteBackUnitIn(core));
+		this.setExecUnitIn(new ExecUnitIn(core,this));
+		this.setMemUnitIn(new MemUnitIn(core,this));
+		this.setWriteBackUnitIn(new WriteBackUnitIn(core,this));
 		this.executionComplete=false;
 		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),core.getAllLatencies());
 		memStall=0;
@@ -176,26 +178,26 @@ public class ExecutionEngineIn {
 		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
 		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
 		
-		System.out.println("Mem Stalls = "+this.core.getExecutionEngineIn().getMemStall());
-		System.out.println("Data Hazard Stalls = "+this.core.getExecutionEngineIn().getDataHazardStall());
-		System.out.println("Instruction Mem Stalls = "+this.core.getExecutionEngineIn().getInstructionMemStall());
+		System.out.println("Mem Stalls = "+getMemStall());
+		System.out.println("Data Hazard Stalls = "+getDataHazardStall());
+		System.out.println("Instruction Mem Stalls = "+getInstructionMemStall());
 
 	}
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(core.getExecutionEngineIn().getNoOfMemRequests(), core.getCore_number());
-		Statistics.setNoOfLoads(core.getExecutionEngineIn().getNoOfLd(), core.getCore_number());
-		Statistics.setNoOfStores(core.getExecutionEngineIn().getNoOfSt(), core.getCore_number());
-		Statistics.setNoOfTLBRequests(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(core.getExecutionEngineIn().coreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
-		Statistics.setNoOfL1Requests(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(core.getExecutionEngineIn().coreMemorySystem.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(core.getExecutionEngineIn().coreMemorySystem.getiCache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfIHits(core.getExecutionEngineIn().coreMemorySystem.getiCache().hits, core.getCore_number());
-		Statistics.setNoOfIMisses(core.getExecutionEngineIn().coreMemorySystem.getiCache().misses, core.getCore_number());
+		Statistics.setNoOfMemRequests(getNoOfMemRequests(), core.getCore_number());
+		Statistics.setNoOfLoads(getNoOfLd(), core.getCore_number());
+		Statistics.setNoOfStores(getNoOfSt(), core.getCore_number());
+		Statistics.setNoOfTLBRequests(inorderCoreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(inorderCoreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(inorderCoreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(inorderCoreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(inorderCoreMemorySystem.getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(inorderCoreMemorySystem.getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfIRequests(inorderCoreMemorySystem.getiCache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfIHits(inorderCoreMemorySystem.getiCache().hits, core.getCore_number());
+		Statistics.setNoOfIMisses(inorderCoreMemorySystem.getiCache().misses, core.getCore_number());
 	}
 
 	public void setPerCorePowerStatistics(){
@@ -347,7 +349,24 @@ public class ExecutionEngineIn {
 			}
 		}
 	}
+
+	@Override
+	public void setInputToPipeline(InstructionLinkedList[] inpList) {
+		
+		fetchUnitIn.setInputToPipeline(inpList[0]);
+		
+	}
+
+	public void setCoreMemorySystem(CoreMemorySystem coreMemorySystem) {
+		this.coreMemorySystem = coreMemorySystem;
+		this.inorderCoreMemorySystem = (InorderCoreMemorySystem)coreMemorySystem;
+	}
 	
+	
+	
+	/*
+	 * debug helper functions
+	 */
 	public void dumpAllLatches()
 	{
 		System.out.println("ifid stall = " + ifIdLatch[0].getStallCount());

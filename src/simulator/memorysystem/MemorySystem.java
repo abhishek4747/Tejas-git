@@ -136,11 +136,10 @@ public class MemorySystem
 			if(cores[i].isPipelineInorder)
 			{
 				coreMemSys = new InorderCoreMemorySystem(cores[i]);
-				cores[i].getExecutionEngineIn().coreMemorySystem=(InorderCoreMemorySystem)coreMemSys;
 			}
 			else if (cores[i].isPipelineStatistical)
 			{
-				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
+				//cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
 			}
 			else if(cores[i].isPipelineMultiIssueInorder)
 			{
@@ -148,7 +147,9 @@ public class MemorySystem
 			}
 			else
 			{
-				cores[i].getExecEngine().coreMemSys = coreMemSys;
+				//TODO
+				//coreMemSys = new OutOrderCoreMemorySystem(cores[i]);
+				//TODO set corememsys of cores[i] to the one jus created in outordercorememsys constructor
 			}
 			
 			//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
@@ -302,11 +303,11 @@ public class MemorySystem
 		{
 			System.out.println(
 					"LSQ[" + i + "] Loads : "
-					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfLd 
+					+ cores[i].getExecEngine().getCoreMemorySystem().lsqueue.NoOfLd 
 					+ "\t ; LSQ[" + i + "] Stores : " 
-					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfSt
+					+ cores[i].getExecEngine().getCoreMemorySystem().lsqueue.NoOfSt
 					+ "\t ; LSQ[" + i + "] Value Forwards : " 
-					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfForwards);
+					+ cores[i].getExecEngine().getCoreMemorySystem().lsqueue.NoOfForwards);
 		}
 		
 		System.out.println(" ");
@@ -315,9 +316,9 @@ public class MemorySystem
 		{
 			System.out.println(
 					"TLB[" + i + "] Hits : " 
-					+ cores[i].getExecEngine().coreMemSys.TLBuffer.tlbHits 
+					+ cores[i].getExecEngine().getCoreMemorySystem().TLBuffer.tlbHits 
 					+ "\t ; TLB[" + i + "] misses : " 
-					+ cores[i].getExecEngine().coreMemSys.TLBuffer.tlbMisses);
+					+ cores[i].getExecEngine().getCoreMemorySystem().TLBuffer.tlbMisses);
 		}
 		
 		System.out.println(" ");
@@ -326,9 +327,9 @@ public class MemorySystem
 		{
 			System.out.println(
 					"L1[" + i + "] Hits : " 
-					+ cores[i].getExecEngine().coreMemSys.l1Cache.hits 
+					+ cores[i].getExecEngine().getCoreMemorySystem().l1Cache.hits 
 					+ "\t ; L1[" + i + "] misses : " 
-					+ cores[i].getExecEngine().coreMemSys.l1Cache.misses);
+					+ cores[i].getExecEngine().getCoreMemorySystem().l1Cache.misses);
 		}
 		
 		System.out.println(" ");

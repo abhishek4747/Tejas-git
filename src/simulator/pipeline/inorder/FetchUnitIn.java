@@ -16,6 +16,7 @@ import generic.SimulationElement;
 public class FetchUnitIn extends SimulationElement
 {
 	Core core;
+	InorderExecutionEngine containingExecutionEngine;
 	Instruction fetchBuffer[];
 	public int fetchBufferCapacity;
 	private int fetchFillCount;	//Number of instructions in the fetch buffer
@@ -30,10 +31,11 @@ public class FetchUnitIn extends SimulationElement
 	private boolean fetchBufferStatus[];
 
 
-	public FetchUnitIn(Core core, EventQueue eventQueue)
+	public FetchUnitIn(Core core, EventQueue eventQueue, InorderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
+		this.containingExecutionEngine = execEngine;
 		this.fetchBufferCapacity=8;
 		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
@@ -61,7 +63,7 @@ public class FetchUnitIn extends SimulationElement
 		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity
 				;i = (i+1)%this.fetchBufferCapacity){
 			
-			if( this.core.getExecutionEngineIn().coreMemorySystem.getiMSHR().isFull() ){
+			if( containingExecutionEngine.inorderCoreMemorySystem.getiMSHR().isFull() ){
 				//System.err.println("Exiting due to size exceed");
 				break;
 			}
@@ -72,7 +74,7 @@ public class FetchUnitIn extends SimulationElement
 			
 			if(newInstruction.getOperationType() == OperationType.inValid)
 			{
-				core.getExecutionEngineIn().setFetchComplete(true);
+				containingExecutionEngine.setFetchComplete(true);
 				this.fetchBuffer[i] = newInstruction;
 				this.fetchBufferStatus[i]=true;
 				this.fetchFillCount++;
@@ -90,7 +92,7 @@ public class FetchUnitIn extends SimulationElement
 				else
 				{
 					this.fetchBufferStatus[i]=false;
-					this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToInstrCache(
+					containingExecutionEngine.inorderCoreMemorySystem.issueRequestToInstrCache(
 							newInstruction.getRISCProgramCounter(),
 							inorderPipeline);
 				}
@@ -100,18 +102,18 @@ public class FetchUnitIn extends SimulationElement
 	
 	public void performFetch(InorderPipeline inorderPipeline)
 	{		
-		if(!core.getExecutionEngineIn().getFetchComplete())
+		if(!containingExecutionEngine.getFetchComplete())
 			fillFetchBuffer(inorderPipeline);
 		
 		Instruction ins;
 		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();
 			
 		if(!this.fetchBufferStatus[this.fetchBufferIndex])
-			this.core.getExecutionEngineIn().incrementInstructionMemStall(1); 
+			containingExecutionEngine.incrementInstructionMemStall(1); 
 		
 		if(!this.sleep && this.fetchFillCount > 0 &&
 				this.stall==0 &&
-				this.core.getExecutionEngineIn().getStallFetch()==0 
+				containingExecutionEngine.getStallFetch()==0 
 				&& this.fetchBufferStatus[this.fetchBufferIndex])
 		{
 			ins = this.fetchBuffer[this.fetchBufferIndex];

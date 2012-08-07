@@ -25,7 +25,7 @@ import generic.Statistics;
 public class FetchLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	ICacheBuffer iCacheBuffer;
 	Instruction[] fetchBuffer;
 	int fetchWidth;
@@ -35,7 +35,7 @@ public class FetchLogic extends SimulationElement {
 	Hashtable<Long,OMREntry> missStatusHoldingRegister;
 
 
-	public FetchLogic(Core core, ExecutionEngine execEngine)
+	public FetchLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;

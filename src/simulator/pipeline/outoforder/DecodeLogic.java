@@ -15,12 +15,12 @@ import generic.SimulationElement;
 public class DecodeLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	Instruction[] fetchBuffer;
 	ReorderBufferEntry[] decodeBuffer;
 	int decodeWidth;
 	
-	public DecodeLogic(Core core, ExecutionEngine execEngine)
+	public DecodeLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;

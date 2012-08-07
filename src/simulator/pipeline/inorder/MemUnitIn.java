@@ -16,23 +16,16 @@ import generic.SimulationElement;
 import generic.OMREntry;
 
 public class MemUnitIn extends SimulationElement{
+	
 	Core core;
+	InorderExecutionEngine containingExecutionEngine;
 	EventQueue eventQueue;
-	Hashtable<Long,OMREntry> missStatusHoldingRegister;
-	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
-		return missStatusHoldingRegister;
-	}
 
-	public void setMissStatusHoldingRegister(
-			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
-		this.missStatusHoldingRegister = missStatusHoldingRegister;
-	}
-
-	public MemUnitIn(Core core) {
+	public MemUnitIn(Core core, InorderExecutionEngine execEngine) {
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.eventQueue = core.getEventQueue();
-		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
+		containingExecutionEngine = execEngine;
 	}
 	
 	public void performMemEvent(InorderPipeline inorderPipeline)
@@ -51,9 +44,9 @@ public class MemUnitIn extends SimulationElement{
 		
 		if(!exMemLatch.getMemDone())
 		{
-			this.core.getExecutionEngineIn().incrementMemStall(1);
-			core.getExecutionEngineIn().setStallFetch(1);
-			core.getExecutionEngineIn().setStallPipelinesMem(inorderPipeline.getId(), 1);
+			this.containingExecutionEngine.incrementMemStall(1);
+			containingExecutionEngine.setStallFetch(1);
+			containingExecutionEngine.setStallPipelinesMem(inorderPipeline.getId(), 1);
 			idExLatch.setStallCount(1);
 			return;
 		}
@@ -63,7 +56,7 @@ public class MemUnitIn extends SimulationElement{
 			{
 				if(ins.getOperationType()==OperationType.load)
 				{
-					this.core.getExecutionEngineIn().getDestRegisters().remove(ins.getDestinationOperand());
+					this.containingExecutionEngine.getDestRegisters().remove(ins.getDestinationOperand());
 				}
 				
 				memWbLatch.setInstruction(ins);
@@ -80,12 +73,12 @@ public class MemUnitIn extends SimulationElement{
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		core.getExecutionEngineIn().setMemDone(((AddressCarryingEvent)event).getAddress(),true);
+		containingExecutionEngine.setMemDone(((AddressCarryingEvent)event).getAddress(),true);
 	}
 	
 	public void processCompletionOfMemRequest(long requestedAddress)
 	{
-		core.getExecutionEngineIn().setMemDone(requestedAddress,true);
-		core.getExecutionEngineIn().noOfOutstandingLoads--;
+		containingExecutionEngine.setMemDone(requestedAddress,true);
+		containingExecutionEngine.noOfOutstandingLoads--;
 	}
 }

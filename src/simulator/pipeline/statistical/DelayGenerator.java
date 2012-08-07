@@ -40,7 +40,7 @@ public class DelayGenerator
 	{
 		insCountIn++;
 		//TODO Schedule LD/ST instructions at a later point of time, based on a random number
-		LSQ lsqueue = core.getStatisticalPipeline().coreMemSys.getLsqueue();
+		LSQ lsqueue = core.getExecEngine().getCoreMemorySystem().getLsqueue();
 		
 		boolean isLoad;
 		if (instruction.getOperationType() == OperationType.load)

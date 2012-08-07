@@ -19,11 +19,14 @@ import generic.SimulationElement;
 public class ExecUnitIn extends SimulationElement{
 	Core core;
 	EventQueue eventQueue;
-	public ExecUnitIn(Core core)
+	InorderExecutionEngine containingExecutionEngine;
+	
+	public ExecUnitIn(Core core, InorderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.eventQueue = core.getEventQueue();
+		containingExecutionEngine = execEngine;
 	}
 	
 	public void execute(InorderPipeline inorderPipeline)
@@ -52,12 +55,12 @@ public class ExecUnitIn extends SimulationElement{
 						&& OpTypeToFUTypeMapping.getFUType(ins.getOperationType())!=FunctionalUnitType.inValid)
 				{
 								
-					FURequest = this.core.getExecutionEngineIn().getFunctionalUnitSet().requestFU(
+					FURequest = containingExecutionEngine.getFunctionalUnitSet().requestFU(
 						OpTypeToFUTypeMapping.getFUType(ins.getOperationType()),
 						currentTime,
 						core.getStepSize() );
 				
-					lat = this.core.getExecutionEngineIn().getFunctionalUnitSet().getFULatency(
+					lat = containingExecutionEngine.getFunctionalUnitSet().getFULatency(
 							OpTypeToFUTypeMapping.getFUType(ins.getOperationType()));
 					
 					if(FURequest >0)
@@ -69,8 +72,8 @@ public class ExecUnitIn extends SimulationElement{
 						//Also stall the decode of this pipeline for one cycle 
 						//(later cycle stalls will eventually propagate from execute stage itself)
 						int delayCycles = (int)(FURequest-currentTime)/core.getStepSize();
-						this.core.getExecutionEngineIn().setStallFetch(delayCycles);
-						this.core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(), delayCycles);
+						containingExecutionEngine.setStallFetch(delayCycles);
+						containingExecutionEngine.setStallPipelinesExecute(inorderPipeline.getId(), delayCycles);
 						idExLatch.setStallCount(delayCycles-1);
 						ifIdLatch.setStallCount(1);
 						return;
@@ -79,8 +82,8 @@ public class ExecUnitIn extends SimulationElement{
 					if(lat>1)
 					{
 						//If it is a multicycle operation, stall appropriate pipelines for rest of the cycles
-						this.core.getExecutionEngineIn().setStallFetch((int)lat-1);
-						core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(), (int)lat-1);
+						containingExecutionEngine.setStallFetch((int)lat-1);
+						containingExecutionEngine.setStallPipelinesExecute(inorderPipeline.getId(), (int)lat-1);
 						//Also stall the decode of this pipeline
 						ifIdLatch.setStallCount((int)lat-1);
 					}
@@ -89,13 +92,13 @@ public class ExecUnitIn extends SimulationElement{
 				boolean memReqIssued = true;	//if corememsys' mshr is full, issue not possible; pipeline's preceding stages must stall
 				if(ins.getOperationType()==OperationType.load)
 				{
-					core.getExecutionEngineIn().updateNoOfLd(1);
-					core.getExecutionEngineIn().updateNoOfMemRequests(1);
+					containingExecutionEngine.updateNoOfLd(1);
+					containingExecutionEngine.updateNoOfMemRequests(1);
 									
 					//Schedule a mem read event now so that it can be completed in the mem stage
 					if(!SimulationConfig.detachMemSys)
 					{		
-						memReqIssued = this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Read,
 								ins.getSourceOperand1().getValue(),
 								inorderPipeline);
@@ -103,14 +106,14 @@ public class ExecUnitIn extends SimulationElement{
 				}
 				else if(ins.getOperationType()==OperationType.store)
 				{
-					core.getExecutionEngineIn().updateNoOfSt(1);
-					core.getExecutionEngineIn().updateNoOfMemRequests(1);
+					containingExecutionEngine.updateNoOfSt(1);
+					containingExecutionEngine.updateNoOfMemRequests(1);
 					exMemLatch.setMemDone(true); //FIXME Pipeline doesn't wait for the store to complete! 
 					
 					//Schedule a mem read event now so that it can be completed in the mem stage
 					if(!SimulationConfig.detachMemSys)
 					{
-						memReqIssued = this.core.getExecutionEngineIn().coreMemorySystem.issueRequestToL1Cache(
+						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Write,
 								ins.getSourceOperand1().getValue(),
 								inorderPipeline);
@@ -128,7 +131,7 @@ public class ExecUnitIn extends SimulationElement{
 						ins.getOperationType()==OperationType.integerDiv ||
 						ins.getOperationType()==OperationType.integerMul) 
 				{
-					this.core.getExecutionEngineIn().getDestRegisters().remove(ins.getDestinationOperand());
+					containingExecutionEngine.getDestRegisters().remove(ins.getDestinationOperand());
 				}	
 				
 				if(memReqIssued)
@@ -143,7 +146,7 @@ public class ExecUnitIn extends SimulationElement{
 					if(ins.getOperationType() == OperationType.load)
 					{
 						exMemLatch.setMemDone(false);
-						this.core.getExecutionEngineIn().noOfOutstandingLoads++;
+						containingExecutionEngine.noOfOutstandingLoads++;
 					}
 					
 					idExLatch.clear();
@@ -151,7 +154,7 @@ public class ExecUnitIn extends SimulationElement{
 				else
 				{
 					ifIdLatch.incrementStallCount(1);
-					this.core.getExecutionEngineIn().setStallFetch(1);
+					containingExecutionEngine.setStallFetch(1);
 				}
 
 			}

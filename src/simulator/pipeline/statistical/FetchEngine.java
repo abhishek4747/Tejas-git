@@ -93,7 +93,7 @@ public class FetchEngine extends SimulationElement
 						else if (newInstruction.getOperationType() == OperationType.load
 								|| newInstruction.getOperationType() == OperationType.store)
 						{
-							if (core.getStatisticalPipeline().coreMemSys.getLsqueue().isFull())
+							if (core.getExecEngine().getCoreMemorySystem().getLsqueue().isFull())
 								dontFetchMore = true;
 							else
 							{

@@ -270,14 +270,7 @@ public class Newmain {
 		//TODO wont work in case of multiple runnable threads
 		for(int i = SystemConfig.NoOfCores; i<IpcBase.EmuThreadsPerJavaThread; i++)
 		{
-			if (cores[i].isPipelineStatistical)
-				cores[i].getStatisticalPipeline().setExecutionComplete(true);
-			else if (cores[i].isPipelineInorder)
-				cores[i].getExecutionEngineIn().setExecutionComplete(true);
-			else if (cores[i].isPipelineMultiIssueInorder)
-				cores[i].getExecutionEngineIn().setExecutionComplete(true);
-			else
-				cores[i].getExecEngine().setExecutionComplete(true);
+			cores[i].getExecEngine().setExecutionComplete(true);
 		}
 		return cores;
 	}
@@ -308,7 +301,7 @@ public class Newmain {
 		CoreMemorySystem coreMemSys = null;
 		for(int i = 0; i < Newmain.cores.length; i++)
 		{
-			coreMemSys = Newmain.cores[i].getExecutionEngineIn().coreMemorySystem;
+			coreMemSys = Newmain.cores[i].getExecEngine().getCoreMemorySystem();
 			System.out.println("---------------------------------------------------------------------------");
 			System.out.println("CORE " + i);
 			System.out.println("coreMemSys");

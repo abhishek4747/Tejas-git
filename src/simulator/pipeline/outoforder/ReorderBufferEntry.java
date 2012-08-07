@@ -37,9 +37,9 @@ public class ReorderBufferEntry {
 	
 	int pos;
 	
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	
-	public ReorderBufferEntry(Core core, int pos, ExecutionEngine execEngine)
+	public ReorderBufferEntry(Core core, int pos, OutOrderExecutionEngine execEngine)
 	{
 		this.core = core;
 		this.pos = pos;

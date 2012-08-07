@@ -15,7 +15,7 @@ import generic.SimulationElement;
 public class RenameLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	ReorderBufferEntry[] decodeBuffer;
 	ReorderBufferEntry[] renameBuffer;
 	int decodeWidth;
@@ -25,7 +25,7 @@ public class RenameLogic extends SimulationElement {
 	ReorderBufferEntry reorderBufferEntry;
 	OperationType opType;
 	
-	public RenameLogic(Core core, ExecutionEngine execEngine)
+	public RenameLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;

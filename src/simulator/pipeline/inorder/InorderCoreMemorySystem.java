@@ -9,9 +9,13 @@ import memorysystem.CoreMemorySystem;
 
 public class InorderCoreMemorySystem extends CoreMemorySystem {
 	
+	InorderExecutionEngine containingExecEngine;
+	
 	public InorderCoreMemorySystem(Core core)
 	{
 		super(core);
+		core.getExecEngine().setCoreMemorySystem(this);
+		containingExecEngine = (InorderExecutionEngine)core.getExecEngine();
 	}
 	
 	//To issue the request directly to L1 cache
@@ -99,8 +103,8 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		int missPenalty=0;
 		if(!TLBHit){
 			missPenalty =TLBuffer.getMissPenalty();
-			this.core.getExecutionEngineIn().setStallFetch(missPenalty);
-			this.core.getExecutionEngineIn().setStallPipelinesExecute(inorderPipeline.getId(),missPenalty);
+			containingExecEngine.setStallFetch(missPenalty);
+			containingExecEngine.setStallPipelinesExecute(inorderPipeline.getId(),missPenalty);
 			inorderPipeline.getIfIdLatch().incrementStallCount(missPenalty);
 		}
 		return missPenalty;
@@ -118,7 +122,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		if(memResponse.getRequestingElement() == iCache)
 		{
 			iMissStatusHoldingRegister.removeRequests(address);
-			core.getExecutionEngineIn().getFetchUnitIn().processCompletionOfMemRequest(address);
+			containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);
 		}
 		
 		//if response comes from l1Cache, inform memunit
@@ -126,7 +130,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		{
 			//TODO currently handling only reads
 			L1MissStatusHoldingRegister.removeRequests(address);
-			core.getExecutionEngineIn().getMemUnitIn().processCompletionOfMemRequest(address);
+			containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
 		}
 		
 		else

@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.Hashtable;
-import java.util.Iterator;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
@@ -335,10 +333,6 @@ public class RunnableThread implements Encoding {
 			dataRead += threadParams[i].totalRead;
 			totNumIns += numInstructions[i];
 		}
-		
-		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
-			System.out.println("core " + tidEmu + " = " + pipelineInterfaces[tidEmu].getCore().getExecutionEngineIn().noOfOutstandingLoads);
-	}
 		
 		long timeTaken = System.currentTimeMillis() - Newmain.start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20

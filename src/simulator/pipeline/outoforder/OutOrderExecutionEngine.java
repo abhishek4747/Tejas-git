@@ -1,16 +1,16 @@
 package pipeline.outoforder;
 
+import pipeline.ExecutionEngine;
 import memorysystem.CoreMemorySystem;
 import generic.Core;
 import generic.Instruction;
 import generic.InstructionLinkedList;
-import generic.Statistics;
 
 /**
  * execution engine comprises of : decode logic, ROB, instruction window, register files,
  * rename tables and functional units
  */
-public class ExecutionEngine {
+public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	//the containing core
 	private Core core;
@@ -38,7 +38,7 @@ public class ExecutionEngine {
 	private FunctionalUnitSet functionalUnitSet;
 	
 	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
-	public CoreMemorySystem coreMemSys;
+	//public CoreMemorySystem coreMemSys;
 	
 	//flags
 	private boolean toStall1;					//if IW full
@@ -59,7 +59,7 @@ public class ExecutionEngine {
 	private boolean toStall5;					//if branch mis-predicted
 												//fetcher stall
 
-	private boolean isExecutionComplete;		//TRUE indicates end of simulation
+	//private boolean isExecutionComplete;		//TRUE indicates end of simulation
 	private boolean isInputPipeEmpty[];
 	private boolean allPipesEmpty;
 
@@ -68,8 +68,10 @@ public class ExecutionEngine {
 	public long prevCycles;
 	
 
-	public ExecutionEngine(Core containingCore)
+	public OutOrderExecutionEngine(Core containingCore)
 	{
+		super();
+		
 		core = containingCore;
 		
 		
@@ -283,8 +285,14 @@ public class ExecutionEngine {
 	}
 
 	public long getInstructionMemStall() {
-		// TODO Auto-generated method stub
 		return instructionMemStall;
+	}
+
+	@Override
+	public void setInputToPipeline(InstructionLinkedList[] inpList) {
+		
+		fetcher.setInputToPipeline(inpList);
+		
 	}
 	
 }

@@ -27,7 +27,7 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			return;
 		}
 		
-		ExecutionEngine execEngine;
+		OutOrderExecutionEngine execEngine;
 		
 		execEngine = core.getExecEngine();
 		

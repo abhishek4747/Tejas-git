@@ -15,6 +15,7 @@ public class StatisticalPipeline
 {	
 	//the containing core
 	private Core core;
+	private StatisticalExecutionEngine containingExecutionEngine;
 	
 	//components of the execution engine
 	private FetchEngine fetcher;
@@ -26,20 +27,18 @@ public class StatisticalPipeline
 	private boolean toStall;					//if IW full
 												//fetcher, decoder and renamer stall
 
-	private boolean isExecutionComplete;		//TRUE indicates end of simulation
 	private boolean isInputPipeEmpty[];
 	private boolean allPipesEmpty;
 	
 
-	public StatisticalPipeline(Core containingCore)
+	public StatisticalPipeline(Core containingCore, StatisticalExecutionEngine execEngine)
 	{
 		core = containingCore;
-				
+		containingExecutionEngine = execEngine;
 //		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchEngine(core, this);
 		
 		toStall = false;
-		isExecutionComplete = false;
 		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
 		for (int i = 0; i < isInputPipeEmpty.length; i++)
 			isInputPipeEmpty[i] = false;
@@ -51,7 +50,7 @@ public class StatisticalPipeline
 		coreMemSys.getLsqueue().processROBCommitForStatisticalPipeline(core.getEventQueue());
 		if(this.isAllPipesEmpty() && coreMemSys.getLsqueue().isEmpty())
 		{
-			this.setExecutionComplete(true);
+			containingExecutionEngine.setExecutionComplete(true);
 			
 			setTimingStatistics();			
 			setPerCoreMemorySystemStatistics();
@@ -106,16 +105,6 @@ public class StatisticalPipeline
 
 	protected void setToStall(boolean toStall) {
 		this.toStall = toStall;
-	}
-
-
-	public boolean isExecutionComplete() {
-		return isExecutionComplete;
-	}
-
-
-	public void setExecutionComplete(boolean isExecutionComplete) {
-		this.isExecutionComplete = isExecutionComplete;
 	}
 
 

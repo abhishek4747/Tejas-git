@@ -11,13 +11,15 @@ import generic.SimulationElement;
 public class WriteBackUnitIn extends SimulationElement{
 	
 	Core core;
+	InorderExecutionEngine containingExecutionEngine;
 	int j;
 	
-	public WriteBackUnitIn(Core core)
+	public WriteBackUnitIn(Core core, InorderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, core.getNoOfRegFilePorts(), -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.j=0;
+		containingExecutionEngine = execEngine;
 	}
 	
 	public void performWriteBack(InorderPipeline inorderPipeline)
@@ -44,10 +46,10 @@ public class WriteBackUnitIn extends SimulationElement{
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
 			{
 				//FIXME the following does not set the statistics. Check!
-				core.getExecutionEngineIn().setExecutionComplete(true);
-				this.core.getExecutionEngineIn().setTimingStatistics();			
-				this.core.getExecutionEngineIn().setPerCoreMemorySystemStatistics();
-				this.core.getExecutionEngineIn().setPerCorePowerStatistics();
+				containingExecutionEngine.setExecutionComplete(true);
+				containingExecutionEngine.setTimingStatistics();			
+				containingExecutionEngine.setPerCoreMemorySystemStatistics();
+				containingExecutionEngine.setPerCorePowerStatistics();
 				
 			}
 			else

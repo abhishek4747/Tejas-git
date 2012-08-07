@@ -20,8 +20,9 @@ import generic.SimulationElement;
 public class DecodeUnitIn extends SimulationElement{
 	
 	Core core;
+	InorderExecutionEngine containingExecutionEngine;
 	
-	public DecodeUnitIn(Core core)
+	public DecodeUnitIn(Core core, InorderExecutionEngine execEngine)
 	{
 		/*
 		 * numPorts and occupancy = -1 => infinite ports 
@@ -29,7 +30,7 @@ public class DecodeUnitIn extends SimulationElement{
 		 * TODO - take it from core.*/
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
-		
+		containingExecutionEngine = execEngine;
 	}
 
 	
@@ -51,9 +52,9 @@ public class DecodeUnitIn extends SimulationElement{
 			{
 				if(checkDataHazard(ins))
 				{
-					this.core.getExecutionEngineIn().setStallFetch(1);
-					this.core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId(),1);
-					this.core.getExecutionEngineIn().incrementDataHazardStall(1);
+					containingExecutionEngine.setStallFetch(1);
+					containingExecutionEngine.setStallPipelinesDecode(inorderPipeline.getId(),1);
+					containingExecutionEngine.incrementDataHazardStall(1);
 					return;
 				}
 				
@@ -97,7 +98,7 @@ public class DecodeUnitIn extends SimulationElement{
 							ins.getOperationType()==OperationType.integerMul ||
 							ins.getOperationType()==OperationType.load)
 					{
-						this.core.getExecutionEngineIn().getDestRegisters().add(ins.getDestinationOperand());
+						containingExecutionEngine.getDestRegisters().add(ins.getDestinationOperand());
 					}
 				}
 				
@@ -111,8 +112,8 @@ public class DecodeUnitIn extends SimulationElement{
 						//stall pipelines for appropriate cycles
 						//TODO correct the following:
 //										core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
-						core.getExecutionEngineIn().setStallPipelinesDecode(inorderPipeline.getId(), core.getBranchMispredictionPenalty());
-						core.getExecutionEngineIn().setStallFetch(core.getBranchMispredictionPenalty());
+						containingExecutionEngine.setStallPipelinesDecode(inorderPipeline.getId(), core.getBranchMispredictionPenalty());
+						containingExecutionEngine.setStallFetch(core.getBranchMispredictionPenalty());
 					}
 	
 					core.getBranchPredictor().Train(
@@ -134,7 +135,7 @@ public class DecodeUnitIn extends SimulationElement{
 
 	private boolean checkDataHazard(Instruction ins)
 	{
-		ArrayList<Operand> destRegisters = this.core.getExecutionEngineIn().getDestRegisters();
+		ArrayList<Operand> destRegisters = containingExecutionEngine.getDestRegisters();
 		for(Operand e: destRegisters)
 		{
 			if(ins.getSourceOperand1()!=null &&

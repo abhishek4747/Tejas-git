@@ -29,7 +29,7 @@ public class ReorderBuffer extends SimulationElement{
 	
 	int retireWidth;
 	
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	
 	int stall1Count;
 	int stall2Count;
@@ -41,7 +41,7 @@ public class ReorderBuffer extends SimulationElement{
 
 	private int j;
 
-	public ReorderBuffer(Core _core, ExecutionEngine execEngine)
+	public ReorderBuffer(Core _core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, _core.getEventQueue(), -1, -1);
 		core = _core;

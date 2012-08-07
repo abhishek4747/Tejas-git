@@ -20,7 +20,7 @@ public class StatisticalPipelineInterface implements pipeline.PipelineInterface 
 		
 		StatisticalPipeline statPipeline;
 		
-		statPipeline = core.getStatisticalPipeline();
+		statPipeline = ((StatisticalExecutionEngine)core.getExecEngine()).getStatisticalPipeline();
 		if (!statPipeline.isExecutionComplete())
 		{
 			statPipeline.performCommits();
@@ -52,7 +52,7 @@ public class StatisticalPipelineInterface implements pipeline.PipelineInterface 
 		/*if (core.isPipelineStatistical)
             return core.getStatisticalPipeline().isExecutionComplete();
         else*/
-        return core.getStatisticalPipeline().isExecutionComplete();
+        return core.getExecEngine().isExecutionComplete();
 		
 		
 	}
