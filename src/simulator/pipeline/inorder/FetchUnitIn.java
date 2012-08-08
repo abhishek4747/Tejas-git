@@ -162,6 +162,8 @@ public class FetchUnitIn extends SimulationElement{
 						bar.incrementThreads();
 						if(bar.timeToCross())
 						{
+							ifIdLatch.setInstruction(null);
+							sleepThePipeline();
 							for(int i=0; i<bar.getNumThreads(); i++ ){
 								this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
 								//System.out.println("Resuming thread number " + bar.blockedThreads.elementAt(i));
