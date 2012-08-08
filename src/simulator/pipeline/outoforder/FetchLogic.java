@@ -1,26 +1,17 @@
 package pipeline.outoforder;
 
-import java.util.Hashtable;
-
 import config.SimulationConfig;
-import config.SystemConfig;
 import emulatorinterface.Newmain;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.CoreMemorySystem;
-import memorysystem.InstructionCache;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.ExecCompleteEvent;
-import generic.GlobalClock;
 import generic.Instruction;
 import generic.InstructionLinkedList;
-import generic.OMREntry;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
-import generic.Statistics;
 
 public class FetchLogic extends SimulationElement {
 	
@@ -31,8 +22,6 @@ public class FetchLogic extends SimulationElement {
 	int fetchWidth;
 	int inputPipeToReadNext;
 	InstructionLinkedList[] inputToPipeline;
-	CoreMemorySystem coreMemSys;
-	Hashtable<Long,OMREntry> missStatusHoldingRegister;
 
 
 	public FetchLogic(Core core, OutOrderExecutionEngine execEngine)
@@ -44,8 +33,6 @@ public class FetchLogic extends SimulationElement {
 		fetchBuffer = execEngine.getFetchBuffer();
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
-		coreMemSys = execEngine.coreMemSys;
-		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
 
 	}
 	
@@ -55,14 +42,7 @@ public class FetchLogic extends SimulationElement {
 	 * else
 	 * 		stall fetch
 	 */
-	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
-		return missStatusHoldingRegister;
-	}
-
-	public void setMissStatusHoldingRegister(
-			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
-		this.missStatusHoldingRegister = missStatusHoldingRegister;
-	}	
+		
 	public void performFetch()
 	{
 		Instruction newInstruction;
@@ -94,13 +74,13 @@ public class FetchLogic extends SimulationElement {
 				}
 			}
 			
-			if(!iCacheBuffer.isFull())
+			if(!iCacheBuffer.isFull() && !execEngine.getCoreMemorySystem().getiMSHR().isFull())
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 				//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
 				if(SimulationConfig.detachMemSys == false)
 				{
-						execEngine.coreMemSys.issueRequestToInstrCacheFromOutofOrder(this, newInstruction.getRISCProgramCounter(),this.core.getCore_number());
+						execEngine.getCoreMemorySystem().issueRequestToInstrCache(newInstruction.getRISCProgramCounter());
 				}
 				//System.out.println(core.getCoreMode() + " - no of insts  : " + noOfInstructionsThisEpoch);
 			}
@@ -140,10 +120,10 @@ public class FetchLogic extends SimulationElement {
 					int fetchBufferIndex = 0;
 					for(int i = 0; i < fetchWidth; i++)
 					{
-						if( this.core.getExecEngine().getFetcher().getMissStatusHoldingRegister().size() >= fetchWidth){
+						/*if( this.core.getExecEngine().getFetcher().getMissStatusHoldingRegister().size() >= fetchWidth){
 							System.out.println("Exiting due to size exceed");
 							break;
-						}
+						}*/
 						
 						newInstruction = iCacheBuffer.getNextInstruction();
 						if(newInstruction != null)
@@ -206,6 +186,11 @@ public class FetchLogic extends SimulationElement {
 		
 		iCacheBuffer.updateFetchComplete(fetchedPC);
 		
+	}
+	
+	public void processCompletionOfMemRequest(long address)
+	{
+		iCacheBuffer.updateFetchComplete(address);
 	}
 	
 	public InstructionLinkedList[] getInputToPipeline() {

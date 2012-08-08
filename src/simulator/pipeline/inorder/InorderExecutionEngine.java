@@ -31,7 +31,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	private int noOfSt;
 	private int memStall;
 	private int dataHazardStall;
-	private int InstructionMemStall;
 	public int l2memres;
 	public int oldl2req;
 	public int freshl2req;
@@ -68,7 +67,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),core.getAllLatencies());
 		memStall=0;
 		dataHazardStall=0;
-		InstructionMemStall=0;
 		
 		l2memres=0;
 		freshl2req=0;
@@ -251,16 +249,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 
 	public void incrementMemStall(int i) {
 		this.memStall += i;
-		
-	}
-
-	public int getInstructionMemStall() {
-		return InstructionMemStall;
-
-	}
-	
-	public void incrementInstructionMemStall(int i) {
-		this.InstructionMemStall += i;
 		
 	}
 	

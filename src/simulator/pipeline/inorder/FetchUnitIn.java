@@ -71,6 +71,12 @@ public class FetchUnitIn extends SimulationElement
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
 			if(newInstruction == null)
 				return;
+			/*if(newInstruction.getOperationType() == OperationType.store)
+			{
+				Newmain.instructionPool.returnObject(newInstruction);
+				i--;
+				continue;
+			}*/
 			
 			if(newInstruction.getOperationType() == OperationType.inValid)
 			{

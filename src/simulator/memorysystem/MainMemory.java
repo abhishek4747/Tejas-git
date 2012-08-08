@@ -4,6 +4,7 @@ import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
 import config.SystemConfig;
 import generic.EventQueue;
+import generic.PortType;
 import generic.SimulationElement;
 import generic.Core;
 import generic.Event;
@@ -21,6 +22,15 @@ public class MainMemory extends SimulationElement
 				);
 		this.nucaType = nucaType;
 		// TODO Auto-generated constructor stub
+	}
+	
+	public MainMemory() {
+		super(PortType.Unlimited,
+				-1, 
+				10,
+				250,
+				3600);
+		this.nucaType = NucaType.NONE;
 	}
 	
 	public void handleEvent(EventQueue eventQ, Event event)

@@ -210,6 +210,16 @@ public abstract class CoreMemorySystem extends SimulationElement
 			missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
 		}
 */	}
+	
+	public boolean isMshrFull()
+	{
+		if(L1MissStatusHoldingRegister.isFull() && iMissStatusHoldingRegister.isFull())
+		{
+			return true;
+		}
+		return false;
+	}
+	
 	public LSQ getLsqueue() {
 		return lsqueue;
 	}

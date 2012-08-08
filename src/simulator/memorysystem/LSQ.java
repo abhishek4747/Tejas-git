@@ -46,25 +46,15 @@ public class LSQ extends SimulationElement
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
 	
 	public static final int INVALID_INDEX = -1;
-	Hashtable<Long,OMREntry> missStatusHoldingRegister;
+	
 	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
 		this.containingMemSys = containingMemSys;
 		this.lsqSize = lsqSize;
 		curSize = 0;
-		lsqueue = new LSQEntry[lsqSize];	
-		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
+		lsqueue = new LSQEntry[lsqSize];
 
-	}
-
-	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
-		return missStatusHoldingRegister;
-	}
-
-	public void setMissStatusHoldingRegister(
-			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
-		this.missStatusHoldingRegister = missStatusHoldingRegister;
 	}
 
 	public LSQEntry addEntry(boolean isLoad, long address, ReorderBufferEntry robEntry) //To be accessed at the time of allocating the entry
@@ -98,7 +88,7 @@ public class LSQ extends SimulationElement
 			System.out.println(" Entry index and actual entry dont match : LOAD" + entry.getIndexInQ());
 		
 		entry.setValid(true);
-		boolean couldForward = loadResolve(entry.getIndexInQ(), entry, event);
+		boolean couldForward = loadResolve(entry.getIndexInQ(), entry);
 		if(couldForward) 
 		{
 			NoOfForwards++;
@@ -114,7 +104,7 @@ public class LSQ extends SimulationElement
 		return couldForward;
 	}
 
-	protected boolean loadResolve(int index, LSQEntry entry, Event event)
+	protected boolean loadResolve(int index, LSQEntry entry)
 	{
 		int tmpIndex;
 		

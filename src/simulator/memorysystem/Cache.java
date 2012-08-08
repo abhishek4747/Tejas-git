@@ -26,6 +26,7 @@ import power.Counters;
 import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.snoopyCoherence.BusController;
 import config.CacheConfig;
+import config.CacheConfig.WritePolicy;
 import misc.Util;
 import generic.*;
 
@@ -121,6 +122,57 @@ public class Cache extends SimulationElement
 			makeCache();
 			
 			missStatusHoldingRegister = new MissStatusHoldingRegister(blockSizeBits, cacheParameters.mshrSize);			
+			connectedMSHR = new ArrayList<MissStatusHoldingRegister>();
+			startIndexForPulling = 0;
+		}
+		
+		public Cache(
+				int size,
+				int associativity,
+				int blockSize,
+				WritePolicy writePolicy,
+				int mshrSize
+				)
+		{
+			super(PortType.FirstComeFirstServe,
+					2, 
+					2,
+					2,
+					3600);
+			
+			this.containingMemSys = containingMemSys;
+			
+			// set the parameters
+			this.blockSize = blockSize;
+			this.assoc = associativity;
+			this.size = size; // in kilobytes
+			this.blockSizeBits = Util.logbase2(blockSize);
+			this.assocBits = Util.logbase2(assoc);
+			this.numLines = getNumLines();
+			this.numLinesBits = Util.logbase2(numLines);
+			this.numSetsBits = numLinesBits - assocBits;
+	
+			this.writePolicy = writePolicy;
+			this.levelFromTop = CacheType.L1;
+			this.isLastLevel = true;
+			//this.nextLevelName = cacheParameters.getNextLevel();
+//			this.enforcesCoherence = cacheParameters.isEnforcesCoherence();
+			//this.coherence = cacheParameters.getCoherence();
+			//this.numberOfBuses = cacheParameters.getNumberOfBuses();
+			//if (this.coherence == CoherenceType.Snoopy)
+			//	busController = new BusController(prevLevel, this, numberOfBuses, this, cacheParameters.getBusOccupancy());
+			
+			
+			this.timestamp = 0;
+			this.numLinesMask = numLines - 1;
+			this.noOfRequests = 0;
+			this.hits = 0;
+			this.misses = 0;
+			this.evictions = 0;
+			// make the cache
+			makeCache();
+			
+			missStatusHoldingRegister = new MissStatusHoldingRegister(blockSizeBits, mshrSize);			
 			connectedMSHR = new ArrayList<MissStatusHoldingRegister>();
 			startIndexForPulling = 0;
 		}
@@ -434,6 +486,9 @@ public class Cache extends SimulationElement
 			
 			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(addr);
 			
+			misses += eventsToBeServed.size();			
+			noOfRequests += eventsToBeServed.size();
+			
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			if (evictedLine != null 
 			    && evictedLine.getState() == MESI.MODIFIED 
@@ -491,7 +546,9 @@ public class Cache extends SimulationElement
 		
 		private void processBlockAvailable(long address)
 		{
-			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(address); 
+			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(address);
+			hits += eventsToBeServed.size();
+			noOfRequests += eventsToBeServed.size();
 			sendResponseToWaitingEvent(eventsToBeServed);
 		}
 		
@@ -766,20 +823,11 @@ public class Cache extends SimulationElement
 	
 		public CacheLine processRequest(RequestType requestType, long addr)
 		{
-			noOfRequests++;
 			CacheLine ll = null;
 			if(requestType == RequestType.Cache_Read )  {
 				ll = this.read(addr);
 			} else if (requestType == RequestType.Cache_Write) {
 				ll = this.write(addr);
-			}
-			if(ll == null)
-			{
-				this.misses++;
-			} 
-			else 
-			{
-				this.hits++;				
 			}
 			return ll;
 		}

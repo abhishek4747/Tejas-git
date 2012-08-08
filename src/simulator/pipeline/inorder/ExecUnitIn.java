@@ -92,8 +92,8 @@ public class ExecUnitIn extends SimulationElement{
 				boolean memReqIssued = true;	//if corememsys' mshr is full, issue not possible; pipeline's preceding stages must stall
 				if(ins.getOperationType()==OperationType.load)
 				{
-					containingExecutionEngine.updateNoOfLd(1);
-					containingExecutionEngine.updateNoOfMemRequests(1);
+					//containingExecutionEngine.updateNoOfLd(1);
+					//containingExecutionEngine.updateNoOfMemRequests(1);
 									
 					//Schedule a mem read event now so that it can be completed in the mem stage
 					if(!SimulationConfig.detachMemSys)
@@ -106,8 +106,8 @@ public class ExecUnitIn extends SimulationElement{
 				}
 				else if(ins.getOperationType()==OperationType.store)
 				{
-					containingExecutionEngine.updateNoOfSt(1);
-					containingExecutionEngine.updateNoOfMemRequests(1);
+					//containingExecutionEngine.updateNoOfSt(1);
+					//containingExecutionEngine.updateNoOfMemRequests(1);
 					exMemLatch.setMemDone(true); //FIXME Pipeline doesn't wait for the store to complete! 
 					
 					//Schedule a mem read event now so that it can be completed in the mem stage
@@ -147,8 +147,14 @@ public class ExecUnitIn extends SimulationElement{
 					{
 						exMemLatch.setMemDone(false);
 						containingExecutionEngine.noOfOutstandingLoads++;
+						containingExecutionEngine.updateNoOfLd(1);
+						containingExecutionEngine.updateNoOfMemRequests(1);
 					}
-					
+					else if(ins.getOperationType() == OperationType.store)
+					{
+						containingExecutionEngine.updateNoOfSt(1);
+						containingExecutionEngine.updateNoOfMemRequests(1);
+					}
 					idExLatch.clear();
 				}
 				else

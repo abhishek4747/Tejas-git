@@ -1,7 +1,7 @@
 package pipeline.outoforder;
 
-import pipeline.ExecutionEngine;
 import memorysystem.CoreMemorySystem;
+import pipeline.ExecutionEngine;
 import generic.Core;
 import generic.Instruction;
 import generic.InstructionLinkedList;
@@ -37,6 +37,8 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	private RenameTable floatingPointRenameTable;
 	private FunctionalUnitSet functionalUnitSet;
 	
+	private OutOrderCoreMemorySystem outOrderCoreMemorySystem;
+	
 	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
 	//public CoreMemorySystem coreMemSys;
 	
@@ -62,8 +64,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	//private boolean isExecutionComplete;		//TRUE indicates end of simulation
 	private boolean isInputPipeEmpty[];
 	private boolean allPipesEmpty;
-
-	private long instructionMemStall;
 
 	public long prevCycles;
 	
@@ -109,10 +109,8 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		toStall3 = false;
 		toStall4 = false;
 		toStall5 = false;
-		isExecutionComplete = false;
 		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
 		allPipesEmpty = false;
-		instructionMemStall=0;
 		prevCycles=0;
 	}
 	
@@ -169,14 +167,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	public void setInputPipeEmpty(int threadIndex, boolean isInputPipeEmpty) {
 		this.isInputPipeEmpty[threadIndex] = isInputPipeEmpty;
-	}
-
-	public boolean isExecutionComplete() {
-		return isExecutionComplete;
-	}
-
-	public void setExecutionComplete(boolean isExecutionComplete) {
-		this.isExecutionComplete = isExecutionComplete;
 	}
 
 	public RegisterFile getMachineSpecificRegisterFile(int threadID) {
@@ -279,20 +269,21 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		return writeBackLogic;
 	}
 
-	public void incrementInstructionMemStall(int i) {
-		this.instructionMemStall += i;
-		
-	}
-
-	public long getInstructionMemStall() {
-		return instructionMemStall;
-	}
-
 	@Override
 	public void setInputToPipeline(InstructionLinkedList[] inpList) {
 		
 		fetcher.setInputToPipeline(inpList);
 		
+	}
+	
+	public OutOrderCoreMemorySystem getCoreMemorySystem()
+	{
+		return outOrderCoreMemorySystem;
+	}
+
+	public void setCoreMemorySystem(CoreMemorySystem coreMemorySystem) {
+		this.coreMemorySystem = coreMemorySystem;
+		this.outOrderCoreMemorySystem = (OutOrderCoreMemorySystem)coreMemorySystem;
 	}
 	
 }

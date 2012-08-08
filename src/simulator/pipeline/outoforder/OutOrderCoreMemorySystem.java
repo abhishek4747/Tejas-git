@@ -1,5 +1,7 @@
-package pipeline.inorder;
+package pipeline.outoforder;
 
+import pipeline.inorder.InorderExecutionEngine;
+import pipeline.inorder.InorderPipeline;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -7,24 +9,22 @@ import generic.RequestType;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 
-public class InorderCoreMemorySystem extends CoreMemorySystem {
+public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 	
-	InorderExecutionEngine containingExecEngine;
-	
-	public InorderCoreMemorySystem(Core core)
-	{
+	OutOrderExecutionEngine containingExecEngine;
+
+	protected OutOrderCoreMemorySystem(Core core) {
 		super(core);
 		core.getExecEngine().setCoreMemorySystem(this);
-		containingExecEngine = (InorderExecutionEngine)core.getExecEngine();
+		containingExecEngine = (OutOrderExecutionEngine)core.getExecEngine();
 	}
 	
 	//To issue the request directly to L1 cache
 	//missPenalty field has been added to accomodate the missPenalty incurred due to TLB miss
 	public boolean issueRequestToL1Cache(RequestType requestType, 
-											long address,
-											InorderPipeline inorderPipeline)
+											long address)
 	{
-		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
+		int tlbMissPenalty = performTLBLookup(address);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 																	 l1Cache.getLatencyDelay() + tlbMissPenalty,
@@ -67,9 +67,9 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	}
 	
 	//To issue the request to instruction cache
-	public void issueRequestToInstrCache(long address, InorderPipeline inorderPipeline)
+	public void issueRequestToInstrCache(long address)
 	{
-		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
+		int tlbMissPenalty = performTLBLookup(address);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 				 iCache.getLatencyDelay() + tlbMissPenalty,
@@ -97,15 +97,12 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		}
 	}
 	
-	private int performTLBLookup(long address, InorderPipeline inorderPipeline)
+	private int performTLBLookup(long address)
 	{
 		boolean TLBHit=TLBuffer.searchTLBForPhyAddr(address);
 		int missPenalty=0;
 		if(!TLBHit){
 			missPenalty =TLBuffer.getMissPenalty();
-			containingExecEngine.setStallFetch(missPenalty);
-			containingExecEngine.setStallPipelinesExecute(inorderPipeline.getId(),missPenalty);
-			inorderPipeline.getIfIdLatch().incrementStallCount(missPenalty);
 		}
 		return missPenalty;
 	}
@@ -122,20 +119,20 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		if(memResponse.getRequestingElement() == iCache)
 		{
 			iMissStatusHoldingRegister.removeRequests(address);
-			containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);
+			containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
 		}
 		
 		//if response comes from l1Cache, inform memunit
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
 			//TODO currently handling only reads
-			L1MissStatusHoldingRegister.removeRequests(address);
-			containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
+			//L1MissStatusHoldingRegister.removeRequests(address);
+			//containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
 		}
 		
 		else
 		{
-			System.out.println("mem response received by inordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
+			System.out.println("mem response received by outordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
 		}
 	}
 

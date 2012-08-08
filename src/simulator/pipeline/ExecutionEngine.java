@@ -7,11 +7,14 @@ public abstract class ExecutionEngine {
 	
 	protected boolean executionComplete;
 	protected CoreMemorySystem coreMemorySystem;
+
+	private long instructionMemStall;
 	
 	public ExecutionEngine()
 	{
 		executionComplete = false;
 		coreMemorySystem = null;
+		instructionMemStall=0;
 	}
 	
 	public abstract void setInputToPipeline(InstructionLinkedList[] inpList);
@@ -30,6 +33,15 @@ public abstract class ExecutionEngine {
 
 	public CoreMemorySystem getCoreMemorySystem() {
 		return coreMemorySystem;
+	}
+
+	public void incrementInstructionMemStall(int i) {
+		this.instructionMemStall += i;
+		
+	}
+
+	public long getInstructionMemStall() {
+		return instructionMemStall;
 	}
 
 }
