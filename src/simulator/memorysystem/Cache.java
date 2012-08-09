@@ -22,6 +22,8 @@ package memorysystem;
 
 import java.util.*;
 
+import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
+
 import power.Counters;
 import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.snoopyCoherence.BusController;
@@ -188,7 +190,8 @@ public class Cache extends SimulationElement
 			}
 			
 			else if (event.getRequestType() == RequestType.Cache_Read_Writeback
-					|| event.getRequestType() == RequestType.Cache_Read_Writeback_Invalidate){
+					|| event.getRequestType() == RequestType.Cache_Read_Writeback_Invalidate 
+					|| event.getRequestType() == RequestType.Send_Mem_Response ){
 				this.handleAccessWithDirectoryUpdates(eventQ, (AddressCarryingEvent) event);
 			}
 			
@@ -230,31 +233,55 @@ public class Cache extends SimulationElement
 			//IF HIT
 			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 			{
+				if(this.coherence == CoherenceType.Directory 
+						&& event.getRequestType() == RequestType.Cache_Write)
+				{
+					writeHitUpdateDirectory(event.coreId,( address>>> blockSizeBits ), event, address);
+				}
 				processBlockAvailable(address);				
 			}
 			
 			//IF MISS
 			else
 			{	
-				sendReadRequest(event);
+				if(this.coherence == CoherenceType.Directory 
+						&& event.getRequestType() == RequestType.Cache_Write)
+				{
+					writeMissUpdateDirectory(event.coreId,( address>>> blockSizeBits ), event, address);
+				}
+				else if(this.coherence == CoherenceType.Directory 
+						&& event.getRequestType() == RequestType.Cache_Read )
+				{
+					readMissUpdateDirectory(event.coreId,( address>>> blockSizeBits ), event, address);
+				} 
+				else 
+				{
+					sendReadRequest(event);
+				}
 			}
 		}
 
 		private void handleAccessWithDirectoryUpdates(EventQueue eventQ,
 				AddressCarryingEvent event) {
 			//Writeback
-			if (this.isLastLevel)
-				putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, true, true);
-			else
-				putEventToPort(event,this.nextLevel, RequestType.Cache_Write, true, true);
+			if(event.getRequestType() != RequestType.Send_Mem_Response ) 
+			{
+				if (this.isLastLevel)
+					putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, true, true);
+				else
+				{
+					propogateWrite(event);
+				}
+			}
+			if(RequestType.Cache_Read_Writeback_Invalidate == event.getRequestType())
+				handleInvalidate(event);			
 
-			event.update(event.getEventQ(),	event.getEventTime(),event.getRequestingElement(),event.getProcessingElement(),	RequestType.Cache_Read);
-			handleAccess(eventQ,event);
-
-			//invalidate self
-			handleInvalidate(event);			
+			event.update(event.getEventQ(),	
+											event.getEventTime(),
+											event.getProcessingElement(),
+											event.getRequestingElement(),
+											RequestType.Mem_Response);
 		}
-		
 		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{
 			/*Response for a read/write miss. Thus incrementing counters here as well*/
@@ -294,7 +321,7 @@ public class Cache extends SimulationElement
 		 * forward memory request to next level
 		 * handle related lower level mshr scenarios
 		 */
-		private void sendReadRequestToLowerCache(AddressCarryingEvent receivedEvent)
+		public void sendReadRequestToLowerCache(AddressCarryingEvent receivedEvent)
 		{
 			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(
 													receivedEvent.getEventQ(), 

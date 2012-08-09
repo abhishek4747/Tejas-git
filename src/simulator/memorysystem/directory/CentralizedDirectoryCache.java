@@ -158,19 +158,11 @@ public class CentralizedDirectoryCache extends Cache{
 			}
 			else
 			{
-				((Cache)requestingElement).nextLevel.getPort().put(
-						new AddressCarryingEvent(
-								eventQ,
-								((Cache)requestingElement).nextLevel.getLatencyDelay(),
-								requestingElement, 
-								((Cache)requestingElement).nextLevel,
-								RequestType.Cache_Read, 
-								address,
-								(event).coreId));
+				Cache requestingCache = (Cache)requestingElement;
+				requestingCache.sendReadRequestToLowerCache((AddressCarryingEvent)event);
 			}
 		}
 		else if(state==DirectoryState.Modified ){
-			//Writeback from the previous owner to the lower levels
 			incrementWritebacks(1);
 			int prevOwner = dirEntry.getOwner();
 			
@@ -196,13 +188,12 @@ public class CentralizedDirectoryCache extends Cache{
 									((Cache)requestingElement).getLatencyDelay(),
 									requestingElement,
 									((Cache)requestingElement).nextLevel.prevLevel.get(owner),
-									RequestType.Cache_Read,
+									RequestType.Send_Mem_Response,
 									address,
 									(event).coreId));
 		}
 		dirEntry.setPresenceBit(requestingCore, true);
 		dirEntry.setState(DirectoryState.Shared);
-	
 	}
 
 	
@@ -220,37 +211,25 @@ public class CentralizedDirectoryCache extends Cache{
 			if (((Cache)requestingElement).isLastLevel)
 			{
 				MemorySystem.mainMemory.getPort().put(
-						/*new AddressCarryingEvent(
+						new AddressCarryingEvent(
 								eventQ,
 								MemorySystem.mainMemory.getLatencyDelay(),
 								requestingElement, 
 								MemorySystem.mainMemory,
 								RequestType.Main_Mem_Read,
 								address,
-								(event).coreId)*/
-						event.update(eventQ,
+								(event).coreId)
+/*						event.update(eventQ,
 								MemorySystem.mainMemory.getLatencyDelay(), 
 								requestingElement, 
 								MemorySystem.mainMemory, 
-								RequestType.Main_Mem_Read));
+								RequestType.Main_Mem_Read)*/);
 				
 			}
 			else
 			{
-				((Cache)requestingElement).nextLevel.getPort().put(
-						/*new AddressCarryingEvent(
-								event.getEventQ(),
-								((Cache)requestingElement).nextLevel.getLatencyDelay(),
-								requestingElement, 
-								((Cache)requestingElement).nextLevel,
-								RequestType.Cache_Read, 
-								address,
-								(event).coreId)*/
-						event.update(eventQ,
-								((Cache)requestingElement).nextLevel.getLatencyDelay(), 
-								requestingElement, 
-								((Cache)requestingElement).nextLevel, 
-								RequestType.Cache_Read));
+				Cache requestingCache = (Cache)requestingElement;
+				requestingCache.sendReadRequestToLowerCache((AddressCarryingEvent)event);
 			}
 		}
 		else if(state==DirectoryState.Modified){
@@ -258,19 +237,14 @@ public class CentralizedDirectoryCache extends Cache{
 			int prevOwner = dirEntry.getOwner();
 			incrementDataForwards(1);
 			((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getPort().put(
-					/*new AddressCarryingEvent(
-							event.getEventQ(),
-							((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getLatency(),
-							requestingElement, 
-							((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
-							RequestType.Cache_Read_Writeback_Invalidate, 
-							address,
-							(event).coreId)*/
-					event.update(eventQ, 
-							((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getLatency(), 
-							requestingElement, 
-							((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner), 
-							RequestType.Cache_Read_Writeback_Invalidate));
+					new AddressCarryingEvent(
+									eventQ,
+									((Cache)requestingElement).getLatencyDelay(),
+									requestingElement,
+									((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
+									RequestType.Cache_Read_Writeback_Invalidate,
+									address,
+									(event).coreId));
 			dirEntry.setPresenceBit(prevOwner, false);
 			
 		}
