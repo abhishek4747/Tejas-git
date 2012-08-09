@@ -196,6 +196,7 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		Statistics.setNoOfIRequests(inorderCoreMemorySystem.getiCache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfIHits(inorderCoreMemorySystem.getiCache().hits, core.getCore_number());
 		Statistics.setNoOfIMisses(inorderCoreMemorySystem.getiCache().misses, core.getCore_number());
+		Statistics.setBranchCount(core.powerCounters.getBpredAccess(), core.getCore_number());
 	}
 
 	public void setPerCorePowerStatistics(){

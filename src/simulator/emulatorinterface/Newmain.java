@@ -185,7 +185,10 @@ public class Newmain {
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
 		Statistics.printSimulationTime();
-		Statistics.printPowerStats();
+		
+		if(SimulationConfig.powerStats)
+			Statistics.printPowerStats();
+		
 		Statistics.closeStream();
 		
 		
