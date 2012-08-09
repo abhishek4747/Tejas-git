@@ -143,7 +143,7 @@ public class MemorySystem
 			}
 			else if(cores[i].isPipelineMultiIssueInorder)
 			{
-				//cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
+				coreMemSys = new InorderCoreMemorySystem(cores[i]);
 			}
 			else
 			{
