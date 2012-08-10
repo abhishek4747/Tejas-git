@@ -58,8 +58,16 @@ public class EventQueue
 		Iterator<Event> iterator = priorityQueue.iterator();
 		while(iterator.hasNext())
 		{
-			AddressCarryingEvent event = (AddressCarryingEvent) iterator.next();
-			System.out.println(event.getRequestType() + "," + event.getAddress() + "," + event.coreId);
+			Event event = iterator.next();			
+			if(event.getRequestType() == RequestType.PerformPulls)
+			{
+				System.out.println(event.getRequestType());
+			}
+			else
+			{
+				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+				System.out.println(addrEvent.getRequestType() + "," + addrEvent.getAddress() + "," + addrEvent.coreId + "," + addrEvent.getProcessingElement() + "," + addrEvent.getRequestingElement());
+			}
 		}
 		System.out.println("------------------------------------------------------------------------------------");
 	}

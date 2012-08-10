@@ -188,23 +188,24 @@ public class Cache extends SimulationElement
 			{
 				this.handleAccess(eventQ, (AddressCarryingEvent) event);
 			}
-			
 			else if (event.getRequestType() == RequestType.Cache_Read_Writeback
 					|| event.getRequestType() == RequestType.Cache_Read_Writeback_Invalidate 
 					|| event.getRequestType() == RequestType.Send_Mem_Response ){
 				this.handleAccessWithDirectoryUpdates(eventQ, (AddressCarryingEvent) event);
 			}
-			
+			else if (event.getRequestType() == RequestType.Send_Mem_Response_On_WriteHit)
+			{
+				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+				memResponseUpdateDirectory(addrEvent.coreId, addrEvent.getAddress() >>> blockSizeBits, event, addrEvent.getAddress() );
+			}
 			else if (event.getRequestType() == RequestType.Mem_Response)
 			{
 				this.handleMemResponse(eventQ, event);
 			}
-			
 			else if (event.getRequestType() == RequestType.MESI_Invalidate)
 			{
 				this.handleInvalidate((AddressCarryingEvent) event);
 			}
-			
 			else if (event.getRequestType() == RequestType.PerformPulls)
 			{
 				pullFromUpperMshrs();
@@ -263,24 +264,32 @@ public class Cache extends SimulationElement
 
 		private void handleAccessWithDirectoryUpdates(EventQueue eventQ,
 				AddressCarryingEvent event) {
+			//TODO when response reaches core it should make entry for itselt in directory
 			//Writeback
 			if(event.getRequestType() != RequestType.Send_Mem_Response ) 
 			{
 				if (this.isLastLevel)
+				{
 					putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, true, true);
+				}
 				else
 				{
 					propogateWrite(event);
 				}
 			}
 			if(RequestType.Cache_Read_Writeback_Invalidate == event.getRequestType())
-				handleInvalidate(event);			
+			{
+				event.getRequestingElement().getPort().put(
+						event.update(
+								event.getEventQ(),
+								0,
+								event.getProcessingElement(),
+								event.getRequestingElement(),
+								RequestType.Send_Mem_Response_On_WriteHit));
+				handleInvalidate(event);
+			}
 
-			event.update(event.getEventQ(),	
-											event.getEventTime(),
-											event.getProcessingElement(),
-											event.getRequestingElement(),
-											RequestType.Mem_Response);
+			sendMemResponse(event);
 		}
 		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{
@@ -359,11 +368,10 @@ public class Cache extends SimulationElement
 		{
 			int numberOfWrites = 0;
 			AddressCarryingEvent sampleWriteEvent = null;
-			
 			while (!outstandingRequestList.isEmpty())
 			{	
 				AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0); 
-				
+
 				if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
 				{
 					sendMemResponse(eventPoppedOut);
@@ -396,7 +404,6 @@ public class Cache extends SimulationElement
 									numberOfWrites++;
 									sampleWriteEvent = eventPoppedOut;
 								}
-									
 						}
 				}
 			}
@@ -476,7 +483,7 @@ public class Cache extends SimulationElement
 			}
 		}
 		
-		
+		public static boolean flag = false;
 		
 		/*
 		 * called by higher level cache
@@ -484,11 +491,12 @@ public class Cache extends SimulationElement
 		 * */
 		public boolean addEvent(AddressCarryingEvent addressEvent)
 		{
+				
 			if(missStatusHoldingRegister.isFull())
 			{
 				return false;
 			}
-			
+
 			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
 			if(entryCreated)
 			{
@@ -546,11 +554,15 @@ public class Cache extends SimulationElement
 						//putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
 					}
 			}
-			
+			if(this.coherence == CoherenceType.Directory)
+			{
+				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+				memResponseUpdateDirectory(addrEvent.coreId, addrEvent.getAddress() >>> blockSizeBits, addrEvent, addrEvent.getAddress());
+			}
 			sendResponseToWaitingEvent(eventsToBeServed);
 		}
 		
-		private void propogateWrite(AddressCarryingEvent event)
+		public void propogateWrite(AddressCarryingEvent event)
 		{
 			AddressCarryingEvent eventToForward = event.updateEvent(event.getEventQ(),
 					   										this.nextLevel.getLatency(),
@@ -669,7 +681,6 @@ public class Cache extends SimulationElement
 									RequestType.ReadMissDirectoryUpdate,
 									address,
 									(event).coreId));
-
 		}
 
 		/**
@@ -694,6 +705,26 @@ public class Cache extends SimulationElement
 									address,
 									(event).coreId));
 
+		}
+		
+		private void updateDirectoryOnEventReceived(int requestingCore, long dirAddress,Event event, long address)
+		{
+			
+		}
+		
+		private void memResponseUpdateDirectory( int requestingCore, long dirAddress,Event event, long address )
+		{
+			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			centralizedDirectory.getPort().put(
+							new AddressCarryingEvent(
+									event.getEventQ(),
+									centralizedDirectory.getLatencyDelay(),
+									this,
+									centralizedDirectory,
+									RequestType.MemResponseDirectoryUpdate,
+									address,
+									(event).coreId));
+			
 		}
 		/**
 		 * UPDATE DIRECTORY FOR EVICTION
