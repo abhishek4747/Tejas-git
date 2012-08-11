@@ -99,8 +99,7 @@ public class FetchUnitIn extends SimulationElement
 				{
 					this.fetchBufferStatus[i]=false;
 					containingExecutionEngine.inorderCoreMemorySystem.issueRequestToInstrCache(
-							newInstruction.getRISCProgramCounter(),
-							inorderPipeline);
+							newInstruction.getRISCProgramCounter());
 				}
 			}
 		}

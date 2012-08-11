@@ -111,114 +111,9 @@ public abstract class CoreMemorySystem extends SimulationElement
 		iMissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
 	}
 	
-	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
-	{
-		if (!MemorySystem.bypassLSQ)
-			robEntry.setLsqEntry(lsqueue.addEntry(isLoad, address, robEntry));
-	}
+	public abstract void issueRequestToInstrCache(long address);
 	
-	//To issue the request to LSQ
-	public void issueRequestToLSQ(SimulationElement requestingElement, 
-											ReorderBufferEntry robEntry)
-	{
-		if(robEntry.isOperand1Available() == false ||
-						robEntry.isOperand2Available() == false ||
-						robEntry.getAssociatedIWEntry() == null ||
-						robEntry.getIssued() == false)
-		{
-			System.out.println("attempting to validate the address of a load/store that hasn't been issued");
-		}
-		
-		lsqueue.getPort().put(
-				new LSQEntryContainingEvent(
-						getCore().getEventQueue(),
-						lsqueue.getLatencyDelay(), 
-						requestingElement, //Requesting Element
-						lsqueue, 
-						RequestType.Tell_LSQ_Addr_Ready,
-						robEntry.getLsqEntry(),
-						this.coreID));
-	}
-	
-	//To commit Store in LSQ
-	public void issueLSQStoreCommit(ReorderBufferEntry robEntry)
-	{
-		lsqueue.getPort().put(
-				 new LSQEntryContainingEvent(
-						getCore().getEventQueue(),
-						lsqueue.getLatencyDelay(),
-						null,
-						lsqueue, 
-						RequestType.LSQ_Commit, 
-						robEntry.getLsqEntry(),
-						this.coreID));
-	}
-	
-	//To issue the request to instruction cache
-	/*
-	 * public void issueRequestToInstrCacheFromInorder(SimulationElement requestingElement,
-											long address)
-	{
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-																	iCache.getLatencyDelay(),
-																	requestingElement, 
-																	iCache,
-																	RequestType.Cache_Read, 
-																	address);
-		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchUnitIn)requestingElement).getMissStatusHoldingRegister();
-		missStatusHoldingRegister.put(address, new OMREntry(null,false,addressEvent));
-		iCache.getPort().put(addressEvent);
-	}
-	public void issueRequestToInstrCacheFromOutofOrder(SimulationElement requestingElement,
-			long address)
-	{
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-											iCache.getLatencyDelay(),
-											requestingElement, 
-											iCache,
-											RequestType.Cache_Read, 
-											address);
-		
-		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchLogic)requestingElement).getMissStatusHoldingRegister();
-		missStatusHoldingRegister.put(address, new OMREntry(null,false,addressEvent));
-		iCache.getPort().put(addressEvent);
-	}
-	*/
-	
-
-	public void issueRequestToInstrCacheFromOutofOrder(SimulationElement requestingElement,
-			long address,int coreId)
-	{
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-											iCache.getLatencyDelay(),
-											requestingElement, 
-											iCache,
-											RequestType.Cache_Read, 
-											address,
-											coreId);
-		iCache.getPort().put(addressEvent);
-/*		
-		Hashtable<Long,OMREntry> missStatusHoldingRegister =((FetchLogic)requestingElement).getMissStatusHoldingRegister();
-		if(!missStatusHoldingRegister.containsKey(address))
-		{
-			ArrayList<Event> eventList = new ArrayList<Event>();
-			eventList.add(addressEvent);
-			missStatusHoldingRegister.put(address,new OMREntry(eventList,true,addressEvent));
-		}
-		else
-		{
-			missStatusHoldingRegister.get(address).outStandingEvents.add(addressEvent);
-		}
-*/	}
-	
-	public boolean isMshrFull()
-	{
-		if(L1MissStatusHoldingRegister.isFull() && iMissStatusHoldingRegister.isFull())
-		{
-			return true;
-		}
-		return false;
-	}
+	public abstract boolean issueRequestToL1Cache(RequestType requestType, long address);
 	
 	public LSQ getLsqueue() {
 		return lsqueue;
@@ -252,5 +147,14 @@ public abstract class CoreMemorySystem extends SimulationElement
 	public MissStatusHoldingRegister getiMSHR()
 	{
 		return iMissStatusHoldingRegister;
+	}
+	
+	public boolean isMshrFull()
+	{
+		if(L1MissStatusHoldingRegister.isFull() && iMissStatusHoldingRegister.isFull())
+		{
+			return true;
+		}
+		return false;
 	}
 }

@@ -44,6 +44,7 @@ public enum RequestType {
 	
 	Tell_LSQ_Addr_Ready,
 	Validate_LSQ_Addr,
+	Attempt_L1_Issue,
 	Cache_Read,
 	Cache_Write,
 	Main_Mem_Read,

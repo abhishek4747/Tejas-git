@@ -181,7 +181,7 @@ public class IWEntry {
 			{
 				System.out.println("attempting to issue a load/store.. value forwarded is already valid");
 			}
-			core.getExecEngine().coreMemSys.issueRequestToLSQ(
+			execEngine.getCoreMemorySystem().issueRequestToLSQ(
 					null, 
 					associatedROBEntry);
 

@@ -100,8 +100,7 @@ public class ExecUnitIn extends SimulationElement{
 					{		
 						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Read,
-								ins.getSourceOperand1().getValue(),
-								inorderPipeline);
+								ins.getSourceOperand1().getValue());
 					}
 				}
 				else if(ins.getOperationType()==OperationType.store)
@@ -115,8 +114,7 @@ public class ExecUnitIn extends SimulationElement{
 					{
 						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Write,
-								ins.getSourceOperand1().getValue(),
-								inorderPipeline);
+								ins.getSourceOperand1().getValue());
 					}
 				}
 				else
