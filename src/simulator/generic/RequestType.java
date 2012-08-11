@@ -80,6 +80,8 @@ public enum RequestType {
 	Cache_Write_Writeback_Invalidate,
 	Send_Mem_Response_On_WriteHit,
 	PerformPulls, 
+	Send_Mem_Response_Invalidate
+	
 	
 	
 //	MEM_READ,

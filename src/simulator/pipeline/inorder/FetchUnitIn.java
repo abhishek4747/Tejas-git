@@ -1,6 +1,5 @@
 package pipeline.inorder;
 
-import java.util.Hashtable;
 import config.SimulationConfig;
 import emulatorinterface.Newmain;
 import generic.Core;
@@ -8,7 +7,6 @@ import generic.Event;
 import generic.EventQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
-import generic.OMREntry;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;

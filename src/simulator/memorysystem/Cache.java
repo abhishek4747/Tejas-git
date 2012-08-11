@@ -189,8 +189,9 @@ public class Cache extends SimulationElement
 				this.handleAccess(eventQ, (AddressCarryingEvent) event);
 			}
 			else if (event.getRequestType() == RequestType.Cache_Read_Writeback
-					|| event.getRequestType() == RequestType.Cache_Read_Writeback_Invalidate 
-					|| event.getRequestType() == RequestType.Send_Mem_Response ){
+					|| event.getRequestType() == RequestType.Send_Mem_Response 
+					|| event.getRequestType() == RequestType.Send_Mem_Response_Invalidate 
+					||  event.getRequestType() == RequestType.Send_Mem_Response_On_WriteHit ){
 				this.handleAccessWithDirectoryUpdates(eventQ, (AddressCarryingEvent) event);
 			}
 			else if (event.getRequestType() == RequestType.Send_Mem_Response_On_WriteHit)
@@ -264,9 +265,8 @@ public class Cache extends SimulationElement
 
 		private void handleAccessWithDirectoryUpdates(EventQueue eventQ,
 				AddressCarryingEvent event) {
-			//TODO when response reaches core it should make entry for itselt in directory
 			//Writeback
-			if(event.getRequestType() != RequestType.Send_Mem_Response ) 
+			if(event.getRequestType() == RequestType.Cache_Read_Writeback ) 
 			{
 				if (this.isLastLevel)
 				{
@@ -277,15 +277,14 @@ public class Cache extends SimulationElement
 					propogateWrite(event);
 				}
 			}
-			if(RequestType.Cache_Read_Writeback_Invalidate == event.getRequestType())
+			if(RequestType.Send_Mem_Response_On_WriteHit == event.getRequestType())
 			{
-				event.getRequestingElement().getPort().put(
-						event.update(
-								event.getEventQ(),
-								0,
-								event.getProcessingElement(),
-								event.getRequestingElement(),
-								RequestType.Send_Mem_Response_On_WriteHit));
+				handleInvalidate(event);
+				memResponseUpdateDirectory(event.coreId,event.getAddress() >>> blockSizeBits , event, event.getAddress());
+				return ;
+			}
+			else if(RequestType.Send_Mem_Response_Invalidate == event.getRequestType())
+			{
 				handleInvalidate(event);
 			}
 
