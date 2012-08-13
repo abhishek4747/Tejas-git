@@ -243,6 +243,16 @@ private static void setSimulationParameters()
 			SimulationConfig.subsetSimulation = false;
 		}
 
+		if(getImmediateString("PrintPowerStats", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.powerStats = true;
+		}
+		else
+		{
+			SimulationConfig.powerStats = false;
+		}
+		
 		SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
 		SimulationConfig.powerTrace = Integer.parseInt(getImmediateString("PowerTrace", simulationElmnt));
 		SimulationConfig.numInsForTrace = Long.parseLong(getImmediateString("NumInsForTrace", simulationElmnt));

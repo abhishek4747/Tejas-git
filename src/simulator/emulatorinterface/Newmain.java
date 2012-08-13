@@ -187,12 +187,12 @@ public class Newmain {
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
 		Statistics.printSimulationTime();
-		Statistics.printPowerStats();
+		
+		if(SimulationConfig.powerStats)
+			Statistics.printPowerStats();
+		
 		Statistics.closeStream();
 		
-		dumpAllMSHRs();
-		dumpAllEventQueues();
-		dumpAllICacheBuffers();
 		
 		System.exit(0);
 		System.exit(0);

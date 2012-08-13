@@ -50,4 +50,5 @@ public class SimulationConfig
 	public static long numInsForTrace;
 	public static long numCyclesForTrace;
 	public static NucaType nucaType;
+	public static boolean powerStats;
 }

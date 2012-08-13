@@ -91,5 +91,12 @@ public class DirectoryEntry {
 		else
 			return false;
 	}
-
+	
+	public void resetAllPresentBits()
+	{
+		for(int i=0;i< numPresenceBits ; i++)
+		{
+			presenceBits[i] = false;
+		}
+	}
 }
