@@ -35,7 +35,7 @@ public class FetchUnitIn extends SimulationElement
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
-		this.fetchBufferCapacity=8;
+		this.fetchBufferCapacity=1;
 		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;
@@ -70,12 +70,12 @@ public class FetchUnitIn extends SimulationElement
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
 			if(newInstruction == null)
 				return;
-			if(newInstruction.getOperationType() == OperationType.store)
+			/*if(newInstruction.getOperationType() == OperationType.store  )
 			{
 				Newmain.instructionPool.returnObject(newInstruction);
 				i--;
 				continue;
-			}
+			}*/
 			
 			if(newInstruction.getOperationType() == OperationType.inValid)
 			{
@@ -89,7 +89,7 @@ public class FetchUnitIn extends SimulationElement
 			{
 				this.fetchBuffer[i]= newInstruction;
 				this.fetchFillCount++;
-
+				//this.fetchBufferStatus[i]=true;//this line to be removed
 				if(SimulationConfig.detachMemSys)
 				{
 					this.fetchBufferStatus[i]=true;
@@ -160,7 +160,7 @@ public class FetchUnitIn extends SimulationElement
 			Newmain.dumpAllMSHRs();
 			InorderExecutionEngine execEngine = (InorderExecutionEngine) core.getExecEngine();
 			execEngine.dumpAllLatches();
-			System.err.println("umber of instructions executed =" + core.getNoOfInstructionsExecuted() + ",stall fetch = " + containingExecutionEngine.getStallFetch() +", " + core.getCore_number() );
+			System.err.println("number of instructions executed =" + Newmain.getNoOfInstsExecuted() + ",stall fetch = " + containingExecutionEngine.getStallFetch() +", " + core.getCore_number() );
 			System.exit(1);
 		}
 	}

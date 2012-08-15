@@ -23,6 +23,7 @@ public class CentralizedDirectoryCache extends Cache{
 	private long writebacks;
 	private long dataForwards;
 	Core[] cores;
+	public boolean debug =false;
 	
 	
 	private HashMap<Long, DirectoryEntry> directoryHashmap;
@@ -36,6 +37,7 @@ public class CentralizedDirectoryCache extends Cache{
 		dataForwards=0;
 		cores = coresArray;
 		new HashMap<Long, Cache>();
+		this.levelFromTop = CacheType.Directory;
 	}
 	public int getNumPresenceBits() {
 		return numPresenceBits;
@@ -43,7 +45,7 @@ public class CentralizedDirectoryCache extends Cache{
 	public void setNumPresenceBits(int numPresenceBits) {
 		this.numPresenceBits = numPresenceBits;
 	}
-	public DirectoryEntry lookup(long address) {
+	public DirectoryEntry lookup(long address, boolean calledFromEviction) {
 		//	Search for the directory entry 
 		//if not found, create one with invalid state 
 		CacheLine cl = processRequest(RequestType.Cache_Read, address);
@@ -55,7 +57,14 @@ public class CentralizedDirectoryCache extends Cache{
 		}
 		DirectoryEntry dirEntry = directoryHashmap.get(address);
 		if(dirEntry==null){
+			if(calledFromEviction)
+			{
+				System.out.println(" address not found  " + address);
+				System.err.println("cache line evicted but no entry in directory found " + address);
+				System.exit(1);
+			}
 			dirEntry=new DirectoryEntry(numPresenceBits, address);
+			if(debug) System.out.println(" new Address added in directory  " + address);
 			dirEntry.setState( DirectoryState.uncached  );		//Needless as when dirEntry is initialized, state is set to invalid
 			directoryHashmap.put( address, dirEntry );
 		}
@@ -82,7 +91,7 @@ public class CentralizedDirectoryCache extends Cache{
 	
 	public void handleEvent( EventQueue eventQ, Event event )
 	{
-		//System.out.println("directory handling address "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType());
+		if(debug) System.out.println("directory handling address "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType()+ " coreID  " + event.coreId);
 		if( event.getRequestType() == RequestType.WriteHitDirectoryUpdate )
 		{
 			writeHitDirectoryUpdate(eventQ,event);
@@ -103,26 +112,30 @@ public class CentralizedDirectoryCache extends Cache{
 		{
 			memResponseDIrectoryUpdate(eventQ,event);
 		}
+		
+		if(debug) System.out.println("directory handled event for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " coreID  " + event.coreId+ "\n\n\n");
 	}
 	
 	private void memResponseDIrectoryUpdate(EventQueue eventQ, Event event) 
 	{
 		long address = ((AddressCarryingEvent)event).getAddress();
-		long dirAddress = address >>> this.blockSizeBits;
-		DirectoryEntry dirEntry = lookup(dirAddress);
+		long dirAddress = getDirectoryAddress((AddressCarryingEvent) event);
+		DirectoryEntry dirEntry = lookup(dirAddress,true);
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
-		
+		if(debug) System.out.println("memresponse for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+getDirectoryAddress((AddressCarryingEvent) event)+ dirEntry.getState() + ", coreid" + event.coreId);
 		dirEntry.setPresenceBit(requestingCore, true);
 	}
 	
 	private boolean checkAndScheduleEventForNextCycle(long dirAddress, Event event)
 	{
-		DirectoryEntry dirEntry  = lookup(dirAddress);
+		if(debug) System.out.println("Check and ScheduleEvent  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + ", coreid" + event.coreId);
+		DirectoryEntry dirEntry  = lookup(dirAddress,false);
 		if(dirEntry.getOwner() == -1)
 		{
 			if(dirEntry.getState() == DirectoryState.uncached)
 			{
+				if(debug) System.out.println("returned false");
 				return false;
 			}
 			this.getPort().put(event.update(event.getEventQ(),
@@ -130,22 +143,27 @@ public class CentralizedDirectoryCache extends Cache{
 														 event.getRequestingElement(), 
 														 this, 
 														 event.getRequestType()));
+			if(debug) System.out.println("returned true");
 			return true;
 		} 
+		if(debug) System.out.println("returned false");
 		return false;
 	}
 	
-	private void EvictionDirectoryUpdate(EventQueue eventQ,Event event) 
+	public void EvictionDirectoryUpdate(EventQueue eventQ,Event event) 
 	{
 		long address = ((AddressCarryingEvent)event).getAddress();
-		long dirAddress = address >>> this.blockSizeBits;
-		DirectoryEntry dirEntry = lookup(dirAddress);
+		long dirAddress =getDirectoryAddress((AddressCarryingEvent)event);
+		DirectoryEntry dirEntry = lookup(dirAddress,true);
 		DirectoryState state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
-		System.out.println(" Evicting line with  block address " + dirAddress);
+		if(debug) System.out.println("evictionDirectoryUpdate for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+((Cache)event.getRequestingElement()).computeTag(address)+ dirEntry.getState()+ ", coreid" + event.coreId);
 		
-		 if(state==DirectoryState.Modified){
+		if(checkAndScheduleEventForNextCycle(dirAddress, event))
+			return;
+
+		if(state==DirectoryState.Modified){
 			//Writeback the result
 			int prevOwner = dirEntry.getOwner();
 			if( prevOwner==requestingCore ){
@@ -156,10 +174,13 @@ public class CentralizedDirectoryCache extends Cache{
 				dirEntry.resetAllPresentBits();
 			}
 			else{
-				System.err.println(" cacheline in modified state but evicted from some other core ");
+				//System.err.println(" cacheline in modified state but evicted from some other core ");
+				//System.exit(1);
 				dirEntry.setPresenceBit(requestingCore, false);	//Redundant
 				//If some other node is the owner, that means that the line in this node was already invalid.
 				//No need to do anything.
+				if(dirEntry.getOwner() == -1)
+					dirEntry.setState(DirectoryState.uncached);
 			}
 		}
 		else if(state==DirectoryState.Shared || 
@@ -175,14 +196,16 @@ public class CentralizedDirectoryCache extends Cache{
 	}
 
 
-	private void readMissDirectoryUpdate(EventQueue eventQ,Event event) {
+	public void readMissDirectoryUpdate(EventQueue eventQ,Event event) {
 		// TODO Auto-generated method stub
 		long address = ((AddressCarryingEvent)event).getAddress();
-		long dirAddress = address >>> this.blockSizeBits;
-		DirectoryEntry dirEntry = lookup(dirAddress);
+		long dirAddress =getDirectoryAddress((AddressCarryingEvent)event);
+		DirectoryEntry dirEntry = lookup(dirAddress,false);
 		DirectoryState state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
-		//System.out.println(" inside readMiss handling event for address " + ((AddressCarryingEvent)event).getAddress() + "," + state + ", directory address " + dirAddress );
+		//if(debug) System.out.println(" inside readMiss handling event for address " + ((AddressCarryingEvent)event).getAddress() + "," + state + ", directory address " + dirAddress );
+		if(debug) System.out.println("readmissDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+getDirectoryAddress((AddressCarryingEvent) event) + dirEntry.getState() +" , coreId "+ event.coreId);
+
 		DirectoryState stateToSet = DirectoryState.uncached;
 		
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
@@ -218,12 +241,17 @@ public class CentralizedDirectoryCache extends Cache{
 			int prevOwner = dirEntry.getOwner();
 			//Request the owner for the block
 			incrementDataForwards(1);
-			((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getPort().put(
+			if(cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+			{
+				System.err.println(" getL1 is not returning L1 cache " + cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+				System.exit(1);
+			}
+			cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 					new AddressCarryingEvent(
 									eventQ,
 									((Cache)requestingElement).getLatencyDelay(),
 									requestingElement,
-									((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
+									cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 									RequestType.Cache_Read_Writeback,
 									address,
 									(event).coreId));
@@ -235,13 +263,17 @@ public class CentralizedDirectoryCache extends Cache{
 		{
 			incrementDataForwards(1);
 			int owner = dirEntry.getOwner();
-
-			((Cache)requestingElement).nextLevel.prevLevel.get(owner).getPort().put(
+			if(cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+			{
+				System.err.println(" getL1 is not returning L1 cache " + cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+				System.exit(1);
+			}
+			cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 					new AddressCarryingEvent(
 									eventQ,
 									((Cache)requestingElement).getLatencyDelay(),
 									requestingElement,
-									((Cache)requestingElement).nextLevel.prevLevel.get(owner),
+									cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 									RequestType.Send_Mem_Response,
 									address,
 									(event).coreId));
@@ -251,15 +283,16 @@ public class CentralizedDirectoryCache extends Cache{
 	}
 
 	
-	private void writeMissDirectoryUpdate(EventQueue eventQ,Event event) {
+	public void writeMissDirectoryUpdate(EventQueue eventQ,Event event) {
 
 		long address = ((AddressCarryingEvent)event).getAddress();
-		long dirAddress = address >>> this.blockSizeBits;
-		DirectoryEntry dirEntry = lookup(dirAddress);
+		long dirAddress =getDirectoryAddress((AddressCarryingEvent) event);
+		DirectoryEntry dirEntry = lookup(dirAddress,false);
 		DirectoryState state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
-		
+		if(debug) System.out.println("writeMissDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+getDirectoryAddress((AddressCarryingEvent) event) + dirEntry.getState() +" , coreId "+ event.coreId);
+
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 		{
 			return;
@@ -294,17 +327,23 @@ public class CentralizedDirectoryCache extends Cache{
 			int prevOwner = dirEntry.getOwner();
 			if(prevOwner == event.coreId)
 			{
-				System.err.println(" cache miss and cache line in modified state ");
+				/*System.err.println(" cache miss and cache line in modified state ");
+				System.exit(1);*/
 			}
 			else
 			{
 				incrementDataForwards(1);
-				((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getPort().put(
+				if(cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+				{
+					System.err.println(" getL1 is not returning L1 cache " + cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+					System.exit(1);
+				}
+				cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 						new AddressCarryingEvent(
 										eventQ,
 										((Cache)requestingElement).getLatencyDelay(),
 										requestingElement,
-										((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
+										cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 										RequestType.Send_Mem_Response_Invalidate,
 										address,
 										(event).coreId));
@@ -317,12 +356,17 @@ public class CentralizedDirectoryCache extends Cache{
 			//request for the blocks from any of the owners
 			incrementDataForwards(1);
 			int prevOwner = dirEntry.getOwner();
-			((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getPort().put(
+			if(cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+			{
+				System.err.println(" getL1 is not returning L1 cache " + cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+				System.exit(1);
+			}
+			cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 					new AddressCarryingEvent(
 							eventQ,
 							((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getLatency(),
 							requestingElement, 
-							((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
+							cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 							RequestType.Send_Mem_Response_Invalidate, //TODO change requestType to something
 							address,
 							(event).coreId));
@@ -333,12 +377,17 @@ public class CentralizedDirectoryCache extends Cache{
 				if(dirEntry.getPresenceBit(i) && i!=prevOwner && i!=requestingCore/*This last condition now reqd*/)
 				{
 					dirEntry.setPresenceBit(i, false);
-					((Cache)requestingElement).nextLevel.prevLevel.get(i).getPort().put(
+					if(cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+					{
+						System.err.println(" getL1 is not returning L1 cache " + cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+						System.exit(1);
+					}
+					cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 							new AddressCarryingEvent(
 									eventQ,
 									((Cache)requestingElement).nextLevel.prevLevel.get(i).getLatency(),
 									this, 
-									((Cache)requestingElement).nextLevel.prevLevel.get(i),
+									cores[i].getExecEngine().getCoreMemorySystem().getL1Cache(),
 									RequestType.MESI_Invalidate, 
 									address,
 									(event).coreId));
@@ -351,18 +400,25 @@ public class CentralizedDirectoryCache extends Cache{
 		{
 			if(requestingCore == dirEntry.getOwner())
 			{
-				System.err.println(" cache line in exclusive mode but still a cache miss found ");
+				dirEntry.setState(DirectoryState.Modified);
+				//System.err.println(" cache line in exclusive mode but still a cache miss found " + dirEntry.address + " address " + dirAddress + "event address " + ((AddressCarryingEvent)event).getAddress());
+				//System.exit(1);
 			}
 			else
 			{
 				incrementDataForwards(1);
 				int prevOwner = dirEntry.getOwner();
-				((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getPort().put(
+				if(cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+				{
+					System.err.println(" getL1 is not returning L1 cache " + cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+					System.exit(1);
+				}
+				cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 						new AddressCarryingEvent(
 								eventQ,
 								((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getLatency(),
 								requestingElement, 
-								((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
+								cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 								RequestType.Send_Mem_Response_Invalidate, 
 								address,
 								(event).coreId));
@@ -373,13 +429,14 @@ public class CentralizedDirectoryCache extends Cache{
 		}
 	}
 
-	private void writeHitDirectoryUpdate(EventQueue eventQ,Event event) {
+	public void writeHitDirectoryUpdate(EventQueue eventQ,Event event) {
 		long address = ((AddressCarryingEvent)event).getAddress();
-		long dirAddress = address >>> this.blockSizeBits;
-		DirectoryEntry dirEntry = lookup(dirAddress);
+		long dirAddress =getDirectoryAddress((AddressCarryingEvent) event);
+		DirectoryEntry dirEntry = lookup(dirAddress,false);
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
-		
+		if(debug) System.out.println("writeHitDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+((Cache)event.getRequestingElement()).computeTag(address) + dirEntry.getState() +" , coreId "+ event.coreId);
+
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 		{
 			return;
@@ -394,12 +451,17 @@ public class CentralizedDirectoryCache extends Cache{
 			{
 				int prevOwner = dirEntry.getOwner();
 				incrementDataForwards(1);
-				((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getPort().put(
+				if(cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+				{
+					System.err.println(" getL1 is not returning L1 cache " + cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+					System.exit(1);
+				}
+				cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 						new AddressCarryingEvent(
 										eventQ,
 										((Cache)requestingElement).getLatencyDelay(),
 										requestingElement,
-										((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
+										cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 										RequestType.Send_Mem_Response_On_WriteHit,//TODO handle this event in cache 
 										address,
 										(event).coreId));
@@ -416,12 +478,17 @@ public class CentralizedDirectoryCache extends Cache{
 					if(i!=requestingCore)
 					{ 
 						dirEntry.setPresenceBit(i,false);
-						((Cache)requestingElement).nextLevel.prevLevel.get(i).getPort().put(
+						if(cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+						{
+							System.err.println(" getL1 is not returning L1 cache " + cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+							System.exit(1);
+						}
+						cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 								new AddressCarryingEvent(
 										event.getEventQ(),
 										((Cache)requestingElement).nextLevel.prevLevel.get(i).getLatency(),
 										this, 
-										((Cache)requestingElement).nextLevel.prevLevel.get(i),
+										cores[i].getExecEngine().getCoreMemorySystem().getL1Cache(),
 										RequestType.MESI_Invalidate, 
 										address,
 										(event).coreId));
@@ -443,12 +510,17 @@ public class CentralizedDirectoryCache extends Cache{
 			{
 				incrementDataForwards(1);
 				int prevOwner = dirEntry.getOwner();
-				((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getPort().put(
+				if(cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
+				{
+					System.err.println(" getL1 is not returning L1 cache " + cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop);
+					System.exit(1);
+				}
+				cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 						new AddressCarryingEvent(
 								eventQ,
 								((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner).getLatency(),
 								requestingElement, 
-								((Cache)requestingElement).nextLevel.prevLevel.get(prevOwner),
+								cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 								RequestType.Send_Mem_Response_On_WriteHit, 
 								address,
 								(event).coreId));
@@ -457,5 +529,18 @@ public class CentralizedDirectoryCache extends Cache{
 				dirEntry.resetAllPresentBits();
 			}
 		}
+	}
+	
+	public long getDirectoryAddress(AddressCarryingEvent event)
+	{
+		long address = event.getAddress();
+		long tag = ((Cache)event.getRequestingElement()).computeTag(address);
+		int startIdx = ((Cache)event.getRequestingElement()).getStartIdx(address);
+		
+		long addressToStore =  address >>>  ((Cache)event.getRequestingElement()).blockSizeBits;
+		
+		if(debug) System.out.println("address returned " + addressToStore);
+		
+		return addressToStore;
 	}
 }

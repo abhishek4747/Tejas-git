@@ -37,7 +37,8 @@ public class Cache extends SimulationElement
 		public static enum CacheType{
 			L1,
 			iCache,
-			Lower
+			Lower,
+			Directory
 		}
 		
 		public static enum CoherenceType{
@@ -51,12 +52,12 @@ public class Cache extends SimulationElement
 		public CoreMemorySystem containingMemSys;
 		protected int blockSize; // in bytes
 		public int blockSizeBits; // in bits
-		protected int assoc;
+		public  int assoc;
 		protected int assocBits; // in bits
 		protected int size; // MegaBytes
 		protected int numLines;
 		protected int numLinesBits;
-		protected int numSetsBits;
+		public int numSetsBits;
 		protected double timestamp;
 		protected int numLinesMask;
 		protected Vector<Long> evictedLines = new Vector<Long>();
@@ -82,6 +83,7 @@ public class Cache extends SimulationElement
 		public int hits;
 		public int misses;
 		public int evictions;
+		public boolean debug = false;
 		
 		public Cache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
 		{
@@ -230,11 +232,15 @@ public class Cache extends SimulationElement
 			RequestType requestType = event.getRequestType();
 			long address = event.getAddress();
 			
+			if(debug)System.out.println(this.levelFromTop + "hanlding event of address ="+ address + " and requestType " + event.getRequestType() + " coreID  " + event.coreId);
+		 	
 			CacheLine cl = this.processRequest(requestType, address);
 			
 			//IF HIT
 			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 			{
+				if(debug)System.out.println(this.levelFromTop + "cacheHit for address ="+ address + " and requestType " + event.getRequestType() + (address >>> blockSizeBits)+ " coreID  " + event.coreId);
+				
 				if(this.coherence == CoherenceType.Directory 
 						&& event.getRequestType() == RequestType.Cache_Write)
 				{
@@ -246,6 +252,7 @@ public class Cache extends SimulationElement
 			//IF MISS
 			else
 			{	
+				if(debug)System.out.println(this.levelFromTop + "cachemiss for address ="+ address + " and requestType " + event.getRequestType() + (address >>> blockSizeBits)+ " coreID  " + event.coreId);
 				if(this.coherence == CoherenceType.Directory 
 						&& event.getRequestType() == RequestType.Cache_Write)
 				{
@@ -266,6 +273,13 @@ public class Cache extends SimulationElement
 		private void handleAccessWithDirectoryUpdates(EventQueue eventQ,
 				AddressCarryingEvent event) {
 			//Writeback
+			if(this.levelFromTop != CacheType.L1)
+			{
+				System.err.println(" other than L1 handling AccessWith Directory "+ " coreID =  "+  event.coreId + "  " + this.levelFromTop  + " " + event.getRequestType());
+				System.exit(1);
+			}
+			
+			if(debug)System.out.println(this.levelFromTop + "handleaccesswithdirectoryUpdates ="+ event.getAddress() + " and requestType " + event.getRequestType() + (event.getAddress() >>> blockSizeBits)+ " coreID  " + event.coreId);
 			if(event.getRequestType() == RequestType.Cache_Read_Writeback ) 
 			{
 				if (this.isLastLevel)
@@ -339,11 +353,14 @@ public class Cache extends SimulationElement
 													RequestType.Cache_Read, 
 													receivedEvent.getAddress(),
 													receivedEvent.coreId);
-
 			boolean isAddedinLowerMshr = this.nextLevel.addEvent(eventToBeSent);
 			if(!isAddedinLowerMshr)
 			{
+
 				missStatusHoldingRegister.handleLowerMshrFull(eventToBeSent);
+			}
+			else {
+				if(debug)System.out.println("sending read request   to " + this.levelFromTop+ eventToBeSent.getAddress() + " and requestType " + eventToBeSent.getRequestType() + (eventToBeSent.getAddress() >>> blockSizeBits)+ " coreID  " + eventToBeSent.coreId);
 			}
 		}
 		
@@ -370,7 +387,7 @@ public class Cache extends SimulationElement
 			while (!outstandingRequestList.isEmpty())
 			{	
 				AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0); 
-
+				if(debug)System.out.println(this.levelFromTop + "sending response for address ="+ eventPoppedOut.getAddress() + " and requestType " + eventPoppedOut.getRequestType() + (eventPoppedOut.getAddress() >>> blockSizeBits)+ " coreID  " + eventPoppedOut.coreId);
 				if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
 				{
 					sendMemResponse(eventPoppedOut);
@@ -437,6 +454,7 @@ public class Cache extends SimulationElement
 				return;
 			}
 			
+			if(debug)System.out.println("pulling from above");
 			ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed();
 			for(int k = 0;k < eventToProceed.size();k++)
 			{
@@ -450,10 +468,13 @@ public class Cache extends SimulationElement
 				
 				boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
 				
+				
+				
 				if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
 				{
 					mshr.removeStartingWrites(omrEntry.eventToForward.getAddress());
 				}
+				
 				mshr.decrementNumberOfEntriesReadyToProceed();
 				
 				if(entryCreated)
@@ -478,11 +499,44 @@ public class Cache extends SimulationElement
 					{
 						handleAccess(omrEntry.eventToForward.getEventQ(), omrEntry.eventToForward);
 					}
+					else
+					{
+						
+					}
+				}
+			}
+			
+			if(debug)System.out.println(" pulling complete ");
+			
+		}
+		
+		private void updateDirectoryOnPull(AddressCarryingEvent event,MissStatusHoldingRegister mshr)
+		{
+			if(event.getRequestingElement().getClass() == Cache.class && 
+					((Cache)event.getRequestingElement()).coherence == CoherenceType.Directory	 )
+			{
+				OMREntry omrEntry =  mshr.getMshrEntry(event.getAddress());
+				if(event.getRequestType() == RequestType.Cache_Read)
+				{
+					if(omrEntry.outStandingEvents.get(0).getRequestType() == RequestType.Cache_Read)
+					{
+						MemorySystem.centralizedDirectory.readMissDirectoryUpdate(event.getEventQ(), event);
+					}
+					if(omrEntry.outStandingEvents.get(0).getRequestType() == RequestType.Cache_Read)
+					{
+						MemorySystem.centralizedDirectory.writeMissDirectoryUpdate(event.getEventQ(), event);
+					}
+				}
+				else if(omrEntry == null )
+				{
+					MemorySystem.centralizedDirectory.EvictionDirectoryUpdate(event.getEventQ(), event);
+				}
+				else
+				{
+					MemorySystem.centralizedDirectory.writeHitDirectoryUpdate(event.getEventQ(), event);
 				}
 			}
 		}
-		
-		public static boolean flag = false;
 		
 		/*
 		 * called by higher level cache
@@ -497,6 +551,7 @@ public class Cache extends SimulationElement
 			}
 
 			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
+			if(debug)System.out.println("adding event  =" +this.levelFromTop+ addressEvent.getAddress() + " and requestType " + addressEvent.getRequestType() + (addressEvent.getAddress() >>> blockSizeBits)+ " coreID  " + addressEvent.coreId);
 			if(entryCreated)
 			{
 				this.getPort().put(addressEvent);
@@ -523,6 +578,8 @@ public class Cache extends SimulationElement
 			misses += eventsToBeServed.size();			
 			noOfRequests += eventsToBeServed.size();
 			
+			if(debug)System.out.println(this.levelFromTop + "response received for address  ="+ ((AddressCarryingEvent)event).getAddress()+ " and requestType " + event.getRequestType() + "  "+(((AddressCarryingEvent)event).getAddress() >>> blockSizeBits)+ " coreID  " + event.coreId);
+			
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			if (evictedLine != null 
 			    && evictedLine.getState() == MESI.MODIFIED 
@@ -532,10 +589,10 @@ public class Cache extends SimulationElement
 					if(this.coherence==CoherenceType.Directory)
 					{
 							int requestingCore = containingMemSys.getCore().getCore_number();
-							long address=evictedLine.getTag() << this.blockSizeBits;	//Generating an address of this cache line
+							long address= evictedLine.getAddress();	//Generating an address of this cache line
 							evictionUpdateDirectory(requestingCore,evictedLine.getTag(),event,address);
 					}
-					if (this.isLastLevel)
+					else if (this.isLastLevel)
 					{
 							putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
 					}
@@ -731,23 +788,32 @@ public class Cache extends SimulationElement
 		 * If modified, writeback, else just update sharers
 		 * */
 		private void evictionUpdateDirectory(int requestingCore, long dirAddress,Event event, long address) {
+			if(debug)System.out.println("tag of line evicted " + (address >>>  this.blockSizeBits)+ " coreID  " + event.coreId );
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
-			centralizedDirectory.getPort().put(
-							new AddressCarryingEvent(
-									event.getEventQ(),
-									centralizedDirectory.getLatencyDelay(),
-									this,
-									centralizedDirectory,
-									RequestType.EvictionDirectoryUpdate,
-									address,
-									(event).coreId));
+			AddressCarryingEvent addrEvent = new AddressCarryingEvent(
+					event.getEventQ(),
+					centralizedDirectory.getLatencyDelay(),
+					this,
+					centralizedDirectory,
+					RequestType.EvictionDirectoryUpdate,
+					address,
+					(event).coreId);
+			centralizedDirectory.getPort().put(addrEvent);
+			
 		}
 		
-		private long computeTag(long addr) {
+		public long computeTag(long addr) {
 			long tag = addr >>> (numSetsBits + blockSizeBits);
 			return tag;
 		}
-		private int getStartIdx(long addr) {
+		
+		public int getSetIdx(long addr)
+		{
+			int startIdx = getStartIdx(addr);
+			return startIdx/assoc;
+		}
+		
+		public int getStartIdx(long addr) {
 			long SetMask =( 1 << (numSetsBits) )- 1;
 			int startIdx = (int) ((addr >>> blockSizeBits) & (SetMask));
 			return startIdx;
@@ -831,7 +897,9 @@ public class Cache extends SimulationElement
 			CacheLine evictedLine = null;
     		/* compute startIdx and the tag */
 			int startIdx = getStartIdx(addr);
-			long tag = computeTag(addr);
+			long tag = computeTag(addr); 
+			
+			if(debug )System.out.println(this.levelFromTop +  "  added in cache address =" + addr + ", tag  = "+ tag + ",set index " + (startIdx/assoc) + "tag  + set =" + ((tag << numSetsBits ) + (startIdx/assoc))) ;
 
 			/* find any invalid lines -- no eviction */
 			CacheLine fillLine = null;
@@ -868,12 +936,19 @@ public class Cache extends SimulationElement
 			/* if there has been an eviction */
 			if (evicted) 
 			{
-				evictedLine = fillLine.copy();
+
+				if(debug )System.out.println(" evicted line tag   = "+ fillLine.getTag() + ", set index = " + (startIdx/assoc)) ;
+				evictedLine = (CacheLine) fillLine.clone();
+				long evictedLinetag = evictedLine.getTag();
+				evictedLinetag = (evictedLinetag << numSetsBits ) + (startIdx/assoc) ;
+				if(debug )System.out.println(" new Tag address with setIndex evicted " + evictedLinetag );
+				evictedLine.setTag(evictedLinetag);
 				this.evictions++;
 			}
 
 			/* This is the new fill line */
 			fillLine.setState(stateToSet);
+			fillLine.setAddress(addr);
 			mark(fillLine, tag);
 			return evictedLine;
 		}
