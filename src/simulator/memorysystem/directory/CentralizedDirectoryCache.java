@@ -327,8 +327,15 @@ public class CentralizedDirectoryCache extends Cache{
 			int prevOwner = dirEntry.getOwner();
 			if(prevOwner == event.coreId)
 			{
-				/*System.err.println(" cache miss and cache line in modified state ");
-				System.exit(1);*/
+				cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
+						new AddressCarryingEvent(
+										eventQ,
+										((Cache)requestingElement).getLatencyDelay(),
+										requestingElement,
+										cores[prevOwner].getExecEngine().getCoreMemorySystem().getL1Cache(),
+										RequestType.Send_Mem_Response,
+										address,
+										(event).coreId));
 			}
 			else
 			{
@@ -401,8 +408,15 @@ public class CentralizedDirectoryCache extends Cache{
 			if(requestingCore == dirEntry.getOwner())
 			{
 				dirEntry.setState(DirectoryState.Modified);
-				//System.err.println(" cache line in exclusive mode but still a cache miss found " + dirEntry.address + " address " + dirAddress + "event address " + ((AddressCarryingEvent)event).getAddress());
-				//System.exit(1);
+				cores[requestingCore].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
+						new AddressCarryingEvent(
+										eventQ,
+										((Cache)requestingElement).getLatencyDelay(),
+										requestingElement,
+										cores[requestingCore].getExecEngine().getCoreMemorySystem().getL1Cache(),
+										RequestType.Send_Mem_Response,
+										address,
+										(event).coreId));
 			}
 			else
 			{
