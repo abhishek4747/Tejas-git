@@ -43,6 +43,7 @@ public class RunnableThread implements Encoding {
 	boolean writeToFile = SimulationConfig.writeToFile;
 	long numInsToWrite = SimulationConfig.numInstructionsToBeWritten;
 	String fileName = SimulationConfig.InstructionsFilename; //TODO take from config 
+	public static Hashtable<Integer,Integer> threadCoreMaping;
 
 	OutputStream fileOut;
 	OutputStream bufferOut;
@@ -134,6 +135,7 @@ public class RunnableThread implements Encoding {
 		System.out.println("--  starting java thread"+this.tid);
 		prevTotalInstructions=-1;
 		currentTotalInstructions=0;
+		threadCoreMaping = new Hashtable<Integer, Integer>();
 		prevCycles=new long[EMUTHREADS];
 	}
 
@@ -424,17 +426,21 @@ public class RunnableThread implements Encoding {
 		}
 		if(pnew.value == BARRIERINIT)
 		{
-//			System.out.println("It is the barrier init");
+			System.out.println("It is the barrier init id: " + pnew.ip);
 //			System.out.println("Packet is " + pnew.toString());
 			BarrierTable.barrierListAdd(pnew);
 			return;
 		}
 		if (thread.isFirstPacket) {
+			/*int coreId = getFreeCoreId();
+			System.out.println(" thread " + tidApp + " asigned to core  " + coreId);
+			threadCoreMaping.put(tidApp,coreId );*/
 			currentEMUTHREADS++;
+			
 			thread.pold = pnew;
 			thread.isFirstPacket=false;
 		}
-		if (pnew.ip == thread.pold.ip) {
+		if (pnew.ip == thread.pold.ip && !(pnew.value>6 && pnew.value<26)) {
 			thread.packets.add(pnew);
 		} else {
 			(numInstructions[tidEmu])++;
@@ -484,8 +490,9 @@ public class RunnableThread implements Encoding {
 //				}
 				if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
 				{
-					this.inputToPipeline[tidEmu].appendInstruction(tempList);
-					if (!thread.halted && this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD) {
+					int coreId = tidEmu;//threadCoreMaping.get(tidEmu);
+					this.inputToPipeline[coreId].appendInstruction(tempList);
+					if (!thread.halted && this.inputToPipeline[coreId].getListSize() > INSTRUCTION_THRESHOLD) {
 						thread.halted = true;
 						//System.out.println("Halting "+tidEmu);
 					}	
@@ -541,5 +548,20 @@ public class RunnableThread implements Encoding {
 		//	FIXME threadParams should be on tidApp. Currently it is on tidEmu
 		threadParams[tidApp].finished = true;
 
+	}
+	
+	private int getFreeCoreId()
+	{
+		for(int i=0; i < pipelineInterfaces.length;i++) 
+		{
+			if(pipelineInterfaces[i].isExecutionComplete())
+			{
+				pipelineInterfaces[i].setExecutionComplete(false);
+				return i;
+			}
+		}
+		System.err.println(" error number of threads more than number of cores  ");
+		System.exit(1);
+		return -1;
 	}
 }

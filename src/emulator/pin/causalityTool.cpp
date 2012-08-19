@@ -70,10 +70,12 @@ bool isActive(int tid) {
 }
 void reActivate(int tid) {
 	pumpingStatus[tid] = true;
+	printf("reAcivated %d\n",tid);
 	curSynchVar[tid] = 0;
 }
 void deActivate(int tid, ADDRINT addr) {
 	curSynchVar[tid] = addr;
+	printf("deAcivated %d\n",tid);
 	pumpingStatus[tid] = false;
 }
 bool hasEntered(int tid, ADDRINT addr) {
@@ -320,6 +322,8 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 		encode = CONDWAIT;
 	else if (cmp("pthread_barrier_wait"))
 		encode = BARRIERWAIT;
+	/*else if (cmp("parsec_barrier_wait"))
+			encode = BARRIERWAIT;*/
 	else if (cmp("pthread_barrier_init")) {
 		printf("barrier init encountered !!\n");
 		encode = BARRIERINIT;

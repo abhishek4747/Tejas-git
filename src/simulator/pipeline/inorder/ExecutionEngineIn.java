@@ -147,7 +147,7 @@ public class ExecutionEngineIn {
 //	}
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
-		System.out.println("Core "+core.getCore_number()+" numCycles="+this.numCycles);
+		//System.out.println("Core "+core.getCore_number()+" numCycles="+this.numCycles);
 		
 		if (execComplete == true)
 		{
@@ -164,6 +164,7 @@ public class ExecutionEngineIn {
 	public boolean getExecutionComplete(){
 		return this.executionComplete;
 	}
+	
 	public boolean getFetchComplete(){
 		return this.fetchComplete;
 	}

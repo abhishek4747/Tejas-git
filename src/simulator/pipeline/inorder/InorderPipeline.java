@@ -26,6 +26,7 @@ public class InorderPipeline implements PipelineInterface{
 		this.exMem = core.getExecutionEngineIn().getExMemLatch(id);
 		this.memWb = core.getExecutionEngineIn().getMemWbLatch(id);
 		this.wbDone = core.getExecutionEngineIn().getWbDoneLatch(id);
+//		core.getExecutionEngineIn().setExecutionComplete(true);
 		this.id = id;
 	}
 	
@@ -181,5 +182,11 @@ public class InorderPipeline implements PipelineInterface{
 	}
 	public StageLatch getWbDoneLatch(){
 		return this.wbDone;
+	}
+
+	@Override
+	public void setExecutionComplete(boolean status) {
+		// TODO Auto-generated method stub
+		core.getExecutionEngineIn().setExecutionComplete(status);		
 	}
 }

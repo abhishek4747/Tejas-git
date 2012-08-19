@@ -168,7 +168,7 @@ public class FetchUnitIn extends SimulationElement{
 								this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
 								//System.out.println("Resuming thread number " + bar.blockedThreads.elementAt(i));
 							}
-							BarrierTable.barrierList.remove(barrierAddress);
+//							BarrierTable.barrierList.remove(barrierAddress);
 							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 									this.core.eventQueue,
 									 1,

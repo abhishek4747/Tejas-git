@@ -42,10 +42,6 @@ public class Barrier {
 	{
 		return this.address;
 	}
-	public int getBarrierThreads()
-	{
-		return this.numThreads;
-	}
 	public void incrementThreads()
 	{
 		this.numThreadsArrived ++;
@@ -66,6 +62,9 @@ public class Barrier {
 	}
 	public Vector<Integer> getBlockedThreads(){
 		return this.blockedThreads;
+	}
+	public int blockedThreadSize(){
+		return this.blockedThreads.size();
 	}
 
 }

@@ -121,7 +121,18 @@ public final class GlobalTable implements Encoding {
 		case (BARRIERWAIT):
 //			ret = s.barrierEnter(thread, time, value);
 			//System.out.println(thread+"  barrier enter");
-			
+			Barrier bar = BarrierTable.barrierList.get(addressSynchItem);
+			if(bar != null){ //to track the condition that the barrier is already opened
+//				System.out.println("new sync packet tid : " + thread);
+				while(bar.blockedThreadSize() == bar.getNumThreads()){
+					bar = BarrierTable.barrierList.get(++addressSynchItem);
+				}
+				bar.addThread(thread);
+				ret.setBarrierAddress((int)addressSynchItem);
+//				System.out.println("new sync packet tid : " + thread + "add : "+ addressSynchItem);
+				ret.addSleeper(thread);
+				return ret;
+			}	
 			break;
 		case (BCAST + 1):
 			// TODO
@@ -143,13 +154,7 @@ public final class GlobalTable implements Encoding {
 		case (BARRIERWAIT + 1):
 //			ret = s.barrierExit(thread, time, value);
 			//System.out.println(thread+"  barrier exit");
-			Barrier bar = BarrierTable.barrierList.get(addressSynchItem);
-			if(bar != null){
-				bar.addThread(thread);
-				ret.setBarrierAddress((int)addressSynchItem);
-				ret.addSleeper(thread);
-				return ret;
-			}
+			
 //				//System.out.println("total barrier exit " + bar.numThreadsArrived);
 //				if(bar.timeToCross()){
 //					for(int i=0; i<bar.getNumThreads(); i++ ){
@@ -171,7 +176,7 @@ public final class GlobalTable implements Encoding {
 //				}
 //			}
 			
-//			break;
+			break;
 		}
 		
 		return null;

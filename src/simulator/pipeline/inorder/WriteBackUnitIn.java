@@ -47,6 +47,7 @@ public class WriteBackUnitIn extends SimulationElement{
 //System.out.println("Invalid encountered");				
 				//FIXME the following does not set the statistics. Check!
 				core.getExecutionEngineIn().setExecutionComplete(true);
+				System.out.println( " core " + core.getCore_number() +  "finished execution  ");
 				this.core.getExecutionEngineIn().setTimingStatistics();			
 				this.core.getExecutionEngineIn().setPerCoreMemorySystemStatistics();
 				this.core.getExecutionEngineIn().setPerCorePowerStatistics();
