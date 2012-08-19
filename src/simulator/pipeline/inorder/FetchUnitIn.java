@@ -70,7 +70,7 @@ public class FetchUnitIn extends SimulationElement
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
 			if(newInstruction == null)
 				return;
-			/*if(newInstruction.getOperationType() == OperationType.store  )
+			/*if(newInstruction.getOperationType() == OperationType.load  )
 			{
 				Newmain.instructionPool.returnObject(newInstruction);
 				i--;
@@ -154,7 +154,7 @@ public class FetchUnitIn extends SimulationElement
 		{
 			this.stall--;
 		}
-		if( notDoingAnything > 100000 && inputToPipeline.getListSize()>0 )
+		if( notDoingAnything > 100000000&& inputToPipeline.getListSize()>0 )
 		{
 			Newmain.dumpAllEventQueues();
 			Newmain.dumpAllMSHRs();

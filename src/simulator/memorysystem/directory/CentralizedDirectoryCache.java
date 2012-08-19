@@ -204,7 +204,7 @@ public class CentralizedDirectoryCache extends Cache{
 		DirectoryState state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
 		//if(debug) System.out.println(" inside readMiss handling event for address " + ((AddressCarryingEvent)event).getAddress() + "," + state + ", directory address " + dirAddress );
-		if(debug) System.out.println("readmissDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+getDirectoryAddress((AddressCarryingEvent) event) + dirEntry.getState() +" , coreId "+ event.coreId);
+		if(debug) System.out.println("readmissDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + "  directory address "+getDirectoryAddress((AddressCarryingEvent) event)+ " current owner  " + dirEntry.getOwner()+ " state " + dirEntry.getState() +" , coreId "+ event.coreId);
 
 		DirectoryState stateToSet = DirectoryState.uncached;
 		
@@ -291,7 +291,7 @@ public class CentralizedDirectoryCache extends Cache{
 		DirectoryState state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
-		if(debug) System.out.println("writeMissDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+getDirectoryAddress((AddressCarryingEvent) event) + dirEntry.getState() +" , coreId "+ event.coreId);
+		if(debug) System.out.println("writeMissDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+getDirectoryAddress((AddressCarryingEvent) event) + " current owner  " + dirEntry.getOwner()+ " state " + dirEntry.getState() +" , coreId "+ event.coreId);
 
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 		{
@@ -449,7 +449,7 @@ public class CentralizedDirectoryCache extends Cache{
 		DirectoryEntry dirEntry = lookup(dirAddress,false);
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
-		if(debug) System.out.println("writeHitDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+((Cache)event.getRequestingElement()).computeTag(address) + dirEntry.getState() +" , coreId "+ event.coreId);
+		if(debug) System.out.println("writeHitDirectory for address  "+( (AddressCarryingEvent)event).getAddress() + event.getRequestType() + " directory address "+dirAddress + " current owner  " + dirEntry.getOwner()+ " state " + dirEntry.getState() +" , coreId "+ event.coreId);
 
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 		{
