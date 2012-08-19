@@ -138,5 +138,4 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			System.out.println("mem response received by inordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
 		}
 	}
-
 }
