@@ -232,14 +232,11 @@ public class Cache extends SimulationElement
 			RequestType requestType = event.getRequestType();
 			long address = event.getAddress();
 			
-			if(debug && this.levelFromTop == CacheType.L1 )System.out.println(this.levelFromTop + "hanlding event of address ="+ address + " and requestType " + event.getRequestType() + " coreID  " + event.coreId);
-		 	
 			CacheLine cl = this.processRequest(requestType, address);
 			
 			//IF HIT
 			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 			{
-				if(debug && this.levelFromTop == CacheType.L1)System.out.println(this.levelFromTop + "cacheHit for address ="+ address + " and requestType " + event.getRequestType() + (address >>> blockSizeBits)+ " coreID  " + event.coreId);
 				
 				if(this.coherence == CoherenceType.Directory 
 						&& event.getRequestType() == RequestType.Cache_Write)
@@ -252,7 +249,6 @@ public class Cache extends SimulationElement
 			//IF MISS
 			else
 			{	
-				if(debug && this.levelFromTop == CacheType.L1)System.out.println(this.levelFromTop + "cachemiss for address ="+ address + " and requestType " + event.getRequestType() + (address >>> blockSizeBits)+ " coreID  " + event.coreId);
 				if(this.coherence == CoherenceType.Directory 
 						&& event.getRequestType() == RequestType.Cache_Write)
 				{
@@ -279,7 +275,6 @@ public class Cache extends SimulationElement
 				System.exit(1);
 			}
 			
-			if(debug && this.levelFromTop == CacheType.L1)System.out.println(this.levelFromTop + "handleaccesswithdirectoryUpdates ="+ event.getAddress() + " and requestType " + event.getRequestType() + (event.getAddress() >>> blockSizeBits)+ " coreID  " + event.coreId);
 			if(event.getRequestType() == RequestType.Cache_Read_Writeback ) 
 			{
 				if (this.isLastLevel)
@@ -359,9 +354,6 @@ public class Cache extends SimulationElement
 
 				missStatusHoldingRegister.handleLowerMshrFull(eventToBeSent);
 			}
-			else {
-				if(debug && this.levelFromTop == CacheType.L1)System.out.println("sending read request   to " + this.levelFromTop+ eventToBeSent.getAddress() + " and requestType " + eventToBeSent.getRequestType() + (eventToBeSent.getAddress() >>> blockSizeBits)+ " coreID  " + eventToBeSent.coreId);
-			}
 		}
 		
 		private void sendReadRequestToMainMemory(AddressCarryingEvent receivedEvent)
@@ -387,7 +379,6 @@ public class Cache extends SimulationElement
 			while (!outstandingRequestList.isEmpty())
 			{	
 				AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0); 
-				if(debug && this.levelFromTop == CacheType.L1)System.out.println(this.levelFromTop + "sending response for address ="+ eventPoppedOut.getAddress() + " and requestType " + eventPoppedOut.getRequestType() + (eventPoppedOut.getAddress() >>> blockSizeBits)+ " coreID  " + eventPoppedOut.coreId);
 				if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
 				{
 					sendMemResponse(eventPoppedOut);
@@ -454,7 +445,6 @@ public class Cache extends SimulationElement
 				return;
 			}
 			
-			if(debug && this.levelFromTop == CacheType.L1)System.out.println("pulling from above");
 			ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed();
 			for(int k = 0;k < eventToProceed.size();k++)
 			{
@@ -467,8 +457,6 @@ public class Cache extends SimulationElement
 				omrEntry.readyToProceed = false;
 				
 				boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
-				
-				if(debug && this.levelFromTop == CacheType.L1)System.out.println(" pulled address" + omrEntry.eventToForward.getAddress() + " from pipeline " +omrEntry.eventToForward.coreId );
 				
 				if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
 				{
@@ -502,8 +490,6 @@ public class Cache extends SimulationElement
 				}
 			}
 			
-			if(debug && this.levelFromTop == CacheType.L1)System.out.println(" pulling complete ");
-			
 		}
 				
 		/*
@@ -519,7 +505,6 @@ public class Cache extends SimulationElement
 			}
 
 			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
-			if(debug && this.levelFromTop == CacheType.L1)System.out.println("adding event  =" +this.levelFromTop+ addressEvent.getAddress() + " and requestType " + addressEvent.getRequestType() + (addressEvent.getAddress() >>> blockSizeBits)+ " coreID  " + addressEvent.coreId);
 			if(entryCreated)
 			{
 				this.getPort().put(addressEvent);
@@ -545,8 +530,6 @@ public class Cache extends SimulationElement
 			
 			misses += eventsToBeServed.size();			
 			noOfRequests += eventsToBeServed.size();
-			
-			if(debug && this.levelFromTop == CacheType.L1)System.out.println(this.levelFromTop + "response received for address  ="+ ((AddressCarryingEvent)event).getAddress()+ " and requestType " + event.getRequestType() + "  "+(((AddressCarryingEvent)event).getAddress() >>> blockSizeBits)+ " coreID  " + event.coreId);
 			
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			if (evictedLine != null 
@@ -731,11 +714,6 @@ public class Cache extends SimulationElement
 
 		}
 		
-		private void updateDirectoryOnEventReceived(int requestingCore, long dirAddress,Event event, long address)
-		{
-			
-		}
-		
 		private void memResponseUpdateDirectory( int requestingCore, long dirAddress,Event event, long address )
 		{
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
@@ -867,8 +845,6 @@ public class Cache extends SimulationElement
 			int startIdx = getStartIdx(addr);
 			long tag = computeTag(addr); 
 			
-			if(debug&& this.levelFromTop == CacheType.L1 )System.out.println(this.levelFromTop +  "  added in cache address =" + addr + ", tag  = "+ tag + ",set index " + (startIdx/assoc) + "tag  + set =" + ((tag << numSetsBits ) + (startIdx/assoc))) ;
-
 			/* find any invalid lines -- no eviction */
 			CacheLine fillLine = null;
 			boolean evicted = false;
@@ -904,12 +880,9 @@ public class Cache extends SimulationElement
 			/* if there has been an eviction */
 			if (evicted) 
 			{
-
-				if(debug&& this.levelFromTop == CacheType.L1 )System.out.println(" evicted line tag   = "+ fillLine.getTag() + ", set index = " + (startIdx/assoc)) ;
 				evictedLine = (CacheLine) fillLine.clone();
 				long evictedLinetag = evictedLine.getTag();
 				evictedLinetag = (evictedLinetag << numSetsBits ) + (startIdx/assoc) ;
-				if(debug && this.levelFromTop == CacheType.L1)System.out.println(" new Tag address with setIndex evicted " + evictedLinetag );
 				evictedLine.setTag(evictedLinetag);
 				this.evictions++;
 			}

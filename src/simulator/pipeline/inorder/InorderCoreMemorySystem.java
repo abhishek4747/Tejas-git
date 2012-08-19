@@ -10,7 +10,6 @@ import memorysystem.CoreMemorySystem;
 public class InorderCoreMemorySystem extends CoreMemorySystem {
 	
 	InorderExecutionEngine containingExecEngine;
-	boolean debug = false;
 	public InorderCoreMemorySystem(Core core)
 	{
 		super(core);
@@ -53,12 +52,10 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			if(!isAddedinLowerMshr)
 			{
 				//if lower level cache had its mshr full
-				if(debug)System.out.println(" request for  " + address + " pending in core "  +core.getCore_number());
 				L1MissStatusHoldingRegister.handleLowerMshrFull(clone);
 			}
 			else
 			{
-				if(debug)System.out.println(" request for  " + address + " sent from core "  +core.getCore_number());
 
 				if(addressEvent.getRequestType() == RequestType.Cache_Write)
 				{
@@ -117,7 +114,6 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
 		//handle memory response
-		if(debug)System.out.println(" response for  " + ((AddressCarryingEvent)event).getAddress() + " received in core "  +core.getCore_number() );
 		
 		AddressCarryingEvent memResponse = (AddressCarryingEvent) event;
 		long address = memResponse.getAddress();
