@@ -20,8 +20,6 @@
 *****************************************************************************/
 package config;
 
-import java.io.ObjectOutput;
-
 import memorysystem.nuca.NucaCache.NucaType;
 
 public class SimulationConfig 

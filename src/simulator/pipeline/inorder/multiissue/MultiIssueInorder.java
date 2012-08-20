@@ -7,7 +7,7 @@ import pipeline.PipelineInterface;
 import pipeline.inorder.InorderExecutionEngine;
 import pipeline.inorder.InorderPipeline;
 
-public class MultiIssueInorder implements PipelineInterface{
+public class MultiIssueInorder implements PipelineInterface {
 
 	private InorderPipeline[] pipelines;
 	private int numPipelines;
@@ -117,6 +117,11 @@ public class MultiIssueInorder implements PipelineInterface{
 	public void setPerCorePowerStatistics() {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public InorderPipeline getInorderPipeLine()
+	{
+		return this.pipelines[0];
 	}
 
 }

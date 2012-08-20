@@ -326,7 +326,7 @@ public class CentralizedDirectoryCache extends Cache{
 		}
 		
 		if(dirEntry.getState()==DirectoryState.uncached ){
-			System.err.println(" not possible because of cache hit ");
+			//System.err.println(" not possible because of cache hit ");
 		}
 		else if(dirEntry.getState()==DirectoryState.Modified)
 		{

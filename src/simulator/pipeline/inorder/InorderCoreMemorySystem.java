@@ -1,5 +1,7 @@
 package pipeline.inorder;
 
+import pipeline.inorder.multiissue.MultiIssueInorder;
+import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -22,8 +24,16 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	public boolean issueRequestToL1Cache(RequestType requestType, 
 											long address)
 	{
-		InorderPipeline inorderPipeline = (InorderPipeline)core.getPipelineInterface();
-		
+		InorderPipeline inorderPipeline = null; 
+		if(SimulationConfig.isPipelineInorder)
+		{
+			inorderPipeline= (InorderPipeline)core.getPipelineInterface();
+		}
+		else
+		{
+			inorderPipeline = ((MultiIssueInorder)core.getPipelineInterface()).getInorderPipeLine();
+		}
+
 		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
@@ -70,8 +80,15 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	//To issue the request to instruction cache
 	public void issueRequestToInstrCache(long address)
 	{
-		InorderPipeline inorderPipeline = (InorderPipeline)core.getPipelineInterface();
-		
+		InorderPipeline inorderPipeline = null; 
+		if(SimulationConfig.isPipelineInorder)
+		{
+			inorderPipeline= (InorderPipeline)core.getPipelineInterface();
+		}
+		else
+		{
+			inorderPipeline = ((MultiIssueInorder)core.getPipelineInterface()).getInorderPipeLine();
+		}
 		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
