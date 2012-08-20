@@ -26,7 +26,7 @@ import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
 
 import power.Counters;
 import memorysystem.directory.CentralizedDirectoryCache;
-import memorysystem.snoopyCoherence.BusController;
+
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
 import misc.Util;
@@ -64,7 +64,6 @@ public class Cache extends SimulationElement
 		
 		public CoherenceType coherence = CoherenceType.None;
 		public int numberOfBuses = 1;
-		public BusController busController = null;
 		
 		public CacheType levelFromTop; 
 		public boolean isLastLevel; //Tells whether there are any more levels of cache
@@ -112,9 +111,6 @@ public class Cache extends SimulationElement
 //			this.enforcesCoherence = cacheParameters.isEnforcesCoherence();
 			this.coherence = cacheParameters.getCoherence();
 			this.numberOfBuses = cacheParameters.getNumberOfBuses();
-			if (this.coherence == CoherenceType.Snoopy)
-				busController = new BusController(prevLevel, this, numberOfBuses, this, cacheParameters.getBusOccupancy());
-			
 			
 			this.timestamp = 0;
 			this.numLinesMask = numLines - 1;
