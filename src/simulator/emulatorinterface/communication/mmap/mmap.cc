@@ -62,7 +62,7 @@ Mmap::Mmap ()
 
 	// initialise book-keeping variables for each of the threads
 	THREAD_DATA *myData;
-	for (int t=0; t<MaxNumThreads; t++) {
+	for (int t=0; t<MaxThreads; t++) {
 		myData = &tldata[t];
 		myData->tlqsize = 0;
 		myData->in = 0;
@@ -218,7 +218,7 @@ Mmap::unload() {
 
 Mmap::~Mmap ()
 {
-	for (int t=0; t<MaxNumThreads; t++) {
+	for (int t=0; t<MaxThreads; t++) {
 		delete tldata[t].tlq;
 	}
 	close (fd);

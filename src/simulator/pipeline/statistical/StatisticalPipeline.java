@@ -29,6 +29,7 @@ public class StatisticalPipeline
 	private boolean isExecutionComplete;		//TRUE indicates end of simulation
 	private boolean isInputPipeEmpty[];
 	private boolean allPipesEmpty;
+	private boolean isAvailable;
 	
 
 	public StatisticalPipeline(Core containingCore)
@@ -158,4 +159,5 @@ public class StatisticalPipeline
 		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
 	}
+
 }

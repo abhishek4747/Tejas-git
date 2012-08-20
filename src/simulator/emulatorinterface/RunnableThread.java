@@ -53,6 +53,7 @@ public class RunnableThread implements Encoding {
 	long sum = 0; // checksum
 	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
 	int currentEMUTHREADS = 0;
+	int testcurrentEMUTHREADS = 0;
 	
 	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
@@ -238,7 +239,7 @@ public class RunnableThread implements Encoding {
 	public void finishAllPipelines() {
 
 		for (int i=0; i<currentEMUTHREADS; i++)
-			this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+			this.inputToPipeline[threadCoreMaping.get(i)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 
 		for (int i=0; i<currentEMUTHREADS; i++) {
 			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
@@ -252,7 +253,7 @@ public class RunnableThread implements Encoding {
 		{
 			//System.out.println("Pin completed ");
 			queueComplete = true;        
-			for(int i = 0; i < currentEMUTHREADS; i++)
+			for(int i = 0; i < testcurrentEMUTHREADS; i++)
 			{
 
 				queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
@@ -432,10 +433,15 @@ public class RunnableThread implements Encoding {
 			return;
 		}
 		if (thread.isFirstPacket) {
-			/*int coreId = getFreeCoreId();
+			int coreId = getFreeCoreId();
 			System.out.println(" thread " + tidApp + " asigned to core  " + coreId);
-			threadCoreMaping.put(tidApp,coreId );*/
-			currentEMUTHREADS++;
+			threadCoreMaping.put(tidApp,coreId );
+			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setExecutionComplete(false);
+			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setFetchComplete(false);
+//			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setIsAvailable(false);
+			currentEMUTHREADS ++;
+			if(coreId>=testcurrentEMUTHREADS)
+				testcurrentEMUTHREADS = coreId+1;
 			
 			thread.pold = pnew;
 			thread.isFirstPacket=false;
@@ -490,7 +496,7 @@ public class RunnableThread implements Encoding {
 //				}
 				if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
 				{
-					int coreId = tidEmu;//threadCoreMaping.get(tidEmu);
+					int coreId = threadCoreMaping.get(tidEmu);
 					this.inputToPipeline[coreId].appendInstruction(tempList);
 					if (!thread.halted && this.inputToPipeline[coreId].getListSize() > INSTRUCTION_THRESHOLD) {
 						thread.halted = true;
@@ -529,19 +535,21 @@ public class RunnableThread implements Encoding {
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {
-			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
+			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
+			this.pipelineInterfaces[threadCoreMaping.get(update.resume.get(i))].resumePipeline();
 		}
 		for (int i=0; i<update.getNumSleepers(); i++) {
 			Instruction ins = new Instruction(OperationType.sync,null, null, null);
 			ins.setRISCProgramCounter(update.barrierAddress);
-			this.inputToPipeline[update.sleep.get(i)].appendInstruction(ins);
+			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
+			this.inputToPipeline[threadCoreMaping.get(update.sleep.get(i))].appendInstruction(ins);
 		}
 	}
 
 
 	protected void signalFinish(int tidApp) {
 		// TODO Auto-generated method stub
-		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+		this.inputToPipeline[threadCoreMaping.get(tidApp)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 		IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
 		//					System.out.println(tidApp+" pin thread got -1");
 		
@@ -554,9 +562,9 @@ public class RunnableThread implements Encoding {
 	{
 		for(int i=0; i < pipelineInterfaces.length;i++) 
 		{
-			if(pipelineInterfaces[i].isExecutionComplete())
+			if(pipelineInterfaces[i].isAvailable())
 			{
-				pipelineInterfaces[i].setExecutionComplete(false);
+				pipelineInterfaces[i].setAvailable(false);
 				return i;
 			}
 		}

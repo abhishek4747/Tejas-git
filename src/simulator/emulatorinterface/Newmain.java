@@ -332,14 +332,12 @@ public class Newmain {
 		}
 		
 		//TODO wont work in case of multiple runnable threads
-		for(int i = SystemConfig.NoOfCores; i<IpcBase.EmuThreadsPerJavaThread; i++)
+		for(int i = 0; i<IpcBase.EmuThreadsPerJavaThread; i++)
 		{
-			if (cores[i].isPipelineStatistical)
-				cores[i].getStatisticalPipeline().setExecutionComplete(true);
-			else if (cores[i].isPipelineInorder)
-				cores[i].getExecutionEngineIn().setExecutionComplete(true);
+			if (cores[i].isPipelineInorder)
+				cores[i].getExecutionEngineIn().setIsAvailable(true);
 			else if (cores[i].isPipelineMultiIssueInorder)
-				cores[i].getExecutionEngineIn().setExecutionComplete(true);
+				cores[i].getExecutionEngineIn().setIsAvailable(true);
 			else
 				cores[i].getExecEngine().setExecutionComplete(true);
 		}

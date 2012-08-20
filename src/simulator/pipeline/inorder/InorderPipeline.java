@@ -189,4 +189,16 @@ public class InorderPipeline implements PipelineInterface{
 		// TODO Auto-generated method stub
 		core.getExecutionEngineIn().setExecutionComplete(status);		
 	}
+
+	@Override
+	public boolean isAvailable() {
+		// TODO Auto-generated method stub
+		return this.core.getExecutionEngineIn().isAvailable();
+	}
+
+	@Override
+	public void setAvailable(boolean isAvailable) {
+		// TODO Auto-generated method stub
+		this.core.getExecutionEngineIn().setIsAvailable(isAvailable);
+	}
 }

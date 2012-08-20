@@ -31,13 +31,14 @@ KNOB<UINT64> KnobLong(KNOB_MODE_WRITEONCE, "pintool", "map", "1", "Maps");
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
+INT32 livethreads = 0;
 UINT64 checkSum = 0;
 IPC::IPCBase *tst;
-bool pumpingStatus[MaxNumThreads];
-ADDRINT curSynchVar[MaxNumThreads];
+bool pumpingStatus[MaxThreads];
+ADDRINT curSynchVar[MaxThreads];
 
 #define PacketEpoch 50
-uint32_t countPacket[MaxNumThreads];
+uint32_t countPacket[MaxThreads];
 
 // needs -lrt (real-time lib)
 // 1970-01-01 epoch UTC time, 1 nanosecond resolution
@@ -85,10 +86,11 @@ bool hasEntered(int tid, ADDRINT addr) {
 VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	GetLock(&lock, threadid + 1);
 	numThreads++;
+	livethreads++;
 	printf("threads till now %d\n", numThreads);
 	fflush(stdout);
 	ReleaseLock(&lock);
-	ASSERT(numThreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
+	ASSERT(livethreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
 
 	pumpingStatus[numThreads - 1] = true;
 	tst->onThread_start(threadid);
@@ -98,6 +100,10 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 	while (tst->onThread_finish(tid) == -1) {
 		PIN_Yield();
 	}
+	GetLock(&lock, tid + 1);
+	livethreads--;
+	fflush(stdout);
+	ReleaseLock(&lock);
 }
 
 //Pass a memory read record

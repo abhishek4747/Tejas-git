@@ -41,6 +41,7 @@ public class ExecutionEngineIn {
 	public int l2hits;
 	public int l2accesses;
 	private int numPipelines;
+	private boolean isAvailable;
 	
 	ArrayList<Operand> destRegisters = new ArrayList<Operand>();
 	private int stallFetch;
@@ -145,6 +146,15 @@ public class ExecutionEngineIn {
 //	public void setCoreMemorySystem(CoreMemorySystem coreMemSys){
 //		this.coreMemorySystem=coreMemSys;
 //	}
+	
+	public boolean isAvailable() {
+		return isAvailable;
+	}
+
+	public void setIsAvailable(boolean isAvailable) {
+		this.isAvailable = isAvailable;
+	}
+	
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
 		//System.out.println("Core "+core.getCore_number()+" numCycles="+this.numCycles);
@@ -154,10 +164,13 @@ public class ExecutionEngineIn {
 			core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());
 		}
 	}
+	
 	public void setFetchComplete(boolean fetchComplete){
 		this.fetchComplete=fetchComplete;
 	}
 
+	
+	
 //	public CoreMemorySystem getCoreMemorySystem(){
 //		return this.coreMemorySystem;
 //	}
@@ -175,9 +188,9 @@ public class ExecutionEngineIn {
 		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
 		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
 		
-		System.out.println("Mem Stalls = "+this.core.getExecutionEngineIn().getMemStall());
-		System.out.println("Data Hazard Stalls = "+this.core.getExecutionEngineIn().getDataHazardStall());
-		System.out.println("Instruction Mem Stalls = "+this.core.getExecutionEngineIn().getInstructionMemStall());
+//		System.out.println("Mem Stalls = "+this.core.getExecutionEngineIn().getMemStall());
+//		System.out.println("Data Hazard Stalls = "+this.core.getExecutionEngineIn().getDataHazardStall());
+//		System.out.println("Instruction Mem Stalls = "+this.core.getExecutionEngineIn().getInstructionMemStall());
 
 	}
 	
@@ -345,4 +358,6 @@ public class ExecutionEngineIn {
 			}
 		}
 	}
+
+	
 }

@@ -37,7 +37,7 @@ protected:
 	};
 
 public:
-	THREAD_DATA tldata[MaxNumThreads];
+	THREAD_DATA tldata[MaxThreads];
 	Mmap();
 	int analysisFn (int tid,uint64_t ip, int value, uint64_t tgt);
 	void onThread_start (int tid);

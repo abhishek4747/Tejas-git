@@ -115,5 +115,20 @@ public class MultiIssueInorder implements PipelineInterface{
 		// TODO Auto-generated method stub
 		
 	}
+	@Override
+	public boolean isAvailable() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public void setExecutionComplete(boolean status) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void setAvailable(boolean isAvailable) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

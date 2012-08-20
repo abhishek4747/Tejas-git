@@ -35,7 +35,7 @@ protected:
 	};
 
 public:
-	THREAD_DATA tldata[MaxNumThreads];
+	THREAD_DATA tldata[MaxThreads];
 	Shm();
 	Shm (uint32_t count,uint32_t localQueue);
 
