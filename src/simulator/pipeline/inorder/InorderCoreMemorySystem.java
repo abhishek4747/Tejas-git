@@ -20,9 +20,10 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	//To issue the request directly to L1 cache
 	//missPenalty field has been added to accomodate the missPenalty incurred due to TLB miss
 	public boolean issueRequestToL1Cache(RequestType requestType, 
-											long address,
-											InorderPipeline inorderPipeline)
+											long address)
 	{
+		InorderPipeline inorderPipeline = (InorderPipeline)core.getPipelineInterface();
+		
 		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
@@ -67,8 +68,10 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	}
 	
 	//To issue the request to instruction cache
-	public void issueRequestToInstrCache(long address, InorderPipeline inorderPipeline)
+	public void issueRequestToInstrCache(long address)
 	{
+		InorderPipeline inorderPipeline = (InorderPipeline)core.getPipelineInterface();
+		
 		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),

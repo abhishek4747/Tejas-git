@@ -18,7 +18,7 @@ public class OperandAvailabilityChecker {
 			return new boolean[]{true};
 		}
 		
-		OutOrderExecutionEngine execEngine = core.getExecEngine();
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
 		ReorderBuffer reorderBuffer = execEngine.getReorderBuffer();
 		OperandType tempOpndType = opnd.getOperandType();
 		int threadID = reorderBufferEntry.getThreadID();

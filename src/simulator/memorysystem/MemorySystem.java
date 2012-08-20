@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import pipeline.inorder.InorderCoreMemorySystem;
+import pipeline.outoforder.OutOrderCoreMemorySystem;
 
 import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.DNuca;
@@ -148,7 +149,7 @@ public class MemorySystem
 			else
 			{
 				//TODO
-				//coreMemSys = new OutOrderCoreMemorySystem(cores[i]);
+				coreMemSys = new OutOrderCoreMemorySystem(cores[i]);
 				//TODO set corememsys of cores[i] to the one jus created in outordercorememsys constructor
 			}
 			

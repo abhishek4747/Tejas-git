@@ -230,7 +230,7 @@ public class ReorderBuffer extends SimulationElement{
 					
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
-					if(core.getNoOfInstructionsExecuted()%10000==0){
+					if(core.getNoOfInstructionsExecuted()%1000000==0){
 						System.out.println(this.j++ + " million done");
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
@@ -266,8 +266,9 @@ public class ReorderBuffer extends SimulationElement{
 //										first.getLsqEntry()));
 						if (!first.lsqEntry.isValid())
 							System.out.println("The committed entry is not valid");
-						execEngine.coreMemSys.issueLSQStoreCommit(first);
-						first.getLsqEntry().setRemoved(true);
+						//System.out.println("commiting robentry : " + first.getLsqEntry().getIndexInQ());
+						execEngine.getCoreMemorySystem().issueLSQCommit(first);
+						//first.getLsqEntry().setRemoved(true);
 					}
 					
 					ROB[head].setValid(false);
@@ -496,19 +497,19 @@ public class ReorderBuffer extends SimulationElement{
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(execEngine.coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(execEngine.coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(execEngine.coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfValueForwards(execEngine.coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
-		Statistics.setNoOfTLBRequests(execEngine.coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(execEngine.coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(execEngine.coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
-		Statistics.setNoOfL1Requests(execEngine.coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(execEngine.coreMemSys.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(execEngine.coreMemSys.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(core.getExecEngine().coreMemSys.getiCache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfIHits(core.getExecEngine().coreMemSys.getiCache().hits, core.getCore_number());
-		Statistics.setNoOfIMisses(core.getExecEngine().coreMemSys.getiCache().misses, core.getCore_number());
+		Statistics.setNoOfMemRequests(execEngine.getCoreMemorySystem().getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(execEngine.getCoreMemorySystem().getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(execEngine.getCoreMemorySystem().getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfValueForwards(execEngine.getCoreMemorySystem().getLsqueue().NoOfForwards, core.getCore_number());
+		Statistics.setNoOfTLBRequests(execEngine.getCoreMemorySystem().getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(execEngine.getCoreMemorySystem().getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(execEngine.getCoreMemorySystem().getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(execEngine.getCoreMemorySystem().getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(execEngine.getCoreMemorySystem().getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(execEngine.getCoreMemorySystem().getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfIRequests(execEngine.getCoreMemorySystem().getiCache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfIHits(execEngine.getCoreMemorySystem().getiCache().hits, core.getCore_number());
+		Statistics.setNoOfIMisses(execEngine.getCoreMemorySystem().getiCache().misses, core.getCore_number());
 		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
 		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().misses);
 		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());

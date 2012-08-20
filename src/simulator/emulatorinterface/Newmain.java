@@ -2,6 +2,8 @@ package emulatorinterface;
 
 import java.util.Enumeration;
 
+import pipeline.outoforder.ICacheBuffer;
+import pipeline.outoforder.OutOrderExecutionEngine;
 import power.Counters;
 
 import memorysystem.nuca.CBDNuca;
@@ -302,6 +304,7 @@ public class Newmain {
 	public static void dumpAllMSHRs()
 	{
 		CoreMemorySystem coreMemSys = null;
+		System.out.println("\n\nMSHR DUMP\n\n");
 		for(int i = 0; i < Newmain.cores.length; i++)
 		{
 			coreMemSys = Newmain.cores[i].getExecEngine().getCoreMemorySystem();
@@ -326,6 +329,7 @@ public class Newmain {
 	
 	public static void dumpAllEventQueues()
 	{
+		System.out.println("\n\nEvent Queue DUMP\n\n");
 		EventQueue eventQueue = null;
 		for(int i = 0; i < Newmain.cores.length; i++)
 		{
@@ -333,6 +337,19 @@ public class Newmain {
 			System.out.println("---------------------------------------------------------------------------");
 			System.out.println("CORE " + i);
 			eventQueue.dump();
+		}
+	}
+	
+	public static void dumpAllICacheBuffers()
+	{
+		System.out.println("\n\nICache Buffer DUMP\n\n");
+		ICacheBuffer buffer = null;
+		for(int i = 0; i < Newmain.cores.length; i++)
+		{
+			buffer = ((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getiCacheBuffer();
+			System.out.println("---------------------------------------------------------------------------");
+			System.out.println("CORE " + i);
+			buffer.dump();
 		}
 	}
 	

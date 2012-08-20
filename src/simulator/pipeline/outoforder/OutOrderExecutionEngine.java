@@ -91,7 +91,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 													core.getAllLatencies());
 		
 		
-		iCacheBuffer = new ICacheBuffer(32);
+		iCacheBuffer = new ICacheBuffer(core.getDecodeWidth());
 		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchLogic(core, this);
 		decodeBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
@@ -100,7 +100,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		renamer = new RenameLogic(core, this);
 		IWPusher = new IWPushLogic(core, this);
 		selector = new SelectLogic(core, this);
-		executer = new ExecutionLogic(core);
+		executer = new ExecutionLogic(core, this);
 		writeBackLogic = new WriteBackLogic(core, this);
 		
 		

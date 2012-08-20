@@ -163,8 +163,9 @@ public class WakeUpLogic {
 	
 	static public void wakeUpLogic(Core core, OperandType opndType, int physicalRegister, int threadID, int startIndex)
 	{
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine)core.getExecEngine();
 		ReorderBufferEntry ROBEntry;
-		ReorderBuffer ROB = core.getExecEngine().getReorderBuffer();
+		ReorderBuffer ROB = execEngine.getReorderBuffer();
 		ReorderBufferEntry[] ROBEntries = ROB.getROB();
 		
 		Instruction instruction;
@@ -307,15 +308,15 @@ public class WakeUpLogic {
 		
 		if(opndType == OperandType.integerRegister)
 		{
-			core.getExecEngine().getIntegerRenameTable().setValueValid(true, physicalRegister);
+			execEngine.getIntegerRenameTable().setValueValid(true, physicalRegister);
 		}
 		else if(opndType == OperandType.floatRegister)
 		{
-			core.getExecEngine().getFloatingPointRenameTable().setValueValid(true, physicalRegister);
+			execEngine.getFloatingPointRenameTable().setValueValid(true, physicalRegister);
 		}
 		else if(opndType == OperandType.machineSpecificRegister)
 		{
-			core.getExecEngine().getMachineSpecificRegisterFile(threadID).setValueValid(true, physicalRegister);
+			execEngine.getMachineSpecificRegisterFile(threadID).setValueValid(true, physicalRegister);
 		}
 	}
 

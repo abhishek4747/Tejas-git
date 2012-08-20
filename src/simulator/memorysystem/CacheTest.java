@@ -30,10 +30,10 @@ public class CacheTest extends SimulationElement{
 	public static void main(String[] args) {
 		
 		int size = 16;
-		int associativity = 1;
+		int associativity = 512;
 		int blockSize = 32;
 		WritePolicy writePolicy = WritePolicy.WRITE_THROUGH;
-		int mshrSize = 8;
+		int mshrSize = 1;
 		
 		cache = new Cache(
 				size,
@@ -51,9 +51,17 @@ public class CacheTest extends SimulationElement{
 		
 		CacheTest tester = new CacheTest();
 		
-		//for(int j = 0; j < 2; j++)
-		for(int i = 0; i < 16*1024; i++)
+		for(int j = 0; j < 2; j++)
+		for(int i = 0; i < 16*1024 + 32; i++)
 		{
+			/*int address = i;
+			if(j%2 == 0)
+			{
+				address = i;
+			}else
+			{
+				address = 16*1024 + i;
+			}*/
 			if(responseReceived > 0)
 			{
 				tester.issueRequestToCache(i);

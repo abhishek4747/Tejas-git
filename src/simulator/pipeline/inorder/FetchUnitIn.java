@@ -1,5 +1,6 @@
 package pipeline.inorder;
 
+import java.util.Hashtable;
 import config.SimulationConfig;
 import emulatorinterface.Newmain;
 import generic.Core;
@@ -26,16 +27,14 @@ public class FetchUnitIn extends SimulationElement
 	int syncCount;
 	int numRequestsSent;
 	int numRequestsAcknowledged;
-	private boolean fetchBufferStatus[];
-	int notDoingAnything = 0;
-
+	private boolean fetchBufferStatus[];	
 
 	public FetchUnitIn(Core core, EventQueue eventQueue, InorderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
-		this.fetchBufferCapacity=1;
+		this.fetchBufferCapacity=8;
 		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;
@@ -70,6 +69,12 @@ public class FetchUnitIn extends SimulationElement
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
 			if(newInstruction == null)
 				return;
+			/*if(newInstruction.getOperationType() == OperationType.store)
+			{
+				Newmain.instructionPool.returnObject(newInstruction);
+				i--;
+				continue;
+			}*/
 			
 			if(newInstruction.getOperationType() == OperationType.inValid)
 			{
@@ -92,8 +97,7 @@ public class FetchUnitIn extends SimulationElement
 				{
 					this.fetchBufferStatus[i]=false;
 					containingExecutionEngine.inorderCoreMemorySystem.issueRequestToInstrCache(
-							newInstruction.getRISCProgramCounter(),
-							inorderPipeline);
+							newInstruction.getRISCProgramCounter());
 				}
 			}
 		}
