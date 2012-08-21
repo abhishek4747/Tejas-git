@@ -1,1 +1,0 @@
-env LD_LIBRARY_PATH=./bin/obj-comm java -classpath bin:bin/log4j-1.2.16.jar emulatorinterface.Newmain /home/harne/Desktop/output1 /home/harne/Desktop/hello
