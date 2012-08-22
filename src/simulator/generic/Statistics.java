@@ -59,7 +59,7 @@ public class Statistics {
 	{
 		for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
 		{
-			for (int j=0; j<IpcBase.EmuThreadsPerJavaThread; j++) {
+			for (int j=0; j<IpcBase.getEmuThreadsPerJavaThread(); j++) {
 				totalNumMicroOps += noOfMicroOps[i][j];
 //				totalNumMicroOps += numCoreInstructions[i];
 				totalNumInstructions += numInstructions[i][j];
@@ -704,8 +704,8 @@ System.out.println("execution time = "+executionTime);
 	public static void initStatistics()
 	{		
 		dataRead = new long[IpcBase.MaxNumJavaThreads];
-		numInstructions = new long[IpcBase.MaxNumJavaThreads][IpcBase.EmuThreadsPerJavaThread];
-		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads][IpcBase.EmuThreadsPerJavaThread];
+		numInstructions = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
+		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
 		coreFrequencies = new long[SystemConfig.NoOfCores];

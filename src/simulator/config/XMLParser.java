@@ -259,7 +259,7 @@ private static void setSimulationParameters()
 		
 		//Read number of cores and define the array of core configurations
 		//Note that number of Cores specified in config.xml is deprecated and is instead done as follows
-		SystemConfig.NoOfCores = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
+		SystemConfig.NoOfCores = IpcBase.MaxNumJavaThreads*IpcBase.getEmuThreadsPerJavaThread();
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
 		SystemConfig.mainMemPortType = setPortType(getImmediateString("MainMemoryPortType", systemElmnt));

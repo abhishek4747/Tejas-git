@@ -51,11 +51,11 @@ public class RunnableThread implements Encoding {
 
 	int tid;
 	long sum = 0; // checksum
-	int EMUTHREADS = IpcBase.EmuThreadsPerJavaThread;
+	int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
 	int currentEMUTHREADS = 0;
 	int testcurrentEMUTHREADS = 0;
 	
-	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
+	ThreadParams[] threadParams = new ThreadParams[IpcBase.getEmuThreadsPerJavaThread_Acutal()];
 
 	InstructionLinkedList[] inputToPipeline;
 	static long ignoredInstructions = 0;
@@ -102,7 +102,7 @@ public class RunnableThread implements Encoding {
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
 		for(int i = 0; i < EMUTHREADS; i++)
 		{
-			int id = tid1*IpcBase.EmuThreadsPerJavaThread+i;
+			int id = tid1*IpcBase.getEmuThreadsPerJavaThread()+i;
 			IpcBase.glTable.getStateTable().put(id, new ThreadState(id));
 			threadParams[i] = new ThreadParams();
 
@@ -142,7 +142,7 @@ public class RunnableThread implements Encoding {
 
 	protected void runPipelines() {
 		int minN = Integer.MAX_VALUE;
-		for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+		for (int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++) {
 			ThreadParams th = threadParams[tidEmu];
 			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
 					//|| th.packets.size() > PACKET_THRESHOLD)){
@@ -173,7 +173,7 @@ public class RunnableThread implements Encoding {
 		 */
 //		System.out.print("Pipe Size Start= "+inputToPipeline[0].getListSize()+ " " +minN/pipelineInterfaces[0].getCoreStepSize());
 		for (int i1 = 0; i1 < minN; i1++) {
-			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+			for (int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
 			}
 			if(tokenBus.getFrequency() > 0)
@@ -186,14 +186,14 @@ public class RunnableThread implements Encoding {
 			prevTotalInstructions=0;
 		}
 		if(SimulationConfig.powerTrace==1){
-			for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+			for (int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++) {
 				currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
 			}
 			if(currentTotalInstructions - prevTotalInstructions > SimulationConfig.numInsForTrace){
-				long[] cyclesElapsed = new long[currentEMUTHREADS];
+				long[] cyclesElapsed = new long[IpcBase.getEmuThreadsPerJavaThread()];
 				long currentCycles;
 				Core currentCore;
-				for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+				for(int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++){
 					currentCore = pipelineInterfaces[tidEmu].getCore();
 					currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
 					cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
@@ -201,8 +201,8 @@ public class RunnableThread implements Encoding {
 					Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
 					Statistics.setPerCorePowerStatistics(currentCore.powerCounters,currentCore.getCore_number());
 				}
-				Statistics.printPowerTrace(",", cyclesElapsed,currentEMUTHREADS);
-				for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+				Statistics.printPowerTrace(",", cyclesElapsed,IpcBase.getEmuThreadsPerJavaThread());
+				for(int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++){
 					prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
 					pipelineInterfaces[tidEmu].getCore().powerCounters.clearAccessStats();
 				}
@@ -216,7 +216,7 @@ public class RunnableThread implements Encoding {
 				long[] cyclesElapsed = new long[currentEMUTHREADS];
 				long currentCycles;
 				Core currentCore;
-					for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+					for(int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++){
 						currentCore = pipelineInterfaces[tidEmu].getCore();
 						currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
 						cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
@@ -225,7 +225,7 @@ public class RunnableThread implements Encoding {
 						Statistics.setPerCorePowerStatistics(currentCore.powerCounters,currentCore.getCore_number());
 				}
 				Statistics.printPowerTrace(",", cyclesElapsed,currentEMUTHREADS);
-				for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+				for(int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++){
 					prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
 					pipelineInterfaces[tidEmu].getCore().powerCounters.clearAccessStats();
 				}
@@ -238,7 +238,7 @@ public class RunnableThread implements Encoding {
 
 	public void finishAllPipelines() {
 
-		for (int i=0; i<currentEMUTHREADS; i++)
+		for (int i=0; i<IpcBase.getEmuThreadsPerJavaThread(); i++)
 			this.inputToPipeline[threadCoreMaping.get(i)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 
 		for (int i=0; i<currentEMUTHREADS; i++) {

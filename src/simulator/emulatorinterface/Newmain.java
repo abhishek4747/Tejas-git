@@ -71,7 +71,7 @@ public class Newmain {
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// Create Pools of Instructions and Operands
-		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.EmuThreadsPerJavaThread*2;
+		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.getEmuThreadsPerJavaThread()*2;
 		
 		/* "apache pool"
 		System.out.println("creating operand pool..");
@@ -315,8 +315,8 @@ public class Newmain {
 		System.out.println("initializing cores...");
 		System.out.println("Initializing core broadcast bus...");
 		
-		Core[] cores = new Core[IpcBase.EmuThreadsPerJavaThread];
-		for (int i=0; i<IpcBase.EmuThreadsPerJavaThread; i++) {
+		Core[] cores = new Core[IpcBase.getEmuThreadsPerJavaThread()];
+		for (int i=0; i<IpcBase.getEmuThreadsPerJavaThread(); i++) {
 			cores[i] = new Core(i,
 							1,
 							1,
@@ -332,7 +332,7 @@ public class Newmain {
 		}
 		
 		//TODO wont work in case of multiple runnable threads
-		for(int i = 0; i<IpcBase.EmuThreadsPerJavaThread; i++)
+		for(int i = 0; i<IpcBase.getEmuThreadsPerJavaThread(); i++)
 		{
 			if (cores[i].isPipelineInorder)
 				cores[i].getExecutionEngineIn().setIsAvailable(true);

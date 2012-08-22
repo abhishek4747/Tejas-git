@@ -32,7 +32,7 @@ public class SharedMem extends  IpcBase
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
-		shmid = shmget(COUNT,MaxNumJavaThreads,EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores);
+		shmid = shmget(COUNT,MaxNumJavaThreads,getEmuThreadsPerJavaThread_Acutal(), SimulationConfig.MapJavaCores);
 		shmAddress = shmat(shmid);
 	}
 		

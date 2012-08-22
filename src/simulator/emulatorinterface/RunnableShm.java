@@ -59,7 +59,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				microOpsDone += noOfMicroOps[i];
 			}
 
-			for (int tidEmu = 0; tidEmu < EMUTHREADS; tidEmu++) {
+			for (int tidEmu = 0; tidEmu < ipcType.getEmuThreadsPerJavaThread_Acutal() ; tidEmu++) {
 
 				thread = threadParams[tidEmu];
 //				if(thread.packets.size() != 0){
@@ -69,7 +69,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 //							System.out.println("starting stage " + tidEmu + "  " + p);
 //					}
 //				}
-				if (thread.halted || thread.finished) {
+				if ( thread != null  && (thread.halted || thread.finished)) {
 					continue;
 				}
 				int tidApp = tid * EMUTHREADS + tidEmu;

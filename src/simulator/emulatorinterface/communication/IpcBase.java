@@ -23,7 +23,7 @@ public abstract class IpcBase {
 	// Must ensure that MAXNUMTHREADS*EMUTHREADS == MaxNumThreads on the PIN side
 	// Do not move it to config file unless you can satisfy the first constraint
 	public static final int MaxNumJavaThreads = 1;
-	public static final int EmuThreadsPerJavaThread = 70; 
+	public static final int EmuThreadsPerJavaThread = 1000; 
 
 	// state management for reader threads
 	public boolean[] termination=new boolean[MaxNumJavaThreads];
@@ -131,5 +131,15 @@ public abstract class IpcBase {
 		System.out.println("Implement finish in the IPC mechanism");
 	}
 
+	public static int getEmuThreadsPerJavaThread()
+	{
+		return IpcBase.EmuThreadsPerJavaThread/13;
+	}
+	
+	public static int getEmuThreadsPerJavaThread_Acutal()
+	{
+		return IpcBase.EmuThreadsPerJavaThread;
+	}
+	
 	public abstract int fetchManyPackets(int tidApp, int readerLocation, int numReads,ArrayList<Packet> fromPIN);
 }
