@@ -68,6 +68,7 @@ public class MissStatusHoldingRegister {
 		}
 		else
 		{			
+
 			ArrayList<Event> tempList = mshr.get(blockAddr).outStandingEvents;
 			tempList.add(event);
 			return false;

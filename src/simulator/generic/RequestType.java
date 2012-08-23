@@ -76,9 +76,13 @@ public enum RequestType {
 	EvictionDirectoryUpdate,
 	Cache_Read_Writeback,
 	Cache_Read_Writeback_Invalidate,
+	MemResponseDirectoryUpdate,
 	Send_Mem_Response,
+	Cache_Write_Writeback_Invalidate,
+	Send_Mem_Response_On_WriteHit,
+	PerformPulls, 
+	Send_Mem_Response_Invalidate
 	
-	PerformPulls
 	
 	
 //	MEM_READ,

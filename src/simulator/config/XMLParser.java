@@ -195,12 +195,7 @@ private static void setSimulationParameters()
 			SimulationConfig.detachMemSys = false;
 		}
 		
-		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==0){
-			SimulationConfig.isPipelineStatistical = true;
-			SimulationConfig.isPipelineInorder = false;
-			SimulationConfig.isPipelineMultiIssueInorder = false;
-		}
-		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
+		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
 			SimulationConfig.isPipelineStatistical = false;
 			SimulationConfig.isPipelineInorder = true;
 			SimulationConfig.isPipelineMultiIssueInorder = false;

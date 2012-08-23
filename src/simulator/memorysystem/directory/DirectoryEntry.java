@@ -16,7 +16,6 @@ public class DirectoryEntry {
 	public long address;
 	
 	public DirectoryEntry(int noOfCores, long lineNum){
-		state=DirectoryState.Invalid;
 		presenceBits=new boolean[noOfCores];
 		numPresenceBits=noOfCores;
 		line_num=lineNum;
@@ -83,13 +82,6 @@ public class DirectoryEntry {
 
 	protected void setTimestamp(double timestamp) {
 		this.timestamp = timestamp;
-	}
-
-	public boolean isValid() {
-		if(this.getState()!=DirectoryState.Invalid)
-			return true;
-		else
-			return false;
 	}
 	
 	public void resetAllPresentBits()

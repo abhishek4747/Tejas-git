@@ -56,7 +56,7 @@ public class WriteBackUnitIn extends SimulationElement{
 			{
 				if(core.getNoOfInstructionsExecuted()%1000000==0)
 				{
-					System.out.println(this.j++ + " million done");
+					System.out.println(this.j++ + " million done" + " by core "+core.getCore_number());
 				}
 				core.incrementNoOfInstructionsExecuted();
 				

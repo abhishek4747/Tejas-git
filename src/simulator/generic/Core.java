@@ -16,9 +16,6 @@ import pipeline.inorder.WriteBackUnitIn;
 import pipeline.inorder.multiissue.MultiIssueInorder;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.PipelineInterface;
-import pipeline.statistical.StatisticalExecutionEngine;
-import pipeline.statistical.StatisticalPipeline;
-import pipeline.statistical.StatisticalPipelineInterface;
 import power.Counters;
 import config.CoreConfig;
 import config.SimulationConfig;
@@ -100,9 +97,7 @@ public class Core {
 		this.no_of_threads = no_of_threads;
 		this.threadIDs = threadIDs;
 		
-		if (isPipelineStatistical)
-			this.execEngine = new StatisticalExecutionEngine(this);
-		else if(this.isPipelineInorder)
+		if(this.isPipelineInorder)
 			this.execEngine = new InorderExecutionEngine(this,1);
 		else if(this.isPipelineMultiIssueInorder)
 			this.execEngine = new InorderExecutionEngine(this,this.numInorderPipelines);
@@ -112,9 +107,7 @@ public class Core {
 		this.branchPredictor = new TournamentPredictor();
 		this.noOfInstructionsExecuted = 0;
 		this.numReturns=0;
-		if (this.isPipelineStatistical)
-			this.pipelineInterface = new StatisticalPipelineInterface(this, eventQueue);
-		else if(this.isPipelineInorder)
+		if(this.isPipelineInorder)
 			this.pipelineInterface = new InorderPipeline(this, eventQueue,0);
 		else if(this.isPipelineMultiIssueInorder)
 			this.pipelineInterface = new MultiIssueInorder(this, eventQueue);

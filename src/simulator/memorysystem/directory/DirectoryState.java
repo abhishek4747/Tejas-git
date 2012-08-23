@@ -1,8 +1,8 @@
 package memorysystem.directory;
 
-public enum DirectoryState {
-		Invalid,		
+public enum DirectoryState {	
 		Modified,		
 		Shared	,
-		uncached
+		uncached,
+		Exclusive
 }

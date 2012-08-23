@@ -1,5 +1,7 @@
 package pipeline.inorder;
 
+import pipeline.inorder.multiissue.MultiIssueInorder;
+import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -10,7 +12,6 @@ import memorysystem.CoreMemorySystem;
 public class InorderCoreMemorySystem extends CoreMemorySystem {
 	
 	InorderExecutionEngine containingExecEngine;
-	
 	public InorderCoreMemorySystem(Core core)
 	{
 		super(core);
@@ -23,8 +24,16 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	public boolean issueRequestToL1Cache(RequestType requestType, 
 											long address)
 	{
-		InorderPipeline inorderPipeline = (InorderPipeline)core.getPipelineInterface();
-		
+		InorderPipeline inorderPipeline = null; 
+		if(SimulationConfig.isPipelineInorder)
+		{
+			inorderPipeline= (InorderPipeline)core.getPipelineInterface();
+		}
+		else
+		{
+			inorderPipeline = ((MultiIssueInorder)core.getPipelineInterface()).getInorderPipeLine();
+		}
+
 		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
@@ -58,6 +67,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			}
 			else
 			{
+
 				if(addressEvent.getRequestType() == RequestType.Cache_Write)
 				{
 					L1MissStatusHoldingRegister.removeEvent(addressEvent);
@@ -70,8 +80,15 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	//To issue the request to instruction cache
 	public void issueRequestToInstrCache(long address)
 	{
-		InorderPipeline inorderPipeline = (InorderPipeline)core.getPipelineInterface();
-		
+		InorderPipeline inorderPipeline = null; 
+		if(SimulationConfig.isPipelineInorder)
+		{
+			inorderPipeline= (InorderPipeline)core.getPipelineInterface();
+		}
+		else
+		{
+			inorderPipeline = ((MultiIssueInorder)core.getPipelineInterface()).getInorderPipeLine();
+		}
 		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
@@ -141,5 +158,4 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			System.out.println("mem response received by inordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
 		}
 	}
-
 }

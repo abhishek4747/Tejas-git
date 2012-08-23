@@ -197,12 +197,15 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		Statistics.setNoOfIHits(inorderCoreMemorySystem.getiCache().hits, core.getCore_number());
 		Statistics.setNoOfIMisses(inorderCoreMemorySystem.getiCache().misses, core.getCore_number());
 		Statistics.setBranchCount(core.powerCounters.getBpredAccess(), core.getCore_number());
+		Statistics.setMispredictedBranchCount(core.powerCounters.getBpredMisses(), core.getCore_number());
 	}
 
-	public void setPerCorePowerStatistics(){
+	public void setPerCorePowerStatistics()
+	{
 		core.powerCounters.clearAccessStats();
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
+	
 	private long getNoOfSt() {
 		return noOfSt;
 	}

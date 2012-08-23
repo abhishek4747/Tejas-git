@@ -112,6 +112,7 @@ public class DecodeUnitIn extends SimulationElement{
 						//stall pipelines for appropriate cycles
 						//TODO correct the following:
 //										core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
+						this.core.powerCounters.incrementBpredMisses();
 						containingExecutionEngine.setStallPipelinesDecode(inorderPipeline.getId(), core.getBranchMispredictionPenalty());
 						containingExecutionEngine.setStallFetch(core.getBranchMispredictionPenalty());
 					}

@@ -10,6 +10,7 @@ public class Counters {
 	/* counters added for Wattch */
 	long renameAccess=0;
 	long bpredAccess=0;
+	private long bpredMisses = 0;
 	long windowAccess=0;
 	long lsqAccess=0;
 	long regfileAccess=0;
@@ -1904,6 +1905,11 @@ public class Counters {
 		this.totalAluPower = totalAluPower;
 	}
 
+	public long getBpredMisses() {
+		return bpredMisses;
+	}
 
-
+	public void incrementBpredMisses() {
+		this.bpredMisses++;
+	}
 }

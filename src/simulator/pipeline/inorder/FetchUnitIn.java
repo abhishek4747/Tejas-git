@@ -8,7 +8,6 @@ import generic.Event;
 import generic.EventQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
-import generic.OMREntry;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -28,8 +27,7 @@ public class FetchUnitIn extends SimulationElement
 	int syncCount;
 	int numRequestsSent;
 	int numRequestsAcknowledged;
-	private boolean fetchBufferStatus[];
-
+	private boolean fetchBufferStatus[];	
 
 	public FetchUnitIn(Core core, EventQueue eventQueue, InorderExecutionEngine execEngine)
 	{
@@ -122,7 +120,7 @@ public class FetchUnitIn extends SimulationElement
 				&& this.fetchBufferStatus[this.fetchBufferIndex])
 		{
 			ins = this.fetchBuffer[this.fetchBufferIndex];
-			
+
 			if(ins.getOperationType()==OperationType.sync)
 			{
 				this.fetchFillCount--;			
@@ -146,7 +144,7 @@ public class FetchUnitIn extends SimulationElement
 				this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
 			}
 		}
-		
+
 		if(this.stall>0)
 		{
 			this.stall--;
