@@ -51,8 +51,8 @@ public class TournamentPredictor implements BranchPredictor{
          */
         public TournamentPredictor()
         {
-                pred1=new PAgPredictor(16,10,5);
-                pred2=new PApPredictor(10,10,5);
+                pred1=new PAgPredictor(10,10,2);
+                pred2=new PApPredictor(10,10,2);
                 counter=0;
         }
         /**
