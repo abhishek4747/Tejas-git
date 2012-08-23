@@ -160,8 +160,10 @@ public class FetchUnitIn extends SimulationElement{
 						long barrierAddress = ins.getRISCProgramCounter();
 						Barrier bar = BarrierTable.barrierList.get(barrierAddress);
 						bar.incrementThreads();
+						
 						if(bar.timeToCross())
 						{
+							System.out.println("time to cross");
 							ifIdLatch.setInstruction(null);
 							sleepThePipeline();
 							for(int i=0; i<bar.getNumThreads(); i++ ){

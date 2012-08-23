@@ -238,10 +238,11 @@ public class RunnableThread implements Encoding {
 
 	public void finishAllPipelines() {
 
-		for (int i=0; i<IpcBase.getEmuThreadsPerJavaThread(); i++)
-			this.inputToPipeline[threadCoreMaping.get(i)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
-
-		for (int i=0; i<currentEMUTHREADS; i++) {
+		for (int i=0; i<IpcBase.getEmuThreadsPerJavaThread(); i++){
+			if(threadCoreMaping.get(i) != null)
+					this.inputToPipeline[threadCoreMaping.get(i)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+		}
+		for (int i=0; i<IpcBase.getEmuThreadsPerJavaThread(); i++) {
 			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
 				System.out.println("not completed for "+i);
 				resumeSleep(IpcBase.glTable.resumePipelineTimer(i));
@@ -271,21 +272,21 @@ public class RunnableThread implements Encoding {
 					maxN=n;
 			}*/	
 //			for (int i1=0; i1< maxN; i1++)	{
-				for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+				for (int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++) {
 						pipelineInterfaces[tidEmu].oneCycleOperation();
 				}
 				if(tokenBus.getFrequency() > 0)
 					tokenBus.eq.processEvents();
 				GlobalClock.incrementClock();
 				if(SimulationConfig.powerTrace==1){
-					for (int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++) {
+					for (int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++) {
 						currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
 					}
 					if(currentTotalInstructions - prevTotalInstructions > SimulationConfig.numInsForTrace){
-						long[] cyclesElapsed = new long[currentEMUTHREADS];
+						long[] cyclesElapsed = new long[IpcBase.getEmuThreadsPerJavaThread()];
 						long currentCycles;
 						Core currentCore;
-							for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+							for(int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++){
 							currentCore = pipelineInterfaces[tidEmu].getCore();
 							currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
 							cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
@@ -293,8 +294,8 @@ public class RunnableThread implements Encoding {
 							Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
 							Statistics.setPerCorePowerStatistics(currentCore.powerCounters,currentCore.getCore_number());
 						}
-						Statistics.printPowerTrace(",", cyclesElapsed,currentEMUTHREADS);
-						for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
+						Statistics.printPowerTrace(",", cyclesElapsed,IpcBase.getEmuThreadsPerJavaThread());
+						for(int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread(); tidEmu++){
 							prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
 							pipelineInterfaces[tidEmu].getCore().powerCounters.clearAccessStats();
 						}
@@ -535,13 +536,13 @@ public class RunnableThread implements Encoding {
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {
-			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
+//			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
 			this.pipelineInterfaces[threadCoreMaping.get(update.resume.get(i))].resumePipeline();
 		}
 		for (int i=0; i<update.getNumSleepers(); i++) {
 			Instruction ins = new Instruction(OperationType.sync,null, null, null);
 			ins.setRISCProgramCounter(update.barrierAddress);
-			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
+//			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
 			this.inputToPipeline[threadCoreMaping.get(update.sleep.get(i))].appendInstruction(ins);
 		}
 	}
@@ -549,6 +550,7 @@ public class RunnableThread implements Encoding {
 
 	protected void signalFinish(int tidApp) {
 		// TODO Auto-generated method stub
+		System.out.println("signalfinish thread " + tidApp + " mapping " + threadCoreMaping.get(tidApp));
 		this.inputToPipeline[threadCoreMaping.get(tidApp)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 		IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
 		//					System.out.println(tidApp+" pin thread got -1");

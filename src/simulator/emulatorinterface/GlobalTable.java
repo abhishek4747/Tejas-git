@@ -131,6 +131,7 @@ public final class GlobalTable implements Encoding {
 				ret.setBarrierAddress((int)addressSynchItem);
 //				System.out.println("new sync packet tid : " + thread + "add : "+ addressSynchItem);
 				ret.addSleeper(thread);
+				
 				return ret;
 			}	
 			break;

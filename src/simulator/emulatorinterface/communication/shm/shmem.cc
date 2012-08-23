@@ -1,4 +1,5 @@
 #include "shmem.h"
+
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/stat.h>
@@ -6,6 +7,7 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include <errno.h>
+
 
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -62,6 +64,8 @@ Shm::Shm ()
 		myData->sum = 0;
 		myData->tlq = new packet[locQ];
 		myData->shm = tldata[0].shm+(COUNT+5)*t;		// point to the correct index of the shared memory
+		myData->avail = 1;
+		myData->tid = 0;
 	}
 }
 
@@ -72,6 +76,7 @@ Shm::Shm ()
 int
 Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 {
+	tid = memMapping[tid];
 	THREAD_DATA *myData = &tldata[tid];
 
 	// if my local queue is full, I should write to the shared memory and return if cannot return
@@ -97,23 +102,49 @@ Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 void
 Shm::onThread_start (int tid)
 {
-	THREAD_DATA *myData = &tldata[tid];
+	int i;
+	bool flag = false;
+	for(i=0;i<MaxNumThreads;i++){
+		if(tldata[i].avail == 1)
+		{
+			flag=true;
+			break;
+		}
+	}
+	//ASSERT(flag == false, "Maximum number of threads exceeded\n");
+	THREAD_DATA *myData = &tldata[i];
+	printf("thread %d is assigned to %d\n",tid,i);
 	packet *shmem = myData->shm;
+	myData->avail =0;
+	myData->tid = tid;
+	memMapping[tid] = i;
 
 	shmem[COUNT].value = 0; // queue size pointer
 	shmem[COUNT + 1].value = 0; // flag[0] = 0
 	shmem[COUNT + 2].value = 0; // flag[1] = 0
+
 }
 
 int
 Shm::onThread_finish (int tid)
 {
+	tid = memMapping[tid];   //find the mapped mem segment
+
 	THREAD_DATA *myData = &tldata[tid];
 
 	// keep writing till we empty our local queue
 	while (myData->tlqsize !=0) {
 		if (Shm::shmwrite(tid,0)==-1) return -1;
 	}
+	//preparing for a new one
+//	myData->tlqsize = 0;
+//	myData->in = 0;
+//	myData->out = 0;
+//	myData->sum = 0;
+//	myData->tlq = new packet[locQ];
+//	myData->shm = tldata[0].shm+(COUNT+5)*tid;		// point to the correct index of the shared memory
+	myData->avail = 1;
+	myData->tid = 0;
 
 	// last write to our shared memory. This time write a -1 in the 'value' field of the packet
 	return Shm::shmwrite(tid,1);
@@ -126,6 +157,7 @@ Shm::onThread_finish (int tid)
 int
 Shm::shmwrite (int tid, int last)
 {
+	tid = memMapping[tid];
 	int queue_size;
 	int numWrite;
 
@@ -163,6 +195,7 @@ Shm::shmwrite (int tid, int last)
 		}
 	}
 	else {
+		printf("last packet is written\n");
 		numWrite = 1;
 		shmem[myData->prod_ptr % COUNT].value = -1;
 	}

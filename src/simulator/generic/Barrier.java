@@ -52,6 +52,7 @@ public class Barrier {
 	}
 	public boolean timeToCross()
 	{
+		System.out.println("in timetocross numthreads "+ numThreads + " "+ numThreadsArrived);
 		return(this.numThreads == this.numThreadsArrived);
 	}
 	public int getNumThreads(){
