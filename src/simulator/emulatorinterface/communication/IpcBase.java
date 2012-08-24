@@ -24,7 +24,7 @@ public abstract class IpcBase {
 	// Do not move it to config file unless you can satisfy the first constraint
 	public static final int MaxNumJavaThreads = 1;
 	public static final int EmuThreadsPerJavaThread = 1000; 
-	public static int memMapping[] = new int[EmuThreadsPerJavaThread];
+//	public static int memMapping[] = new int[EmuThreadsPerJavaThread];
 
 	// state management for reader threads
 	public boolean[] termination=new boolean[MaxNumJavaThreads];

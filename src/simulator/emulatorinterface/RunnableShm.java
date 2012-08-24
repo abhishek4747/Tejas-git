@@ -59,7 +59,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				microOpsDone += noOfMicroOps[i];
 			}
 
-			for (int tidEmu = 0; tidEmu < IpcBase.getEmuThreadsPerJavaThread_Acutal() ; tidEmu++) {
+			for (int tidEmu = 0; tidEmu < EMUTHREADS ; tidEmu++) {
 
 				thread = threadParams[tidEmu];
 //				if(thread.packets.size() != 0){
@@ -156,7 +156,6 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
-					System.out.println("last packet read");
 					thread.isFirstPacket = true;
 					signalFinish(tidApp);
 				}

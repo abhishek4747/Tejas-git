@@ -65,7 +65,7 @@ Shm::Shm ()
 		myData->tlq = new packet[locQ];
 		myData->shm = tldata[0].shm+(COUNT+5)*t;		// point to the correct index of the shared memory
 		myData->avail = 1;
-		myData->tid = 0;
+//		myData->tid = 0;
 	}
 }
 
@@ -113,10 +113,10 @@ Shm::onThread_start (int tid)
 	}
 	//ASSERT(flag == false, "Maximum number of threads exceeded\n");
 	THREAD_DATA *myData = &tldata[i];
-	printf("thread %d is assigned to %d\n",tid,i);
+//	printf("thread %d is assigned to %d\n",tid,i);
 	packet *shmem = myData->shm;
 	myData->avail =0;
-	myData->tid = tid;
+//	myData->tid = tid;
 	memMapping[tid] = i;
 
 	shmem[COUNT].value = 0; // queue size pointer
@@ -144,7 +144,7 @@ Shm::onThread_finish (int tid)
 //	myData->tlq = new packet[locQ];
 //	myData->shm = tldata[0].shm+(COUNT+5)*tid;		// point to the correct index of the shared memory
 	myData->avail = 1;
-	myData->tid = 0;
+//	myData->tid = 0;
 
 	// last write to our shared memory. This time write a -1 in the 'value' field of the packet
 	return Shm::shmwrite(tid,1);
@@ -195,7 +195,6 @@ Shm::shmwrite (int tid, int last)
 		}
 	}
 	else {
-		printf("last packet is written\n");
 		numWrite = 1;
 		shmem[myData->prod_ptr % COUNT].value = -1;
 	}

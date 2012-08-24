@@ -33,7 +33,7 @@ protected:
 		uint64_t sum;								/* checksum */
 		uint8_t _pad[PADSIZE];						/* to handle false sharing */
 		uint32_t avail;								/* check the avilabiltiy 1 = yes, 0= no */
-		uint32_t tid;								/* current tid running on it (implemented for shmem reuse)*/
+//		uint32_t tid;								/* current tid running on it (implemented for shmem reuse)*/
 	};
 
 public:
