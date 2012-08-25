@@ -37,6 +37,7 @@ protected:
 public:
 	THREAD_DATA tldata[MaxNumThreads];
 	Shm();
+	Shm(uint64_t);
 	Shm (uint32_t count,uint32_t localQueue);
 
 	int analysisFn (int tid,uint64_t ip, uint64_t value, uint64_t tgt);

@@ -34,7 +34,7 @@ jint gEmuThreadsPerJavaThread;
  * deletes it to ensure a fresh memory segment. Now create a fresh
  * segment with the parameter size. return the shmid for this segment
  */
-JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
+/*JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 (JNIEnv * env, jobject jobj, jint COUNT,jint MaxNumJavaThreads,jint EmuThreadsPerJavaThread,
 		jlong coremap) {
 	uint64_t mask = coremap;
@@ -49,6 +49,50 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 
 	int shmid;
 	key_t key=ftok(ftokpath,ftok_id);
+	if ( key == (key_t)-1 )
+	{
+		perror("ftok");
+		return (-1);
+	}
+
+
+	// first create a dummy and delete
+	shmid = shmget(key,32, IPC_CREAT | 0666);
+	struct shmid_ds  sds;
+	shmctl(shmid,IPC_RMID,&sds);
+
+	//set the global variables
+	gCOUNT = COUNT;
+	gMaxNumJavaThreads = MaxNumJavaThreads;
+	gEmuThreadsPerJavaThread = EmuThreadsPerJavaThread;
+
+	//size1 is the number of packets needed in the segment.
+	int size=sizeof(packet)*(COUNT+5)*MaxNumJavaThreads*EmuThreadsPerJavaThread;
+	if ((shmid = shmget(key, size, IPC_CREAT | IPC_EXCL | 0666)) < 0) {
+		perror("shmget-:");
+		return (-1);
+	}
+
+	return (shmid);
+}*/
+
+JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
+(JNIEnv * env, jobject jobj, jint COUNT,jint MaxNumJavaThreads,jint EmuThreadsPerJavaThread,
+		jlong coremap, jint pid) {
+	uint64_t mask = coremap;
+
+
+/*
+	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
+		perror("sched_setaffinity");
+	}
+*/
+
+
+	int shmid;
+	//key_t key=ftok(ftokpath,ftok_id);
+	printf("jnishm : id = %d\n", pid);
+	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
 		perror("ftok");

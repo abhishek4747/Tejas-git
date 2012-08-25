@@ -24,14 +24,14 @@ public class SharedMem extends  IpcBase
 	// Must ensure that this is same as COUNT in shmem.h
 	public static final int COUNT = 1000;
 	
-	public SharedMem() 
+	public SharedMem(int pid) 
 	{
 		super();
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
-		shmid = shmget(COUNT,MaxNumJavaThreads,EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores);
+		shmid = shmget(COUNT,MaxNumJavaThreads,EmuThreadsPerJavaThread, SimulationConfig.MapJavaCores, pid);
 		shmAddress = shmat(shmid);
 	}
 		
@@ -75,7 +75,7 @@ public class SharedMem extends  IpcBase
 	}
 	// calls shmget function and returns the shmid. Only 1 big segment is created and is indexed
 	// by the threads id. Also pass the core mapping read from config.xml
-	native int shmget(int COUNT,int MaxNumJavaThreads,int EmuThreadsPerJavaThread , long coremap);
+	native int shmget(int COUNT,int MaxNumJavaThreads,int EmuThreadsPerJavaThread , long coremap, int pid);
 	
 	// attaches to the shared memory segment identified by shmid and returns the pointer to 
 	// the memory attached. 

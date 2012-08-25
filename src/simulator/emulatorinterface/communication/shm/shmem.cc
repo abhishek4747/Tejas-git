@@ -65,6 +65,42 @@ Shm::Shm ()
 	}
 }
 
+Shm::Shm (uint64_t id)
+{
+	// get a unique key
+	key_t key=ftok(ftokpath,id);
+	if ( key == (key_t)-1 )
+	{
+		perror("ftok");
+		exit(1);
+	}
+
+	// get a segment for this key. This key is shared with the JNI through common.h
+	int size = (COUNT+5) * sizeof(packet)*MaxNumThreads;
+	if ((shmid = shmget(key, size, 0666)) < 0) {
+		perror("shmget ");
+		exit(1);
+	}
+
+	// attach to this segment
+	if ((tldata[0].shm = (packet *)shmat(shmid, NULL, 0)) == (packet *)-1) {
+		perror("shmat");
+		exit(1);
+	}
+
+	// initialise book-keeping variables for each of the threads
+	THREAD_DATA *myData;
+	for (int t=0; t<MaxNumThreads; t++) {
+		myData = &tldata[t];
+		myData->tlqsize = 0;
+		myData->in = 0;
+		myData->out = 0;
+		myData->sum = 0;
+		myData->tlq = new packet[locQ];
+		myData->shm = tldata[0].shm+(COUNT+5)*t;		// point to the correct index of the shared memory
+	}
+}
+
 
 /* If local queue is full, write to the shared memory and then write to localQueue.
  * else just write at localQueue at the appropriate index i.e. at 'in'

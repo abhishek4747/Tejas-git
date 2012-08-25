@@ -1,5 +1,6 @@
 package emulatorinterface;
 
+import java.io.File;
 import java.util.Enumeration;
 
 import pipeline.outoforder.ICacheBuffer;
@@ -103,10 +104,14 @@ public class Newmain {
 		//create cores
 		cores = initCores();
 		
+		//find pid
+		int pid = Integer.parseInt( ( new File("/proc/self")).getCanonicalFile().getName() );
+		System.out.println("Newmain : pid = " + pid);
+		
 		// create PIN interface
-		IpcBase ipcBase = new SharedMem();
+		IpcBase ipcBase = new SharedMem(pid);
 		if (SimulationConfig.Mode!=0) {
-			Process process = createPINinterface(ipcBase, executableArguments);
+			Process process = createPINinterface(ipcBase, executableArguments, pid);
 		}
 
 		//Create the memory system
@@ -223,7 +228,7 @@ public class Newmain {
 	}
 
 	private static Process createPINinterface(IpcBase ipcBase,
-			String executableArguments) 
+			String executableArguments, int pid) 
 	{
 
 		// Creating command for PIN tool.
@@ -231,7 +236,7 @@ public class Newmain {
 		
 		cmd = SimulationConfig.PinTool + "/pin" + " -injection child -t " 
 						+ SimulationConfig.PinInstrumentor + " -map "
-						+ SimulationConfig.MapEmuCores + " -- ";
+						+ SimulationConfig.MapEmuCores + " -id " + pid + " -- ";
 		cmd += executableArguments;
 
 		Process process = null;
