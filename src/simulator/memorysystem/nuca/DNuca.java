@@ -48,12 +48,6 @@ public class DNuca extends NucaCache {
 		}
 	}
 
-	@Override
-	public long getTag(long addr) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 		SimulationElement requestingElement = event.getRequestingElement();

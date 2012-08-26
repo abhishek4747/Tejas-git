@@ -167,7 +167,7 @@ public class NucaCacheBank extends Cache
 			this.getRouter().getPort().put(addressEvent);
 		}
 			
-		ArrayList<Event> outstandingRequestList = this.missStatusHoldingRegister.removeRequests(addr);
+		ArrayList<Event> outstandingRequestList = nucaCache.missStatusHoldingRegister.removeRequests(addr);
 		policy.sendResponseToWaitingEvent(outstandingRequestList, this, false);
 	}
 
@@ -204,9 +204,9 @@ public class NucaCacheBank extends Cache
 			System.exit(1);
 		}
 		//IF HIT
-		if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
+		if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 		{
-			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(address); 
+			ArrayList<Event> eventsToBeServed = nucaCache.missStatusHoldingRegister.removeRequests(address); 
 			policy.updateEventOnHit(eventsToBeServed, (AddressCarryingEvent) event, this);
 		}
 		else
@@ -258,7 +258,7 @@ public class NucaCacheBank extends Cache
 	{
 		for(int k = 0;k < eventToProceed.size();k++)
 		{
-			if(missStatusHoldingRegister.isFull())
+			if(nucaCache.missStatusHoldingRegister.isFull())
 			{
 				break;
 			}
@@ -266,7 +266,7 @@ public class NucaCacheBank extends Cache
 			OMREntry omrEntry = eventToProceed.get(k);
 			omrEntry.readyToProceed = false;
 			
-			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
+			boolean entryCreated = nucaCache.missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
 			
 			if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
 			{
@@ -297,7 +297,7 @@ public class NucaCacheBank extends Cache
 				 * therefore, this request is effectively a hit;
 				 * to handle this possibility, we call handleAccess()
 				 */
-				AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
+				AddressCarryingEvent eventToForward = nucaCache.missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
 				if(eventToForward != null &&
 						eventToForward.getRequestType() == RequestType.Cache_Write)
 				{
