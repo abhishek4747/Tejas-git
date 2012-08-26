@@ -76,13 +76,14 @@ Shm::Shm ()
 int
 Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 {
+	int actual_tid = tid;
 	tid = memMapping[tid];
 	THREAD_DATA *myData = &tldata[tid];
 
 	// if my local queue is full, I should write to the shared memory and return if cannot return
 	// write immediately, so that PIN can yield this thread.
 	if (myData->tlqsize == locQ) {
-		if (Shm::shmwrite(tid,0)==-1) return -1;
+		if (Shm::shmwrite(actual_tid,0)==-1) return -1;
 	}
 
 	// log the packet in my local queue
@@ -96,6 +97,7 @@ Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 
 	*in = (*in + 1) % locQ;
 	myData->tlqsize++;
+
 	return 0;
 }
 
@@ -113,7 +115,8 @@ Shm::onThread_start (int tid)
 	}
 	//ASSERT(flag == false, "Maximum number of threads exceeded\n");
 	THREAD_DATA *myData = &tldata[i];
-//	printf("thread %d is assigned to %d\n",tid,i);
+//	printf("thread %d is assigned to segment %d\n",tid,i);
+//	fflush(stdout);
 	packet *shmem = myData->shm;
 	myData->avail =0;
 //	myData->tid = tid;
@@ -128,13 +131,18 @@ Shm::onThread_start (int tid)
 int
 Shm::onThread_finish (int tid)
 {
+//	printf("thread %d finished from seg %d\n",tid,memMapping[tid]);
+//	fflush(stdout);
+//	if(tid == 3)
+//		exit(0);
+	int actual_tid = tid;
 	tid = memMapping[tid];   //find the mapped mem segment
 
 	THREAD_DATA *myData = &tldata[tid];
 
 	// keep writing till we empty our local queue
 	while (myData->tlqsize !=0) {
-		if (Shm::shmwrite(tid,0)==-1) return -1;
+		if (Shm::shmwrite(actual_tid,0)==-1) return -1;
 	}
 	//preparing for a new one
 //	myData->tlqsize = 0;
@@ -147,7 +155,7 @@ Shm::onThread_finish (int tid)
 //	myData->tid = 0;
 
 	// last write to our shared memory. This time write a -1 in the 'value' field of the packet
-	return Shm::shmwrite(tid,1);
+	return Shm::shmwrite(actual_tid,1);
 }
 
 /* Read at 'out' of a local queue and write as many slots available in
@@ -157,6 +165,10 @@ Shm::onThread_finish (int tid)
 int
 Shm::shmwrite (int tid, int last)
 {
+//	if(tid==3){
+//		printf("within last=0 mapping = %d\n",memMapping[tid]);
+//		fflush(stdout);
+//	}
 	tid = memMapping[tid];
 	int queue_size;
 	int numWrite;
@@ -174,7 +186,10 @@ Shm::shmwrite (int tid, int last)
 	queue_size = shmem[COUNT].value;
 	release_lock(shmem);
 	numWrite = COUNT - queue_size;
-
+//	if(tid==2){
+//					printf("within last=0 write = %d\n",numWrite);
+//					fflush(stdout);
+//								}
 	// if numWrite is 0 this means cant write now. So should yield.
 	if (numWrite==0) return -1;
 
@@ -193,6 +208,10 @@ Shm::shmwrite (int tid, int last)
 			memcpy(&(shmem[(myData->prod_ptr+i)%COUNT]),&(myData->tlq[(myData->out+i)%locQ]),
 					sizeof(packet));
 		}
+//		if(tid==2){
+//						printf("within last=0 write = %d\n",numWrite);
+//						fflush(stdout);
+//					}
 	}
 	else {
 		numWrite = 1;

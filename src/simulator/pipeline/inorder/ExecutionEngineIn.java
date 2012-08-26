@@ -158,7 +158,7 @@ public class ExecutionEngineIn {
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
 		//System.out.println("Core "+core.getCore_number()+" numCycles="+this.numCycles);
-		System.out.println("set execution complete status  " + execComplete +"   "+ this.core.getCore_number());
+//		System.out.println("set execution complete status  " + execComplete +"   "+ this.core.getCore_number());
 		if (execComplete == true)
 		{
 			core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());

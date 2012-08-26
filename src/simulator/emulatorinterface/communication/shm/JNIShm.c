@@ -229,6 +229,7 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPac
 
 			int size = shmreadvalue(tidApp, shmAddress, gCOUNT);
 
+
 					//release_lock(tidApp, shmAddress, COUNT);
 					shmwrite(tidApp,shmAddress, gCOUNT+2,0);
 					return size;

@@ -87,6 +87,7 @@ public final class GlobalTable implements Encoding {
 	// returns -2 if no thread needs to be slept/resumed.
 	// returns -1 if 'this' thread needs to sleep
 	// o/w returns otherThreadsId which will now resume
+	@SuppressWarnings("unused")
 	public ResumeSleep update(long addressSynchItem, int thread, long time,
 			long value) {
 		SynchPrimitive s;
@@ -123,12 +124,20 @@ public final class GlobalTable implements Encoding {
 			//System.out.println(thread+"  barrier enter");
 			Barrier bar = BarrierTable.barrierList.get(addressSynchItem);
 			if(bar != null){ //to track the condition that the barrier is already opened
-//				System.out.println("new sync packet tid : " + thread);
+				
 				while(bar.blockedThreadSize() == bar.getNumThreads()){
 					bar = BarrierTable.barrierList.get(++addressSynchItem);
 				}
+				while(bar.containsThread(thread)){
+					bar = BarrierTable.barrierList.get(++addressSynchItem);
+				}
+				if(bar==null){
+					System.err.println("barrier not yet initialized");
+					System.exit(0);
+				}
 				bar.addThread(thread);
 				ret.setBarrierAddress((int)addressSynchItem);
+//				System.out.println("new sync packet tid : " + thread + " add :" + addressSynchItem);
 //				System.out.println("new sync packet tid : " + thread + "add : "+ addressSynchItem);
 				ret.addSleeper(thread);
 				

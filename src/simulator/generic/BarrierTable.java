@@ -19,6 +19,7 @@ public class BarrierTable {
 //			System.exit(0);
 			packet.tgt++;
 		}
+		System.out.println("It is the barrier init id: " + packet.ip + " add :"+ packet.tgt );
 		barrierList.put(packet.tgt, barrier);
 	}
 

@@ -40,6 +40,7 @@ public class Core {
 	ExecutionEngine execEngine;
 	public EventQueue eventQueue;
 	ExecutionEngineIn execEngineIn;
+	public int currentThreads;
 	
 	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
 	public boolean isPipelineInorder = SimulationConfig.isPipelineInorder;
@@ -101,7 +102,7 @@ public class Core {
 		this.no_of_input_pipes = no_of_input_pipes;
 		this.no_of_threads = no_of_threads;
 		this.threadIDs = threadIDs;
-		
+		this.currentThreads =0;
 		if (isPipelineStatistical)
 			this.statisticalPipeline = new StatisticalPipeline(this);
 		else if(this.isPipelineInorder)

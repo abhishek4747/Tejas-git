@@ -100,7 +100,8 @@ public class FetchUnitIn extends SimulationElement{
 			if(newInstruction == null)
 				return;
 			if(newInstruction.getOperationType() == OperationType.inValid){
-				core.getExecutionEngineIn().setFetchComplete(true);
+				if(this.core.currentThreads == 0)
+					core.getExecutionEngineIn().setFetchComplete(true);
 				this.fetchBuffer[i] = newInstruction;//inputToPipeline.pollFirst();
 						this.fetchBufferStatus[i]=true;
 						this.fetchFillCount++;
@@ -163,7 +164,7 @@ public class FetchUnitIn extends SimulationElement{
 						
 						if(bar.timeToCross())
 						{
-							System.out.println("time to cross");
+//							System.out.println("time to cross barrier: "+barrierAddress);
 							ifIdLatch.setInstruction(null);
 							sleepThePipeline();
 							for(int i=0; i<bar.getNumThreads(); i++ ){

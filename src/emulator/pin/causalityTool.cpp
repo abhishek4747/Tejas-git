@@ -100,6 +100,8 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 	while (tst->onThread_finish(tid) == -1) {
 		PIN_Yield();
 	}
+//	printf("thread %d finished exec\n",tid);
+//	fflush(stdout);
 	GetLock(&lock, tid + 1);
 	livethreads--;
 	fflush(stdout);

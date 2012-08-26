@@ -17,4 +17,5 @@ public interface PipelineInterface {
 	public void setPerCorePowerStatistics();
 	public void setExecutionComplete(boolean status);
 	public void setAvailable(boolean isAvailable);
+	public void adjustRunningThreads(int adjval);
 }

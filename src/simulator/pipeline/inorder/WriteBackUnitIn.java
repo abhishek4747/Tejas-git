@@ -46,9 +46,12 @@ public class WriteBackUnitIn extends SimulationElement{
 //				this.core.powerCounters.clearAccessStats();
 //System.out.println("Invalid encountered");				
 				//FIXME the following does not set the statistics. Check!
-				core.getExecutionEngineIn().setExecutionComplete(true);
-				core.getExecutionEngineIn().setIsAvailable(true);
-				System.out.println( " core " + core.getCore_number() +  "finished execution  ");
+				this.core.currentThreads--;
+				if(this.core.currentThreads == 0){
+					core.getExecutionEngineIn().setExecutionComplete(true);
+					core.getExecutionEngineIn().setIsAvailable(true);
+				}
+//				System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
 				this.core.getExecutionEngineIn().setTimingStatistics();			
 				this.core.getExecutionEngineIn().setPerCoreMemorySystemStatistics();
 				this.core.getExecutionEngineIn().setPerCorePowerStatistics();

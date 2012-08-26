@@ -51,11 +51,11 @@ public class RunnableThread implements Encoding {
 
 	int tid;
 	long sum = 0; // checksum
-	int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
+	static int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
 	int currentEMUTHREADS = 0;
 	int maxCoreAssign = 0;
 	
-	ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
+	static ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
 	InstructionLinkedList[] inputToPipeline;
 	static long ignoredInstructions = 0;
@@ -421,6 +421,9 @@ public class RunnableThread implements Encoding {
 	protected void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
 		if (doNotProcess) return;
 		int tidApp = tid * EMUTHREADS + tidEmu;
+		int mappedCore = 0;
+		if(!thread.isFirstPacket)
+			mappedCore = threadCoreMaping.get(tidApp);
 		sum += pnew.value;
 		if (pnew.value == TIMER) {
 			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
@@ -428,23 +431,27 @@ public class RunnableThread implements Encoding {
 		}
 		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
 			ResumeSleep ret = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
-			if(ret!=null)
+			if(ret!=null){
 				resumeSleep(ret);
+			}
 			return;
 		}
 		if(pnew.value == BARRIERINIT)
 		{
-			System.out.println("It is the barrier init id: " + pnew.ip);
+		
 //			System.out.println("Packet is " + pnew.toString());
 			BarrierTable.barrierListAdd(pnew);
 			return;
 		}
 		if (thread.isFirstPacket) {
-			int coreId = getFreeCoreId();
+			int coreId = tidApp;//getFreeCoreId();
 			System.out.println(" thread " + tidApp + " asigned to core  " + coreId);
-			threadCoreMaping.put(tidApp,coreId );
+			threadCoreMaping.put(tidApp,tidApp );
+			this.pipelineInterfaces[coreId].getCore().currentThreads++;
+//			System.out.println(" thread " + tidApp + " asigned to core  " + coreId + " with total correntThreads " + this.pipelineInterfaces[coreId].getCore().currentThreads );
 			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setExecutionComplete(false);
 			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setFetchComplete(false);
+//			this.pipelineInterfaces[coreId].adjustRunningThreads(1);
 //			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setIsAvailable(false);
 			currentEMUTHREADS ++;
 			if(coreId>=maxCoreAssign)
@@ -456,15 +463,15 @@ public class RunnableThread implements Encoding {
 		if (pnew.ip == thread.pold.ip && !(pnew.value>6 && pnew.value<26)) {
 			thread.packets.add(pnew);
 		} else {
-			(numInstructions[tidEmu])++;
-			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
+			(numInstructions[mappedCore])++;
+			this.dynamicInstructionBuffer[mappedCore].configurePackets(thread.packets);
 			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-					dynamicInstructionBuffer[tidEmu]);
+					dynamicInstructionBuffer[mappedCore]);
 			
 			if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
 				ignoredInstructions += tempList.length();
 			else
-				noOfMicroOps[tidEmu] += tempList.length();
+				noOfMicroOps[mappedCore] += tempList.length();
 				
 			
 /*			if(SimulationConfig.detachMemSys == true)	//TODO
@@ -550,6 +557,7 @@ public class RunnableThread implements Encoding {
 			ins.setRISCProgramCounter(update.barrierAddress);
 //			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
 			this.inputToPipeline[threadCoreMaping.get(update.sleep.get(i))].appendInstruction(ins);
+			setThreadState(update.sleep.get(i), true);
 		}
 	}
 
@@ -579,5 +587,10 @@ public class RunnableThread implements Encoding {
 		System.err.println(" error number of threads more than number of cores  ");
 		System.exit(1);
 		return -1;
+	}
+	public static void setThreadState(int tid,boolean cond)
+	{
+//		System.out.println("set thread state halted" + tid + " to " + cond);
+		threadParams[tid].halted = cond;
 	}
 }

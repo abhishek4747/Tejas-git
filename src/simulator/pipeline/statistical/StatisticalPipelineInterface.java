@@ -114,4 +114,10 @@ public class StatisticalPipelineInterface implements pipeline.PipelineInterface 
 		
 	}
 
+	@Override
+	public void adjustRunningThreads(int adjval) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

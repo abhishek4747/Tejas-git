@@ -69,8 +69,8 @@ public class RunnableShm extends RunnableThread implements Runnable {
 //							System.out.println("starting stage " + tidEmu + "  " + p);
 //					}
 //				}
-				if ( thread != null  && (thread.halted || thread.finished)) {
-				//	continue;
+				if ( thread != null  && (thread.halted /*|| thread.finished*/)) {
+//					continue;
 				}
 				int tidApp = tid * EMUTHREADS + tidEmu;
 				int queue_size, numReads = 0;
@@ -80,10 +80,10 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				// some other thread if there is nothing.
 
 				/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
+				
 				if ((numReads = ipcType.numPackets(tidApp)) == 0) {
 					continue;
 				}
-
 				// If java thread itself is terminated then break out from this
 				// for loop. also update the variable allover so that I can
 				// break from$the while loop also.

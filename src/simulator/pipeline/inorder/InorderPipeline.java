@@ -14,6 +14,7 @@ public class InorderPipeline implements PipelineInterface{
 	int coreStepSize;
 	StageLatch ifId,idEx,exMem,memWb,wbDone;
 	private int id;
+	
 
 	public InorderPipeline(Core _core, EventQueue eventQ, int id){
 		this.core = _core;
@@ -200,5 +201,12 @@ public class InorderPipeline implements PipelineInterface{
 	public void setAvailable(boolean isAvailable) {
 		// TODO Auto-generated method stub
 		this.core.getExecutionEngineIn().setIsAvailable(isAvailable);
+	}
+
+	@Override
+	public void adjustRunningThreads(int adjval) {
+		// TODO Auto-generated method stub
+		this.getCore().currentThreads += adjval;
+		
 	}
 }

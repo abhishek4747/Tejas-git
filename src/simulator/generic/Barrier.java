@@ -52,7 +52,7 @@ public class Barrier {
 	}
 	public boolean timeToCross()
 	{
-		System.out.println("in timetocross numthreads "+ numThreads + " "+ numThreadsArrived);
+//		System.out.println("in timetocross numthreads "+ numThreads + " "+ numThreadsArrived + " add : " + this.getBarrierAddress() );
 		return(this.numThreads == this.numThreadsArrived);
 	}
 	public int getNumThreads(){
@@ -66,6 +66,13 @@ public class Barrier {
 	}
 	public int blockedThreadSize(){
 		return this.blockedThreads.size();
+	}
+	public boolean containsThread(int tid){
+		for(int i:this.blockedThreads){
+			if(i==tid)
+				return true;
+		}
+		return false;
 	}
 
 }

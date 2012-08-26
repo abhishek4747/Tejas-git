@@ -130,5 +130,10 @@ public class MultiIssueInorder implements PipelineInterface{
 		// TODO Auto-generated method stub
 		
 	}
+	@Override
+	public void adjustRunningThreads(int adjval) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
