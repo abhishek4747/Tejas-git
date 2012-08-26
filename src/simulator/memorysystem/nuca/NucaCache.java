@@ -21,9 +21,6 @@
 
 
 package memorysystem.nuca;
-import generic.OMREntry;
-
-import java.util.Enumeration;
 import java.util.Vector;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
@@ -64,7 +61,6 @@ public abstract class NucaCache extends Cache
     	super(cacheParameters, containingMemSys);
     	this.cacheRows = cacheParameters.getNumberOfBankRows();
         this.cacheColumns = cacheParameters.getNumberOfBankColumns();
-        //this.cacheBank=new NucaCacheBank[cacheRows][cacheColumns/2];
         this.numOfCores = SystemConfig.NoOfCores;
         this.cacheSize = cacheParameters.getSize();
         this.associativity = cacheParameters.getAssoc();
@@ -84,14 +80,14 @@ public abstract class NucaCache extends Cache
         }
         noc = new NOC();
         initCacheMapping();
-        for(int i=0;i<cacheMapping.size();i++)
+       /* for(int i=0;i<cacheMapping.size();i++)
         {
         	System.out.println("Core " + i);
         	for(int j=0;j<cacheMapping.get(i).size();j++)
         	{
         		System.out.println(cacheMapping.get(i).get(j));
         	}
-        }
+        }*/
         makeCacheBanks(cacheParameters, containingMemSys);
     }
 
@@ -188,42 +184,24 @@ public abstract class NucaCache extends Cache
     	cacheMapping.add(0,temp);
     }
     
-    public void printMshrStatus(NucaCacheBank nucaCacheBank)
-    {
-    	//for(int i=0;i<cacheColumns;i++)
-    	{
-    		//for(int j=0;j<cacheRows;j++)
-    		{
-    			Enumeration<OMREntry> tempIte = nucaCacheBank.missStatusHoldingRegister.elements();
-    			Enumeration<Long> tempIte1 = nucaCacheBank.missStatusHoldingRegister.keys();
-    			System.out.println("bank id " + nucaCacheBank.getRouter().getBankId());
-    			while(tempIte.hasMoreElements())
-    			{
-    				System.out.println("address "+ tempIte1.nextElement()  + "outstanding request size " + tempIte.nextElement().outStandingEvents.size());
-    			}
-    			System.out.println("\n \n");
-    		}
-    	}
-    }
-    
     public void printidTOBankMapping()
     {
     	for(int i=0;i< cacheRows ; i++)
     	{
     		for(int j=0;j<cacheColumns ; j++)
     		{
-    			System.out.println("bank number ["+ i + "]["+j+"]");
-    			System.out.println("bank id"+ cacheBank[i][j].getRouter().getBankId());
+    			//System.out.println("bank number ["+ i + "]["+j+"]");
+    			//System.out.println("bank id"+ cacheBank[i][j].getRouter().getBankId());
     		}
     	}
     }
     
-    private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys)
-	{
+    private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys) 
+    {
 		int bankColumns,bankRows,i,j;
 		
-		bankColumns = cacheParameters.getNumberOfBankColumns();  //number banks should be power of 2 otherwise truncated
-		bankRows = cacheParameters.getNumberOfBankRows();  //number banks should be power of 2 otherwise truncated
+		bankColumns = cacheParameters.getNumberOfBankColumns();  
+		bankRows = cacheParameters.getNumberOfBankRows(); 
 		this.cacheBank = new NucaCacheBank[bankRows][bankColumns];
 		for(i=0;i<bankRows;i++)
 		{
@@ -238,6 +216,7 @@ public abstract class NucaCache extends Cache
 		}
 		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig);
 	}
+ 
     
     public int getBankNumber(long addr)
 	{
@@ -300,5 +279,4 @@ public abstract class NucaCache extends Cache
 		}
 	}
 
-	public abstract long getTag(long addr);
 }

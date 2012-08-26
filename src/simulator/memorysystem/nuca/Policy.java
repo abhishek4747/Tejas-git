@@ -1,16 +1,13 @@
 package memorysystem.nuca;
-
-import generic.EventQueue;
+import generic.Event;
 import generic.RequestType;
-import generic.SimulationElement;
-
+import java.util.ArrayList;
 import java.util.Vector;
-
+import config.CacheConfig;
 import config.SimulationConfig;
-import net.NOC.TOPOLOGY;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.Cache;
-import memorysystem.InstructionCache;
+import memorysystem.CacheLine;
+import memorysystem.MESI;
 import memorysystem.nuca.NucaCache.NucaType;
 
 public class Policy {
@@ -19,78 +16,33 @@ public class Policy {
 	{
 		this.nucaCache = nucaCache;
 	}
-	AddressCarryingEvent updateEventOnMiss(EventQueue eventQ,AddressCarryingEvent event,NucaCacheBank cacheBank,TOPOLOGY topology)
+	AddressCarryingEvent updateEventOnMiss(AddressCarryingEvent event,NucaCacheBank cacheBank)
 	{
-
+		//System.out.println("inside update event on miss : NucaType " + SimulationConfig.nucaType);
 		Vector<Integer> sourceBankId = null;
 		Vector<Integer> destinationBankId = null;
 		long address = event.getAddress();
 		RequestType requestType = RequestType.Main_Mem_Read;
 		NucaType nucaType = SimulationConfig.nucaType;
-		if(nucaType == NucaType.S_NUCA)
+		if( nucaType == NucaType.S_NUCA )
 		{			
-			//Add the request to the outstanding request buffer
-			int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
+			if(event.getSourceBankId() == null || event.getDestinationBankId() == null)
+			{
+				System.out.println(" bank id null ");
+			}
 			sourceBankId =new Vector<Integer>(event.getDestinationBankId());
 			destinationBankId = new Vector<Integer>(event.getSourceBankId());
-			//System.out.println("added a new event in bankid " + router.getBankId());
-			if (alreadyRequested==0)
-			{
-				//System.out.println("outstanding request size "+ cacheBank.missStatusHoldingRegister.get((address >>> cacheBank.blockSizeBits)).outStandingEvents.size() + "address " + (address >> cacheBank.blockSizeBits) + destinationBankId + sourceBankId  + " core Id "+ event.coreId + "event time " + event.getEventTime());
-				event.oldRequestType = event.getRequestType();
-				event.requestTypeStack.push(event.getRequestType());
-				AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
-																			 0,
-																			 cacheBank, 
-																			 cacheBank.getRouter(), 
-																			 RequestType.Main_Mem_Read, 
-																			 address,
-																			 ((AddressCarryingEvent)event).coreId);
-				addressEvent.setSourceBankId(sourceBankId);
-				addressEvent.setDestinationBankId(destinationBankId);
-				return addressEvent;
-			}
-			else if(alreadyRequested == 2)
-			{
-				SimulationElement requestingElement = ((AddressCarryingEvent)event).oldRequestingElement;
-				if(requestingElement.getClass() == Cache.class)
-				{
-					if(!cacheBank.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
-						cacheBank.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
-					if(((Cache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((Cache)requestingElement).blockSizeBits) &&
-							event.getRequestType() == RequestType.Cache_Read )
-					{
-						((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
-						//((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
-					}
-					else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-					{
-						System.out.println("Outstanding Request in Memory System from policy line 59 " + (address >> ((Cache)requestingElement).blockSizeBits) + ((Cache)requestingElement).missStatusHoldingRegister + event.getRequestType());
-						System.exit(1);
-					}
-				}
-				else if(requestingElement.getClass() == InstructionCache.class)
-				{
-					if(!cacheBank.connectedMSHR.contains(((InstructionCache)requestingElement).missStatusHoldingRegister))
-						cacheBank.connectedMSHR.add(((InstructionCache)requestingElement).missStatusHoldingRegister);
-					if(((InstructionCache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((InstructionCache)requestingElement).blockSizeBits) &&
-							event.getRequestType() == RequestType.Cache_Read_from_iCache )
-					{
-						((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).readyToProceed = true;
-//						((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).eventToForward = event;
-					}
-					else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-					{
-						System.out.println("Outstanding Request in Memory System from policy line 75");
-						System.exit(1);
-					}
-				} 
-				return null;
-			}
-			else
-			{
-				return null;
-			}
+			//System.out.println("from updateeventOnMiss destination bank id" + destinationBankId + " source bank id" + sourceBankId);
+			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
+																		 0,
+																		 cacheBank, 
+																		 cacheBank.getRouter(), 
+																		 requestType, 
+																		 address,
+																		 event.coreId,
+																		 sourceBankId,
+																		 destinationBankId);
+			return addressEvent;
 		} 
 		else if(nucaType == NucaType.CB_D_NUCA)
 		{
@@ -101,13 +53,12 @@ public class Policy {
 				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).oldSourceBankId);
 				event.oldRequestType = event.getRequestType();
 				//nucaCache.printMshrStatus(cacheBank);
-				int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
+				//int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
 				//nucaCache.printMshrStatus(cacheBank);
-				if (alreadyRequested==0)
+				//if (alreadyRequested==0)
 				{
 					event.oldRequestType = event.getRequestType();
-					event.requestTypeStack.push(event.getRequestType());
-					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+					AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																				 0,
 																				 cacheBank, 
 																				 cacheBank.getRouter(), 
@@ -118,47 +69,10 @@ public class Policy {
 					addressEvent.setDestinationBankId(destinationBankId);
 					return addressEvent;
 				}
-				else if(alreadyRequested == 2)
-				{
-					SimulationElement requestingElement = ((AddressCarryingEvent)event).oldRequestingElement;
-					if(requestingElement.getClass() == Cache.class)
-					{
-						if(!cacheBank.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
-							cacheBank.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
-						if(((Cache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((Cache)requestingElement).blockSizeBits) &&
-								event.getRequestType() == RequestType.Cache_Read )
-						{
-							((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
-							//((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
-						}
-						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-						{
-							System.out.println("Outstanding Request in Memory System from policy line 232 " + (address >> ((Cache)requestingElement).blockSizeBits) + ((Cache)requestingElement).missStatusHoldingRegister + event.getRequestType());
-							System.exit(1);
-						}
-					}
-					else if(requestingElement.getClass() == InstructionCache.class)
-					{
-						if(!cacheBank.connectedMSHR.contains(((InstructionCache)requestingElement).missStatusHoldingRegister))
-							cacheBank.connectedMSHR.add(((InstructionCache)requestingElement).missStatusHoldingRegister);
-						if(((InstructionCache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((InstructionCache)requestingElement).blockSizeBits) &&
-								event.getRequestType() == RequestType.Cache_Read_from_iCache )
-						{
-							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).readyToProceed = true;
-//							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).eventToForward = event;
-						}
-						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-						{
-							System.out.println("Outstanding Request in Memory System from policy line 248");
-							System.exit(1);
-						}
-					} 
-					return null;
-				}
-				else
+				/*else
 				{
 					return null;
-				}
+				}*/
 			}
 			else
 			{
@@ -166,21 +80,22 @@ public class Policy {
 				{
 					event.oldSourceBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index));
 					sourceBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index));
-				}else
+				}
+				else
 				{
 					sourceBankId = (Vector<Integer>) event.getDestinationBankId().clone();
 				}
 				destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index));
 				requestType = event.getRequestType();
 				event.index++;
-				return event.updateEvent(eventQ, 
+				return event.updateEvent(event.getEventQ(), 
 								  0, 
 								  cacheBank, 
 								  cacheBank.router, 
 								  requestType, 
-								  address);
+								  sourceBankId,
+								  destinationBankId);
 			}
-			
 		}
 		else //if(nucaType == NucaType.D_NUCA)
 		{
@@ -197,17 +112,15 @@ public class Policy {
 				event.oldRequestType = event.getRequestType();
 				//System.out.println("before calling ");
 				//nucaCache.printMshrStatus(cacheBank);
-				int alreadyRequested = cacheBank.addOutstandingRequest(event, address);
 				
-				if (alreadyRequested==0)
+//				if (alreadyRequested==0)
 				{
 					//System.out.println("after calling and change is there");
 					//nucaCache.printMshrStatus(cacheBank);
 					event.oldRequestType = event.getRequestType();
-					event.requestTypeStack.push(event.getRequestType());
 					//System.out.println("outstanding request size "+ cacheBank.missStatusHoldingRegister.get((address >>> cacheBank.blockSizeBits)).outStandingEvents.size() + "address " + (address >> cacheBank.blockSizeBits)  +destinationBankId + sourceBankId + "this " + cacheBank.getRouter().getBankId() + " core Id "+ event.coreId + "event time " + event.getEventTime());
 					//System.out.println("event destination bank id "+ event.getDestinationBankId() + " event source bank id " + event.getSourceBankId());
-					AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQ,
+					AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																				 0,
 																				 cacheBank, 
 																				 cacheBank.getRouter(), 
@@ -218,50 +131,13 @@ public class Policy {
 					addressEvent.setDestinationBankId(destinationBankId);
 					return addressEvent;
 				}
-				else if(alreadyRequested == 2)
-				{
-					SimulationElement requestingElement = ((AddressCarryingEvent)event).oldRequestingElement;
-					if(requestingElement.getClass() == Cache.class)
-					{
-						if(!cacheBank.connectedMSHR.contains(((Cache)requestingElement).missStatusHoldingRegister))
-							cacheBank.connectedMSHR.add(((Cache)requestingElement).missStatusHoldingRegister);
-						if(((Cache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((Cache)requestingElement).blockSizeBits) &&
-								event.getRequestType() == RequestType.Cache_Read )
-						{
-							((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).readyToProceed = true;
-							//((Cache)requestingElement).missStatusHoldingRegister.get(address >> ((Cache)requestingElement).blockSizeBits).eventToForward = event;
-						}
-						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-						{
-							System.out.println("Outstanding Request in Memory System from policy line 232 " + (address >> ((Cache)requestingElement).blockSizeBits) + ((Cache)requestingElement).missStatusHoldingRegister + event.getRequestType());
-							System.exit(1);
-						}
-					}
-					else if(requestingElement.getClass() == InstructionCache.class)
-					{
-						if(!cacheBank.connectedMSHR.contains(((InstructionCache)requestingElement).missStatusHoldingRegister))
-							cacheBank.connectedMSHR.add(((InstructionCache)requestingElement).missStatusHoldingRegister);
-						if(((InstructionCache)requestingElement).missStatusHoldingRegister.containsKey(address >> ((InstructionCache)requestingElement).blockSizeBits) &&
-								event.getRequestType() == RequestType.Cache_Read_from_iCache )
-						{
-							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).readyToProceed = true;
-//							((InstructionCache)requestingElement).missStatusHoldingRegister.get(address >> ((InstructionCache)requestingElement).blockSizeBits).eventToForward = event;
-						}
-						else if(((AddressCarryingEvent)event).getRequestType() != RequestType.Cache_Write)
-						{
-							System.out.println("Outstanding Request in Memory System from policy line 248");
-							System.exit(1);
-						}
-					} 
-					return null;
-				}
-				else
+/*				else
 				{
 					//System.out.println("after calling slight change");
 					//nucaCache.printMshrStatus(cacheBank);
 					return null;
 				}
-			}
+*/			}
 			else
 			{
 				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
@@ -271,7 +147,7 @@ public class Policy {
 				//int id = destinationBankId.remove(0);
 				//destinationBankId.add(0,id +1);
 				requestType = event.getRequestType();
-				return event.updateEvent(eventQ,
+				return event.updateEvent(event.getEventQ(),
 										 cacheBank.getLatencyDelay(), 
 										 cacheBank,
 										 cacheBank.getRouter(),
@@ -282,23 +158,15 @@ public class Policy {
 		}
 	}
 	
-	AddressCarryingEvent updateEventOnHit(EventQueue eventQ,AddressCarryingEvent event,
-										  NucaCacheBank cacheBank,TOPOLOGY topology)
+	private Vector<Integer> getDestinationBankId(AddressCarryingEvent event,NucaCacheBank cacheBank)
 	{
-		//Just return the read block
-		Vector<Integer> sourceBankId = new Vector<Integer>(event.getDestinationBankId());
-		Vector<Integer> destinationBankId;
-		RequestType requestType = RequestType.Mem_Response;
+		Vector<Integer> sourceBankId = new Vector<Integer>(cacheBank.getRouter().getBankId());
+		Vector<Integer> destinationBankId = null;
 		NucaType nucaType = SimulationConfig.nucaType;
 		if(nucaType == NucaType.S_NUCA)
 		{
 			destinationBankId= new Vector<Integer>(event.getSourceBankId());
 		}
-		/*else if(topology == TOPOLOGY.BUS || topology == TOPOLOGY.RING)
-		{
-			//give proper value to destination bank id
-			destinationBankId = null;
-		}*/
 		else if(nucaType == NucaType.CB_D_NUCA)
 		{
 			long address = event.getAddress();
@@ -308,26 +176,102 @@ public class Policy {
 				destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index -1 ));
 			}
 			else 
+			{
 				destinationBankId = sourceBankId;
+			}
 		}
-		else if(cacheBank.isFirstLevel)
+		else if(nucaType == NucaType.D_NUCA)
 		{
-			destinationBankId = sourceBankId;
+			if(cacheBank.isFirstLevel)
+			{
+				destinationBankId = sourceBankId;
+			}
+			else
+			{
+				destinationBankId = new Vector<Integer>();
+				destinationBankId.add(sourceBankId.get(0)-1);
+				destinationBankId.add(sourceBankId.get(1));
+			}
 		}
-		else
-		{
-			destinationBankId = new Vector<Integer>();
-			destinationBankId.add(sourceBankId.get(0)-1);
-			destinationBankId.add(sourceBankId.get(1));
-			requestType = RequestType.COPY_BLOCK;
-		}
-		return event.updateEvent(eventQ,
-								cacheBank.getLatencyDelay(),
-								cacheBank,
-								cacheBank.getRouter(),
-								requestType,
-								sourceBankId,
-								destinationBankId);
+		return destinationBankId;
+	}
 	
+	private RequestType getRequestType(NucaCacheBank cacheBank,AddressCarryingEvent event)
+	{
+		NucaType nucaType = SimulationConfig.nucaType;
+		RequestType requestType = RequestType.Mem_Response;
+		if(nucaType == NucaType.CB_D_NUCA && event.index != 0 ||
+			 nucaType == NucaType.D_NUCA && !cacheBank.isFirstLevel )
+		{
+				requestType= RequestType.COPY_BLOCK;
+		}
+		return requestType;
+	}
+	
+	void updateEventOnHit(ArrayList<Event> outstandingRequestList,AddressCarryingEvent event,
+										  NucaCacheBank cacheBank)
+	{
+		sendResponseToWaitingEvent(outstandingRequestList, cacheBank,true);
+	}
+	
+	protected void sendResponseToWaitingEvent(ArrayList<Event> outstandingRequestList,NucaCacheBank cacheBank,boolean flag)
+	{ 
+		int numberOfWrites = 0;
+		AddressCarryingEvent sampleWriteEvent = null;
+		RequestType requestType = RequestType.Mem_Response;
+		Vector<Integer> sourceBankId = (Vector<Integer>) cacheBank.getRouter().getBankId().clone();
+		Vector<Integer> destinationBankId = null;
+ 		while (!outstandingRequestList.isEmpty())
+		{	
+			AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0); 
+			
+			if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
+			{
+				destinationBankId = getDestinationBankId(eventPoppedOut, cacheBank);
+				if(flag)
+				{
+					requestType = getRequestType(cacheBank, eventPoppedOut);
+				}
+				cacheBank.getRouter().getPort().put(eventPoppedOut.updateEvent(
+																									eventPoppedOut.getEventQ(), 
+																									0, cacheBank, 
+																									cacheBank.getRouter(), 
+																									requestType,
+																									sourceBankId,
+																									destinationBankId));
+			}			
+			else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
+			{
+				if (cacheBank.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+				{
+					numberOfWrites++;
+					sampleWriteEvent = eventPoppedOut;
+				}
+				else
+				{
+					CacheLine cl = cacheBank.access(eventPoppedOut.getAddress());
+					if (cl != null)
+					{
+							cl.setState(MESI.MODIFIED);
+					}
+					else
+					{
+						System.err.println(" line not present in cache after fill ");					
+					}								
+				}
+			}
+		}
+		
+		if(numberOfWrites > 0)
+		{
+			destinationBankId = getDestinationBankId(sampleWriteEvent, cacheBank);
+			cacheBank.getRouter().getPort().put(sampleWriteEvent.updateEvent(
+					sampleWriteEvent.getEventQ(), 
+					0, cacheBank, 
+					cacheBank.getRouter(), 
+					RequestType.Main_Mem_Write,
+					sourceBankId,
+					destinationBankId));
+		}
 	}
 }

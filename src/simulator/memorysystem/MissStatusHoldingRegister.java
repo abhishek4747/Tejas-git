@@ -3,6 +3,8 @@ package memorysystem;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
+
 import generic.Event;
 import generic.OMREntry;
 import generic.RequestType;
@@ -155,6 +157,20 @@ public class MissStatusHoldingRegister {
 		return eventsReadyToProceed;
 	}
 	
+	public ArrayList<OMREntry> getElementsReadyToProceed(Vector<Integer> bankId)
+	{
+		ArrayList<OMREntry> eventsReadyToProceed = new ArrayList<OMREntry>();
+		Enumeration<OMREntry> omrEntries = mshr.elements();
+		while(omrEntries.hasMoreElements())
+		{
+			OMREntry omrEntry = omrEntries.nextElement();
+			if(omrEntry.readyToProceed && omrEntry.eventToForward.getDestinationBankId() != null && omrEntry.eventToForward.getDestinationBankId().equals(bankId))
+			{
+				eventsReadyToProceed.add(omrEntry);
+			}
+		}
+		return eventsReadyToProceed;
+	}
 	public boolean containsWriteOfEvictedLine(long address)
 	{
 		//if the MSHR contains a write to given address

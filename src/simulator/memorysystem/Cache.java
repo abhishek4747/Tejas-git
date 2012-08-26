@@ -26,6 +26,8 @@ import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
 
 import power.Counters;
 import memorysystem.directory.CentralizedDirectoryCache;
+import memorysystem.nuca.NucaCacheBank;
+import memorysystem.nuca.SNuca;
 
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
@@ -67,8 +69,7 @@ public class Cache extends SimulationElement
 		
 		public CacheType levelFromTop; 
 		public boolean isLastLevel; //Tells whether there are any more levels of cache
-		protected CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
-		
+		public CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
 		public String nextLevelName; //Name of the next level cache according to the configuration file
 		public ArrayList<Cache> prevLevel = new ArrayList<Cache>(); //Points towards the previous level in the cache hierarchy
 		public Cache nextLevel; //Points towards the next level in the cache hierarchy
@@ -76,7 +77,7 @@ public class Cache extends SimulationElement
 		
 		public MissStatusHoldingRegister missStatusHoldingRegister;
 		public ArrayList<MissStatusHoldingRegister> connectedMSHR;
-		private int startIndexForPulling;
+		public int startIndexForPulling;
 		
 		public int noOfRequests;
 		public int hits;
@@ -215,7 +216,7 @@ public class Cache extends SimulationElement
 			}
 		}
 		
-		protected void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
+		public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
 		{
 			//update counters
 			if(this.isLastLevel){
@@ -422,19 +423,19 @@ public class Cache extends SimulationElement
 		
 		
 		
-		private void pullFromUpperMshrs()
+		public void pullFromUpperMshrs()
 		{
 			startIndexForPulling = (startIndexForPulling + 1)%connectedMSHR.size();
 			
 			for(int i = 0, j = startIndexForPulling;
-				i < connectedMSHR.size();
+				i < connectedMSHR.size();   
 				i++, j = (j+1)%connectedMSHR.size())
 			{
 				pullFrom(connectedMSHR.get(j));				
 			}
 		}
 		
-		private void pullFrom(MissStatusHoldingRegister mshr)
+		public void pullFrom(MissStatusHoldingRegister mshr)
 		{
 			if(mshr.getNumberOfEntriesReadyToProceed() == 0)
 			{
@@ -442,6 +443,11 @@ public class Cache extends SimulationElement
 			}
 			
 			ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed();
+			processReadyEvents(eventToProceed,mshr);
+		}
+		
+		public void processReadyEvents(ArrayList<OMREntry> eventToProceed,MissStatusHoldingRegister mshr)
+		{
 			for(int k = 0;k < eventToProceed.size();k++)
 			{
 				if(missStatusHoldingRegister.isFull())
@@ -460,7 +466,19 @@ public class Cache extends SimulationElement
 				}
 				
 				mshr.decrementNumberOfEntriesReadyToProceed();
+				if(this.getClass() == SNuca.class)
+				{
+					System.out.println(" pulliing called for snuca");
+					System.exit(1);
+				}
 				
+				if(this.getClass() == NucaCacheBank.class)
+				{
+					if (omrEntry.eventToForward.getDestinationBankId() == null || omrEntry.eventToForward.getSourceBankId() == null)
+					{
+						System.out.println("error from pulling ");
+					}
+				}
 				if(entryCreated)
 				{
 					/*
@@ -485,9 +503,7 @@ public class Cache extends SimulationElement
 					}
 				}
 			}
-			
 		}
-				
 		/*
 		 * called by higher level cache
 		 *returned value signifies whether the event will be saved in mshr or not

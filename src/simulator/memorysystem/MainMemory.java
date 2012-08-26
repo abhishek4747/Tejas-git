@@ -35,6 +35,7 @@ public class MainMemory extends SimulationElement
 	
 	public void handleEvent(EventQueue eventQ, Event event)
 	{
+		//System.out.println("from handle event main memory ");
 		if (event.getRequestType() == RequestType.Main_Mem_Read)
 		{
 			if(nucaType == NucaType.NONE)
@@ -50,8 +51,14 @@ public class MainMemory extends SimulationElement
 			}
 			else
 			{
-
 				NucaCacheBank requestingBank =  (NucaCacheBank) event.getRequestingElement();
+
+				if(((AddressCarryingEvent)event).getSourceBankId() == null || ((AddressCarryingEvent)event).getSourceBankId() == null )
+				{
+					System.out.println(" destinationbank is null " + requestingBank.getRouter().getBankId());
+					System.exit(1);
+				}
+				//System.out.println("destination bank id" + ((AddressCarryingEvent)event).getDestinationBankId() + " source bank id" + ((AddressCarryingEvent)event).getSourceBankId());
 				requestingBank.getRouter().getPort().put(
 						event.update(
 								eventQ,

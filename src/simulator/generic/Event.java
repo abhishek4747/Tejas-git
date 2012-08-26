@@ -87,9 +87,9 @@ public abstract class Event
 
 	public SimulationElement getProcessingElement() {
 		return processingElement;
-	}
+	}  
 
-	protected void setProcessingElement(SimulationElement processingElement) {
+	public void setProcessingElement(SimulationElement processingElement) {
 		this.processingElement = processingElement;
 	}
 

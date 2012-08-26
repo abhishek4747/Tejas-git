@@ -60,16 +60,36 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
+			RequestType requestType, long address,int coreId,
+			Vector<Integer> sourceBankId, Vector<Integer> destinationBankId) {
+		super(eventQ, eventTime, requestingElement, processingElement,
+				requestType);
+		this.address = address;
+		this.coreId = coreId;
+		this.sourceBankId = (Vector<Integer>) sourceBankId.clone();
+		this.destinationBankId = (Vector<Integer>) destinationBankId.clone();
+	}
+	
+	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
+			SimulationElement requestingElement,
+			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType);
 		this.address = address;
-		sourceBankId = null;
-		destinationBankId = null;
-		oldSourceBankId = null;
-		copyLine = false;
 		this.coreId = coreId;
 	}
+	
+	public AddressCarryingEvent updateEvent(EventQueue eventQ, long eventTime, 
+			SimulationElement requestingElement,
+			SimulationElement processingElement,
+			RequestType requestType, long address,int coreId,
+			Vector<Integer> sourceBankId, Vector<Integer> destinationBankId) {
+		this.address = address;
+		this.coreId = coreId;
+		return (AddressCarryingEvent)this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
+	}
+	
 	
 	public AddressCarryingEvent updateEvent(EventQueue eventQ, long eventTime, 
 			SimulationElement requestingElement,

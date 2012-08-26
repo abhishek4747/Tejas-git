@@ -24,12 +24,12 @@ import java.util.Vector;
 
 import generic.Event;
 import generic.EventQueue;
+import generic.RequestType;
 import generic.SimulationElement;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
-import misc.Util;
+import memorysystem.MissStatusHoldingRegister;
 import config.CacheConfig;
-import config.SystemConfig;
 
 public class SNuca extends NucaCache
 {
@@ -37,12 +37,6 @@ public class SNuca extends NucaCache
         super(cacheParameters,containingMemSys);
     }
 		
-	public long getTag(long addr) {
-		// TODO Auto-generated method stub
-		long tag = (addr >>> (blockSizeBits +Util.logbase2(getNumOfBanks())));
-		return tag;
-	}
-
 	public Vector<Integer> getDestinationBankId(long addr)
 	{
 		Vector<Integer> bankId = new Vector<Integer>();
@@ -66,54 +60,54 @@ public class SNuca extends NucaCache
 		return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 	}
 	
-	public Vector<Integer> getNearestBankId(long addr, int coreId)
-	{
-		Vector<Integer> destinationBankId = getDestinationBankId(addr);
-		Vector<Integer> nearestBankId = new Vector<Integer>();
-		nearestBankId.add(coreCacheMapping[coreId][0]/cacheColumns);
-		nearestBankId.add(coreCacheMapping[coreId][1]%cacheColumns);
-		double distance = getDistance(coreCacheMapping[coreId][0]/cacheColumns,
-				                      coreCacheMapping[coreId][0]%cacheColumns,
-				                      destinationBankId.get(0),
-				                      destinationBankId.get(1));
-		for(int i=1;i < coreCacheMapping[coreId].length;i++)
-		{
-			double newDistance = getDistance(coreCacheMapping[coreId][i]/cacheColumns,
-						                    coreCacheMapping[coreId][i]%cacheColumns,
-						                    destinationBankId.get(0),
-						                    destinationBankId.get(1));
-			if(newDistance < distance)
-			{
-				distance = newDistance;
-				nearestBankId.clear();
-				nearestBankId.add(coreCacheMapping[coreId][i]/cacheColumns);
-				nearestBankId.add(coreCacheMapping[coreId][i]%cacheColumns);
-			}
-
-		}
-		return nearestBankId;
-	}
-	
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		SimulationElement requestingElement = event.getRequestingElement();
-		long address = ((AddressCarryingEvent)(event)).getAddress();
-		Vector<Integer> sourceBankId = getSourceBankId(address,((AddressCarryingEvent)(event)).coreId);
+	    if (event.getRequestType() == RequestType.PerformPulls)
+		{
+			for(int i=0;i<cacheRows;i++)
+			{
+				for(int j=0;j<cacheColumns;j++)
+				{
+					cacheBank[i][j].pullFromUpperMshrs();
+				}
+			}
+		}
+		//schedule pulling for the next cycle
+			event.addEventTime(1);
+			event.getEventQ().addEvent(event);
+		}
+
+	public boolean addEvent(AddressCarryingEvent addressEvent)
+	{
+		SimulationElement requestingElement = addressEvent.getRequestingElement();
+		long address = addressEvent.getAddress();
+		Vector<Integer> sourceBankId = getSourceBankId(address,addressEvent.coreId);
 		Vector<Integer> destinationBankId = getDestinationBankId(address);
-		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone();
-		sourceBankId.clear();
-		sourceBankId.add(0);
-		sourceBankId.add(0);
-		this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
-										getPort().put(((AddressCarryingEvent)event).
-																updateEvent(eventQ, 
-																			0,//to be  changed to some constant(wire delay) 
-																			requestingElement, 
-																			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-																			event.getRequestType(), 
-																			sourceBankId, 
-																			destinationBankId));
+		addressEvent.oldRequestingElement = (SimulationElement) requestingElement.clone();
+		MissStatusHoldingRegister destinationCacheBankMshr = this.cacheBank[destinationBankId.get(0)][destinationBankId.get(1)].missStatusHoldingRegister;
+		addressEvent.setDestinationBankId(sourceBankId);
+		addressEvent.setSourceBankId(destinationBankId);
+		addressEvent.setProcessingElement(	this.cacheBank[destinationBankId.get(0)][destinationBankId.get(1)] );
 
+		if(destinationCacheBankMshr.isFull())
+		{
+			return false;
+		}
+		
+				
+		boolean entryCreated = destinationCacheBankMshr.addOutstandingRequest(addressEvent);
+		if(entryCreated)
+		{
+			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+			getPort().put(addressEvent.
+									updateEvent(addressEvent.getEventQ(), 
+												0,//to be  changed to some constant(wire delay) 
+												requestingElement, 
+												this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+												addressEvent.getRequestType(), 
+												sourceBankId, 
+												destinationBankId));
+		}
+		return true;
 	}
-
 }

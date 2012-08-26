@@ -337,6 +337,11 @@ public class Router extends Switch{
 		}
 		else
 		{
+			if(destinationId == null || currentId== null)
+			{
+				System.out.println(" destination bankid null  from router");
+				System.exit(1);
+			}
 			nextID = this.RouteComputation(currentId, destinationId);
 			if(requestType == RequestType.Main_Mem_Read || requestType == RequestType.Main_Mem_Response ||
 					requestType == RequestType.Main_Mem_Write || requestType == RequestType.Main_MemBank_Read  ||
