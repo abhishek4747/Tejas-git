@@ -20,11 +20,7 @@
 *****************************************************************************/
 
 package memorysystem.nuca;
-import generic.Event;
-import generic.EventQueue;
-import generic.SimulationElement;
 import java.util.Vector;
-import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
 
@@ -33,7 +29,6 @@ public class DNuca extends NucaCache {
 	public DNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys) 
 	{
 		super(cacheParameters,containingMemSys);
-		//System.out.println("Dnuca ");
 		for(int i=0;i<2;i++)
 		{
 			for(int j=0;j<cacheColumns;j++)
@@ -48,28 +43,6 @@ public class DNuca extends NucaCache {
 		}
 	}
 
-	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		SimulationElement requestingElement = event.getRequestingElement();
-		long address = ((AddressCarryingEvent)(event)).getAddress();
-		Vector<Integer> sourceBankId = getSourceBankId(address, ((AddressCarryingEvent)(event)).coreId);
-		Vector<Integer> destinationBankId = getDestinationBankId(address,((AddressCarryingEvent)(event)).coreId);
-		//System.out.println(sourceBankId + " " + destinationBankId + " " + getBankNumber(address));
-		//System.exit(0);
-		((AddressCarryingEvent)event).oldRequestingElement = (SimulationElement) event.getRequestingElement().clone();
-		cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
-								getPort().put(((AddressCarryingEvent)event).
-														updateEvent(eventQ, 
-																	0,//to be  changed to some constant(wire delay) 
-																	requestingElement, 
-																	cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-																	event.getRequestType(), 
-																	sourceBankId, 
-																	destinationBankId));
-	}
-
-	
-	
 	public Vector<Integer> getDestinationBankId(long addr,int coreId)
 	{
 		Vector<Integer> destinationBankId = new Vector<Integer>();
@@ -77,48 +50,5 @@ public class DNuca extends NucaCache {
 		destinationBankId.add(cacheRows/2);
 		destinationBankId.add(banknumber%cacheColumns);
 		return destinationBankId;
-	}
-	
-	public Vector<Integer> getSourceBankId(long addr,int coreId)
-	{
-		Vector<Integer> bankId = new Vector<Integer>();
-		//int bankNumber = getBankNumber(addr);
-		bankId.add(coreId/cacheColumns);
-		bankId.add(coreId%cacheColumns);
-		return bankId;
-	}
-
-	double getDistance(int x1,int y1,int x2,int y2)
-	{
-		return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-	}
-	
-	public Vector<Integer> getNearestBankId(long addr, int coreId)
-	{
-		Vector<Integer> destinationBankId = getDestinationBankId(addr,coreId);
-		Vector<Integer> nearestBankId = new Vector<Integer>();
-		nearestBankId.add(coreCacheMapping[coreId][0]/cacheColumns);
-		nearestBankId.add(coreCacheMapping[coreId][0]%cacheColumns);
-		//System.out.println(coreCacheMapping[coreId][0] + "core");
-		double distance = getDistance(coreCacheMapping[coreId][0]/cacheColumns,
-				                      coreCacheMapping[coreId][0]%cacheColumns,
-				                      destinationBankId.get(0),
-				                      destinationBankId.get(1));
-		for(int i=1;i < coreCacheMapping[coreId][1];i++)
-		{
-			double newDistance = getDistance((coreCacheMapping[coreId][0]+i)/cacheColumns,
-						                    (coreCacheMapping[coreId][0]+i)%cacheColumns,
-						                    destinationBankId.get(0),
-						                    destinationBankId.get(1));
-			//System.out.println(distance + "distance" + newDistance + "new distance");
-			if(newDistance < distance)
-			{
-				distance = newDistance;
-				nearestBankId.clear();
-				nearestBankId.add((coreCacheMapping[coreId][0]+i)/cacheColumns);
-				nearestBankId.add((coreCacheMapping[coreId][0]+i)%cacheColumns);
-			}
-		}
-		return nearestBankId;
 	}
 }

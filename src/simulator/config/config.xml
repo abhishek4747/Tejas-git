@@ -254,9 +254,9 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>16</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>D</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->

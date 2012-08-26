@@ -30,20 +30,12 @@ public class SNuca extends NucaCache
         super(cacheParameters,containingMemSys);
     }
 		
-	public Vector<Integer> getDestinationBankId(long addr)
+	public Vector<Integer> getDestinationBankId(long addr, int coreId)
 	{
 		Vector<Integer> bankId = new Vector<Integer>();
 		int bankNumber = getBankNumber(addr);
 		bankId.add(bankNumber /cacheColumns);
 		bankId.add(bankNumber%cacheColumns);
-		return bankId;
-	}
-	
-	public Vector<Integer> getSourceBankId(long addr,int coreId)
-	{
-		Vector<Integer> bankId = new Vector<Integer>();
-		bankId.add(coreId/cacheColumns);
-		bankId.add(coreId%cacheColumns);
 		return bankId;
 	}
 }

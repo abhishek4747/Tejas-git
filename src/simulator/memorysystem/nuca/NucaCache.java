@@ -264,16 +264,22 @@ public abstract class NucaCache extends Cache
 		}
 	}
 	
-	abstract Vector<Integer> getSourceBankId(long addr,int coreId);
+	public Vector<Integer> getSourceBankId(long addr,int coreId)
+	{
+		Vector<Integer> bankId = new Vector<Integer>();
+		bankId.add(coreId/cacheColumns);
+		bankId.add(coreId%cacheColumns);
+		return bankId;
+	}
 	
-	abstract  Vector<Integer> getDestinationBankId(long address);
+	abstract  Vector<Integer> getDestinationBankId(long address, int coreId);
 
 	public boolean addEvent(AddressCarryingEvent addressEvent)
 	{
 		SimulationElement requestingElement = addressEvent.getRequestingElement();
 		long address = addressEvent.getAddress();
 		Vector<Integer> sourceBankId = getSourceBankId(address,addressEvent.coreId);
-		Vector<Integer> destinationBankId = getDestinationBankId(address);
+		Vector<Integer> destinationBankId = getDestinationBankId(address,addressEvent.coreId);
 		addressEvent.oldRequestingElement = (SimulationElement) requestingElement.clone();
 		addressEvent.setDestinationBankId(sourceBankId);
 		addressEvent.setSourceBankId(destinationBankId);

@@ -166,9 +166,11 @@ public class NucaCacheBank extends Cache
 																								eventCame.getSourceBankId());
 			this.getRouter().getPort().put(addressEvent);
 		}
-			
 		ArrayList<Event> outstandingRequestList = nucaCache.missStatusHoldingRegister.removeRequests(addr);
 		policy.sendResponseToWaitingEvent(outstandingRequestList, this, false);
+		misses += outstandingRequestList.size();			
+		noOfRequests += outstandingRequestList.size();
+
 	}
 
 	private void handleMemoryReadWrite(EventQueue eventQ, Event event) 
@@ -207,6 +209,8 @@ public class NucaCacheBank extends Cache
 		if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 		{
 			ArrayList<Event> eventsToBeServed = nucaCache.missStatusHoldingRegister.removeRequests(address); 
+			hits += eventsToBeServed.size();
+			noOfRequests += eventsToBeServed.size();
 			policy.updateEventOnHit(eventsToBeServed, (AddressCarryingEvent) event, this);
 		}
 		else
