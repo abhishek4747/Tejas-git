@@ -91,7 +91,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 													core.getAllLatencies());
 		
 		
-		iCacheBuffer = new ICacheBuffer(core.getDecodeWidth());
+		//iCacheBuffer = new ICacheBuffer(core.getDecodeWidth());
 		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchLogic(core, this);
 		decodeBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
@@ -284,6 +284,11 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	public void setCoreMemorySystem(CoreMemorySystem coreMemorySystem) {
 		this.coreMemorySystem = coreMemorySystem;
 		this.outOrderCoreMemorySystem = (OutOrderCoreMemorySystem)coreMemorySystem;
+		System.out.println("icache buffer size = " + (int)(core.getDecodeWidth() *
+											coreMemorySystem.getiCache().getLatency()));
+		this.iCacheBuffer = new ICacheBuffer((int)(core.getDecodeWidth() *
+											coreMemorySystem.getiCache().getLatency()));
+		this.fetcher.setICacheBuffer(iCacheBuffer);
 	}
 	
 }
