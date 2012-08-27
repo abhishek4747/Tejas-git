@@ -11,6 +11,7 @@ import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
 import memorysystem.nuca.SNuca;
+import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
@@ -152,28 +153,14 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
-			if (cache.getClass() == SNuca.class)
+			if (SimulationConfig.nucaType != NucaType.NONE )
 			{
-				((NucaCache)cache).setStatistics();
-				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
-				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
-			}
-			else if (cache.getClass() == DNuca.class)
-			{
-				((NucaCache)cache).setStatistics();
-				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
-				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
-			}
-			else if (cache.getClass() == CBDNuca.class)
-			{
-				((NucaCache)cache).setStatistics();
 				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
 				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
 			}
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
-			
 		}
 			
 

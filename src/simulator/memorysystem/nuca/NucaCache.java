@@ -23,26 +23,28 @@
 package memorysystem.nuca;
 import generic.Event;
 import generic.EventQueue;
+import generic.OMREntry;
 import generic.RequestType;
 import generic.SimulationElement;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
+import memorysystem.MissStatusHoldingRegister;
 import misc.Util;
 import config.CacheConfig;
+import config.SimulationConfig;
 import net.NOC;
 import config.SystemConfig;
 
-public abstract class NucaCache extends Cache
+public class NucaCache extends Cache
 {
 	public enum NucaType{
 		S_NUCA,
 		D_NUCA,
-		CB_S_NUCA,
-		CB_D_NUCA,
 		NONE
 	}
 	
@@ -62,8 +64,9 @@ public abstract class NucaCache extends Cache
     public NOC noc;
     public Mapping mapping;
     public int coreCacheMapping[][];
-    public Vector<Vector<Vector<Integer>>> cacheMapping;
-    NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
+    public Vector<Vector<Vector<Integer>>> cacheMapping; 
+    
+    public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
     {
     	super(cacheParameters, containingMemSys);
     	this.cacheRows = cacheParameters.getNumberOfBankRows();
@@ -86,101 +89,19 @@ public abstract class NucaCache extends Cache
         	}
         }
         noc = new NOC();
-        initCacheMapping();
         makeCacheBanks(cacheParameters, containingMemSys);
-    }
-
-    Vector<Integer> sort(int coreId,Vector<Integer> list)
-    {
-    	int x1 = (coreId*2)/cacheRows;
-    	int y1 = (coreId*2)%cacheRows;
-    	Vector<Double> distance = new Vector<Double>();
-    	for(int i=0;i<list.size();i++)
-    	{
-        	int x2 = list.get(i)/cacheRows;
-        	int y2 = list.get(i)%cacheRows;
-        	int x = (x1-x2)*(x1-x2);
-        	int y = (y1-y2)*(y1-y2);
-        	distance.add(Math.sqrt(x+y));
-    	}
-    	for(int i=0;i<distance.size();i++)
-    	{
-    		int index = i;
-    		double val = distance.get(i);
-    		for(int j=i+1;j<distance.size();j++)
-    		{
-    			if( val > distance.get(j))
-    			{
-    				index = j;
-    				val = distance.get(j);
-    			}
-    		}
-    		if(index != i){
-	    		double temp = distance.get(i);
-				double temp1 = distance.get(index);
-				int t = list.get(i);
-				int t1 = list.get(index);
-				distance.remove(i);
-				distance.add(i, temp1);
-				distance.remove(index);
-				distance.add(index, temp);
-				list.remove(i);
-				list.add(i, t1);
-				list.remove(index);
-				list.add(index, t);
-    		}
-    	}
-    	
-    	return list;
-    }
-    
-    
-    void fillCacheMapping()
-    {
-    	int numOfCores = cacheRows*cacheColumns/2;
-    	for(int i=0;i<numOfCores;i++)
-    	{
-    		for(int j=0;j<cacheColumns;j++)
-    		{
-    			for(int k=0;k<cacheRows;k++)
-    			{
-    				if(j%2==0)
-    				{
-    					if(k%2 == 1)
-    					{
-    						cacheMapping.get(i).get(j).add(k*cacheColumns + j);
-    					}
-    					else
-    						continue;
-    				}
-    				else
-    				{
-    					if(k%2 == 0)
-    					{
-    						cacheMapping.get(i).get(j).add(k*cacheColumns + j);
-    					}
-    					else
-    						continue;
-    				}
-    			}
-    		}
-    	}
-    }
-    
-    void initCacheMapping()
-    {
-    	fillCacheMapping();
-    	int numOfCores = cacheRows*cacheColumns/2;
-    	for(int i=0;i<numOfCores;i++)
-    	{
-    		for(int j=0;j<cacheColumns;j++)
-    		{
-    			Vector<Integer> set= cacheMapping.get(i).remove(j);
-    			cacheMapping.get(i).add(j,sort(i,set));
-    		}
-    	}
-    	Vector<Vector<Integer>> temp = new Vector<Vector<Integer>>(cacheMapping.get(0));
-    	cacheMapping.add(0,temp);
+        for(int i=0;i<2;i++)
+		{
+			for(int j=0;j<cacheColumns;j++)
+			{
+				if(i==0)
+					cacheBank[cacheRows/2][j].isFirstLevel = true;
+				if(i==1)
+				{
+					cacheBank[cacheRows-1][j].isLastLevel = true; 
+				}
+			}
+		}
     }
     
     private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys) 
@@ -251,19 +172,6 @@ public abstract class NucaCache extends Cache
 		return cacheRows*cacheColumns/2;		
 	}
 	
-	public void setStatistics()
-	{
-		for(int i=0;i<cacheRows;i++)
-		{
-			for(int j=0;j<cacheColumns;j++)
-			{
-				noOfRequests = noOfRequests + cacheBank[i][j].noOfRequests;
-				hits = hits + cacheBank[i][j].hits;
-				misses = misses + cacheBank[i][j].misses;
-			}			
-		}
-	}
-	
 	public Vector<Integer> getSourceBankId(long addr,int coreId)
 	{
 		Vector<Integer> bankId = new Vector<Integer>();
@@ -272,7 +180,21 @@ public abstract class NucaCache extends Cache
 		return bankId;
 	}
 	
-	abstract  Vector<Integer> getDestinationBankId(long address, int coreId);
+	public Vector<Integer> getDestinationBankId(long addr,int coreId)
+	{
+		Vector<Integer> destinationBankId = new Vector<Integer>();
+		int bankNumber= getBankNumber(addr);
+		if(SimulationConfig.nucaType == NucaType.D_NUCA)
+		{
+			destinationBankId.add(cacheRows/2);
+		}
+		else
+		{
+			destinationBankId.add(bankNumber /cacheColumns);
+		}
+		destinationBankId.add(bankNumber%cacheColumns);
+		return destinationBankId;
+	}
 
 	public boolean addEvent(AddressCarryingEvent addressEvent)
 	{
@@ -310,15 +232,67 @@ public abstract class NucaCache extends Cache
 	public void handleEvent(EventQueue eventQ, Event event) {
 	    if (event.getRequestType() == RequestType.PerformPulls)
 		{
-			for(int i=0;i<cacheRows;i++)
-			{
-				for(int j=0;j<cacheColumns;j++)
-				{
-					cacheBank[i][j].pullFromUpperMshrs();
-				}
-			}
+			pullFromUpperMshrs();
 		}
 		event.addEventTime(1);
 		event.getEventQ().addEvent(event);
+	}
+	
+	public void pullFrom(MissStatusHoldingRegister mshr)
+	{
+		if(mshr.getNumberOfEntriesReadyToProceed() == 0)
+		{
+			return;
+		}
+		ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed();
+		processReadyEvents(eventToProceed,mshr);
+	}
+	
+	public void processReadyEvents(ArrayList<OMREntry> eventToProceed,MissStatusHoldingRegister mshr)
+	{
+		for(int k = 0;k < eventToProceed.size();k++)
+		{
+			if(missStatusHoldingRegister.isFull())
+			{
+				break;
+			}
+			
+			OMREntry omrEntry = eventToProceed.get(k);
+			omrEntry.readyToProceed = false;
+			
+			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
+			
+			if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
+			{
+				mshr.removeStartingWrites(omrEntry.eventToForward.getAddress());
+			}
+			
+			mshr.decrementNumberOfEntriesReadyToProceed();
+			Vector<Integer> destinationbankId = omrEntry.eventToForward.getDestinationBankId();
+			
+			if(entryCreated)
+			{
+				/*
+				 * if the pulled event results in a new omrEntry,
+				 * the processing of the request must be done
+				 */
+				cacheBank[destinationbankId.get(0)][destinationbankId.get(1)].handleAccess(omrEntry.eventToForward.getEventQ() , omrEntry.eventToForward);
+			}
+			else
+			{
+				/*
+				 * if the pulled event is a write (omr entry already exists),
+				 * it may be that the cache line already exists at this level (either in the cache, or in the MSHR),
+				 * therefore, this request is effectively a hit;
+				 * to handle this possibility, we call handleAccess()
+				 */
+				AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
+				if(eventToForward != null &&
+						eventToForward.getRequestType() == RequestType.Cache_Write)
+				{
+					cacheBank[destinationbankId.get(0)][destinationbankId.get(1)].handleAccess(omrEntry.eventToForward.getEventQ(), omrEntry.eventToForward);
+				}
+			}
+		}
 	}
 }

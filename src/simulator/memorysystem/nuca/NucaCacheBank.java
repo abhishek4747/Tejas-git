@@ -125,11 +125,6 @@ public class NucaCacheBank extends Cache
 		{
 			destinationBankId = ((AddressCarryingEvent)event).oldSourceBankId;
 		}
-		else if(SimulationConfig.nucaType == NucaType.CB_D_NUCA)
-		{
-			int setIndex =  nucaCache.getSetIndex(address);
-			destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(((AddressCarryingEvent)event).coreId).get(setIndex).get(0));
-		}
 		else
 		{
 			System.err.println(" COPY BLOCK request came for other nuca type ");
@@ -168,8 +163,8 @@ public class NucaCacheBank extends Cache
 		}
 		ArrayList<Event> outstandingRequestList = nucaCache.missStatusHoldingRegister.removeRequests(addr);
 		policy.sendResponseToWaitingEvent(outstandingRequestList, this, false);
-		misses += outstandingRequestList.size();			
-		noOfRequests += outstandingRequestList.size();
+		nucaCache.misses += outstandingRequestList.size();			
+		nucaCache.noOfRequests += outstandingRequestList.size();
 
 	}
 
@@ -209,8 +204,8 @@ public class NucaCacheBank extends Cache
 		if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 		{
 			ArrayList<Event> eventsToBeServed = nucaCache.missStatusHoldingRegister.removeRequests(address); 
-			hits += eventsToBeServed.size();
-			noOfRequests += eventsToBeServed.size();
+			nucaCache.hits += eventsToBeServed.size();
+			nucaCache.noOfRequests += eventsToBeServed.size();
 			policy.updateEventOnHit(eventsToBeServed, (AddressCarryingEvent) event, this);
 		}
 		else
@@ -232,83 +227,6 @@ public class NucaCacheBank extends Cache
 														 this,
 														 ((AddressCarryingEvent)event).oldRequestingElement,
 														 RequestType.Mem_Response));
-	}
-	
-	
-	
-	public void pullFrom(MissStatusHoldingRegister mshr)
-	{
-		if(mshr.getNumberOfEntriesReadyToProceed() == 0)
-		{
-			return;
-		}
-		ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed(this.getRouter().getBankId());
-		processReadyEvents(eventToProceed,mshr);
-	}
-	
-	public void pullFromUpperMshrs()
-	{
-		startIndexForPulling = (startIndexForPulling + 1)%connectedMSHR.size();
-		
-		for(int i = 0, j = startIndexForPulling;
-			i < connectedMSHR.size();   
-			i++, j = (j+1)%connectedMSHR.size())
-		{
-			pullFrom(connectedMSHR.get(j));				
-		}
-	}
-	
-	public void processReadyEvents(ArrayList<OMREntry> eventToProceed,MissStatusHoldingRegister mshr)
-	{
-		for(int k = 0;k < eventToProceed.size();k++)
-		{
-			if(nucaCache.missStatusHoldingRegister.isFull())
-			{
-				break;
-			}
-			
-			OMREntry omrEntry = eventToProceed.get(k);
-			omrEntry.readyToProceed = false;
-			
-			boolean entryCreated = nucaCache.missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
-			
-			if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
-			{
-				mshr.removeStartingWrites(omrEntry.eventToForward.getAddress());
-			}
-			
-			mshr.decrementNumberOfEntriesReadyToProceed();
-			if(this.getClass() == NucaCacheBank.class)
-			{
-				if (omrEntry.eventToForward.getDestinationBankId() == null || omrEntry.eventToForward.getSourceBankId() == null)
-				{
-					System.out.println("error from pulling ");
-				}
-			}
-			if(entryCreated)
-			{
-				/*
-				 * if the pulled event results in a new omrEntry,
-				 * the processing of the request must be done
-				 */
-				handleAccess(omrEntry.eventToForward.getEventQ() , omrEntry.eventToForward);
-			}
-			else
-			{
-				/*
-				 * if the pulled event is a write (omr entry already exists),
-				 * it may be that the cache line already exists at this level (either in the cache, or in the MSHR),
-				 * therefore, this request is effectively a hit;
-				 * to handle this possibility, we call handleAccess()
-				 */
-				AddressCarryingEvent eventToForward = nucaCache.missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
-				if(eventToForward != null &&
-						eventToForward.getRequestType() == RequestType.Cache_Write)
-				{
-					handleAccess(omrEntry.eventToForward.getEventQ(), omrEntry.eventToForward);
-				}
-			}
-		}
 	}
 	
 }

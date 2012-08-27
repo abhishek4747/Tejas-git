@@ -28,6 +28,8 @@ import pipeline.outoforder.OutOrderCoreMemorySystem;
 
 import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.DNuca;
+import memorysystem.nuca.NucaCache;
+import memorysystem.nuca.NucaCacheLine;
 import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
@@ -90,21 +92,15 @@ public class MemorySystem
 				{	
 					nucaType = NucaType.S_NUCA;
 					flag = true;
-					newCache = new SNuca(cacheParameterObj,null);
+					newCache = new NucaCache(cacheParameterObj,null);
 				}
 				else if (cacheParameterObj.getNucaType() == NucaType.D_NUCA)
 				{	
 					nucaType = NucaType.D_NUCA;
 					flag = true;
-					newCache = new DNuca(cacheParameterObj,null);
+					newCache = new NucaCache(cacheParameterObj,null);
 				}
-				else if (cacheParameterObj.getNucaType() == NucaType.CB_D_NUCA)
-				{	
-					nucaType = NucaType.CB_D_NUCA;
-					flag = true;
-					newCache = new CBDNuca(cacheParameterObj,null);
-				}
-
+				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
 				

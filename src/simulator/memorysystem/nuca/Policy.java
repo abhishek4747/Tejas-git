@@ -42,49 +42,6 @@ public class Policy {
 																		 destinationBankId);
 			return addressEvent;
 		} 
-		/*else if(nucaType == NucaType.CB_D_NUCA)
-		{
-			int setIndex = nucaCache.getSetIndex(address);
-			if(event.index == nucaCache.cacheMapping.get(event.coreId).get(setIndex).size())
-			{
-				sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-				destinationBankId = new Vector<Integer>(((AddressCarryingEvent)event).oldSourceBankId);
-				event.oldRequestType = event.getRequestType();
-				event.oldRequestType = event.getRequestType();
-				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-																			 0,
-																			 cacheBank, 
-																			 cacheBank.getRouter(), 
-																			 RequestType.Main_Mem_Read, 
-																			 address,
-																			 ((AddressCarryingEvent)event).coreId);
-				addressEvent.setSourceBankId(sourceBankId);
-				addressEvent.setDestinationBankId(destinationBankId);
-				return addressEvent;
-			}
-			else
-			{
-				if(event.index == 0)
-				{
-					event.oldSourceBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index));
-					sourceBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index));
-				}
-				else
-				{
-					sourceBankId = (Vector<Integer>) event.getDestinationBankId().clone();
-				}
-				destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index));
-				requestType = event.getRequestType();
-				event.index++;
-				return event.updateEvent(event.getEventQ(), 
-								  0, 
-								  cacheBank, 
-								  cacheBank.router, 
-								  requestType, 
-								  sourceBankId,
-								  destinationBankId);
-			}
-		}*/
 		else if(nucaType == NucaType.D_NUCA)
 		{
 			if(cacheBank.isLastLevel)
@@ -130,19 +87,6 @@ public class Policy {
 		{
 			destinationBankId= new Vector<Integer>(event.getSourceBankId());
 		}
-		else if(nucaType == NucaType.CB_D_NUCA)
-		{
-			long address = event.getAddress();
-			int setIndex = nucaCache.getSetIndex(address);
-			if(event.index != 0)
-			{
-				destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(event.index -1 ));
-			}
-			else 
-			{
-				destinationBankId = sourceBankId;
-			}
-		}
 		else if(nucaType == NucaType.D_NUCA)
 		{
 			if(cacheBank.isFirstLevel)
@@ -163,8 +107,7 @@ public class Policy {
 	{
 		NucaType nucaType = SimulationConfig.nucaType;
 		RequestType requestType = RequestType.Mem_Response;
-		if(nucaType == NucaType.CB_D_NUCA && event.index != 0 ||
-			 nucaType == NucaType.D_NUCA && !cacheBank.isFirstLevel )
+		if(  nucaType == NucaType.D_NUCA && !cacheBank.isFirstLevel )
 		{
 				requestType= RequestType.COPY_BLOCK;
 		}
