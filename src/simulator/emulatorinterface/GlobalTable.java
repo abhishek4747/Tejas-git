@@ -125,10 +125,10 @@ public final class GlobalTable implements Encoding {
 			Barrier bar = BarrierTable.barrierList.get(addressSynchItem);
 			if(bar != null){ //to track the condition that the barrier is already opened
 				
-				while(bar.blockedThreadSize() == bar.getNumThreads()){
+				while(bar.blockedThreadSize() == bar.getNumThreads()){ //to track re initialization of barrier
 					bar = BarrierTable.barrierList.get(++addressSynchItem);
 				}
-				while(bar.containsThread(thread)){
+				while(bar.containsThread(thread)){                     //to block the same thread entering barrier twice
 					bar = BarrierTable.barrierList.get(++addressSynchItem);
 				}
 				if(bar==null){

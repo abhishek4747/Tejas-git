@@ -52,8 +52,8 @@ public class RunnableThread implements Encoding {
 	int tid;
 	long sum = 0; // checksum
 	static int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
-	int currentEMUTHREADS = 0;
-	int maxCoreAssign = 0;
+	int currentEMUTHREADS = 0;  //total number of livethreads
+	int maxCoreAssign = 0;      //the maximum core id assigned 
 	
 	static ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
@@ -191,6 +191,7 @@ public class RunnableThread implements Encoding {
 			Statistics.printPowerTraceHeader(",");
 			prevTotalInstructions=0;
 		}
+		//calculating power traces
 		if(SimulationConfig.powerTrace==1){
 			for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
 				currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
@@ -245,12 +246,13 @@ public class RunnableThread implements Encoding {
 	public void finishAllPipelines() {
 
 		for (int i=0; i<threadCoreMaping.size(); i++){
-			//if(threadCoreMaping.get(i) != null)
+			//finishing pipelines by adding invalid instruction to all pipeline
+			//already finished pipeline will not be affected 
 					this.inputToPipeline[threadCoreMaping.get(i)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
 		}
 		for (int i=0; i<maxCoreAssign; i++) {
 			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
-				System.err.println("not completed for "+i);
+				System.err.println("not completed for "+i);  //not supposed to be here 
 				resumeSleep(IpcBase.glTable.resumePipelineTimer(i));
 			}
 		}
@@ -262,7 +264,6 @@ public class RunnableThread implements Encoding {
 			queueComplete = true;        
 			for(int i = 0; i < maxCoreAssign; i++)
 			{
-
 				queueComplete = queueComplete && pipelineInterfaces[i].isExecutionComplete();
 			}
 			if(queueComplete == true)
@@ -284,6 +285,7 @@ public class RunnableThread implements Encoding {
 				if(tokenBus.getFrequency() > 0)
 					tokenBus.eq.processEvents();
 				GlobalClock.incrementClock();
+				//Why it cant be change into a separate function
 				if(SimulationConfig.powerTrace==1){
 					for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
 						currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
@@ -309,6 +311,7 @@ public class RunnableThread implements Encoding {
 					}
 					currentTotalInstructions=0;
 				}
+				//change currentEMUTHREADS to maxcoreAssign if you use this
 				else if(SimulationConfig.powerTrace==2){
 					long cyclesTillNow = GlobalClock.getCurrentTime()/pipelineInterfaces[0].getCore().getStepSize();
 					if(cyclesTillNow - prevCycles[0] > SimulationConfig.numCyclesForTrace){
@@ -417,7 +420,10 @@ public class RunnableThread implements Encoding {
 		}
 		return ret;
 	}
-	
+	/*
+	 * process each packet
+	 * parameters - Thread information, packet, thread id
+	 */
 	protected void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
 		if (doNotProcess) return;
 		int tidApp = tid * EMUTHREADS + tidEmu;
@@ -425,18 +431,18 @@ public class RunnableThread implements Encoding {
 		if(!thread.isFirstPacket)
 			mappedCore = threadCoreMaping.get(tidApp);
 		sum += pnew.value;
-		if (pnew.value == TIMER) {
+		if (pnew.value == TIMER) {//leaving timer packet now
 			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
 			return;
 		}
-		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) {
+		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) { //for barrier enter and barrier exit
 			ResumeSleep ret = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
 			if(ret!=null){
 				resumeSleep(ret);
 			}
 			return;
 		}
-		if(pnew.value == BARRIERINIT)
+		if(pnew.value == BARRIERINIT)  //for barrier initialization
 		{
 		
 //			System.out.println("Packet is " + pnew.toString());
@@ -445,13 +451,12 @@ public class RunnableThread implements Encoding {
 		}
 		if (thread.isFirstPacket) {
 			int coreId = tidApp;//getFreeCoreId();
-			System.out.println(" thread " + tidApp + " asigned to core  " + coreId);
-			threadCoreMaping.put(tidApp,tidApp );
-			this.pipelineInterfaces[coreId].getCore().currentThreads++;
+//			System.out.println(" thread " + tidApp + " asigned to core  " + coreId);
+			threadCoreMaping.put(tidApp,tidApp );   //must remove this threadCoreMaping - obsolete idea
+			this.pipelineInterfaces[coreId].getCore().currentThreads++;  //current number of threads in this pipeline
 //			System.out.println(" thread " + tidApp + " asigned to core  " + coreId + " with total correntThreads " + this.pipelineInterfaces[coreId].getCore().currentThreads );
 			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setExecutionComplete(false);
 			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setFetchComplete(false);
-//			this.pipelineInterfaces[coreId].adjustRunningThreads(1);
 //			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setIsAvailable(false);
 			currentEMUTHREADS ++;
 			if(coreId>=maxCoreAssign)
@@ -549,6 +554,7 @@ public class RunnableThread implements Encoding {
 
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumResumers(); i++) {
+			//never used ... resuming handled within pipeline exec
 //			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
 			this.pipelineInterfaces[threadCoreMaping.get(update.resume.get(i))].resumePipeline();
 		}
@@ -563,6 +569,7 @@ public class RunnableThread implements Encoding {
 
 
 	protected void signalFinish(int tidApp) {
+		//finished pipline
 		// TODO Auto-generated method stub
 //		System.out.println("signalfinish thread " + tidApp + " mapping " + threadCoreMaping.get(tidApp));
 		this.inputToPipeline[threadCoreMaping.get(tidApp)].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
@@ -574,20 +581,20 @@ public class RunnableThread implements Encoding {
 
 	}
 	
-	private int getFreeCoreId()
-	{
-		for(int i=0; i < EMUTHREADS;i++) 
-		{
-			if(pipelineInterfaces[i].isAvailable())
-			{
-				pipelineInterfaces[i].setAvailable(false);
-				return i;
-			}
-		}
-		System.err.println(" error number of threads more than number of cores  ");
-		System.exit(1);
-		return -1;
-	}
+//	private int getFreeCoreId()
+//	{
+//		for(int i=0; i < EMUTHREADS;i++) 
+//		{
+//			if(pipelineInterfaces[i].isAvailable())
+//			{
+//				pipelineInterfaces[i].setAvailable(false);
+//				return i;
+//			}
+//		}
+//		System.err.println(" error number of threads more than number of cores  ");
+//		System.exit(1);
+//		return -1;
+//	}
 	public static void setThreadState(int tid,boolean cond)
 	{
 //		System.out.println("set thread state halted" + tid + " to " + cond);

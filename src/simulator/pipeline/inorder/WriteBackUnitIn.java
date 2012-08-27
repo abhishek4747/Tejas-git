@@ -47,7 +47,9 @@ public class WriteBackUnitIn extends SimulationElement{
 //System.out.println("Invalid encountered");				
 				//FIXME the following does not set the statistics. Check!
 				this.core.currentThreads--;
-				if(this.core.currentThreads == 0){
+				
+				if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+													  //assigned to this pipeline	
 					core.getExecutionEngineIn().setExecutionComplete(true);
 					core.getExecutionEngineIn().setIsAvailable(true);
 				}

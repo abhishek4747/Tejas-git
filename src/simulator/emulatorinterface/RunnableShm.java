@@ -70,7 +70,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 //					}
 //				}
 				if ( thread != null  && (thread.halted /*|| thread.finished*/)) {
-//					continue;
+//					continue;        //one bug need to be fixed to remove this comment
 				}
 				int tidApp = tid * EMUTHREADS + tidEmu;
 				int queue_size, numReads = 0;
@@ -155,12 +155,12 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				errorCheck(tidApp, tidEmu, queue_size, numReads, v);
 
 				// if we read -1, this means this emulator thread finished.
-				if (v == -1) {
-					thread.isFirstPacket = true;
+				if (v == -1) {        //check for last packet
+					thread.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
 					signalFinish(tidApp);
 				}
 
-				if (ipcType.termination[tid] == true) {
+				if (ipcType.termination[tid] == true) {  //check if java thread is finished
 					allover = true;
 					break;
 				}
