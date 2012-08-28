@@ -27,8 +27,6 @@ import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
 import power.Counters;
 import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.nuca.NucaCacheBank;
-import memorysystem.nuca.SNuca;
-
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
 import misc.Util;
@@ -466,12 +464,7 @@ public class Cache extends SimulationElement
 				}
 				
 				mshr.decrementNumberOfEntriesReadyToProceed();
-				if(this.getClass() == SNuca.class)
-				{
-					System.out.println(" pulliing called for snuca");
-					System.exit(1);
-				}
-				
+	
 				if(this.getClass() == NucaCacheBank.class)
 				{
 					if (omrEntry.eventToForward.getDestinationBankId() == null || omrEntry.eventToForward.getSourceBankId() == null)

@@ -68,7 +68,7 @@ public class NucaCache extends Cache
     public Mapping mapping;
     public int coreCacheMapping[][];
     public Vector<Vector<Vector<Integer>>> cacheMapping;
-    NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus)
+    public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus)
     {
     	super(cacheParameters, containingMemSys);
     	this.cacheRows = cacheParameters.getNumberOfBankRows();

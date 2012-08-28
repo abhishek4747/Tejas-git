@@ -26,13 +26,10 @@ import java.util.Hashtable;
 import pipeline.inorder.InorderCoreMemorySystem;
 import pipeline.outoforder.OutOrderCoreMemorySystem;
 
-import memorysystem.nuca.CBDNuca;
 import net.optical.TopLevelTokenBus;
 
-import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCacheLine;
-import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
 
@@ -94,13 +91,13 @@ public class MemorySystem
 				{	
 					nucaType = NucaType.S_NUCA;
 					flag = true;
-					newCache = new SNuca(cacheParameterObj,null,tokenBus);
+					newCache = new NucaCache(cacheParameterObj,null,tokenBus);
 				}
 				else if (cacheParameterObj.getNucaType() == NucaType.D_NUCA)
 				{	
 					nucaType = NucaType.D_NUCA;
 					flag = true;
-					newCache = new DNuca(cacheParameterObj,null,tokenBus);
+					newCache = new NucaCache(cacheParameterObj,null,tokenBus);
 				}
 				
 				//Put the newly formed cache into the new list of caches

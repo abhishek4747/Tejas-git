@@ -5,13 +5,7 @@ import java.util.Enumeration;
 import pipeline.inorder.InorderExecutionEngine;
 import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
-import power.Counters;
-
-import memorysystem.nuca.CBDNuca;
-import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
-
-import memorysystem.nuca.SNuca;
 import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
