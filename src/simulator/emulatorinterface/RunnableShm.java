@@ -70,7 +70,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 //					}
 //				}
 				if ( thread != null  && (thread.halted /*|| thread.finished*/)) {
-//					continue;        //one bug need to be fixed to remove this comment
+					continue;        //one bug need to be fixed to remove this comment
 				}
 				int tidApp = tid * EMUTHREADS + tidEmu;
 				int queue_size, numReads = 0;

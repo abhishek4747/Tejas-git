@@ -153,7 +153,7 @@ public class RunnableThread implements Encoding {
 			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
 					//|| th.packets.size() > PACKET_THRESHOLD)){
 				th.halted = false;
-			//	System.out.println("Halting over..!! "+tidEmu);
+				System.out.println("Halting over..!! "+tidEmu);
 			}
 			int n = inputToPipeline[tidEmu].getListSize() / decodeWidth[tidEmu]
 					* pipelineInterfaces[tidEmu].getCoreStepSize();
@@ -519,7 +519,7 @@ public class RunnableThread implements Encoding {
 					this.inputToPipeline[tidEmu].appendInstruction(tempList);
 					if (!thread.halted && this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD) {
 						thread.halted = true;
-						//System.out.println("Halting "+tidEmu);
+						System.out.println("Halting "+tidEmu);
 					}	
 				}
 				else

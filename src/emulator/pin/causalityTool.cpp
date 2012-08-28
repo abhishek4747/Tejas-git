@@ -89,20 +89,23 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	livethreads++;
 	printf("threads till now %d\n", numThreads);
 	fflush(stdout);
+	pumpingStatus[numThreads - 1] = true;
+	tst->onThread_start(threadid);
 	ReleaseLock(&lock);
 	ASSERT(livethreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
 
-	pumpingStatus[numThreads - 1] = true;
-	tst->onThread_start(threadid);
+
+
 }
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
-	while (tst->onThread_finish(tid) == -1) {
-		PIN_Yield();
-	}
+
 //	printf("thread %d finished exec\n",tid);
 //	fflush(stdout);
 	GetLock(&lock, tid + 1);
+	while (tst->onThread_finish(tid) == -1) {
+			PIN_Yield();
+	}
 	livethreads--;
 	fflush(stdout);
 	ReleaseLock(&lock);
