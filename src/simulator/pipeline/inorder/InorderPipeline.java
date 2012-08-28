@@ -205,7 +205,7 @@ public class InorderPipeline implements PipelineInterface{
 	@Override
 	public void setAvailable(boolean isAvailable) {
 		// TODO Auto-generated method stub
-		containingExecutionEngine.setIsAvailable(isAvailable);
+		containingExecutionEngine.setAvailable(isAvailable);
 	}
 
 	@Override

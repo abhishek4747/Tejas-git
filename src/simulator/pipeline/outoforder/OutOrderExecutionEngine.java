@@ -66,7 +66,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	private boolean allPipesEmpty;
 
 	public long prevCycles;
-	
+	private boolean isAvailable;
 
 	public OutOrderExecutionEngine(Core containingCore)
 	{
@@ -290,5 +290,14 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 											coreMemorySystem.getiCache().getLatency()));
 		this.fetcher.setICacheBuffer(iCacheBuffer);
 	}
+
+	@Override
+	public void setAvailable(boolean flag) {
+		this.isAvailable = flag;		
+	}
 	
+	public boolean isAvailable()
+	{
+		return this.isAvailable;
+	}
 }

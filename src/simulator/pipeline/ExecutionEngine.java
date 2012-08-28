@@ -43,5 +43,7 @@ public abstract class ExecutionEngine {
 	public long getInstructionMemStall() {
 		return instructionMemStall;
 	}
+	
+	abstract public void setAvailable(boolean flag);
 
 }

@@ -39,6 +39,7 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	public int l2hits;
 	public int l2accesses;
 	private int numPipelines;
+	private boolean isAvailable;
 	
 	ArrayList<Operand> destRegisters = new ArrayList<Operand>();
 	private int stallFetch;
@@ -370,5 +371,16 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		System.out.println(exMemLatch[0].getInstruction());
 		System.out.println("memWb stall = " + memWbLatch[0].getStallCount());
 		System.out.println(memWbLatch[0].getInstruction());
+	}
+
+	@Override
+	public void setAvailable(boolean flag) 
+	{
+		this.isAvailable = flag;
+	}
+	
+	public boolean isAvailable()
+	{
+		return this.isAvailable;
 	}
 }

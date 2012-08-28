@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
+import pipeline.inorder.InorderExecutionEngine;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
@@ -438,8 +439,20 @@ public class RunnableThread implements Encoding {
 		}
 		if (thread.isFirstPacket) {
 			this.pipelineInterfaces[tidApp].getCore().currentThreads++;  //current number of threads in this pipeline
-			this.pipelineInterfaces[tidApp].getCore().getExecutionEngineIn().setExecutionComplete(false);
-			this.pipelineInterfaces[tidApp].getCore().getExecutionEngineIn().setFetchComplete(false);
+			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionComplete(false);
+			if(SimulationConfig.isPipelineInorder)
+			{
+				((InorderExecutionEngine)this.pipelineInterfaces[tidApp].getCore().getExecEngine()).setFetchComplete(false);
+			}
+			else if(SimulationConfig.isPipelineOutOfOrder)
+			{
+				//TODO
+				((InorderExecutionEngine)this.pipelineInterfaces[tidApp].getCore().getExecEngine()).setFetchComplete(false);
+			}
+			else if(SimulationConfig.isPipelineMultiIssueInorder)
+			{
+				//TODO
+			}
 			currentEMUTHREADS ++;
 			if(tidApp>=maxCoreAssign)
 				maxCoreAssign = tidApp+1;

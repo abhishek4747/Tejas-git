@@ -39,7 +39,7 @@ public class Core {
 	int stepSize;
 	long frequency;
 	ExecutionEngine execEngine;
-	EventQueue eventQueue;
+	public EventQueue eventQueue;
 	public int currentThreads;
 	
 	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
@@ -198,7 +198,7 @@ public class Core {
 	}
 	public void sleepPipeline(){
 		
-		this.getExecutionEngine().getFetchUnitIn().inputToPipeline.appendInstruction(new Instruction(OperationType.sync,null, null, null));
+		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.appendInstruction(new Instruction(OperationType.sync,null, null, null));
 	}
 
 	public int getIssueWidth() {

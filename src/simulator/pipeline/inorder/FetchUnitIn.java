@@ -2,6 +2,8 @@ package pipeline.inorder;
 
 
 import java.util.Hashtable;
+
+import memorysystem.AddressCarryingEvent;
 import config.SimulationConfig;
 import emulatorinterface.Newmain;
 import generic.Barrier;
@@ -14,6 +16,7 @@ import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.PortType;
+import generic.RequestType;
 import generic.SimulationElement;
 
 public class FetchUnitIn extends SimulationElement
@@ -76,7 +79,7 @@ public class FetchUnitIn extends SimulationElement
 				return;
 			if(newInstruction.getOperationType() == OperationType.inValid){
 				if(this.core.currentThreads == 0)
-					core.getExecutionEngineIn().setFetchComplete(true);
+					((InorderExecutionEngine)core.getExecEngine()).setFetchComplete(true);
 				this.fetchBuffer[i] = newInstruction;//inputToPipeline.pollFirst();
 						this.fetchBufferStatus[i]=true;
 						this.fetchFillCount++;

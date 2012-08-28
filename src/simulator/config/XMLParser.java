@@ -197,19 +197,19 @@ private static void setSimulationParameters()
 		}
 		
 		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
-			SimulationConfig.isPipelineStatistical = false;
 			SimulationConfig.isPipelineInorder = true;
 			SimulationConfig.isPipelineMultiIssueInorder = false;
+			SimulationConfig.isPipelineOutOfOrder = false;
 		}
 		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==2){
-			SimulationConfig.isPipelineStatistical = false;
 			SimulationConfig.isPipelineInorder = false;
 			SimulationConfig.isPipelineMultiIssueInorder = true;
+			SimulationConfig.isPipelineOutOfOrder = false;
 		}
 		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==3){
-			SimulationConfig.isPipelineStatistical = false;
 			SimulationConfig.isPipelineInorder = false;
 			SimulationConfig.isPipelineMultiIssueInorder = false;
+			SimulationConfig.isPipelineOutOfOrder = true;
 		}
 		else{
 			System.err.println("Please specify any of the four pipeline types in the config file");

@@ -2,6 +2,7 @@ package emulatorinterface;
 
 import java.util.Enumeration;
 
+import pipeline.inorder.InorderExecutionEngine;
 import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import power.Counters;
@@ -290,12 +291,19 @@ public class Newmain {
 		//TODO wont work in case of multiple runnable threads
 		for(int i = 0; i<IpcBase.getEmuThreadsPerJavaThread(); i++)
 		{
-			if (cores[i].isPipelineInorder)
-				cores[i].getExecutionEngineIn().setIsAvailable(true);
-			else if (cores[i].isPipelineMultiIssueInorder)
-				cores[i].getExecutionEngineIn().setIsAvailable(true);
-			else
-				cores[i].getExecEngine().setExecutionComplete(true);
+			if (SimulationConfig.isPipelineInorder)
+			{
+				((InorderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
+			}
+			else if (SimulationConfig.isPipelineMultiIssueInorder)
+			{
+				//TODO
+				((InorderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
+			}
+			else if(SimulationConfig.isPipelineOutOfOrder)
+			{	
+				((OutOrderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
+			}
 		}
 		return cores;
 	}

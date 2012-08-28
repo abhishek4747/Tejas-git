@@ -221,15 +221,30 @@ public class NucaCache extends Cache
 		boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		if(entryCreated)
 		{
-			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
-			getPort().put(addressEvent.
-									updateEvent(addressEvent.getEventQ(), 
-												0,
-												requestingElement, 
-												this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-												addressEvent.getRequestType(), 
-												sourceBankId, 
-												destinationBankId));
+			if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+				getPort().put(addressEvent.
+										updateEvent(addressEvent.getEventQ(), 
+													0,
+													requestingElement, 
+													this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+													addressEvent.getRequestType(), 
+													sourceBankId, 
+													destinationBankId));
+
+			else{
+//				System.out.println("Event to NOC" + "from" + sourceBankId + "to" +destinationBankId + "with address" + address);
+				((OpticalNOC)this.noc).entryPoint.
+				getPort().put(addressEvent.
+										updateEvent(addressEvent.getEventQ(), 
+													0,//to be  changed to some constant(wire delay) 
+													requestingElement, 
+													((OpticalNOC)this.noc).entryPoint, 
+													addressEvent.getRequestType(), 
+													sourceBankId, 
+													destinationBankId));
+			}
+			
 		}
 		return true;
 	}

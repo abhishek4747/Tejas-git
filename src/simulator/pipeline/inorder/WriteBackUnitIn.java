@@ -51,7 +51,7 @@ public class WriteBackUnitIn extends SimulationElement{
 				if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
 													  //assigned to this pipeline	
 					containingExecutionEngine.setExecutionComplete(true);
-					containingExecutionEngine.setIsAvailable(true);
+					containingExecutionEngine.setAvailable(true);
 				}
 //				System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
 				containingExecutionEngine.setTimingStatistics();			

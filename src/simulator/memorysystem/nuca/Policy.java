@@ -46,7 +46,7 @@ public class Policy {
 		{
 			if(cacheBank.isLastLevel)
 			{
-				sourceBankId = new Vector<Integer>(cacheBank.getRouter().getBankId());
+				sourceBankId = new Vector<Integer>(cacheBank.getBankId());
 				destinationBankId = (Vector<Integer>) event.oldSourceBankId.clone();
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																			 0,  cacheBank, cacheBank.getRouter(), 
@@ -80,7 +80,7 @@ public class Policy {
 	
 	private Vector<Integer> getDestinationBankId(AddressCarryingEvent event,NucaCacheBank cacheBank)
 	{
-		Vector<Integer> sourceBankId = new Vector<Integer>(cacheBank.getRouter().getBankId());
+		Vector<Integer> sourceBankId = new Vector<Integer>(cacheBank.getBankId());
 		Vector<Integer> destinationBankId = null;
 		NucaType nucaType = SimulationConfig.nucaType;
 		if(nucaType == NucaType.S_NUCA)
@@ -125,7 +125,7 @@ public class Policy {
 		int numberOfWrites = 0;
 		AddressCarryingEvent sampleWriteEvent = null;
 		RequestType requestType = RequestType.Mem_Response;
-		Vector<Integer> sourceBankId = (Vector<Integer>) cacheBank.getRouter().getBankId().clone();
+		Vector<Integer> sourceBankId = (Vector<Integer>) cacheBank.getBankId().clone();
 		Vector<Integer> destinationBankId = null;
  		while (!outstandingRequestList.isEmpty())
 		{	
