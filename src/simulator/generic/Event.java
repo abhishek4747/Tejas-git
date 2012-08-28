@@ -87,9 +87,9 @@ public abstract class Event
 
 	public SimulationElement getProcessingElement() {
 		return processingElement;
-	}
+	}  
 
-	protected void setProcessingElement(SimulationElement processingElement) {
+	public void setProcessingElement(SimulationElement processingElement) {
 		this.processingElement = processingElement;
 	}
 
@@ -118,6 +118,11 @@ public abstract class Event
 	public RequestType getRequestType()
 	{
 		return requestType;
+	}
+	
+	public void setRequestType(RequestType requestType)
+	{
+		this.requestType = requestType;
 	}
 
 	//If the event cannot be handled in the current clock-cycle,

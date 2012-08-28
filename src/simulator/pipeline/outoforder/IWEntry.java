@@ -20,7 +20,7 @@ public class IWEntry {
 	Instruction instruction;
 	ReorderBufferEntry associatedROBEntry;
 	
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	InstructionWindow instructionWindow;
 	OperationType opType;
 	
@@ -29,7 +29,7 @@ public class IWEntry {
 	int pos;
 
 	public IWEntry(Core core, int pos,
-			ExecutionEngine execEngine, InstructionWindow instructionWindow)
+			OutOrderExecutionEngine execEngine, InstructionWindow instructionWindow)
 	{
 		this.core = core;
 		this.pos = pos;
@@ -181,7 +181,7 @@ public class IWEntry {
 			{
 				System.out.println("attempting to issue a load/store.. value forwarded is already valid");
 			}
-			core.getExecEngine().coreMemSys.issueRequestToLSQ(
+			execEngine.getCoreMemorySystem().issueRequestToLSQ(
 					null, 
 					associatedROBEntry);
 

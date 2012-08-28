@@ -100,5 +100,20 @@ public class ICacheBuffer {
 			return true;
 		return false;
 	}
+	
+	public void dump()
+	{
+		if(head == -1)
+			return;
+		
+		for(int i = head; ; i = (i + 1)%size)
+		{
+			if(buffer[i] != null)
+				System.out.println(buffer[i].getRISCProgramCounter() + " : " + fetchComplete[i]);
+			
+			if(i == tail)
+				break;
+		}
+	}
 
 }

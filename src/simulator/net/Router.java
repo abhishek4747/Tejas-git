@@ -227,32 +227,6 @@ public class Router extends Switch{
 								requestType));
 			}
 		}
-		else if(requestType == RequestType.Cache_Read_from_iCache)
-		{
-			requestType = RequestType.CacheBank_Read_from_iCache;
-			if(this.AllocateBuffer(false))
-			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
-			}
-			else
-			{
-				//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenBanks,
-								this, 
-								this,
-								requestType));
-				//System.out.println(event.getRequestingElement());
-			}
-		}
 		else if(requestType == RequestType.Mem_Response)
 		{
 			requestType = RequestType.MemBank_Response;

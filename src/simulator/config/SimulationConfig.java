@@ -20,8 +20,6 @@
 *****************************************************************************/
 package config;
 
-import java.io.ObjectOutput;
-
 import memorysystem.nuca.NucaCache.NucaType;
 
 public class SimulationConfig 
@@ -40,6 +38,7 @@ public class SimulationConfig
 	public static boolean isPipelineStatistical;
 	public static boolean isPipelineInorder;
 	public static boolean isPipelineMultiIssueInorder;
+	public static int numInorderPipelines;
 	public static boolean writeToFile;
 	public static int numInstructionsToBeWritten;
 	public static String InstructionsFilename;
@@ -49,4 +48,5 @@ public class SimulationConfig
 	public static long numInsForTrace;
 	public static long numCyclesForTrace;
 	public static NucaType nucaType;
+	public static boolean powerStats;
 }

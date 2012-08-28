@@ -16,29 +16,34 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-	Contributors:  Moksh Upadhyay
+	Contributors:  Moksh Upadhyay, Mayur Harne
 *****************************************************************************/
 package memorysystem;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+
+import pipeline.inorder.InorderCoreMemorySystem;
+import pipeline.outoforder.OutOrderCoreMemorySystem;
 
 import memorysystem.nuca.CBDNuca;
 import net.optical.TopLevelTokenBus;
 
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
+import memorysystem.nuca.NucaCacheLine;
 import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
 
-import memorysystem.directory.CentralizedDirectory;
+import memorysystem.Cache.CacheType;
+import memorysystem.directory.CentralizedDirectoryCache;
 
 import generic.*;
 import config.CacheConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
+import emulatorinterface.Newmain;
 
 
 public class MemorySystem
@@ -46,6 +51,7 @@ public class MemorySystem
 	static Core[] cores;
 	static Hashtable<String, Cache> cacheList;
 	public static MainMemory mainMemory;
+	public static CentralizedDirectoryCache centralizedDirectory;
 	
 	public static boolean bypassLSQ = false;
 	
@@ -96,22 +102,114 @@ public class MemorySystem
 					flag = true;
 					newCache = new DNuca(cacheParameterObj,null,tokenBus);
 				}
-				else if (cacheParameterObj.getNucaType() == NucaType.CB_D_NUCA)
-				{	
-					nucaType = NucaType.CB_D_NUCA;
-					flag = true;
-					newCache = new CBDNuca(cacheParameterObj,null,tokenBus);
-				}
-
+				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
+				
+				//add initial cachepull event
+				if(newCache.levelFromTop == CacheType.Lower)
+				{
+					Newmain.cores[0].getEventQueue().addEvent(
+											new CachePullEvent(
+													Newmain.cores[0].getEventQueue(),
+													0,
+													newCache,
+													newCache,
+													RequestType.PerformPulls));
+				}
 			}
 		}
 		mainMemory = new MainMemory(nucaType);
 		//Initialize centralized directory
-		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
-		CentralizedDirectory centralizedDirectory = new CentralizedDirectory(numCacheLines, SystemConfig.NoOfCores);
+//		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
+		centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig,null,cores.length,cores);
 		//Link all the initialised caches to their next levels
+
+		
+		//Initialise the core memory systems
+		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			CoreMemorySystem coreMemSys = null;
+			
+			if(cores[i].isPipelineInorder)
+			{
+				coreMemSys = new InorderCoreMemorySystem(cores[i]);
+			}
+			else if (cores[i].isPipelineStatistical)
+			{
+				//cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
+			}
+			else if(cores[i].isPipelineMultiIssueInorder)
+			{
+				coreMemSys = new InorderCoreMemorySystem(cores[i]);
+			}
+			else
+			{
+				//TODO
+				coreMemSys = new OutOrderCoreMemorySystem(cores[i]);
+				//TODO set corememsys of cores[i] to the one jus created in outordercorememsys constructor
+			}
+			
+			//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
+			
+			//Set the next levels of the L1 data cache
+			if (coreMemSys.l1Cache.isLastLevel == true) //If this is the last level, don't set anything
+			{
+				continue;
+			}
+			
+			String nextLevelName = coreMemSys.l1Cache.nextLevelName;
+			
+			if (nextLevelName.isEmpty())
+			{
+				System.err.println("Memory system configuration error : The cache L["+ i +"] is not last level but the next level is not specified");
+				System.exit(1);
+			}
+				
+			if (cacheList.containsKey(nextLevelName)) 
+			{
+				//Point the cache to its next level
+				coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
+				coreMemSys.l1Cache.nextLevel.prevLevel.add(coreMemSys.l1Cache);
+				coreMemSys.l1Cache.connectedMSHR.add(coreMemSys.getL1MSHR());
+			}
+			else
+			{
+				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
+				System.exit(1);
+			}
+			
+			//Set the next levels of the instruction cache
+			if (coreMemSys.iCache.isLastLevel == true) //If this is the last level, don't set anything
+			{
+				continue;
+			}
+			
+			nextLevelName = coreMemSys.iCache.nextLevelName;
+			
+			if (nextLevelName.isEmpty())
+			{
+				System.err.println("Memory system configuration error : The iCache is not last level but the next level is not specified");
+				System.exit(1);
+			}
+				
+			if (cacheList.containsKey(nextLevelName)) 
+			{
+				//Point the cache to its next level
+				coreMemSys.iCache.nextLevel = cacheList.get(nextLevelName);
+				coreMemSys.iCache.nextLevel.prevLevel.add(coreMemSys.iCache);
+				coreMemSys.iCache.connectedMSHR.add(coreMemSys.getiMSHR());
+			}
+			else
+			{
+				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
+				System.exit(1);
+			}
+			
+						
+		}
+		
 		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{
 			String cacheName = cacheNameSet.nextElement();
@@ -121,7 +219,6 @@ public class MemorySystem
 			{
 				continue;
 			}
-			
 			String nextLevelName = cacheToSetNextLevel.nextLevelName;
 			
 			if (nextLevelName.isEmpty())
@@ -148,74 +245,11 @@ public class MemorySystem
 			}
 		}
 		
-		//Initialise the core memory systems
-		//Global.memSys = new CoreMemorySystem[SystemConfig.NoOfCores];
-		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{
-			CoreMemorySystem coreMemSys = new CoreMemorySystem(cores[i]);
-			
-			if(cores[i].isPipelineInorder)
-				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
-			else if (cores[i].isPipelineStatistical)
-				cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
-			else if(cores[i].isPipelineMultiIssueInorder)
-				cores[i].getExecutionEngineIn().coreMemorySystem=coreMemSys;
-			else
-				cores[i].getExecEngine().coreMemSys = coreMemSys;
-			
-			//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
-			
-			//Set the next levels of the instruction cache
-			if (coreMemSys.iCache.isLastLevel == true) //If this is the last level, don't set anything
-			{
-				continue;
-			}
-			
-			String nextLevelName = coreMemSys.iCache.nextLevelName;
-			
-			if (nextLevelName.isEmpty())
-			{
-				System.err.println("Memory system configuration error : The iCache is not last level but the next level is not specified");
-				System.exit(1);
-			}
-				
-			if (cacheList.containsKey(nextLevelName)) 
-			{
-				//Point the cache to its next level
-				coreMemSys.iCache.nextLevel = cacheList.get(nextLevelName);
-				coreMemSys.iCache.nextLevel.prevLevel.add(coreMemSys.iCache);
-			}
-			else
-			{
-				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
-				System.exit(1);
-			}
-			
-			//Set the next levels of the L1 data cache
-			if (coreMemSys.l1Cache.isLastLevel == true) //If this is the last level, don't set anything
-			{
-				continue;
-			}
-			
-			nextLevelName = coreMemSys.l1Cache.nextLevelName;
-			
-			if (nextLevelName.isEmpty())
-			{
-				System.err.println("Memory system configuration error : The cache L["+ i +"] is not last level but the next level is not specified");
-				System.exit(1);
-			}
-				
-			if (cacheList.containsKey(nextLevelName)) 
-			{
-				//Point the cache to its next level
-				coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
-				coreMemSys.l1Cache.nextLevel.prevLevel.add(coreMemSys.l1Cache);
-			}
-			else
-			{
-				System.err.println("Memory system configuration error : A cache specified as a next level does not exist");
-				System.exit(1);
-			}
+			String cacheName = cacheNameSet.nextElement();
+			Cache cacheToSetConnectedMSHR = cacheList.get(cacheName);
+			cacheToSetConnectedMSHR.populateConnectedMSHR();
 		}
 /*		
 		//Initialising the BUS for cache coherence
@@ -232,6 +266,13 @@ public class MemorySystem
 		Bus.lowerLevel.enforcesCoherence = true;
 		
 		propagateCoherencyUpwards(Bus.upperLevels);*/
+		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cacheToSetNextLevel = cacheList.get(cacheName);
+			
+			System.out.println(cacheName + " : " + cacheToSetNextLevel.connectedMSHR.size());
+		}
 	}
 	
 
@@ -250,6 +291,11 @@ public class MemorySystem
 //		}
 //	}
 	
+	public static   CentralizedDirectoryCache getDirectoryCache()
+	{
+		return centralizedDirectory;
+	}
+	
 	public static void printMemSysResults()
 	{
 		System.out.println("\n Memory System results\n");
@@ -257,11 +303,11 @@ public class MemorySystem
 		{
 			System.out.println(
 					"LSQ[" + i + "] Loads : "
-					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfLd 
+					+ cores[i].getExecEngine().getCoreMemorySystem().lsqueue.NoOfLd 
 					+ "\t ; LSQ[" + i + "] Stores : " 
-					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfSt
+					+ cores[i].getExecEngine().getCoreMemorySystem().lsqueue.NoOfSt
 					+ "\t ; LSQ[" + i + "] Value Forwards : " 
-					+ cores[i].getExecEngine().coreMemSys.lsqueue.NoOfForwards);
+					+ cores[i].getExecEngine().getCoreMemorySystem().lsqueue.NoOfForwards);
 		}
 		
 		System.out.println(" ");
@@ -270,9 +316,9 @@ public class MemorySystem
 		{
 			System.out.println(
 					"TLB[" + i + "] Hits : " 
-					+ cores[i].getExecEngine().coreMemSys.TLBuffer.tlbHits 
+					+ cores[i].getExecEngine().getCoreMemorySystem().TLBuffer.tlbHits 
 					+ "\t ; TLB[" + i + "] misses : " 
-					+ cores[i].getExecEngine().coreMemSys.TLBuffer.tlbMisses);
+					+ cores[i].getExecEngine().getCoreMemorySystem().TLBuffer.tlbMisses);
 		}
 		
 		System.out.println(" ");
@@ -281,9 +327,9 @@ public class MemorySystem
 		{
 			System.out.println(
 					"L1[" + i + "] Hits : " 
-					+ cores[i].getExecEngine().coreMemSys.l1Cache.hits 
+					+ cores[i].getExecEngine().getCoreMemorySystem().l1Cache.hits 
 					+ "\t ; L1[" + i + "] misses : " 
-					+ cores[i].getExecEngine().coreMemSys.l1Cache.misses);
+					+ cores[i].getExecEngine().getCoreMemorySystem().l1Cache.misses);
 		}
 		
 		System.out.println(" ");

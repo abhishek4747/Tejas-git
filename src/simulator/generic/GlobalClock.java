@@ -187,14 +187,7 @@ public class GlobalClock {
 			cores[i].setStepSize(LCM/freq_list[i]);
 			CoreMemorySystem coreMemSys;
 			
-			if (cores[i].isPipelineStatistical)
-				coreMemSys = cores[i].getStatisticalPipeline().coreMemSys;
-			else if(cores[i].isPipelineInorder)
-				coreMemSys = cores[i].getExecutionEngineIn().coreMemorySystem;
-			else if(cores[i].isPipelineMultiIssueInorder)
-				coreMemSys = cores[i].getExecutionEngineIn().coreMemorySystem;
-			else
-				coreMemSys = cores[i].getExecEngine().coreMemSys;
+			coreMemSys = cores[i].getExecEngine().getCoreMemorySystem();
 			
 			//coreMemSys.getL1Cache().setStepSize(cores[i].getStepSize());
 			//coreMemSys.getLsqueue().setStepSize(cores[i].getStepSize());

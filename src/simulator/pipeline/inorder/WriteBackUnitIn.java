@@ -1,7 +1,5 @@
 package pipeline.inorder;
 
-import memorysystem.CoreMemorySystem;
-import power.Counters;
 import emulatorinterface.Newmain;
 import generic.Core;
 import generic.Event;
@@ -9,21 +7,26 @@ import generic.EventQueue;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
-import generic.Statistics;
 
 public class WriteBackUnitIn extends SimulationElement{
+	
 	Core core;
+	InorderExecutionEngine containingExecutionEngine;
 	int j;
-	public WriteBackUnitIn(Core core) {
+	
+	public WriteBackUnitIn(Core core, InorderExecutionEngine execEngine)
+	{
 		super(PortType.Unlimited, core.getNoOfRegFilePorts(), -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.j=0;
-		// TODO Auto-generated constructor stub
+		containingExecutionEngine = execEngine;
 	}
 	
-	public void performWriteBack(InorderPipeline inorderPipeline){
+	public void performWriteBack(InorderPipeline inorderPipeline)
+	{
 		StageLatch memWbLatch = inorderPipeline.getMemWbLatch();
-		if(memWbLatch.getInstruction()!=null){ 
+		if(memWbLatch.getInstruction()!=null)
+		{ 
 			OperationType opType = memWbLatch.getInstruction().getOperationType(); 
 			
 			if(!(opType==OperationType.branch || opType==OperationType.jump)){
@@ -34,50 +37,46 @@ public class WriteBackUnitIn extends SimulationElement{
 			}
 			
 			if(!(opType==OperationType.store || opType == OperationType.branch 
-					|| opType == OperationType.nop || opType == OperationType.jump)){
+					|| opType == OperationType.nop || opType == OperationType.jump))
+			{
 				this.core.powerCounters.incrementRegfileAccess(1);
 			}
-
+			
 				
-				
-//System.out.println("wb "+memWbLatch.getInstruction().getSerialNo());			
-			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid){
-//				this.core.powerCounters.updatePowerStatsPerCycle();
-//				this.core.powerCounters.clearAccessStats();
-//System.out.println("Invalid encountered");				
+			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
+			{
 				//FIXME the following does not set the statistics. Check!
 				this.core.currentThreads--;
 				
 				if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
 													  //assigned to this pipeline	
-					core.getExecutionEngineIn().setExecutionComplete(true);
-					core.getExecutionEngineIn().setIsAvailable(true);
+					containingExecutionEngine.setExecutionComplete(true);
+					containingExecutionEngine.setIsAvailable(true);
 				}
 //				System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
-				this.core.getExecutionEngineIn().setTimingStatistics();			
-				this.core.getExecutionEngineIn().setPerCoreMemorySystemStatistics();
-				this.core.getExecutionEngineIn().setPerCorePowerStatistics();
+				containingExecutionEngine.setTimingStatistics();			
+				containingExecutionEngine.setPerCoreMemorySystemStatistics();
+				containingExecutionEngine.setPerCorePowerStatistics();
 				memWbLatch.clear();
 				
 			}
-			else {
-				if(core.getNoOfInstructionsExecuted()%1000000==0){
-					System.out.println(this.j++ + " million done");
+			else
+			{
+				if(core.getNoOfInstructionsExecuted()%1000000==0)
+				{
+					System.out.println(this.j++ + " million done" + " by core "+core.getCore_number());
 				}
 //				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
 //System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());
 //				}
 				core.incrementNoOfInstructionsExecuted();
-				try {
-/*					System.out.println(Newmain.instructionPool.getNumIdle()+"  "+Newmain.instructionPool.poolSize
-							+"  "+Newmain.instructionPool.head
-							+"  "+Newmain.instructionPool.tail);
-*/					Newmain.instructionPool.returnObject(memWbLatch.getInstruction());
-//					Newmain.operandPool.returnObject(memWbLatch.getIn1());
-//					Newmain.operandPool.returnObject(memWbLatch.getIn2());
-//					Newmain.operandPool.returnObject(memWbLatch.getOut1());
+				
+				try
+				{
+					Newmain.instructionPool.returnObject(memWbLatch.getInstruction());
 					core.numReturns++;
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 				memWbLatch.clear();
@@ -88,7 +87,6 @@ public class WriteBackUnitIn extends SimulationElement{
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
+
 	}
 }

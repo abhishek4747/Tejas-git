@@ -31,6 +31,7 @@ public class LSQEntry
 	private ReorderBufferEntry robEntry;
 	private long addr;
 	private boolean valid;
+	private boolean issued;
 	private boolean forwarded;//Whether the load has got its value or not
 
 	private boolean removed; //If the entry has been committed and removed from the LSQ
@@ -42,12 +43,26 @@ public class LSQEntry
 		this.type = type;
 		this.robEntry = robEntry;
 		valid = false;
+		issued = false;
+		forwarded = false;
+		removed = true;
+	}
+	
+	public void recycle()
+	{
+		robEntry = null;
+		valid = false;
+		issued = false;
 		forwarded = false;
 		removed = false;
 	}
 
 	public LSQEntryType getType() {
 		return type;
+	}
+
+	public void setType(LSQEntryType type) {
+		this.type = type;
 	}
 	
 	public long getAddr() {
@@ -77,6 +92,14 @@ public class LSQEntry
 //		{
 //			System.out.println("i'm setting valid to true, even before the core has issued the load/store");
 //		}
+	}
+
+	public boolean isIssued() {
+		return issued;
+	}
+
+	public void setIssued(boolean issued) {
+		this.issued = issued;
 	}
 
 	public boolean isForwarded() {
@@ -111,6 +134,10 @@ public class LSQEntry
 	
 	public ReorderBufferEntry getRobEntry() {
 		return robEntry;
+	}
+	
+	public void setRobEntry(ReorderBufferEntry robEntry) {
+		this.robEntry = robEntry;
 	}
 
 	protected void setIndexInQ(int indexInQ) {

@@ -5,15 +5,15 @@ import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 
-public class LSQEntryContainingEvent extends Event
+public class LSQEntryContainingEvent extends AddressCarryingEvent
 {
 	private LSQEntry lsqEntry;
 	
 	public LSQEntryContainingEvent(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement,
-			RequestType requestType, LSQEntry lsqEntry) {
+			RequestType requestType, LSQEntry lsqEntry,int coreId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
-				requestType);
+				requestType,lsqEntry.getAddr(),coreId);
 		this.lsqEntry = lsqEntry;
 	}
 	

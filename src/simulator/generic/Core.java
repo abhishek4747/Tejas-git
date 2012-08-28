@@ -2,20 +2,21 @@ package generic;
 
 import java.util.LinkedList;
 
+import pipeline.ExecutionEngine;
 import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.ExecutionEnginePerfect;
 //import pipeline.perfect.PerformDecodeEventPerfect;
 //import pipeline.perfect.PerformCommitsEventPerfect;
 import pipeline.inorder.DecodeUnitIn;
 import pipeline.inorder.ExecUnitIn;
-import pipeline.inorder.ExecutionEngineIn;
+import pipeline.inorder.InorderExecutionEngine;
 import pipeline.inorder.FetchUnitIn;
 import pipeline.inorder.InorderPipeline;
 import pipeline.inorder.MemUnitIn;
 import pipeline.inorder.RegFileIn;
 import pipeline.inorder.WriteBackUnitIn;
 import pipeline.inorder.multiissue.MultiIssueInorder;
-import pipeline.outoforder.ExecutionEngine;
+import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.PipelineInterface;
 import pipeline.statistical.StatisticalPipeline;
 import pipeline.statistical.StatisticalPipelineInterface;
@@ -33,13 +34,12 @@ import config.SystemConfig;
 public class Core {
 	
 	//long clock;
-	StatisticalPipeline statisticalPipeline;
+	
 	Port port;
 	int stepSize;
 	long frequency;
 	ExecutionEngine execEngine;
-	public EventQueue eventQueue;
-	ExecutionEngineIn execEngineIn;
+	EventQueue eventQueue;
 	public int currentThreads;
 	
 	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
@@ -103,21 +103,17 @@ public class Core {
 		this.no_of_threads = no_of_threads;
 		this.threadIDs = threadIDs;
 		this.currentThreads =0;
-		if (isPipelineStatistical)
-			this.statisticalPipeline = new StatisticalPipeline(this);
-		else if(this.isPipelineInorder)
-			this.execEngineIn = new ExecutionEngineIn(this,1);
+		if(this.isPipelineInorder)
+			this.execEngine = new InorderExecutionEngine(this,1);
 		else if(this.isPipelineMultiIssueInorder)
-			this.execEngineIn = new ExecutionEngineIn(this,this.numInorderPipelines);
+			this.execEngine = new InorderExecutionEngine(this,this.numInorderPipelines);
 		else
-			this.execEngine = new ExecutionEngine(this);
+			this.execEngine = new OutOrderExecutionEngine(this);
 		
 		this.branchPredictor = new TournamentPredictor();
 		this.noOfInstructionsExecuted = 0;
 		this.numReturns=0;
-		if (this.isPipelineStatistical)
-			this.pipelineInterface = new StatisticalPipelineInterface(this, eventQueue);
-		else if(this.isPipelineInorder)
+		if(this.isPipelineInorder)
 			this.pipelineInterface = new InorderPipeline(this, eventQueue,0);
 		else if(this.isPipelineMultiIssueInorder)
 			this.pipelineInterface = new MultiIssueInorder(this, eventQueue);
@@ -147,7 +143,7 @@ public class Core {
 		setRegFileOccupancy(coreConfig.RegFileOccupancy);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
-		setNumInorderPipelines(coreConfig.numInorderPipelines);
+		setNumInorderPipelines(SimulationConfig.numInorderPipelines);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
@@ -202,7 +198,7 @@ public class Core {
 	}
 	public void sleepPipeline(){
 		
-		this.getExecutionEngineIn().getFetchUnitIn().inputToPipeline.appendInstruction(new Instruction(OperationType.sync,null, null, null));
+		this.getExecutionEngine().getFetchUnitIn().inputToPipeline.appendInstruction(new Instruction(OperationType.sync,null, null, null));
 	}
 
 	public int getIssueWidth() {
@@ -394,23 +390,12 @@ public class Core {
 		this.noOfInstructionsExecuted++;
 	}
 	
-	public StatisticalPipeline getStatisticalPipeline() {
-		return statisticalPipeline;
-	}
-
-	public void setStatisticalPipeline(StatisticalPipeline statisticalPipeline) {
-		this.statisticalPipeline = statisticalPipeline;
-	}
 	
-
 //	public InorderPipeline getInorderPipeline(){
 //		return this.inorderPipeline;
 //	}
 	
-	public ExecutionEngineIn getExecutionEngineIn(){
-		return this.execEngineIn;
-	}
-
+	
 
 	
 	public pipeline.PipelineInterface getPipelineInterface() {
@@ -425,21 +410,7 @@ public class Core {
 	
 	public void setInputToPipeline(InstructionLinkedList[] inputsToPipeline)
 	{
-		if(this.isPipelineInorder){
-			//System.out.println("Input to pipeline is set");			
-			this.getExecutionEngineIn().getFetchUnitIn().setInputToPipeline(inputsToPipeline[0]);
-		}
-		else if(this.isPipelineMultiIssueInorder){
-			//System.out.println("Input to pipeline is set");			
-			this.getExecutionEngineIn().getFetchUnitIn().setInputToPipeline(inputsToPipeline[0]);
-		}
-		else
-			if (this.isPipelineStatistical)
-				this.getStatisticalPipeline().getFetcher().setInputToPipeline(inputsToPipeline);
-			else
-				this.getExecEngine().getFetcher().setInputToPipeline(inputsToPipeline);
-
-			
+		this.getExecEngine().setInputToPipeline(inputsToPipeline);
 	}
 	
 	public void setStepSize(int stepSize)

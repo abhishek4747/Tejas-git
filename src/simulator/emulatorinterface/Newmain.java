@@ -2,6 +2,8 @@ package emulatorinterface;
 
 import java.util.Enumeration;
 
+import pipeline.outoforder.ICacheBuffer;
+import pipeline.outoforder.OutOrderExecutionEngine;
 import power.Counters;
 
 import memorysystem.nuca.CBDNuca;
@@ -9,7 +11,10 @@ import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 
 import memorysystem.nuca.SNuca;
+import memorysystem.nuca.NucaCache.NucaType;
+import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
+import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
 import misc.Error;
 import net.optical.TopLevelTokenBus;
@@ -23,6 +28,8 @@ import generic.Core;
 import generic.CoreBcastBus;
 import generic.CustomInstructionPool;
 import generic.CustomOperandPool;
+import generic.EventQueue;
+import generic.GenericCircularBuffer;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
@@ -39,12 +46,15 @@ public class Newmain {
 	//public static GenericObjectPool<Instruction> instructionPool;
 	public static CustomOperandPool operandPool;
 	public static CustomInstructionPool instructionPool;
+	public static GenericCircularBuffer<AddressCarryingEvent> addressCarryingEventPool;
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
 	public static boolean subsetSimulation = true; //test added
 	public static String executableArguments=" ";
 	public static String executableFile = " ";
+	
+	public static Core[] cores;
 	
 	public static void main(String[] arguments) throws Exception 
 	{
@@ -70,36 +80,20 @@ public class Newmain {
 		// Create a hash-table for the static representation of the executable
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
-		// Create Pools of Instructions and Operands
-		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.getEmuThreadsPerJavaThread()*2;
+		// Create Pools of Instructions, Operands and AddressCarryingEvents
+		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.getEmuThreadsPerJavaThread()*5;
+		int numAddressCarryingEvents = 50000;
 		
-		/* "apache pool"
-		System.out.println("creating operand pool..");
-		operandPool = new GenericObjectPool<Operand>(new PoolableOperandFactory());
-		operandPool.setMaxActive(numInstructionsInPool * 3);
-		operandPool.setMaxIdle(numInstructionsInPool * 3);
-		for(int i = 0; i < numInstructionsInPool * 3; i++)
-		{
-			operandPool.addObject();
-		}
-		
-		System.out.println("creating instruction pool..");
-		instructionPool = new GenericObjectPool<Instruction>(new PoolableInstructionFactory());
-		instructionPool.setMaxActive(numInstructionsInPool);
-		instructionPool.setMaxIdle(numInstructionsInPool);
-		for(int i = 0; i < numInstructionsInPool; i++)
-		{
-			instructionPool.addObject();
-		}
-		
-		System.out.println("number of operands in pool = " + operandPool.getNumIdle());
-		System.out.println("number of instructions in pool = " + instructionPool.getNumIdle());
-		*/
 		/* custom pool */
 		System.out.println("creating operand pool..");
 		operandPool = new CustomOperandPool(numInstructionsInPool *3);
 		System.out.println("creating instruction pool..");
 		instructionPool = new CustomInstructionPool(numInstructionsInPool);
+		System.out.println("creating addressCarryingEvent pool..");
+		addressCarryingEventPool = new GenericCircularBuffer<AddressCarryingEvent>(
+															AddressCarryingEvent.class,
+															numAddressCarryingEvents,
+															true);
 		
 		
 /*		// Create a new dynamic instruction buffer
@@ -112,7 +106,7 @@ public class Newmain {
 		//create cores
 		CoreBcastBus coreBcastBus = new CoreBcastBus();
 
-		Core[] cores = initCores(coreBcastBus);
+		cores = initCores(coreBcastBus);
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem();
 		if (SimulationConfig.Mode!=0) {
@@ -163,49 +157,8 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
-			if (cache.getClass() == SNuca.class)
+			if (SimulationConfig.nucaType != NucaType.NONE )
 			{
-				((NucaCache)cache).setStatistics();
-				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
-				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
-				for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
-				{
-					for(int j=0; j< ((NucaCache)cache).cacheColumns;j++)
-					{
-						Statistics.hopcount += ((NucaCache)cache).cacheBank[i][j].getRouter().hopCounters; 
-					}
-				}
-				if(Statistics.nocTopology.equals("FATTREE") ||
-						Statistics.nocTopology.equals("OMEGA") ||
-						Statistics.nocTopology.equals("BUTTERFLY")) {
-					for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
-						Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
-					}
-				}
-			}
-			else if (cache.getClass() == DNuca.class)
-			{
-				((NucaCache)cache).setStatistics();
-				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
-				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
-				for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
-				{
-					for(int j=0; j< ((NucaCache)cache).cacheColumns;j++)
-					{
-						Statistics.hopcount += ((NucaCache)cache).cacheBank[i][j].getRouter().hopCounters; 
-					}
-				}
-				if(Statistics.nocTopology.equals("FATTREE") ||
-						Statistics.nocTopology.equals("OMEGA") ||
-						Statistics.nocTopology.equals("BUTTERFLY")) {
-					for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
-						Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
-					}
-				}
-			}
-			else if (cache.getClass() == CBDNuca.class)
-			{
-				((NucaCache)cache).setStatistics();
 				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
 				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
 				for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
@@ -240,7 +193,10 @@ public class Newmain {
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
 		Statistics.printSimulationTime();
-		Statistics.printPowerStats();
+		
+		if(SimulationConfig.powerStats)
+			Statistics.printPowerStats();
+		
 		Statistics.closeStream();
 		
 		
@@ -343,6 +299,10 @@ public class Newmain {
 		}
 		return cores;
 	}
+	
+	/*
+	 * debug helper functions
+	 */
 
 	/**
 	 * @author Moksh
@@ -359,5 +319,67 @@ public class Newmain {
 			
 			System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
 			System.out.println("\n");
+	}
+	
+	public static void dumpAllMSHRs()
+	{
+		CoreMemorySystem coreMemSys = null;
+		System.out.println("\n\nMSHR DUMP\n\n");
+		for(int i = 0; i < Newmain.cores.length; i++)
+		{
+			coreMemSys = Newmain.cores[i].getExecEngine().getCoreMemorySystem();
+			System.out.println("---------------------------------------------------------------------------");
+			System.out.println("CORE " + i);
+			System.out.println("coreMemSys");
+			System.out.println("i - mshr");
+			coreMemSys.getiMSHR().dump();
+			System.out.println("l1-mshr");
+			coreMemSys.getL1MSHR().dump();
+			System.out.println("iCache");
+			coreMemSys.getiCache().getMissStatusHoldingRegister().dump();
+			System.out.println("L1");
+			coreMemSys.getL1Cache().getMissStatusHoldingRegister().dump();
+		}
+		
+		System.out.println("---------------------------------------------------------------------------");
+		System.out.println("L2");
+		coreMemSys.getiCache().nextLevel.getMissStatusHoldingRegister().dump();
+		
+	}
+	
+	public static void dumpAllEventQueues()
+	{
+		System.out.println("\n\nEvent Queue DUMP\n\n");
+		EventQueue eventQueue = null;
+		for(int i = 0; i < Newmain.cores.length; i++)
+		{
+			eventQueue = Newmain.cores[i].getEventQueue();
+			System.out.println("---------------------------------------------------------------------------");
+			System.out.println("CORE " + i);
+			eventQueue.dump();
+		}
+	}
+	
+	public static void dumpAllICacheBuffers()
+	{
+		System.out.println("\n\nICache Buffer DUMP\n\n");
+		ICacheBuffer buffer = null;
+		for(int i = 0; i < Newmain.cores.length; i++)
+		{
+			buffer = ((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getiCacheBuffer();
+			System.out.println("---------------------------------------------------------------------------");
+			System.out.println("CORE " + i);
+			buffer.dump();
+		}
+	}
+	
+	public static long getNoOfInstsExecuted()
+	{
+		long noOfInstsExecuted = 0;
+		for(int i = 0; i < cores.length; i++)
+		{
+			noOfInstsExecuted += cores[i].getNoOfInstructionsExecuted();
+		}
+		return noOfInstsExecuted;
 	}
 }

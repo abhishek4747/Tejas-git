@@ -9,13 +9,13 @@ import generic.SimulationElement;
 public class IWPushLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	ReorderBufferEntry[] renameBuffer;
 	int decodeWidth;
 	
 	InstructionWindow IW;
 	
-	public IWPushLogic(Core core, ExecutionEngine execEngine)
+	public IWPushLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;

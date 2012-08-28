@@ -15,12 +15,12 @@ import generic.SimulationElement;
 public class DecodeLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	Instruction[] fetchBuffer;
 	ReorderBufferEntry[] decodeBuffer;
 	int decodeWidth;
 	
-	public DecodeLogic(Core core, ExecutionEngine execEngine)
+	public DecodeLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
@@ -67,7 +67,7 @@ public class DecodeLogic extends SimulationElement {
 					if(fetchBuffer[i].getOperationType() == OperationType.load ||
 							fetchBuffer[i].getOperationType() == OperationType.store)
 					{
-						if(execEngine.coreMemSys.getLsqueue().isFull())
+						if(execEngine.getCoreMemorySystem().getLsqueue().isFull())
 						{
 							execEngine.setToStall3(true);
 							break;
@@ -132,7 +132,7 @@ public class DecodeLogic extends SimulationElement {
 					isLoad = false;
 					
 				//TODO
-				this.core.getExecEngine().coreMemSys.allocateLSQEntry(isLoad, 
+				execEngine.getCoreMemorySystem().allocateLSQEntry(isLoad, 
 						newROBEntry.getInstruction().getSourceOperand1().getValue(),
 						newROBEntry);
 			}

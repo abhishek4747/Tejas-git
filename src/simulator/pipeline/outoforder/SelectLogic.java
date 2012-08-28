@@ -11,7 +11,7 @@ import generic.SimulationElement;
 public class SelectLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	InstructionWindow IW;	
 	int issueWidth;
 	
@@ -23,7 +23,7 @@ public class SelectLogic extends SimulationElement {
 	int[] IWEntryROBIndex;
 	ReorderBufferEntry[] associatedROBEntries;
 	
-	public SelectLogic(Core core, ExecutionEngine execEngine)
+	public SelectLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;

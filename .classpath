@@ -3,7 +3,7 @@
 	<classpathentry excluding="simulator/|emulator/pin/" kind="src" path="src"/>
 	<classpathentry kind="src" path="src/simulator">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Tejas/src/emulator/pin/obj-comm"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Tejas-Base-2/src/emulator/pin/obj-comm"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src/emulator/pin"/>

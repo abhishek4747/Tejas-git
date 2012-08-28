@@ -27,9 +27,9 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			return;
 		}
 		
-		ExecutionEngine execEngine;
+		OutOrderExecutionEngine execEngine;
 		
-		execEngine = core.getExecEngine();
+		execEngine = (OutOrderExecutionEngine) core.getExecEngine();
 		
 		long currentTime = GlobalClock.getCurrentTime();
 		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
@@ -52,7 +52,6 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		//handle events
 		eventQ.processEvents();
 		
-		execEngine = core.getExecEngine();
 		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getIWPusher().performIWPush();
