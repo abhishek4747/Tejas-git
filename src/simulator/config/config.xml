@@ -170,6 +170,9 @@
 			<NocTopology>OMEGA</NocTopology>     <!--NOCTopology-->
 			<NocRoutingAlgorithm>OMEGA</NocRoutingAlgorithm>
 			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+			<NocRouterArbiter>RR</NocRouterArbiter>
+			<TechPoint>90</TechPoint>
+			<NocConnection>OPTICAL</NocConnection>
 		</Type0>
 
 		</Directory>
