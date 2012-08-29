@@ -71,6 +71,7 @@ public class NucaCache extends Cache
     public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus)
     {
     	super(cacheParameters, containingMemSys);
+    	this.nucaType = SimulationConfig.nucaType;
     	this.cacheRows = cacheParameters.getNumberOfBankRows();
         this.cacheColumns = cacheParameters.getNumberOfBankColumns();
         this.numOfCores = SystemConfig.NoOfCores;

@@ -26,9 +26,11 @@ import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
 
 import power.Counters;
 import memorysystem.directory.CentralizedDirectoryCache;
+import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
+import config.SimulationConfig;
 import misc.Util;
 import generic.*;
 
@@ -82,6 +84,7 @@ public class Cache extends SimulationElement
 		public int misses;
 		public int evictions;
 		public boolean debug =false;
+		public NucaType nucaType;
 		
 		public Cache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
 		{
@@ -123,6 +126,7 @@ public class Cache extends SimulationElement
 			missStatusHoldingRegister = new MissStatusHoldingRegister(blockSizeBits, cacheParameters.mshrSize);			
 			connectedMSHR = new ArrayList<MissStatusHoldingRegister>();
 			startIndexForPulling = 0;
+			this.nucaType = NucaType.NONE;
 		}
 		
 		public Cache(
