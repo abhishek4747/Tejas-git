@@ -152,7 +152,7 @@ public class Newmain {
 			String cacheName = cacheNameSet.nextElement();
 			Cache cache = MemorySystem.getCacheList().get(cacheName);
 			
-			if (SimulationConfig.nucaType != NucaType.NONE )
+			if (cache.nucaType != NucaType.NONE )
 			{
 				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
 				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
