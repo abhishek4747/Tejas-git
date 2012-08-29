@@ -27,7 +27,10 @@
 #endif
 
 // Defining  command line arguments
-KNOB<UINT64> KnobLong(KNOB_MODE_WRITEONCE, "pintool", "map", "1", "Maps");
+KNOB<UINT64>   KnobMap(KNOB_MODE_WRITEONCE,       "pintool",
+    "map", "1", "Maps");
+KNOB<UINT64>   KnobIgnore(KNOB_MODE_WRITEONCE,       "pintool",
+    "numIgn", "0", "Ignore these many profilable instructions");
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
@@ -36,6 +39,9 @@ UINT64 checkSum = 0;
 IPC::IPCBase *tst;
 bool pumpingStatus[MaxThreads];
 ADDRINT curSynchVar[MaxThreads];
+static UINT64 numIns = 0;
+UINT64 numInsToIgnore = 0;
+BOOL ignoreActive = false;
 
 #define PacketEpoch 50
 uint32_t countPacket[MaxThreads];
@@ -93,9 +99,6 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	tst->onThread_start(threadid);
 	ReleaseLock(&lock);
 	ASSERT(livethreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
-
-
-
 }
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
@@ -172,7 +175,34 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 		}
 	}
 }
+VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
+{
+	if (ignoreActive) return;
+		checkSum+=6;
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t _nreg = MASK & (uint64_t)_reg;
+		while (tst->analysisFn(tid,nip,6,_nreg)== -1) {
+			PIN_Yield();
+		}
+}
 
+
+VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
+{
+	if (ignoreActive) return;
+		checkSum+=7;
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t _nreg = MASK & (uint64_t)_reg;
+		while (tst->analysisFn(tid,nip,7,_nreg)== -1) {
+			PIN_Yield();
+		}
+}
+VOID CountIns()
+{
+	if (!ignoreActive) return;
+	numIns++;
+	if (numIns>numInsToIgnore) ignoreActive = false;	//activate Now
+}
 //VOID FunEntry(ADDRINT first_arg, const string * name, THREADID threadid)
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
@@ -383,10 +413,19 @@ INT32 Usage() {
 // argc, argv are the entire command line, including pin -t <toolname> -- ...
 int main(int argc, char * argv[]) {
 
-	UINT64 mask = KnobLong;
-	//printf("mask for pin %lld\n", mask);
-	fflush(stdout);
-	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *) &mask) < 0) {
+	// Initialize pin
+	//if (PIN_Init(argc, argv)) return Usage();
+
+	// Knobs get initialized only after initlializing PIN
+	numInsToIgnore = KnobIgnore;
+	if (numInsToIgnore>0) ignoreActive = true;
+//	printf("Ignoring %lld profilable instructions \n", numInsToIgnore);
+//	fflush(stdout);
+
+	UINT64 mask = KnobMap;
+//	printf("mask for pin %lld\n", mask);
+//	fflush(stdout);
+	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
 	}
 

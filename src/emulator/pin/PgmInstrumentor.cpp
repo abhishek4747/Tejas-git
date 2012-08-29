@@ -12,11 +12,13 @@
 #include <sched.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-
+#include <time.h>
+#include <sys/timeb.h>
 
 #include "IPCBase.h"
 #include "shmem.h"
 
+#include "encoding.h"
 
 #ifdef _LP64
 #define MASK 0xffffffffffffffff
@@ -32,8 +34,10 @@ KNOB<UINT64>   KnobIgnore(KNOB_MODE_WRITEONCE,       "pintool",
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
+INT32 livethreads = 0;
 UINT64 checkSum = 0;
-
+bool pumpingStatus[MaxThreads];
+ADDRINT curSynchVar[MaxThreads];
 static UINT64 numIns = 0;
 UINT64 numInsToIgnore = 0;
 BOOL ignoreActive = false;
