@@ -157,10 +157,7 @@ public class InorderExecutionEngine extends ExecutionEngine{
 			core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());
 		}
 	}
-	public void setFetchComplete(boolean fetchComplete){
-		this.fetchComplete=fetchComplete;
-	}
-
+	
 //	public CoreMemorySystem getCoreMemorySystem(){
 //		return this.coreMemorySystem;
 //	}
@@ -371,16 +368,5 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		System.out.println(exMemLatch[0].getInstruction());
 		System.out.println("memWb stall = " + memWbLatch[0].getStallCount());
 		System.out.println(memWbLatch[0].getInstruction());
-	}
-
-	@Override
-	public void setAvailable(boolean flag) 
-	{
-		this.isAvailable = flag;
-	}
-	
-	public boolean isAvailable()
-	{
-		return this.isAvailable;
-	}
+	}	
 }

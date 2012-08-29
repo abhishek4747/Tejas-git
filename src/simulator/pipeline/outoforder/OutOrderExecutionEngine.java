@@ -290,14 +290,4 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 											coreMemorySystem.getiCache().getLatency()));
 		this.fetcher.setICacheBuffer(iCacheBuffer);
 	}
-
-	@Override
-	public void setAvailable(boolean flag) {
-		this.isAvailable = flag;		
-	}
-	
-	public boolean isAvailable()
-	{
-		return this.isAvailable;
-	}
 }

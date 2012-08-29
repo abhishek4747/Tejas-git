@@ -183,7 +183,12 @@ public class ReorderBuffer extends SimulationElement{
 					if(execEngine.isAllPipesEmpty() == true)
 					{
 						//if ROB is empty, and decode pipe is empty, that means execution is complete
-						execEngine.setExecutionComplete(true);
+						this.core.currentThreads--;
+						
+						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+															  //assigned to this pipeline	
+							execEngine.setExecutionComplete(true);
+						}
 						
 						setTimingStatistics();			
 						setPerCoreMemorySystemStatistics();

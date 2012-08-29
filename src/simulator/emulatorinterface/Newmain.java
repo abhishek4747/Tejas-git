@@ -283,22 +283,22 @@ public class Newmain {
 		}
 		
 		//TODO wont work in case of multiple runnable threads
-		for(int i = 0; i<IpcBase.getEmuThreadsPerJavaThread(); i++)
-		{
-			if (SimulationConfig.isPipelineInorder)
-			{
-				((InorderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
-			}
-			else if (SimulationConfig.isPipelineMultiIssueInorder)
-			{
-				//TODO
-				((InorderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
-			}
-			else if(SimulationConfig.isPipelineOutOfOrder)
-			{	
-				((OutOrderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
-			}
-		}
+//		for(int i = 0; i<IpcBase.getEmuThreadsPerJavaThread(); i++)
+//		{
+//			if (SimulationConfig.isPipelineInorder)
+//			{
+//				((InorderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
+//			}
+//			else if (SimulationConfig.isPipelineMultiIssueInorder)
+//			{
+//				//TODO
+//				((InorderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
+//			}
+//			else if(SimulationConfig.isPipelineOutOfOrder)
+//			{	
+//				((OutOrderExecutionEngine)cores[i].getExecEngine()).setAvailable(true);
+//			}
+//		}
 		return cores;
 	}
 	

@@ -78,8 +78,6 @@ public class FetchUnitIn extends SimulationElement
 			if(newInstruction == null)
 				return;
 			if(newInstruction.getOperationType() == OperationType.inValid){
-				if(this.core.currentThreads == 0)
-					((InorderExecutionEngine)core.getExecEngine()).setFetchComplete(true);
 				this.fetchBuffer[i] = newInstruction;//inputToPipeline.pollFirst();
 						this.fetchBufferStatus[i]=true;
 						this.fetchFillCount++;
@@ -109,8 +107,7 @@ public class FetchUnitIn extends SimulationElement
 	
 	public void performFetch(InorderPipeline inorderPipeline)
 	{		
-		if(!containingExecutionEngine.getFetchComplete())
-			fillFetchBuffer(inorderPipeline);
+		fillFetchBuffer(inorderPipeline);
 		
 		Instruction ins;
 		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();

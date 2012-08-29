@@ -440,19 +440,6 @@ public class RunnableThread implements Encoding {
 		if (thread.isFirstPacket) {
 			this.pipelineInterfaces[tidApp].getCore().currentThreads++;  //current number of threads in this pipeline
 			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionComplete(false);
-			if(SimulationConfig.isPipelineInorder)
-			{
-				((InorderExecutionEngine)this.pipelineInterfaces[tidApp].getCore().getExecEngine()).setFetchComplete(false);
-			}
-			else if(SimulationConfig.isPipelineOutOfOrder)
-			{
-				//TODO
-				((InorderExecutionEngine)this.pipelineInterfaces[tidApp].getCore().getExecEngine()).setFetchComplete(false);
-			}
-			else if(SimulationConfig.isPipelineMultiIssueInorder)
-			{
-				//TODO
-			}
 			currentEMUTHREADS ++;
 			if(tidApp>=maxCoreAssign)
 				maxCoreAssign = tidApp+1;

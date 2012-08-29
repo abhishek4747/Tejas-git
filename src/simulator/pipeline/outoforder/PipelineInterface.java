@@ -131,11 +131,6 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
 
-	@Override
-	public boolean isAvailable() {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	@Override
 	public void setExecutionComplete(boolean status) {
@@ -143,11 +138,6 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 		
 	}
 
-	@Override
-	public void setAvailable(boolean isAvailable) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void adjustRunningThreads(int adjval) {
