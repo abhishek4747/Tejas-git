@@ -73,17 +73,17 @@ public abstract class IpcBase {
 	}
 
 	// returns the numberOfPackets which are currently there in the stream for tidApp
-	public abstract int numPackets(int tidApp);
+	public abstract long numPackets(int tidApp);
 
 	// fetch one packet for tidApp from index
 	public abstract Packet fetchOnePacket(int tidApp, int index );
 
-	public abstract int update(int tidApp, int numReads);
+	public abstract long update(int tidApp, long numReads);
 	// The main thread waits for the finish of reader threads and returns total number of 
 	// instructions read
 
 	// return the total packets produced by PIN till now
-	public abstract int totalProduced(int tidApp);
+	public abstract long totalProduced(int tidApp);
 
 	public long doExpectedWaitForSelf() throws InterruptedException{
 		
@@ -142,5 +142,5 @@ public abstract class IpcBase {
 		return IpcBase.EmuThreadsPerJavaThread;
 	}
 	
-	public abstract int fetchManyPackets(int tidApp, int readerLocation, int numReads,ArrayList<Packet> fromPIN);
+	public abstract long fetchManyPackets(int tidApp, long readerLocation, long numReads,ArrayList<Packet> fromPIN);
 }

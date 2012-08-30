@@ -140,7 +140,7 @@ JNIEXPORT jobject JNICALL Java_emulatorinterface_communication_shm_SharedMem_shm
 
 // Return a packet object
 JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadMult
-(JNIEnv * env, jclass jcls,jint tid,jlong pointer,jint index,jint num,jlongArray ret) {
+(JNIEnv * env, jclass jcls,jint tid,jlong pointer,jlong index,jlong num,jlongArray ret) {
 
 	 jlongArray result;
 
@@ -186,27 +186,27 @@ JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmrea
 
 	}
 
-int shmreadvalue(int tid, long pointer, int index){
+long shmreadvalue(int tid, long pointer, int index){
 	packet *addr;
 	addr=(packet *)(intptr_t)pointer;
 
 	return (addr[tid*(gCOUNT+5)+index].value);
 }
 // Returns just the value, needed when we want to read just the "value" for lock managment
-JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
-(JNIEnv * env, jobject jobj,jint tid,jlong pointer,jint index) {
+JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
+(JNIEnv * env, jobject jobj,jint tid,jlong pointer, jint index) {
 	return shmreadvalue(tid,pointer, index);
 }
 
-void shmwrite(int tid, long pointer, int index, int val){
+void shmwrite(int tid, long pointer, int index, long val){
 	packet *addr;
 	addr=(packet *)(intptr_t)pointer;
 	addr[tid*(gCOUNT+5)+index].value=val;
 }
 // Write at 'index' the value 'val'. One big segment is created for all
 // threads and being indexed by the thread ids.
-JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwrite 
-(JNIEnv * env, jobject jobj,jint tid,jlong pointer,jint index,jint val) {
+JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwrite
+(JNIEnv * env, jobject jobj,jint tid,jlong pointer,jint index,jlong val) {
 /*
 	packet *addr;
 	addr=(packet *)(intptr_t)pointer;
@@ -217,26 +217,24 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwri
 }
 
 // Return number of packets
-JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
+JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
 (JNIEnv * env, jobject jobj,jint tidApp) {
 	shmwrite(tidApp,shmAddress,gCOUNT+2,1);
-			asm volatile("" ::: "memory");
-			shmwrite(tidApp,shmAddress,gCOUNT+3,0);
-			asm volatile("" ::: "memory");
-			while( (shmreadvalue(tidApp,shmAddress,gCOUNT+1) == 1) &&
-					(shmreadvalue(tidApp,shmAddress,gCOUNT+3) == 0)) {
-			}
+	__sync_synchronize();
+	shmwrite(tidApp,shmAddress,gCOUNT+3,0);
+	__sync_synchronize();
+	while( (shmreadvalue(tidApp,shmAddress,gCOUNT+1) == 1) &&
+			(shmreadvalue(tidApp,shmAddress,gCOUNT+3) == 0)) {
+	}
 
-			int size = shmreadvalue(tidApp, shmAddress, gCOUNT);
-
-
-					//release_lock(tidApp, shmAddress, COUNT);
-					shmwrite(tidApp,shmAddress, gCOUNT+2,0);
-					return size;
+	long size = shmreadvalue(tidApp, shmAddress, gCOUNT);
+	//release_lock(tidApp, shmAddress, COUNT);
+	shmwrite(tidApp,shmAddress, gCOUNT+2,0);
+	return size;
 }
 
 // hardware barriers dont seem to work.So using compiler barriers.
 JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_asmmfence 
 (JNIEnv * env, jobject jobj) {
-	asm volatile("" ::: "memory");
+	__sync_synchronize();
 }

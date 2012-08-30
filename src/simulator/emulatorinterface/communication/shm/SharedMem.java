@@ -36,9 +36,9 @@ public class SharedMem extends  IpcBase
 		shmAddress = shmat(shmid);
 	}
 		
-	public int fetchManyPackets(int tidApp, int index, int numPackets,ArrayList<Packet> fromPIN){
+	public long fetchManyPackets(int tidApp, long index, long numPackets,ArrayList<Packet> fromPIN){
 
-		long[] ret  = new long[3*numPackets]; 
+		long[] ret  = new long[(int) (3*numPackets)]; 
 		SharedMem.shmreadMult(tidApp, shmAddress, index, numPackets,ret);
 			for (int i=0; i<numPackets; i++) {
 				//fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
@@ -49,9 +49,9 @@ public class SharedMem extends  IpcBase
 		return 0;
 	}
 	
-	public int update(int tidApp, int numReads){
+	public long update(int tidApp, int numReads){
 		get_lock(tidApp, shmAddress, COUNT);
-		int queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT);
+		long queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT);
 		queue_size -= numReads;
 
 		// update queue_size
@@ -62,7 +62,7 @@ public class SharedMem extends  IpcBase
 		return queue_size;
 	}
 	
-	public int totalProduced (int tidApp){
+	public long totalProduced (int tidApp){
 		return shmreadvalue(tidApp, shmAddress, COUNT + 4);
 	}
 	public void finish(){
@@ -88,15 +88,15 @@ public class SharedMem extends  IpcBase
 	native static Packet shmread(int tid,long pointer, int index);
 	
 	// reads multiple packets into the arrays passed.
-	native static void shmreadMult(int tid,long pointer, int index, int numToRead, long[] ret);
+	native static void shmreadMult(int tid,long pointer, long index, long numPackets, long[] ret);
 	
 	// reads only the "value" from the packet struct. could be done using shmread() as well,
 	// but if we only need to read value this saves from the heavy JNI callback and thus saves
 	// on time.
-	native static int shmreadvalue(int tid, long pointer, int index);
+	native static long shmreadvalue(int tid, long pointer, int index);
 	
 	// write in the shared memory. needed in peterson locks.
-	native static int shmwrite(int tid,long pointer, int index, int val);
+	native static int shmwrite(int tid,long pointer, int index, long val);
 	
 	// deatches the shared memory segment
 	native static int shmd(long pointer);
@@ -108,7 +108,7 @@ public class SharedMem extends  IpcBase
 	// Petersons lock.
 	native static void asmmfence();
 	
-	native static int numPacketsAlternate(int tidApp);
+	native static long numPacketsAlternate(int tidApp);
 
 	// get a lock to access a resource shared between PIN and java. For an explanation of the 
 	// shared memory segment structure which explains the parameters passed to the shmwrite 
@@ -126,7 +126,7 @@ public class SharedMem extends  IpcBase
 		shmwrite(tid,pointer, NUMINTS+2,0);
 	}
 
-	public int numPackets(int tidApp) {
+	public long numPackets(int tidApp) {
 /*		get_lock(tidApp, shmAddress, COUNT);
 		int size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT);
 		release_lock(tidApp, shmAddress, COUNT);
@@ -168,6 +168,14 @@ public class SharedMem extends  IpcBase
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public long update(int tidApp, long numReads) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	
 
 	
 }
