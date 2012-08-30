@@ -76,8 +76,8 @@ public class Newmain {
 		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// Create Pools of Instructions, Operands and AddressCarryingEvents
-		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.getEmuThreadsPerJavaThread()*5;
-		int numAddressCarryingEvents = 50000;
+		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*IpcBase.getEmuThreadsPerJavaThread()*2;
+//		int numAddressCarryingEvents = 50000;
 		
 		/* custom pool */
 		System.out.println("creating operand pool..");
@@ -85,11 +85,11 @@ public class Newmain {
 		System.out.println("creating instruction pool..");
 		instructionPool = new CustomInstructionPool(numInstructionsInPool);
 		System.out.println("creating addressCarryingEvent pool..");
-		addressCarryingEventPool = new GenericCircularBuffer<AddressCarryingEvent>(
+/*		addressCarryingEventPool = new GenericCircularBuffer<AddressCarryingEvent>(
 															AddressCarryingEvent.class,
 															numAddressCarryingEvents,
 															true);
-		
+*/		
 		
 /*		// Create a new dynamic instruction buffer
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();

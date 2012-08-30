@@ -413,18 +413,10 @@ INT32 Usage() {
 // argc, argv are the entire command line, including pin -t <toolname> -- ...
 int main(int argc, char * argv[]) {
 
-	// Initialize pin
-	//if (PIN_Init(argc, argv)) return Usage();
-
 	// Knobs get initialized only after initlializing PIN
 	numInsToIgnore = KnobIgnore;
 	if (numInsToIgnore>0) ignoreActive = true;
-//	printf("Ignoring %lld profilable instructions \n", numInsToIgnore);
-//	fflush(stdout);
-
 	UINT64 mask = KnobMap;
-//	printf("mask for pin %lld\n", mask);
-//	fflush(stdout);
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
 	}
