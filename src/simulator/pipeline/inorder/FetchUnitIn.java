@@ -32,7 +32,7 @@ public class FetchUnitIn extends SimulationElement
 	public InstructionLinkedList inputToPipeline;
 	EventQueue eventQueue;
 	int syncCount;
-	int numRequestsSent;
+	long numRequestsSent;
 	int numRequestsAcknowledged;
 	private boolean fetchBufferStatus[];	
 //	public CoreBcastBus coreBcastBus;
@@ -75,8 +75,10 @@ public class FetchUnitIn extends SimulationElement
 			}
 			
 			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
+			
 			if(newInstruction == null)
 				return;
+			numRequestsSent++;
 			if(newInstruction.getOperationType() == OperationType.inValid){
 				this.fetchBuffer[i] = newInstruction;//inputToPipeline.pollFirst();
 						this.fetchBufferStatus[i]=true;

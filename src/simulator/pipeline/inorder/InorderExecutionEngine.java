@@ -191,7 +191,7 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		Statistics.setNoOfL1Requests(inorderCoreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfL1Hits(inorderCoreMemorySystem.getL1Cache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(inorderCoreMemorySystem.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(inorderCoreMemorySystem.getiCache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfIRequests(fetchUnitIn.numRequestsSent, core.getCore_number());
 		Statistics.setNoOfIHits(inorderCoreMemorySystem.getiCache().hits, core.getCore_number());
 		Statistics.setNoOfIMisses(inorderCoreMemorySystem.getiCache().misses, core.getCore_number());
 		Statistics.setBranchCount(core.powerCounters.getBpredAccess(), core.getCore_number());
