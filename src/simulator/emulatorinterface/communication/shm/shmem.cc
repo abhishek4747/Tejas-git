@@ -18,16 +18,16 @@ namespace IPC
 void
 Shm::get_lock(packet *map) {
 	map[COUNT+1].value = 1; 				// flag[0] = 1
-	asm volatile("" ::: "memory");			// compiler barriers
+	__sync_synchronize();        			// compiler barriers
 	map[COUNT+3].value = 1; 				// turn = 1
-	asm volatile("" ::: "memory");
+	__sync_synchronize();
 	while((map[COUNT+2].value == 1) && (map[COUNT+3].value == 1)) {}
 }
 
 void
 Shm::release_lock(packet *map) {
 	map[COUNT + 1].value = 0;
-	asm volatile("" ::: "memory");
+	__sync_synchronize();
 }
 
 
