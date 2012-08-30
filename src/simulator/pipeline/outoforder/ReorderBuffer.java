@@ -40,6 +40,8 @@ public class ReorderBuffer extends SimulationElement{
 	long mispredCount;
 
 	private int j;
+	
+	int invalidCount;
 
 	public ReorderBuffer(Core _core, OutOrderExecutionEngine execEngine)
 	{
@@ -67,6 +69,8 @@ public class ReorderBuffer extends SimulationElement{
 		
 		retireWidth = core.getRetireWidth();
 		j=0;
+		
+		invalidCount = 0;
 	}
 	
 	public boolean isFull()
@@ -178,7 +182,7 @@ public class ReorderBuffer extends SimulationElement{
 		{
 			for(int no_insts = 0; no_insts < retireWidth; no_insts++)
 			{
-				if(head == -1)
+				/*if(head == -1)
 				{
 					if(execEngine.isAllPipesEmpty() == true)
 					{
@@ -195,12 +199,44 @@ public class ReorderBuffer extends SimulationElement{
 						setPerCorePowerStatistics();
 					}
 					break;
+				}*/
+				
+				if(head == -1)
+				{
+					//ROB empty .. does not mean execution has completed
+					return;
 				}
 				
 				ReorderBufferEntry first = ROB[head];
 				Instruction firstInstruction = first.getInstruction();
 				OperationType firstOpType = firstInstruction.getOperationType();
 				Operand firstDestOpnd = firstInstruction.getDestinationOperand();
+				
+				if(firstOpType==OperationType.inValid)
+				{
+					//FIXME the following does not set the statistics. Check!
+					this.core.currentThreads--;
+					System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
+					
+					if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+														  //assigned to this pipeline	
+						execEngine.setExecutionComplete(true);
+						System.out.println("DONE!! core : " + core.getCore_number());
+						
+						
+					}
+//					System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
+					setTimingStatistics();			
+					setPerCoreMemorySystemStatistics();
+					setPerCorePowerStatistics();
+					//memWbLatch.clear();
+					
+					if(this.core.currentThreads < 0)
+					{
+						this.core.currentThreads=0;
+						System.out.println("num threads < 0");
+					}
+				}				
 				
 				if(first.isWriteBackDone() == true)
 				{
@@ -235,8 +271,8 @@ public class ReorderBuffer extends SimulationElement{
 					
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
-					if(core.getNoOfInstructionsExecuted()%1000000==0){
-						System.out.println(this.j++ + " million done");
+					if(core.getNoOfInstructionsExecuted()%100000==0){
+						System.out.println(this.j++ + " lakh done on " + core.getCore_number());
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					
@@ -277,6 +313,7 @@ public class ReorderBuffer extends SimulationElement{
 					}
 					
 					ROB[head].setValid(false);
+					ROB[head].instruction = null;
 					if(head == tail)
 					{
 						head = -1;
@@ -290,9 +327,9 @@ public class ReorderBuffer extends SimulationElement{
 					if(firstOpType == OperationType.branch)
 					{
 						core.getBranchPredictor().Train(
-														first.getInstruction().getRISCProgramCounter(),
-														first.getInstruction().isBranchTaken(),
-														core.getBranchPredictor().predict(first.getInstruction().getRISCProgramCounter())
+														firstInstruction.getRISCProgramCounter(),
+														firstInstruction.isBranchTaken(),
+														core.getBranchPredictor().predict(firstInstruction.getRISCProgramCounter())
 														);
 						
 						branchCount++;
@@ -303,6 +340,22 @@ public class ReorderBuffer extends SimulationElement{
 						Newmain.instructionPool.returnObject(firstInstruction);
 					} catch (Exception e) {
 						e.printStackTrace();
+					}
+					
+					if(execEngine.isExecutionComplete() == true)
+					{
+						if(((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().inputToPipeline[0].getListSize() > 0)
+						{
+							System.out.println("input to pipeline not empty!!");
+						}
+						
+						for(int i = 0; i < 11; i++)
+						{
+							System.out.print(Newmain.cores[i].getExecEngine().isExecutionComplete() + " ");
+							System.out.print(Newmain.cores[i].currentThreads + " ");
+							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getReorderBuffer().head + " ");
+							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getFetcher().inputToPipeline[0].getListSize() + " ");
+						}
 					}
 				}
 				else

@@ -439,6 +439,7 @@ public class RunnableThread implements Encoding {
 		}
 		if (thread.isFirstPacket) {
 			this.pipelineInterfaces[tidApp].getCore().currentThreads++;  //current number of threads in this pipeline
+			System.out.println("num of threads on core " + tidApp + " = " + this.pipelineInterfaces[tidApp].getCore().currentThreads);
 			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionComplete(false);
 			currentEMUTHREADS ++;
 			if(tidApp>=maxCoreAssign)
@@ -516,9 +517,9 @@ public class RunnableThread implements Encoding {
 /*				if (currentEMUTHREADS>1)
 				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
 */				
-				long temp=noOfMicroOps[tidEmu] % 1000000;
+				long temp=noOfMicroOps[tidEmu] % 100000;
 				if(temp < 5  && tempList.getListSize() > 0) {
-					//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+					System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 				}
 	
 

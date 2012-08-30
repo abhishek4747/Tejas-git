@@ -22,7 +22,9 @@ public class FetchLogic extends SimulationElement {
 	int fetchWidth;
 	int inputPipeToReadNext;
 	InstructionLinkedList[] inputToPipeline;
-
+	
+	OperationType[] instructionsToBeDropped;
+	int invalidCount;
 
 	public FetchLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
@@ -34,6 +36,13 @@ public class FetchLogic extends SimulationElement {
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
 
+		instructionsToBeDropped = new OperationType[] {
+															OperationType.interrupt,
+															OperationType.inValid,
+															OperationType.sync
+													};
+		
+		invalidCount = 0;
 	}
 	
 	/*
@@ -56,10 +65,23 @@ public class FetchLogic extends SimulationElement {
 			
 			newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
 			
-			if(newInstruction.getOperationType() == OperationType.inValid)
+			/*if(newInstruction.getOperationType() == OperationType.inValid)
 			{
 				execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
 				break;
+			}*/
+			
+			if(newInstruction.getOperationType() == OperationType.inValid)
+			{
+				System.out.println("num invalids received - core " + core.getCore_number() + " = " + ++invalidCount);
+			}
+			
+			if(shouldInstructionBeDropped(newInstruction) == true)
+			{
+				inputToPipeline[inputPipeToReadNext].pollFirst();
+				Newmain.instructionPool.returnObject(newInstruction);
+				i--;
+				continue;
 			}
 			
 			if(newInstruction.getOperationType() == OperationType.load ||
@@ -78,7 +100,7 @@ public class FetchLogic extends SimulationElement {
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 				//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
-				if(SimulationConfig.detachMemSys == false)
+				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)
 				{
 						execEngine.getCoreMemorySystem().issueRequestToInstrCache(newInstruction.getRISCProgramCounter());
 				}
@@ -97,6 +119,7 @@ public class FetchLogic extends SimulationElement {
 				!execEngine.isToStall5())
 		{
 			int ctr = 0;
+			//TODO some of the following code can be removed
 			while(execEngine.isInputPipeEmpty(inputPipeToReadNext) == true
 					&& ctr < core.getNo_of_input_pipes())
 			{
@@ -128,11 +151,11 @@ public class FetchLogic extends SimulationElement {
 						newInstruction = iCacheBuffer.getNextInstruction();
 						if(newInstruction != null)
 						{
-							if(newInstruction.getOperationType() == OperationType.inValid)
+							/*if(newInstruction.getOperationType() == OperationType.inValid)
 							{
 								execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
 								break;
-							}
+							}*/
 							fetchBuffer[fetchBufferIndex++] = newInstruction;
 						}
 						else
@@ -143,7 +166,7 @@ public class FetchLogic extends SimulationElement {
 					}
 					
 					//this is a bad hack TODO
-					for(int i = 0; i < fetchWidth; i++)
+					/*for(int i = 0; i < fetchWidth; i++)
 					{
 						if(inputToPipeline[inputPipeToReadNext].getListSize() > i &&
 								inputToPipeline[inputPipeToReadNext].peekInstructionAt(i).getOperationType()
@@ -152,7 +175,7 @@ public class FetchLogic extends SimulationElement {
 							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
 							break;
 						}
-					}
+					}*/
 				}
 			}
 		}
@@ -186,6 +209,18 @@ public class FetchLogic extends SimulationElement {
 		
 		iCacheBuffer.updateFetchComplete(fetchedPC);
 		
+	}
+	
+	boolean shouldInstructionBeDropped(Instruction instruction)
+	{
+		for(int i = 0; i < instructionsToBeDropped.length; i++)
+		{
+			if(instructionsToBeDropped[i] == instruction.getOperationType())
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public void processCompletionOfMemRequest(long address)
