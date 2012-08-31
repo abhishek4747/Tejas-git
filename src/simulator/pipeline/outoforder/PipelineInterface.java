@@ -104,14 +104,12 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 
 	@Override
 	public void resumePipeline() {
-		// TODO Auto-generated method stub
-		
+		((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().setSleep(false);
 	}
 
 	@Override
 	public boolean isSleeping() {
-		// TODO Auto-generated method stub
-		return false;
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().isSleep();
 	}
 
 	@Override

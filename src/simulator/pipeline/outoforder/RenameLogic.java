@@ -89,6 +89,11 @@ public class RenameLogic extends SimulationElement {
 								System.out.println("\n\n" + reorderBufferEntry + "\n\n");
 							}
 						}
+						
+						if(renameBuffer[i].getInstruction() == null)
+						{
+							System.out.println("rename buffer - inst is null");
+						}
 					}
 					else
 					{

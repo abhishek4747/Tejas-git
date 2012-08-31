@@ -50,6 +50,7 @@ public class IWPushLogic extends SimulationElement {
 					renameBuffer[i].setExecuted(true);
 					renameBuffer[i].setWriteBackDone1(true);
 					renameBuffer[i].setWriteBackDone2(true);
+					renameBuffer[i] = null;
 					continue;
 				}
 				

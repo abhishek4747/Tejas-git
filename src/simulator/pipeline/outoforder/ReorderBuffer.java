@@ -114,6 +114,11 @@ public class ReorderBuffer extends SimulationElement{
 			}
 			ReorderBufferEntry newReorderBufferEntry = ROB[tail];
 			
+			if(newReorderBufferEntry.isValid == true)
+			{
+				System.out.println("new rob entry is alread valid");
+			}
+			
 			newReorderBufferEntry.setInstruction(newInstruction);
 			newReorderBufferEntry.setThreadID(threadID);
 			newReorderBufferEntry.setOperand1PhyReg1(-1);
@@ -210,36 +215,37 @@ public class ReorderBuffer extends SimulationElement{
 				ReorderBufferEntry first = ROB[head];
 				Instruction firstInstruction = first.getInstruction();
 				OperationType firstOpType = firstInstruction.getOperationType();
-				Operand firstDestOpnd = firstInstruction.getDestinationOperand();
-				
-				if(firstOpType==OperationType.inValid)
-				{
-					//FIXME the following does not set the statistics. Check!
-					this.core.currentThreads--;
-					System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
-					
-					if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
-														  //assigned to this pipeline	
-						execEngine.setExecutionComplete(true);
-						System.out.println("DONE!! core : " + core.getCore_number());
-						
-						
-					}
-//					System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
-					setTimingStatistics();			
-					setPerCoreMemorySystemStatistics();
-					setPerCorePowerStatistics();
-					//memWbLatch.clear();
-					
-					if(this.core.currentThreads < 0)
-					{
-						this.core.currentThreads=0;
-						System.out.println("num threads < 0");
-					}
-				}				
+				Operand firstDestOpnd = firstInstruction.getDestinationOperand();								
 				
 				if(first.isWriteBackDone() == true)
-				{
+				{					
+					if(firstOpType==OperationType.inValid)
+					{
+						//FIXME the following does not set the statistics. Check!
+						this.core.currentThreads--;
+						System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
+						System.out.println("head = " + head);					
+						
+						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+															  //assigned to this pipeline	
+							execEngine.setExecutionComplete(true);
+							System.out.println("DONE!! core : " + core.getCore_number() + "  - WB = " + first.isWriteBackDone());
+							
+							
+						}
+//						System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
+						setTimingStatistics();			
+						setPerCoreMemorySystemStatistics();
+						setPerCorePowerStatistics();
+						//memWbLatch.clear();
+						
+						if(this.core.currentThreads < 0)
+						{
+							this.core.currentThreads=0;
+							System.out.println("num threads < 0");
+						}
+					}
+					
 					//if store, and if store not yet validated
 					if(firstOpType == OperationType.store && !first.lsqEntry.isValid())
 					{
@@ -312,17 +318,7 @@ public class ReorderBuffer extends SimulationElement{
 						//first.getLsqEntry().setRemoved(true);
 					}
 					
-					ROB[head].setValid(false);
-					ROB[head].instruction = null;
-					if(head == tail)
-					{
-						head = -1;
-						tail = -1;
-					}
-					else
-					{
-						head = (head+1)%MaxROBSize;
-					}
+					retireInstructionAtHead();
 					
 					if(firstOpType == OperationType.branch)
 					{
@@ -336,10 +332,9 @@ public class ReorderBuffer extends SimulationElement{
 						this.core.powerCounters.incrementBpredAccess(1);
 					}
 					
-					try {
-						Newmain.instructionPool.returnObject(firstInstruction);
-					} catch (Exception e) {
-						e.printStackTrace();
+					if(firstInstruction.getOperationType() != OperationType.inValid)
+					{
+						returnInstructionToPool(firstInstruction);
 					}
 					
 					if(execEngine.isExecutionComplete() == true)
@@ -477,6 +472,34 @@ public class ReorderBuffer extends SimulationElement{
 				renameTable.setMappingValid(true, phyReg);
 				renameTable.setValueValid(true, phyReg);
 			}
+		}
+	}
+	
+	void retireInstructionAtHead()
+	{
+		ROB[head].setValid(false);
+		if(ROB[head].instruction.getOperationType() == OperationType.inValid && core.getCore_number() == 2)
+		{
+			System.out.println("retiring invalid");
+		}
+		ROB[head].instruction = null;
+		if(head == tail)
+		{
+			head = -1;
+			tail = -1;
+		}
+		else
+		{
+			head = (head+1)%MaxROBSize;
+		}
+	}
+	
+	void returnInstructionToPool(Instruction instruction)
+	{
+		try {
+			Newmain.instructionPool.returnObject(instruction);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

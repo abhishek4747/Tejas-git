@@ -132,14 +132,11 @@ public class FetchUnitIn extends SimulationElement
 						
 						if(bar.timeToCross())
 						{
-//							System.out.println("time to cross barrier: "+barrierAddress);
 							ifIdLatch.setInstruction(null);
 							sleepThePipeline();
 							for(int i=0; i<bar.getNumThreads(); i++ ){
 								this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
-								//System.out.println("Resuming thread number " + bar.blockedThreads.elementAt(i));
 							}
-//							BarrierTable.barrierList.remove(barrierAddress);
 							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 									this.core.eventQueue,
 									 1,
@@ -165,7 +162,6 @@ public class FetchUnitIn extends SimulationElement
 			}
 		
 			if(this.stall>0){
-	//			core.getExecutionEngineIn().getIfIdLatch().setInstruction(null);
 				this.stall--;
 			}
 	}

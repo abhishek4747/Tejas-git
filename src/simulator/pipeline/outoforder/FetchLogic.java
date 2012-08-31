@@ -3,6 +3,8 @@ package pipeline.outoforder;
 import config.SimulationConfig;
 import emulatorinterface.Newmain;
 import memorysystem.AddressCarryingEvent;
+import generic.Barrier;
+import generic.BarrierTable;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -22,6 +24,7 @@ public class FetchLogic extends SimulationElement {
 	int fetchWidth;
 	int inputPipeToReadNext;
 	InstructionLinkedList[] inputToPipeline;
+	boolean sleep;
 	
 	OperationType[] instructionsToBeDropped;
 	int invalidCount;
@@ -35,10 +38,10 @@ public class FetchLogic extends SimulationElement {
 		fetchBuffer = execEngine.getFetchBuffer();
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
+		sleep = false;
 
 		instructionsToBeDropped = new OperationType[] {
 															OperationType.interrupt,
-															OperationType.inValid,
 															OperationType.sync
 													};
 		
@@ -54,6 +57,11 @@ public class FetchLogic extends SimulationElement {
 		
 	public void performFetch()
 	{
+		if(sleep == true)
+		{
+			return;
+		}
+		
 		Instruction newInstruction;
 		
 		for(int i = 0; i < iCacheBuffer.size; i++)
@@ -74,6 +82,34 @@ public class FetchLogic extends SimulationElement {
 			if(newInstruction.getOperationType() == OperationType.inValid)
 			{
 				System.out.println("num invalids received - core " + core.getCore_number() + " = " + ++invalidCount);
+			}
+			if(newInstruction.getOperationType() == OperationType.sync){
+				long barrierAddress = newInstruction.getRISCProgramCounter();
+				System.out.println(barrierAddress);
+				Barrier bar = BarrierTable.barrierList.get(barrierAddress);
+				bar.incrementThreads();
+				
+				if(bar.timeToCross())
+				{
+					System.out.println("Time to cross");
+					setSleep(true);
+					for(int j=0; j<bar.getNumThreads(); j++ ){
+						this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
+					}
+					this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+							this.core.eventQueue,
+							 1,
+							 this.core.coreBcastBus, 
+							 this.core.coreBcastBus, 
+							 RequestType.PIPELINE_RESUME, 
+							 0));
+
+				}
+				else
+				{
+					setSleep(true);
+					//return;
+				}
 			}
 			
 			if(shouldInstructionBeDropped(newInstruction) == true)
@@ -239,5 +275,17 @@ public class FetchLogic extends SimulationElement {
 	public void setICacheBuffer(ICacheBuffer iCacheBuffer)
 	{
 		this.iCacheBuffer = iCacheBuffer;
+	}
+
+	public boolean isSleep() {
+		return sleep;
+	}
+
+	public void setSleep(boolean sleep) {
+		if(sleep == true)
+			System.out.println("sleeping pipeline " + this.core.getCore_number());
+		else
+			System.out.println("resuming pipeline " + this.core.getCore_number());
+		this.sleep = sleep;
 	}
 }
