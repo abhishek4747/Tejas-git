@@ -1,7 +1,6 @@
 package pipeline.outoforder;
 
 import config.SimulationConfig;
-import emulatorinterface.Newmain;
 import pipeline.outoforder.ReorderBufferEntry;
 import generic.Core;
 import generic.Event;
@@ -32,13 +31,6 @@ public class DecodeLogic extends SimulationElement {
 		decodeWidth = core.getDecodeWidth();
 	}
 	
-	/*
-	 * if renamer consumed all of the decodeBuffer in the previous cycle,
-	 * 		make ROB entries for all instructions in fetch buffer, as long as there is space
-	 * 		in the ROB
-	 * else
-	 * 		stall decode
-	 */
 	public void performDecode()
 	{
 		if(execEngine.isToStall5() == true)
@@ -61,10 +53,7 @@ public class DecodeLogic extends SimulationElement {
 					break;
 				}
 				
-				if(fetchBuffer[i] != null
-						&& fetchBuffer[i].getOperationType() != OperationType.interrupt
-						//&& fetchBuffer[i].getOperationType() != OperationType.store
-						)
+				if(fetchBuffer[i] != null)
 				{
 					if(fetchBuffer[i].getOperationType() == OperationType.load ||
 							fetchBuffer[i].getOperationType() == OperationType.store)
@@ -86,18 +75,6 @@ public class DecodeLogic extends SimulationElement {
 					}
 				}
 				
-				/*if(fetchBuffer[i] != null)
-				{
-					if(fetchBuffer[i].getOperationType() == OperationType.nop)
-					{
-						try {
-							Newmain.instructionPool.returnObject(fetchBuffer[i]);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}*/
-				
 				execEngine.setToStall3(false);
 				execEngine.setToStall4(false);
 			}
@@ -112,9 +89,7 @@ public class DecodeLogic extends SimulationElement {
 			tempOpType = newInstruction.getOperationType();
 		}
 		
-		if(newInstruction != null/* &&
-				tempOpType != OperationType.nop &&
-				tempOpType != OperationType.inValid*/)
+		if(newInstruction != null)
 		{			
 			ReorderBufferEntry newROBEntry = execEngine.getReorderBuffer()
 											.addInstructionToROB(newInstruction, 0);	//TODO

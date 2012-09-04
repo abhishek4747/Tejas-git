@@ -2,11 +2,7 @@ package pipeline.outoforder;
 
 import memorysystem.LSQEntry;
 import generic.Core;
-import generic.GlobalClock;
 import generic.Instruction;
-import generic.Operand;
-import generic.OperandType;
-import generic.OperationType;
 
 public class ReorderBufferEntry {
 	
@@ -48,132 +44,7 @@ public class ReorderBufferEntry {
 		this.execEngine = execEngine;
 	}
 	
-	/*
-	public void attemptToWriteBack()
-	{
-		if(isExecuted == true)
-		{
-			RegisterFile tempRF = null;
-			RenameTable tempRN = null;
 			
-			Operand tempOpnd = instruction.getDestinationOperand();
-			if(tempOpnd == null)
-			{
-				if(instruction.getOperationType() == OperationType.xchg)
-				{
-					writeBackForXchg();
-				}
-				else
-				{
-					isWriteBackDone1 = true;
-					isWriteBackDone2 = true;
-				}
-			}
-			
-			else
-			{
-				OperandType tempOpndType = tempOpnd.getOperandType(); 
-				if(tempOpndType == OperandType.machineSpecificRegister)
-				{
-					tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-					tempRN = null;
-				}
-				else if(tempOpndType == OperandType.integerRegister)
-				{
-					tempRF = execEngine.getIntegerRegisterFile();
-					tempRN = execEngine.getIntegerRenameTable();
-				}
-				else if(tempOpndType == OperandType.floatRegister)
-				{
-					tempRF = execEngine.getFloatingPointRegisterFile();
-					tempRN = execEngine.getFloatingPointRenameTable();
-				}
-				else
-				{
-					isWriteBackDone1 = true;
-					isWriteBackDone2 = true;
-					return;
-				}
-				
-				if(instruction.getOperationType() == OperationType.mov)
-				{
-					writeBackForMov(tempRF, tempRN);
-				}		
-				else
-				{
-					writeBackForOthers(tempRF, tempRN);
-				}
-			}
-			
-		}
-	}
-		
-	void writeBackForMov(RegisterFile tempRF, RenameTable tempRN)
-	{
-		//attempt to write-back
-		WriteBackLogic.writeBack(this, 3, tempRF, tempRN, physicalDestinationRegister, core);	
-	}
-	
-	void writeBackForXchg()
-	{
-		RegisterFile tempRF = null;
-		RenameTable tempRN = null;
-		int phyReg;
-		
-		//operand 1
-		phyReg = operand1PhyReg1;
-		if(instruction.getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
-		{
-			tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-		}
-		else if(instruction.getSourceOperand1().getOperandType() == OperandType.integerRegister)
-		{
-			tempRF = execEngine.getIntegerRegisterFile();
-			tempRN = execEngine.getIntegerRenameTable();
-		}
-		else if(instruction.getSourceOperand1().getOperandType() == OperandType.floatRegister)
-		{
-			tempRF = execEngine.getFloatingPointRegisterFile();
-			tempRN = execEngine.getFloatingPointRenameTable();
-		}
-		
-		//attempt to write-back
-		WriteBackLogic.writeBack(this, 1, tempRF, tempRN, phyReg, core);
-		
-		
-		
-		tempRF = null;
-		tempRN = null;
-		//operand 2
-		phyReg = operand2PhyReg1;
-		if(instruction.getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
-		{
-			tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-		}
-		else if(instruction.getSourceOperand2().getOperandType() == OperandType.integerRegister)
-		{
-			tempRF = execEngine.getIntegerRegisterFile();
-			tempRN = execEngine.getIntegerRenameTable();
-		}
-		else if(instruction.getSourceOperand2().getOperandType() == OperandType.floatRegister)
-		{
-			tempRF = execEngine.getFloatingPointRegisterFile();
-			tempRN = execEngine.getFloatingPointRenameTable();
-		}
-		
-		//attempt to write-back
-		WriteBackLogic.writeBack(this, 2, tempRF, tempRN, phyReg, core);
-		
-	}
-	
-	void writeBackForOthers(RegisterFile tempRF, RenameTable tempRN)
-	{
-		//attempt to write-back
-		WriteBackLogic.writeBack(this, 3, tempRF, tempRN, physicalDestinationRegister, core);
-	}
-	*/
-	
-		
 	public Instruction getInstruction()
 	{
 		return instruction;
@@ -223,25 +94,6 @@ public class ReorderBufferEntry {
 	{
 		FUInstance = _FUInstance;
 	}
-	
-	/*public long getReadyAtTime()
-	{
-		if(readyAtTime <= GlobalClock.getCurrentTime())
-		{
-			return GlobalClock.getCurrentTime() + 1; //TODO not 1 - step_size
-		}
-		else
-		{
-			return readyAtTime;
-		}
-	}
-	
-	public void setReadyAtTime(long _readyAtTime)
-	{
-		readyAtTime = _readyAtTime + core.getRegFileOccupancy()*core.getStepSize();
-		//at places where the readyAtTime is calculated, the focus is on completion of operation
-		//hence, the register file latency is accounted for here
-	}*/
 	
 	public int getOperand1PhyReg1() {
 		return operand1PhyReg1;
@@ -400,7 +252,6 @@ public class ReorderBufferEntry {
 		sb.append("exec = " + isExecuted + " ");
 		sb.append("wb1 = " + isWriteBackDone1 + " ");
 		sb.append("wb2 = " + isWriteBackDone2 + "\n");
-		//sb.append("ready at time = " + readyAtTime + "\n\n\n");
 		return sb.toString();
 	}
 

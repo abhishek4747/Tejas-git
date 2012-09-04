@@ -6,7 +6,6 @@ import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Operand;
-import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -27,8 +26,7 @@ public class WriteBackLogic extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-
+		
 	}
 	
 	public void performWriteBack()

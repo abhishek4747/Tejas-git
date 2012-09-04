@@ -35,12 +35,6 @@ public class RenameLogic extends SimulationElement {
 		decodeWidth = core.getDecodeWidth();
 	}
 	
-	/*
-	 * if IWpusher consumed all of renameBuffer in the previous cycle,
-	 * 		for each instruction in the decodeBuffer, perform renaming
-	 * else
-	 * 		stall rename
-	 */
 	public void performRename()
 	{
 		if(execEngine.isToStall5() == true)

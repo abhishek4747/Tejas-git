@@ -63,6 +63,7 @@ public class ExecutionLogic extends SimulationElement {
 		{
 			tempDestOpndType = null;
 		}
+		
 		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
 		{
 			handleExecutionCompletion();
@@ -94,11 +95,6 @@ public class ExecutionLogic extends SimulationElement {
 			System.out.println("not yet issued, but execution complete");
 			//return;
 		}
-		/*
-		if(core.getCoreMode() == CoreMode.CheckerSMT)
-		{
-			System.out.println("exec\n" + reorderBufferEntry);
-		}*/
 		
 		if(tempDestOpnd == null)
 		{

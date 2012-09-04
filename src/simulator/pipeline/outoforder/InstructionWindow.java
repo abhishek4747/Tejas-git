@@ -12,13 +12,6 @@ public class InstructionWindow extends SimulationElement {
 	IWEntry[] IW;
 	int maxIWSize;
 	
-	//int indexOfLastAssignedIWEntry;				//when a new IW entry has to be made,
-													//the array IW[] has to be searched for
-													//an entry whose isValid = false
-													//such a search begins from indexOfLastAssignedIWEntry
-													//(instead of from 0 to max_size-1)
-													//(search is circular)
-	
 	int[] availList;
 	int availListHead;
 	int availListTail;
@@ -37,7 +30,6 @@ public class InstructionWindow extends SimulationElement {
 		}
 		availListHead = 0;
 		availListTail = maxIWSize - 1;
-		//indexOfLastAssignedIWEntry = maxIWSize - 1;
 		
 	}
 	
@@ -56,30 +48,10 @@ public class InstructionWindow extends SimulationElement {
 		newEntry.setAssociatedROBEntry(ROBEntry);
 		newEntry.setValid(true);
 		
-		//indexOfLastAssignedIWEntry = index;
-		
 		ROBEntry.setAssociatedIWEntry(newEntry);
 		return newEntry;
 	}
-	/*
-	int findInvalidEntry()
-	{
-		int i = (indexOfLastAssignedIWEntry + 1)%maxIWSize;
-		while(true)
-		{
-			if(i == indexOfLastAssignedIWEntry)
-			{
-				return -1;
-			}
-			if(IW[i].isValid() == false)
-			{
-				return i;
-			}
-			i = (indexOfLastAssignedIWEntry + 1)%maxIWSize;
-		}
-	}
-	*/
-	
+		
 	int findInvalidEntry()
 	{
 		if(availListHead == -1)
@@ -126,7 +98,6 @@ public class InstructionWindow extends SimulationElement {
 	
 	public boolean isFull()
 	{
-		//if(findInvalidEntry() == -1)
 		if(availListHead == -1)
 		{
 			return true;
@@ -140,8 +111,7 @@ public class InstructionWindow extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
 }

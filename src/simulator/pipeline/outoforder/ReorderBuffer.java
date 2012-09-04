@@ -1,6 +1,5 @@
 package pipeline.outoforder;
 
-import memorysystem.MainMemory;
 import memorysystem.MemorySystem;
 import config.SimulationConfig;
 import emulatorinterface.Newmain;
@@ -277,8 +276,8 @@ public class ReorderBuffer extends SimulationElement{
 					
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
-					if(core.getNoOfInstructionsExecuted()%100000==0){
-						System.out.println(this.j++ + " lakh done on " + core.getCore_number());
+					if(core.getNoOfInstructionsExecuted()%1000000==0){
+						System.out.println(this.j++ + " million done on " + core.getCore_number());
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					

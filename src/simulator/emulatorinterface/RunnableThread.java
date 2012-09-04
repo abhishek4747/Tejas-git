@@ -519,7 +519,7 @@ public class RunnableThread implements Encoding {
 */				
 				long temp=noOfMicroOps[tidEmu] % 100000;
 				if(temp < 5  && tempList.getListSize() > 0) {
-					System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+					//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 				}
 	
 

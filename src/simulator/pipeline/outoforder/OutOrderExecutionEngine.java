@@ -37,10 +37,8 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	private RenameTable floatingPointRenameTable;
 	private FunctionalUnitSet functionalUnitSet;
 	
-	private OutOrderCoreMemorySystem outOrderCoreMemorySystem;
-	
 	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
-	//public CoreMemorySystem coreMemSys;
+	private OutOrderCoreMemorySystem outOrderCoreMemorySystem;
 	
 	//flags
 	private boolean toStall1;					//if IW full
@@ -61,12 +59,8 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	private boolean toStall5;					//if branch mis-predicted
 												//fetcher stall
 
-	//private boolean isExecutionComplete;		//TRUE indicates end of simulation
-	private boolean isInputPipeEmpty[];
-	private boolean allPipesEmpty;
-
+	
 	public long prevCycles;
-	private boolean isAvailable;
 
 	public OutOrderExecutionEngine(Core containingCore)
 	{
@@ -91,7 +85,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 													core.getAllLatencies());
 		
 		
-		//iCacheBuffer = new ICacheBuffer(core.getDecodeWidth());
 		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchLogic(core, this);
 		decodeBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
@@ -109,26 +102,9 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		toStall3 = false;
 		toStall4 = false;
 		toStall5 = false;
-		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
-		allPipesEmpty = false;
 		prevCycles=0;
 	}
 	
-	/*public void work()
-	{
-		if(!isExecutionComplete && !toStallDecode2)
-		{
-			//commit instruction at head of ROB
-			getReorderBuffer().performCommits();
-			
-			if(!isDecodePipeEmpty && !toStallDecode1)
-			{
-				//read decode pipe to add more instructions to ROB
-				decoder.scheduleDecodeCompletion();
-			}
-		}
-	}*/
-
 	public ICacheBuffer getiCacheBuffer() {
 		return iCacheBuffer;
 	}
@@ -161,14 +137,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		return integerRenameTable;
 	}
 
-	public boolean isInputPipeEmpty(int threadIndex) {
-		return isInputPipeEmpty[threadIndex];
-	}
-
-	public void setInputPipeEmpty(int threadIndex, boolean isInputPipeEmpty) {
-		this.isInputPipeEmpty[threadIndex] = isInputPipeEmpty;
-	}
-
 	public RegisterFile getMachineSpecificRegisterFile(int threadID) {
 		return machineSpecificRegisterFile[threadID];
 	}
@@ -183,14 +151,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	public void setInstructionWindow(InstructionWindow instructionWindow) {
 		this.instructionWindow = instructionWindow;
-	}
-	
-	public boolean isAllPipesEmpty() {
-		return allPipesEmpty;
-	}
-
-	public void setAllPipesEmpty(boolean allPipesEmpty) {
-		this.allPipesEmpty = allPipesEmpty;
 	}
 	
 	public boolean isToStall1() {
@@ -284,8 +244,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	public void setCoreMemorySystem(CoreMemorySystem coreMemorySystem) {
 		this.coreMemorySystem = coreMemorySystem;
 		this.outOrderCoreMemorySystem = (OutOrderCoreMemorySystem)coreMemorySystem;
-		System.out.println("icache buffer size = " + (int)(core.getDecodeWidth() *
-											coreMemorySystem.getiCache().getLatency()));
 		this.iCacheBuffer = new ICacheBuffer((int)(core.getDecodeWidth() *
 											coreMemorySystem.getiCache().getLatency()));
 		this.fetcher.setICacheBuffer(iCacheBuffer);
