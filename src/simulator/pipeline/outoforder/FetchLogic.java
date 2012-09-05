@@ -8,6 +8,7 @@ import generic.BarrierTable;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
@@ -23,7 +24,7 @@ public class FetchLogic extends SimulationElement {
 	Instruction[] fetchBuffer;
 	int fetchWidth;
 	int inputPipeToReadNext;
-	InstructionLinkedList[] inputToPipeline;
+	GenericCircularQueue<Instruction>[] inputToPipeline;
 	boolean sleep;
 	
 	OperationType[] instructionsToBeDropped;
@@ -61,12 +62,12 @@ public class FetchLogic extends SimulationElement {
 		//fetch of the instruction is also issued to the iCache
 		for(int i = 0; i < iCacheBuffer.size; i++)
 		{
-			if(inputToPipeline[inputPipeToReadNext].getListSize() <= 0)
+			if(inputToPipeline[inputPipeToReadNext].size() <= 0)
 			{
 				break;
 			}
 			
-			newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
+			newInstruction = inputToPipeline[inputPipeToReadNext].peek(0);
 			
 			//process sync operation
 			if(newInstruction.getOperationType() == OperationType.sync){
@@ -194,11 +195,11 @@ public class FetchLogic extends SimulationElement {
 		iCacheBuffer.updateFetchComplete(address);
 	}
 	
-	public InstructionLinkedList[] getInputToPipeline() {
+	public GenericCircularQueue<Instruction>[] getInputToPipeline() {
 		return inputToPipeline;
 	}
 
-	public void setInputToPipeline(InstructionLinkedList[] inputToPipeline) {
+	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inputToPipeline) {
 		this.inputToPipeline = inputToPipeline;
 	}
 

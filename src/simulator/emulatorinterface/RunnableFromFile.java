@@ -64,7 +64,7 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 
 				if (obj instanceof Instruction) {
 					cnt++;
-					this.inputToPipeline[0].appendInstruction((Instruction)obj);
+					this.inputToPipeline[0].enqueue((Instruction)obj);
 					//System.out.println(((Instruction)obj).toString());
 				}
 

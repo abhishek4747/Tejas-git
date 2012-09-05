@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
+
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import pipeline.inorder.InorderExecutionEngine;
@@ -20,6 +22,7 @@ import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.BarrierTable;
 import generic.Core;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.InstructionLinkedList;
@@ -55,7 +58,7 @@ public class RunnableThread implements Encoding {
 	
 	static ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
-	InstructionLinkedList[] inputToPipeline;
+	GenericCircularQueue<Instruction>[] inputToPipeline;
 	static long ignoredInstructions = 0;
 
 	// QQQ re-arrange packets for use by translate instruction.
@@ -73,6 +76,7 @@ public class RunnableThread implements Encoding {
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
+	@SuppressWarnings("unchecked")
 	public RunnableThread(String threadName, int tid1, Core[] cores, TopLevelTokenBus tokenBus) {
 
 		if (writeToFile) {
@@ -91,7 +95,8 @@ public class RunnableThread implements Encoding {
 		}
 		this.tokenBus = tokenBus;
 		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
-		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
+		inputToPipeline = (GenericCircularQueue<Instruction> [])
+								Array.newInstance(GenericCircularQueue.class, EMUTHREADS);
 		
 		decodeWidth = new int[EMUTHREADS];
 		stepSize = new int[EMUTHREADS];
@@ -106,10 +111,16 @@ public class RunnableThread implements Encoding {
 
 			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
-			inputToPipeline[i] = new InstructionLinkedList();
+			inputToPipeline[i] = new GenericCircularQueue<Instruction>(
+												Instruction.class, INSTRUCTION_THRESHOLD*10);
 			
 			dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
-			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
+			
+			GenericCircularQueue<Instruction>[] toBeSet =
+													(GenericCircularQueue<Instruction>[])
+													Array.newInstance(GenericCircularQueue.class, 1);
+			toBeSet[0] = inputToPipeline[i];
+			pipelineInterfaces[i].setInputToPipeline(toBeSet);
 
 			if(cores[i].isPipelineInorder)
 				decodeWidth[i] = 1;
@@ -142,12 +153,12 @@ public class RunnableThread implements Encoding {
 		int minN = Integer.MAX_VALUE;
 		for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
 			ThreadParams th = threadParams[tidEmu];
-			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
+			if ( th.halted  && !(this.inputToPipeline[tidEmu].size() > INSTRUCTION_THRESHOLD)) {
 					//|| th.packets.size() > PACKET_THRESHOLD)){
 				th.halted = false;
 			//	System.out.println("Halting over..!! "+tidEmu);
 			}
-			int n = inputToPipeline[tidEmu].getListSize() / decodeWidth[tidEmu]
+			int n = inputToPipeline[tidEmu].size() / decodeWidth[tidEmu]
 					* pipelineInterfaces[tidEmu].getCoreStepSize();
 			if (n < minN && n != 0)
 				minN = n;
@@ -240,7 +251,7 @@ public class RunnableThread implements Encoding {
 		for (int i=0; i<maxCoreAssign; i++){
 			//finishing pipelines by adding invalid instruction to all pipeline
 			//already finished pipeline will not be affected 
-					this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+					this.inputToPipeline[i].enqueue(new Instruction(OperationType.inValid,null, null, null));
 		}
 		for (int i=0; i<maxCoreAssign; i++) {
 			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
@@ -453,13 +464,15 @@ public class RunnableThread implements Encoding {
 		} else {
 			(numInstructions[tidEmu])++;
 			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
-			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-					dynamicInstructionBuffer[tidEmu]);
+			int oldLength = inputToPipeline[tidEmu].size();
+			ObjParser.translateInstruction(thread.packets.get(0).ip, 
+					dynamicInstructionBuffer[tidEmu], this.inputToPipeline[tidEmu]);
+			int newLength = inputToPipeline[tidEmu].size();
 			
 			if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
-				ignoredInstructions += tempList.length();
+				ignoredInstructions += newLength;
 			else
-				noOfMicroOps[tidEmu] += tempList.length();
+				noOfMicroOps[tidEmu] += newLength - oldLength;
 				
 			
 /*			if(SimulationConfig.detachMemSys == true)	//TODO
@@ -477,14 +490,26 @@ public class RunnableThread implements Encoding {
 */
 			// Writing 20million instructions to a file
 			if (writeToFile) {
+				//use old length, new length
 				if (noOfMicroOps[0]>numInsToWrite) doNotProcess=true;
 				if (noOfMicroOps[0]>numInsToWrite && noOfMicroOps[0]< 20000005)
 					System.out.println("Done writing to file");
-				for (Instruction ins : tempList.instructionLinkedList) {
+				
+				/*for(int i = oldLength; i < newLength; i++) {
 					try {
-						this.output.writeObject(ins);
+						this.output.writeObject(this.inputToPipeline[tidEmu].peek(i));
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}*/
+				while(this.inputToPipeline[tidEmu].size() > 0)
+				{
+					Instruction toBeWritten = this.inputToPipeline[tidEmu].pollFirst();
+					try {
+						this.output.writeObject(toBeWritten);
+						this.output.flush();// TODO if flush is being ignored, may have to close and open the stream
+						Newmain.instructionPool.returnObject(toBeWritten);
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -499,33 +524,31 @@ public class RunnableThread implements Encoding {
 				if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
 				{
 //					int coreId = threadCoreMaping.get(tidEmu);
-					this.inputToPipeline[tidEmu].appendInstruction(tempList);
-					if (!thread.halted && this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD) {
+					if (!thread.halted && this.inputToPipeline[tidEmu].size() > INSTRUCTION_THRESHOLD) {
 						thread.halted = true;
 						//System.out.println("Halting "+tidEmu);
 					}	
 				}
 				else
 				{
-					int numIns = tempList.getListSize();
-					for (int i = 0; i < numIns; i++)
+					while(this.inputToPipeline[tidEmu].size() > 0)
 					{
-						Newmain.instructionPool.returnObject(tempList.pollFirst());
+						Newmain.instructionPool.returnObject(this.inputToPipeline[tidEmu].pollFirst());
 					}
 				}
 			
 /*				if (currentEMUTHREADS>1)
 				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
-*/				
-				long temp=noOfMicroOps[tidEmu] % 100000;
-				if(temp < 5  && tempList.getListSize() > 0) {
-					//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
-				}
-	
+*/					
 
-			thread.pold = pnew;
-			thread.packets.clear();
-			thread.packets.add(thread.pold);
+				thread.pold = pnew;
+				thread.packets.clear();
+				thread.packets.add(thread.pold);
+			}
+			
+			long temp=noOfMicroOps[tidEmu] % 1000000;
+			if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
+				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 		}
 
@@ -545,7 +568,7 @@ public class RunnableThread implements Encoding {
 			Instruction ins = new Instruction(OperationType.sync,null, null, null);
 			ins.setRISCProgramCounter(update.barrierAddress);
 //			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
-			this.inputToPipeline[update.sleep.get(i)].appendInstruction(ins);
+			this.inputToPipeline[update.sleep.get(i)].enqueue(ins);
 			setThreadState(update.sleep.get(i), true);
 		}
 	}
@@ -555,7 +578,7 @@ public class RunnableThread implements Encoding {
 		//finished pipline
 		// TODO Auto-generated method stub
 //		System.out.println("signalfinish thread " + tidApp + " mapping " + threadCoreMaping.get(tidApp));
-		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+		this.inputToPipeline[tidApp].enqueue(new Instruction(OperationType.inValid,null, null, null));
 		IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
 		//					System.out.println(tidApp+" pin thread got -1");
 		

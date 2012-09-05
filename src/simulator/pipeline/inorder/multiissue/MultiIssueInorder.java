@@ -2,7 +2,9 @@ package pipeline.inorder.multiissue;
 
 import generic.Core;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
+import generic.Instruction;
 import pipeline.PipelineInterface;
 import pipeline.inorder.InorderExecutionEngine;
 import pipeline.inorder.InorderPipeline;
@@ -130,6 +132,13 @@ public class MultiIssueInorder implements PipelineInterface {
 	@Override
 	public void adjustRunningThreads(int adjval) {
 		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void setInputToPipeline(
+			GenericCircularQueue<Instruction>[] inputToPipeline) {
+		
+		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
 

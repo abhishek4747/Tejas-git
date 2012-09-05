@@ -31,6 +31,7 @@ import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.InstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
+import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionArrayList;
 import generic.InstructionLinkedList;
@@ -352,13 +353,27 @@ public class ObjParser
 				+ "\ninstructionList = "
 				+ partialDecodedInstruction.getInstructionList());
 	}
+	
+	private static void removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer) {
+		
+		Instruction removedInstruction;
+		while( (inputToPipeline.isEmpty()== false) &&
+			(inputToPipeline.peek(inputToPipeline.size()-1).getCISCProgramCounter()==instructionPointer))
+		{
+			removedInstruction = inputToPipeline.pop();
+			try {
+				Newmain.instructionPool.returnObject(removedInstruction);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-	public static InstructionLinkedList translateInstruction(
+	public static void translateInstruction(
 			long startInstructionPointer,
-			DynamicInstructionBuffer dynamicInstructionBuffer)
+			DynamicInstructionBuffer dynamicInstructionBuffer, GenericCircularQueue<Instruction> inputToPipeline)
 	{
 		int microOpIndex;
-		InstructionLinkedList instructionLinkedList = new InstructionLinkedList();
 
 //		dynamicInstructionBuffer.printBuffer();
 //		System.out.print("\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer) + "\n");
@@ -375,7 +390,7 @@ public class ObjParser
 				 * buffer since it would not be worth the extra effort for such a small window of
 				 * instructions */
 				dynamicInstructionBuffer.clearBuffer();
-				return instructionLinkedList;
+				return;
 			}
 			
 			else if(instructionArrayList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
@@ -421,7 +436,7 @@ public class ObjParser
 				e.printStackTrace();
 			}
 			newInstruction.copy(instructionArrayList.get(microOpIndexBefore));
-			instructionLinkedList.appendInstruction(newInstruction); //append microOp
+			inputToPipeline.enqueue(newInstruction); //append microOp
 			
 			if(microOpIndex != -1)
 			{
@@ -429,8 +444,8 @@ public class ObjParser
 			}
 			else
 			{
-				instructionLinkedList.
-					removeInstructionFromTail(instructionArrayList.get(microOpIndexBefore).getCISCProgramCounter());
+				removeInstructionFromTail(inputToPipeline, 
+						instructionArrayList.get(microOpIndexBefore).getCISCProgramCounter());
 				break;
 			}
 		}
@@ -439,6 +454,6 @@ public class ObjParser
 		dynamicInstructionBuffer.clearBuffer();
 		
 //		instructionLinkedList.printList();
-		return instructionLinkedList;
+		return;
 	}
 }

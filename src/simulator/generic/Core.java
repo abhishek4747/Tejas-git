@@ -10,7 +10,7 @@ import pipeline.inorder.InorderExecutionEngine;
 import pipeline.inorder.InorderPipeline;
 import pipeline.inorder.multiissue.MultiIssueInorder;
 import pipeline.outoforder.OutOrderExecutionEngine;
-import pipeline.outoforder.PipelineInterface;
+import pipeline.outoforder.OutOfOrderPipeline;
 import power.Counters;
 import config.CoreConfig;
 import config.SimulationConfig;
@@ -109,7 +109,7 @@ public class Core {
 		else if(this.isPipelineMultiIssueInorder)
 			this.pipelineInterface = new MultiIssueInorder(this, eventQueue);
 		else
-			this.pipelineInterface = new PipelineInterface(this, eventQueue);
+			this.pipelineInterface = new OutOfOrderPipeline(this, eventQueue);
 		this.powerCounters = new Counters();
 	}
 	public void setCoreBcastBus(CoreBcastBus coreBcastBus){
@@ -189,7 +189,7 @@ public class Core {
 	}
 	public void sleepPipeline(){
 		
-		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.appendInstruction(new Instruction(OperationType.sync,null, null, null));
+		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.enqueue(new Instruction(OperationType.sync,null, null, null));
 	}
 
 	public int getIssueWidth() {
@@ -395,11 +395,11 @@ public class Core {
 //	public void setInorderPipeline(InorderPipeline _inorderPipeline){
 //		this.inorderPipeline = _inorderPipeline;
 //	}
-	public void setPipelineInterface(PipelineInterface pipelineInterface) {
+	public void setPipelineInterface(OutOfOrderPipeline pipelineInterface) {
 		this.pipelineInterface = pipelineInterface;
 	}
 	
-	public void setInputToPipeline(InstructionLinkedList[] inputsToPipeline)
+	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inputsToPipeline)
 	{
 		this.getExecEngine().setInputToPipeline(inputsToPipeline);
 	}

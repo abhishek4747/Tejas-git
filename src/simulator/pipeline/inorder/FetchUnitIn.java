@@ -12,6 +12,7 @@ import generic.Core;
 import generic.CoreBcastBus;
 import generic.Event;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
@@ -29,7 +30,7 @@ public class FetchUnitIn extends SimulationElement
 	private int fetchBufferIndex;	//Index to first instruction to be popped out of fetch buffer
 	private int stall;
 	private boolean sleep;		//The boolean to stall the pipeline when a sync request is received
-	public InstructionLinkedList inputToPipeline;
+	public GenericCircularQueue<Instruction> inputToPipeline;
 	EventQueue eventQueue;
 	int syncCount;
 	int numRequestsSent;
@@ -189,10 +190,10 @@ public class FetchUnitIn extends SimulationElement
 		this.syncCount--;
 		this.sleep=true;
 	}	
-	public InstructionLinkedList getInputToPipeline(){
+	public GenericCircularQueue<Instruction> getInputToPipeline(){
 		return this.inputToPipeline;
 	}
-	public void setInputToPipeline(InstructionLinkedList inpList){
+	public void setInputToPipeline(GenericCircularQueue<Instruction> inpList){
 		this.inputToPipeline = inpList;
 	}
 	public void resumePipeline(){

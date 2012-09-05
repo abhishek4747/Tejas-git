@@ -1,5 +1,7 @@
 package pipeline;
 
+import generic.GenericCircularQueue;
+import generic.Instruction;
 import generic.InstructionLinkedList;
 import memorysystem.CoreMemorySystem;
 
@@ -17,7 +19,7 @@ public abstract class ExecutionEngine {
 		instructionMemStall=0;
 	}
 	
-	public abstract void setInputToPipeline(InstructionLinkedList[] inpList);
+	public abstract void setInputToPipeline(GenericCircularQueue<Instruction>[] inpList);
 
 	public void setExecutionComplete(boolean executionComplete) {
 		this.executionComplete = executionComplete;

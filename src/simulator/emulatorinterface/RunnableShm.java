@@ -96,7 +96,9 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				//subset simulation : 100M micro-ops
 				
 				
-				if(SimulationConfig.subsetSimulation && microOpsDone > SimulationConfig.subsetSimSize)
+				if((SimulationConfig.subsetSimulation && microOpsDone > SimulationConfig.subsetSimSize)
+						||
+						(SimulationConfig.writeToFile && microOpsDone > SimulationConfig.numInsForTrace+100000))
 				{
 					allover = true;
 					break;

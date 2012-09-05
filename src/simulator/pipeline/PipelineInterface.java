@@ -1,6 +1,8 @@
 package pipeline;
 
 import generic.Core;
+import generic.GenericCircularQueue;
+import generic.Instruction;
 
 public interface PipelineInterface {
 	
@@ -16,4 +18,5 @@ public interface PipelineInterface {
 	public void setPerCorePowerStatistics();
 	public void setExecutionComplete(boolean status);
 	public void adjustRunningThreads(int adjval);
+	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inputToPipeline);
 }

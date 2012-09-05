@@ -220,15 +220,14 @@ public class ReorderBuffer extends SimulationElement{
 				{					
 					if(firstOpType==OperationType.inValid)
 					{
-						//FIXME the following does not set the statistics. Check!
 						this.core.currentThreads--;
-						System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
-						System.out.println("head = " + head);					
+						//System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
+						//System.out.println("head = " + head);					
 						
 						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
 															  //assigned to this pipeline	
 							execEngine.setExecutionComplete(true);
-							System.out.println("DONE!! core : " + core.getCore_number() + "  - WB = " + first.isWriteBackDone());
+							//System.out.println("DONE!! core : " + core.getCore_number() + "  - WB = " + first.isWriteBackDone());
 							
 							
 						}
@@ -338,18 +337,18 @@ public class ReorderBuffer extends SimulationElement{
 					
 					if(execEngine.isExecutionComplete() == true)
 					{
-						if(((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().inputToPipeline[0].getListSize() > 0)
+						if(((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().inputToPipeline[0].size() > 0)
 						{
 							System.out.println("input to pipeline not empty!!");
 						}
 						
-						for(int i = 0; i < 11; i++)
+						/*for(int i = 0; i < 11; i++)
 						{
 							System.out.print(Newmain.cores[i].getExecEngine().isExecutionComplete() + " ");
 							System.out.print(Newmain.cores[i].currentThreads + " ");
 							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getReorderBuffer().head + " ");
-							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getFetcher().inputToPipeline[0].getListSize() + " ");
-						}
+							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getFetcher().inputToPipeline[0].size() + " ");
+						}*/
 					}
 				}
 				else

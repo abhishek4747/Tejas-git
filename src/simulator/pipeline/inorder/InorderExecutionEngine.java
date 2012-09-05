@@ -1,12 +1,15 @@
 package pipeline.inorder;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import pipeline.outoforder.FunctionalUnitSet;
 import generic.Core;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
+import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.Operand;
 import generic.OperationType;
@@ -341,7 +344,7 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	}
 
 	@Override
-	public void setInputToPipeline(InstructionLinkedList[] inpList) {
+	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inpList) {
 		
 		fetchUnitIn.setInputToPipeline(inpList[0]);
 		

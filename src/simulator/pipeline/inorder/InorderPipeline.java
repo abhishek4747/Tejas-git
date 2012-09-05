@@ -5,7 +5,9 @@ import pipeline.PipelineInterface;
 import power.Counters;
 import generic.Core;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
+import generic.Instruction;
 import generic.Statistics;
 
 public class InorderPipeline implements PipelineInterface{
@@ -200,6 +202,14 @@ public class InorderPipeline implements PipelineInterface{
 	public void adjustRunningThreads(int adjval) {
 		// TODO Auto-generated method stub
 //		this.getCore().currentThreads += adjval;
+		
+	}
+
+	@Override
+	public void setInputToPipeline(
+			GenericCircularQueue<Instruction>[] inputToPipeline) {
+		
+		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
 }

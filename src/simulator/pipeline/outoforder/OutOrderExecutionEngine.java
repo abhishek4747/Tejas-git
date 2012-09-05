@@ -3,6 +3,7 @@ package pipeline.outoforder;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import generic.Core;
+import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 
@@ -230,7 +231,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	}
 
 	@Override
-	public void setInputToPipeline(InstructionLinkedList[] inpList) {
+	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inpList) {
 		
 		fetcher.setInputToPipeline(inpList);
 		

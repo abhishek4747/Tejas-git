@@ -2,16 +2,18 @@ package pipeline.outoforder;
 
 import generic.Core;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
+import generic.Instruction;
 import generic.Statistics;
 
-public class PipelineInterface implements pipeline.PipelineInterface {
+public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 	
 	Core core;
 	EventQueue eventQ;
 	int coreStepSize;
 	
-	public PipelineInterface(Core core, EventQueue eventQ)
+	public OutOfOrderPipeline(Core core, EventQueue eventQ)
 	{
 		this.core = core;
 		this.eventQ = eventQ;
@@ -38,16 +40,6 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			execEngine.getWriteBackLogic().performWriteBack();
 			execEngine.getSelector().performSelect2();
 		}
-		
-		/*else //Statistical Pipeline
-		{
-			statPipeline = core.getStatisticalPipeline();
-			statPipeline.performCommits();
-			if (statPipeline.isExecutionComplete() == false)
-			{
-				statPipeline.getFetcher().performFetch();
-			}
-		}*/
 		
 		//handle events
 		eventQ.processEvents();
@@ -84,10 +76,7 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 	@Override
 	public boolean isExecutionComplete() {
 		
-		/*if (core.isPipelineStatistical)
-            return core.getStatisticalPipeline().isExecutionComplete();
-        else*/
-        return core.getExecEngine().isExecutionComplete();
+		return core.getExecEngine().isExecutionComplete();
 		
 		
 	}
@@ -114,32 +103,44 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 
 	@Override
 	public void setTimingStatistics() {
-		// TODO Auto-generated method stub
+		
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
+		execEngine.getReorderBuffer().setTimingStatistics();
 		
 	}
 
 	@Override
 	public void setPerCoreMemorySystemStatistics() {
-		// TODO Auto-generated method stub
+		
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
+		execEngine.getReorderBuffer().setPerCoreMemorySystemStatistics();
 		
 	}
 	
 	@Override
 	public void setPerCorePowerStatistics(){
-		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
+		execEngine.getReorderBuffer().setPerCorePowerStatistics();
 	}
 
 
 	@Override
 	public void setExecutionComplete(boolean status) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
 
 	@Override
 	public void adjustRunningThreads(int adjval) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setInputToPipeline(
+			GenericCircularQueue<Instruction>[] inputToPipeline) {
+		
+		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
 	
