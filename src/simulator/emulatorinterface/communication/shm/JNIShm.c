@@ -220,23 +220,23 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwri
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
 (JNIEnv * env, jobject jobj,jint tidApp) {
 	shmwrite(tidApp,shmAddress,gCOUNT+2,1);
-			asm volatile("" ::: "memory");
-			shmwrite(tidApp,shmAddress,gCOUNT+3,0);
-			asm volatile("" ::: "memory");
-			while( (shmreadvalue(tidApp,shmAddress,gCOUNT+1) == 1) &&
-					(shmreadvalue(tidApp,shmAddress,gCOUNT+3) == 0)) {
-			}
+	__sync_synchronize();
+	shmwrite(tidApp,shmAddress,gCOUNT+3,0);
+//	__sync_synchronize();
+	while( (shmreadvalue(tidApp,shmAddress,gCOUNT+1) == 1) &&
+			(shmreadvalue(tidApp,shmAddress,gCOUNT+3) == 0)) {
+	}
 
-			int size = shmreadvalue(tidApp, shmAddress, gCOUNT);
+	int size = shmreadvalue(tidApp, shmAddress, gCOUNT);
 
 
-					//release_lock(tidApp, shmAddress, COUNT);
-					shmwrite(tidApp,shmAddress, gCOUNT+2,0);
-					return size;
+			//release_lock(tidApp, shmAddress, COUNT);
+			shmwrite(tidApp,shmAddress, gCOUNT+2,0);
+			return size;
 }
 
 // hardware barriers dont seem to work.So using compiler barriers.
 JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_asmmfence 
 (JNIEnv * env, jobject jobj) {
-	asm volatile("" ::: "memory");
+	__sync_synchronize();
 }

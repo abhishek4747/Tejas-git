@@ -3,6 +3,8 @@ package pipeline.outoforder;
 import config.SimulationConfig;
 import emulatorinterface.Newmain;
 import memorysystem.AddressCarryingEvent;
+import generic.Barrier;
+import generic.BarrierTable;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -22,7 +24,10 @@ public class FetchLogic extends SimulationElement {
 	int fetchWidth;
 	int inputPipeToReadNext;
 	InstructionLinkedList[] inputToPipeline;
-
+	boolean sleep;
+	
+	OperationType[] instructionsToBeDropped;
+	int invalidCount;
 
 	public FetchLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
@@ -33,7 +38,14 @@ public class FetchLogic extends SimulationElement {
 		fetchBuffer = execEngine.getFetchBuffer();
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
+		sleep = false;
 
+		instructionsToBeDropped = new OperationType[] {
+															OperationType.interrupt,
+															OperationType.sync
+													};
+		
+		invalidCount = 0;
 	}
 	
 	/*
@@ -45,6 +57,11 @@ public class FetchLogic extends SimulationElement {
 		
 	public void performFetch()
 	{
+		if(sleep == true)
+		{
+			return;
+		}
+		
 		Instruction newInstruction;
 		
 		for(int i = 0; i < iCacheBuffer.size; i++)
@@ -56,10 +73,51 @@ public class FetchLogic extends SimulationElement {
 			
 			newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
 			
-			if(newInstruction.getOperationType() == OperationType.inValid)
+			/*if(newInstruction.getOperationType() == OperationType.inValid)
 			{
 				execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
 				break;
+			}*/
+			
+			if(newInstruction.getOperationType() == OperationType.inValid)
+			{
+				System.out.println("num invalids received - core " + core.getCore_number() + " = " + ++invalidCount);
+			}
+			if(newInstruction.getOperationType() == OperationType.sync){
+				long barrierAddress = newInstruction.getRISCProgramCounter();
+				System.out.println(barrierAddress);
+				Barrier bar = BarrierTable.barrierList.get(barrierAddress);
+				bar.incrementThreads();
+				
+				if(bar.timeToCross())
+				{
+					System.out.println("Time to cross");
+					setSleep(true);
+					for(int j=0; j<bar.getNumThreads(); j++ ){
+						this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
+					}
+					this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+							this.core.eventQueue,
+							 1,
+							 this.core.coreBcastBus, 
+							 this.core.coreBcastBus, 
+							 RequestType.PIPELINE_RESUME, 
+							 0));
+
+				}
+				else
+				{
+					setSleep(true);
+					//return;
+				}
+			}
+			
+			if(shouldInstructionBeDropped(newInstruction) == true)
+			{
+				inputToPipeline[inputPipeToReadNext].pollFirst();
+				Newmain.instructionPool.returnObject(newInstruction);
+				i--;
+				continue;
 			}
 			
 			if(newInstruction.getOperationType() == OperationType.load ||
@@ -78,7 +136,7 @@ public class FetchLogic extends SimulationElement {
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 				//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
-				if(SimulationConfig.detachMemSys == false)
+				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)
 				{
 						execEngine.getCoreMemorySystem().issueRequestToInstrCache(newInstruction.getRISCProgramCounter());
 				}
@@ -97,6 +155,7 @@ public class FetchLogic extends SimulationElement {
 				!execEngine.isToStall5())
 		{
 			int ctr = 0;
+			//TODO some of the following code can be removed
 			while(execEngine.isInputPipeEmpty(inputPipeToReadNext) == true
 					&& ctr < core.getNo_of_input_pipes())
 			{
@@ -128,11 +187,11 @@ public class FetchLogic extends SimulationElement {
 						newInstruction = iCacheBuffer.getNextInstruction();
 						if(newInstruction != null)
 						{
-							if(newInstruction.getOperationType() == OperationType.inValid)
+							/*if(newInstruction.getOperationType() == OperationType.inValid)
 							{
 								execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
 								break;
-							}
+							}*/
 							fetchBuffer[fetchBufferIndex++] = newInstruction;
 						}
 						else
@@ -143,7 +202,7 @@ public class FetchLogic extends SimulationElement {
 					}
 					
 					//this is a bad hack TODO
-					for(int i = 0; i < fetchWidth; i++)
+					/*for(int i = 0; i < fetchWidth; i++)
 					{
 						if(inputToPipeline[inputPipeToReadNext].getListSize() > i &&
 								inputToPipeline[inputPipeToReadNext].peekInstructionAt(i).getOperationType()
@@ -152,7 +211,7 @@ public class FetchLogic extends SimulationElement {
 							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
 							break;
 						}
-					}
+					}*/
 				}
 			}
 		}
@@ -188,6 +247,18 @@ public class FetchLogic extends SimulationElement {
 		
 	}
 	
+	boolean shouldInstructionBeDropped(Instruction instruction)
+	{
+		for(int i = 0; i < instructionsToBeDropped.length; i++)
+		{
+			if(instructionsToBeDropped[i] == instruction.getOperationType())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public void processCompletionOfMemRequest(long address)
 	{
 		iCacheBuffer.updateFetchComplete(address);
@@ -204,5 +275,17 @@ public class FetchLogic extends SimulationElement {
 	public void setICacheBuffer(ICacheBuffer iCacheBuffer)
 	{
 		this.iCacheBuffer = iCacheBuffer;
+	}
+
+	public boolean isSleep() {
+		return sleep;
+	}
+
+	public void setSleep(boolean sleep) {
+		if(sleep == true)
+			System.out.println("sleeping pipeline " + this.core.getCore_number());
+		else
+			System.out.println("resuming pipeline " + this.core.getCore_number());
+		this.sleep = sleep;
 	}
 }

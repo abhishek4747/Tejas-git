@@ -40,6 +40,8 @@ public class ReorderBuffer extends SimulationElement{
 	long mispredCount;
 
 	private int j;
+	
+	int invalidCount;
 
 	public ReorderBuffer(Core _core, OutOrderExecutionEngine execEngine)
 	{
@@ -67,6 +69,8 @@ public class ReorderBuffer extends SimulationElement{
 		
 		retireWidth = core.getRetireWidth();
 		j=0;
+		
+		invalidCount = 0;
 	}
 	
 	public boolean isFull()
@@ -109,6 +113,11 @@ public class ReorderBuffer extends SimulationElement{
 				head = 0;
 			}
 			ReorderBufferEntry newReorderBufferEntry = ROB[tail];
+			
+			if(newReorderBufferEntry.isValid == true)
+			{
+				System.out.println("new rob entry is alread valid");
+			}
 			
 			newReorderBufferEntry.setInstruction(newInstruction);
 			newReorderBufferEntry.setThreadID(threadID);
@@ -178,7 +187,7 @@ public class ReorderBuffer extends SimulationElement{
 		{
 			for(int no_insts = 0; no_insts < retireWidth; no_insts++)
 			{
-				if(head == -1)
+				/*if(head == -1)
 				{
 					if(execEngine.isAllPipesEmpty() == true)
 					{
@@ -195,15 +204,48 @@ public class ReorderBuffer extends SimulationElement{
 						setPerCorePowerStatistics();
 					}
 					break;
+				}*/
+				
+				if(head == -1)
+				{
+					//ROB empty .. does not mean execution has completed
+					return;
 				}
 				
 				ReorderBufferEntry first = ROB[head];
 				Instruction firstInstruction = first.getInstruction();
 				OperationType firstOpType = firstInstruction.getOperationType();
-				Operand firstDestOpnd = firstInstruction.getDestinationOperand();
+				Operand firstDestOpnd = firstInstruction.getDestinationOperand();								
 				
 				if(first.isWriteBackDone() == true)
-				{
+				{					
+					if(firstOpType==OperationType.inValid)
+					{
+						//FIXME the following does not set the statistics. Check!
+						this.core.currentThreads--;
+						System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
+						System.out.println("head = " + head);					
+						
+						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+															  //assigned to this pipeline	
+							execEngine.setExecutionComplete(true);
+							System.out.println("DONE!! core : " + core.getCore_number() + "  - WB = " + first.isWriteBackDone());
+							
+							
+						}
+//						System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
+						setTimingStatistics();			
+						setPerCoreMemorySystemStatistics();
+						setPerCorePowerStatistics();
+						//memWbLatch.clear();
+						
+						if(this.core.currentThreads < 0)
+						{
+							this.core.currentThreads=0;
+							System.out.println("num threads < 0");
+						}
+					}
+					
 					//if store, and if store not yet validated
 					if(firstOpType == OperationType.store && !first.lsqEntry.isValid())
 					{
@@ -235,8 +277,8 @@ public class ReorderBuffer extends SimulationElement{
 					
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
-					if(core.getNoOfInstructionsExecuted()%1000000==0){
-						System.out.println(this.j++ + " million done");
+					if(core.getNoOfInstructionsExecuted()%100000==0){
+						System.out.println(this.j++ + " lakh done on " + core.getCore_number());
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					
@@ -276,33 +318,39 @@ public class ReorderBuffer extends SimulationElement{
 						//first.getLsqEntry().setRemoved(true);
 					}
 					
-					ROB[head].setValid(false);
-					if(head == tail)
-					{
-						head = -1;
-						tail = -1;
-					}
-					else
-					{
-						head = (head+1)%MaxROBSize;
-					}
+					retireInstructionAtHead();
 					
 					if(firstOpType == OperationType.branch)
 					{
 						core.getBranchPredictor().Train(
-														first.getInstruction().getRISCProgramCounter(),
-														first.getInstruction().isBranchTaken(),
-														core.getBranchPredictor().predict(first.getInstruction().getRISCProgramCounter())
+														firstInstruction.getRISCProgramCounter(),
+														firstInstruction.isBranchTaken(),
+														core.getBranchPredictor().predict(firstInstruction.getRISCProgramCounter())
 														);
 						
 						branchCount++;
 						this.core.powerCounters.incrementBpredAccess(1);
 					}
 					
-					try {
-						Newmain.instructionPool.returnObject(firstInstruction);
-					} catch (Exception e) {
-						e.printStackTrace();
+					if(firstInstruction.getOperationType() != OperationType.inValid)
+					{
+						returnInstructionToPool(firstInstruction);
+					}
+					
+					if(execEngine.isExecutionComplete() == true)
+					{
+						if(((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().inputToPipeline[0].getListSize() > 0)
+						{
+							System.out.println("input to pipeline not empty!!");
+						}
+						
+						for(int i = 0; i < 11; i++)
+						{
+							System.out.print(Newmain.cores[i].getExecEngine().isExecutionComplete() + " ");
+							System.out.print(Newmain.cores[i].currentThreads + " ");
+							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getReorderBuffer().head + " ");
+							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getFetcher().inputToPipeline[0].getListSize() + " ");
+						}
 					}
 				}
 				else
@@ -424,6 +472,34 @@ public class ReorderBuffer extends SimulationElement{
 				renameTable.setMappingValid(true, phyReg);
 				renameTable.setValueValid(true, phyReg);
 			}
+		}
+	}
+	
+	void retireInstructionAtHead()
+	{
+		ROB[head].setValid(false);
+		if(ROB[head].instruction.getOperationType() == OperationType.inValid && core.getCore_number() == 2)
+		{
+			System.out.println("retiring invalid");
+		}
+		ROB[head].instruction = null;
+		if(head == tail)
+		{
+			head = -1;
+			tail = -1;
+		}
+		else
+		{
+			head = (head+1)%MaxROBSize;
+		}
+	}
+	
+	void returnInstructionToPool(Instruction instruction)
+	{
+		try {
+			Newmain.instructionPool.returnObject(instruction);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
