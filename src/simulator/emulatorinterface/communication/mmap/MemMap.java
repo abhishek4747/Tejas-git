@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class MemMap extends IpcBase
 
 	private IntBuffer ibuf;
 
-	private LongBuffer lockBuf;
+	private IntBuffer lockBuf;
 	MappedByteBuffer buf;
 	MappedByteBuffer lBuf;
 
@@ -118,7 +117,7 @@ public class MemMap extends IpcBase
 			//FIXME TODO
 			// these should be as packet buffer not int buffers
 			ibuf = buf.asIntBuffer ();
-			lockBuf = lBuf.asLongBuffer ();
+			lockBuf = lBuf.asIntBuffer ();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -137,20 +136,20 @@ public class MemMap extends IpcBase
 	}
 
 	@Override
-	public long numPackets(int tidApp) {
+	public int numPackets(int tidApp) {
 		get_lock(lockBuf, 0, lBuf);
-		long queue_size = lockBuf.get(0);
+		int queue_size = lockBuf.get(0);
 		release_lock(lockBuf, 0, lBuf);
 		return queue_size;
 	}
 
-	private void release_lock(LongBuffer lockBuf2, int i, MappedByteBuffer lBuf2) {
+	private void release_lock(IntBuffer lockBuf2, int i, MappedByteBuffer lBuf2) {
 		ibuf.put(COUNT + 2, 0);
 		buf.force();
 
 	}
 
-	private void get_lock(LongBuffer lockBuf2, int i, MappedByteBuffer lBuf2) {
+	private void get_lock(IntBuffer lockBuf2, int i, MappedByteBuffer lBuf2) {
 
 		ibuf.put(COUNT + 2, 1); // flag[1] = 1
 		buf.force();
@@ -161,13 +160,13 @@ public class MemMap extends IpcBase
 	}
 
 	@Override
-	public long totalProduced(int tidApp) {
+	public int totalProduced(int tidApp) {
 		return lockBuf.get(0 + 4);
 	}
 
 	@Override
-	public long update(int tidApp, long numReads) {
-		long queue_size;
+	public int update(int tidApp, int numReads) {
+		int queue_size;
 		get_lock(lockBuf, 0, lBuf);
 		  queue_size = lockBuf.get(0);
 	      queue_size -= numReads;
@@ -176,16 +175,16 @@ public class MemMap extends IpcBase
 		  return queue_size;
 	}
 
+	public int fetchManyPackets(int tidApp, int index, int numPackets,
+			ArrayList<Packet> fromPIN) {
+				return 0;
+		// TODO Auto-generated method stub
+		
+	}
+
 	public ArrayList<Packet> fetchManyPackets(int tidApp, int readerLocation,
 			int numReads) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public long fetchManyPackets(int tidApp, long readerLocation,
-			long numReads, ArrayList<Packet> fromPIN) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }

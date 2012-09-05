@@ -73,7 +73,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					continue;        //one bug need to be fixed to remove this comment
 				}
 				int tidApp = tid * EMUTHREADS + tidEmu;
-				long queue_size,numReads = 0;
+				int queue_size, numReads = 0;
 				long v = 0;
 
 				// get the number of packets to read. 'continue' and read from
@@ -189,12 +189,12 @@ public class RunnableShm extends RunnableThread implements Runnable {
 		finishAllPipelines();
 	}
 
-	void errorCheck(int tidApp, int emuid, long queue_size,
-			long numReads, long v) {
+	void errorCheck(int tidApp, int emuid, int queue_size,
+			int numReads, long v) {
 		// some error checking
 		threadParams[emuid].totalRead += numReads;
 		long totalRead = threadParams[emuid].totalRead;
-		long totalProduced = ipcType.totalProduced(tidApp);
+		int totalProduced = ipcType.totalProduced(tidApp);
 		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
 		if (totalRead > totalProduced) {
 			System.out.println("numReads" + numReads + " queue_size"

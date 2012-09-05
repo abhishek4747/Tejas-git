@@ -40,26 +40,26 @@ JNIEXPORT jobject JNICALL Java_emulatorinterface_communication_shm_SharedMem_shm
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmreadMult
- * Signature: (IJJJ[J)V
+ * Signature: (IJII[J)V
  */
 JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadMult
-  (JNIEnv *, jclass, jint, jlong, jlong, jlong, jlongArray);
+  (JNIEnv *, jclass, jint, jlong, jint, jint, jlongArray);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmreadvalue
- * Signature: (IJI)J
+ * Signature: (IJI)I
  */
-JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
+JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
   (JNIEnv *, jclass, jint, jlong, jint);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmwrite
- * Signature: (IJIJ)I
+ * Signature: (IJII)I
  */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwrite
-  (JNIEnv *, jclass, jint, jlong, jint, jlong);
+  (JNIEnv *, jclass, jint, jlong, jint, jint);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
@@ -88,9 +88,9 @@ JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_asmmfe
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    numPacketsAlternate
- * Signature: (I)J
+ * Signature: (I)I
  */
-JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
+JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
   (JNIEnv *, jclass, jint);
 
 #ifdef __cplusplus
