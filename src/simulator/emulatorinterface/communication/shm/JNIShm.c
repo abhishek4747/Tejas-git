@@ -36,7 +36,7 @@ jint gEmuThreadsPerJavaThread;
  */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 (JNIEnv * env, jobject jobj, jint COUNT,jint MaxNumJavaThreads,jint EmuThreadsPerJavaThread,
-		jlong coremap) {
+		jlong coremap, jint pid) {
 	uint64_t mask = coremap;
 
 
@@ -48,7 +48,9 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 
 
 	int shmid;
-	key_t key=ftok(ftokpath,ftok_id);
+	//key_t key=ftok(ftokpath,ftok_id);
+	printf("jnishm : id = %d\n", pid);
+	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
 		perror("ftok");

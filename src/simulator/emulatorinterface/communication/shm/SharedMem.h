@@ -16,10 +16,10 @@ extern "C" {
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmget
- * Signature: (IIIJ)I
+ * Signature: (IIIJI)I
  */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
-  (JNIEnv *, jobject, jint, jint, jint, jlong);
+  (JNIEnv *, jobject, jint, jint, jint, jlong, jint);
 
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
