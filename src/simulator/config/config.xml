@@ -21,8 +21,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/home/eldhose/workspace/PIN</PinTool>
-		<PinInstrumentor>/home/eldhose/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/home/mayur/Installed_Softwares/PIN</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -36,8 +36,8 @@
 		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
-		<subsetSim>false</subsetSim>
-		<subsetSimSize>00000</subsetSimSize>
+		<subsetSim>true</subsetSim>
+		<subsetSimSize>10000000</subsetSimSize>
 		<PrintPowerStats>false</PrintPowerStats>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsForTrace>100000</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
@@ -255,7 +255,7 @@
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>128</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>8192</Size>				<!--In KBs-->
+			<Size>4096</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -265,9 +265,9 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>2</NumberOfBankRows>
+			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
 			<NocSelScheme>ADAPTIVE</NocSelScheme>
 			<NocNumberOfBuffers>3</NocNumberOfBuffers>

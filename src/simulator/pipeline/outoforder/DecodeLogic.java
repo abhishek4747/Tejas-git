@@ -20,6 +20,8 @@ public class DecodeLogic extends SimulationElement {
 	ReorderBufferEntry[] decodeBuffer;
 	int decodeWidth;
 	
+	int invalidCount;
+	
 	public DecodeLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
@@ -84,11 +86,9 @@ public class DecodeLogic extends SimulationElement {
 					}
 				}
 				
-				if(fetchBuffer[i] != null)
+				/*if(fetchBuffer[i] != null)
 				{
-					if(fetchBuffer[i].getOperationType() == OperationType.interrupt ||
-							fetchBuffer[i].getOperationType() == OperationType.nop ||
-							fetchBuffer[i].getOperationType() == OperationType.inValid)
+					if(fetchBuffer[i].getOperationType() == OperationType.nop)
 					{
 						try {
 							Newmain.instructionPool.returnObject(fetchBuffer[i]);
@@ -96,7 +96,7 @@ public class DecodeLogic extends SimulationElement {
 							e.printStackTrace();
 						}
 					}
-				}
+				}*/
 				
 				execEngine.setToStall3(false);
 				execEngine.setToStall4(false);
@@ -112,9 +112,9 @@ public class DecodeLogic extends SimulationElement {
 			tempOpType = newInstruction.getOperationType();
 		}
 		
-		if(newInstruction != null &&
+		if(newInstruction != null/* &&
 				tempOpType != OperationType.nop &&
-				tempOpType != OperationType.inValid)
+				tempOpType != OperationType.inValid*/)
 		{			
 			ReorderBufferEntry newROBEntry = execEngine.getReorderBuffer()
 											.addInstructionToROB(newInstruction, 0);	//TODO

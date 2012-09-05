@@ -89,6 +89,11 @@ public class RenameLogic extends SimulationElement {
 								System.out.println("\n\n" + reorderBufferEntry + "\n\n");
 							}
 						}
+						
+						if(renameBuffer[i].getInstruction() == null)
+						{
+							System.out.println("rename buffer - inst is null");
+						}
 					}
 					else
 					{
@@ -102,7 +107,9 @@ public class RenameLogic extends SimulationElement {
 	private void processOperand1(ReorderBufferEntry reorderBufferEntry)
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
-		if(tempOpnd == null)
+		if(tempOpnd == null ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
 		{
 			reorderBufferEntry.setOperand1PhyReg1(-1);
 			reorderBufferEntry.setOperand1PhyReg2(-1);
@@ -210,7 +217,9 @@ public class RenameLogic extends SimulationElement {
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
 		
-		if(tempOpnd == null)
+		if(tempOpnd == null ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
 		{
 			reorderBufferEntry.setOperand2PhyReg1(-1);
 			reorderBufferEntry.setOperand2PhyReg2(-1);
@@ -318,7 +327,9 @@ public class RenameLogic extends SimulationElement {
 	private boolean processDestOperand(ReorderBufferEntry reorderBufferEntry)
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
-		if(tempOpnd == null)
+		if(tempOpnd == null ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
 		{
 			return true;
 		}
@@ -411,7 +422,9 @@ public class RenameLogic extends SimulationElement {
 	void checkOperand1Availability()
 	{
 		Operand tempOpnd = instruction.getSourceOperand1();
-		if(tempOpnd == null)
+		if(tempOpnd == null ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
 		{
 			//Increment counters for power calculation
 			this.core.powerCounters.incrementWindowAccess(1);
@@ -423,8 +436,7 @@ public class RenameLogic extends SimulationElement {
 		
 		OperandType tempOpndType = tempOpnd.getOperandType();
 		
-		if(tempOpndType == OperandType.immediate ||
-				tempOpndType == OperandType.inValid)
+		if(tempOpndType == OperandType.immediate)
 		{
 			//Increment counters for power calculation
 			this.core.powerCounters.incrementWindowAccess(1);
@@ -549,7 +561,9 @@ public class RenameLogic extends SimulationElement {
 	void checkOperand2Availability()
 	{
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
-		if(tempOpnd == null)
+		if(tempOpnd == null ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
 		{
 			//Increment counters for power calculation
 			this.core.powerCounters.incrementWindowAccess(1);
@@ -561,8 +575,7 @@ public class RenameLogic extends SimulationElement {
 		
 		OperandType tempOpndType = tempOpnd.getOperandType();
 		
-		if(tempOpndType == OperandType.immediate ||
-				tempOpndType == OperandType.inValid)
+		if(tempOpndType == OperandType.immediate)
 		{
 			//Increment counters for power calculation
 			this.core.powerCounters.incrementWindowAccess(1);
