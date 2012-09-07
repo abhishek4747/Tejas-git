@@ -24,7 +24,6 @@ package emulatorinterface.translator.x86.instruction;
 import emulatorinterface.translator.InvalidInstructionException;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionLinkedList;
 import generic.InstructionArrayList;
 
 public class NOP implements InstructionHandler 
@@ -34,11 +33,9 @@ public class NOP implements InstructionHandler
 			InstructionArrayList instructionArrayList) 
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps = new InstructionLinkedList();
-		
 		if(operand1==null && operand2==null && operand3==null)
 		{
-			microOps.appendInstruction(Instruction.getNOPInstruction());
+			instructionArrayList.appendInstruction(Instruction.getNOPInstruction());
 		}
 		else
 		{

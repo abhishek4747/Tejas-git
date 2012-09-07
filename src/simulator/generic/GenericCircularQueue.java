@@ -154,4 +154,19 @@ public class GenericCircularQueue<E> {
 		
 		return toBeReturned;
 	}
+
+	@Override
+	public String toString() {
+		String str = "";
+		if(head != -1)
+		{
+			for(int i = head; i <= tail; i = (i+1)%bufferSize)
+			{
+				str = str + buffer[i] + "\n";
+			}
+		}
+		return str;
+	}
+	
+	
 }

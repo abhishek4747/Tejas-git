@@ -35,8 +35,6 @@ public class SingleOperandIntALU implements InstructionHandler
 			InstructionArrayList instructionArrayList) 
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps = new InstructionLinkedList();
-		
 		if(
 		(operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
 		 operand2==null && operand3==null)
@@ -47,7 +45,7 @@ public class SingleOperandIntALU implements InstructionHandler
 			if(operand1.isMemoryOperand())
 			{
 				operand1ValueOperand = OperandTranslator.getLocationToStoreValue(operand1);
-				microOps.appendInstruction(Instruction.getLoadInstruction(operand1, operand1ValueOperand));
+				instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1, operand1ValueOperand));
 			}
 			else
 			{
@@ -56,14 +54,14 @@ public class SingleOperandIntALU implements InstructionHandler
 			
 
 			//Perform integer alu operation
-			microOps.appendInstruction(Instruction.getIntALUInstruction(
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(
 					null, operand1ValueOperand, operand1ValueOperand));
 
 			
 			//If operand1 is a memory operand, then perform a store operation too
 			if(operand1.isMemoryOperand())
 			{
-				microOps.appendInstruction(Instruction.getStoreInstruction(operand1, operand1ValueOperand));
+				instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand1, operand1ValueOperand));
 			}
 		}
 		else

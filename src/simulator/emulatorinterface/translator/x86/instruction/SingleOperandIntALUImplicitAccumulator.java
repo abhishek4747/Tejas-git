@@ -36,15 +36,12 @@ public class SingleOperandIntALUImplicitAccumulator implements InstructionHandle
 			InstructionArrayList instructionArrayList) 
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps = new InstructionLinkedList();
-
-		
 		if(operand1==null && operand2==null && operand3==null)
 		{
 			Operand accumulatorRegister = Registers.getAccumulatorRegister();
 			
 			//Perform integer alu operation
-			microOps.appendInstruction(Instruction.getIntALUInstruction(
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(
 					null, accumulatorRegister, accumulatorRegister));
 		}
   		else if(operand1.isImmediateOperand() && operand2==null && operand3==null)
@@ -53,7 +50,7 @@ public class SingleOperandIntALUImplicitAccumulator implements InstructionHandle
 			Operand accumulatorRegister = Registers.getAccumulatorRegister();
 			
 			//Perform integer alu operation
-			microOps.appendInstruction(Instruction.getIntALUInstruction(
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(
 					operand1, accumulatorRegister, accumulatorRegister));
 		}
 		else

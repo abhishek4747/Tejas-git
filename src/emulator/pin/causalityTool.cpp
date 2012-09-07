@@ -44,6 +44,7 @@ ADDRINT curSynchVar[MaxThreads];
 static UINT64 numIns = 0;
 UINT64 numInsToIgnore = 0;
 BOOL ignoreActive = false;
+UINT64 numCISC[MaxThreads];
 
 #define PacketEpoch 50
 uint32_t countPacket[MaxThreads];
@@ -318,6 +319,13 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
 VOID Instruction(INS ins, VOID *v) {
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
 
+	numCISC[IARG_THREAD_ID]++;
+	if(numCISC[IARG_THREAD_ID]%1000 == 0)
+	{
+		printf("numCISC on thread %d = %lu\n", IARG_THREAD_ID, numCISC[IARG_THREAD_ID]);
+		fflush(stdout);
+	}
+
 	if (INS_IsBranchOrCall(ins))//INS_IsIndirectBranchOrCall(ins))
 	{
 		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR) BrnFun, IARG_THREAD_ID,
@@ -430,8 +438,13 @@ int main(int argc, char * argv[]) {
 
 	//tst = new IPC::Shm ();
 	UINT64 id = KnobId;
-	printf("id received = %lld", id);
+	printf("id received = %lu", id);
 	tst = new IPC::Shm (id);
+
+	for(int i = 0; i < MaxThreads; i++)
+	{
+		numCISC[i] = 0;
+	}
 
 	PIN_AddThreadStartFunction(ThreadStart, 0);
 

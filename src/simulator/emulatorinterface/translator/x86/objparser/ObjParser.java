@@ -354,12 +354,15 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 	
-	private static void removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer) {
+	private static boolean removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer) {
 		
 		Instruction removedInstruction;
+		boolean foundThisCISC = false;
+		
 		while( (inputToPipeline.isEmpty()== false) &&
 			(inputToPipeline.peek(inputToPipeline.size()-1).getCISCProgramCounter()==instructionPointer))
 		{
+			foundThisCISC = true;
 			removedInstruction = inputToPipeline.pop();
 			try {
 				Newmain.instructionPool.returnObject(removedInstruction);
@@ -367,12 +370,20 @@ public class ObjParser
 				e.printStackTrace();
 			}
 		}
+		
+		return foundThisCISC;
 	}
 
-	public static void translateInstruction(
+	/*
+	 * This function fuses the statically translated micro-ops with the information received from the emulator.
+	 * New micro-ops are added to the circular buffer(argument). Finally it returns the number of CISC instructions it could 
+	 * translate.
+	 */
+	public static int translateInstruction(
 			long startInstructionPointer,
 			DynamicInstructionBuffer dynamicInstructionBuffer, GenericCircularQueue<Instruction> inputToPipeline)
 	{
+		int numCISC = 0;
 		int microOpIndex;
 
 //		dynamicInstructionBuffer.printBuffer();
@@ -390,7 +401,7 @@ public class ObjParser
 				 * buffer since it would not be worth the extra effort for such a small window of
 				 * instructions */
 				dynamicInstructionBuffer.clearBuffer();
-				return;
+				return numCISC;
 			}
 			
 			else if(instructionArrayList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
@@ -402,7 +413,7 @@ public class ObjParser
 				dynamicInstructionBuffer.gobbleInstruction(startInstructionPointer);
 				
 				// go to the next microOpIndex and set startInstructionPointer = microOps ip.
-				microOpIndex++;
+				//FIXME : Why was this required ?? -> microOpIndex++;
 				startInstructionPointer = instructionArrayList.get(microOpIndex).getCISCProgramCounter();
 			}
 			
@@ -412,48 +423,60 @@ public class ObjParser
 			}
 		}
 
-		Instruction microOperation;
+		Instruction instruction;
 		VisaHandler visaHandler;
 		int microOpIndexBefore;
+		long previousCISCIP;
+		
+		
+		// starting
+		previousCISCIP = -1;
 		
 		// main translate loop.
 		while(true)
 		{
-			microOperation = instructionArrayList.get(microOpIndex); 
-			if(microOperation==null)
-			{break;}
+			instruction = instructionArrayList.get(microOpIndex); 
+			if(instruction==null) {
+				break;
+			}
 			
-			visaHandler = VisaHandlerSelector.selectHandler(microOperation.getOperationType());
+			visaHandler = VisaHandlerSelector.selectHandler(instruction.getOperationType());
 			
 			microOpIndexBefore = microOpIndex;     //store microOpIndex
-			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, microOperation, dynamicInstructionBuffer); //handle
-			//Instruction newInstruction=new Instruction(instructionArrayList.get(microOpIndexBefore));
-			Instruction newInstruction = null;
-			try {
-				newInstruction = Newmain.instructionPool.borrowObject();
-			} catch (Exception e) {
-				//TODO what if there are no more objects in the pool??
-				e.printStackTrace();
-			}
-			newInstruction.copy(instructionArrayList.get(microOpIndexBefore));
-			inputToPipeline.enqueue(newInstruction); //append microOp
+			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, instruction, dynamicInstructionBuffer); //handle
 			
-			if(microOpIndex != -1)
-			{
-//				System.out.print("microOp(" + microOpIndex + ") : " + microOp + "\n");
-			}
-			else
-			{
-				removeInstructionFromTail(inputToPipeline, 
-						instructionArrayList.get(microOpIndexBefore).getCISCProgramCounter());
+			if(microOpIndex==-1) {
+				// I was unable to fuse certain micro-ops of this instruction. So, I must remove any previously 
+				// computed micro-ops from the buffer
+				if(removeInstructionFromTail(inputToPipeline, instruction.getCISCProgramCounter())==true) {
+					numCISC--;
+				}
 				break;
+			} else {
+				
+				if(instruction.getCISCProgramCounter()!=previousCISCIP) {
+					previousCISCIP = instruction.getCISCProgramCounter();
+					numCISC++;
+				}
+				
+				Instruction newInstruction = null;
+				try {
+					newInstruction = Newmain.instructionPool.borrowObject();
+				} catch (Exception e) {
+					//TODO what if there are no more objects in the pool??
+					System.err.println("Instruction pool is empty !!");
+					e.printStackTrace();
+					System.exit(1);
+				}
+				
+				newInstruction.copy(instructionArrayList.get(microOpIndexBefore));
+				inputToPipeline.enqueue(newInstruction); //append microOp
 			}
 		}
 		
 		/* clear the dynamicInstructionBuffer */		
 		dynamicInstructionBuffer.clearBuffer();
-		
-//		instructionLinkedList.printList();
-		return;
+		//System.out.println(inputToPipeline);
+		return numCISC;
 	}
 }

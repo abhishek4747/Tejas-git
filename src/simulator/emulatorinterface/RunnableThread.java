@@ -462,10 +462,10 @@ public class RunnableThread implements Encoding {
 		if (pnew.ip == thread.pold.ip && !(pnew.value>6 && pnew.value<26)) {
 			thread.packets.add(pnew);
 		} else {
-			(numInstructions[tidEmu])++;
+			//(numInstructions[tidEmu])++;
 			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
 			int oldLength = inputToPipeline[tidEmu].size();
-			ObjParser.translateInstruction(thread.packets.get(0).ip, 
+			numInstructions[tidEmu] += ObjParser.translateInstruction(thread.packets.get(0).ip, 
 					dynamicInstructionBuffer[tidEmu], this.inputToPipeline[tidEmu]);
 			int newLength = inputToPipeline[tidEmu].size();
 			
