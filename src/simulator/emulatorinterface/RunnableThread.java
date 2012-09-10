@@ -516,12 +516,12 @@ public class RunnableThread implements Encoding {
 			
 /*				if (currentEMUTHREADS>1)
 				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
-*/				
+				
 				long temp=noOfMicroOps[tidEmu] % 100000;
 				if(temp < 5  && tempList.getListSize() > 0) {
 					System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 				}
-	
+*/	
 
 			thread.pold = pnew;
 			thread.packets.clear();
@@ -536,12 +536,12 @@ public class RunnableThread implements Encoding {
 	}
 
 	private void resumeSleep(ResumeSleep update) {
-		for (int i=0; i<update.getNumResumers(); i++) {
+/*		for (int i=0; i<update.getNumResumers(); i++) {
 			//never used ... resuming handled within pipeline exec
 //			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
 			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
 		}
-		for (int i=0; i<update.getNumSleepers(); i++) {
+*/		for (int i=0; i<update.getNumSleepers(); i++) {
 			Instruction ins = new Instruction(OperationType.sync,null, null, null);
 			ins.setRISCProgramCounter(update.barrierAddress);
 //			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));

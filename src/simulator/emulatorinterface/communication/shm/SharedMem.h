@@ -48,9 +48,9 @@ JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmrea
 /*
  * Class:     emulatorinterface_communication_shm_SharedMem
  * Method:    shmreadvalue
- * Signature: (IJI)I
+ * Signature: (IJI)J
  */
-JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
+JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
   (JNIEnv *, jclass, jint, jlong, jint);
 
 /*

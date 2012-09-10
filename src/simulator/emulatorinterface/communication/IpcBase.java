@@ -78,12 +78,12 @@ public abstract class IpcBase {
 	// fetch one packet for tidApp from index
 	public abstract Packet fetchOnePacket(int tidApp, int index );
 
-	public abstract int update(int tidApp, int numReads);
+	public abstract long update(int tidApp, int numReads);
 	// The main thread waits for the finish of reader threads and returns total number of 
 	// instructions read
 
 	// return the total packets produced by PIN till now
-	public abstract int totalProduced(int tidApp);
+	public abstract long totalProduced(int tidApp);
 
 	public long doExpectedWaitForSelf() throws InterruptedException{
 		
@@ -134,7 +134,7 @@ public abstract class IpcBase {
 
 	public static int getEmuThreadsPerJavaThread()
 	{
-		return IpcBase.EmuThreadsPerJavaThread/13;
+		return IpcBase.EmuThreadsPerJavaThread/30;
 	}
 	
 	public static int getEmuThreadsPerJavaThread_Acutal()
