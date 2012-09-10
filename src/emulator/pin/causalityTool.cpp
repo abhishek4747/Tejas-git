@@ -109,7 +109,7 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 //	printf("thread %d finished exec\n",tid);
 //	fflush(stdout);
 	GetLock(&lock, tid + 1);
-	while (tst->onThread_finish(tid) == -1) {
+	while (tst->onThread_finish(tid, numCISC[tid]) == -1) {
 			PIN_Yield();
 	}
 	livethreads--;
@@ -315,16 +315,34 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
         }
 }
 
+VOID printip(THREADID tid, VOID *ip) {
+	numCISC[tid]++;
+	return;
+
+//	if(numCISC[tid] % 1000 == 0)
+//	{
+//		printf("numCISC on thread %d = %lu\n", tid, numCISC[tid]);
+//		fflush(stdout);
+//	}
+//
+//	// ---------------------------
+//	static FILE* ciscIPFile = NULL;
+//	if(ciscIPFile==NULL) {
+//		ciscIPFile = fopen("/mnt/srishtistr0/home/raj/workspace/Tejas-Base-2/pin.ciscIP", "w");
+//	}
+//
+//	fprintf(ciscIPFile, "%p\n", ip);
+//	fflush(ciscIPFile);
+//	// ---------------------------
+}
+
+
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v) {
-	UINT32 memOperands = INS_MemoryOperandCount(ins);
 
-	numCISC[IARG_THREAD_ID]++;
-	if(numCISC[IARG_THREAD_ID]%1000 == 0)
-	{
-		printf("numCISC on thread %d = %lu\n", IARG_THREAD_ID, numCISC[IARG_THREAD_ID]);
-		fflush(stdout);
-	}
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_THREAD_ID, IARG_INST_PTR, IARG_END);
+
+	UINT32 memOperands = INS_MemoryOperandCount(ins);
 
 	if (INS_IsBranchOrCall(ins))//INS_IsIndirectBranchOrCall(ins))
 	{

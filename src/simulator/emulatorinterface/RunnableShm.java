@@ -12,6 +12,7 @@ import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.SharedMem;
 import generic.Core;
+import generic.Statistics;
 
 public class RunnableShm extends RunnableThread implements Runnable {
 
@@ -158,6 +159,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {        //check for last packet
+					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmu);
 					thread.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
 					signalFinish(tidApp);
 				}

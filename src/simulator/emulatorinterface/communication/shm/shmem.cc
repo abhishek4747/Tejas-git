@@ -121,7 +121,7 @@ Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 	// if my local queue is full, I should write to the shared memory and return if cannot return
 	// write immediately, so that PIN can yield this thread.
 	if (myData->tlqsize == locQ) {
-		if (Shm::shmwrite(actual_tid,0)==-1) return -1;
+		if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
 	}
 
 	// log the packet in my local queue
@@ -162,7 +162,7 @@ Shm::onThread_start (int tid)
 }
 
 int
-Shm::onThread_finish (int tid)
+Shm::onThread_finish (int tid, long numCISC)
 {
 	int actual_tid = tid;
 	tid = memMapping[tid];   //find the mapped mem segment
@@ -171,20 +171,21 @@ Shm::onThread_finish (int tid)
 
 	// keep writing till we empty our local queue
 	while (myData->tlqsize !=0) {
-		if (Shm::shmwrite(actual_tid,0)==-1) return -1;
+		if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
 	}
 	myData->avail = 1;
 
 	// last write to our shared memory. This time write a -1 in the 'value' field of the packet
-	return Shm::shmwrite(actual_tid,1);
+	return Shm::shmwrite(actual_tid,1, numCISC);
 }
 
 /* Read at 'out' of a local queue and write as many slots available in
  * shared memory. If none available then block
  * If last is 0 then normal write and if last is 1 then write -1 at the end
+ * The numCISC's value is valid only if this is the last packet
  */
 int
-Shm::shmwrite (int tid, int last)
+Shm::shmwrite (int tid, int last, long numCISC)
 {
 	tid = memMapping[tid];
 	int queue_size;
@@ -219,6 +220,7 @@ Shm::shmwrite (int tid, int last)
 	else {
 		numWrite = 1;
 		shmem[myData->prod_ptr % COUNT].value = -1;
+		shmem[myData->prod_ptr % COUNT].ip = numCISC;
 	}
 
 	// some bookkeeping of the threads state.

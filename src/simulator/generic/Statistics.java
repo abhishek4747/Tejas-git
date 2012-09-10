@@ -50,7 +50,8 @@ public class Statistics {
 	//Translator Statistics
 	
 	static long dataRead[];
-	static long numInstructions[][];
+	static long numHandledCISCInsn[][];
+	static long numPINCISCInsn[][];
 	static long noOfMicroOps[][];
 	static double staticCoverage;
 	static double dynamicCoverage;
@@ -62,9 +63,12 @@ public class Statistics {
 			for (int j=0; j<IpcBase.getEmuThreadsPerJavaThread(); j++) {
 				totalNumMicroOps += noOfMicroOps[i][j];
 //				totalNumMicroOps += numCoreInstructions[i];
-				totalNumInstructions += numInstructions[i][j];
+				totalHandledCISCInsn += numHandledCISCInsn[i][j];
+				totalPINCISCInsn += numPINCISCInsn[i][j];
 			}
 		}
+		
+		dynamicCoverage = ((double)totalHandledCISCInsn/(double)totalPINCISCInsn)*(double)100.0;
 		
 		//for each java thread, print number of instructions provided by PIN and number of instructions forwarded to the pipeline
 		try
@@ -77,14 +81,15 @@ public class Statistics {
 			{
 				outputFileWriter.write("Java thread\t=\t" + i + "\n");
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
-				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numInstructions[i] + "\n");
+				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numHandledCISCInsn[i] + "\n");
 				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
 //				outputFileWriter.write("MicroOps/CISC = " + 
 //						((double)(numInstructions[i]))/((double)(noOfMicroOps[i])) + "\n");
 				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("Number of micro-ops\t\t=\t" + totalNumMicroOps + "\n");
-			outputFileWriter.write("Number of CISC instructions\t=\t" + totalNumInstructions + "\n");
+			outputFileWriter.write("Number of handled CISC instructions\t=\t" + totalHandledCISCInsn + "\n");
+			outputFileWriter.write("Number of PIN CISC instructions\t=\t" + totalPINCISCInsn + "\n");
 			
 			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + " %\n");
 			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage + " %\n");
@@ -105,7 +110,8 @@ public class Statistics {
 	static long branchCount[];
 	static long mispredictedBranchCount[];
 	static long totalNumMicroOps = 0;
-	static long totalNumInstructions = 0;
+	static long totalHandledCISCInsn = 0;
+	static long totalPINCISCInsn = 0;
 	static Counters powerCounters[];
 	
 	public static void printTimingStatistics()
@@ -130,7 +136,7 @@ public class Statistics {
 			//outputFileWriter.write("\n");
 			outputFileWriter.write("Total Cycles taken\t\t=\t" + maxCoreCycles + "\n\n");
 			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumMicroOps/maxCoreCycles + "\t\tin terms of micro-ops\n");
-			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumInstructions/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
+			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalHandledCISCInsn/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
 			
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
@@ -143,7 +149,7 @@ public class Statistics {
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
 				//FIXME will work only if java thread is 1
 				outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[0][i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)numInstructions[0][i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				outputFileWriter.write("IPC\t\t=\t" + (double)numHandledCISCInsn[0][i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
 				
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
 				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
@@ -503,12 +509,12 @@ System.out.println("execution time = "+executionTime);
 			if(subsetTime != 0)
 			{
 				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/subsetTime + " KIPS\t\tin terms of micro-ops\n");
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumInstructions/subsetTime + " KIPS\t\tin terms of CISC instructions\n");
+				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalHandledCISCInsn/subsetTime + " KIPS\t\tin terms of CISC instructions\n");
 			}
 			else
 			{
 				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/time + " KIPS\t\tin terms of micro-ops\n");
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumInstructions/time + " KIPS\t\tin terms of CISC instructions\n");
+				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalHandledCISCInsn/time + " KIPS\t\tin terms of CISC instructions\n");
 			}
 			outputFileWriter.write("\n");
 		}
@@ -524,7 +530,8 @@ System.out.println("execution time = "+executionTime);
 	public static void initStatistics()
 	{		
 		dataRead = new long[IpcBase.MaxNumJavaThreads];
-		numInstructions = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
+		numHandledCISCInsn = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
+		numPINCISCInsn = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
 		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
@@ -631,8 +638,16 @@ System.out.println("execution time = "+executionTime);
 		Statistics.dataRead[thread] = dataRead;
 	}
 
-	public static void setNumInstructions(long numInstructions[], int thread) {
-		Statistics.numInstructions[thread] = numInstructions;
+	public static long getNumHandledCISCInsn(int javaThread, int emuThread) {
+		return Statistics.numHandledCISCInsn[javaThread][emuThread];
+	}
+
+	public static void setNumHandledCISCInsn(long numInstructions, int javaThread, int emuThread) {
+		Statistics.numHandledCISCInsn[javaThread][emuThread] = numInstructions;
+	}
+	
+	public static void setNumPINCISCInsn(long numInstructions, int javaThread, int emuThread) {
+		Statistics.numPINCISCInsn[javaThread][emuThread] = numInstructions;
 	}
 
 	public static void setNoOfMicroOps(long noOfMicroOps[], int thread) {
@@ -643,10 +658,6 @@ System.out.println("execution time = "+executionTime);
 		Statistics.staticCoverage = staticCoverage;
 	}
 	
-	public static void setDynamicCoverage(double dynamicCoverage) {
-		Statistics.dynamicCoverage = dynamicCoverage;
-	}
-
 	public static void setCoreCyclesTaken(long coreCyclesTaken, int core) {
 		Statistics.coreCyclesTaken[core] = coreCyclesTaken;
 	}

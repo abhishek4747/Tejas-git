@@ -67,7 +67,7 @@ public class RunnableThread implements Encoding {
 	int[] decodeWidth;
 	int[] stepSize;
 	static long[] noOfMicroOps;
-	long[] numInstructions;
+	//long[] numInstructions;
 	//FIXME PipelineInterface should be in IpcBase and not here as pipelines from other RunnableThreads
 	// will need to interact.
 	PipelineInterface[] pipelineInterfaces;
@@ -101,7 +101,7 @@ public class RunnableThread implements Encoding {
 		decodeWidth = new int[EMUTHREADS];
 		stepSize = new int[EMUTHREADS];
 		noOfMicroOps = new long[EMUTHREADS];
-		numInstructions = new long[EMUTHREADS];
+		//numInstructions = new long[EMUTHREADS];
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
 		for(int i = 0; i < EMUTHREADS; i++)
 		{
@@ -359,11 +359,11 @@ public class RunnableThread implements Encoding {
 		for (int i = 0; i < EMUTHREADS; i++) {
 			totMicroOps += noOfMicroOps[i];
 			dataRead += threadParams[i].totalRead;
-			totNumIns += numInstructions[i];
+			//totNumIns += numInstructions[i];
 		}
 		long timeTaken = System.currentTimeMillis() - Newmain.start;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
-				+ " instructions-" + numInstructions[tid] 
+				//+ " instructions-" + numInstructions[tid] 
 				                                     +" microOps  "+totMicroOps
 				                                     +" MBPS-" + (double) (dataRead * 24)
 				                                     / (double) timeTaken / 1000.0 +" time-"
@@ -381,7 +381,7 @@ public class RunnableThread implements Encoding {
 			}
 		}
 		Statistics.setDataRead(dataRead, tid);
-		Statistics.setNumInstructions(numInstructions, tid);
+		//Statistics.setNumHandledCISCInsn(numInstructions, 0, tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
 
 		
@@ -465,8 +465,12 @@ public class RunnableThread implements Encoding {
 			//(numInstructions[tidEmu])++;
 			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
 			int oldLength = inputToPipeline[tidEmu].size();
-			numInstructions[tidEmu] += ObjParser.translateInstruction(thread.packets.get(0).ip, 
+			long numHandledInsn = ObjParser.fuseInstruction(thread.packets.get(0).ip, 
 					dynamicInstructionBuffer[tidEmu], this.inputToPipeline[tidEmu]);
+			Statistics.setNumHandledCISCInsn(
+									Statistics.getNumHandledCISCInsn(0, tidEmu) + numHandledInsn,
+									0,
+									tidEmu);
 			int newLength = inputToPipeline[tidEmu].size();
 			
 			if (ignoredInstructions < SimulationConfig.NumInsToIgnore)

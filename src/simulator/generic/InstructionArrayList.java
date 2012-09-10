@@ -29,9 +29,9 @@ public class InstructionArrayList
 	//SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
-	public InstructionArrayList()
+	public InstructionArrayList(int initSize)
 	{
-		instructionArrayList = new ArrayList<Instruction>();
+		instructionArrayList = new ArrayList<Instruction>(initSize);
 		//syncObject = new SynchronizationObject();
 		//syncObject2 = new SynchronizationObject();
 	}

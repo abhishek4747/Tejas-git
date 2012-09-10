@@ -34,10 +34,11 @@ import emulatorinterface.translator.x86.registers.Registers;
 import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionArrayList;
-import generic.InstructionLinkedList;
 import generic.InstructionTable;
 import generic.Operand;
 import generic.PartialDecodedInstruction;
+import generic.Statistics;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -59,14 +60,8 @@ import misc.Numbers;
  */
 public class ObjParser 
 {
-	public static long staticHandled = 0;
-	public static long staticNotHandled = 0;
-	
-	public static long dynamicHandled = 0;
-	public static long dynamicNotHandled = 0;
-	
-	private static InstructionTable instructionTable = null;
-	private static InstructionArrayList instructionArrayList = null;
+	private static InstructionTable ciscIPtoRiscIP = null;
+	private static InstructionArrayList staticMicroOpList = null;
 	
 	/**
 	* This method translates a static instruction to dynamic instruction.
@@ -88,7 +83,7 @@ public class ObjParser
 		input = readObjDumpOutput(executableFile);
 
 		// Create a new hash table
-		instructionTable = new InstructionTable();
+		ciscIPtoRiscIP = new InstructionTable();
 
 		// Create a instruction class hash-table
 		InstructionClassTable instructionClassTable;
@@ -100,16 +95,15 @@ public class ObjParser
 		String operation;
 		String operand1, operand2, operand3;
 		
-		instructionArrayList = new InstructionArrayList();
+		staticMicroOpList = new InstructionArrayList(1000000);
 		
-		long lineNumber = 0;
 		int microOpsIndex = 0;
+		
+		long handled = 0, notHandled = 0;
 		
 		// Read from the obj-dump output
 		while ((line = readNextLineOfObjDump(input)) != null) 
 		{
-			lineNumber++;
-
 			if (!(isContainingAssemblyCode(line)))
 				continue;
 
@@ -138,22 +132,26 @@ public class ObjParser
 			
 
 			// Riscify current instruction
+			int microOpsIndexBefore = microOpsIndex;
 			microOpsIndex = riscifyInstruction( instructionPointer, 
 					instructionPrefix, operation, 
 					operand1, operand2, operand3, 
-					instructionClassTable, instructionArrayList);
+					instructionClassTable, staticMicroOpList);
+			if(microOpsIndexBefore==microOpsIndex) {
+				notHandled++;
+			} else {
+				handled++;
+			}
 
 			// add instruction's index into the hash-table
-			instructionTable.addInstruction(instructionPointer, microOpsIndex);
+			ciscIPtoRiscIP.addInstruction(instructionPointer, microOpsIndex);
 		}
 
 		// close the buffered reader
 		try {input.close();}
 		catch (IOException ioe) {Error.showErrorAndExit("\n\tError in closing the buffered reader !!");}
-		
-		//System.out.print("\n\tProgram statically parsed.\n");
-		//System.out.print("\n\tIts microOps list ...\n");
-		//instructionArrayList.printList();
+
+		Statistics.setStaticCoverage(((double)handled/(double)(handled+notHandled))*(double)100);
 	}
 
 	private static int riscifyInstruction(
@@ -379,20 +377,17 @@ public class ObjParser
 	 * New micro-ops are added to the circular buffer(argument). Finally it returns the number of CISC instructions it could 
 	 * translate.
 	 */
-	public static int translateInstruction(
+	public static int fuseInstruction(
 			long startInstructionPointer,
 			DynamicInstructionBuffer dynamicInstructionBuffer, GenericCircularQueue<Instruction> inputToPipeline)
 	{
 		int numCISC = 0;
 		int microOpIndex;
-
-//		dynamicInstructionBuffer.printBuffer();
-//		System.out.print("\tEntered translate instruction @ ip = " + Long.toHexString(startInstructionPointer) + "\n");
 		
 		// traverse dynamicInstruction Buffer to go to a known instruction
 		while(true)
 		{
-			microOpIndex = instructionTable.getMicroOpIndex(startInstructionPointer);
+			microOpIndex = ciscIPtoRiscIP.getMicroOpIndex(startInstructionPointer);
 			
 			if(microOpIndex==-1)
 			{
@@ -404,7 +399,7 @@ public class ObjParser
 				return numCISC;
 			}
 			
-			else if(instructionArrayList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
+			else if(staticMicroOpList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
 			{
 				/* The startInstructionPointer was part of the executable file and hence is present in
 				 * the hashTable. However, it has not been decoded yet. So, we gobble all the branch,
@@ -414,7 +409,7 @@ public class ObjParser
 				
 				// go to the next microOpIndex and set startInstructionPointer = microOps ip.
 				//FIXME : Why was this required ?? -> microOpIndex++;
-				startInstructionPointer = instructionArrayList.get(microOpIndex).getCISCProgramCounter();
+				startInstructionPointer = staticMicroOpList.get(microOpIndex).getCISCProgramCounter();
 			}
 			
 			else
@@ -423,9 +418,8 @@ public class ObjParser
 			}
 		}
 
-		Instruction instruction;
+		Instruction staticMicroOp;
 		VisaHandler visaHandler;
-		int microOpIndexBefore;
 		long previousCISCIP;
 		
 		
@@ -435,42 +429,43 @@ public class ObjParser
 		// main translate loop.
 		while(true)
 		{
-			instruction = instructionArrayList.get(microOpIndex); 
-			if(instruction==null) {
+			staticMicroOp = staticMicroOpList.get(microOpIndex); 
+			if(staticMicroOp==null) {
 				break;
 			}
 			
-			visaHandler = VisaHandlerSelector.selectHandler(instruction.getOperationType());
+			visaHandler = VisaHandlerSelector.selectHandler(staticMicroOp.getOperationType());
 			
-			microOpIndexBefore = microOpIndex;     //store microOpIndex
-			microOpIndex = visaHandler.handle(microOpIndex, instructionTable, instruction, dynamicInstructionBuffer); //handle
+			Instruction dynamicMicroOp = null;
+			try {
+				dynamicMicroOp = Newmain.instructionPool.borrowObject();
+			} catch (Exception e) {
+				//TODO what if there are no more objects in the pool??
+				System.err.println("Instruction pool is empty !!");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			
+			dynamicMicroOp.copy(staticMicroOpList.get(microOpIndex));
+			microOpIndex = visaHandler.handle(microOpIndex, ciscIPtoRiscIP, dynamicMicroOp, dynamicInstructionBuffer); //handle
 			
 			if(microOpIndex==-1) {
 				// I was unable to fuse certain micro-ops of this instruction. So, I must remove any previously 
 				// computed micro-ops from the buffer
-				if(removeInstructionFromTail(inputToPipeline, instruction.getCISCProgramCounter())==true) {
+				Newmain.instructionPool.returnObject(dynamicMicroOp);
+				if(removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter())==true) {
 					numCISC--;
 				}
 				break;
 			} else {
 				
-				if(instruction.getCISCProgramCounter()!=previousCISCIP) {
-					previousCISCIP = instruction.getCISCProgramCounter();
+				if(staticMicroOp.getCISCProgramCounter()!=previousCISCIP) {
+					previousCISCIP = staticMicroOp.getCISCProgramCounter();
+					//System.out.println("#### "+ Long.toHexString(previousCISCIP));
 					numCISC++;
 				}
 				
-				Instruction newInstruction = null;
-				try {
-					newInstruction = Newmain.instructionPool.borrowObject();
-				} catch (Exception e) {
-					//TODO what if there are no more objects in the pool??
-					System.err.println("Instruction pool is empty !!");
-					e.printStackTrace();
-					System.exit(1);
-				}
-				
-				newInstruction.copy(instructionArrayList.get(microOpIndexBefore));
-				inputToPipeline.enqueue(newInstruction); //append microOp
+				inputToPipeline.enqueue(dynamicMicroOp); //append microOp
 			}
 		}
 		

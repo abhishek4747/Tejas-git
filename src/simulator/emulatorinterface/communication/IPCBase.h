@@ -33,7 +33,7 @@ public:
 	virtual void onThread_start (int tid)=0;
 
 	// Things to be done when a thread is finished in PIN/ application
-	virtual int onThread_finish (int tid)=0;
+	virtual int onThread_finish (int tid, long numCISC)=0;
 
 	// Deallocate any memory, delete any buffers, shared memory, semaphores
 	virtual bool unload ()=0;
