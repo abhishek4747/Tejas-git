@@ -433,7 +433,7 @@ public class RunnableThread implements Encoding {
 		if(pnew.value == BARRIERINIT)  //for barrier initialization
 		{
 		
-//			System.out.println("Packet is " + pnew.toString());
+			System.out.println("Packet is " + pnew.toString());
 			BarrierTable.barrierListAdd(pnew);
 			return;
 		}

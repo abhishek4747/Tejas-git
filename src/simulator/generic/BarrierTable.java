@@ -15,12 +15,20 @@ public class BarrierTable {
 	public static void barrierListAdd(Packet packet){
 		Barrier barrier = new Barrier(packet.tgt, (int) packet.ip);
 		while(BarrierTable.barrierList.get(packet.tgt) != null){  //checking for re initialization
-//			System.err.println("Barrier reinit");
-//			System.exit(0);
+			if(BarrierTable.barrierList.get(packet.tgt).getNumThreadsArrived() == 0){
+				barrierList.remove(packet.tgt);
+				barrierList.put(packet.tgt, barrier);
+				System.out.println("barrier is already present");
+				return;
+			}
 			packet.tgt++;
 		}
-//		System.out.println("It is the barrier init id: " + packet.ip + " add :"+ packet.tgt );
 		barrierList.put(packet.tgt, barrier);
+	}
+	public static void barrierReset(long add){
+		Barrier bar = barrierList.remove(add);
+		bar.resetBarrier();
+		barrierList.put(add, bar);
 	}
 
 }
