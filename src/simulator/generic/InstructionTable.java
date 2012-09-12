@@ -29,9 +29,9 @@ public class InstructionTable
 {
 	private Hashtable<Long, Integer> instructionHashTable;
 
-	public InstructionTable()
+	public InstructionTable(int n)
 	{
-		this.instructionHashTable = new Hashtable<Long, Integer>(); 
+		this.instructionHashTable = new Hashtable<Long, Integer>(n); 
 	}
 	
 	public void addInstruction(Long instructionPointer, int index)

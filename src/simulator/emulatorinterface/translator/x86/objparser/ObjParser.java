@@ -40,6 +40,7 @@ import generic.PartialDecodedInstruction;
 import generic.Statistics;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
@@ -78,12 +79,14 @@ public class ObjParser
 	public static void buildStaticInstructionTable(String executableFile) 
 	{
 		BufferedReader input;
+		
+		long noOfLines = noOfLines(executableFile);
 
 		// Read the assembly code from the program using object-dump utility
 		input = readObjDumpOutput(executableFile);
 
 		// Create a new hash table
-		ciscIPtoRiscIP = new InstructionTable();
+		ciscIPtoRiscIP = new InstructionTable((int)noOfLines);
 
 		// Create a instruction class hash-table
 		InstructionClassTable instructionClassTable;
@@ -95,7 +98,7 @@ public class ObjParser
 		String operation;
 		String operand1, operand2, operand3;
 		
-		staticMicroOpList = new InstructionArrayList(1000000);
+		staticMicroOpList = new InstructionArrayList((int)noOfLines);
 		
 		int microOpsIndex = 0;
 		
@@ -161,10 +164,6 @@ public class ObjParser
 	{
 		int microOpsIndexBefore = instructionArrayList.length();
 		
-		if(instructionPointer==4195569) {
-			System.out.println("4195569");
-		}
-		
 		try
 		{
 			//Determine the instruction class for this instruction
@@ -206,9 +205,9 @@ public class ObjParser
 			 * complete its execution.
 			 */
 			
-			System.err.print("Unable to riscify instruction : ");
-			System.err.println("ip="+instructionPointer+"\toperation="+operation+"\top1="
-					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
+//			System.err.print("Unable to riscify instruction : ");
+//			System.err.println("ip="+instructionPointer+"\toperation="+operation+"\top1="
+//					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
 			
 			
 			while(instructionArrayList.getListSize()
@@ -255,6 +254,25 @@ public class ObjParser
 		}
 
 		return input;
+	}
+	
+	// Counts number of lines in a file.
+	private static long noOfLines(String executableFileName) {
+		long count = 0;
+		BufferedReader input = null;
+
+		try {
+			// read the output of the process in a buffered reader
+			input = new BufferedReader(new FileReader(executableFileName));
+			while(input.readLine()!=null) {
+				count++;
+			}
+			input.close();
+		} catch (IOException ioe) {
+			Error.showErrorAndExit("\n\tError in opening executable file !!");
+		}
+
+		return count;
 	}
 
 
