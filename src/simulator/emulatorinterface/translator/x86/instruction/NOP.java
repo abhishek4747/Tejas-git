@@ -33,13 +33,15 @@ public class NOP implements InstructionHandler
 			InstructionArrayList instructionArrayList) 
 					throws InvalidInstructionException
 	{
-		if(operand1==null && operand2==null && operand3==null)
-		{
-			instructionArrayList.appendInstruction(Instruction.getNOPInstruction());
-		}
-		else
-		{
-			misc.Error.invalidOperation("NOP", operand1, operand2, operand3);
-		}
+		instructionArrayList.appendInstruction(Instruction.getNOPInstruction());
+		
+//		if(operand1==null && operand2==null && operand3==null)
+//		{
+//			instructionArrayList.appendInstruction(Instruction.getNOPInstruction());
+//		}
+//		else
+//		{
+//			misc.Error.invalidOperation("NOP", operand1, operand2, operand3);
+//		}
 	}
 }

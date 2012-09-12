@@ -206,10 +206,18 @@ public class Newmain {
 		// Creating command for PIN tool.
 		String cmd;
 		
-		cmd = SimulationConfig.PinTool + "/pin" + " -t " 
-						+ SimulationConfig.PinInstrumentor + " -map "
-						+ SimulationConfig.MapEmuCores + " -id " + pid + " -- ";
+		System.out.println("subset sim size = "  + SimulationConfig.subsetSimSize + "\t" + SimulationConfig.subsetSimulation);
+		
+		cmd = SimulationConfig.PinTool + "/pin" +
+						" -t " + SimulationConfig.PinInstrumentor +
+						" -map " + SimulationConfig.MapEmuCores +
+						" -numIgn " + SimulationConfig.NumInsToIgnore +
+						" -numSim " + SimulationConfig.subsetSimSize +
+						" -id " + pid +
+						" -- ";
 		cmd += executableArguments;
+		
+		System.out.println("cmd = " + cmd);
 
 		Process process = null;
 		try {

@@ -161,6 +161,10 @@ public class ObjParser
 	{
 		int microOpsIndexBefore = instructionArrayList.length();
 		
+		if(instructionPointer==4195569) {
+			System.out.println("4195569");
+		}
+		
 		try
 		{
 			//Determine the instruction class for this instruction
@@ -195,13 +199,18 @@ public class ObjParser
 				//FIXME : index in the array list - check ??
 				instructionArrayList.setRISCProgramCounter(i, i);
 			}
-		}catch(InvalidInstructionException inInstrEx)
-		{
+		} catch(InvalidInstructionException inInstrEx) {
 			/*
 			 * microOps created for this instruction are not valid 
 			 * since the translation of the instruction did not 
 			 * complete its execution.
 			 */
+			
+			System.err.print("Unable to riscify instruction : ");
+			System.err.println("ip="+instructionPointer+"\toperation="+operation+"\top1="
+					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
+			
+			
 			while(instructionArrayList.getListSize()
 					!=microOpsIndexBefore)
 			{
@@ -283,6 +292,14 @@ public class ObjParser
 		String operation;
 		String operand1, operand2, operand3;
 		String operands;
+		
+		// remove the suffix part of string 
+		if(line.indexOf("#")!=-1) {
+			line = line.substring(0, line.indexOf("#"));
+		}
+		
+		// remove the part of string enclosed in <...>
+		line.replaceAll("<.*>", "");
 
 		// Initialise all operands to null
 		operands = operand1 = operand2 = operand3 = null;

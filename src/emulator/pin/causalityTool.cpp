@@ -31,6 +31,8 @@ KNOB<UINT64>   KnobMap(KNOB_MODE_WRITEONCE,       "pintool",
     "map", "1", "Maps");
 KNOB<UINT64>   KnobIgnore(KNOB_MODE_WRITEONCE,       "pintool",
     "numIgn", "0", "Ignore these many profilable instructions");
+KNOB<INT64>   KnobSimulate(KNOB_MODE_WRITEONCE,       "pintool",
+    "numSim", "0", "Simulate these many profilable instructions (-1 if no subset simulation is desired)");
 KNOB<UINT64>   KnobId(KNOB_MODE_WRITEONCE,       "pintool",
     "id", "1", "shm id to generate key");
 
@@ -43,6 +45,7 @@ bool pumpingStatus[MaxThreads];
 ADDRINT curSynchVar[MaxThreads];
 static UINT64 numIns = 0;
 UINT64 numInsToIgnore = 0;
+INT64 numInsToSimulate = 0;
 BOOL ignoreActive = false;
 UINT64 numCISC[MaxThreads];
 
@@ -109,7 +112,7 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 //	printf("thread %d finished exec\n",tid);
 //	fflush(stdout);
 	GetLock(&lock, tid + 1);
-	while (tst->onThread_finish(tid, numCISC[tid]) == -1) {
+	while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
 			PIN_Yield();
 	}
 	livethreads--;
@@ -120,6 +123,9 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 //Pass a memory read record
 VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
 	if (!isActive(tid))
+		return;
+
+	if(ignoreActive)
 		return;
 
 	sendTimerPacket(tid,false);
@@ -140,6 +146,9 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 	if (!isActive(tid))
 		return;
 
+	if(ignoreActive)
+		return;
+
 	sendTimerPacket(tid,false);
 
 	GetLock(&lock, tid + 1);
@@ -155,6 +164,9 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 
 VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 	if (!isActive(tid))
+		return;
+
+	if(ignoreActive)
 		return;
 
 	sendTimerPacket(tid,false);
@@ -317,13 +329,55 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
 
 VOID printip(THREADID tid, VOID *ip) {
 	numCISC[tid]++;
-	return;
 
-//	if(numCISC[tid] % 1000 == 0)
-//	{
-//		printf("numCISC on thread %d = %lu\n", tid, numCISC[tid]);
-//		fflush(stdout);
-//	}
+	if(numCISC[tid] > numInsToIgnore)
+	{
+		if(numInsToSimulate < 0 ||
+			numCISC[tid] < numInsToIgnore + numInsToSimulate)
+		{
+			ignoreActive = false;
+		}
+		else
+		{
+			ignoreActive = true;
+		}
+	}
+	else
+	{
+		ignoreActive = true;
+	}
+
+	if(numInsToSimulate > 0 &&
+			numCISC[tid] > numInsToIgnore + numInsToSimulate)
+	{
+		GetLock(&lock, tid + 1);
+		printf("attempting to write -1\n");
+		while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
+				PIN_Yield();
+		}
+		printf("wrote -1\n");
+		livethreads--;
+		fflush(stdout);
+		ReleaseLock(&lock);
+
+		if(livethreads == 0)
+		{
+			printf("subset simulation complete\n");
+			for(int i = 0; i < MaxThreads; i++)
+			{
+				//printf("numCISC = %lu\n", numCISC[i]);
+			}
+			fflush(stdout);
+			tst->unload();
+			exit(0);
+		}
+	}
+
+	if(numCISC[tid] % 1000000 == 0)
+	{
+		printf("numCISC on thread %d = %lu, ignoreActive = %d\n", tid, numCISC[tid], ignoreActive);
+		fflush(stdout);
+	}
 //
 //	// ---------------------------
 //	static FILE* ciscIPFile = NULL;
@@ -442,9 +496,11 @@ INT32 Usage() {
 int main(int argc, char * argv[]) {
 
 	// Knobs get initialized only after initlializing PIN
-	numInsToIgnore = KnobIgnore;
-	if (numInsToIgnore>0) ignoreActive = true;
+
+	//if (numInsToIgnore>0)
+		ignoreActive = true;
 	UINT64 mask = KnobMap;
+
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
 	}
@@ -455,8 +511,12 @@ int main(int argc, char * argv[]) {
 		return Usage();
 
 	//tst = new IPC::Shm ();
+	numInsToIgnore = KnobIgnore;
+	numInsToSimulate = KnobSimulate;
 	UINT64 id = KnobId;
-	printf("id received = %lu", id);
+	printf("numIgn = %lu\n", numInsToIgnore);
+	printf("numSim = %ld\n", numInsToSimulate);
+	printf("id received = %lu\n", id);
 	tst = new IPC::Shm (id);
 
 	for(int i = 0; i < MaxThreads; i++)

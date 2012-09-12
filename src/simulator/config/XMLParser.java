@@ -161,11 +161,6 @@ private static void setSimulationParameters()
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
-		if(getImmediateString("subsetSim", simulationElmnt).equals("true"))
-		{
-			SimulationConfig.subsetSimulation = true;
-			SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
-		}
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
 			SimulationConfig.IndexAddrModeEnable = false;
@@ -233,10 +228,12 @@ private static void setSimulationParameters()
 				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
 		{
 			SimulationConfig.subsetSimulation = true;
+			SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
 		}
 		else
 		{
 			SimulationConfig.subsetSimulation = false;
+			SimulationConfig.subsetSimSize = -1;
 		}
 
 		if(getImmediateString("PrintPowerStats", simulationElmnt).compareTo("true") == 0 ||
@@ -249,7 +246,6 @@ private static void setSimulationParameters()
 			SimulationConfig.powerStats = false;
 		}
 		
-		SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
 		SimulationConfig.powerTrace = Integer.parseInt(getImmediateString("PowerTrace", simulationElmnt));
 		SimulationConfig.numInsForTrace = Long.parseLong(getImmediateString("NumInsForTrace", simulationElmnt));
 		SimulationConfig.numCyclesForTrace = Long.parseLong(getImmediateString("NumCyclesForTrace", simulationElmnt));

@@ -202,19 +202,19 @@ public class Registers
 		operandStr = operandStr.replaceAll("rcx|ecx|cx|ch|cl", "rcx");
 		operandStr = operandStr.replaceAll("rdx|edx|dx|dh|dl", "rdx");
 		
-		operandStr = operandStr.replaceAll("rsi|esi|si|sil", "rsi");
-		operandStr = operandStr.replaceAll("rdi|edi|di|dil", "rdi");
-		operandStr = operandStr.replaceAll("rbp|ebp|bp|bpl", "rbp");
-		operandStr = operandStr.replaceAll("rsp|esp|sp|spl", "rsp");
+		operandStr = operandStr.replaceAll("rsi|esi|sil|si", "rsi");
+		operandStr = operandStr.replaceAll("rdi|edi|dil|di", "rdi");
+		operandStr = operandStr.replaceAll("rbp|ebp|bpl|bp", "rbp");
+		operandStr = operandStr.replaceAll("rsp|esp|spl|sp", "rsp");
 		
-		operandStr = operandStr.replaceAll("r8|r8d|r8w|r8l", "r8");
-		operandStr = operandStr.replaceAll("r9|r9d|r9w|r9l", "r9");
-		operandStr = operandStr.replaceAll("r10|r10d|r10w|r10l", "r10");
-		operandStr = operandStr.replaceAll("r11|r11d|r11w|r11l", "r11");
-		operandStr = operandStr.replaceAll("r12|r12d|r12w|r10l", "r12");
-		operandStr = operandStr.replaceAll("r13|r13d|r13w|r10l", "r13");
-		operandStr = operandStr.replaceAll("r14|r14d|r14w|r10l", "r14");
-		operandStr = operandStr.replaceAll("r15|r15d|r15w|r10l", "r15");
+		operandStr = operandStr.replaceAll("r8b|r8d|r8w|r8l", "r8");
+		operandStr = operandStr.replaceAll("r9b|r9d|r9w|r9l", "r9");
+		operandStr = operandStr.replaceAll("r10b|r10d|r10w|r10l", "r10");
+		operandStr = operandStr.replaceAll("r11b|r11d|r11w|r11l", "r11");
+		operandStr = operandStr.replaceAll("r12b|r12d|r12w|r10l", "r12");
+		operandStr = operandStr.replaceAll("r13b|r13d|r13w|r10l", "r13");
+		operandStr = operandStr.replaceAll("r14b|r14d|r14w|r10l", "r14");
+		operandStr = operandStr.replaceAll("r15b|r15d|r15w|r10l", "r15");
 
 		operandStr = operandStr.replaceAll("eiz", "eiz");
 		return operandStr;

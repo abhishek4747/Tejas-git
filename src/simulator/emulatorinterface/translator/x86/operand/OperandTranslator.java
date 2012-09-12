@@ -40,19 +40,22 @@ public class OperandTranslator
 					throws InvalidInstructionException
 	{
 		//If there is no operand, then just don't process it. 
-		if(operandStr == null)
+		if(operandStr == null) {
 			return null;
+		}
 		
 		
 		//Replace all the occurrences of registers with the 64-bit register versions
-		if(operandStr!=null)
+		if(operandStr!=null) {
 			operandStr = Registers.coarsifyRegisters(operandStr);
+		}
 		
 		
 		//If operand is a valid number, then it is an immediate
-		if(Numbers.isValidNumber(operandStr))
+		if(Numbers.isValidNumber(operandStr)) 
 		{
-			return new Operand(OperandType.immediate, Numbers.hexToLong(operandStr));
+			//FIXME : We do not care about the actual value of the immediate operand 
+			return new Operand(OperandType.immediate, -1);
 		}
 		else if(Registers.isIntegerRegister(operandStr))
 		{
@@ -67,7 +70,7 @@ public class OperandTranslator
 			return Operand.getMachineSpecificRegister(Registers.encodeRegister(operandStr));
 		}
 		//Simplify memory locations specified by [...]
-		else if(operandStr.matches(".*\\[.*\\]"))
+		else if(operandStr.matches(".*\\[.*\\].*"))
 		{
 			//contains a memory location specified by the memory address
 			//Strip the string enclosed in square brackets

@@ -385,7 +385,7 @@ public class RunnableThread implements Encoding {
 		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
 
 		
-		if (SimulationConfig.subsetSimulation)
+		/*if (SimulationConfig.subsetSimulation)
 		{
 			Process process;
 			String cmd[] = {"/bin/sh",
@@ -403,7 +403,7 @@ public class RunnableThread implements Encoding {
 			{
 				e.printStackTrace();
 			}
-		}
+		}*/
 		
 		IpcBase.free.release();
 	}
@@ -473,9 +473,9 @@ public class RunnableThread implements Encoding {
 									tidEmu);
 			int newLength = inputToPipeline[tidEmu].size();
 			
-			if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
-				ignoredInstructions += newLength;
-			else
+	//		if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
+	//			ignoredInstructions += newLength;
+	//		else
 				noOfMicroOps[tidEmu] += newLength - oldLength;
 				
 			
@@ -525,21 +525,21 @@ public class RunnableThread implements Encoding {
 //					//Newmain.instructionPool.returnObject(tempList.pollFirst());
 //					tempList.peekInstructionAt(i).setSerialNo(noOfMicroOps[0]+i);
 //				}
-				if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
-				{
+	//			if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
+	//			{
 //					int coreId = threadCoreMaping.get(tidEmu);
 					if (!thread.halted && this.inputToPipeline[tidEmu].size() > INSTRUCTION_THRESHOLD) {
 						thread.halted = true;
 						//System.out.println("Halting "+tidEmu);
 					}	
-				}
-				else
-				{
-					while(this.inputToPipeline[tidEmu].size() > 0)
-					{
-						Newmain.instructionPool.returnObject(this.inputToPipeline[tidEmu].pollFirst());
-					}
-				}
+	//			}
+	//			else
+	//			{
+	//				while(this.inputToPipeline[tidEmu].size() > 0)
+	//				{
+	//					Newmain.instructionPool.returnObject(this.inputToPipeline[tidEmu].pollFirst());
+	//				}
+	//			}
 			
 /*				if (currentEMUTHREADS>1)
 				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");

@@ -97,13 +97,13 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				//subset simulation : 100M micro-ops
 				
 				
-				if((SimulationConfig.subsetSimulation && microOpsDone > SimulationConfig.subsetSimSize)
+				/*if((SimulationConfig.subsetSimulation && microOpsDone > SimulationConfig.subsetSimSize)
 						||
 						(SimulationConfig.writeToFile && microOpsDone > SimulationConfig.numInsForTrace+100000))
 				{
 					allover = true;
 					break;
-				}
+				}*/
 				/**** END ***/
 
 				// need to do this only the first time
@@ -159,6 +159,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {        //check for last packet
+					System.out.println("runnableshm : last packet received for thread " + tidApp);
 					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmu);
 					thread.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
 					signalFinish(tidApp);
