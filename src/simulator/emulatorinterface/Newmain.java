@@ -3,6 +3,8 @@ package emulatorinterface;
 
 import java.io.File;
 import java.util.Enumeration;
+
+import pipeline.inorder.InorderExecutionEngine;
 import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import memorysystem.nuca.NucaCache;
@@ -13,6 +15,7 @@ import memorysystem.MemorySystem;
 import misc.Error;
 import net.optical.TopLevelTokenBus;
 import config.SimulationConfig;
+import config.SystemConfig;
 import config.XMLParser;
 import emulatorinterface.communication.*;
 import emulatorinterface.communication.shm.SharedMem;
@@ -23,8 +26,10 @@ import generic.CustomInstructionPool;
 import generic.CustomOperandPool;
 import generic.EventQueue;
 import generic.GlobalClock;
+import generic.Instruction;
+import generic.Operand;
 import generic.Statistics;
-
+import java.util.*;
 public class Newmain {
 	public static long start, end;
 	public static Object syncObject = new Object();
@@ -140,6 +145,7 @@ public class Newmain {
 		long icount = ipcBase.doExpectedWaitForSelf();
 		if (SimulationConfig.Mode!=0) ipcBase.doWaitForPIN(process);
 		ipcBase.finish();
+		reportStatistics();
 		
 		//set memory statistics for levels L2 and below
 		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
@@ -192,6 +198,25 @@ public class Newmain {
 		
 		System.exit(0);
 		System.exit(0);
+	}
+
+	private static void reportStatistics() 
+	{
+		//calculate and report the static and dynamic coverage
+		double staticCoverage;
+		double dynamicCoverage;
+		
+		staticCoverage= (double)(ObjParser.staticHandled*100)/
+					(double)(ObjParser.staticHandled+ObjParser.staticNotHandled);
+
+		dynamicCoverage= (double)(ObjParser.dynamicHandled*100)/
+					(double)(ObjParser.dynamicHandled+ObjParser.dynamicNotHandled);
+		
+		System.out.print("\n\tStatic coverage = " + staticCoverage + " %");
+		System.out.print("\n\tDynamic coverage = " + dynamicCoverage + " %\n");
+		
+		Statistics.setStaticCoverage(staticCoverage);
+		Statistics.setDynamicCoverage(dynamicCoverage);
 	}
 
 	// TODO Must provide parameters to make from here

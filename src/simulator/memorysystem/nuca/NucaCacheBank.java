@@ -177,9 +177,9 @@ public class NucaCacheBank extends Cache
 		}
 
 		ArrayList<Event> outstandingRequestList = nucaCache.missStatusHoldingRegister.removeRequests(addr);
-		policy.sendResponseToWaitingEvent(outstandingRequestList, this, false);
 		nucaCache.misses += outstandingRequestList.size();			
 		nucaCache.noOfRequests += outstandingRequestList.size();
+		policy.sendResponseToWaitingEvent(outstandingRequestList, this, false);
 
 	}
 	
