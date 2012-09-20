@@ -20,11 +20,11 @@ public class Main {
 
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
-		
+	
+	private static long startTime, endTime;
+
 	public static void main(String[] arguments) throws Exception 
 	{
-		long startTime, endTime;
-
 		startTime = System.currentTimeMillis();
 
 		checkCommandLineArguments(arguments);
@@ -186,4 +186,21 @@ public class Main {
 			System.out.println("Time Taken\t=\t" + minutes + " : " + seconds + " minutes");
 			System.out.println("\n");
 	}
+	
+	public static long getStartTime() {
+		return startTime;
+	}
+
+	public static long getEndTime() {
+		return endTime;
+	}
+	
+	public static void setStartTime(long startTime) {
+		Main.startTime = startTime;
+	}
+
+	public static void setEndTime(long endTime) {
+		Main.endTime = endTime;
+	}
+
 }

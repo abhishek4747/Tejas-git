@@ -363,7 +363,7 @@ public class RunnableThread implements Encoding {
 			dataRead += threadParams[i].totalRead;
 			//totNumIns += numInstructions[i];
 		}
-		long timeTaken = System.currentTimeMillis() - Main.startTime;
+		long timeTaken = System.currentTimeMillis() - Main.getStartTime();
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
 				//+ " instructions-" + numInstructions[tid] 
 				                                     +" microOps  "+totMicroOps

@@ -48,7 +48,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 		boolean emulatorStarted = false;
 
 		// start gets reinitialized when the program actually starts
-		Main.startTime = System.currentTimeMillis();
+		Main.setStartTime(System.currentTimeMillis());
 		ThreadParams thread;
 		// keep on looping till there is something to read. iterates on the
 		// emulator threads from which it has to read.
@@ -110,7 +110,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				// need to do this only the first time
 				if (!emulatorStarted) {
 					emulatorStarted = true;
-					Main.startTime = System.currentTimeMillis();
+					Main.setStartTime(System.currentTimeMillis());
 					ipcType.started[tid] = true;
 					for (int i = 0; i < EMUTHREADS; i++) {
 						stepSize[i] = pipelineInterfaces[i].getCoreStepSize();
