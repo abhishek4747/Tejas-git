@@ -4,14 +4,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Enumeration;
+
+import memorysystem.Cache;
+import memorysystem.MemorySystem;
+import memorysystem.nuca.NucaCache;
+import memorysystem.nuca.NucaCache.NucaType;
 
 import power.Counters;
-
 import config.SimulationConfig;
 import config.SystemConfig;
-import emulatorinterface.Newmain;
 import emulatorinterface.communication.IpcBase;
-import emulatorinterface.translator.x86.objparser.ObjParser;
 
 public class Statistics {
 	
@@ -81,11 +84,11 @@ public class Statistics {
 			{
 				outputFileWriter.write("Java thread\t=\t" + i + "\n");
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
-				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numHandledCISCInsn[i] + "\n");
-				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
+//				outputFileWriter.write("Number of instructions provided by emulator\t=\t" + numHandledCISCInsn[i] + "\n");
+//				outputFileWriter.write("Number of Micro-Ops\t=\t" + noOfMicroOps[i] + " \n");
 //				outputFileWriter.write("MicroOps/CISC = " + 
 //						((double)(numInstructions[i]))/((double)(noOfMicroOps[i])) + "\n");
-				outputFileWriter.write("\n");
+//				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("Number of micro-ops\t\t=\t" + totalNumMicroOps + "\n");
 			outputFileWriter.write("Number of handled CISC instructions\t=\t" + totalHandledCISCInsn + "\n");
@@ -94,9 +97,7 @@ public class Statistics {
 			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + " %\n");
 			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage + " %\n");
 			outputFileWriter.write("\n");
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -789,7 +790,61 @@ System.out.println("execution time = "+executionTime);
 	public static long getNoOfDirWritebacks() {
 		return noOfDirWritebacks;
 	}
+	
 	public static void setNoOfDirWritebacks(long noOfDirWritebacks) {
 		Statistics.noOfDirWritebacks = noOfDirWritebacks;
+	}
+	
+	public static void printAllStatistics(String benchmarkName, 
+			long startTime, long endTime) {
+		//set up statistics module
+		Statistics.initStatistics();
+		Statistics.setExecutable(benchmarkName);
+		
+		//set memory statistics for levels L2 and below
+		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cache = MemorySystem.getCacheList().get(cacheName);
+			
+			if (cache.nucaType != NucaType.NONE )
+			{
+				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
+				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
+				for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
+				{
+					for(int j=0; j< ((NucaCache)cache).cacheColumns;j++)
+					{
+						Statistics.hopcount += ((NucaCache)cache).cacheBank[i][j].getRouter().hopCounters; 
+					}
+				}
+				if(Statistics.nocTopology.equals("FATTREE") ||
+						Statistics.nocTopology.equals("OMEGA") ||
+						Statistics.nocTopology.equals("BUTTERFLY")) {
+					for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
+						Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
+					}
+				}
+			}
+			Statistics.setNoOfL2Requests(cache.noOfRequests);
+			Statistics.setNoOfL2Hits(cache.hits);
+			Statistics.setNoOfL2Misses(cache.misses);
+			
+		}
+			
+		Statistics.setTime(endTime - startTime);
+		
+		//print statistics
+		Statistics.openStream();
+		Statistics.printSystemConfig();
+		Statistics.printTranslatorStatistics();
+		Statistics.printTimingStatistics();
+		Statistics.printMemorySystemStatistics();
+		Statistics.printSimulationTime();
+		
+		if(SimulationConfig.powerStats)
+			Statistics.printPowerStats();
+		
+		Statistics.closeStream();
 	}	
 }

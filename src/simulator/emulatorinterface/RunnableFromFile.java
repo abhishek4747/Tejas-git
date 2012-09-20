@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import main.Main;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
@@ -45,7 +46,7 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 		noOfMicroOps[0] = totMicroOps;
 		currentEMUTHREADS = 1;
 		
-		Newmain.start = System.currentTimeMillis();
+		Main.startTime = System.currentTimeMillis();
 		
 		super.finishAllPipelines();
 	}

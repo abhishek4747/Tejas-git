@@ -1,6 +1,6 @@
 package generic;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
 
 public class CustomOperandPool {
 	
@@ -73,9 +73,8 @@ public class CustomOperandPool {
 	
 	public Operand borrowObject()
 	{
-		if(pool.isEmpty())
-		{
-			System.out.println("operand pool empty!!");
+		if(pool.isEmpty()) {
+			misc.Error.showErrorAndExit("operand pool empty!!");
 			return null;
 		}
 		
@@ -86,11 +85,11 @@ public class CustomOperandPool {
 	{
 		if(arg0.getMemoryLocationFirstOperand() != null)
 		{
-			Newmain.operandPool.returnObject(arg0.getMemoryLocationFirstOperand());
+			CustomObjectPool.getOperandPool().returnObject(arg0.getMemoryLocationFirstOperand());
 		}
 		if(arg0.getMemoryLocationSecondOperand() != null)
 		{
-			Newmain.operandPool.returnObject(arg0.getMemoryLocationSecondOperand());
+			CustomObjectPool.getOperandPool().returnObject(arg0.getMemoryLocationSecondOperand());
 		}
 		
 		pool.append(arg0);

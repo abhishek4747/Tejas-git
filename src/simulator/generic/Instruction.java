@@ -22,7 +22,9 @@ package generic;
 
 import java.io.Serializable;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
+import main.Main;
+
 
 
 public class Instruction implements Serializable
@@ -91,7 +93,7 @@ public class Instruction implements Serializable
 		else
 			{//this.sourceOperand1=new Operand(sourceInstruction.sourceOperand1);
 				try {
-					this.sourceOperand1 = Newmain.operandPool.borrowObject();
+					this.sourceOperand1 = CustomObjectPool.getOperandPool().borrowObject();
 				} catch (Exception e) {
 					// TODO what if there are no more objects in the pool??
 					e.printStackTrace();
@@ -104,7 +106,7 @@ public class Instruction implements Serializable
 		else
 			{//this.sourceOperand2=new Operand(sourceInstruction.sourceOperand2);
 				try {
-					this.sourceOperand2 = Newmain.operandPool.borrowObject();
+					this.sourceOperand2 = CustomObjectPool.getOperandPool().borrowObject();
 				} catch (Exception e) {
 					// TODO what if there are no more objects in the pool??
 					e.printStackTrace();
@@ -117,7 +119,7 @@ public class Instruction implements Serializable
 		else
 			{//this.destinationOperand=new Operand(sourceInstruction.destinationOperand);
 				try {
-					this.destinationOperand = Newmain.operandPool.borrowObject();
+					this.destinationOperand = CustomObjectPool.getOperandPool().borrowObject();
 				} catch (Exception e) {
 					// TODO what if there are no more objects in the pool??
 					e.printStackTrace();

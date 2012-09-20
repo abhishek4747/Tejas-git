@@ -1,7 +1,7 @@
 package pipeline.outoforder;
 
 import config.SimulationConfig;
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
 import memorysystem.AddressCarryingEvent;
 import generic.Barrier;
 import generic.BarrierTable;
@@ -103,7 +103,7 @@ public class FetchLogic extends SimulationElement {
 			if(shouldInstructionBeDropped(newInstruction) == true)
 			{
 				inputToPipeline[inputPipeToReadNext].pollFirst();
-				Newmain.instructionPool.returnObject(newInstruction);
+				CustomObjectPool.getInstructionPool().returnObject(newInstruction);
 				i--;
 				continue;
 			}
@@ -115,7 +115,7 @@ public class FetchLogic extends SimulationElement {
 				if(SimulationConfig.detachMemSys == true)
 				{
 					inputToPipeline[inputPipeToReadNext].pollFirst();
-					Newmain.instructionPool.returnObject(newInstruction);
+					CustomObjectPool.getInstructionPool().returnObject(newInstruction);
 					i--;
 					continue;
 				}

@@ -22,7 +22,6 @@
 package emulatorinterface.translator.x86.objparser;
 
 import emulatorinterface.DynamicInstructionBuffer;
-import emulatorinterface.Newmain;
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.visaHandler.VisaHandler;
 import emulatorinterface.translator.visaHandler.VisaHandlerSelector;
@@ -44,6 +43,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
+
+import main.CustomObjectPool;
 import misc.Error;
 import misc.Numbers;
 
@@ -398,7 +399,7 @@ public class ObjParser
 			foundThisCISC = true;
 			removedInstruction = inputToPipeline.pop();
 			try {
-				Newmain.instructionPool.returnObject(removedInstruction);
+				CustomObjectPool.getInstructionPool().returnObject(removedInstruction);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -473,9 +474,8 @@ public class ObjParser
 			
 			Instruction dynamicMicroOp = null;
 			try {
-				dynamicMicroOp = Newmain.instructionPool.borrowObject();
+				dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
 			} catch (Exception e) {
-				//TODO what if there are no more objects in the pool??
 				System.err.println("Instruction pool is empty !!");
 				e.printStackTrace();
 				System.exit(1);
@@ -487,7 +487,7 @@ public class ObjParser
 			if(microOpIndex==-1) {
 				// I was unable to fuse certain micro-ops of this instruction. So, I must remove any previously 
 				// computed micro-ops from the buffer
-				Newmain.instructionPool.returnObject(dynamicMicroOp);
+				CustomObjectPool.getInstructionPool().returnObject(dynamicMicroOp);
 				if(removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter())==true) {
 					numCISC--;
 				}

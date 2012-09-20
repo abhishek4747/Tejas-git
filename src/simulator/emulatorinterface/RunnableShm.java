@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import config.SimulationConfig;
 
+import main.Main;
 import net.optical.TopLevelTokenBus;
 
 import config.SimulationConfig;
@@ -47,7 +48,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 		boolean emulatorStarted = false;
 
 		// start gets reinitialized when the program actually starts
-		Newmain.start = System.currentTimeMillis();
+		Main.startTime = System.currentTimeMillis();
 		ThreadParams thread;
 		// keep on looping till there is something to read. iterates on the
 		// emulator threads from which it has to read.
@@ -109,7 +110,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				// need to do this only the first time
 				if (!emulatorStarted) {
 					emulatorStarted = true;
-					Newmain.start = System.currentTimeMillis();
+					Main.startTime = System.currentTimeMillis();
 					ipcType.started[tid] = true;
 					for (int i = 0; i < EMUTHREADS; i++) {
 						stepSize[i] = pipelineInterfaces[i].getCoreStepSize();

@@ -28,6 +28,7 @@ import pipeline.outoforder.OutOrderCoreMemorySystem;
 
 import net.optical.TopLevelTokenBus;
 
+import main.ArchitecturalComponent;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCacheLine;
 
@@ -40,7 +41,6 @@ import generic.*;
 import config.CacheConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
-import emulatorinterface.Newmain;
 
 
 public class MemorySystem
@@ -106,9 +106,9 @@ public class MemorySystem
 				//add initial cachepull event
 				if(newCache.levelFromTop == CacheType.Lower)
 				{
-					Newmain.cores[0].getEventQueue().addEvent(
+					ArchitecturalComponent.getCores()[0].getEventQueue().addEvent(
 											new CachePullEvent(
-													Newmain.cores[0].getEventQueue(),
+													ArchitecturalComponent.getCores()[0].getEventQueue(),
 													0,
 													newCache,
 													newCache,

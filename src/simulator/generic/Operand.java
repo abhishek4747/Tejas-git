@@ -23,7 +23,9 @@ package generic;
 
 import java.io.Serializable;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
+import main.Main;
+
 
 
 public class Operand implements Serializable
@@ -98,7 +100,7 @@ public class Operand implements Serializable
 		{
 			//this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
 			try {
-				this.memoryLocationFirstOperand = Newmain.operandPool.borrowObject();
+				this.memoryLocationFirstOperand = CustomObjectPool.getOperandPool().borrowObject();
 			} catch (Exception e) {
 				// TODO what if there are no more objects in the pool??
 				e.printStackTrace();
@@ -113,7 +115,7 @@ public class Operand implements Serializable
 		{
 			//this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
 			try {
-				this.memoryLocationSecondOperand = Newmain.operandPool.borrowObject();
+				this.memoryLocationSecondOperand = CustomObjectPool.getOperandPool().borrowObject();
 			} catch (Exception e) {
 				// TODO what if there are no more objects in the pool??
 				e.printStackTrace();

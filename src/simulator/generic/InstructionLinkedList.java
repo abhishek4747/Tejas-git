@@ -25,7 +25,8 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
+
 
 public class InstructionLinkedList implements Serializable
 {
@@ -74,7 +75,7 @@ public class InstructionLinkedList implements Serializable
 		{
 			removedInstruction = instructionLinkedList.removeLast();
 			try {
-				Newmain.instructionPool.returnObject(removedInstruction);
+				CustomObjectPool.getInstructionPool().returnObject(removedInstruction);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

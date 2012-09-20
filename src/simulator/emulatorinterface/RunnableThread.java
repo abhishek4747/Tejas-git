@@ -12,6 +12,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 
+import main.Main;
+import main.CustomObjectPool;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import pipeline.inorder.InorderExecutionEngine;
@@ -361,7 +363,7 @@ public class RunnableThread implements Encoding {
 			dataRead += threadParams[i].totalRead;
 			//totNumIns += numInstructions[i];
 		}
-		long timeTaken = System.currentTimeMillis() - Newmain.start;
+		long timeTaken = System.currentTimeMillis() - Main.startTime;
 		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
 				//+ " instructions-" + numInstructions[tid] 
 				                                     +" microOps  "+totMicroOps
@@ -512,7 +514,7 @@ public class RunnableThread implements Encoding {
 					try {
 						this.output.writeObject(toBeWritten);
 						this.output.flush();// TODO if flush is being ignored, may have to close and open the stream
-						Newmain.instructionPool.returnObject(toBeWritten);
+						CustomObjectPool.getInstructionPool().returnObject(toBeWritten);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -559,7 +561,7 @@ public class RunnableThread implements Encoding {
 	}
 
 	protected boolean poolExhausted() {
-		return (Newmain.instructionPool.getNumIdle() < 2000);
+		return (CustomObjectPool.getInstructionPool().getNumIdle() < 2000);
 	}
 
 	private void resumeSleep(ResumeSleep update) {

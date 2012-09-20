@@ -3,9 +3,9 @@ package pipeline.inorder;
 
 import java.util.Hashtable;
 
+import main.Main;
 import memorysystem.AddressCarryingEvent;
 import config.SimulationConfig;
-import emulatorinterface.Newmain;
 import generic.Barrier;
 import generic.BarrierTable;
 import generic.Core;

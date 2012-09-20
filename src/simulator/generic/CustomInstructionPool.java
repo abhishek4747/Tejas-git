@@ -1,6 +1,6 @@
 package generic;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
 
 public class CustomInstructionPool {
 	
@@ -106,23 +106,8 @@ public class CustomInstructionPool {
 	
 	public Instruction borrowObject()
 	{
-		if(pool.isEmpty())
-		{
-			System.out.println("instruction pool empty!!");
-			String cmd[] = {"/bin/sh",
-				      "-c",
-				      "killall -9 " + Newmain.executableFile};
-			try
-			{
-				Process process = Runtime.getRuntime().exec(cmd);
-				int ret = process.waitFor();
-				System.out.println("ret :" + ret);
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-			System.exit(1);
+		if(pool.isEmpty()) {
+			misc.Error.showErrorAndExit("instruction pool empty!!");
 			return null;
 		}
 		
@@ -134,15 +119,15 @@ public class CustomInstructionPool {
 //		System.out.println("return"+head+" "+tail);
 		if(arg0.getSourceOperand1() != null)
 		{
-			Newmain.operandPool.returnObject(arg0.getSourceOperand1());
+			CustomObjectPool.getOperandPool().returnObject(arg0.getSourceOperand1());
 		}
 		if(arg0.getSourceOperand2() != null)
 		{
-			Newmain.operandPool.returnObject(arg0.getSourceOperand2());
+			CustomObjectPool.getOperandPool().returnObject(arg0.getSourceOperand2());
 		}
 		if(arg0.getDestinationOperand() != null)
 		{
-			Newmain.operandPool.returnObject(arg0.getDestinationOperand());
+			CustomObjectPool.getOperandPool().returnObject(arg0.getDestinationOperand());
 		}
 		
 		pool.append(arg0);

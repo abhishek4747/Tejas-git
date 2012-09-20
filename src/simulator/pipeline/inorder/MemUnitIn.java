@@ -2,8 +2,8 @@ package pipeline.inorder;
 
 import java.util.Hashtable;
 
-import emulatorinterface.Newmain;
 
+import main.Main;
 import memorysystem.AddressCarryingEvent;
 
 import generic.Core;

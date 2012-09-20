@@ -1,6 +1,6 @@
 package pipeline.inorder;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -70,7 +70,7 @@ public class WriteBackUnitIn extends SimulationElement{
 				
 				try
 				{
-					Newmain.instructionPool.returnObject(memWbLatch.getInstruction());
+					CustomObjectPool.getInstructionPool().returnObject(memWbLatch.getInstruction());
 					core.numReturns++;
 				}
 				catch (Exception e) {

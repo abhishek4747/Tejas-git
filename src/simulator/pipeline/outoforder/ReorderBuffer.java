@@ -1,8 +1,9 @@
 package pipeline.outoforder;
 
+import main.CustomObjectPool;
+import main.Main;
 import memorysystem.MemorySystem;
 import config.SimulationConfig;
-import emulatorinterface.Newmain;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -495,7 +496,7 @@ public class ReorderBuffer extends SimulationElement{
 	void returnInstructionToPool(Instruction instruction)
 	{
 		try {
-			Newmain.instructionPool.returnObject(instruction);
+			CustomObjectPool.getInstructionPool().returnObject(instruction);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

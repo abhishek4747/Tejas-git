@@ -21,7 +21,7 @@
 
 package misc;
 
-import emulatorinterface.Newmain;
+import main.Main;
 import emulatorinterface.translator.InvalidInstructionException;
 import generic.Operand;
 
@@ -30,13 +30,14 @@ public class Error
 	public static void showErrorAndExit(String message)
 	{
 		System.out.print(message);
-		System.exit(0);
+		shutDown("");
+		System.exit(1);
 	}
 
 	public static void shutDown(String message) 
 	{
 		try {
-			Newmain.process.destroy();
+			Main.process.destroy();
 		}
 		finally{
 			System.out.print(message);
