@@ -42,6 +42,9 @@ public class Main {
 
 		// Parse the command line arguments
 		XMLParser.parse(configFileName);
+		
+		// Initialize the statistics
+		Statistics.initStatistics();
 
 		// Create a hash-table for the static representation of the executable
 		ObjParser.buildStaticInstructionTable(executableFile);
@@ -103,6 +106,8 @@ public class Main {
 
 		endTime = System.currentTimeMillis();
 		Statistics.printAllStatistics(executableFile, startTime, endTime);
+		
+		System.out.println("\n\nSimulation completed !!");
 				
 		System.exit(0);
 	}
