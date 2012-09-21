@@ -18,16 +18,16 @@ namespace IPC
 void
 Shm::get_lock(packet *map) {
 	map[COUNT+1].value = 1; 				// flag[0] = 1
-	__sync_synchronize();			// compiler barriers
+//	__sync_synchronize();			// compiler barriers
 	map[COUNT+3].value = 1; 				// turn = 1
-//	__sync_synchronize();
+	__sync_synchronize();
 	while((map[COUNT+2].value == 1) && (map[COUNT+3].value == 1)) {}
 }
 
 void
 Shm::release_lock(packet *map) {
 	map[COUNT + 1].value = 0;
-//	__sync_synchronize();
+	__sync_synchronize();
 }
 
 

@@ -21,8 +21,8 @@
 
 	<!--Simulation Parameters-->
 	<Simulation>
-		<PinTool>/mnt/srishtistr0/home/mayur/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/home/eldhose/workspace/PIN</PinTool>
+		<PinInstrumentor>/home/eldhose/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -36,8 +36,8 @@
 		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
-		<subsetSim>true</subsetSim>
-		<subsetSimSize>10000000</subsetSimSize>
+		<subsetSim>false</subsetSim>
+		<subsetSimSize>0000000</subsetSimSize>
 		<PrintPowerStats>false</PrintPowerStats>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsForTrace>100000</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->

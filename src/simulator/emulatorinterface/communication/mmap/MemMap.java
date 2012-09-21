@@ -160,12 +160,12 @@ public class MemMap extends IpcBase
 	}
 
 	@Override
-	public int totalProduced(int tidApp) {
+	public long totalProduced(int tidApp) {
 		return lockBuf.get(0 + 4);
 	}
 
 	@Override
-	public int update(int tidApp, int numReads) {
+	public long update(int tidApp, int numReads) {
 		int queue_size;
 		get_lock(lockBuf, 0, lBuf);
 		  queue_size = lockBuf.get(0);

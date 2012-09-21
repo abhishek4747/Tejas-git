@@ -155,7 +155,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				// update reader location
 				thread.readerLocation = (thread.readerLocation + numReads) % SharedMem.COUNT;
 				
-				queue_size = ipcType.update(tidApp, numReads);
+				queue_size = (int)ipcType.update(tidApp, numReads);
 				errorCheck(tidApp, tidEmu, queue_size, numReads, v);
 
 				// if we read -1, this means this emulator thread finished.
@@ -196,11 +196,11 @@ public class RunnableShm extends RunnableThread implements Runnable {
 	}
 
 	void errorCheck(int tidApp, int emuid, int queue_size,
-			int numReads, long v) {
+			long numReads, long v) {
 		// some error checking
 		threadParams[emuid].totalRead += numReads;
 		long totalRead = threadParams[emuid].totalRead;
-		int totalProduced = ipcType.totalProduced(tidApp);
+		long totalProduced = ipcType.totalProduced(tidApp);
 		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
 		if (totalRead > totalProduced) {
 			System.out.println("numReads" + numReads + " queue_size"

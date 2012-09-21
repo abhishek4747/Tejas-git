@@ -25,12 +25,12 @@ import java.util.Vector;
 
 public class Barrier {
 	
-	Long address;
+	long address;
 	int numThreads;
 	int numThreadsArrived;
 	Vector<Integer> blockedThreads;
 	
-	public Barrier(Long address, int numThreads)
+	public Barrier(long address, int numThreads)
 	{
 		this.address = address;
 		this.numThreads = numThreads;
@@ -38,7 +38,7 @@ public class Barrier {
 		this.blockedThreads = new Vector<Integer>();
 	}
 	
-	public Long getBarrierAddress()
+	public long getBarrierAddress()
 	{
 		return this.address;
 	}
@@ -73,6 +73,10 @@ public class Barrier {
 				return true;
 		}
 		return false;
+	}
+	public void resetBarrier(){
+		this.numThreadsArrived = 0;
+		this.blockedThreads.clear();
 	}
 
 }

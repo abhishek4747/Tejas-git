@@ -140,6 +140,7 @@ public class FetchUnitIn extends SimulationElement
 							for(int i=0; i<bar.getNumThreads(); i++ ){
 								this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
 							}
+							BarrierTable.barrierReset(barrierAddress);
 							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 									this.core.eventQueue,
 									 1,
