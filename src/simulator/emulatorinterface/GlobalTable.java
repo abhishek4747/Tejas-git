@@ -118,11 +118,12 @@ public final class GlobalTable implements Encoding {
 				while(bar.blockedThreadSize() == bar.getNumThreads()){ //to track re initialization of barrier
 					bar = BarrierTable.barrierList.get(++addressSynchItem);
 					if(bar == null){
-						System.out.println("returned due to bar == null");
+						System.out.println(thread + " returned due to bar == null");
 						return ret;
 					}
 				}
 				while(bar.containsThread(thread)){                     //to block the same thread entering barrier twice
+					System.out.println("already contains " + thread);
 					bar = BarrierTable.barrierList.get(++addressSynchItem);
 				}
 				if(bar==null){
