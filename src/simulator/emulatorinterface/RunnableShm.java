@@ -1,14 +1,9 @@
 package emulatorinterface;
 
 import java.util.ArrayList;
-
 import config.SimulationConfig;
-
 import main.Main;
 import net.optical.TopLevelTokenBus;
-
-import config.SimulationConfig;
-
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.SharedMem;
@@ -17,14 +12,13 @@ import generic.Statistics;
 
 public class RunnableShm extends RunnableThread implements Runnable {
 
-	IpcBase ipcType;
+	IpcBase ipcBase;
 
 	public RunnableShm(String threadName, int tid1, IpcBase ipcType,
 			Core[] cores, TopLevelTokenBus tokenBus) {
-		
+
 		super(threadName, tid1, cores, tokenBus);
-		// TODO Auto-generated constructor stub
-		this.ipcType = ipcType;
+		this.ipcBase = ipcType;
 		(new Thread(this, threadName)).start();
 	}
 
@@ -37,11 +31,10 @@ public class RunnableShm extends RunnableThread implements Runnable {
 	 */
 	public void run() {
 
-		// System.out.println("-- in runnable thread run "+this.tid);
-		ArrayList<Packet> fromPIN = new ArrayList<Packet>(SharedMem.COUNT);
-		// little pooling on its own.
+		// create pool for emulator packets
+		ArrayList<Packet> fromEmulator = new ArrayList<Packet>(SharedMem.COUNT);
 		for (int i = 0; i < SharedMem.COUNT; i++) {
-			fromPIN.add(new Packet());
+			fromEmulator.add(new Packet());
 		}
 		
 		Packet pnew = new Packet();
@@ -50,7 +43,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 		// start gets reinitialized when the program actually starts
 		Main.setStartTime(System.currentTimeMillis());
-		ThreadParams thread;
+		ThreadParams threadParam;
 		// keep on looping till there is something to read. iterates on the
 		// emulator threads from which it has to read.
 		// tid is java thread id
@@ -64,7 +57,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 			for (int tidEmu = 0; tidEmu < EMUTHREADS ; tidEmu++) {
 
-				thread = threadParams[tidEmu];
+				threadParam = threadParams[tidEmu];
 //				if(thread.packets.size() != 0){
 //					for(Packet p : thread.packets)
 //					{
@@ -72,10 +65,11 @@ public class RunnableShm extends RunnableThread implements Runnable {
 //							System.out.println("starting stage " + tidEmu + "  " + p);
 //					}
 //				}
-				if ( thread != null  && (thread.halted /*|| thread.finished*/)) {
+				if ( threadParam != null  && (threadParam.halted /*|| thread.finished*/)) {
 					continue;        //one bug need to be fixed to remove this comment
 				}
-				int tidApp = tid * EMUTHREADS + tidEmu;
+				
+				int tidApp = javaTid * EMUTHREADS + tidEmu;
 				int queue_size, numReads = 0;
 				long v = 0;
 
@@ -84,41 +78,32 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 				/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
 				
-				if ((numReads = ipcType.numPackets(tidApp)) == 0) {
+				if ((numReads = ipcBase.fetchManyPackets(tidApp, fromEmulator)) == 0) {
 					continue;
 				}
+				
+				// update the number of read packets
+				threadParam.totalRead += numReads;
+				
 				// If java thread itself is terminated then break out from this
 				// for loop. also update the variable allover so that I can
 				// break from$the while loop also.
-				if (ipcType.termination[tid] == true) {
+				if (ipcBase.javaThreadTermination[javaTid] == true) {
 					allover = true;
 					break;
 				}
-				/**** END ***/
-				
-				//subset simulation : 100M micro-ops
-				
-				
-				/*if((SimulationConfig.subsetSimulation && microOpsDone > SimulationConfig.subsetSimSize)
-						||
-						(SimulationConfig.writeToFile && microOpsDone > SimulationConfig.numInsForTrace+100000))
-				{
-					allover = true;
-					break;
-				}*/
-				/**** END ***/
 
 				// need to do this only the first time
 				if (!emulatorStarted) {
 					emulatorStarted = true;
 					Main.setStartTime(System.currentTimeMillis());
-					ipcType.started[tid] = true;
+					ipcBase.javaThreadStarted[javaTid] = true;
 					for (int i = 0; i < EMUTHREADS; i++) {
 						stepSize[i] = pipelineInterfaces[i].getCoreStepSize();
 					}
 				}
 
-				thread.checkStarted();
+				threadParam.checkStarted();
 
 /*				// Read the entries
 				boolean poolExhausted = false;
@@ -145,29 +130,28 @@ public class RunnableShm extends RunnableThread implements Runnable {
 				}
 				
 				// Read the entries
-				ipcType.fetchManyPackets(tidApp, thread.readerLocation, numReads, fromPIN);
 				for (int i = 0; i < numReads; i++) {
-					pnew = fromPIN.get(i);
+					pnew = fromEmulator.get(i);
 					v = pnew.value;
 				//	System.out.println(pnew.toString());
-					processPacket(thread,pnew,tidEmu);
+					processPacket(threadParam, pnew, tidEmu);
 				}
 				
 				// update reader location
-				thread.readerLocation = (thread.readerLocation + numReads) % SharedMem.COUNT;
+				//thread.readerLocation = (thread.readerLocation + numReads) % SharedMem.COUNT;
 				
-				queue_size = (int)ipcType.update(tidApp, numReads);
-				errorCheck(tidApp, tidEmu, queue_size, numReads, v);
+				// queue_size = (int)ipcType.update(tidApp, numReads);
+				ipcBase.errorCheck(tidApp, threadParam.totalRead);
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {        //check for last packet
 					System.out.println("runnableshm : last packet received for thread " + tidApp);
 					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmu);
-					thread.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
+					threadParam.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
 					signalFinish(tidApp);
 				}
 
-				if (ipcType.termination[tid] == true) {  //check if java thread is finished
+				if (ipcBase.javaThreadTermination[javaTid] == true) {  //check if java thread is finished
 					allover = true;
 					break;
 				}
@@ -179,7 +163,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 			// this runnable thread can be stopped in two ways. Either the
 			// emulator threads from which it was supposed to read never
 			// started(none of them) so it has to be signalled by the main
-			// thread. When this happens 'allover' becomes 'true' and it
+			// thread. When this happens 'all over' becomes 'true' and it
 			// breaks out from the loop. The second situation is that all the
 			// emulator threads which started have now finished, so probably
 			// this thread should now terminate.
@@ -189,7 +173,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 			// simulator(TODO).
 			// Although this should handle most of the cases.
 			if (allover || (emulatorStarted && emuThreadsFinished())) {
-				ipcType.termination[tid] = true;
+				ipcBase.javaThreadTermination[javaTid] = true;
 				break;
 			}
 		}
@@ -197,26 +181,25 @@ public class RunnableShm extends RunnableThread implements Runnable {
 		finishAllPipelines();
 	}
 
-	void errorCheck(int tidApp, int emuid, int queue_size,
-			long numReads, long v) {
-		
-		// some error checking
-		threadParams[emuid].totalRead += numReads;
-		long totalRead = threadParams[emuid].totalRead;
-		long totalProduced = ipcType.totalProduced(tidApp);
-		
-		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
-		if (totalRead > totalProduced) {
-			System.out.println("numReads" + numReads + " queue_size"
-					+ queue_size + " ip");
-			System.out.println("tot_prod=" + totalProduced + " tot_cons="
-					+ totalRead + " v=" + v + " emuid" + emuid);
-			System.exit(1);
-		}
-		
-		if (queue_size < 0) {
-			System.out.println("queue less than 0");
-			System.exit(1);
-		}
-	}
+//	void errorCheck(int tidApp, int emuid, int queue_size,
+//			long numReads, long v) {
+//		
+//		// some error checking
+//		// threadParams[emuid].totalRead += numReads;
+//		long totalRead = threadParams[emuid].totalRead;
+//		long totalProduced = ipcBase.totalProduced(tidApp);
+//		
+//		if (totalRead > totalProduced) {
+//			System.out.println("numReads=" + numReads + " > totalProduced=" 
+//					+ totalProduced + " !!");
+//			
+//			System.out.println("queue_size=" + queue_size);
+//			System.exit(1);
+//		}
+//		
+//		if (queue_size < 0) {
+//			System.out.println("queue less than 0");
+//			System.exit(1);
+//		}
+//	}
 }

@@ -14,10 +14,8 @@ package emulatorinterface.communication;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
-
-import emulatorinterface.*;
-import generic.CoreBcastBus;
-import generic.InstructionTable;
+import emulatorinterface.GlobalTable;
+import emulatorinterface.RunnableThread;
 
 public abstract class IpcBase {
 
@@ -28,16 +26,16 @@ public abstract class IpcBase {
 //	public static int memMapping[] = new int[EmuThreadsPerJavaThread];
 
 	// state management for reader threads
-	public boolean[] termination = new boolean[MaxNumJavaThreads];
-	public boolean[] started = new boolean[MaxNumJavaThreads];
+	public boolean[] javaThreadTermination = new boolean[MaxNumJavaThreads];
+	public boolean[] javaThreadStarted = new boolean[MaxNumJavaThreads];
 
 	// number of instructions read by each of the threads
-	public long[] numInstructions = new long[MaxNumJavaThreads];
+	// public long[] numInstructions = new long[MaxNumJavaThreads];
 
 	// to maintain synchronization between main thread and the reader threads
 	public static final Semaphore free = new Semaphore(0, true);
 
-	public static InstructionTable insTable;
+	// public static InstructionTable insTable;
 	public static GlobalTable glTable;
 
 	// Initialise structures and objects
@@ -54,44 +52,54 @@ public abstract class IpcBase {
 	}
 
 	// returns the numberOfPackets which are currently there in the stream for tidApp
-	public abstract int numPackets(int tidApp);
+	//the runnable thread does not require the numPackets in stream
+	//public abstract int numPackets(int tidApp);
 
-	// fetch one packet for tidApp from index
-	public abstract Packet fetchOnePacket(int tidApp, int index );
-
-	public abstract long update(int tidApp, int numReads);
+	// fetch one packet for tidApp from index.
+	// fetchPacket creates a Packet structure which will strain the garbage collector.
+	// Hence, this method is no longer supported.
+	//public abstract Packet fetchOnePacket(int tidApp, int index);
+	
+	//public abstract int fetchManyPackets(int tidApp, int readerLocation, int numReads,ArrayList<Packet> fromPIN);
+	public abstract int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator);
+	
+	//public abstract long update(int tidApp, int numReads);
 	// The main thread waits for the finish of reader threads and returns total number of 
 	// instructions read
 
 	// return the total packets produced by PIN till now
-	public abstract long totalProduced(int tidApp);
+	//public abstract long totalProduced(int tidApp);
+	
+	public abstract void errorCheck(int tidApp, long totalReads);
 
-	public long doExpectedWaitForSelf() throws InterruptedException {
+	public void waitForJavaThreads() {
 		
-		// this takes care if no thread started yet.
-		free.acquire();	
-		
-		int j=0;
-		// if any thread has started and not finished then wait.
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i] && !termination[i]) {
+		try {		
+			// this takes care if no thread started yet.
+			free.acquire();	
+			
+			int j=0;
+			// if any thread has started and not finished then wait.
+			for (int i=0; i<MaxNumJavaThreads; i++) {
+				if (javaThreadStarted[i] && !javaThreadTermination[i]) {
+					free.acquire();
+					j++;
+				}
+			}
+			
+			//inform threads which have not started about finish
+			for (int i=0; i<MaxNumJavaThreads; i++) {
+				if (javaThreadStarted[i]==false) {
+					javaThreadTermination[i]=true;
+				}
+			}
+			
+			for (; j<MaxNumJavaThreads-1; j++) {
 				free.acquire();
-				j++;
 			}
+		} catch (InterruptedException ioe) {
+			misc.Error.showErrorAndExit("Wait for java threads interrupted !!");
 		}
-		
-		//inform threads which have not started about finish
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i]==false) {
-				termination[i]=true;
-			}
-		}
-		
-		for (; j<MaxNumJavaThreads-1; j++) {
-			free.acquire();
-		}
-		
-		return 0;
 	}
 
 	// Free buffers, free memory , deallocate any stuff.
@@ -106,6 +114,4 @@ public abstract class IpcBase {
 	public static int getEmuThreadsPerJavaThread_Acutal() {
 		return IpcBase.EmuThreadsPerJavaThread;
 	}
-	
-	public abstract int fetchManyPackets(int tidApp, int readerLocation, int numReads,ArrayList<Packet> fromPIN);
 }

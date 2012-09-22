@@ -30,6 +30,7 @@ import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.Statistics;
+
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
@@ -39,8 +40,6 @@ public class RunnableThread implements Encoding {
 	TopLevelTokenBus tokenBus;
 
 	public static final int INSTRUCTION_THRESHOLD = 2000;
-	//private static final int PACKET_THRESHOLD = 000;
-	
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;
@@ -52,7 +51,7 @@ public class RunnableThread implements Encoding {
 	OutputStream bufferOut;
 	ObjectOutput output;
 
-	int tid;
+	int javaTid;
 	long sum = 0; // checksum
 	static int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
 	int currentEMUTHREADS = 0;  //total number of livethreads
@@ -78,7 +77,6 @@ public class RunnableThread implements Encoding {
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
-	@SuppressWarnings("unchecked")
 	public RunnableThread(String threadName, int tid1, Core[] cores, TopLevelTokenBus tokenBus) {
 
 		if (writeToFile) {
@@ -143,8 +141,8 @@ public class RunnableThread implements Encoding {
 			e.printStackTrace();
 		}
 		 */
-		this.tid = tid1;
-		System.out.println("--  starting java thread"+this.tid);
+		this.javaTid = tid1;
+		System.out.println("--  starting java thread"+this.javaTid);
 		prevTotalInstructions=-1;
 		currentTotalInstructions=0;
 //		threadCoreMaping = new Hashtable<Integer, Integer>();
@@ -364,7 +362,7 @@ public class RunnableThread implements Encoding {
 			//totNumIns += numInstructions[i];
 		}
 		long timeTaken = System.currentTimeMillis() - Main.getStartTime();
-		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
+		System.out.println("\nThread" + javaTid + " Bytes-" + dataRead * 20
 				//+ " instructions-" + numInstructions[tid] 
 				                                     +" microOps  "+totMicroOps
 				                                     +" MBPS-" + (double) (dataRead * 24)
@@ -382,9 +380,9 @@ public class RunnableThread implements Encoding {
 				e.printStackTrace();
 			}
 		}
-		Statistics.setDataRead(dataRead, tid);
+		Statistics.setDataRead(dataRead, javaTid);
 		//Statistics.setNumHandledCISCInsn(numInstructions, 0, tid);
-		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
+		Statistics.setNoOfMicroOps(noOfMicroOps, javaTid);
 
 		
 		/*if (SimulationConfig.subsetSimulation)
@@ -430,7 +428,7 @@ public class RunnableThread implements Encoding {
 	 */
 	protected void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
 		if (doNotProcess) return;
-		int tidApp = tid * EMUTHREADS + tidEmu;
+		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
 		if (pnew.value == TIMER) {//leaving timer packet now
 			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 

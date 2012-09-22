@@ -11,7 +11,7 @@ public class ThreadParams {
 	boolean started = false;
 	boolean halted = false;
 	
-	int readerLocation;
+	//int readerLocation;
 	long totalRead;
 	Packet pold = new Packet();
 	boolean isFirstPacket = true;

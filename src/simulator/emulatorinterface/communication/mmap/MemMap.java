@@ -63,27 +63,26 @@ public class MemMap extends IpcBase
 
 
 
-	public long doExpectedWaitForSelf() throws InterruptedException {
-		// this takes care if no thread started yet.
-		free.acquire();	
-
-		// if any thread has started and not finished then wait.
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i] && !termination[i]) {
-				free.acquire();
+	public void waitForJavaThreads() {
+		try {
+			// this takes care if no thread started yet.
+			free.acquire();	
+	
+			// if any thread has started and not finished then wait.
+			for (int i=0; i<MaxNumJavaThreads; i++) {
+				if (javaThreadStarted[i] && !javaThreadTermination[i]) {
+					free.acquire();
+				}
 			}
+	
+			//inform threads which have not started about finish
+			for (int i=0; i<MaxNumJavaThreads; i++) {
+				if (javaThreadStarted[i]==false) javaThreadTermination[i]=true;
+				//totalInstructions += numInstructions[i];
+			}
+		} catch (InterruptedException ioe) {
+			misc.Error.showErrorAndExit("Wait for java threads interrupted !!");	
 		}
-
-		long totalInstructions = 0;
-
-		//inform threads which have not started about finish
-		for (int i=0; i<MaxNumJavaThreads; i++) {
-			if (started[i]==false) termination[i]=true;
-			//totalInstructions += numInstructions[i];
-		}
-
-		//return totalInstructions;
-		return 0;
 	}
 
 	public void finish(){
@@ -127,8 +126,8 @@ public class MemMap extends IpcBase
 		String name;
 		for (int i=0; i<MaxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
-			termination[i]=false;
-			started[i]=false;
+			javaThreadTermination[i]=false;
+			javaThreadStarted[i]=false;
 			//TODO not all cores are assigned to each thread
 			//when the mechanism to tie threads to cores is in place
 			//this has to be changed

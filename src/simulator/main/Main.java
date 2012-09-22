@@ -2,6 +2,8 @@ package main;
 
 
 import java.io.File;
+import java.io.IOException;
+
 import misc.Error;
 import config.SimulationConfig;
 import config.XMLParser;
@@ -22,7 +24,7 @@ public class Main {
 	
 	private static long startTime, endTime;
 
-	public static void main(String[] arguments) throws Exception 
+	public static void main(String[] arguments)
 	{
 		startTime = System.currentTimeMillis();
 
@@ -58,7 +60,8 @@ public class Main {
 		initializeArchitecturalComponents();
 		
 		//find pid
-		int pid = Integer.parseInt( ( new File("/proc/self")).getCanonicalFile().getName() );
+		int pid = getMyPID();
+				
 		System.out.println("Newmain : pid = " + pid);
 		
 		// create PIN interface
@@ -94,13 +97,7 @@ public class Main {
 			}
 		}
 		
-		// Call these functions at last
-		// returns the number of instructions. and waits on a semaphore for
-		// finishing of reader threads
-		//FIXME : wait stopped for unexpected exit.
-		@SuppressWarnings("unused")
-		long icount = ipcBase.doExpectedWaitForSelf();
-		
+		ipcBase.waitForJavaThreads();
 		if (SimulationConfig.Mode!=0) {
 			emulator.waitForEmulator();
 		}
@@ -205,5 +202,20 @@ public class Main {
 
 	public static Emulator getEmulator() {
 		return emulator;
+	}
+	
+	private static int getMyPID() {
+		int pid = -1;
+		try {
+			pid = Integer.parseInt( ( new File("/proc/self")).getCanonicalFile().getName() );
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			misc.Error.showErrorAndExit("Eror in obtaining pid of java process");
+		} catch (IOException e) {
+			e.printStackTrace();
+			misc.Error.showErrorAndExit("Eror in obtaining pid of java process");
+		}
+		
+		return pid;
 	}
 }
