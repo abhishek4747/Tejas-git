@@ -15,7 +15,7 @@ import generic.Statistics;
 
 public class Main {
 	
-	static Emulator emulator;
+	private static Emulator emulator;
 	
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
