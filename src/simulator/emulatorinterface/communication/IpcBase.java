@@ -28,8 +28,8 @@ public abstract class IpcBase {
 //	public static int memMapping[] = new int[EmuThreadsPerJavaThread];
 
 	// state management for reader threads
-	public boolean[] termination=new boolean[MaxNumJavaThreads];
-	public boolean[] started=new boolean[MaxNumJavaThreads];
+	public boolean[] termination = new boolean[MaxNumJavaThreads];
+	public boolean[] started = new boolean[MaxNumJavaThreads];
 
 	// number of instructions read by each of the threads
 	public long[] numInstructions = new long[MaxNumJavaThreads];
@@ -40,32 +40,12 @@ public abstract class IpcBase {
 	public static InstructionTable insTable;
 	public static GlobalTable glTable;
 
-	StreamGobbler s1;
-	StreamGobbler s2;
-	
 	// Initialise structures and objects
 	public IpcBase () {
 		glTable = new GlobalTable(this);
 	}
 
-	// Start the PIN process. Parse the cmd accordingly
-	public Process startPIN(String cmd) throws Exception{
-		Runtime rt = Runtime.getRuntime();
-		try {
-			Process p = rt.exec(cmd);
-			s1 = new StreamGobbler ("stdin", p.getInputStream ());
-			s2 = new StreamGobbler ("stderr", p.getErrorStream ());
-			s1.start ();
-			s2.start ();
-			return p;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
 	public abstract void initIpc();
-
 
 	/*** start, finish, isEmpty, fetchPacket, isTerminated ****/
 	public RunnableThread[] getRunnableThreads(){
@@ -86,7 +66,7 @@ public abstract class IpcBase {
 	// return the total packets produced by PIN till now
 	public abstract long totalProduced(int tidApp);
 
-	public long doExpectedWaitForSelf() throws InterruptedException{
+	public long doExpectedWaitForSelf() throws InterruptedException {
 		
 		// this takes care if no thread started yet.
 		free.acquire();	
@@ -100,46 +80,30 @@ public abstract class IpcBase {
 			}
 		}
 		
-		long totalInstructions = 0;
-		
 		//inform threads which have not started about finish
 		for (int i=0; i<MaxNumJavaThreads; i++) {
 			if (started[i]==false) {
 				termination[i]=true;
 			}
-			//totalInstructions += numInstructions[i];
 		}
-		for (; j<MaxNumJavaThreads-1; j++)
-			free.acquire();
 		
-		s1.join();
-		s2.join();
-		//return totalInstructions;
+		for (; j<MaxNumJavaThreads-1; j++) {
+			free.acquire();
+		}
+		
 		return 0;
 	}
 
-	// Should wait for PIN too before calling the finish function to deallocate stuff related to
-	// the corresponding mechanism
-	public void doWaitForPIN(Process p) throws Exception{
-		try {
-			p.waitFor();
-		} catch (Exception e) {
-
-		}
-	}
-
 	// Free buffers, free memory , deallocate any stuff.
-	public void finish(){
+	public void finish() {
 		System.out.println("Implement finish in the IPC mechanism");
 	}
 
-	public static int getEmuThreadsPerJavaThread()
-	{
+	public static int getEmuThreadsPerJavaThread() {
 		return IpcBase.EmuThreadsPerJavaThread/30;
 	}
 	
-	public static int getEmuThreadsPerJavaThread_Acutal()
-	{
+	public static int getEmuThreadsPerJavaThread_Acutal() {
 		return IpcBase.EmuThreadsPerJavaThread;
 	}
 	

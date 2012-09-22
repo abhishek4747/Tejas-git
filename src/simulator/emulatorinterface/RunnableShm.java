@@ -21,6 +21,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 	public RunnableShm(String threadName, int tid1, IpcBase ipcType,
 			Core[] cores, TopLevelTokenBus tokenBus) {
+		
 		super(threadName, tid1, cores, tokenBus);
 		// TODO Auto-generated constructor stub
 		this.ipcType = ipcType;
@@ -171,6 +172,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					break;
 				}
 			}
+			
 			runPipelines();
 			// System.out.println("after execution n=  "+n+" Thread finished ? "+threadParams[1].finished);
 
@@ -197,10 +199,12 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 	void errorCheck(int tidApp, int emuid, int queue_size,
 			long numReads, long v) {
+		
 		// some error checking
 		threadParams[emuid].totalRead += numReads;
 		long totalRead = threadParams[emuid].totalRead;
 		long totalProduced = ipcType.totalProduced(tidApp);
+		
 		// System.out.println("tot_prod="+tot_prod+" tot_cons="+tot_cons[emuid]+" v="+v+" numReads"+numReads);
 		if (totalRead > totalProduced) {
 			System.out.println("numReads" + numReads + " queue_size"
@@ -209,6 +213,7 @@ public class RunnableShm extends RunnableThread implements Runnable {
 					+ totalRead + " v=" + v + " emuid" + emuid);
 			System.exit(1);
 		}
+		
 		if (queue_size < 0) {
 			System.out.println("queue less than 0");
 			System.exit(1);

@@ -37,7 +37,7 @@ public class Error
 	public static void shutDown(String message) 
 	{
 		try {
-			Main.process.destroy();
+			Main.getEmulator().forceKill();
 		}
 		finally{
 			System.out.print(message);

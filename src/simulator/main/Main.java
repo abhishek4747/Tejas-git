@@ -15,9 +15,8 @@ import generic.Statistics;
 
 public class Main {
 	
-	//public static Object syncObject = new Object();
-	public static Process process;
-
+	static Emulator emulator;
+	
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
 	
@@ -65,7 +64,7 @@ public class Main {
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem(pid);
 		if (SimulationConfig.Mode!=0) {
-			process = createPINinterface(ipcBase, executableArguments, pid);
+			createPINinterface(ipcBase, executableArguments, pid);
 		}
 
 
@@ -101,7 +100,11 @@ public class Main {
 		//FIXME : wait stopped for unexpected exit.
 		@SuppressWarnings("unused")
 		long icount = ipcBase.doExpectedWaitForSelf();
-		if (SimulationConfig.Mode!=0) ipcBase.doWaitForPIN(process);
+		
+		if (SimulationConfig.Mode!=0) {
+			emulator.waitForEmulator();
+		}
+		
 		ipcBase.finish();
 
 		endTime = System.currentTimeMillis();
@@ -127,14 +130,16 @@ public class Main {
 
 	}
 
-	private static Process createPINinterface(IpcBase ipcBase,
+	private static void createPINinterface(IpcBase ipcBase,
 			String executableArguments, int pid) 
 	{
 
 		// Creating command for PIN tool.
 		String cmd;
 		
-		System.out.println("subset sim size = "  + SimulationConfig.subsetSimSize + "\t" + SimulationConfig.subsetSimulation);
+		System.out.println("subset sim size = "  + 
+				SimulationConfig.subsetSimSize + "\t" + 
+				SimulationConfig.subsetSimulation);
 		
 		cmd = SimulationConfig.PinTool + "/pin" +
 						" -t " + SimulationConfig.PinInstrumentor +
@@ -147,20 +152,10 @@ public class Main {
 		
 		// System.out.println("cmd = " + cmd);
 
-		Process process = null;
-		try {
-			process = ipcBase.startPIN(cmd);
-		} catch (Exception e) {
-			misc.Error
-					.showErrorAndExit("\n\tUnable to run the required program using PIN !!");
-		}
-
-		if (process == null)
-			misc.Error
-					.showErrorAndExit("\n\tCorrect path for pin or tool or executable not specified !!");
+		emulator = new Emulator();
+		emulator.startEmulator(cmd);
 
 		ipcBase.initIpc();
-		return process;
 	}
 
 	// checks if the command line arguments are in required format and number
@@ -208,4 +203,7 @@ public class Main {
 		Main.endTime = endTime;
 	}
 
+	public static Emulator getEmulator() {
+		return emulator;
+	}
 }
