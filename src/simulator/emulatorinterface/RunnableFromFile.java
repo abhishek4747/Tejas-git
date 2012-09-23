@@ -17,13 +17,11 @@ import generic.*;
 
 public class RunnableFromFile extends RunnableThread implements Runnable {
 
-	IpcBase ipcType;
+	//IpcBase ipcType;
 
-	public RunnableFromFile(String threadName, int tid1, IpcBase ipcType,
+	public RunnableFromFile(String threadName, int tid1, IpcBase ipcBase,
 			Core[] cores, TopLevelTokenBus tokenBus) {
-		super(threadName, tid1, cores, tokenBus);
-		// TODO Auto-generated constructor stub
-		this.ipcType = ipcType;
+		super(threadName, tid1, ipcBase, cores, tokenBus);
 		(new Thread(this, threadName)).start();
 	}
 

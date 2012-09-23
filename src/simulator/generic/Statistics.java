@@ -798,7 +798,8 @@ System.out.println("execution time = "+executionTime);
 	public static void printAllStatistics(String benchmarkName, 
 			long startTime, long endTime) {
 		//set up statistics module
-		Statistics.initStatistics();
+		// Statistics.initStatistics();
+		
 		Statistics.setExecutable(benchmarkName);
 		
 		//set memory statistics for levels L2 and below

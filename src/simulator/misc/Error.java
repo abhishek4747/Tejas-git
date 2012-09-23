@@ -38,12 +38,12 @@ public class Error
 	{
 		try {
 			Main.getEmulator().forceKill();
-		}
-		finally{
+		} catch(Exception e) {
+			
+		} finally {
 			System.out.print(message);
 			System.exit(0);
 		}
-
 	}
 
 	public static void invalidOperation(String operation, Operand operand1, 

@@ -11,6 +11,7 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 import main.Main;
 import main.CustomObjectPool;
@@ -21,6 +22,7 @@ import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
+import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.BarrierTable;
 import generic.Core;
@@ -35,7 +37,7 @@ import generic.Statistics;
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
  */
-public class RunnableThread implements Encoding {
+public class RunnableThread implements Encoding, Runnable {
 	
 	TopLevelTokenBus tokenBus;
 
@@ -74,11 +76,165 @@ public class RunnableThread implements Encoding {
 	PipelineInterface[] pipelineInterfaces;
 	long prevTotalInstructions, currentTotalInstructions;
 	long[] prevCycles;
+	
+	IpcBase ipcBase;
+
+	/*
+	 * This keeps on reading from the appropriate index in the shared memory
+	 * till it gets a -1 after which it stops. NOTE this depends on each thread
+	 * calling threadFini() which might not be the case. This function will
+	 * break if the threads which started do not call threadfini in the PIN (in
+	 * case of unclean termination). Although the problem is easily fixable.
+	 */
+	public void run() {
+
+		// create pool for emulator packets
+		ArrayList<Packet> fromEmulator = new ArrayList<Packet>(SharedMem.COUNT);
+		for (int i = 0; i < SharedMem.COUNT; i++) {
+			fromEmulator.add(new Packet());
+		}
+		
+		Packet pnew = new Packet();
+		
+		boolean allover = false;
+		boolean emulatorStarted = false;
+
+		// start gets reinitialized when the program actually starts
+		Main.setStartTime(System.currentTimeMillis());
+		ThreadParams threadParam;
+		// keep on looping till there is something to read. iterates on the
+		// emulator threads from which it has to read.
+		// tid is java thread id
+		// tidEmu is the local notion of pin threads for the current java thread
+		// tidApp is the actual tid of a pin thread
+		while (true) {
+			
+			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
+
+				threadParam = threadParams[tidEmulator];
+
+				if ( threadParam != null  && (threadParam.halted /*|| thread.finished*/)) {
+					continue;        //one bug need to be fixed to remove this comment
+				}
+				
+				int tidApplication = javaTid * EMUTHREADS + tidEmulator;
+				int numReads = 0;
+				long v = 0;
+
+				// get the number of packets to read. 'continue' and read from
+				// some other thread if there is nothing.
+				if ((numReads = ipcBase.fetchManyPackets(tidApplication, fromEmulator)) == 0) {
+					continue;
+				}
+				
+				// update the number of read packets
+				threadParam.totalRead += numReads;
+				
+				// If java thread itself is terminated then break out from this
+				// for loop. also update the variable all-over so that I can
+				// break from the outer while loop also.
+				if (ipcBase.javaThreadTermination[javaTid] == true) {
+					allover = true;
+					break;
+				}
+
+				// need to do this only the first time
+				if (!emulatorStarted) {
+					emulatorStarted = true;
+					Main.setStartTime(System.currentTimeMillis());
+					ipcBase.javaThreadStarted[javaTid] = true;
+					for (int i = 0; i < EMUTHREADS; i++) {
+						stepSize[i] = pipelineInterfaces[i].getCoreStepSize();
+					}
+				}
+
+				threadParam.checkStarted();
+
+				// Do not process new packets till we have sufficient pool of available instructions
+				while (poolExhausted()) {
+					//System.out.println("infinte loop");
+					runPipelines();
+				}
+				
+				// Process all the packets read from the communication channel
+				for (int i = 0; i < numReads; i++) {
+					pnew = fromEmulator.get(i);
+					v = pnew.value;
+					processPacket(threadParam, pnew, tidEmulator);
+				}
+				
+				// perform error check.
+				ipcBase.errorCheck(tidApplication, threadParam.totalRead);
+
+				// if we read -1, this means this emulator thread finished.
+				if (v == -1) {
+					System.out.println("runnableshm : last packet received for application-thread " + 
+							tidApplication + " numCISC=" + pnew.ip);
+					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmulator);
+					threadParam.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
+					signalFinish(tidApplication);
+				}
+
+				if (ipcBase.javaThreadTermination[javaTid] == true) {  //check if java thread is finished
+					allover = true;
+					break;
+				}
+			}
+			
+			runPipelines();
+			// System.out.println("after execution n=  "+n+" Thread finished ? "+threadParams[1].finished);
+
+			// this runnable thread can be stopped in two ways. Either the
+			// emulator threads from which it was supposed to read never
+			// started(none of them) so it has to be signalled by the main
+			// thread. When this happens 'all over' becomes 'true' and it
+			// breaks out from the loop. The second situation is that all the
+			// emulator threads which started have now finished, so probably
+			// this thread should now terminate.
+			// The second condition handles this situation.
+			// NOTE this ugly state management cannot be avoided unless we use
+			// some kind of a signalling mechanism between the emulator and
+			// simulator(TODO).
+			// Although this should handle most of the cases.
+			if (allover || (emulatorStarted && emuThreadsFinished())) {
+				ipcBase.javaThreadTermination[javaTid] = true;
+				break;
+			}
+		}
+
+		finishAllPipelines();
+	}
+
+//	void errorCheck(int tidApp, int emuid, int queue_size,
+//			long numReads, long v) {
+//		
+//		// some error checking
+//		// threadParams[emuid].totalRead += numReads;
+//		long totalRead = threadParams[emuid].totalRead;
+//		long totalProduced = ipcBase.totalProduced(tidApp);
+//		
+//		if (totalRead > totalProduced) {
+//			System.out.println("numReads=" + numReads + " > totalProduced=" 
+//					+ totalProduced + " !!");
+//			
+//			System.out.println("queue_size=" + queue_size);
+//			System.exit(1);
+//		}
+//		
+//		if (queue_size < 0) {
+//			System.out.println("queue less than 0");
+//			System.exit(1);
+//		}
+//	}
+
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
-	public RunnableThread(String threadName, int tid1, Core[] cores, TopLevelTokenBus tokenBus) {
+	public RunnableThread(String threadName, int javaTid, IpcBase ipcBase, 
+			Core[] cores, TopLevelTokenBus tokenBus) {
 
+		this.ipcBase = ipcBase;
+		
 		if (writeToFile) {
 			try {
 				fileOut = new FileOutputStream( fileName );
@@ -105,7 +261,7 @@ public class RunnableThread implements Encoding {
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
 		for(int i = 0; i < EMUTHREADS; i++)
 		{
-			int id = tid1*EMUTHREADS+i;
+			int id = javaTid*EMUTHREADS+i;
 			IpcBase.glTable.getStateTable().put(id, new ThreadState(id));
 			threadParams[i] = new ThreadParams();
 
@@ -141,12 +297,17 @@ public class RunnableThread implements Encoding {
 			e.printStackTrace();
 		}
 		 */
-		this.javaTid = tid1;
+		this.javaTid = javaTid;
 		System.out.println("--  starting java thread"+this.javaTid);
 		prevTotalInstructions=-1;
 		currentTotalInstructions=0;
 //		threadCoreMaping = new Hashtable<Integer, Integer>();
 		prevCycles=new long[EMUTHREADS];
+		
+		// Special case must be made for RunnableFromFile
+		if(this.ipcBase != null) {
+			(new Thread(this, threadName)).start();
+		}
 	}
 
 	protected void runPipelines() {
@@ -468,9 +629,9 @@ public class RunnableThread implements Encoding {
 			long numHandledInsn = ObjParser.fuseInstruction(thread.packets.get(0).ip, 
 					dynamicInstructionBuffer[tidEmu], this.inputToPipeline[tidEmu]);
 			Statistics.setNumHandledCISCInsn(
-									Statistics.getNumHandledCISCInsn(0, tidEmu) + numHandledInsn,
-									0,
-									tidEmu);
+					Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
+					javaTid, tidEmu);
+			
 			int newLength = inputToPipeline[tidEmu].size();
 			
 	//		if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
@@ -582,7 +743,7 @@ public class RunnableThread implements Encoding {
 		//finished pipline
 		// TODO Auto-generated method stub
 //		System.out.println("signalfinish thread " + tidApp + " mapping " + threadCoreMaping.get(tidApp));
-		this.inputToPipeline[tidApp].enqueue(new Instruction(OperationType.inValid,null, null, null));
+		this.inputToPipeline[tidApp].enqueue(new Instruction(OperationType.inValid, null, null, null));
 		IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
 		//					System.out.println(tidApp+" pin thread got -1");
 		

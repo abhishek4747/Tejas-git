@@ -8,7 +8,6 @@ import misc.Error;
 import config.SimulationConfig;
 import config.XMLParser;
 import emulatorinterface.RunnableFromFile;
-import emulatorinterface.RunnableShm;
 import emulatorinterface.RunnableThread;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.shm.SharedMem;
@@ -65,15 +64,11 @@ public class Main {
 		System.out.println("Newmain : pid = " + pid);
 		
 		// create PIN interface
-		IpcBase ipcBase = new SharedMem(pid);
 		if (SimulationConfig.Mode!=0) {
-			createPINinterface(ipcBase, executableArguments, pid);
+			createPINinterface(executableArguments, pid);
 		}
 
-
-		
 		//different core components may work at different frequencies
-		
 		
 		//Initialize counters
 //		Counters powerCounters[] = new Counters[SystemConfig.NoOfCores];
@@ -83,26 +78,37 @@ public class Main {
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		//FIXME A single java thread can have multiple cores
 		
+		IpcBase ipcBase = null;
+		if(SimulationConfig.Mode==0) {
+			// ipc is not required for file
+		} else {
+			ipcBase = new SharedMem(pid);
+ 		}
+		
 		String name;
-		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
+		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++) {
+			
 			name = "thread"+Integer.toString(i);
+			
 			if(SimulationConfig.Mode==0) {
 				runners[i] = new RunnableFromFile(name,i, ipcBase, ArchitecturalComponent.getCores(), 
 						ArchitecturalComponent.getTokenBus());
 			} else if (SimulationConfig.Mode==1) {
-				runners[i] = new RunnableShm(name,i, ipcBase, ArchitecturalComponent.getCores(), 
+				runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores(), 
 						ArchitecturalComponent.getTokenBus());
 			} else {
-				System.out.println("\n\n This mode not implemented yet \n\n");
+				misc.Error.showErrorAndExit("Invalid simulation config : " + SimulationConfig.Mode);
 			}
 		}
 		
 		ipcBase.waitForJavaThreads();
-		if (SimulationConfig.Mode!=0) {
+		if (SimulationConfig.Mode != 0) {
 			emulator.waitForEmulator();
 		}
 		
-		ipcBase.finish();
+		if(SimulationConfig.Mode != 0) {
+			ipcBase.finish();
+		}
 
 		endTime = System.currentTimeMillis();
 		Statistics.printAllStatistics(executableFile, startTime, endTime);
@@ -120,17 +126,13 @@ public class Main {
 				ArchitecturalComponent.getTokenBus());
 	}
 
-
-
 	// TODO Must provide parameters to make from here
 	private static void configureEmulator() {
 
 	}
 
-	private static void createPINinterface(IpcBase ipcBase,
-			String executableArguments, int pid) 
+	private static void createPINinterface(String executableArguments, int pid) 
 	{
-
 		// Creating command for PIN tool.
 		String cmd;
 		
@@ -151,8 +153,6 @@ public class Main {
 
 		emulator = new Emulator();
 		emulator.startEmulator(cmd);
-
-		ipcBase.initIpc();
 	}
 
 	// checks if the command line arguments are in required format and number
