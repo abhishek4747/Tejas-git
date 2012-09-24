@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.objparser;
 
 import emulatorinterface.DynamicInstructionBuffer;
+import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.visaHandler.VisaHandler;
 import emulatorinterface.translator.visaHandler.VisaHandlerSelector;
@@ -42,6 +43,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import main.CustomObjectPool;
@@ -415,8 +417,11 @@ public class ObjParser
 	 */
 	public static int fuseInstruction(
 			long startInstructionPointer,
-			DynamicInstructionBuffer dynamicInstructionBuffer, GenericCircularQueue<Instruction> inputToPipeline)
+			ArrayList<Packet> arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
 	{
+		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
+		dynamicInstructionBuffer.configurePackets(arrayListPacket);
+		
 		int numCISC = 0;
 		int microOpIndex;
 		

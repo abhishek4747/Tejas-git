@@ -32,6 +32,8 @@ import generic.BranchInstr;
 
 public class DynamicInstructionBuffer implements Encoding
 {
+	//FIXME: Queue must be maintained using pooling scheme.
+	//Current scheme will put pressure on the garbage collector
 	private Queue<ArrayList<Packet>> memReadQueue = null;
 	private Queue<ArrayList<Packet>> memWriteQueue = null;
 	private Queue<Packet> branchQueue = null;
@@ -44,8 +46,7 @@ public class DynamicInstructionBuffer implements Encoding
 		branchQueue = new LinkedList<Packet>();
 	}
 
-	// QQQ Configure packets doesn't take tidEmu or anything now.
-	// packets read from ArrayList rather than a ArrayList.
+	// read the packets from the arrayList and place them in suitable queues
 	public void configurePackets(ArrayList<Packet> arrayListPacket) 
 	{
 		Packet p;

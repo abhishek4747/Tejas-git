@@ -65,7 +65,7 @@ public class RunnableThread implements Encoding, Runnable {
 	static long ignoredInstructions = 0;
 
 	// QQQ re-arrange packets for use by translate instruction.
-	DynamicInstructionBuffer[] dynamicInstructionBuffer;
+	// DynamicInstructionBuffer[] dynamicInstructionBuffer;
 
 	static long[] noOfMicroOps;
 	//long[] numInstructions;
@@ -246,7 +246,7 @@ public class RunnableThread implements Encoding, Runnable {
 		}
 		
 		this.tokenBus = tokenBus;
-		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
+		// dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		inputToPipeline = (GenericCircularQueue<Instruction> [])
 								Array.newInstance(GenericCircularQueue.class, EMUTHREADS);
 		
@@ -264,7 +264,7 @@ public class RunnableThread implements Encoding, Runnable {
 			inputToPipeline[i] = new GenericCircularQueue<Instruction>(
 												Instruction.class, INSTRUCTION_THRESHOLD*10);
 			
-			dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
+			// dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
 			
 			GenericCircularQueue<Instruction>[] toBeSet =
 													(GenericCircularQueue<Instruction>[])
@@ -507,15 +507,16 @@ public class RunnableThread implements Encoding, Runnable {
 			dataRead += threadParams[i].totalRead;
 			//totNumIns += numInstructions[i];
 		}
+		
 		long timeTaken = System.currentTimeMillis() - Main.getStartTime();
 		System.out.println("\nThread" + javaTid + " Bytes-" + dataRead * 20
-				//+ " instructions-" + numInstructions[tid] 
-				                                     +" microOps  "+totMicroOps
-				                                     +" MBPS-" + (double) (dataRead * 24)
-				                                     / (double) timeTaken / 1000.0 +" time-"
-				                                     + timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
-				                                     +" KIPS-" + (double) totNumIns / (double) timeTaken
-				                                     + "checksum " + sum + "\n");
+		   //+ " instructions-" + numInstructions[tid] 
+             +" microOps  "+totMicroOps
+             +" MBPS-" + (double) (dataRead * 24)
+             / (double) timeTaken / 1000.0 +" time-"
+             + timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
+             +" KIPS-" + (double) totNumIns / (double) timeTaken
+             + "checksum " + sum + "\n");
 
 		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 		if (writeToFile) {
@@ -609,10 +610,13 @@ public class RunnableThread implements Encoding, Runnable {
 			thread.packets.add(pnew);
 		} else {
 			//(numInstructions[tidEmu])++;
-			this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
+			//this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
+			
 			int oldLength = inputToPipeline[tidEmu].size();
+			
 			long numHandledInsn = ObjParser.fuseInstruction(thread.packets.get(0).ip, 
-					dynamicInstructionBuffer[tidEmu], this.inputToPipeline[tidEmu]);
+					thread.packets, this.inputToPipeline[tidEmu]);
+			
 			Statistics.setNumHandledCISCInsn(
 					Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
 					javaTid, tidEmu);
