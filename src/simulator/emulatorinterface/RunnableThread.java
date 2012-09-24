@@ -67,8 +67,6 @@ public class RunnableThread implements Encoding, Runnable {
 	// QQQ re-arrange packets for use by translate instruction.
 	DynamicInstructionBuffer[] dynamicInstructionBuffer;
 
-	int[] decodeWidth;
-	int[] stepSize;
 	static long[] noOfMicroOps;
 	//long[] numInstructions;
 	//FIXME PipelineInterface should be in IpcBase and not here as pipelines from other RunnableThreads
@@ -143,9 +141,6 @@ public class RunnableThread implements Encoding, Runnable {
 					emulatorStarted = true;
 					Main.setStartTime(System.currentTimeMillis());
 					ipcBase.javaThreadStarted[javaTid] = true;
-					for (int i = 0; i < EMUTHREADS; i++) {
-						stepSize[i] = pipelineInterfaces[i].getCoreStepSize();
-					}
 				}
 
 				threadParam.checkStarted();
@@ -249,13 +244,12 @@ public class RunnableThread implements Encoding, Runnable {
 				e.printStackTrace();
 			}
 		}
+		
 		this.tokenBus = tokenBus;
 		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		inputToPipeline = (GenericCircularQueue<Instruction> [])
 								Array.newInstance(GenericCircularQueue.class, EMUTHREADS);
 		
-		decodeWidth = new int[EMUTHREADS];
-		stepSize = new int[EMUTHREADS];
 		noOfMicroOps = new long[EMUTHREADS];
 		//numInstructions = new long[EMUTHREADS];
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
@@ -277,15 +271,6 @@ public class RunnableThread implements Encoding, Runnable {
 													Array.newInstance(GenericCircularQueue.class, 1);
 			toBeSet[0] = inputToPipeline[i];
 			pipelineInterfaces[i].setInputToPipeline(toBeSet);
-
-			if(cores[i].isPipelineInorder)
-				decodeWidth[i] = 1;
-			else if(cores[i].isPipelineMultiIssueInorder)
-				decodeWidth[i] = 1;
-			else
-				decodeWidth[i] = cores[i].getDecodeWidth();
-
-			stepSize[i] = cores[i].getStepSize();
 		}
 
 		/*		try
@@ -319,7 +304,7 @@ public class RunnableThread implements Encoding, Runnable {
 				th.halted = false;
 			//	System.out.println("Halting over..!! "+tidEmu);
 			}
-			int n = inputToPipeline[tidEmu].size() / decodeWidth[tidEmu]
+			int n = inputToPipeline[tidEmu].size() / pipelineInterfaces[tidEmu].getCore().getDecodeWidth()
 					* pipelineInterfaces[tidEmu].getCoreStepSize();
 			if (n < minN && n != 0)
 				minN = n;
