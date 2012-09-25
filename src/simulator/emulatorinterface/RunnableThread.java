@@ -13,7 +13,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-import main.Main;
+//import main.Main;
 import main.CustomObjectPool;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
@@ -62,7 +62,7 @@ public class RunnableThread implements Encoding, Runnable {
 	static ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
 
 	GenericCircularQueue<Instruction>[] inputToPipeline;
-	static long ignoredInstructions = 0;
+	// static long ignoredInstructions = 0;
 
 	// QQQ re-arrange packets for use by translate instruction.
 	// DynamicInstructionBuffer[] dynamicInstructionBuffer;
@@ -98,7 +98,7 @@ public class RunnableThread implements Encoding, Runnable {
 		boolean emulatorStarted = false;
 
 		// start gets reinitialized when the program actually starts
-		Main.setStartTime(System.currentTimeMillis());
+		//Main.setStartTime(System.currentTimeMillis());
 		ThreadParams threadParam;
 		// keep on looping till there is something to read. iterates on the
 		// emulator threads from which it has to read.
@@ -139,7 +139,7 @@ public class RunnableThread implements Encoding, Runnable {
 				// need to do this only the first time
 				if (!emulatorStarted) {
 					emulatorStarted = true;
-					Main.setStartTime(System.currentTimeMillis());
+					//Main.setStartTime(System.currentTimeMillis());
 					ipcBase.javaThreadStarted[javaTid] = true;
 				}
 
@@ -500,23 +500,23 @@ public class RunnableThread implements Encoding, Runnable {
 			}
 		}*/
 		long dataRead = 0;
-		long totNumIns = 0;
-		long totMicroOps = 0;
+//		long totNuIns = 0;
+//		long totMicroOps = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
-			totMicroOps += noOfMicroOps[i];
+//			totMicroOps += noOfMicroOps[i];
 			dataRead += threadParams[i].totalRead;
 			//totNumIns += numInstructions[i];
 		}
 		
-		long timeTaken = System.currentTimeMillis() - Main.getStartTime();
-		System.out.println("\nThread" + javaTid + " Bytes-" + dataRead * 20
-		   //+ " instructions-" + numInstructions[tid] 
-             +" microOps  "+totMicroOps
-             +" MBPS-" + (double) (dataRead * 24)
-             / (double) timeTaken / 1000.0 +" time-"
-             + timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
-             +" KIPS-" + (double) totNumIns / (double) timeTaken
-             + "checksum " + sum + "\n");
+//		long timeTaken = System.currentTimeMillis() - Main.getStartTime();
+//		System.out.println("\nThread" + javaTid + " Bytes-" + dataRead * 20
+//		   //+ " instructions-" + numInstructions[tid] 
+//             +" microOps  "+ totMicroOps
+//             +" MBPS-" + (double) (dataRead * 24)
+//             / (double) timeTaken / 1000.0 +" time-"
+//             + timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
+//             +" KIPS-" + (double) totNumIns / (double) timeTaken
+//             + "checksum " + sum + "\n");
 
 		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 		if (writeToFile) {
@@ -527,6 +527,7 @@ public class RunnableThread implements Encoding, Runnable {
 				e.printStackTrace();
 			}
 		}
+		
 		Statistics.setDataRead(dataRead, javaTid);
 		//Statistics.setNumHandledCISCInsn(numInstructions, 0, tid);
 		Statistics.setNoOfMicroOps(noOfMicroOps, javaTid);
@@ -607,6 +608,7 @@ public class RunnableThread implements Encoding, Runnable {
 			thread.isFirstPacket=false;
 		}
 		if (pnew.ip == thread.pold.ip && !(pnew.value>6 && pnew.value<26)) {
+			// just append the packet to outstanding packets for current instruction pointer
 			thread.packets.add(pnew);
 		} else {
 			//(numInstructions[tidEmu])++;

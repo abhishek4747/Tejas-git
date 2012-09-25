@@ -20,8 +20,6 @@ public class Statistics {
 	
 	static FileWriter outputFileWriter,traceWriter;
 	
-	
-	
 	static String benchmark;
 	public static void printSystemConfig()
 	{
@@ -296,12 +294,10 @@ public class Statistics {
 		}
 	}
 	
-	
-	
-	
 	//Simulation time
-	static long time;
-	static long subsetTime;
+	//static long time;
+	//static long subsetTime;
+	private static long simulationTime;
 
 	public static void printPowerTraceHeader(String delimiter){
 		try {
@@ -496,7 +492,7 @@ System.out.println("execution time = "+executionTime);
 	public static void printSimulationTime()
 	{
 		//print time taken by simulator
-		long seconds = time/1000;
+		long seconds = simulationTime/1000;
 		long minutes = seconds/60;
 		seconds = seconds%60;
 		try
@@ -506,17 +502,11 @@ System.out.println("execution time = "+executionTime);
 			
 			outputFileWriter.write("Time Taken\t\t=\t" + minutes + " : " + seconds + " minutes\n");
 			
+			outputFileWriter.write("Instructions per Second\t=\t" + 
+					(double)totalNumMicroOps/simulationTime + " KIPS\t\tin terms of micro-ops\n");
+			outputFileWriter.write("Instructions per Second\t=\t" + 
+					(double)totalHandledCISCInsn/simulationTime + " KIPS\t\tin terms of CISC instructions\n");
 			
-			if(subsetTime != 0)
-			{
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/subsetTime + " KIPS\t\tin terms of micro-ops\n");
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalHandledCISCInsn/subsetTime + " KIPS\t\tin terms of CISC instructions\n");
-			}
-			else
-			{
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/time + " KIPS\t\tin terms of micro-ops\n");
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalHandledCISCInsn/time + " KIPS\t\tin terms of CISC instructions\n");
-			}
 			outputFileWriter.write("\n");
 		}
 		catch(IOException e)
@@ -739,20 +729,24 @@ System.out.println("execution time = "+executionTime);
 	public static void setNoOfIRequests(long noOfIRequests, int core) {
 		Statistics.noOfIRequests[core] = noOfIRequests;
 	}
-	public static long getTime() {
-		return Statistics.time;
-	}
+//	public static long getTime() {
+//		return Statistics.time;
+//	}
+//	
+//	public static void setTime(long time) {
+//		Statistics.time = time;
+//	}
+//
+//	public static long getSubsetTime() {
+//		return subsetTime;
+//	}
+//
+//	public static void setSubsetTime(long subsetTime) {
+//		Statistics.subsetTime = subsetTime;
+//	}
 	
-	public static void setTime(long time) {
-		Statistics.time = time;
-	}
-
-	public static long getSubsetTime() {
-		return subsetTime;
-	}
-
-	public static void setSubsetTime(long subsetTime) {
-		Statistics.subsetTime = subsetTime;
+	public static void setSimulationTime(long simulationTime) {
+		Statistics.simulationTime = simulationTime;
 	}
 
 	public static void setExecutable(String executableFile) {
@@ -833,7 +827,7 @@ System.out.println("execution time = "+executionTime);
 			
 		}
 			
-		Statistics.setTime(endTime - startTime);
+		Statistics.setSimulationTime(endTime - startTime);
 		
 		//print statistics
 		Statistics.openStream();
