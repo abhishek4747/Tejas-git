@@ -12,6 +12,7 @@ import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
 
 import power.Counters;
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.communication.IpcBase;
@@ -28,9 +29,17 @@ public class Statistics {
 		{
 			outputFileWriter.write("[Configuration]\n");
 			outputFileWriter.write("\n");
-			outputFileWriter.write("ToolName: "+SimulationConfig.PinInstrumentor+"\n");
+			
+			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+				outputFileWriter.write("EmulatorType: Pin\n");
+			} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+				outputFileWriter.write("EmulatorType: Qemu\n");
+			}
+			
+			
 			outputFileWriter.write("Benchmark: "+benchmark+"\n");
 			outputFileWriter.write("Pipeline: ");
+			
 			if (SimulationConfig.isPipelineInorder)
 				outputFileWriter.write("Inorder Pipeline\n");
 			else if (SimulationConfig.isPipelineMultiIssueInorder)

@@ -1,5 +1,6 @@
 package main;
 
+import config.SimulationConfig;
 import emulatorinterface.communication.StreamGobbler;
 
 public class Emulator {
@@ -7,9 +8,36 @@ public class Emulator {
 	private Process emulatorProcess;
 	StreamGobbler s1;
 	StreamGobbler s2;
+	
+	public Emulator(String pinTool, String pinInstrumentor, 
+			String executableArguments, int pid) 
+	{
+		System.out.println("subset sim size = "  + 
+				SimulationConfig.subsetSimSize + "\t" + 
+				SimulationConfig.subsetSimulation);
+
+		// Creating command for PIN tool.
+		String cmd = pinTool + "/pin" +
+				" -t " + pinInstrumentor +
+				" -map " + SimulationConfig.MapEmuCores +
+				" -numIgn " + SimulationConfig.NumInsToIgnore +
+				" -numSim " + SimulationConfig.subsetSimSize +
+				" -id " + pid +
+				" -- " + executableArguments;
+		
+		startEmulator(cmd);
+	}
+	
+	public Emulator(String qemuTool, int pid)
+	{
+		String cmd = "";
+		
+		startEmulator(cmd);
+	}
+
 
 	// Start the PIN process. Parse the cmd accordingly
-	public void startEmulator(String cmd) {
+	private void startEmulator(String cmd) {
 		Runtime rt = Runtime.getRuntime();
 		try {
 			emulatorProcess = rt.exec(cmd);

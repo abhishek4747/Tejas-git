@@ -10,28 +10,35 @@ public class Packet
 	public long ip;
 	public long value;
 	public long tgt;
+	public String asm;
 	
 	public Packet () 
 	{
 		ip = -1;
 	}
 
-	public Packet(long ip, long value, long tgt) 
+	public Packet(long ip, long value, long tgt, String asm) 
 	{
 		this.ip = ip;
 		this.value = value;
 		this.tgt = tgt;
+		this.asm = asm;
 	}
 
 	@Override
 	public String toString() {
-		return "Packet [ip=" + ip + ", tgt=" + tgt + ", value=" + value + "]";
+		if(asm==null) {
+			return "Packet [ip=" + ip + ", tgt=" + tgt + ", value=" + value + "]";
+		} else {
+			return "Packet [ip=" + ip + ", asm=" + asm + ", value=" + value + "]";
+		}
 	}
 
-	public void set(long ip, long value, long tgt) {
+	public void set(long ip, long value, long tgt, String asm) {
 		this.ip = ip;
 		this.value = value;
 		this.tgt = tgt;
+		this.asm = asm;
 	}
 	/*
 	public Long getTgt()

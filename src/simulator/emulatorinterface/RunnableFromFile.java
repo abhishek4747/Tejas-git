@@ -44,7 +44,7 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 		noOfMicroOps[0] = totMicroOps;
 		currentEMUTHREADS = 1;
 		
-		Main.setStartTime(System.currentTimeMillis());
+		//Main.setStartTime(System.currentTimeMillis());
 		
 		super.finishAllPipelines();
 	}

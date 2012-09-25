@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 import misc.Error;
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.XMLParser;
 import emulatorinterface.RunnableFromFile;
@@ -48,9 +49,6 @@ public class Main {
 		// Initialise pool of operands and instructions
 		CustomObjectPool.initPool();
 		
-		// Configure the emulator
-		configureEmulator();
-
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
 		
@@ -59,10 +57,8 @@ public class Main {
 				
 		System.out.println("Newmain : pid = " + pid);
 		
-		// create PIN interface
-		if (SimulationConfig.Mode!=0) {
-			createPINinterface(executableArguments, pid);
-		}
+		// start emulator
+		startEmulator(executableArguments, pid);
 
 		//different core components may work at different frequencies
 		
@@ -74,12 +70,7 @@ public class Main {
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		//FIXME A single java thread can have multiple cores
 		
-		IpcBase ipcBase = null;
-		if(SimulationConfig.Mode==0) {
-			// ipc is not required for file
-		} else {
-			ipcBase = new SharedMem(pid);
- 		}
+		IpcBase ipcBase = startCommunicationChannel(pid);
 		
 		long startTime, endTime;
 		startTime = System.currentTimeMillis();
@@ -89,23 +80,21 @@ public class Main {
 			
 			name = "thread"+Integer.toString(i);
 			
-			if(SimulationConfig.Mode==0) {
+			if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
 				runners[i] = new RunnableFromFile(name,i, ipcBase, ArchitecturalComponent.getCores(), 
 						ArchitecturalComponent.getTokenBus());
-			} else if (SimulationConfig.Mode==1) {
+			} else {
 				runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores(), 
 						ArchitecturalComponent.getTokenBus());
-			} else {
-				misc.Error.showErrorAndExit("Invalid simulation config : " + SimulationConfig.Mode);
 			}
 		}
 		
 		ipcBase.waitForJavaThreads();
-		if (SimulationConfig.Mode != 0) {
+		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE) {
 			emulator.waitForEmulator();
 		}
 		
-		if(SimulationConfig.Mode != 0) {
+		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE) {
 			ipcBase.finish();
 		}
 
@@ -117,41 +106,46 @@ public class Main {
 		System.exit(0);
 	}
 
+	private static IpcBase startCommunicationChannel(int pid) {
+		IpcBase ipcBase = null;
+		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
+			// ipc is not required for file
+			ipcBase = null;
+		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SHM) {
+			ipcBase = new SharedMem(pid);
+ 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SOCKET) {
+ 			
+ 		} else {
+ 			ipcBase = null;
+ 			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);
+ 		}
+		
+		return ipcBase;
+	}
+
+	private static void startEmulator(String executableArguments, int pid) {
+		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
+			// The emulator is not needed when we are reading from a file
+			emulator = null;
+		} else {
+			if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+				emulator = new Emulator(EmulatorConfig.PinTool, EmulatorConfig.PinInstrumentor, 
+						executableArguments, pid);
+			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+				emulator = new Emulator(EmulatorConfig.QemuTool, pid);
+			} else {
+				emulator = null;
+				misc.Error.showErrorAndExit("Invalid emulator type : " + EmulatorConfig.EmulatorType);
+			}
+		}
+	}
+
 	private static void initializeArchitecturalComponents() {
 		ArchitecturalComponent.setCoreBcastBus(ArchitecturalComponent.initCoreBcastBus());
 		ArchitecturalComponent.setCores(ArchitecturalComponent.initCores(ArchitecturalComponent.getCoreBcastBus()));
 		ArchitecturalComponent.setTokenBus(ArchitecturalComponent.initTokenBus());
 		ArchitecturalComponent.initMemorySystem(ArchitecturalComponent.getCores(),
 				ArchitecturalComponent.getTokenBus());
-	}
-
-	// TODO Must provide parameters to make from here
-	private static void configureEmulator() {
-
-	}
-
-	private static void createPINinterface(String executableArguments, int pid) 
-	{
-		// Creating command for PIN tool.
-		String cmd;
-		
-		System.out.println("subset sim size = "  + 
-				SimulationConfig.subsetSimSize + "\t" + 
-				SimulationConfig.subsetSimulation);
-		
-		cmd = SimulationConfig.PinTool + "/pin" +
-						" -t " + SimulationConfig.PinInstrumentor +
-						" -map " + SimulationConfig.MapEmuCores +
-						" -numIgn " + SimulationConfig.NumInsToIgnore +
-						" -numSim " + SimulationConfig.subsetSimSize +
-						" -id " + pid +
-						" -- ";
-		cmd += executableArguments;
-		
-		// System.out.println("cmd = " + cmd);
-
-		emulator = new Emulator();
-		emulator.startEmulator(cmd);
 	}
 
 	// checks if the command line arguments are in required format and number
