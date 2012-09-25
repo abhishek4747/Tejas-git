@@ -34,7 +34,7 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 	 */
 	public void run() {
 
-		threadParams[0].started=true;
+		emulatorThreadState[0].started=true;
 
 		long totMicroOps = readFile(SimulationConfig.InstructionsFilename);
 

@@ -165,20 +165,6 @@ public class SharedMem extends  IpcBase
 	static int shmid;
 
 	public void initIpc() {
-		if (SimulationConfig.debugMode) { 
-			System.out.println("-- SharedMem initialising");
-		}
-		
-		String name;
-		for (int i=0; i<MaxNumJavaThreads; i++){
-			name = "thread"+Integer.toString(i);
-			javaThreadTermination[i]=false;
-			javaThreadStarted[i]=false;
-			//TODO not all cores are assigned to each thread
-			//when the mechanism to tie threads to cores is in place
-			//this has to be changed
-		}
-		
 	}
 
 	public void errorCheck(int tidApp, long totalReads) {
