@@ -23,6 +23,7 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegister;
 import generic.Instruction;
 import generic.Operand;
 import generic.InstructionArrayList;
@@ -31,7 +32,8 @@ public class ReturnOp implements InstructionHandler
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList)
+			InstructionArrayList instructionArrayList,
+			TempRegister tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		if ((operand1 == null || operand1.isImmediateOperand())
@@ -42,11 +44,11 @@ public class ReturnOp implements InstructionHandler
 
 			// pop the new instruction-pointer from the stack
 			(new Pop()).handle(instructionPointer,
-					newInstructionPointer, null, null, instructionArrayList);
+					newInstructionPointer, null, null, instructionArrayList, tempRegisterNum);
 
 			// perform an unconditional jump to the new location
 			(new UnconditionalJump()).handle(instructionPointer,
-					newInstructionPointer, null, null, instructionArrayList);
+					newInstructionPointer, null, null, instructionArrayList, tempRegisterNum);
 
 			if (operand1 != null && operand1.isImmediateOperand()) 
 			{

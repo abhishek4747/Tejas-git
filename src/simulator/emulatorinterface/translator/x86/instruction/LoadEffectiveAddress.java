@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
+import emulatorinterface.translator.x86.registers.TempRegister;
 import generic.Instruction;
 import generic.Operand;
 import generic.InstructionArrayList;
@@ -30,7 +31,8 @@ public class LoadEffectiveAddress implements InstructionHandler
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionArrayList instructionArrayList,
+			TempRegister tempRegisterNum) 
 					throws InvalidInstructionException
 	{
 		//Effective address is of the form [a+b]

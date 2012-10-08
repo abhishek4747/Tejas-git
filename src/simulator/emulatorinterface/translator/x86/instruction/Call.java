@@ -23,6 +23,7 @@ package emulatorinterface.translator.x86.instruction;
 
 
 import emulatorinterface.translator.InvalidInstructionException;
+import emulatorinterface.translator.x86.registers.TempRegister;
 import generic.InstructionArrayList;
 import generic.Operand;
 import misc.Error;;
@@ -36,19 +37,20 @@ import misc.Error;;
 public class Call implements InstructionHandler 
 {
 	public void handle(long instructionPointer, Operand operand1,
-			Operand operand2, Operand operand3, InstructionArrayList instructionArrayList)
+			Operand operand2, Operand operand3, InstructionArrayList instructionArrayList, 
+			TempRegister tempRegisterNum)
 					throws InvalidInstructionException	
 	{
 		//push the next instruction pointer on to the stack
 		//TODO Check if the NEXT_INSTRUCTION can be computed
 		Operand nextInstruction = Operand.getImmediateOperand();
-		new Push().handle(instructionPointer, nextInstruction, null, null, instructionArrayList);
+		new Push().handle(instructionPointer, nextInstruction, null, null, instructionArrayList, tempRegisterNum);
 		
 		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() ||  operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) 
 		   &&  operand2==null  &&   operand3==null)
 		{
 			//Unconditional jump to a new location
-			(new UnconditionalJump()).handle(instructionPointer, operand1, null, null, instructionArrayList);
+			(new UnconditionalJump()).handle(instructionPointer, operand1, null, null, instructionArrayList, tempRegisterNum);
 		}
 		
 		else

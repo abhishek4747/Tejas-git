@@ -3,6 +3,7 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegister;
 import generic.Instruction;
 import generic.Operand;
 import generic.InstructionArrayList;
@@ -11,7 +12,8 @@ public class FloatingPointCompare implements InstructionHandler
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList)
+			InstructionArrayList instructionArrayList,
+			TempRegister tempRegisterNum)
 					throws InvalidInstructionException
 	{
 	
@@ -43,7 +45,7 @@ public class FloatingPointCompare implements InstructionHandler
 			//First implicit operand is implicitly st0 and second operand is passed as argument.
 			Operand st0 = Registers.getTopFPRegister();
 			Operand tempFloatRegister;
-			tempFloatRegister=Registers.getTempFloatReg();
+			tempFloatRegister=Registers.getTempFloatReg(tempRegisterNum);
 			
 			//tempFloatRegister = [operand1]
 			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1, tempFloatRegister));

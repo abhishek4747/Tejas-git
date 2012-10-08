@@ -31,6 +31,7 @@ import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.InstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegister;
 import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionArrayList;
@@ -176,13 +177,14 @@ public class ObjParser
 			// Simplify the operands
 			Operand operand1, operand2, operand3;
 			
-			Registers.noOfIntTempRegs = 0;
-			Registers.noOfFloatTempRegs = 0;
+//			Registers.noOfIntTempRegs = 0;
+//			Registers.noOfFloatTempRegs = 0;
 			
-			operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionArrayList);
-			operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionArrayList);
-			operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionArrayList);
+			TempRegister tempRegisterNum = new TempRegister();
 			
+			operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionArrayList, tempRegisterNum);
+			operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionArrayList, tempRegisterNum);
+			operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionArrayList, tempRegisterNum);
 			
 			// Obtain a handler for this instruction
 			InstructionHandler handler;
@@ -191,7 +193,7 @@ public class ObjParser
 			// Handle the instruction
 			if(handler!=null)
 			{
-				handler.handle(instructionPointer, operand1, operand2, operand3, instructionArrayList);
+				handler.handle(instructionPointer, operand1, operand2, operand3, instructionArrayList, tempRegisterNum);
 			}
 			
 			//now set the ip of all converted instructions to instructionPointer

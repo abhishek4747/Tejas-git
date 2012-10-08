@@ -24,6 +24,7 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegister;
 import generic.Instruction;
 import generic.Operand;
 import generic.InstructionLinkedList;
@@ -33,7 +34,8 @@ public class SingleOperandIntALUImplicitAccumulator implements InstructionHandle
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionArrayList instructionArrayList,
+			TempRegister tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		if(operand1==null && operand2==null && operand3==null)

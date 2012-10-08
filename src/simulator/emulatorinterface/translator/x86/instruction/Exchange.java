@@ -23,6 +23,7 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegister;
 import generic.InstructionArrayList;
 import generic.Instruction;
 import generic.Operand;
@@ -31,7 +32,8 @@ public class Exchange implements InstructionHandler
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList)
+			InstructionArrayList instructionArrayList,
+			TempRegister tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		//operand1 is a register and operand2 is also a register
@@ -49,7 +51,7 @@ public class Exchange implements InstructionHandler
 		{
 			Operand memLocation = null, tempRegister = null, register = null;
 			
-			tempRegister = Registers.getTempIntReg();
+			tempRegister = Registers.getTempIntReg(tempRegisterNum);
 			
 			if(operand1.isMemoryOperand() && !operand2.isMemoryOperand()) {
 				memLocation = operand1;
