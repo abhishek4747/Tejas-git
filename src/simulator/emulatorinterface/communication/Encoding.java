@@ -28,6 +28,5 @@ public interface Encoding {
 	static final int BARRIERINIT = 26; 
 	
 	// An instruction can have two assembly
-	static final int ASSEMBLY_1 = 27;
-	static final int ASSEMBLY_2 = 27;
+	static final int ASSEMBLY = 27;
 }

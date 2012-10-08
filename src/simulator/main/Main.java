@@ -1,9 +1,7 @@
 package main;
 
-
 import java.io.File;
 import java.io.IOException;
-
 import misc.Error;
 import config.EmulatorConfig;
 import config.SimulationConfig;
@@ -11,9 +9,11 @@ import config.XMLParser;
 import emulatorinterface.RunnableFromFile;
 import emulatorinterface.RunnableThread;
 import emulatorinterface.communication.IpcBase;
+import emulatorinterface.communication.network.Network;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Statistics;
+
 
 public class Main {
 	
@@ -30,11 +30,11 @@ public class Main {
 		String configFileName = arguments[0];
 		SimulationConfig.outputFileName = arguments[1];
 		
-		String executableArguments=" ";
-		String executableFile = " ";
-		executableFile = arguments[2];
+		String emulatorArguments=" ";
+		String emulatorFile = " ";
+		emulatorFile = arguments[2];
 		for(int i=2; i < arguments.length; i++) {
-			executableArguments = executableArguments + " " + arguments[i];
+			emulatorArguments = emulatorArguments + " " + arguments[i];
 		}
 
 		// Parse the command line arguments
@@ -44,10 +44,12 @@ public class Main {
 		Statistics.initStatistics();
 
 		// Create a hash-table for the static representation of the executable
-		ObjParser.buildStaticInstructionTable(executableFile);
+		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			ObjParser.buildStaticInstructionTable(emulatorFile);
+		}
 		
 		// Initialise pool of operands and instructions
-		CustomObjectPool.initPool();
+		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
 		
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
@@ -56,9 +58,12 @@ public class Main {
 		int pid = getMyPID();
 				
 		System.out.println("Newmain : pid = " + pid);
+
+		// Start communication channel before starting emulator
+		IpcBase ipcBase = startCommunicationChannel(pid);
 		
 		// start emulator
-		startEmulator(executableArguments, pid);
+		startEmulator(emulatorArguments, pid);
 
 		//different core components may work at different frequencies
 		
@@ -69,8 +74,6 @@ public class Main {
 //		}
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		//FIXME A single java thread can have multiple cores
-		
-		IpcBase ipcBase = startCommunicationChannel(pid);
 		
 		long startTime, endTime;
 		startTime = System.currentTimeMillis();
@@ -99,7 +102,7 @@ public class Main {
 		}
 
 		endTime = System.currentTimeMillis();
-		Statistics.printAllStatistics(executableFile, startTime, endTime);
+		Statistics.printAllStatistics(emulatorFile, startTime, endTime);
 		
 		System.out.println("\n\nSimulation completed !!");
 				
@@ -113,8 +116,8 @@ public class Main {
 			ipcBase = null;
 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SHM) {
 			ipcBase = new SharedMem(pid);
- 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SOCKET) {
- 			
+ 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_NETWORK) {
+ 			ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
  		} else {
  			ipcBase = null;
  			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);

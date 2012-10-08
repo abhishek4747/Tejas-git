@@ -56,7 +56,7 @@ public class SharedMem extends  IpcBase
 		SharedMem.shmreadMult(tidApp, shmAddress, readerLocation[tidApp], numPackets,ret);
 			for (int i=0; i<numPackets; i++) {
 				//fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
-				fromEmulator.get(i).set(ret[3*i],ret[3*i+1],ret[3*i+2], null);
+				fromEmulator.get(i).set(ret[3*i],ret[3*i+1],ret[3*i+2]);
 				//System.out.println(fromPIN.get(i).toString());
 			}
 		

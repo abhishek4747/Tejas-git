@@ -7,38 +7,33 @@ public class Packet
 	// If info packet then ip represents instruction pointer and tgt represents the target addr/mem 
 	// address. Else if synchronization packet then ip represents time and tgt represents lock 
 	// address. Else if timer packet then ip represents time and tgt represents nothing.
+	
+	// For a qemu packet containing assembly of instruction, tgt indicates the size of the assembly string
 	public long ip;
 	public long value;
 	public long tgt;
-	public String asm;
 	
 	public Packet () 
 	{
 		ip = -1;
 	}
 
-	public Packet(long ip, long value, long tgt, String asm) 
+	public Packet(long ip, long value, long tgt) 
 	{
 		this.ip = ip;
 		this.value = value;
 		this.tgt = tgt;
-		this.asm = asm;
 	}
 
 	@Override
 	public String toString() {
-		if(asm==null) {
-			return "Packet [ip=" + ip + ", tgt=" + tgt + ", value=" + value + "]";
-		} else {
-			return "Packet [ip=" + ip + ", asm=" + asm + ", value=" + value + "]";
-		}
+		return "Packet [ip=" + ip + ", tgt=" + tgt + ", value=" + value + "]";
 	}
 
-	public void set(long ip, long value, long tgt, String asm) {
+	public void set(long ip, long value, long tgt) {
 		this.ip = ip;
 		this.value = value;
 		this.tgt = tgt;
-		this.asm = asm;
 	}
 	/*
 	public Long getTgt()

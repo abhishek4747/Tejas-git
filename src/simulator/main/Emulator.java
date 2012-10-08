@@ -30,9 +30,7 @@ public class Emulator {
 	
 	public Emulator(String qemuTool, int pid)
 	{
-		String cmd = "";
-		
-		startEmulator(cmd);
+		startEmulator(qemuTool);
 	}
 
 
