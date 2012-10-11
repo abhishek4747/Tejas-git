@@ -5,7 +5,7 @@ import generic.BranchInstr;
 import generic.Instruction;
 import generic.InstructionTable;
 
-public class Jump implements VisaHandler 
+public class Jump implements DynamicInstructionHandler 
 {
 	public int handle(int microOpIndex, InstructionTable instructionTable,
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 

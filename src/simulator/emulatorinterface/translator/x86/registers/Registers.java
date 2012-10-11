@@ -38,13 +38,13 @@ public class Registers
 //	public static int noOfFloatTempRegs = 0;
 
 	//Allocate a new temporary register	
-	public static Operand getTempIntReg(TempRegister tempRegister)
+	public static Operand getTempIntReg(TempRegisterNum tempRegister)
 	{
 		return Operand.getIntegerRegister(encodeRegister("temp" + tempRegister.numTempIntRegister++));
 	}
 
 	//Allocate a new temporary float register	
-	public static Operand getTempFloatReg(TempRegister tempRegister)
+	public static Operand getTempFloatReg(TempRegisterNum tempRegister)
 	{
 		return Operand.getFloatRegister(encodeRegister("tempFloat" + tempRegister.numTempFloatRegister++));
 	}

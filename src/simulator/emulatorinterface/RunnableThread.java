@@ -398,7 +398,7 @@ public class RunnableThread implements Encoding, Runnable {
 		for (int i=0; i<maxCoreAssign; i++){
 			//finishing pipelines by adding invalid instruction to all pipeline
 			//already finished pipeline will not be affected 
-					this.inputToPipeline[i].enqueue(new Instruction(OperationType.inValid,null, null, null));
+					this.inputToPipeline[i].enqueue(Instruction.getInvalidInstruction());
 		}
 		for (int i=0; i<maxCoreAssign; i++) {
 			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
@@ -724,7 +724,7 @@ public class RunnableThread implements Encoding, Runnable {
 			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
 		}
 */		for (int i=0; i<update.getNumSleepers(); i++) {
-			Instruction ins = new Instruction(OperationType.sync,null, null, null);
+			Instruction ins = Instruction.getSyncInstruction();
 			ins.setRISCProgramCounter(update.barrierAddress);
 //			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
 			this.inputToPipeline[update.sleep.get(i)].enqueue(ins);
@@ -737,7 +737,7 @@ public class RunnableThread implements Encoding, Runnable {
 		//finished pipline
 		// TODO Auto-generated method stub
 //		System.out.println("signalfinish thread " + tidApp + " mapping " + threadCoreMaping.get(tidApp));
-		this.inputToPipeline[tidApp].enqueue(new Instruction(OperationType.inValid, null, null, null));
+		this.inputToPipeline[tidApp].enqueue(Instruction.getInvalidInstruction());
 		IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
 		//					System.out.println(tidApp+" pin thread got -1");
 		

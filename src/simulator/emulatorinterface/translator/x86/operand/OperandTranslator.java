@@ -23,9 +23,9 @@ package emulatorinterface.translator.x86.operand;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
-import emulatorinterface.translator.x86.registers.TempRegister;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 import generic.Operand;
 import generic.OperandType;
 import java.util.StringTokenizer;
@@ -37,7 +37,7 @@ import misc.Numbers;
 public class OperandTranslator 
 {
 	public static Operand simplifyOperand(String operandStr,
-			InstructionArrayList instructionArrayList, TempRegister tempRegister)
+			InstructionList instructionArrayList, TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		//If there is no operand, then just don't process it. 
@@ -56,7 +56,7 @@ public class OperandTranslator
 		if(Numbers.isValidNumber(operandStr)) 
 		{
 			//FIXME : We do not care about the actual value of the immediate operand 
-			return new Operand(OperandType.immediate, -1);
+			return Operand.getImmediateOperand();
 		}
 		else if(Registers.isIntegerRegister(operandStr))
 		{
@@ -78,7 +78,7 @@ public class OperandTranslator
 			String memLocation = operandStr = operandStr.substring(operandStr.indexOf("[") + 1, operandStr.indexOf("]"));
 			
 			//Mark the operand as an operand whose value is stored in the memory
-			return simplifyMemoryLocation(memLocation, instructionArrayList, tempRegister);
+			return simplifyMemoryLocation(memLocation, instructionArrayList, tempRegisterNum);
 		}
 		
 		else if(operandStr.matches("[0-9a-f]+ <.*>"))
@@ -87,7 +87,7 @@ public class OperandTranslator
 			//This operand contains a memory address and a reference address enclosed in <>
 			//We just need the first field containing address. This is an immediate
 			String memLocation = new StringTokenizer(operandStr).nextToken();
-			return new Operand(OperandType.immediate, Numbers.hexToLong(memLocation));
+			return Operand.getImmediateOperand();
 		}
 		
 		else if(operandStr.matches("[a-zA-Z ]+:0x[0-9a-f]+"))
@@ -101,7 +101,7 @@ public class OperandTranslator
 			// If the operand contains the keyword PTR, mark it as stored in memory
 			if(operandStr.contains("PTR"))
 			{
-				return simplifyMemoryLocation(memLocation, instructionArrayList, tempRegister);
+				return simplifyMemoryLocation(memLocation, instructionArrayList, tempRegisterNum);
 			}
 			else
 			{
@@ -119,7 +119,7 @@ public class OperandTranslator
 	
 
 	static Operand simplifyMemoryLocation(String operandStr,
-			InstructionArrayList instructionArrayList, TempRegister tempRegisterNum) 
+			InstructionList instructionArrayList, TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
 		String memoryAddressTokens[] = operandStr.split("\\+|-");
@@ -290,7 +290,7 @@ public class OperandTranslator
 		return ((memoryAddressTokens.length>=1 && memoryAddressTokens.length<=3));
 	}
 	
-	public static Operand getLocationToStoreValue(Operand operand, TempRegister tempRegisterNum)
+	public static Operand getLocationToStoreValue(Operand operand, TempRegisterNum tempRegisterNum)
 	{
 		if(!operand.isMemoryOperand())
 		{

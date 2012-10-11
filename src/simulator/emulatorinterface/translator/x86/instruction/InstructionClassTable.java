@@ -25,11 +25,11 @@ import java.util.Hashtable;
 
 public class InstructionClassTable {
 	private static Hashtable<String, InstructionClass> instructionClassTable;
-	private static Hashtable<InstructionClass, InstructionHandler> instructionClassHandlerTable;
+	private static Hashtable<InstructionClass, X86StaticInstructionHandler> instructionClassHandlerTable;
 
 	private static void createInstructionClassHandlerTable() {
 		// create an empty hash-table for storing object references.
-		instructionClassHandlerTable = new Hashtable<InstructionClass, InstructionHandler>();
+		instructionClassHandlerTable = new Hashtable<InstructionClass, X86StaticInstructionHandler>();
 
 		instructionClassHandlerTable.put(
 				InstructionClass.INTEGER_ALU_IMPLICIT_DESTINATION,
@@ -448,7 +448,7 @@ public class InstructionClassTable {
 			return instructionClass;
 	}
 
-	public static InstructionHandler getInstructionClassHandler(
+	public static X86StaticInstructionHandler getInstructionClassHandler(
 			InstructionClass instructionClass) {
 
 		if (instructionClassHandlerTable == null)
@@ -457,7 +457,7 @@ public class InstructionClassTable {
 		if (instructionClass == InstructionClass.INVALID)
 			return null;
 
-		InstructionHandler handler;
+		X86StaticInstructionHandler handler;
 		handler = instructionClassHandlerTable.get(instructionClass);
 
 		return handler;

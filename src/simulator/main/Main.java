@@ -42,14 +42,14 @@ public class Main {
 		
 		// Initialize the statistics
 		Statistics.initStatistics();
+		
+		// Initialise pool of operands and instructions
+		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
 
 		// Create a hash-table for the static representation of the executable
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			ObjParser.buildStaticInstructionTable(emulatorFile);
 		}
-		
-		// Initialise pool of operands and instructions
-		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
 		
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();

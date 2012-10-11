@@ -29,6 +29,7 @@ public class Error
 {
 	public static void showErrorAndExit(String message)
 	{
+		new Exception().printStackTrace();
 		System.out.print(message);
 		shutDown("");
 		System.exit(1);

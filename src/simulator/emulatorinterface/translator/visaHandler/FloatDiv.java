@@ -4,7 +4,7 @@ import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
 import generic.InstructionTable;
 
-public class FloatDiv implements VisaHandler 
+public class FloatDiv implements DynamicInstructionHandler 
 {
 	public int handle(int microOpIndex, InstructionTable instructionTable,
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 

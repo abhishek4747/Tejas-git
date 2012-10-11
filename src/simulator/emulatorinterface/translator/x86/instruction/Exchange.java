@@ -23,17 +23,17 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
-import emulatorinterface.translator.x86.registers.TempRegister;
-import generic.InstructionArrayList;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
+import generic.InstructionList;
 import generic.Instruction;
 import generic.Operand;
 
-public class Exchange implements InstructionHandler 
+public class Exchange implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList,
-			TempRegister tempRegisterNum)
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		//operand1 is a register and operand2 is also a register

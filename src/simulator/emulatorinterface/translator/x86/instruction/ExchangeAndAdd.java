@@ -22,16 +22,16 @@
 package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
-import emulatorinterface.translator.x86.registers.TempRegister;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Operand;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class ExchangeAndAdd implements InstructionHandler 
+public class ExchangeAndAdd implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList,
-			TempRegister tempRegisterNum)
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		//TODO Check if the add should be performed before exchange ??

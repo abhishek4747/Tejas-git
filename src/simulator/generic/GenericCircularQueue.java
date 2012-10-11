@@ -24,8 +24,7 @@ public class GenericCircularQueue<E> {
 	{
 		if(isFull())
 		{
-			System.out.println("can't enqueue - queue full");
-			System.exit(1);
+			misc.Error.showErrorAndExit("can't enqueue - queue full");
 		}
 		
 		tail = (tail+1)%bufferSize;

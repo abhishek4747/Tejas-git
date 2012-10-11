@@ -23,8 +23,8 @@ package emulatorinterface.translator.x86.instruction;
 
 
 import emulatorinterface.translator.InvalidInstructionException;
-import emulatorinterface.translator.x86.registers.TempRegister;
-import generic.InstructionArrayList;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
+import generic.InstructionList;
 import generic.Operand;
 import misc.Error;;
 
@@ -34,11 +34,11 @@ import misc.Error;;
  * 2) Perform an unconditional jump to location stored in operand1.
  * @author prathmesh
  */
-public class Call implements InstructionHandler 
+public class Call implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, Operand operand1,
-			Operand operand2, Operand operand3, InstructionArrayList instructionArrayList, 
-			TempRegister tempRegisterNum)
+			Operand operand2, Operand operand3, InstructionList instructionArrayList, 
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException	
 	{
 		//push the next instruction pointer on to the stack
