@@ -67,6 +67,15 @@ public class ObjParser
 {
 	private static InstructionTable ciscIPtoRiscIP = null;
 	private static InstructionList staticMicroOpList = null;
+	private static InstructionList threadMicroOpsList[] = null;
+	
+	public static void initializeThreadMicroOpsList(int maxApplicationThreads) {
+		threadMicroOpsList = new InstructionList[maxApplicationThreads];
+		
+		for(int i=0; i<maxApplicationThreads; i++) {
+			threadMicroOpsList[i] = new InstructionList(10000);
+		}
+	}
 	
 	/**
 	* This method translates a static instruction to dynamic instruction.
@@ -141,10 +150,11 @@ public class ObjParser
 			
 			// Riscify current instruction
 			int microOpsIndexBefore = microOpsIndex;
-			microOpsIndex = riscifyInstruction( instructionPointer, 
+			int numRicscInsn = riscifyInstruction( instructionPointer, 
 					instructionPrefix, operation, 
 					operand1, operand2, operand3, 
 					staticMicroOpList);
+			microOpsIndex += numRicscInsn;
 			
 			if(microOpsIndexBefore==microOpsIndex) {
 				notHandled++;
@@ -166,9 +176,9 @@ public class ObjParser
 	private static int riscifyInstruction(
 			long instructionPointer, String instructionPrefix, String operation, 
 			String operand1Str, String operand2Str, String operand3Str, 
-			InstructionList instructionArrayList) 
+			InstructionList instructionList) 
 	{
-		int microOpsIndexBefore = instructionArrayList.length();
+		int microOpsIndexBefore = instructionList.length();
 		
 		try
 		{
@@ -184,9 +194,9 @@ public class ObjParser
 			
 			TempRegisterNum tempRegisterNum = new TempRegisterNum();
 			
-			operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionArrayList, tempRegisterNum);
-			operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionArrayList, tempRegisterNum);
-			operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionArrayList, tempRegisterNum);
+			operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionList, tempRegisterNum);
+			operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionList, tempRegisterNum);
+			operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionList, tempRegisterNum);
 			
 			// Obtain a handler for this instruction
 			X86StaticInstructionHandler handler;
@@ -195,15 +205,15 @@ public class ObjParser
 			// Handle the instruction
 			if(handler!=null)
 			{
-				handler.handle(instructionPointer, operand1, operand2, operand3, instructionArrayList, tempRegisterNum);
+				handler.handle(instructionPointer, operand1, operand2, operand3, instructionList, tempRegisterNum);
 			}
 			
 			//now set the ip of all converted instructions to instructionPointer
-			for(int i=microOpsIndexBefore; i<instructionArrayList.length(); i++)
+			for(int i=microOpsIndexBefore; i<instructionList.length(); i++)
 			{
-				instructionArrayList.setCISCProgramCounter(i, instructionPointer);
+				instructionList.setCISCProgramCounter(i, instructionPointer);
 				//FIXME : index in the array list - check ??
-				instructionArrayList.setRISCProgramCounter(i, i);
+				instructionList.setRISCProgramCounter(i, i);
 			}
 		} catch(InvalidInstructionException inInstrEx) {
 			/*
@@ -217,14 +227,14 @@ public class ObjParser
 //					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
 			
 			
-			while(instructionArrayList.getListSize()
+			while(instructionList.getListSize()
 					!=microOpsIndexBefore)
 			{
-				instructionArrayList.removeLastInstr();
+				instructionList.removeLastInstr();
 			}
 		}
 		
-		return microOpsIndexBefore;
+		return (instructionList.length()-microOpsIndexBefore);
 	}
 	
 	//return true if the string is a valid instruction prefix
@@ -481,62 +491,104 @@ public class ObjParser
 	 * translate.
 	 */
 	public static int fuseInstruction(
-			long startInstructionPointer,
+			int tidApp, long startInstructionPointer,
 			ArrayList<Packet> arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
 	{
 		// Create a dynamic instruction buffer for all control packets
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
 		dynamicInstructionBuffer.configurePackets(arrayListPacket);
 		
+		InstructionList assemblyPacketList = null;
+		
+		int numCISC = 0;
+		int microOpIndex = 0;
+		
 		// Riscify the assembly packets
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 			for (int i = 0; i < arrayListPacket.size(); i++) 
 			{
+				assemblyPacketList = threadMicroOpsList[tidApp]; 
 				Packet p = arrayListPacket.get(i);
 				
 				if(p.value==Encoding.ASSEMBLY) {
+					String assemblyLine = new String(CustomObjectPool.getCustomAsmCharPool().pop(tidApp));
 					
+					// System.out.println(i + " : " + assemblyLine);
+					
+					if (!(isContainingAssemblyCode(assemblyLine))) {
+						continue;
+					}
+
+					String assemblyCodeTokens[] = tokenizeAssemblyCode(assemblyLine);
+					String instructionPrefix, operation, operand1, operand2, operand3;
+					long instructionPointer;
+
+					// read the assembly code tokens
+					instructionPointer = Numbers.hexToLong(assemblyCodeTokens[0]);
+					
+					//initialize different parameters of an instruction.
+					if(isInstructionPrefix(assemblyCodeTokens[1]))
+					{
+						instructionPrefix = assemblyCodeTokens[1];
+						operation = assemblyCodeTokens[2];
+						operand1 = assemblyCodeTokens[3];
+						operand2 = assemblyCodeTokens[4];
+						operand3 = null;
+					}
+					else
+					{
+						instructionPrefix = null;
+						operation = assemblyCodeTokens[1];
+						operand1 = assemblyCodeTokens[2];
+						operand2 = assemblyCodeTokens[3];
+						operand3 = assemblyCodeTokens[4];
+					}
+					
+					riscifyInstruction( instructionPointer, 
+							instructionPrefix, operation, 
+							operand1, operand2, operand3, 
+							assemblyPacketList);
 				}
 			}
-		}
-		
-		int numCISC = 0;
-		int microOpIndex;
-		
-		// traverse dynamicInstruction Buffer to go to a known instruction
-		while(true)
-		{
-			microOpIndex = ciscIPtoRiscIP.getMicroOpIndex(startInstructionPointer);
+		} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			assemblyPacketList = staticMicroOpList;
 			
-			if(microOpIndex==-1)
+			// traverse dynamicInstruction Buffer to go to a known instruction
+			while(true)
 			{
-				/* startInstructionPointer was never a part of the executable parsed earlier.
-				 * We do not probe further to find a known instruction in the dynamicInstruction
-				 * buffer since it would not be worth the extra effort for such a small window of
-				 * instructions */
-				dynamicInstructionBuffer.clearBuffer();
-				return numCISC;
-			}
-			
-			else if(staticMicroOpList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
-			{
-				/* The startInstructionPointer was part of the executable file and hence is present in
-				 * the hashTable. However, it has not been decoded yet. So, we gobble all the branch,
-				 *  memRead and memWrite instructions belnging to it from the dynamicInstructionBuffer.
-				 */
-				dynamicInstructionBuffer.gobbleInstruction(startInstructionPointer);
+				microOpIndex = ciscIPtoRiscIP.getMicroOpIndex(startInstructionPointer);
 				
-				// go to the next microOpIndex and set startInstructionPointer = microOps ip.
-				//FIXME : Why was this required ?? -> microOpIndex++;
-				startInstructionPointer = staticMicroOpList.get(microOpIndex).getCISCProgramCounter();
+				if(microOpIndex==-1)
+				{
+					/* startInstructionPointer was never a part of the executable parsed earlier.
+					 * We do not probe further to find a known instruction in the dynamicInstruction
+					 * buffer since it would not be worth the extra effort for such a small window of
+					 * instructions */
+					dynamicInstructionBuffer.clearBuffer();
+					return numCISC;
+				}
+				
+				else if(assemblyPacketList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
+				{
+					/* The startInstructionPointer was part of the executable file and hence is present in
+					 * the hashTable. However, it has not been decoded yet. So, we gobble all the branch,
+					 *  memRead and memWrite instructions belnging to it from the dynamicInstructionBuffer.
+					 */
+					dynamicInstructionBuffer.gobbleInstruction(startInstructionPointer);
+					
+					// go to the next microOpIndex and set startInstructionPointer = microOps ip.
+					//FIXME : Why was this required ?? -> microOpIndex++;
+					startInstructionPointer = assemblyPacketList.get(microOpIndex).getCISCProgramCounter();
+				}
+				
+				else
+				{
+					break;
+				}
 			}
-			
-			else
-			{
-				break;
-			}
-		}
 
+		}
+		
 		Instruction staticMicroOp;
 		DynamicInstructionHandler dynamicInstructionHandler;
 		long previousCISCIP;
@@ -548,7 +600,7 @@ public class ObjParser
 		// main translate loop.
 		while(true)
 		{
-			staticMicroOp = staticMicroOpList.get(microOpIndex); 
+			staticMicroOp = assemblyPacketList.get(microOpIndex); 
 			if(staticMicroOp==null) {
 				break;
 			}
@@ -564,7 +616,7 @@ public class ObjParser
 				System.exit(1);
 			}
 			
-			dynamicMicroOp.copy(staticMicroOpList.get(microOpIndex));
+			dynamicMicroOp.copy(assemblyPacketList.get(microOpIndex));
 			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, ciscIPtoRiscIP, dynamicMicroOp, dynamicInstructionBuffer); //handle
 			
 			if(microOpIndex==-1) {
@@ -576,7 +628,7 @@ public class ObjParser
 				}
 				break;
 			} else {
-				
+
 				if(staticMicroOp.getCISCProgramCounter()!=previousCISCIP) {
 					previousCISCIP = staticMicroOp.getCISCProgramCounter();
 					//System.out.println("#### "+ Long.toHexString(previousCISCIP));

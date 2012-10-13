@@ -14,24 +14,44 @@ public class CustomAsmCharPool {
 		}
 	}
 	
-	public void push(int tidApp, byte inputBytes[])
+	public void push(int tidApp, byte inputBytes[], int offset)
 	{
 		if(top[tidApp]==bufferSize) {
 			misc.Error.showErrorAndExit("unable to handle new asm bytes");
 		} else {
 			top[tidApp]++;
 			for(int i=0; i<64; i++) {
-				pool[tidApp][top[tidApp]][i] = inputBytes[i];
+				
+//				char ch = (char)inputBytes[offset+i];
+//				System.out.print(ch);
+				
+				pool[tidApp][top[tidApp]][i] = inputBytes[offset+i];
 			}
+//			System.out.println();
 		}
 	}
 	
-	public void returnTop(int tidApp)
+	public byte[] pop(int tidApp)
 	{
 		if(top[tidApp]==-1) {
 			misc.Error.showErrorAndExit("pool underflow !!");
 		} else {
-			top[tidApp]--;
+			return (pool[tidApp][top[tidApp]--]);
 		}
+		
+		// We will never reach this statement
+		return null;
+	}
+	
+	public byte[] top(int tidApp)
+	{
+		if(top[tidApp]==-1) {
+			misc.Error.showErrorAndExit("pool underflow !!");
+		} else {
+			return (pool[tidApp][top[tidApp]]);
+		}
+		
+		// We will never reach this statement
+		return null;
 	}
 }

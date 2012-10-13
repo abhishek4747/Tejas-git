@@ -107,7 +107,8 @@ public class RunnableThread implements Encoding, Runnable {
 		// tidApp is the actual tid of a pin thread
 		while (true) {
 			
-			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
+			//for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
+			for (int tidEmulator = 0; tidEmulator < 1 ; tidEmulator++) {
 
 				threadParam = emulatorThreadState[tidEmulator];
 
@@ -619,7 +620,7 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			int oldLength = inputToPipeline[tidEmu].size();
 			
-			long numHandledInsn = ObjParser.fuseInstruction(thread.packets.get(0).ip, 
+			long numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packets.get(0).ip, 
 					thread.packets, this.inputToPipeline[tidEmu]);
 			
 			Statistics.setNumHandledCISCInsn(

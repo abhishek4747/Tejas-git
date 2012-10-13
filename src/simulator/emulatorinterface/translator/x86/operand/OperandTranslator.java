@@ -37,7 +37,7 @@ import misc.Numbers;
 public class OperandTranslator 
 {
 	public static Operand simplifyOperand(String operandStr,
-			InstructionList instructionArrayList, TempRegisterNum tempRegisterNum)
+			InstructionList instructionList, TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		//If there is no operand, then just don't process it. 
@@ -78,7 +78,7 @@ public class OperandTranslator
 			String memLocation = operandStr = operandStr.substring(operandStr.indexOf("[") + 1, operandStr.indexOf("]"));
 			
 			//Mark the operand as an operand whose value is stored in the memory
-			return simplifyMemoryLocation(memLocation, instructionArrayList, tempRegisterNum);
+			return simplifyMemoryLocation(memLocation, instructionList, tempRegisterNum);
 		}
 		
 		else if(operandStr.matches("[0-9a-f]+ <.*>"))
@@ -101,7 +101,7 @@ public class OperandTranslator
 			// If the operand contains the keyword PTR, mark it as stored in memory
 			if(operandStr.contains("PTR"))
 			{
-				return simplifyMemoryLocation(memLocation, instructionArrayList, tempRegisterNum);
+				return simplifyMemoryLocation(memLocation, instructionList, tempRegisterNum);
 			}
 			else
 			{

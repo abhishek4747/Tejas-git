@@ -21,13 +21,15 @@ public class Network extends IpcBase implements Encoding {
 	int maxApplicationThreads;
 
 	// 2KB buffer for network data
-	final int bufferSize = 2 * 1024;
+	final int bufferSize = 16 * 1024;
 	byte inputBytes[][];
+	int numOverflowBytes[];
 		
 	public Network(int maxApplicationThreads) {
 		
 		this.maxApplicationThreads = maxApplicationThreads;
 		inputBytes = new byte[maxApplicationThreads][bufferSize];
+		numOverflowBytes = new int[maxApplicationThreads];
 		serverSocket = new ServerSocket[maxApplicationThreads];
 		clientSocket = new Socket[maxApplicationThreads];
 		inputStream = new BufferedInputStream[maxApplicationThreads];
@@ -36,6 +38,7 @@ public class Network extends IpcBase implements Encoding {
 			try {
 				serverSocket[tidApp] = new ServerSocket(portStart+tidApp);
 				clientSocket[tidApp] = null;
+				numOverflowBytes[tidApp] = 0;
 			} catch (IOException e) {
 				e.printStackTrace();
 				misc.Error.showErrorAndExit("error in opening socket on server side for tidApp : " + tidApp);
@@ -57,22 +60,35 @@ public class Network extends IpcBase implements Encoding {
 				String address = clientSocket[tidApp].getInetAddress().getHostName();
 				System.out.println("tidApp : "+ tidApp +" received connection request from " + address);
 				inputStream[tidApp] = new BufferedInputStream(clientSocket[tidApp].getInputStream());
+				
+				// ip +packet-type + disassembly
+				inputStream[tidApp].mark(8+8+64);
+
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 				misc.Error.showErrorAndExit("error in accepting connection for tidApp : " + tidApp);
 			}
 		}
 
-
 		int numPacketsRead = 0;
 
 		try {
+			int numBytesRead = inputStream[tidApp].available();
+			
 			// asynchronously determine the number of bytes available
-			if(inputStream[tidApp].available() == 0) {
+			if(numBytesRead == 0) {
 				return 0;
 			}
-		
-			int numBytesRead = inputStream[tidApp].read(inputBytes[tidApp]);
+
+			if(numBytesRead > (bufferSize-numOverflowBytes[tidApp])) {
+				numBytesRead = (bufferSize - numOverflowBytes[tidApp]);
+			}
+			
+			inputStream[tidApp].read(inputBytes[tidApp], numOverflowBytes[tidApp], numBytesRead);
+			
+			numBytesRead += numOverflowBytes[tidApp];
+			numOverflowBytes[tidApp]=0;
+			
 			int numBytesConsumed = 0;
 			
 			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
@@ -80,9 +96,10 @@ public class Network extends IpcBase implements Encoding {
 			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 				
 				for(int index=0; ; index++) {
+		
 					// we must be able to read at-least 3 longs
 					if((numBytesRead-numBytesConsumed) < (3*8)) {
-						inputStream[tidApp].mark(numBytesConsumed); 
+						resetInputBytes(tidApp, numBytesRead, numBytesConsumed); 
 						break;
 					} else {
 						long ip = getLong(inputBytes[tidApp], numBytesConsumed);
@@ -94,10 +111,10 @@ public class Network extends IpcBase implements Encoding {
 						if(value==ASSEMBLY) {
 							if((numBytesRead-numBytesConsumed)<64) {
 								numBytesConsumed -= 16; // return two longs
-								inputStream[tidApp].mark(numBytesConsumed);
+								resetInputBytes(tidApp, numBytesRead, numBytesConsumed);
 								break;
 							} else {
-								CustomObjectPool.getCustomAsmCharPool().push(tidApp, inputBytes[tidApp]);
+								CustomObjectPool.getCustomAsmCharPool().push(tidApp, inputBytes[tidApp], numBytesConsumed);
 								numBytesConsumed += 64;
 							}
 						} else {
@@ -118,12 +135,22 @@ public class Network extends IpcBase implements Encoding {
 			misc.Error.showErrorAndExit("error in fetching packet for tidApp : " + tidApp);
 		}
 		
-		// print debug messages
-		for(int i=0; i<numPacketsRead; i++) {
-			System.out.println(fromEmulator.get(i));
-		}
+//		// print debug messages
+//		for(int i=0; i<numPacketsRead; i++) {
+//			System.out.println(fromEmulator.get(i));
+//		}
 		
 		return numPacketsRead;
+	}
+
+	private void resetInputBytes(int tidApp, int numBytesRead,
+			int numBytesConsumed) {
+		
+		for(int i=0; i<(numBytesRead-numBytesConsumed); i++) {
+			inputBytes[tidApp][i] = inputBytes[tidApp][i+numBytesConsumed];
+		}
+		
+		numOverflowBytes[tidApp] = numBytesRead - numBytesConsumed;
 	}
 
 	private long getLong(byte[] inputBytes, int offset) {

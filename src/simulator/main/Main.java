@@ -49,6 +49,8 @@ public class Main {
 		// Create a hash-table for the static representation of the executable
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			ObjParser.buildStaticInstructionTable(emulatorFile);
+		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			ObjParser.initializeThreadMicroOpsList(10);
 		}
 		
 		// initialize cores, memory, tokenBus
@@ -117,7 +119,8 @@ public class Main {
 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SHM) {
 			ipcBase = new SharedMem(pid);
  		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_NETWORK) {
- 			ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
+ 			//ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
+ 			ipcBase = new Network(1);
  		} else {
  			ipcBase = null;
  			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);
