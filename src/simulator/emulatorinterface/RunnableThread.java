@@ -107,8 +107,7 @@ public class RunnableThread implements Encoding, Runnable {
 		// tidApp is the actual tid of a pin thread
 		while (true) {
 			
-			//for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
-			for (int tidEmulator = 0; tidEmulator < 1 ; tidEmulator++) {
+			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
 
 				threadParam = emulatorThreadState[tidEmulator];
 

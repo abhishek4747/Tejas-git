@@ -45,6 +45,21 @@ public class Network extends IpcBase implements Encoding {
 			}
 		}
 	}
+	
+	// Free buffers, free memory , deallocate any stuff.
+	public void finish() {
+		System.out.println("Closing network connection");
+		
+		for(int i=0; i<maxApplicationThreads; i++) {
+			try {
+				clientSocket[i].close();
+			} catch (IOException e) {
+				// Not exiting because all the packets have been received correctly
+				System.err.println("Error in closing network connection for tidApp = " + i);
+				e.printStackTrace();
+			}
+		}
+	}
 
 	@Override
 	public void initIpc() {
@@ -52,6 +67,10 @@ public class Network extends IpcBase implements Encoding {
 
 	@Override
 	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
+		
+		if(tidApp>=maxApplicationThreads) {
+			return 0;
+		}
 		
 		// If you are reading from a thread for the first time, open the connection with thread first
 		if(clientSocket[tidApp]==null) {
@@ -123,6 +142,16 @@ public class Network extends IpcBase implements Encoding {
 						}
 						
 						numPacketsRead++;
+						
+						if(value==-1) {
+							System.out.println("End packet received for tidApp = " + tidApp);
+							
+							if(numBytesConsumed!=numBytesRead) {
+								misc.Error.showErrorAndExit("For tidApp = " + tidApp + " : Some bytes are in the " +
+										"stream even after the last packet(-1)");
+							}
+						}
+						
 						fromEmulator.get(index).set(ip, value, tgt);
 					}
 				}
