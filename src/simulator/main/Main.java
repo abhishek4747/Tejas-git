@@ -50,7 +50,7 @@ public class Main {
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			ObjParser.buildStaticInstructionTable(emulatorFile);
 		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-			ObjParser.initializeThreadMicroOpsList(10);
+			ObjParser.initializeThreadMicroOpsList(1);
 		}
 		
 		// initialize cores, memory, tokenBus

@@ -118,8 +118,8 @@ public class ObjParser
 		// Read from the obj-dump output
 		while ((line = readNextLineOfObjDump(input)) != null) 
 		{
-			System.out.println("Number of lines = " + (handled+notHandled) + 
-					" and size of array-list = " + staticMicroOpList.getListSize());
+//			System.out.println("Number of lines = " + (handled+notHandled) + 
+//					" and size of array-list = " + staticMicroOpList.getListSize());
 			
 			if (!(isContainingAssemblyCode(line))) {
 				continue;
@@ -163,8 +163,11 @@ public class ObjParser
 			}
 
 			// add instruction's index into the hash-table
-			ciscIPtoRiscIP.addInstruction(instructionPointer, microOpsIndex);
+			ciscIPtoRiscIP.addInstruction(instructionPointer, microOpsIndexBefore);
 		}
+		
+		System.out.println("Total number of assembly lines = " + (handled + notHandled)); 
+		System.out.println("Total number of micro-operations = " + staticMicroOpList.length());
 
 		// close the buffered reader
 		try {input.close();}
