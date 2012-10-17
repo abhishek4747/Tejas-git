@@ -1,5 +1,6 @@
 package emulatorinterface.translator.visaHandler;
 
+import config.EmulatorConfig;
 import emulatorinterface.DynamicInstructionBuffer;
 import generic.BranchInstr;
 import generic.Instruction;
@@ -20,11 +21,23 @@ public class Branch implements DynamicInstructionHandler
 			
 			if(branchInstruction.branchTaken == true)
 			{
-				return instructionTable.getMicroOpIndex(branchInstruction.branchAddress);
+				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+					return instructionTable.getMicroOpIndex(branchInstruction.branchAddress);
+				} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+					return -2; // conventiontion for qemu
+				} else {
+					return -1;
+				}
 			}
 			else
 			{
-				return ++microOpIndex;
+				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+					return ++microOpIndex;
+				} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+					return -2; // conventiontion for qemu
+				} else {
+					return -1;
+				}
 			}
 		}
 		else

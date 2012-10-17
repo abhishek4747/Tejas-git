@@ -60,6 +60,9 @@ public class DynamicInstructionBuffer implements Encoding
 		{
 			p = arrayListPacket.get(i);
 			assert (ip == p.ip) : "all instruction pointers not matching";
+			
+			// System.out.println(i + " : " + p);
+			
 			switch ((int)p.value) 
 			{
 				case (-1):

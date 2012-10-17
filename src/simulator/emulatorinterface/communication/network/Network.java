@@ -133,7 +133,7 @@ public class Network extends IpcBase implements Encoding {
 								resetInputBytes(tidApp, numBytesRead, numBytesConsumed);
 								break;
 							} else {
-								CustomObjectPool.getCustomAsmCharPool().push(tidApp, inputBytes[tidApp], numBytesConsumed);
+								CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, inputBytes[tidApp], numBytesConsumed);
 								numBytesConsumed += 64;
 							}
 						} else {
@@ -164,9 +164,14 @@ public class Network extends IpcBase implements Encoding {
 			misc.Error.showErrorAndExit("error in fetching packet for tidApp : " + tidApp);
 		}
 		
-//		// print debug messages
+		// print debug messages
 //		for(int i=0; i<numPacketsRead; i++) {
-//			System.out.println(fromEmulator.get(i));
+//			if(fromEmulator.get(i).value==ASSEMBLY) {
+//				String assembly = new String(CustomObjectPool.getCustomAsmCharPool().peek(tidApp, i));
+//				System.out.println(fromEmulator.get(i) + " : " + assembly);
+//			} else {
+//				System.out.println(fromEmulator.get(i));
+//			}
 //		}
 		
 		return numPacketsRead;

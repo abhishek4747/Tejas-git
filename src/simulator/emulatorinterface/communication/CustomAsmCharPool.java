@@ -2,56 +2,109 @@ package emulatorinterface.communication;
 
 public class CustomAsmCharPool {
 	byte pool[][][];
-	int top[];
+	int head[];
+	int tail[];
 	final int bufferSize = 2*1024;
 	
 	public CustomAsmCharPool(int maxApplicationThreads)
 	{
 		pool = new byte[maxApplicationThreads][bufferSize][64];
-		top = new int[maxApplicationThreads];
+		head = new int[maxApplicationThreads];
+		tail = new int[maxApplicationThreads];
 		for(int tidApp=0; tidApp<maxApplicationThreads; tidApp++) {
-			top[tidApp] = -1;
+			head[tidApp] = tail[tidApp] = -1;
 		}
 	}
 	
-	public void push(int tidApp, byte inputBytes[], int offset)
+	public void enqueue(int tidApp, byte inputBytes[], int offset)
 	{
-		if(top[tidApp]==bufferSize) {
+		if(isFull(tidApp)) {
 			misc.Error.showErrorAndExit("unable to handle new asm bytes");
-		} else {
-			top[tidApp]++;
-			for(int i=0; i<64; i++) {
-				
-//				char ch = (char)inputBytes[offset+i];
-//				System.out.print(ch);
-				
-				pool[tidApp][top[tidApp]][i] = inputBytes[offset+i];
-			}
-//			System.out.println();
+		}
+		
+		tail[tidApp] = (tail[tidApp]+1)%bufferSize;
+		//pool[tidApp][tail[tidApp]] = newBytes
+		for(int i=0; i<64; i++) {
+			pool[tidApp][tail[tidApp]][i] = inputBytes[offset+i];
+		}
+		
+		if(head[tidApp]==-1) {
+			head[tidApp] = 0;
 		}
 	}
 	
-	public byte[] pop(int tidApp)
+	public byte[] dequeue(int tidApp)
 	{
-		if(top[tidApp]==-1) {
+		if(isEmpty(tidApp)) {
 			misc.Error.showErrorAndExit("pool underflow !!");
-		} else {
-			return (pool[tidApp][top[tidApp]--]);
 		}
 		
-		// We will never reach this statement
-		return null;
+		byte[] toBeReturned = pool[tidApp][head[tidApp]]; 
+		
+		if(head[tidApp] == tail[tidApp]) {
+			head[tidApp] = -1;
+			tail[tidApp] = -1;
+		} else {
+			head[tidApp] = (head[tidApp] + 1)%bufferSize;
+		}
+		
+		return toBeReturned;
 	}
 	
-	public byte[] top(int tidApp)
-	{
-		if(top[tidApp]==-1) {
-			misc.Error.showErrorAndExit("pool underflow !!");
+	private boolean isEmpty(int tidApp) {
+		if(head[tidApp]==-1) {
+			return true;
 		} else {
-			return (pool[tidApp][top[tidApp]]);
+			return false;
+		}
+	}
+	
+	public int size(int tidApp)
+	{
+		if(head[tidApp] == -1)
+		{
+			return 0;
+		}
+		if(head[tidApp] <= tail[tidApp])
+		{
+			return (tail[tidApp] - head[tidApp] + 1);
+		}
+		else
+		{
+			return (bufferSize - head[tidApp] + tail[tidApp] + 1);
+		}
+	}
+	
+	public void clear(int tidApp) {
+		head[tidApp]=tail[tidApp]=-1;
+	}
+
+	//position refers to logical position in queue - NOT array index
+	public byte[] peek(int tidApp, int position)
+	{
+		if(size(tidApp) <= position)
+		{
+			misc.Error.showErrorAndExit("pool underflow");
 		}
 		
-		// We will never reach this statement
-		return null;
+		int peekIndex = (head[tidApp] + position)%bufferSize;
+		return pool[tidApp][peekIndex];
+	}
+		
+	public byte[] front(int tidApp)
+	{
+		return peek(tidApp, 0);
+	}
+	
+	public boolean isFull(int tidApp)
+	{
+		if((tail[tidApp] + 1)%bufferSize == head[tidApp])
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 }

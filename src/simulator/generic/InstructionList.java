@@ -133,6 +133,10 @@ public class InstructionList
 		//return instructionArrayList.size();
 		return instructionQueue.size();
 	}
+
+	public void clear() {
+		instructionQueue.clear();
+	}
 	
 	/*public SynchronizationObject getSyncObject2() {
 		return syncObject2;

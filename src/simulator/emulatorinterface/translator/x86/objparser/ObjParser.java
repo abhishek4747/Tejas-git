@@ -183,6 +183,8 @@ public class ObjParser
 	{
 		int microOpsIndexBefore = instructionList.length();
 		
+		// System.out.println("instructionList size before = " + microOpsIndexBefore);
+		
 		try
 		{
 			//Determine the instruction class for this instruction
@@ -454,11 +456,11 @@ public class ObjParser
 	
 	// for  a line of assembly code, this would return the
 	// linear address, operation, operand1,operand2, operand3
-	private static void tokenizeQemuAssemblyCode(byte[] asmBytes, 
-		String instructionPrefix, String operation,
-		String operand1, String operand2, String operand3 ) {
+	private static String[] tokenizeQemuAssemblyCode(byte[] asmBytes) {
 		
-		System.out.println("assembly = " + new String(asmBytes));
+		String assemblyTokens[] = new String[5];
+		
+		// System.out.println("assembly = " + new String(asmBytes));
 		
 		int previousPointer, currentPointer;
 		previousPointer = currentPointer = 0;
@@ -467,59 +469,61 @@ public class ObjParser
 		currentPointer = indexOf(asmBytes, ' ', previousPointer, 64);
 		
 		if(currentPointer==-1) {
-			instructionPrefix = null;
-			operation = new String(asmBytes, 0, len(asmBytes));
-			operand1 = operand2 = operand3 = null;
-			return;
+			assemblyTokens[0] = null;
+			assemblyTokens[1] = new String(asmBytes, 0, len(asmBytes));
+			assemblyTokens[2] = assemblyTokens[3] = assemblyTokens[4] = null;
+			return assemblyTokens;
 		}
 		
 		String str = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
 		currentPointer++; previousPointer = currentPointer;
 		
 		if(isInstructionPrefix(str)) {
-			instructionPrefix = str;
+			assemblyTokens[0] = str;
 			currentPointer = indexOf(asmBytes, ' ', previousPointer, 64);
 			
-			operation = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
+			assemblyTokens[1] = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
 			currentPointer++; previousPointer = currentPointer;
 		} else {
-			instructionPrefix = null;
-			operation = str;
+			assemblyTokens[0] = null;
+			assemblyTokens[1] = str;
 		}
 		
 		// --------------------- operand1, operand2, operand3 --------------------------------
 		if(previousPointer==len(asmBytes)) {
-			operand1 = operand2 = operand3 = null;
-			return;
+			assemblyTokens[2] = assemblyTokens[3] = assemblyTokens[4] = null;
+			return assemblyTokens;
 		}
 		
 		currentPointer = indexOf(asmBytes, ',', previousPointer, 64);
 		if(currentPointer==-1) {
-			operand2 = operand3 = null;
-			operand1 = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
-			return;
+			assemblyTokens[3] = assemblyTokens[4] = null;
+			assemblyTokens[2] = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
+			return assemblyTokens;
 		} else {
-			operand1 = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
+			assemblyTokens[2] = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
 			currentPointer+=2; previousPointer=currentPointer;
 			
 			if(previousPointer==len(asmBytes)) {
-				operand2 = operand3 = null;
+				assemblyTokens[3] = assemblyTokens[4] = null;
 			} else {
 				currentPointer = indexOf(asmBytes, ',', previousPointer, 64);
 				
 				if(currentPointer==-1) {
-					operand3 = null;
-					operand2 = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
-					return;
+					assemblyTokens[4] = null;
+					assemblyTokens[3] = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
+					return assemblyTokens;
 				} else {
-					operand2 = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
+					assemblyTokens[3] = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
 					currentPointer++; previousPointer=currentPointer;
 					
-					operand3 = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
-					return;
+					assemblyTokens[4] = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
+					return assemblyTokens;
 				}
 			}
 		}
+		
+		return assemblyTokens;
 	} 
 	
 
@@ -601,21 +605,23 @@ public class ObjParser
 		
 		// Riscify the assembly packets
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			
+			threadMicroOpsList[tidApp].clear();
+			
 			for (int i = 0; i < arrayListPacket.size(); i++) 
 			{
 				assemblyPacketList = threadMicroOpsList[tidApp]; 
 				Packet p = arrayListPacket.get(i);
 				
 				if(p.value==Encoding.ASSEMBLY) {
-					byte asmBytes[] = CustomObjectPool.getCustomAsmCharPool().pop(tidApp);
+					byte asmBytes[] = CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
 					
 					// System.out.println(i + " : " + assemblyLine);
 					long instructionPointer = p.ip;
-					String instructionPrefix = null, operation = null;
-					String operand1 = null, operand2 = null, operand3 = null;
-					
-					tokenizeQemuAssemblyCode(asmBytes, instructionPrefix, operation,
-						operand1, operand2, operand3);
+					String instructionPrefix, operation, operand1, operand2, operand3;
+					String assemblyTokens[] = tokenizeQemuAssemblyCode(asmBytes);
+					instructionPrefix = assemblyTokens[0]; operation = assemblyTokens[1];
+					operand1 = assemblyTokens[2]; operand2 = assemblyTokens[3]; operand3 = assemblyTokens[4];
 					
 					riscifyInstruction( instructionPointer, 
 						instructionPrefix, operation, 
@@ -659,13 +665,11 @@ public class ObjParser
 					break;
 				}
 			}
-
 		}
 		
 		Instruction staticMicroOp;
 		DynamicInstructionHandler dynamicInstructionHandler;
 		long previousCISCIP;
-		
 		
 		// starting
 		previousCISCIP = -1;
@@ -681,15 +685,15 @@ public class ObjParser
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(staticMicroOp.getOperationType());
 			
 			Instruction dynamicMicroOp = null;
-			try {
+			
+			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 				dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
-			} catch (Exception e) {
-				System.err.println("Instruction pool is empty !!");
-				e.printStackTrace();
-				System.exit(1);
+				dynamicMicroOp.copy(assemblyPacketList.get(microOpIndex));
+			} else {
+				// This will ensure that the packet is returned to instruction pool
+				dynamicMicroOp = staticMicroOp;
 			}
 			
-			dynamicMicroOp.copy(assemblyPacketList.get(microOpIndex));
 			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, ciscIPtoRiscIP, dynamicMicroOp, dynamicInstructionBuffer); //handle
 			
 			if(microOpIndex==-1) {
@@ -700,6 +704,10 @@ public class ObjParser
 					numCISC--;
 				}
 				break;
+			} else if(microOpIndex==-2){
+				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+					break;
+				}
 			} else {
 
 				if(staticMicroOp.getCISCProgramCounter()!=previousCISCIP) {
