@@ -129,16 +129,16 @@ public class Main {
 		return ipcBase;
 	}
 
-	private static void startEmulator(String executableArguments, int pid) {
+	private static void startEmulator(String emulatorArguments, int pid) {
 		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
 			// The emulator is not needed when we are reading from a file
 			emulator = null;
 		} else {
 			if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 				emulator = new Emulator(EmulatorConfig.PinTool, EmulatorConfig.PinInstrumentor, 
-						executableArguments, pid);
+						emulatorArguments, pid);
 			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-				emulator = new Emulator(EmulatorConfig.QemuTool, pid);
+				emulator = new Emulator(EmulatorConfig.QemuTool + " " + emulatorArguments, pid);
 			} else {
 				emulator = null;
 				misc.Error.showErrorAndExit("Invalid emulator type : " + EmulatorConfig.EmulatorType);

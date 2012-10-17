@@ -101,7 +101,7 @@ public class ObjParser
 		// Create a new hash table
 		ciscIPtoRiscIP = new InstructionTable((int)noOfLines);
 
-		System.out.println("The executable has " + noOfLines + " valid assembly lines");
+		System.out.println("The executable has " + noOfLines + " assembly lines");
 		
 		String line;
 		long instructionPointer;
@@ -121,7 +121,7 @@ public class ObjParser
 //			System.out.println("Number of lines = " + (handled+notHandled) + 
 //					" and size of array-list = " + staticMicroOpList.getListSize());
 			
-			if (!(isContainingAssemblyCode(line))) {
+			if (!(isContainingObjDumpAssemblyCode(line))) {
 				continue;
 			}
 
@@ -322,7 +322,7 @@ public class ObjParser
 
 	// checks if the passed line of objdump output matches the output for an
 	// assembly code.
-	private static boolean isContainingAssemblyCode(String line) 
+	private static boolean isContainingObjDumpAssemblyCode(String line) 
 	{
 		// A valid assembly code line has following pattern
 		// linear-address <referrence-address> opcode (operands)
@@ -383,7 +383,7 @@ public class ObjParser
 	
 	// for  a line of assembly code, this would return the
 	// linear address, operation, operand1,operand2, operand3
-	public static String[] tokenizeQemuAssemblyCode(String line) 
+	private static String[] tokenizeQemuAssemblyCodeSS(String line) 
 	{
 		String instructionPrefix;
 		String operation;
@@ -433,6 +433,95 @@ public class ObjParser
 
 		return new String[] { instructionPrefix, operation, operand1, operand2, operand3 };
 	}
+	
+	// return index of null character for a byte array
+	private static int len(byte[] asmBytes) {
+		int i=0;
+		for(;asmBytes[i]!=0 && i<asmBytes.length;i++);
+		return i;
+	}
+	
+	// searches character ch in asmByes. If not-found return -1, else return index of ch
+	private static int indexOf(byte[] asmBytes, char ch, int offset, int len) {
+		for(int i=offset; i<len(asmBytes); i++) {
+			if(asmBytes[i]==ch) {
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	// for  a line of assembly code, this would return the
+	// linear address, operation, operand1,operand2, operand3
+	private static void tokenizeQemuAssemblyCode(byte[] asmBytes, 
+		String instructionPrefix, String operation,
+		String operand1, String operand2, String operand3 ) {
+		
+		System.out.println("assembly = " + new String(asmBytes));
+		
+		int previousPointer, currentPointer;
+		previousPointer = currentPointer = 0;
+
+		// -------------- instructionPrefix and operation ---------------------------------- 
+		currentPointer = indexOf(asmBytes, ' ', previousPointer, 64);
+		
+		if(currentPointer==-1) {
+			instructionPrefix = null;
+			operation = new String(asmBytes, 0, len(asmBytes));
+			operand1 = operand2 = operand3 = null;
+			return;
+		}
+		
+		String str = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
+		currentPointer++; previousPointer = currentPointer;
+		
+		if(isInstructionPrefix(str)) {
+			instructionPrefix = str;
+			currentPointer = indexOf(asmBytes, ' ', previousPointer, 64);
+			
+			operation = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
+			currentPointer++; previousPointer = currentPointer;
+		} else {
+			instructionPrefix = null;
+			operation = str;
+		}
+		
+		// --------------------- operand1, operand2, operand3 --------------------------------
+		if(previousPointer==len(asmBytes)) {
+			operand1 = operand2 = operand3 = null;
+			return;
+		}
+		
+		currentPointer = indexOf(asmBytes, ',', previousPointer, 64);
+		if(currentPointer==-1) {
+			operand2 = operand3 = null;
+			operand1 = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
+			return;
+		} else {
+			operand1 = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
+			currentPointer+=2; previousPointer=currentPointer;
+			
+			if(previousPointer==len(asmBytes)) {
+				operand2 = operand3 = null;
+			} else {
+				currentPointer = indexOf(asmBytes, ',', previousPointer, 64);
+				
+				if(currentPointer==-1) {
+					operand3 = null;
+					operand2 = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
+					return;
+				} else {
+					operand2 = new String(asmBytes, previousPointer, (currentPointer-previousPointer));
+					currentPointer++; previousPointer=currentPointer;
+					
+					operand3 = new String(asmBytes, previousPointer, len(asmBytes)-previousPointer);
+					return;
+				}
+			}
+		}
+	} 
+	
 
 	// prints the assembly code parameters for a particular instruction
 	@SuppressWarnings("unused")
@@ -496,7 +585,11 @@ public class ObjParser
 	public static int fuseInstruction(
 			int tidApp, long startInstructionPointer,
 			ArrayList<Packet> arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
-	{
+	{		
+//		if(true) {
+//			return 0;
+//		}
+		
 		// Create a dynamic instruction buffer for all control packets
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
 		dynamicInstructionBuffer.configurePackets(arrayListPacket);
@@ -514,43 +607,20 @@ public class ObjParser
 				Packet p = arrayListPacket.get(i);
 				
 				if(p.value==Encoding.ASSEMBLY) {
-					String assemblyLine = new String(CustomObjectPool.getCustomAsmCharPool().pop(tidApp));
+					byte asmBytes[] = CustomObjectPool.getCustomAsmCharPool().pop(tidApp);
 					
 					// System.out.println(i + " : " + assemblyLine);
+					long instructionPointer = p.ip;
+					String instructionPrefix = null, operation = null;
+					String operand1 = null, operand2 = null, operand3 = null;
 					
-					if (!(isContainingAssemblyCode(assemblyLine))) {
-						continue;
-					}
-
-					String assemblyCodeTokens[] = tokenizeAssemblyCode(assemblyLine);
-					String instructionPrefix, operation, operand1, operand2, operand3;
-					long instructionPointer;
-
-					// read the assembly code tokens
-					instructionPointer = Numbers.hexToLong(assemblyCodeTokens[0]);
-					
-					//initialize different parameters of an instruction.
-					if(isInstructionPrefix(assemblyCodeTokens[1]))
-					{
-						instructionPrefix = assemblyCodeTokens[1];
-						operation = assemblyCodeTokens[2];
-						operand1 = assemblyCodeTokens[3];
-						operand2 = assemblyCodeTokens[4];
-						operand3 = null;
-					}
-					else
-					{
-						instructionPrefix = null;
-						operation = assemblyCodeTokens[1];
-						operand1 = assemblyCodeTokens[2];
-						operand2 = assemblyCodeTokens[3];
-						operand3 = assemblyCodeTokens[4];
-					}
+					tokenizeQemuAssemblyCode(asmBytes, instructionPrefix, operation,
+						operand1, operand2, operand3);
 					
 					riscifyInstruction( instructionPointer, 
-							instructionPrefix, operation, 
-							operand1, operand2, operand3, 
-							assemblyPacketList);
+						instructionPrefix, operation, 
+						operand1, operand2, operand3, 
+						assemblyPacketList);
 				}
 			}
 		} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
