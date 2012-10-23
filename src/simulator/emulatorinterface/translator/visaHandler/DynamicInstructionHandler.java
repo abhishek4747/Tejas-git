@@ -4,7 +4,7 @@ import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
 import generic.InstructionTable;
 
-public interface VisaHandler 
+public interface DynamicInstructionHandler 
 {
 	// This function will return the next instruction.
 	// It takes an Instruction and a DynamicInstructionBuffer, changes microOp appropriately.

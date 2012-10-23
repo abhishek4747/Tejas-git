@@ -5,24 +5,24 @@ import generic.OperationType;
 
 public class VisaHandlerSelector
 {
-	private static VisaHandler inValid;
-	private static VisaHandler integerALU;
-	private static VisaHandler integerMul;
-	private static VisaHandler integerDiv;
-	private static VisaHandler floatALU;
-	private static VisaHandler floatMul;
-	private static VisaHandler floatDiv;
-	private static VisaHandler load;
-	private static VisaHandler store;
-	private static VisaHandler jump;
-	private static VisaHandler branch;
-	private static VisaHandler mov;
-	private static VisaHandler xchg;
-	private static VisaHandler acceleratedOp;
-	private static VisaHandler nop;
-	private static VisaHandler interrupt;
+	private static DynamicInstructionHandler inValid;
+	private static DynamicInstructionHandler integerALU;
+	private static DynamicInstructionHandler integerMul;
+	private static DynamicInstructionHandler integerDiv;
+	private static DynamicInstructionHandler floatALU;
+	private static DynamicInstructionHandler floatMul;
+	private static DynamicInstructionHandler floatDiv;
+	private static DynamicInstructionHandler load;
+	private static DynamicInstructionHandler store;
+	private static DynamicInstructionHandler jump;
+	private static DynamicInstructionHandler branch;
+	private static DynamicInstructionHandler mov;
+	private static DynamicInstructionHandler xchg;
+	private static DynamicInstructionHandler acceleratedOp;
+	private static DynamicInstructionHandler nop;
+	private static DynamicInstructionHandler interrupt;
 
-	public static VisaHandler selectHandler(OperationType operationType)
+	public static DynamicInstructionHandler selectHandler(OperationType operationType)
 	{
 		// if the handlers are not defined in the beginning, we
 		// must initialise them.

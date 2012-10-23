@@ -6,15 +6,17 @@ import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
 import generic.InstructionLinkedList;
 
-public class ThreadParams {
+public class EmulatorThreadState {
+	
 	boolean finished;
 	boolean started = false;
 	boolean halted = false;
+	boolean isFirstPacket = true;
 	
 	//int readerLocation;
 	long totalRead;
 	Packet pold = new Packet();
-	boolean isFirstPacket = true;
+	
 	ArrayList<Packet> packets=new ArrayList<Packet>();
 	
 	
@@ -23,5 +25,4 @@ public class ThreadParams {
 			this.started = true;
 		}
 	}
-
 }

@@ -7,6 +7,8 @@ public class Packet
 	// If info packet then ip represents instruction pointer and tgt represents the target addr/mem 
 	// address. Else if synchronization packet then ip represents time and tgt represents lock 
 	// address. Else if timer packet then ip represents time and tgt represents nothing.
+	
+	// For a qemu packet containing assembly of instruction, tgt indicates the size of the assembly string
 	public long ip;
 	public long value;
 	public long tgt;

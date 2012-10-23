@@ -21,17 +21,18 @@
 
 package generic;
 
-import java.util.ArrayList;
-
-public class InstructionArrayList 
+public class InstructionList 
 {
-	private ArrayList<Instruction> instructionArrayList;
+	//private ArrayList<Instruction> instructionArrayList;
+	private GenericCircularQueue<Instruction> instructionQueue = null;
 	//SynchronizationObject syncObject;
 	//SynchronizationObject syncObject2;
 	
-	public InstructionArrayList(int initSize)
+	public InstructionList(int initSize)
 	{
-		instructionArrayList = new ArrayList<Instruction>(initSize);
+		//instructionArrayList = new ArrayList<Instruction>(initSize);
+		instructionQueue = new GenericCircularQueue<Instruction>(Instruction.class, initSize);
+		
 		//syncObject = new SynchronizationObject();
 		//syncObject2 = new SynchronizationObject();
 	}
@@ -39,33 +40,39 @@ public class InstructionArrayList
 	//appends a single instruction to the instruction list
 	public void appendInstruction(Instruction newInstruction)
 	{
-		instructionArrayList.add(newInstruction);
+		//instructionArrayList.add(newInstruction);
+		instructionQueue.enqueue(newInstruction);
 	}
 	
 	public boolean isEmpty()
 	{
-		return instructionArrayList.isEmpty();
+		//return instructionArrayList.isEmpty();
+		return instructionQueue.isEmpty();
 	}
 	
 	public Instruction get(int index)
 	{
 		// For the last instruction of the file, we will have to return null,
 		// otherwise, we will encounter an Exception.
-		if(index >= instructionArrayList.size())
+		//if(index >= instructionArrayList.size())
+		if(index >= instructionQueue.size())
 		{
 			return null;
 		}
 		else
 		{
-			return instructionArrayList.get(index);
+			//return instructionArrayList.get(index);
+			return instructionQueue.peek(index);
 		}
 	}
 	
 	public void printList() 
 	{
-		for(int i = 0; i< instructionArrayList.size(); i++)
+		//for(int i = 0; i< instructionArrayList.size(); i++)
+		for(int i = 0; i< instructionQueue.size(); i++)
 		{
-			System.out.print(instructionArrayList.get(i).toString() + "\n");
+			//System.out.print(instructionArrayList.get(i).toString() + "\n");
+			System.out.print(instructionQueue.peek(i).toString() + "\n");
 		}
 	}
 
@@ -90,27 +97,32 @@ public class InstructionArrayList
 
 	public void setCISCProgramCounter(int index, long instructionPointer) 
 	{
-		instructionArrayList.get(index).setCISCProgramCounter(instructionPointer);
+		//instructionArrayList.get(index).setCISCProgramCounter(instructionPointer);
+		instructionQueue.peek(index).setCISCProgramCounter(instructionPointer);
 	}
 	
 	public void setRISCProgramCounter(int index, long instructionPointer) 
 	{
-		instructionArrayList.get(index).setRISCProgramCounter(instructionPointer);
+		//instructionArrayList.get(index).setRISCProgramCounter(instructionPointer);
+		instructionQueue.peek(index).setRISCProgramCounter(instructionPointer);
 	}
 	
 	public int getListSize()
 	{
-		return instructionArrayList.size();
+		//return instructionArrayList.size();
+		return instructionQueue.size();
 	}
 	
 	public Instruction peekInstructionAt(int position)
 	{
-		return instructionArrayList.get(position);
+		//return instructionArrayList.get(position);
+		return instructionQueue.peek(position);
 	}
 	
 	public void removeLastInstr()
 	{
-		this.instructionArrayList.remove(instructionArrayList.size()-1);
+		//this.instructionArrayList.remove(instructionArrayList.size()-1);
+		this.instructionQueue.dequeue();
 	}
 //	public SynchronizationObject getSyncObject() {
 //		return syncObject;
@@ -118,7 +130,12 @@ public class InstructionArrayList
 	
 	public int length()
 	{
-		return instructionArrayList.size();
+		//return instructionArrayList.size();
+		return instructionQueue.size();
+	}
+
+	public void clear() {
+		instructionQueue.clear();
 	}
 	
 	/*public SynchronizationObject getSyncObject2() {

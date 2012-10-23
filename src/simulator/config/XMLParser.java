@@ -60,6 +60,7 @@ public class XMLParser
 			doc.getDocumentElement().normalize();
 			//System.out.println("Root element : " + doc.getDocumentElement().getNodeName());
 			
+			setEmulatorParameters();
 			setSimulationParameters();
 			setPowerParameters();
 			
@@ -148,16 +149,24 @@ public class XMLParser
 		  PowerConfig.dl2Port=Double.parseDouble(getImmediateString("dl2_port", powerElmnt));
 		  
 	}
-
+		
+	private static void setEmulatorParameters() {
+		NodeList nodeLst = doc.getElementsByTagName("Emulator");
+		Node emulatorNode = nodeLst.item(0);
+		Element emulatorElmnt = (Element) emulatorNode;
+		
+		EmulatorConfig.EmulatorType = Integer.parseInt(getImmediateString("EmulatorType", emulatorElmnt));
+		EmulatorConfig.CommunicationType = Integer.parseInt(getImmediateString("CommunicationType", emulatorElmnt));
+		EmulatorConfig.PinTool = getImmediateString("PinTool", emulatorElmnt);
+		EmulatorConfig.PinInstrumentor = getImmediateString("PinInstrumentor", emulatorElmnt);
+		EmulatorConfig.QemuTool = getImmediateString("QemuTool", emulatorElmnt);
+	}
 	
-private static void setSimulationParameters()
+	private static void setSimulationParameters()
 	{
 		NodeList nodeLst = doc.getElementsByTagName("Simulation");
 		Node simulationNode = nodeLst.item(0);
 		Element simulationElmnt = (Element) simulationNode;
-		SimulationConfig.PinTool = getImmediateString("PinTool", simulationElmnt);
-		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
-		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		

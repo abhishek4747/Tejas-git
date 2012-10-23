@@ -189,7 +189,7 @@ public class Core {
 	}
 	public void sleepPipeline(){
 		
-		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.enqueue(new Instruction(OperationType.sync,null, null, null));
+		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.enqueue(Instruction.getSyncInstruction());
 	}
 
 	public int getIssueWidth() {

@@ -40,6 +40,15 @@ public abstract class IpcBase {
 
 	// Initialise structures and objects
 	public IpcBase () {
+		
+		for (int i=0; i<MaxNumJavaThreads; i++) {
+			javaThreadTermination[i]=false;
+			javaThreadStarted[i]=false;
+			//TODO not all cores are assigned to each thread
+			//when the mechanism to tie threads to cores is in place
+			//this has to be changed
+		}
+
 		glTable = new GlobalTable(this);
 	}
 
