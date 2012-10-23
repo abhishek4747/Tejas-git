@@ -76,10 +76,10 @@ public class Cache extends SimulationElement
 		protected CacheLine lines[];
 		
 		public MissStatusHoldingRegister missStatusHoldingRegister;
-		public ArrayList<MissStatusHoldingRegister> connectedMSHR;
-		public int startIndexForPulling;
 		
 		public int noOfRequests;
+		public int noOfAccesses;public int noOfResponsesReceived;public int noOfResponsesSent;public int noOfWritesForwarded;
+		public int noOfWritesReceived;
 		public int hits;
 		public int misses;
 		public int evictions;
@@ -117,15 +117,16 @@ public class Cache extends SimulationElement
 			this.timestamp = 0;
 			this.numLinesMask = numLines - 1;
 			this.noOfRequests = 0;
+			noOfAccesses = 0;noOfResponsesReceived = 0;noOfResponsesSent = 0;noOfWritesForwarded = 0;
+			noOfWritesReceived = 0;
 			this.hits = 0;
 			this.misses = 0;
 			this.evictions = 0;
 			// make the cache
 			makeCache();
 			
-			missStatusHoldingRegister = new MissStatusHoldingRegister(blockSizeBits, cacheParameters.mshrSize);			
-			connectedMSHR = new ArrayList<MissStatusHoldingRegister>();
-			startIndexForPulling = 0;
+			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
+			missStatusHoldingRegister = new Mode1MSHR(10000);
 			this.nucaType = NucaType.NONE;
 		}
 		
@@ -142,8 +143,6 @@ public class Cache extends SimulationElement
 					2,
 					2,
 					3600);
-			
-			this.containingMemSys = containingMemSys;
 			
 			// set the parameters
 			this.blockSize = blockSize;
@@ -169,15 +168,18 @@ public class Cache extends SimulationElement
 			this.timestamp = 0;
 			this.numLinesMask = numLines - 1;
 			this.noOfRequests = 0;
+			noOfAccesses = 0;noOfResponsesReceived = 0;noOfResponsesSent = 0;noOfWritesForwarded = 0;
+			noOfWritesReceived = 0;
 			this.hits = 0;
 			this.misses = 0;
 			this.evictions = 0;
 			// make the cache
 			makeCache();
 			
-			missStatusHoldingRegister = new MissStatusHoldingRegister(blockSizeBits, mshrSize);			
-			connectedMSHR = new ArrayList<MissStatusHoldingRegister>();
-			startIndexForPulling = 0;
+			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
+			//if(this.level)
+			missStatusHoldingRegister = new Mode1MSHR(10000);
+			
 		}
 		
 		
@@ -208,18 +210,14 @@ public class Cache extends SimulationElement
 			{
 				this.handleInvalidate((AddressCarryingEvent) event);
 			}
-			else if (event.getRequestType() == RequestType.PerformPulls)
-			{
-				pullFromUpperMshrs();
-				
-				//schedule pulling for the next cycle
-				event.addEventTime(1);
-				event.getEventQ().addEvent(event);
-			}
 		}
 		
 		public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
+		{noOfAccesses++;
+		if(event.getRequestType() == RequestType.Cache_Write)
 		{
+			noOfWritesReceived++;
+		}
 			//update counters
 			if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
@@ -242,7 +240,7 @@ public class Cache extends SimulationElement
 				{
 					writeHitUpdateDirectory(event.coreId,( address>>> blockSizeBits ), event, address);
 				}
-				processBlockAvailable(address);				
+				processBlockAvailable(event);				
 			}
 			
 			//IF MISS
@@ -299,7 +297,7 @@ public class Cache extends SimulationElement
 			sendMemResponse(event);
 		}
 		protected void handleMemResponse(EventQueue eventQ, Event event)
-		{
+		{noOfResponsesReceived++;
 			/*Response for a read/write miss. Thus incrementing counters here as well*/
 			if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
@@ -339,34 +337,45 @@ public class Cache extends SimulationElement
 		 */
 		public void sendReadRequestToLowerCache(AddressCarryingEvent receivedEvent)
 		{
-			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(
+			/*AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(
 													receivedEvent.getEventQ(), 
 													this.nextLevel.getLatency(), 
 													this, 
 													this.nextLevel, 
 													RequestType.Cache_Read, 
 													receivedEvent.getAddress(),
-													receivedEvent.coreId);
-			boolean isAddedinLowerMshr = this.nextLevel.addEvent(eventToBeSent);
+													receivedEvent.coreId);*/
+			receivedEvent.update(receivedEvent.getEventQ(),
+									this.nextLevel.getLatency(),
+									this,
+									this.nextLevel,
+									RequestType.Cache_Read);
+			
+			boolean isAddedinLowerMshr = this.nextLevel.addEvent(receivedEvent);
 			if(!isAddedinLowerMshr)
 			{
-
-				missStatusHoldingRegister.handleLowerMshrFull(eventToBeSent);
+				missStatusHoldingRegister.handleLowerMshrFull(receivedEvent);
 			}
 		}
 		
 		private void sendReadRequestToMainMemory(AddressCarryingEvent receivedEvent)
 		{
-			AddressCarryingEvent eventToForward = new AddressCarryingEvent(
+			/*AddressCarryingEvent eventToForward = new AddressCarryingEvent(
 													receivedEvent.getEventQ(),
 												    MemorySystem.mainMemory.getLatency(), 
 												    this, 
 												    MemorySystem.mainMemory, 
 												    RequestType.Main_Mem_Read, 
 												    receivedEvent.getAddress(),
-												    receivedEvent.coreId);
+												    receivedEvent.coreId);*/
+			
+			receivedEvent.update(receivedEvent.getEventQ(),
+					MemorySystem.mainMemory.getLatency(),
+					this,
+					MemorySystem.mainMemory,
+					RequestType.Main_Mem_Read);
 
-			MemorySystem.mainMemory.getPort().put(eventToForward);
+			MemorySystem.mainMemory.getPort().put(receivedEvent);
 		}
 		
 		
@@ -389,13 +398,14 @@ public class Cache extends SimulationElement
 						{
 								if (this.isLastLevel)
 								{
-										putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);	
+									putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);
+									//putEventToPort(eventPoppedOut,MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
 								}
 								else if (this.coherence == CoherenceType.None)
 								{
 										//putEventToPort(eventPoppedOut,this.nextLevel, RequestType.Cache_Write, true,true);
 									numberOfWrites++;
-									sampleWriteEvent = eventPoppedOut;
+									sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
 								}
 						}
 						else
@@ -408,7 +418,7 @@ public class Cache extends SimulationElement
 								else
 								{
 									numberOfWrites++;
-									sampleWriteEvent = eventPoppedOut;
+									sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
 								}
 						}
 				}
@@ -425,82 +435,7 @@ public class Cache extends SimulationElement
 		
 		
 		
-		public void pullFromUpperMshrs()
-		{
-			startIndexForPulling = (startIndexForPulling + 1)%connectedMSHR.size();
-			
-			for(int i = 0, j = startIndexForPulling;
-				i < connectedMSHR.size();   
-				i++, j = (j+1)%connectedMSHR.size())
-			{
-				pullFrom(connectedMSHR.get(j));				
-			}
-		}
 		
-		public void pullFrom(MissStatusHoldingRegister mshr)
-		{
-			if(mshr.getNumberOfEntriesReadyToProceed() == 0)
-			{
-				return;
-			}
-			
-			ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed();
-			processReadyEvents(eventToProceed,mshr);
-		}
-		
-		public void processReadyEvents(ArrayList<OMREntry> eventToProceed,MissStatusHoldingRegister mshr)
-		{
-			for(int k = 0;k < eventToProceed.size();k++)
-			{
-				if(missStatusHoldingRegister.isFull())
-				{
-					break;
-				}
-				
-				OMREntry omrEntry = eventToProceed.get(k);
-				omrEntry.readyToProceed = false;
-				
-				boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
-				
-				if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
-				{
-					mshr.removeStartingWrites(omrEntry.eventToForward.getAddress());
-				}
-				
-				mshr.decrementNumberOfEntriesReadyToProceed();
-	
-				if(this.getClass() == NucaCacheBank.class)
-				{
-					if (omrEntry.eventToForward.getDestinationBankId() == null || omrEntry.eventToForward.getSourceBankId() == null)
-					{
-						System.out.println("error from pulling ");
-					}
-				}
-				if(entryCreated)
-				{
-					/*
-					 * if the pulled event results in a new omrEntry,
-					 * the processing of the request must be done
-					 */
-					handleAccess(omrEntry.eventToForward.getEventQ() , omrEntry.eventToForward);
-				}
-				else
-				{
-					/*
-					 * if the pulled event is a write (omr entry already exists),
-					 * it may be that the cache line already exists at this level (either in the cache, or in the MSHR),
-					 * therefore, this request is effectively a hit;
-					 * to handle this possibility, we call handleAccess()
-					 */
-					AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
-					if(eventToForward != null &&
-							eventToForward.getRequestType() == RequestType.Cache_Write)
-					{
-						handleAccess(omrEntry.eventToForward.getEventQ(), omrEntry.eventToForward);
-					}
-				}
-			}
-		}
 		/*
 		 * called by higher level cache
 		 *returned value signifies whether the event will be saved in mshr or not
@@ -520,11 +455,23 @@ public class Cache extends SimulationElement
 			}
 			else
 			{
-				AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(addressEvent.getAddress()).eventToForward; 
+				//if mode3mshr
+				
+				AddressCarryingEvent eventToForward = ((Mode3MSHR)missStatusHoldingRegister).getMshrEntry(addressEvent.getAddress()).eventToForward; 
+				/*
+				 * it is possible that an onrEntry corresponding to the line exists, and has a write as eventToForward
+				 * in this situation, we are not expecting any memResponse for the line from below
+				 * therefore, we have to schedule a handleAccess
+				 */
 				if(eventToForward != null &&
 						eventToForward.getRequestType() == RequestType.Cache_Write)
 				{
-					handleAccess(addressEvent.getEventQ(), addressEvent);
+					//handleAccess(addressEvent.getEventQ(), addressEvent);
+					/*
+					 * directly calling handle access does not include hit-time
+					 * instead, we schedule an event at time cur + hit-time
+					 */
+					this.getPort().put(addressEvent);
 				}
 			}
 			
@@ -535,11 +482,11 @@ public class Cache extends SimulationElement
 		{		
 			long addr = ((AddressCarryingEvent)(event)).getAddress();
 			
-			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(addr);
+			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests((AddressCarryingEvent)event);
 			
 			misses += eventsToBeServed.size();			
 			noOfRequests += eventsToBeServed.size();
-			
+			//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			if (evictedLine != null 
 			    && evictedLine.getState() == MESI.MODIFIED 
@@ -547,6 +494,7 @@ public class Cache extends SimulationElement
 			{
 				//Update directory in case of eviction
 					if(this.coherence==CoherenceType.Directory)
+						
 					{
 							int requestingCore = containingMemSys.getCore().getCore_number();
 							long address= evictedLine.getAddress();	//Generating an address of this cache line
@@ -597,18 +545,23 @@ public class Cache extends SimulationElement
 					missStatusHoldingRegister.handleLowerMshrFull( eventToForward );
 				}
 			}
+			else
+			{
+				noOfWritesForwarded++;
+			}
 		}
 		
-		private void processBlockAvailable(long address)
+		private void processBlockAvailable(AddressCarryingEvent event)
 		{
-			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(address);
+			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(event);
 			hits += eventsToBeServed.size();
 			noOfRequests += eventsToBeServed.size();
+			//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
 			sendResponseToWaitingEvent(eventsToBeServed);
 		}
 		
 		private void sendMemResponse(AddressCarryingEvent eventToRespondTo)
-		{
+		{noOfResponsesSent++;
 			eventToRespondTo.getRequestingElement().getPort().put(
 										eventToRespondTo.update(
 												eventToRespondTo.getEventQ(),
@@ -916,10 +869,8 @@ public class Cache extends SimulationElement
 		
 		public void populateConnectedMSHR()
 		{
-			for(int i = 0; i < prevLevel.size(); i++)
-			{
-				connectedMSHR.add(i, prevLevel.get(i).getMissStatusHoldingRegister());
-			}
+			//if mode3
+			//((Mode3MSHR)(missStatusHoldingRegister)).populateConnectedMSHR(this.prevLevel);
 		}
 		
 		

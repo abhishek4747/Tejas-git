@@ -596,6 +596,16 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
 		Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
 
+		System.out.println("numAccesses = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfAccesses );
+		System.out.println("numWritesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesReceived );
+		System.out.println("numResponsesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesReceived );
+		System.out.println("numResponsesSent = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesSent );
+		System.out.println("numWritesForwarded = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesForwarded );
+		System.out.println("numAccesses = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfAccesses );
+		System.out.println("numWritesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesReceived );
+		System.out.println("numResponsesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesReceived );
+		System.out.println("numResponsesSent = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesSent );
+		System.out.println("numWritesForwarded = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesForwarded );
 	}
 
 	public void setPerCorePowerStatistics(){

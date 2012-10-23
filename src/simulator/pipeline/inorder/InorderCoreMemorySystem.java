@@ -12,6 +12,8 @@ import memorysystem.CoreMemorySystem;
 public class InorderCoreMemorySystem extends CoreMemorySystem {
 	
 	InorderExecutionEngine containingExecEngine;
+	public int numOfLoads=0;
+	public long numOfStores;
 	public InorderCoreMemorySystem(Core core)
 	{
 		super(core);
@@ -141,7 +143,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		//if response comes from iCache, inform fetchunit
 		if(memResponse.getRequestingElement() == iCache)
 		{
-			iMissStatusHoldingRegister.removeRequests(address);
+			iMissStatusHoldingRegister.removeRequests(memResponse);
 			containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);
 		}
 		
@@ -149,7 +151,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
 			//TODO currently handling only reads
-			L1MissStatusHoldingRegister.removeRequests(address);
+			L1MissStatusHoldingRegister.removeRequests(memResponse);
 			containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
 		}
 		

@@ -43,7 +43,7 @@ public class FetchUnitIn extends SimulationElement
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
-		this.fetchBufferCapacity=8;
+		this.fetchBufferCapacity=1;
 		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;

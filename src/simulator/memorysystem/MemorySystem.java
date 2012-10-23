@@ -169,7 +169,9 @@ public class MemorySystem
 				//Point the cache to its next level
 				coreMemSys.l1Cache.nextLevel = cacheList.get(nextLevelName);
 				coreMemSys.l1Cache.nextLevel.prevLevel.add(coreMemSys.l1Cache);
-				coreMemSys.l1Cache.connectedMSHR.add(coreMemSys.getL1MSHR());
+				
+				//if mode3mshr
+				//coreMemSys.l1Cache.connectedMSHR.add(coreMemSys.getL1MSHR());
 			}
 			else
 			{
@@ -196,7 +198,9 @@ public class MemorySystem
 				//Point the cache to its next level
 				coreMemSys.iCache.nextLevel = cacheList.get(nextLevelName);
 				coreMemSys.iCache.nextLevel.prevLevel.add(coreMemSys.iCache);
-				coreMemSys.iCache.connectedMSHR.add(coreMemSys.getiMSHR());
+				
+				//if mode3mshr
+				//coreMemSys.iCache.connectedMSHR.add(coreMemSys.getiMSHR());
 			}
 			else
 			{
@@ -263,13 +267,13 @@ public class MemorySystem
 		Bus.lowerLevel.enforcesCoherence = true;
 		
 		propagateCoherencyUpwards(Bus.upperLevels);*/
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		/*for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); )
 		{
 			String cacheName = cacheNameSet.nextElement();
 			Cache cacheToSetNextLevel = cacheList.get(cacheName);
 			
 			System.out.println(cacheName + " : " + cacheToSetNextLevel.connectedMSHR.size());
-		}
+		}*/
 	}
 	
 

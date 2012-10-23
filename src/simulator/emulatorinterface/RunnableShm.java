@@ -145,7 +145,8 @@ public class RunnableShm extends RunnableThread implements Runnable {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {        //check for last packet
-					System.out.println("runnableshm : last packet received for thread " + tidApp);
+					System.out.println("runnableshm : last packet received for emulatorThread " + tidApp
+							+ "numCISCInsn = " + pnew.ip);
 					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmu);
 					threadParam.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
 					signalFinish(tidApp);

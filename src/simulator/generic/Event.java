@@ -81,7 +81,7 @@ public abstract class Event
 		return requestingElement;
 	}
 	
-	protected void setRequestingElement(SimulationElement requestingElement) {
+	public void setRequestingElement(SimulationElement requestingElement) {
 		this.requestingElement = requestingElement;
 	}
 

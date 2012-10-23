@@ -231,21 +231,21 @@ public class Statistics {
 					outputFileWriter.write("TLB Hit-rate\t=\t" + (float)(noOfTLBHits[i])/noOfTLBRequests[i] + "\n");
 					outputFileWriter.write("TLB Miss-rate\t=\t" + (float)(noOfTLBMisses[i])/noOfTLBRequests[i] + "\n");
 				}
-				outputFileWriter.write("L1 Requests\t=\t" + noOfMemRequests[i]  + "\n");
+				outputFileWriter.write("L1 Requests\t=\t" + noOfL1Requests[i]  + "\n");
 				outputFileWriter.write("L1 Hits\t\t=\t" + noOfL1Hits[i] + "\n");
-				outputFileWriter.write("L1 Misses\t=\t" +(noOfMemRequests[i] - noOfL1Hits[i]) + "\n");
+				outputFileWriter.write("L1 Misses\t=\t" + noOfL1Misses[i] + "\n");
 				outputFileWriter.write("I Requests\t=\t" + noOfIRequests[i] + "\n");
 				outputFileWriter.write("I Hits\t\t=\t" + noOfIHits[i] + "\n");
-				outputFileWriter.write("I Misses\t=\t" + (noOfIRequests[i] - noOfIHits[i]) + "\n");
+				outputFileWriter.write("I Misses\t=\t" + noOfIMisses[i] + "\n");
 				if (noOfL1Requests[i] != 0)
 				{
-					outputFileWriter.write("L1 Hit-Rate\t=\t" + (float)(noOfL1Hits[i])/noOfMemRequests[i] + "\n");
-					outputFileWriter.write("L1 Miss-Rate\t=\t" + (float)(noOfMemRequests[i] - noOfL1Hits[i])/noOfMemRequests[i] + "\n");
+					outputFileWriter.write("L1 Hit-Rate\t=\t" + (float)(noOfL1Hits[i])/noOfL1Requests[i] + "\n");
+					outputFileWriter.write("L1 Miss-Rate\t=\t" + (float)(noOfL1Misses[i])/noOfL1Requests[i] + "\n");
 				}
 				if (noOfIRequests[i] != 0)
 				{
 					outputFileWriter.write("I Hit-Rate\t=\t" + (float)(noOfIHits[i])/noOfIRequests[i] + "\n");
-					outputFileWriter.write("I Miss-Rate\t=\t" + (float) (noOfIRequests[i] - noOfIHits[i])/noOfIRequests[i] + "\n");
+					outputFileWriter.write("I Miss-Rate\t=\t" + (float) (noOfIMisses[i])/noOfIRequests[i] + "\n");
 				
 				}
 				outputFileWriter.write("\n");
@@ -798,7 +798,7 @@ System.out.println("execution time = "+executionTime);
 	public static void printAllStatistics(String benchmarkName, 
 			long startTime, long endTime) {
 		//set up statistics module
-		Statistics.initStatistics();
+		//Statistics.initStatistics();
 		Statistics.setExecutable(benchmarkName);
 		
 		//set memory statistics for levels L2 and below
@@ -829,7 +829,11 @@ System.out.println("execution time = "+executionTime);
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
-			
+			System.out.println("numAccesses = " + cache.levelFromTop + " = " + cache.noOfAccesses );
+			System.out.println("numWritesReceived = " + cache.levelFromTop + " = " + cache.noOfWritesReceived );
+			System.out.println("numResponsesReceived = " + cache.levelFromTop + " = " + cache.noOfResponsesReceived );
+			System.out.println("numResponsesSent = " + cache.levelFromTop + " = " + cache.noOfResponsesSent );
+			System.out.println("numWritesForwarded = " + cache.levelFromTop + " = " + cache.noOfWritesForwarded );
 		}
 			
 		Statistics.setTime(endTime - startTime);

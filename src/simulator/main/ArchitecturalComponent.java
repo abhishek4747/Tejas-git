@@ -4,6 +4,7 @@ import net.optical.TopLevelTokenBus;
 import emulatorinterface.communication.IpcBase;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
+import pipeline.inorder.InorderExecutionEngine;
 import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import generic.Core;
@@ -135,7 +136,38 @@ public class ArchitecturalComponent {
 		coreMemSys.getiCache().nextLevel.getMissStatusHoldingRegister().dump();
 		
 	}
+	
+	public static void exitOnAssertionFail(String errorMessage)
+	{
+		System.err.println(errorMessage);
+		Process process;
+		String cmd[] = {"/bin/sh",
+			      "-c",
+			      "killall -9 " + Main.executableFile
+		};
 
+		try 
+		{
+			process = Runtime.getRuntime().exec(cmd);
+			int ret = process.waitFor();
+			System.out.println("ret : " + ret);
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+		System.exit(1);
+	}
+
+	public static void dumpOutStandingLoads()
+	{
+		System.out.println("Outstanding loads on core ");
+		for(int i = 0; i < ArchitecturalComponent.getCores().length; i++)
+		{
+			System.out.println( "outstanding loads on core "+i +"  = "+((InorderExecutionEngine)ArchitecturalComponent.getCores()[i].getExecEngine()).noOfOutstandingLoads);
+		}
+	}
+	
 	public static TopLevelTokenBus getTokenBus() {
 		return tokenBus;
 	}

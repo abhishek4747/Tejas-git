@@ -1,9 +1,11 @@
 package pipeline.inorder;
 
+import main.ArchitecturalComponent;
 import main.CustomObjectPool;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.GlobalClock;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -61,7 +63,8 @@ public class WriteBackUnitIn extends SimulationElement{
 			{
 				if(core.getNoOfInstructionsExecuted()%1000000==0)
 				{
-					System.out.println(this.j++ + " million done" + " by core "+core.getCore_number());
+					System.out.println(this.j++ + " million done" + " by core "+core.getCore_number() + " global clock cycle " + GlobalClock.getCurrentTime());
+					
 				}
 //				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
 //System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());

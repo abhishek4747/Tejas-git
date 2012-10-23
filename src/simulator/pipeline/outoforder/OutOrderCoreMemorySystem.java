@@ -163,14 +163,14 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		//if response comes from iCache, inform fetchunit
 		if(memResponse.getRequestingElement() == iCache)
 		{
-			iMissStatusHoldingRegister.removeRequests(address);
+			iMissStatusHoldingRegister.removeRequests(memResponse);
 			containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
 		}
 		
 		//if response comes from l1Cache, inform memunit
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
-			L1MissStatusHoldingRegister.removeRequests(address);
+			L1MissStatusHoldingRegister.removeRequests(memResponse);
 			lsqueue.handleMemResponse(address);
 		}
 		

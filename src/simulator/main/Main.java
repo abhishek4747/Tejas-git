@@ -23,7 +23,7 @@ public class Main {
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
 	
 	private static long startTime, endTime;
-
+	static String executableFile = " ";
 	public static void main(String[] arguments)
 	{
 		startTime = System.currentTimeMillis();
@@ -35,7 +35,7 @@ public class Main {
 		SimulationConfig.outputFileName = arguments[1];
 		
 		String executableArguments=" ";
-		String executableFile = " ";
+		
 		executableFile = arguments[2];
 		for(int i=2; i < arguments.length; i++) {
 			executableArguments = executableArguments + " " + arguments[i];
@@ -105,9 +105,11 @@ public class Main {
 		ipcBase.finish();
 
 		endTime = System.currentTimeMillis();
+		System.out.println("------------ Printing statistics ------------ ");
 		Statistics.printAllStatistics(executableFile, startTime, endTime);
 		
 		System.out.println("\n\nSimulation completed !!");
+		ArchitecturalComponent.dumpAllMSHRs();
 				
 		System.exit(0);
 	}

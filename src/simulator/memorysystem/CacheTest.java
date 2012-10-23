@@ -30,8 +30,8 @@ public class CacheTest extends SimulationElement{
 	public static void main(String[] args) {
 		
 		int size = 16;
-		int associativity = 512;
-		int blockSize = 32;
+		int associativity = 2;
+		int blockSize = 1;
 		WritePolicy writePolicy = WritePolicy.WRITE_THROUGH;
 		int mshrSize = 1;
 		
@@ -51,8 +51,9 @@ public class CacheTest extends SimulationElement{
 		
 		CacheTest tester = new CacheTest();
 		
-		for(int j = 0; j < 2; j++)
-		for(int i = 0; i < 16*1024 + 32; i++)
+		for(int j = 0; j < 5; j++)
+		//for(int i = 0; i < 16*1024; i++)
+		for(int i = 0; i < 2; i++)
 		{
 			/*int address = i;
 			if(j%2 == 0)
@@ -64,7 +65,7 @@ public class CacheTest extends SimulationElement{
 			}*/
 			if(responseReceived > 0)
 			{
-				tester.issueRequestToCache(i);
+				tester.issueRequestToCache(i*16*1024);
 				responseReceived--;
 			}
 			else
@@ -75,9 +76,16 @@ public class CacheTest extends SimulationElement{
 			GlobalClock.incrementClock();
 		}
 		
+		while(responseReceived != mshrSize)
+		{
+			eventQueue.processEvents();
+			GlobalClock.incrementClock();
+		}
+		
 		System.out.println("no of requests = " + cache.noOfRequests);
 		System.out.println("no of hits = " + cache.hits);
 		System.out.println("no of misses = " + cache.misses);
+		cache.getMissStatusHoldingRegister().dump();
 
 	}
 	
@@ -88,7 +96,7 @@ public class CacheTest extends SimulationElement{
 				 cache.getLatencyDelay(),
 				 this, 
 				 cache,
-				 RequestType.Cache_Read, 
+				 RequestType.Cache_Write, 
 				 address,
 				 0);
 

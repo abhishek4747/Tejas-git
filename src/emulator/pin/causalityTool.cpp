@@ -390,6 +390,21 @@ VOID printip(THREADID tid, VOID *ip) {
 //	// ---------------------------
 }
 
+VOID funcHandler(CHAR* name, int a, int b, int c) {
+	printf("function encountered\n ");
+	printf("numSim = %ld\n", numCISC[0]);
+}
+
+void Image(IMG img,VOID *v) {
+	RTN funcRtn = RTN_FindByName(img, "funcA");
+	if (RTN_Valid(funcRtn)) {
+		RTN_Open(funcRtn);
+		RTN_InsertCall(funcRtn, IPOINT_BEFORE, (AFUNPTR)funcHandler,
+					  IARG_ADDRINT, "funcA", IARG_FUNCARG_ENTRYPOINT_VALUE,
+					  0, IARG_END);
+		RTN_Close(funcRtn);
+	}
+}
 
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v) {
@@ -529,6 +544,7 @@ int main(int argc, char * argv[]) {
 	// Register Instruction to be called to instrument instructions
 	INS_AddInstrumentFunction(Instruction, 0);
 
+	IMG_AddInstrumentFunction(Image,0);
 	// Register ThreadFini to be called when a thread exits
 	PIN_AddThreadFiniFunction(ThreadFini, 0);
 
