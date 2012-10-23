@@ -1,5 +1,6 @@
 package main;
 
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import emulatorinterface.communication.StreamGobbler;
 
@@ -62,5 +63,27 @@ public class Emulator {
 	
 	public void forceKill() {
 		emulatorProcess.destroy();
+		
+		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			//System.err.println(errorMessage);
+			Process process;
+			String cmd[] = {"/bin/sh",
+				      "-c",
+				      "killall -9 " + Main.getEmulatorFile()
+			};
+	
+			try 
+			{
+				process = Runtime.getRuntime().exec(cmd);
+				int ret = process.waitFor();
+				System.out.println("ret : " + ret);
+			} 
+			catch (Exception e) 
+			{
+				e.printStackTrace();
+			}
+		}
 	}
+	
+	
 }

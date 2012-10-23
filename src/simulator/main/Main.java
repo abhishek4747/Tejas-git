@@ -22,6 +22,9 @@ public class Main {
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
 	
+	private static  String emulatorFile = " ";
+
+	
 	public static void main(String[] arguments)
 	{
 		checkCommandLineArguments(arguments);
@@ -31,8 +34,7 @@ public class Main {
 		SimulationConfig.outputFileName = arguments[1];
 		
 		String emulatorArguments=" ";
-		String emulatorFile = " ";
-		emulatorFile = arguments[2];
+		setEmulatorFile(arguments[2]);
 		for(int i=2; i < arguments.length; i++) {
 			emulatorArguments = emulatorArguments + " " + arguments[i];
 		}
@@ -48,7 +50,7 @@ public class Main {
 
 		// Create a hash-table for the static representation of the executable
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-			ObjParser.buildStaticInstructionTable(emulatorFile);
+			ObjParser.buildStaticInstructionTable(getEmulatorFile());
 		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 			ObjParser.initializeThreadMicroOpsList(1);
 		}
@@ -104,7 +106,7 @@ public class Main {
 		}
 
 		endTime = System.currentTimeMillis();
-		Statistics.printAllStatistics(emulatorFile, startTime, endTime);
+		Statistics.printAllStatistics(getEmulatorFile(), startTime, endTime);
 		
 		System.out.println("\n\nSimulation completed !!");
 				
@@ -200,5 +202,13 @@ public class Main {
 		}
 		
 		return pid;
+	}
+
+	public static String getEmulatorFile() {
+		return emulatorFile;
+	}
+
+	public static void setEmulatorFile(String emulatorFile) {
+		Main.emulatorFile = emulatorFile;
 	}
 }

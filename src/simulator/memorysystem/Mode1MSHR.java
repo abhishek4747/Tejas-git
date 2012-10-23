@@ -50,7 +50,7 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 		if(removedEvent == null )
 		{
 			System.out.println(" : " + event.getAddress() + " : " + event.getRequestType() + " : "+ event.getRequestingElement() + " : " + event.getProcessingElement());
-			ArchitecturalComponent.exitOnAssertionFail(" null returned from removed event ");
+			misc.Error.showErrorAndExit(" null returned from removed event ");
 		}
 		curLength--;
 		//System.out.println("current line of  ="  + curLength + " of "+ this);
@@ -204,7 +204,7 @@ class PooledLinkedList {
 		System.out.println("called from mode1 MSHR");
 		ArchitecturalComponent.dumpOutStandingLoads();
 		ArchitecturalComponent.dumpAllMSHRs();
-		ArchitecturalComponent.exitOnAssertionFail("returned null from remove");
+		misc.Error.showErrorAndExit("returned null from remove");
 		return null;
 	}
 	
@@ -243,7 +243,7 @@ class PooledLinkedList {
 		System.out.println("called from mode1 MSHR");
 		ArchitecturalComponent.dumpOutStandingLoads();
 		ArchitecturalComponent.dumpAllMSHRs();
-		ArchitecturalComponent.exitOnAssertionFail("returned null from remove");
+		misc.Error.showErrorAndExit("returned null from remove");
 		return null;
 	}
 	
@@ -300,7 +300,7 @@ class PooledLinkedList {
 			System.out.println("called from mode1 MSHR");
 			ArchitecturalComponent.dumpOutStandingLoads();
 			ArchitecturalComponent.dumpAllMSHRs();
-			ArchitecturalComponent.exitOnAssertionFail("mshr overflow!!");
+			misc.Error.showErrorAndExit("mshr overflow !!");
 		}
 	}
 	
