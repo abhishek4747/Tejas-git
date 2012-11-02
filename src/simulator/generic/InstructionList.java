@@ -122,7 +122,7 @@ public class InstructionList
 	public void removeLastInstr()
 	{
 		//this.instructionArrayList.remove(instructionArrayList.size()-1);
-		this.instructionQueue.dequeue();
+		this.instructionQueue.pop();
 	}
 //	public SynchronizationObject getSyncObject() {
 //		return syncObject;
