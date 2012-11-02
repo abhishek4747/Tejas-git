@@ -203,7 +203,7 @@ public class Cache extends SimulationElement
 					ArchitecturalComponent.dumpOutStandingLoads();
 					ArchitecturalComponent.dumpAllEventQueues();
 					ArchitecturalComponent.dumpAllMSHRs();
-					ArchitecturalComponent.exitOnAssertionFail("coreIDs mismatch!!");					
+					misc.Error.showErrorAndExit("coreIDs mismatch!!");					
 				}
 			}
 			if (event.getRequestType() == RequestType.Cache_Read
