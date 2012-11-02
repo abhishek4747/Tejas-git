@@ -102,6 +102,11 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 			return false;
 		}
 		
+		if(L1MissStatusHoldingRegister.getCurrentSize() >= L1MissStatusHoldingRegister.getMSHRStructSize())
+		{
+			return false;
+		}
+		
 		//if not full add event to own mshr
 		boolean newOMREntryCreated = L1MissStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
@@ -121,7 +126,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 			{
 				if(addressEvent.getRequestType() == RequestType.Cache_Write)
 				{
-					L1MissStatusHoldingRegister.removeEvent(addressEvent);
+					//L1MissStatusHoldingRegister.removeEvent(addressEvent);
 				}
 			}
 		}

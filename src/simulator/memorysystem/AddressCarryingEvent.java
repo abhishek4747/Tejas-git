@@ -25,7 +25,7 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			SimulationElement processingElement,
 			RequestType requestType, long address) {
 		super(eventQ, eventTime, requestingElement, processingElement,
-				requestType);
+				requestType, -1);
 		this.address = address;
 		sourceBankId = null;
 		destinationBankId = null;
@@ -48,13 +48,12 @@ public class AddressCarryingEvent extends Event implements Cloneable
     }
 	public AddressCarryingEvent()
 	{
-		super(null, -1, null, null, RequestType.Cache_Read);
+		super(null, -1, null, null, RequestType.Cache_Read, -1);
 		this.address = -1;
 		sourceBankId = null;
 		destinationBankId = null;
 		oldSourceBankId = null;
 		copyLine = false;
-		this.coreId = -1;
 	}
 	
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
@@ -63,9 +62,8 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			RequestType requestType, long address,int coreId,
 			Vector<Integer> sourceBankId, Vector<Integer> destinationBankId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
-				requestType);
+				requestType, coreId);
 		this.address = address;
-		this.coreId = coreId;
 		this.sourceBankId = (Vector<Integer>) sourceBankId.clone();
 		this.destinationBankId = (Vector<Integer>) destinationBankId.clone();
 	}
@@ -75,9 +73,8 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
-				requestType);
+				requestType, coreId);
 		this.address = address;
-		this.coreId = coreId;
 	}
 	
 	public AddressCarryingEvent updateEvent(EventQueue eventQ, long eventTime, 
@@ -133,5 +130,10 @@ public class AddressCarryingEvent extends Event implements Cloneable
 
 	public Vector<Integer> getDestinationBankId() {
 		return destinationBankId;
+	}
+	
+	public void dump()
+	{
+		System.out.println(coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime + " : " + address);
 	}
 }

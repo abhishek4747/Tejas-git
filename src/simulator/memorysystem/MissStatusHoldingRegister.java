@@ -15,6 +15,12 @@ public interface MissStatusHoldingRegister {
 	
 	public boolean isFull();
 	
+	public int getCurrentSize();
+	
+	public int getMaxSizeReached();
+	
+	public int getMSHRStructSize();
+	
 	/*
 	 * return value signifies whether new omrentry created or not
 	 * */
@@ -23,6 +29,8 @@ public interface MissStatusHoldingRegister {
 	public ArrayList<Event> removeRequests(AddressCarryingEvent event);
 	
 	public boolean removeEvent(AddressCarryingEvent addrevent);
+	
+	public boolean removeEventIfAvailable(AddressCarryingEvent addrevent);
 	
 	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent);
 	

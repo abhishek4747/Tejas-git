@@ -59,15 +59,18 @@ public class EventQueue
 		while(iterator.hasNext())
 		{
 			Event event = iterator.next();			
-			if(event.getRequestType() == RequestType.PerformPulls)
+			event.dump();
+			/*if(event.getRequestType() == RequestType.PerformPulls)
 			{
 				System.out.println(event.getRequestType());
 			}
-			else
+			else if(event.getClass() == AddressCarryingEvent.class)
 			{
 				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-				System.out.println(addrEvent.getRequestType() + "," + addrEvent.getAddress() + "," + addrEvent.coreId + "," + addrEvent.getProcessingElement() + "," + addrEvent.getRequestingElement());
-			}
+				System.out.println(addrEvent.getRequestType() + "," + addrEvent.getAddress() + "," + addrEvent.coreId + "," + addrEvent.getProcessingElement() + "," + addrEvent.getRequestingElement() + ","+addrEvent.getEventTime());
+			} else {
+				System.out.println(event.getRequestType() + ","+ event.coreId + "," + event.getProcessingElement() + "," + event.getRequestingElement() + ","+event.getEventTime());
+			}*/
 		}
 		System.out.println("------------------------------------------------------------------------------------");
 	}

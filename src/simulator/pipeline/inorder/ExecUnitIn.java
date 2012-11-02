@@ -98,6 +98,7 @@ public class ExecUnitIn extends SimulationElement{
 					//Schedule a mem read event now so that it can be completed in the mem stage
 					if(!SimulationConfig.detachMemSys)
 					{		
+						//System.out.println(" load issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
 						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Read,
 								ins.getSourceOperand1().getValue());
@@ -112,6 +113,7 @@ public class ExecUnitIn extends SimulationElement{
 					//Schedule a mem read event now so that it can be completed in the mem stage
 					if(!SimulationConfig.detachMemSys)
 					{
+						//System.out.println(" store issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
 						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Write,
 								ins.getSourceOperand1().getValue());

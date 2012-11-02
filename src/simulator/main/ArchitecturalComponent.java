@@ -161,11 +161,11 @@ public class ArchitecturalComponent {
 
 	public static void dumpOutStandingLoads()
 	{
-		System.out.println("Outstanding loads on core ");
+		/*System.out.println("Outstanding loads on core ");
 		for(int i = 0; i < ArchitecturalComponent.getCores().length; i++)
 		{
 			System.out.println( "outstanding loads on core "+i +"  = "+((InorderExecutionEngine)ArchitecturalComponent.getCores()[i].getExecEngine()).noOfOutstandingLoads);
-		}
+		}*/
 	}
 	
 	public static TopLevelTokenBus getTokenBus() {

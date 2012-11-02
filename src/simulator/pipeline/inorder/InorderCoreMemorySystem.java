@@ -7,6 +7,7 @@ import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
 import memorysystem.AddressCarryingEvent;
+import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 
 public class InorderCoreMemorySystem extends CoreMemorySystem {

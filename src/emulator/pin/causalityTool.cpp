@@ -48,6 +48,8 @@ UINT64 numInsToIgnore = 0;
 INT64 numInsToSimulate = 0;
 BOOL ignoreActive = false;
 UINT64 numCISC[MaxThreads];
+UINT64 totalNumCISC;
+bool threadAlive[MaxThreads];
 
 #define PacketEpoch 50
 uint32_t countPacket[MaxThreads];
@@ -99,6 +101,7 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	GetLock(&lock, threadid + 1);
 	numThreads++;
 	livethreads++;
+	threadAlive[threadid] = true;
 	printf("threads till now %d\n", numThreads);
 	fflush(stdout);
 	pumpingStatus[numThreads - 1] = true;
@@ -112,10 +115,15 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 //	printf("thread %d finished exec\n",tid);
 //	fflush(stdout);
 	GetLock(&lock, tid + 1);
-	while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
+	/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
 			PIN_Yield();
-	}
+	}*/
+	while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+				PIN_Yield();
+		}
+	printf("wrote -1 for tid %d\n", tid);
 	livethreads--;
+	threadAlive[tid] = false;
 	fflush(stdout);
 	ReleaseLock(&lock);
 }
@@ -328,9 +336,12 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
 }
 
 VOID printip(THREADID tid, VOID *ip) {
-	numCISC[tid]++;
+	//numCISC[tid]++;
+	if(ignoreActive == false)
+		numCISC[tid]++;
+	totalNumCISC++;
 
-	if(numCISC[tid] > numInsToIgnore)
+	/*if(numCISC[tid] > numInsToIgnore)
 	{
 		if(numInsToSimulate < 0 ||
 			numCISC[tid] < numInsToIgnore + numInsToSimulate)
@@ -345,20 +356,50 @@ VOID printip(THREADID tid, VOID *ip) {
 	else
 	{
 		ignoreActive = true;
-	}
+	}*/
 
-	if(numInsToSimulate > 0 &&
-			numCISC[tid] > numInsToIgnore + numInsToSimulate)
-	{
-		GetLock(&lock, tid + 1);
-		printf("attempting to write -1\n");
-		while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
-				PIN_Yield();
+	if(totalNumCISC > numInsToIgnore)
+		{
+			if(numInsToSimulate < 0 ||
+				totalNumCISC < numInsToIgnore + numInsToSimulate)
+			{
+				ignoreActive = false;
+			}
+			else
+			{
+				ignoreActive = true;
+			}
 		}
-		printf("wrote -1\n");
-		livethreads--;
-		fflush(stdout);
-		ReleaseLock(&lock);
+		else
+		{
+			ignoreActive = true;
+		}
+
+	/*if(numInsToSimulate > 0 &&
+			numCISC[tid] > numInsToIgnore + numInsToSimulate)*/
+	if(numInsToSimulate > 0 &&
+				totalNumCISC > numInsToIgnore + numInsToSimulate)
+	{
+		for(int i = 0; i < MaxThreads; i++)
+		{
+			if(threadAlive[i] == true)
+			{
+				tid = i;
+				GetLock(&lock, tid + 1);
+				printf("attempting to write -1\n");
+				/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
+						PIN_Yield();
+				}*/
+				while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+								PIN_Yield();
+						}
+				printf("wrote -1 for tid %d\n", tid);
+				livethreads--;
+				threadAlive[tid] = false;
+				fflush(stdout);
+				ReleaseLock(&lock);
+			}
+		}
 
 		if(livethreads == 0)
 		{
@@ -371,11 +412,19 @@ VOID printip(THREADID tid, VOID *ip) {
 			tst->unload();
 			exit(0);
 		}
+
+		ASSERT(livethreads != 0, "subset sim complete, but live threads not zero!!!\n");
 	}
 
-	if(numCISC[tid] % 1000000 == 0)
+	if(numCISC[tid] % 1000000 == 0 && numCISC[tid] > 0)
 	{
 		printf("numCISC on thread %d = %lu, ignoreActive = %d\n", tid, numCISC[tid], ignoreActive);
+		fflush(stdout);
+	}
+
+	if(totalNumCISC % 1000000 == 0 && totalNumCISC > 0)
+	{
+		printf("totalNumCISC = %lu, ignoreActive = %d\n", totalNumCISC, ignoreActive);
 		fflush(stdout);
 	}
 //
@@ -537,7 +586,9 @@ int main(int argc, char * argv[]) {
 	for(int i = 0; i < MaxThreads; i++)
 	{
 		numCISC[i] = 0;
+		threadAlive[i] = false;
 	}
+	totalNumCISC = 0;
 
 	PIN_AddThreadStartFunction(ThreadStart, 0);
 

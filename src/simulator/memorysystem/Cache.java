@@ -25,6 +25,7 @@ import java.util.*;
 import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
 
 import power.Counters;
+import main.ArchitecturalComponent;
 import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.nuca.NucaCacheBank;
@@ -126,7 +127,14 @@ public class Cache extends SimulationElement
 			makeCache();
 			
 			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
-			missStatusHoldingRegister = new Mode1MSHR(10000);
+			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
+			{
+				missStatusHoldingRegister = new Mode1MSHR(500);
+			}
+			else
+			{
+				missStatusHoldingRegister = new Mode1MSHR(40000);
+			}
 			this.nucaType = NucaType.NONE;
 		}
 		
@@ -186,6 +194,18 @@ public class Cache extends SimulationElement
 		
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
+			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
+			{
+				if(event.coreId != this.containingMemSys.coreID)
+				{
+					System.out.println("this print is from : " + this.levelFromTop + " of " + this.containingMemSys.coreID);
+					event.dump();
+					ArchitecturalComponent.dumpOutStandingLoads();
+					ArchitecturalComponent.dumpAllEventQueues();
+					ArchitecturalComponent.dumpAllMSHRs();
+					ArchitecturalComponent.exitOnAssertionFail("coreIDs mismatch!!");					
+				}
+			}
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write)
 			{
@@ -240,6 +260,9 @@ public class Cache extends SimulationElement
 				{
 					writeHitUpdateDirectory(event.coreId,( address>>> blockSizeBits ), event, address);
 				}
+				/*if(this.levelFromTop == CacheType.Lower){
+					System.out.println(event.getEventTime()+"  cache hit for address "+ event.getAddress() + "with tag = "+ computeTag(event.getAddress()));
+				}*/
 				processBlockAvailable(event);				
 			}
 			
@@ -258,6 +281,7 @@ public class Cache extends SimulationElement
 				} 
 				else 
 				{
+	
 					sendReadRequest(event);
 				}
 			}
@@ -323,6 +347,7 @@ public class Cache extends SimulationElement
 		{
 			if(this.isLastLevel)
 			{
+				//System.out.println(receivedEvent.getEventTime()+"  cache miss for address "+ receivedEvent.getAddress() + "with tag = "+ computeTag(receivedEvent.getAddress()));
 				sendReadRequestToMainMemory(receivedEvent);
 			} 
 			else
@@ -394,7 +419,14 @@ public class Cache extends SimulationElement
 				
 				else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
 				{
-						if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+					if(this.levelFromTop == CacheType.L1)
+					{
+						ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeEventIfAvailable(eventPoppedOut);
+						/*ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequests(eventPoppedOut);*/
+					}
+					/*if(this.levelFromTop == CacheType.Lower)
+						System.out.println(eventPoppedOut.getEventTime()+" write removed from mshr "+ eventPoppedOut.getAddress() + "tag "+ computeTag(eventPoppedOut.getAddress()));	*/
+					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 						{
 								if (this.isLastLevel)
 								{
@@ -523,6 +555,8 @@ public class Cache extends SimulationElement
 				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
 				memResponseUpdateDirectory(addrEvent.coreId, addrEvent.getAddress() >>> blockSizeBits, addrEvent, addrEvent.getAddress());
 			}
+			//System.out.println( event.getEventTime()+"  response received for address "+((AddressCarryingEvent)event).getAddress() + "with tag = "+ computeTag(((AddressCarryingEvent)event).getAddress()));
+
 			sendResponseToWaitingEvent(eventsToBeServed);
 		}
 		
@@ -877,5 +911,16 @@ public class Cache extends SimulationElement
 		//getters and setters
 		public MissStatusHoldingRegister getMissStatusHoldingRegister() {
 			return missStatusHoldingRegister;
+		}
+		
+		public String toString()
+		{
+			StringBuilder s = new StringBuilder();
+			s.append(this.levelFromTop + " : ");
+			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
+			{
+				s.append(this.containingMemSys.coreID);
+			}
+			return s.toString();
 		}
 }

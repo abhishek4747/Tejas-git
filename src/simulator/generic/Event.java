@@ -12,16 +12,16 @@ import memorysystem.MemorySystem;
  */
 public abstract class Event 
 {
-	private long eventTime;
-	private EventQueue eventQ;
-	RequestType requestType;
+	protected long eventTime;
+	protected EventQueue eventQ;
+	protected RequestType requestType;
 	private long priority;
 	public int coreId;
 
 	
 	//Element which processes the event.
-	private SimulationElement requestingElement;
-	private SimulationElement processingElement;
+	protected SimulationElement requestingElement;
+	protected SimulationElement processingElement;
 
 	public Event(EventQueue eventQ, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType) 
@@ -37,21 +37,21 @@ public abstract class Event
 	}
 
 	public Event(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
-			SimulationElement processingElement, RequestType requestType) 
+			SimulationElement processingElement, RequestType requestType, int coreId) 
 	{
 		this.eventTime = eventTime; // this should be set by the port
 		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
 		this.requestType = requestType;
-		
+		this.coreId = coreId;
 		this.priority = requestType.ordinal();
 	}
 
 	public Event update(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType)
 	{
-		this.eventTime = eventTime;
+		this.eventTime =  eventTime;
 		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;
 		this.processingElement = processingElement;
@@ -133,5 +133,10 @@ public abstract class Event
 	public void handleEvent(EventQueue eventQ)
 	{
 			processingElement.handleEvent(eventQ, this);
+	}
+	
+	public void dump()
+	{
+		System.out.println(coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime);
 	}
 }

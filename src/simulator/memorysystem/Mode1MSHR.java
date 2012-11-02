@@ -15,19 +15,31 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 	
 	PooledLinkedList mshr;
 	int curLength;
-	public int maxLength;
+	public int maxLengthReached;
+	int mshrSize;
 	//int tollerablesize = 100000;
 	
 	public Mode1MSHR(int mshrSize)
 	{
 		mshr = new PooledLinkedList(mshrSize+1);
 		curLength = 0;
-		maxLength = 0;
+		maxLengthReached = 0;
+		this.mshrSize = mshrSize;
 	}
 
 	@Override
 	public boolean isFull() {
+		/*if(curLength >= mshrSize)
+		{
+			return true;
+		}*/
 		return false;
+	}
+	
+	@Override
+	public int getCurrentSize()
+	{
+		return curLength;
 	}
 
 	@Override
@@ -36,9 +48,9 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 		mshr.add(event);
 		curLength++;
 		//System.out.println("current line of  ="  + curLength + " of "+ this);
-		if(curLength > maxLength)
+		if(curLength > maxLengthReached)
 		{
-			maxLength = curLength;
+			maxLengthReached = curLength;
 		}
 		return true;
 	}
@@ -73,6 +85,16 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 		//System.out.println("current line of  ="  + curLength + " of "+ this);
 		return true;
 	}
+	
+	@Override
+	public boolean removeEventIfAvailable(AddressCarryingEvent addrevent) {
+		if(mshr.removeByRequestType(addrevent) != null)
+		{
+			curLength--;
+		}
+		//System.out.println("current line of  ="  + curLength + " of "+ this);
+		return true;
+	}
 
 	@Override
 	public void handleLowerMshrFull(AddressCarryingEvent eventToBeSent) {
@@ -87,8 +109,18 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 	@Override
 	public void dump() {
 		
-		System.out.println("current length = " + curLength + "\t; max length = " + maxLength);
+		System.out.println("current length = " + curLength + "\t; max length = " + maxLengthReached);
 		mshr.dump();
+	}
+
+	@Override
+	public int getMaxSizeReached() {
+		return maxLengthReached;
+	}
+
+	@Override
+	public int getMSHRStructSize() {
+		return mshrSize;
 	}
 	
 	/*private void check_exit(int size)
@@ -141,7 +173,8 @@ class PooledLinkedList {
 			{
 				break;
 			}
-			if(searchNode.getAddress() == temp.element.getAddress())
+			if(searchNode.getAddress() == temp.element.getAddress() &&
+					searchNode.coreId == temp.element.coreId)
 			{
 				return temp.element;
 			}
@@ -161,7 +194,8 @@ class PooledLinkedList {
 				break;
 			}
 			if(searchNode.getAddress() == temp.element.getAddress() &&
-				searchNode.getRequestType() == temp.element.getRequestType())
+				searchNode.getRequestType() == temp.element.getRequestType() &&
+						searchNode.coreId == temp.element.coreId)
 			{
 				return temp.element;
 			}
@@ -181,7 +215,8 @@ class PooledLinkedList {
 			{
 				break;
 			}
-			if(removeNode.getAddress() == temp.element.getAddress())
+			if(removeNode.getAddress() == temp.element.getAddress() &&
+					removeNode.coreId == temp.element.coreId)
 			{
 				if(prev != null)
 				{
@@ -201,7 +236,8 @@ class PooledLinkedList {
 			prev = temp;
 			temp = temp.next;
 		}
-		System.out.println("called from mode1 MSHR");
+		System.out.println("called from mode1 MSHR-removeByAddress");
+		removeNode.dump();
 		ArchitecturalComponent.dumpOutStandingLoads();
 		ArchitecturalComponent.dumpAllMSHRs();
 		ArchitecturalComponent.exitOnAssertionFail("returned null from remove");
@@ -220,7 +256,8 @@ class PooledLinkedList {
 				break;
 			}
 			if(removeNode.getAddress() == temp.element.getAddress() &&
-					removeNode.getRequestType() == temp.element.getRequestType())
+					removeNode.getRequestType() == temp.element.getRequestType() &&
+					removeNode.coreId == temp.element.coreId)
 			{
 				if(prev != null)
 				{
@@ -240,10 +277,11 @@ class PooledLinkedList {
 			prev = temp;
 			temp = temp.next;
 		}
-		System.out.println("called from mode1 MSHR");
-		ArchitecturalComponent.dumpOutStandingLoads();
-		ArchitecturalComponent.dumpAllMSHRs();
-		ArchitecturalComponent.exitOnAssertionFail("returned null from remove");
+		System.out.println("called from mode1 MSHR - removeByRequestType");
+		removeNode.dump();
+		//ArchitecturalComponent.dumpOutStandingLoads();
+		//ArchitecturalComponent.dumpAllMSHRs();
+		//ArchitecturalComponent.exitOnAssertionFail("returned null from remove");
 		return null;
 	}
 	
@@ -299,6 +337,7 @@ class PooledLinkedList {
 		{
 			System.out.println("called from mode1 MSHR");
 			ArchitecturalComponent.dumpOutStandingLoads();
+			ArchitecturalComponent.dumpAllEventQueues();
 			ArchitecturalComponent.dumpAllMSHRs();
 			ArchitecturalComponent.exitOnAssertionFail("mshr overflow!!");
 		}

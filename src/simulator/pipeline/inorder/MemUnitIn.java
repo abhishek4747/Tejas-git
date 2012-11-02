@@ -9,6 +9,7 @@ import memorysystem.AddressCarryingEvent;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.PortType;
@@ -80,5 +81,6 @@ public class MemUnitIn extends SimulationElement{
 	{
 		containingExecutionEngine.setMemDone(requestedAddress,true);
 		containingExecutionEngine.noOfOutstandingLoads--;
+		//System.out.println("response received at time "+GlobalClock.getCurrentTime() + " for address "+requestedAddress);
 	}
 }

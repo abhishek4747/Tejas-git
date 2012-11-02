@@ -76,7 +76,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 											0,
 											iCache,
 											iCache,
-											RequestType.PerformPulls));
+											RequestType.PerformPulls,
+											this.coreID));
 		
 		//Initialise the  L1 cache
 		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
@@ -88,7 +89,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 						0,
 						l1Cache,
 						l1Cache,
-						RequestType.PerformPulls));
+						RequestType.PerformPulls,
+						this.coreID));
 		
 		//Initialise the TLB
 		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,
@@ -109,8 +111,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
 	//	L1MissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
 	//	iMissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
-		L1MissStatusHoldingRegister = new Mode1MSHR(10000);
-		iMissStatusHoldingRegister = new Mode1MSHR(10000);
+		L1MissStatusHoldingRegister = new Mode1MSHR(SystemConfig.core[coreID].LSQSize);
+		iMissStatusHoldingRegister = new Mode1MSHR(SystemConfig.core[coreID].LSQSize);
 	}
 	
 	public abstract void issueRequestToInstrCache(long address);

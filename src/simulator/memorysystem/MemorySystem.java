@@ -112,7 +112,8 @@ public class MemorySystem
 													0,
 													newCache,
 													newCache,
-													RequestType.PerformPulls));
+													RequestType.PerformPulls,
+													-1));
 				}
 			}
 		}
