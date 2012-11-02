@@ -23,16 +23,18 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.Operand;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class SSEMultiplication implements InstructionHandler 
+public class SSEMultiplication implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		InstructionLinkedList microOps;
@@ -50,7 +52,7 @@ public class SSEMultiplication implements InstructionHandler
 				operand3==null)
 		{
 			//tempFloatRegister = [operand2]
-			Operand tempFloatRegister = Registers.getTempFloatReg();
+			Operand tempFloatRegister = Registers.getTempFloatReg(tempRegisterNum);
 			microOps.appendInstruction(Instruction.getLoadInstruction(operand2,
 					tempFloatRegister));
 			

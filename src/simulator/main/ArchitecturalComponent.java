@@ -136,28 +136,6 @@ public class ArchitecturalComponent {
 		coreMemSys.getiCache().nextLevel.getMissStatusHoldingRegister().dump();
 		
 	}
-	
-	public static void exitOnAssertionFail(String errorMessage)
-	{
-		System.err.println(errorMessage);
-		Process process;
-		String cmd[] = {"/bin/sh",
-			      "-c",
-			      "killall -9 " + Main.executableFile
-		};
-
-		try 
-		{
-			process = Runtime.getRuntime().exec(cmd);
-			int ret = process.waitFor();
-			System.out.println("ret : " + ret);
-		} 
-		catch (Exception e) 
-		{
-			e.printStackTrace();
-		}
-		System.exit(1);
-	}
 
 	public static void dumpOutStandingLoads()
 	{

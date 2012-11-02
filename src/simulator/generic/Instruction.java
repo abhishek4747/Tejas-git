@@ -57,6 +57,15 @@ public class Instruction implements Serializable
 		this.destinationOperand = destinationOperand;
 	}
 	
+	private void set(OperationType type, Operand sourceOperand1,
+			Operand sourceOperand2, Operand destinationOperand)
+	{
+		this.type = type;
+		this.sourceOperand1 = sourceOperand1;
+		this.sourceOperand2 = sourceOperand2;
+		this.destinationOperand = destinationOperand;
+	}
+	
 	/* our clone constructor */
 	public Instruction(Instruction oldInstruction)
 	{
@@ -214,87 +223,129 @@ public class Instruction implements Serializable
 	{
 		return destinationOperand;
 	}
-	
+		
 	public static Instruction getIntALUInstruction(Operand sourceOperand1, Operand sourceOperand2, Operand destinationOperand)
 	{
-		return new Instruction(OperationType.integerALU, sourceOperand1, sourceOperand2,
-				destinationOperand);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.integerALU, sourceOperand1, sourceOperand2,
+			destinationOperand);
+		return ins;
+	}
+	
+	public static Instruction getInvalidInstruction()
+	{
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.inValid, null, null, null);
+		return ins;
+	}
+	
+	public static Instruction getSyncInstruction()
+	{
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.sync, null, null, null);
+		return ins;
 	}
 
 	public static Instruction getMoveInstruction(Operand destinationOperand, Operand sourceOperand)
 	{
-		return new Instruction(OperationType.mov, sourceOperand, null, destinationOperand);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.mov, sourceOperand, null, destinationOperand);
+		return ins;
 	}
 	
 	public static Instruction getNOPInstruction()
 	{
-		return new Instruction(OperationType.nop, null, null, null);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.nop, null, null, null);
+		return ins;
 	}
 	
 	public static Instruction getIntegerDivisionInstruction(Operand sourceOperand1,
 			Operand sourceOperand2, Operand destinationOperand)
 	{
-		return new Instruction(OperationType.integerDiv, sourceOperand1, sourceOperand2, 
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.integerDiv, sourceOperand1, sourceOperand2, 
 				destinationOperand);
+		return ins;
 	}
 	
 	public static Instruction getIntegerMultiplicationInstruction(Operand sourceOperand1,
 			Operand sourceOperand2, Operand destinationOperand)
 	{
-		return new Instruction(OperationType.integerMul, sourceOperand1, sourceOperand2, 
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.integerMul, sourceOperand1, sourceOperand2, 
 				destinationOperand);
+		return ins;
 	}
 	
 	public static Instruction getExchangeInstruction(Operand operand1, Operand operand2)
 	{
-		return new Instruction(OperationType.xchg, operand1, operand2, null);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.xchg, operand1, operand2, null);
+		return ins;
 	}
 	
 	public static Instruction getInterruptInstruction(Operand interruptNumber)
 	{
-		return new Instruction(OperationType.interrupt, interruptNumber, null, null);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.interrupt, interruptNumber, null, null);
+		return ins;
 	}
 	
 	public static Instruction getFloatingPointALU(Operand sourceOperand1, 
 			Operand sourceOperand2, Operand destinationOperand)
 	{
-		return new Instruction(OperationType.floatALU, sourceOperand1, sourceOperand2,
-				destinationOperand);	
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.floatALU, sourceOperand1, sourceOperand2,
+				destinationOperand);
+		return ins;
 	}
 	
 	public static Instruction getFloatingPointMultiplication(Operand sourceOperand1, 
 			Operand sourceOperand2, Operand destinationOperand)
 	{
-		return new Instruction(OperationType.floatMul, sourceOperand1, sourceOperand2,
-				destinationOperand);	
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.floatMul, sourceOperand1, sourceOperand2,
+				destinationOperand);
+		return ins;
 	}
 
 	public static Instruction getFloatingPointDivision(Operand sourceOperand1, 
 			Operand sourceOperand2, Operand destinationOperand)
 	{
-		return new Instruction(OperationType.floatDiv, sourceOperand1, sourceOperand2,
-				destinationOperand);	
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.floatDiv, sourceOperand1, sourceOperand2,
+				destinationOperand);
+		return ins;
 	}
 	
 	
 	public static Instruction getBranchInstruction(Operand newInstructionAddress)
 	{
-		return new Instruction(OperationType.branch, newInstructionAddress, null, null);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.branch, newInstructionAddress, null, null);
+		return ins;
 	}
 
 	public static Instruction getUnconditionalJumpInstruction(Operand newInstructionAddress)
 	{
-		return new Instruction(OperationType.jump, newInstructionAddress, null, null);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.jump, newInstructionAddress, null, null);
+		return ins;
 	}
 	
 	public static Instruction getLoadInstruction(Operand memoryLocation, Operand destinationRegister)
 	{
-		return new Instruction(OperationType.load, memoryLocation,	null, destinationRegister);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.load, memoryLocation,	null, destinationRegister);
+		return ins;
 	}
 
 	public static Instruction getStoreInstruction(Operand memoryLocation, Operand sourceOperand)
 	{
-		return new Instruction(OperationType.store, memoryLocation, sourceOperand, null);
+		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
+		ins.set(OperationType.store, memoryLocation, sourceOperand, null);
+		return ins;
 	}
 	
 	public Operand getOperand1()

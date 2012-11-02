@@ -23,15 +23,17 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class StringCompare implements InstructionHandler 
+public class StringCompare implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
 		Operand sourceLocation;
@@ -47,12 +49,12 @@ public class StringCompare implements InstructionHandler
 					null);
 			
 			//Load the value at the sourceLocation in a temporary register
-			Operand sourceIndex = Registers.getTempIntReg();
+			Operand sourceIndex = Registers.getTempIntReg(tempRegisterNum);
 			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, sourceIndex));
 			
 			
 			//Load the value at the destination Location in a temporary register
-			Operand destinationIndex = Registers.getTempIntReg();
+			Operand destinationIndex = Registers.getTempIntReg(tempRegisterNum);
 			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(destinationLocation, destinationIndex));
 
 			//Perform compare operation
@@ -60,7 +62,7 @@ public class StringCompare implements InstructionHandler
 						new IntegerALUExplicitDestination();
 			
 			integerALUExplicitDestination.handle(instructionPointer, sourceIndex, 
-					destinationIndex, null, instructionArrayList);
+					destinationIndex, null, instructionArrayList, tempRegisterNum);
 		}
 		
 		
@@ -71,11 +73,11 @@ public class StringCompare implements InstructionHandler
 			destinationLocation = operand1;
 			
 			//Load the value at the sourceLocation in a temporary register
-			Operand sourceIndex = Registers.getTempIntReg();
+			Operand sourceIndex = Registers.getTempIntReg(tempRegisterNum);
 			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, sourceIndex));
 			
 			//Load the value at the destination Location in a temporary register
-			Operand destinationIndex = Registers.getTempIntReg();
+			Operand destinationIndex = Registers.getTempIntReg(tempRegisterNum);
 			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, destinationIndex));
 
 			//Perform compare operation
@@ -83,7 +85,7 @@ public class StringCompare implements InstructionHandler
 						new IntegerALUExplicitDestination();
 			
 			integerALUExplicitDestination.handle(instructionPointer, sourceIndex, 
-					destinationIndex, null, instructionArrayList);
+					destinationIndex, null, instructionArrayList, tempRegisterNum);
 		}
 		
 		else

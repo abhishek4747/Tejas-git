@@ -6,7 +6,7 @@ import generic.InstructionTable;
 
 import java.util.LinkedList;
 
-public class Store implements VisaHandler 
+public class Store implements DynamicInstructionHandler 
 {
 	public int handle(int microOpIndex, InstructionTable instructionTable,
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 

@@ -32,20 +32,21 @@ public class Registers
 	private static Hashtable<String, Long> machineSpecificRegistersHashTable = null;
 	private static Hashtable<String, Long> integerRegistersHashTable = null;
 	private static Hashtable<String, Long> floatRegistersHashTable = null;
-	
-	public static int noOfIntTempRegs = 0;
-	public static int noOfFloatTempRegs = 0;
+
+	// --- Number of temporary registers must be maintained by the translator ---
+//	public static int noOfIntTempRegs = 0;
+//	public static int noOfFloatTempRegs = 0;
 
 	//Allocate a new temporary register	
-	public static Operand getTempIntReg()
+	public static Operand getTempIntReg(TempRegisterNum tempRegister)
 	{
-		return Operand.getIntegerRegister(encodeRegister("temp" + noOfIntTempRegs++));
+		return Operand.getIntegerRegister(encodeRegister("temp" + tempRegister.numTempIntRegister++));
 	}
 
 	//Allocate a new temporary float register	
-	public static Operand getTempFloatReg()
+	public static Operand getTempFloatReg(TempRegisterNum tempRegister)
 	{
-		return Operand.getFloatRegister(encodeRegister("tempFloat" + noOfFloatTempRegs++));
+		return Operand.getFloatRegister(encodeRegister("tempFloat" + tempRegister.numTempFloatRegister++));
 	}
 	
 	public static void createRegisterHashTable()

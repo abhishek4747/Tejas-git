@@ -22,14 +22,16 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 import generic.Operand;
 
-public class ConditionalJump implements InstructionHandler 
+public class ConditionalJump implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, Operand operand1,
-			Operand operand2, Operand operand3, InstructionArrayList instructionArrayList)
+			Operand operand2, Operand operand3, InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		Operand jumpLocation = null;
@@ -43,7 +45,7 @@ public class ConditionalJump implements InstructionHandler
 		
 		else if(operand1.isMemoryOperand() && operand2==null && operand3==null)
 		{
-			jumpLocation = OperandTranslator.getLocationToStoreValue(operand1);
+			jumpLocation = OperandTranslator.getLocationToStoreValue(operand1, tempRegisterNum);
 			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1, jumpLocation));
 			instructionArrayList.appendInstruction(Instruction.getBranchInstruction(jumpLocation));
 		}

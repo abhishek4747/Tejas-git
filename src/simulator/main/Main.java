@@ -1,19 +1,19 @@
 package main;
 
-
 import java.io.File;
 import java.io.IOException;
-
 import misc.Error;
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.XMLParser;
 import emulatorinterface.RunnableFromFile;
-import emulatorinterface.RunnableShm;
 import emulatorinterface.RunnableThread;
 import emulatorinterface.communication.IpcBase;
+import emulatorinterface.communication.network.Network;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Statistics;
+
 
 public class Main {
 	
@@ -22,23 +22,21 @@ public class Main {
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
 	
-	private static long startTime, endTime;
-	static String executableFile = " ";
+	private static  String emulatorFile = " ";
+
+	
 	public static void main(String[] arguments)
 	{
-		startTime = System.currentTimeMillis();
-
 		checkCommandLineArguments(arguments);
 
 		// Read the command line arguments
 		String configFileName = arguments[0];
 		SimulationConfig.outputFileName = arguments[1];
 		
-		String executableArguments=" ";
-		
-		executableFile = arguments[2];
+		String emulatorArguments=" ";
+		setEmulatorFile(arguments[2]);
 		for(int i=2; i < arguments.length; i++) {
-			executableArguments = executableArguments + " " + arguments[i];
+			emulatorArguments = emulatorArguments + " " + arguments[i];
 		}
 
 		// Parse the command line arguments
@@ -46,16 +44,17 @@ public class Main {
 		
 		// Initialize the statistics
 		Statistics.initStatistics();
-
-		// Create a hash-table for the static representation of the executable
-		ObjParser.buildStaticInstructionTable(executableFile);
 		
 		// Initialise pool of operands and instructions
-		CustomObjectPool.initPool();
-		
-		// Configure the emulator
-		configureEmulator();
+		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
 
+		// Create a hash-table for the static representation of the executable
+		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			ObjParser.buildStaticInstructionTable(getEmulatorFile());
+		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			ObjParser.initializeThreadMicroOpsList(1);
+		}
+		
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
 		
@@ -63,17 +62,14 @@ public class Main {
 		int pid = getMyPID();
 				
 		System.out.println("Newmain : pid = " + pid);
-		
-		// create PIN interface
-		IpcBase ipcBase = new SharedMem(pid);
-		if (SimulationConfig.Mode!=0) {
-			createPINinterface(ipcBase, executableArguments, pid);
-		}
 
-
+		// Start communication channel before starting emulator
+		IpcBase ipcBase = startCommunicationChannel(pid);
 		
+		// start emulator
+		startEmulator(emulatorArguments, pid);
+
 		//different core components may work at different frequencies
-		
 		
 		//Initialize counters
 //		Counters powerCounters[] = new Counters[SystemConfig.NoOfCores];
@@ -83,35 +79,73 @@ public class Main {
 		// Create runnable threads. Each thread reads from EMUTHREADS
 		//FIXME A single java thread can have multiple cores
 		
+		long startTime, endTime;
+		startTime = System.currentTimeMillis();
+		
 		String name;
-		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++){
+		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++) {
+			
 			name = "thread"+Integer.toString(i);
-			if(SimulationConfig.Mode==0) {
+			
+			if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
 				runners[i] = new RunnableFromFile(name,i, ipcBase, ArchitecturalComponent.getCores(), 
 						ArchitecturalComponent.getTokenBus());
-			} else if (SimulationConfig.Mode==1) {
-				runners[i] = new RunnableShm(name,i, ipcBase, ArchitecturalComponent.getCores(), 
-						ArchitecturalComponent.getTokenBus());
 			} else {
-				System.out.println("\n\n This mode not implemented yet \n\n");
+				runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores(), 
+						ArchitecturalComponent.getTokenBus());
 			}
 		}
 		
 		ipcBase.waitForJavaThreads();
-		if (SimulationConfig.Mode!=0) {
+		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE) {
 			emulator.waitForEmulator();
 		}
 		
-		ipcBase.finish();
+		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE) {
+			ipcBase.finish();
+		}
 
 		endTime = System.currentTimeMillis();
-		System.out.println("------------ Printing statistics ------------ ");
-		Statistics.printAllStatistics(executableFile, startTime, endTime);
+		Statistics.printAllStatistics(getEmulatorFile(), startTime, endTime);
 		
 		System.out.println("\n\nSimulation completed !!");
-		ArchitecturalComponent.dumpAllMSHRs();
 				
 		System.exit(0);
+	}
+
+	private static IpcBase startCommunicationChannel(int pid) {
+		IpcBase ipcBase = null;
+		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
+			// ipc is not required for file
+			ipcBase = null;
+		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SHM) {
+			ipcBase = new SharedMem(pid);
+ 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_NETWORK) {
+ 			//ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
+ 			ipcBase = new Network(1);
+ 		} else {
+ 			ipcBase = null;
+ 			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);
+ 		}
+		
+		return ipcBase;
+	}
+
+	private static void startEmulator(String emulatorArguments, int pid) {
+		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
+			// The emulator is not needed when we are reading from a file
+			emulator = null;
+		} else {
+			if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+				emulator = new Emulator(EmulatorConfig.PinTool, EmulatorConfig.PinInstrumentor, 
+						emulatorArguments, pid);
+			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+				emulator = new Emulator(EmulatorConfig.QemuTool + " " + emulatorArguments, pid);
+			} else {
+				emulator = null;
+				misc.Error.showErrorAndExit("Invalid emulator type : " + EmulatorConfig.EmulatorType);
+			}
+		}
 	}
 
 	private static void initializeArchitecturalComponents() {
@@ -120,41 +154,6 @@ public class Main {
 		ArchitecturalComponent.setTokenBus(ArchitecturalComponent.initTokenBus());
 		ArchitecturalComponent.initMemorySystem(ArchitecturalComponent.getCores(),
 				ArchitecturalComponent.getTokenBus());
-	}
-
-
-
-	// TODO Must provide parameters to make from here
-	private static void configureEmulator() {
-
-	}
-
-	private static void createPINinterface(IpcBase ipcBase,
-			String executableArguments, int pid) 
-	{
-
-		// Creating command for PIN tool.
-		String cmd;
-		
-		System.out.println("subset sim size = "  + 
-				SimulationConfig.subsetSimSize + "\t" + 
-				SimulationConfig.subsetSimulation);
-		
-		cmd = SimulationConfig.PinTool + "/pin" +
-						" -t " + SimulationConfig.PinInstrumentor +
-						" -map " + SimulationConfig.MapEmuCores +
-						" -numIgn " + SimulationConfig.NumInsToIgnore +
-						" -numSim " + SimulationConfig.subsetSimSize +
-						" -id " + pid +
-						" -- ";
-		cmd += executableArguments;
-		
-		// System.out.println("cmd = " + cmd);
-
-		emulator = new Emulator();
-		emulator.startEmulator(cmd);
-
-		ipcBase.initIpc();
 	}
 
 	// checks if the command line arguments are in required format and number
@@ -186,22 +185,6 @@ public class Main {
 			System.out.println("\n");
 	}
 	
-	public static long getStartTime() {
-		return startTime;
-	}
-
-	public static long getEndTime() {
-		return endTime;
-	}
-	
-	public static void setStartTime(long startTime) {
-		Main.startTime = startTime;
-	}
-
-	public static void setEndTime(long endTime) {
-		Main.endTime = endTime;
-	}
-
 	public static Emulator getEmulator() {
 		return emulator;
 	}
@@ -219,5 +202,13 @@ public class Main {
 		}
 		
 		return pid;
+	}
+
+	public static String getEmulatorFile() {
+		return emulatorFile;
+	}
+
+	public static void setEmulatorFile(String emulatorFile) {
+		Main.emulatorFile = emulatorFile;
 	}
 }

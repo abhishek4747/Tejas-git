@@ -17,27 +17,32 @@
 
 ******************************************************************************
 	Contributors:  Moksh Upadhyay, Abhishek Sagar
-*****************************************************************************/--><Configuration>
-
-	<!--Simulation Parameters-->
-	<Simulation>
+*****************************************************************************/-->
+<Configuration>
+	<Emulator>
+		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
+		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
 		<PinTool>/mnt/srishtistr0/home/mayur/Installed_Softwares/PIN</PinTool>
 		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
+	</Emulator>
+	
+	<!--Simulation Parameters-->
+	<Simulation>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
-		<Mode>1</Mode>   					<!--From file 0,  From shmem 1, TODO add others -->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
-		<PipelineType>3</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
+		<PipelineType>1</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
 		<NumInorderPipelines>3</NumInorderPipelines>	<!--Only applicable if the pipeline type is multi issue inorder-->
 		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
-		<subsetSim>true</subsetSim>
-		<subsetSimSize>3000000000</subsetSimSize>
+		<subsetSim>false</subsetSim>
+		<subsetSimSize>0000000</subsetSimSize>
 		<PrintPowerStats>false</PrintPowerStats>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsForTrace>100000</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
@@ -47,15 +52,15 @@
 	<!--System Parameters-->
 	<System>
 		<NoOfCores>4</NoOfCores>				<!--(!!!Not used!!!) Number of cores in the simulated system-->
-		<MainMemoryLatency>250</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
+		<MainMemoryLatency>200</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
 		<MainMemoryFrequency>3600</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
-		<MainMemoryPortType>UL</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+		<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 		<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
 		<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
         <NearestBankToCores>0,4 0,4 12,4 12,4</NearestBankToCores>
-<!--Directory Access Latencies. Need to be removed when merged with NoC-->
-
+	
+	<!--Directory Access Latencies. Need to be removed when merged with NoC-->
 		<directoryAccessLatency>2</directoryAccessLatency>
 		<memWBDelay>200</memWBDelay>
 		<dataTransferDelay>3</dataTransferDelay>
@@ -191,7 +196,7 @@
 			<Associativity>8</Associativity>
 			<Size>32</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
-			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>4</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
@@ -225,8 +230,8 @@
 			<Size>32</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>4</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
@@ -258,7 +263,7 @@
 			<Size>4096</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>64</AccessPorts>			<!--Number of access ports in the Cache-->
+			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>4</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->

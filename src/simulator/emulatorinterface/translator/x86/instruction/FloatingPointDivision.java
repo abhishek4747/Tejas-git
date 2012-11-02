@@ -23,15 +23,17 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class FloatingPointDivision implements InstructionHandler 
+public class FloatingPointDivision implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
 		//If no operand is provided to the function, then st(0)
@@ -62,7 +64,7 @@ public class FloatingPointDivision implements InstructionHandler
 			Operand st0 = Registers.getTopFPRegister();
 			
 			Operand tempFloatRegister;
-			tempFloatRegister = Registers.getTempFloatReg();
+			tempFloatRegister = Registers.getTempFloatReg(tempRegisterNum);
 			
 			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1,
 					tempFloatRegister));

@@ -29,7 +29,8 @@ public class Error
 {
 	public static void showErrorAndExit(String message)
 	{
-		System.out.print(message);
+		new Exception().printStackTrace();
+		System.err.print(message);
 		shutDown("");
 		System.exit(1);
 	}
@@ -38,12 +39,12 @@ public class Error
 	{
 		try {
 			Main.getEmulator().forceKill();
-		}
-		finally{
+		} catch(Exception e) {
+			
+		} finally {
 			System.out.print(message);
 			System.exit(0);
 		}
-
 	}
 
 	public static void invalidOperation(String operation, Operand operand1, 

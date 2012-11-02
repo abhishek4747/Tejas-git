@@ -133,6 +133,11 @@ public class Operand implements Serializable
 	{
 		return type;
 	}
+
+	public void setValue(long value) 
+	{
+		this.value = value; 
+	}
 		
 	public long getValue()
 	{
@@ -174,33 +179,57 @@ public class Operand implements Serializable
 		return (this.type == OperandType.floatRegister);
 	}
 	
+	private void set(OperandType operandType, long  operandValue)
+	{
+		this.type = operandType;
+		this.value = operandValue;
+		
+		this.memoryLocationFirstOperand = null;
+		this.memoryLocationSecondOperand = null;
+	}
+
+	private void set(OperandType operandType, long  operandValue,
+			Operand memoryLocationFirstOperand, Operand memoryOperandSecondOperand)
+	{
+		this.type = operandType;
+		this.value = operandValue;
+
+		this.memoryLocationFirstOperand = memoryLocationFirstOperand;
+		this.memoryLocationSecondOperand = memoryOperandSecondOperand;
+	}
+	
 	public static Operand getIntegerRegister(long value)
 	{
-		return new Operand(OperandType.integerRegister, value);
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.integerRegister, value);
+		return op;
 	}
 	
 	public static Operand getFloatRegister(long value)
 	{
-		return new Operand(OperandType.floatRegister, value);	
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.floatRegister, value);
+		return op;
 	}
 	
 	public static Operand getMachineSpecificRegister(long value)
 	{
-		return new Operand(OperandType.machineSpecificRegister, value);	
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.machineSpecificRegister, value);
+		return op;
 	}
 	
 	public static Operand getImmediateOperand()
 	{
-		return new Operand(OperandType.immediate, -1);
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.immediate, -1);
+		return op;
 	}
 	
 	public static Operand getMemoryOperand(Operand memoryOperand1, Operand memoryOperand2)
 	{
-		return new Operand(OperandType.memory, -1, memoryOperand1, memoryOperand2);
-	}
-
-	public void setValue(long value) 
-	{
-		this.value = value; 
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.memory, -1, memoryOperand1, memoryOperand2);
+		return op;
 	}
 }

@@ -12,6 +12,7 @@ import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
 
 import power.Counters;
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.communication.IpcBase;
@@ -30,7 +31,14 @@ public class Statistics {
 		{
 			outputFileWriter.write("[Configuration]\n");
 			outputFileWriter.write("\n");
-			outputFileWriter.write("ToolName: "+SimulationConfig.PinInstrumentor+"\n");
+			
+			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+				outputFileWriter.write("EmulatorType: Pin\n");
+			} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+				outputFileWriter.write("EmulatorType: Qemu\n");
+			}
+			
+			
 			outputFileWriter.write("Benchmark: "+benchmark+"\n");
 			outputFileWriter.write("Pipeline: ");
 			if (SimulationConfig.isPipelineInorder)
@@ -300,8 +308,9 @@ public class Statistics {
 	
 	
 	//Simulation time
-	static long time;
-	static long subsetTime;
+	//static long time;
+	//static long subsetTime;
+	private static long simulationTime;
 
 	public static void printPowerTraceHeader(String delimiter){
 		try {
@@ -496,7 +505,7 @@ System.out.println("execution time = "+executionTime);
 	public static void printSimulationTime()
 	{
 		//print time taken by simulator
-		long seconds = time/1000;
+		long seconds = simulationTime/1000;
 		long minutes = seconds/60;
 		seconds = seconds%60;
 		try
@@ -506,17 +515,11 @@ System.out.println("execution time = "+executionTime);
 			
 			outputFileWriter.write("Time Taken\t\t=\t" + minutes + " : " + seconds + " minutes\n");
 			
+			outputFileWriter.write("Instructions per Second\t=\t" + 
+					(double)totalNumMicroOps/simulationTime + " KIPS\t\tin terms of micro-ops\n");
+			outputFileWriter.write("Instructions per Second\t=\t" + 
+					(double)totalHandledCISCInsn/simulationTime + " KIPS\t\tin terms of CISC instructions\n");
 			
-			if(subsetTime != 0)
-			{
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/subsetTime + " KIPS\t\tin terms of micro-ops\n");
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalHandledCISCInsn/subsetTime + " KIPS\t\tin terms of CISC instructions\n");
-			}
-			else
-			{
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalNumMicroOps/time + " KIPS\t\tin terms of micro-ops\n");
-				outputFileWriter.write("Instructions per Second\t=\t" + (double)totalHandledCISCInsn/time + " KIPS\t\tin terms of CISC instructions\n");
-			}
 			outputFileWriter.write("\n");
 		}
 		catch(IOException e)
@@ -739,20 +742,24 @@ System.out.println("execution time = "+executionTime);
 	public static void setNoOfIRequests(long noOfIRequests, int core) {
 		Statistics.noOfIRequests[core] = noOfIRequests;
 	}
-	public static long getTime() {
-		return Statistics.time;
-	}
+//	public static long getTime() {
+//		return Statistics.time;
+//	}
+//	
+//	public static void setTime(long time) {
+//		Statistics.time = time;
+//	}
+//
+//	public static long getSubsetTime() {
+//		return subsetTime;
+//	}
+//
+//	public static void setSubsetTime(long subsetTime) {
+//		Statistics.subsetTime = subsetTime;
+//	}
 	
-	public static void setTime(long time) {
-		Statistics.time = time;
-	}
-
-	public static long getSubsetTime() {
-		return subsetTime;
-	}
-
-	public static void setSubsetTime(long subsetTime) {
-		Statistics.subsetTime = subsetTime;
+	public static void setSimulationTime(long simulationTime) {
+		Statistics.simulationTime = simulationTime;
 	}
 
 	public static void setExecutable(String executableFile) {
@@ -799,6 +806,8 @@ System.out.println("execution time = "+executionTime);
 			long startTime, long endTime) {
 		//set up statistics module
 		//Statistics.initStatistics();
+		// Statistics.initStatistics();
+		
 		Statistics.setExecutable(benchmarkName);
 		
 		//set memory statistics for levels L2 and below
@@ -829,14 +838,10 @@ System.out.println("execution time = "+executionTime);
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
-			System.out.println("numAccesses = " + cache.levelFromTop + " = " + cache.noOfAccesses );
-			System.out.println("numWritesReceived = " + cache.levelFromTop + " = " + cache.noOfWritesReceived );
-			System.out.println("numResponsesReceived = " + cache.levelFromTop + " = " + cache.noOfResponsesReceived );
-			System.out.println("numResponsesSent = " + cache.levelFromTop + " = " + cache.noOfResponsesSent );
-			System.out.println("numWritesForwarded = " + cache.levelFromTop + " = " + cache.noOfWritesForwarded );
+			
 		}
 			
-		Statistics.setTime(endTime - startTime);
+		Statistics.setSimulationTime(endTime - startTime);
 		
 		//print statistics
 		Statistics.openStream();
