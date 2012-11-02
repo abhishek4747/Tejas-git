@@ -32,8 +32,12 @@ import java.util.Vector;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
+import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
+import memorysystem.MESI;
+import memorysystem.MemorySystem;
 import memorysystem.MissStatusHoldingRegister;
+import memorysystem.Cache.CoherenceType;
 import misc.Util;
 import config.CacheConfig;
 import config.SimulationConfig;
@@ -48,7 +52,7 @@ public class NucaCache extends Cache
 	public enum NucaType{
 		S_NUCA,
 		D_NUCA,
-		NONE
+		NONE, CB_D_NUCA
 	}
 	
 	public enum Mapping {
@@ -132,6 +136,40 @@ public class NucaCache extends Cache
 		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig,tokenBus);
 	}
  
+    public boolean addEvent(AddressCarryingEvent addrEvent)
+	{
+		if(missStatusHoldingRegister.isFull())
+		{
+			return false;
+		}
+		boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addrEvent);
+		if(entryCreated)
+		{
+			putEventToRouter(addrEvent);
+		}
+		return true;
+	}
+    
+    void putEventToRouter(AddressCarryingEvent addrEvent)
+	{
+		long address = addrEvent.getAddress();
+		Vector<Integer> sourceBankId = getSourceBankId(address,addrEvent.coreId);
+		Vector<Integer> destinationBankId = getDestinationBankId(address,addrEvent.coreId);
+		AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
+																								0,this, this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+																								addrEvent.getRequestType(), address,addrEvent.coreId,
+																								sourceBankId,destinationBankId);
+		eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
+		if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+		{
+			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+			getPort().put(eventToBeSent);
+		}
+		else
+		{
+			((OpticalNOC)this.noc).entryPoint.getPort().put(eventToBeSent);
+		}
+	}
     
     public int getBankNumber(long addr)
 	{
@@ -202,119 +240,46 @@ public class NucaCache extends Cache
 		destinationBankId.add(bankNumber%cacheColumns);
 		return destinationBankId;
 	}
-
-	public boolean addEvent(AddressCarryingEvent addressEvent)
-	{
-		SimulationElement requestingElement = addressEvent.getRequestingElement();
-		long address = addressEvent.getAddress();
-		Vector<Integer> sourceBankId = getSourceBankId(address,addressEvent.coreId);
-		Vector<Integer> destinationBankId = getDestinationBankId(address,addressEvent.coreId);
-		addressEvent.oldRequestingElement = (SimulationElement) requestingElement.clone();
-		addressEvent.setDestinationBankId(sourceBankId);
-		addressEvent.setSourceBankId(destinationBankId);
-		addressEvent.setProcessingElement(	this.cacheBank[destinationBankId.get(0)][destinationBankId.get(1)] );
-		addressEvent.oldSourceBankId = (Vector<Integer>) sourceBankId.clone();
-		if(missStatusHoldingRegister.isFull())
-		{
-			return false;
-		}
-				
-		boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
-		if(entryCreated)
-		{
-			if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
-				getPort().put(addressEvent.
-										updateEvent(addressEvent.getEventQ(), 
-													0,
-													requestingElement, 
-													this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-													addressEvent.getRequestType(), 
-													sourceBankId, 
-													destinationBankId));
-
-			else{
-//				System.out.println("Event to NOC" + "from" + sourceBankId + "to" +destinationBankId + "with address" + address);
-				((OpticalNOC)this.noc).entryPoint.
-				getPort().put(addressEvent.
-										updateEvent(addressEvent.getEventQ(), 
-													0,//to be  changed to some constant(wire delay) 
-													requestingElement, 
-													((OpticalNOC)this.noc).entryPoint, 
-													addressEvent.getRequestType(), 
-													sourceBankId, 
-													destinationBankId));
-			}
-			
-		}
-		return true;
-	}
+	
 	
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-	    if (event.getRequestType() == RequestType.PerformPulls)
-		{
-			pullFromUpperMshrs();
-		}
-		event.addEventTime(1);
-		event.getEventQ().addEvent(event);
+	   if(event.getRequestType() == RequestType.Mem_Response)
+	    {
+	    	handleMemResponse(eventQ,event);
+	    }
 	}
 	
-	public void pullFrom(MissStatusHoldingRegister mshr)
+	
+	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
-		if(mshr.getNumberOfEntriesReadyToProceed() == 0)
-		{
-			return;
-		}
-		ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed();
-		processReadyEvents(eventToProceed,mshr);
+		ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests((AddressCarryingEvent)event);
+		sendResponseToWaitingEvent(eventsToBeServed);
 	}
 	
-	public void processReadyEvents(ArrayList<OMREntry> eventToProceed,MissStatusHoldingRegister mshr)
+	
+	private void sendResponseToWaitingEvent(ArrayList<Event> outstandingRequestList)
 	{
-		for(int k = 0;k < eventToProceed.size();k++)
-		{
-			if(missStatusHoldingRegister.isFull())
+		while (!outstandingRequestList.isEmpty())
+		{	
+			AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0); 
+			if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
 			{
-				break;
+				sendMemResponse(eventPoppedOut);
 			}
-			
-			OMREntry omrEntry = eventToProceed.get(k);
-			omrEntry.readyToProceed = false;
-			
-			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
-			
-			if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
+			else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
 			{
-				mshr.removeStartingWrites(omrEntry.eventToForward.getAddress());
-			}
-			
-			mshr.decrementNumberOfEntriesReadyToProceed();
-			Vector<Integer> destinationbankId = omrEntry.eventToForward.getDestinationBankId();
-			
-			if(entryCreated)
-			{
-				/*
-				 * if the pulled event results in a new omrEntry,
-				 * the processing of the request must be done
-				 */
-				cacheBank[destinationbankId.get(0)][destinationbankId.get(1)].handleAccess(omrEntry.eventToForward.getEventQ() , omrEntry.eventToForward);
-			}
-			else
-			{
-				/*
-				 * if the pulled event is a write (omr entry already exists),
-				 * it may be that the cache line already exists at this level (either in the cache, or in the MSHR),
-				 * therefore, this request is effectively a hit;
-				 * to handle this possibility, we call handleAccess()
-				 */
-				AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
-				if(eventToForward != null &&
-						eventToForward.getRequestType() == RequestType.Cache_Write)
+				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 				{
-					cacheBank[destinationbankId.get(0)][destinationbankId.get(1)].handleAccess(omrEntry.eventToForward.getEventQ(), omrEntry.eventToForward);
+					 AddressCarryingEvent addrEvent = new AddressCarryingEvent(eventPoppedOut.getEventQ(),
+							 																		MemorySystem.mainMemory.getLatency(),
+							 																		this,
+							 																		MemorySystem.mainMemory,
+							 																		RequestType.Main_Mem_Write,
+							 																		eventPoppedOut.coreId);
+					 MemorySystem.mainMemory.getPort().put(addrEvent);
 				}
 			}
 		}
-	}
+	}				
 }

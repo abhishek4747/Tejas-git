@@ -21,6 +21,7 @@ public interface MissStatusHoldingRegister {
 	
 	public int getMSHRStructSize();
 	
+	public int numOutStandingRequests(Event event);
 	/*
 	 * return value signifies whether new omrentry created or not
 	 * */

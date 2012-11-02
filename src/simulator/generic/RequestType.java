@@ -88,7 +88,7 @@ public enum RequestType {
 	Send_Mem_Response_On_WriteHit,
 	PerformPulls, 
 	Send_Mem_Response_Invalidate,
-	Invalid_Event
+	Invalid_Event, Cache_Hit, Cache_Miss
 	
 	
 	

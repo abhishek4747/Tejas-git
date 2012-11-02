@@ -47,4 +47,5 @@ public class SimulationConfig
 	public static long numCyclesForTrace;
 	public static NucaType nucaType;
 	public static boolean powerStats;
+	public static boolean broadcast;
 }

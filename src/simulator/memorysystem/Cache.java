@@ -594,7 +594,7 @@ public class Cache extends SimulationElement
 			sendResponseToWaitingEvent(eventsToBeServed);
 		}
 		
-		private void sendMemResponse(AddressCarryingEvent eventToRespondTo)
+		public void sendMemResponse(AddressCarryingEvent eventToRespondTo)
 		{noOfResponsesSent++;
 			eventToRespondTo.getRequestingElement().getPort().put(
 										eventToRespondTo.update(

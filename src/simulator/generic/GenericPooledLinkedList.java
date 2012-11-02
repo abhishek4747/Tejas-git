@@ -118,7 +118,7 @@ public class GenericPooledLinkedList<E> {
 		
 		if(temp == null)
 		{
-			ArchitecturalComponent.exitOnAssertionFail("mshr overflow!!");
+			misc.Error.showErrorAndExit("mshr overflow!!");
 		}
 		
 		temp.valid = true;

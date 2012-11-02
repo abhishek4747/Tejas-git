@@ -122,6 +122,15 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 	public int getMSHRStructSize() {
 		return mshrSize;
 	}
+
+	@Override
+	public int numOutStandingRequests(Event event) {
+		if (mshr.searchByAddress((AddressCarryingEvent)event) != null) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
 	
 	/*private void check_exit(int size)
 	{
