@@ -22,15 +22,18 @@
 package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
-import generic.InstructionArrayList;
+import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
+import generic.InstructionList;
 import generic.Instruction;
 import generic.Operand;
 
-public class Exchange implements InstructionHandler 
+public class Exchange implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList)
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		//operand1 is a register and operand2 is also a register
@@ -42,19 +45,30 @@ public class Exchange implements InstructionHandler
 		}
 
 		//operand1 is memory operand and operand2 is a register
-		else if((operand1.isMemoryOperand()) &&
-				(operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
+		else if((operand1.isMemoryOperand() || operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
+				(operand2.isMemoryOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
 				 operand3==null)
 		{
-			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction(operand1, operand2));
-		}
-
-		//operand1 is a register and operand2 is also a memory operand
-		else if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
-		        (operand2.isMemoryOperand()) &&
-		         operand3==null)
-		{
-			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction( operand2, operand1));
+			Operand memLocation = null, tempRegister = null, register = null;
+			
+			tempRegister = Registers.getTempIntReg(tempRegisterNum);
+			
+			if(operand1.isMemoryOperand() && !operand2.isMemoryOperand()) {
+				memLocation = operand1;
+				register = operand2;
+			} else if(operand2.isMemoryOperand() && !operand1.isMemoryOperand()) {
+				memLocation = operand2;
+				register = operand1;
+			} else {
+				misc.Error.invalidOperation("Exchange", operand1, operand2, operand3);
+			}
+			
+			//temp = mem
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(memLocation, tempRegister));
+			//mem = reg
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(memLocation, register));
+			// reg = temp
+			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(register, tempRegister));
 		}
 
 		else

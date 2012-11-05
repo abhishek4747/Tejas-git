@@ -2,16 +2,18 @@ package pipeline.outoforder;
 
 import generic.Core;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
+import generic.Instruction;
 import generic.Statistics;
 
-public class PipelineInterface implements pipeline.PipelineInterface {
+public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 	
 	Core core;
 	EventQueue eventQ;
 	int coreStepSize;
 	
-	public PipelineInterface(Core core, EventQueue eventQ)
+	public OutOfOrderPipeline(Core core, EventQueue eventQ)
 	{
 		this.core = core;
 		this.eventQ = eventQ;
@@ -27,9 +29,9 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			return;
 		}
 		
-		ExecutionEngine execEngine;
+		OutOrderExecutionEngine execEngine;
 		
-		execEngine = core.getExecEngine();
+		execEngine = (OutOrderExecutionEngine) core.getExecEngine();
 		
 		long currentTime = GlobalClock.getCurrentTime();
 		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
@@ -39,20 +41,9 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 			execEngine.getSelector().performSelect2();
 		}
 		
-		/*else //Statistical Pipeline
-		{
-			statPipeline = core.getStatisticalPipeline();
-			statPipeline.performCommits();
-			if (statPipeline.isExecutionComplete() == false)
-			{
-				statPipeline.getFetcher().performFetch();
-			}
-		}*/
-		
 		//handle events
 		eventQ.processEvents();
 		
-		execEngine = core.getExecEngine();
 		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getIWPusher().performIWPush();
@@ -85,10 +76,7 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 	@Override
 	public boolean isExecutionComplete() {
 		
-		/*if (core.isPipelineStatistical)
-            return core.getStatisticalPipeline().isExecutionComplete();
-        else*/
-        return core.getExecEngine().isExecutionComplete();
+		return core.getExecEngine().isExecutionComplete();
 		
 		
 	}
@@ -105,54 +93,54 @@ public class PipelineInterface implements pipeline.PipelineInterface {
 
 	@Override
 	public void resumePipeline() {
-		// TODO Auto-generated method stub
-		
+		((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().setSleep(false);
 	}
 
 	@Override
 	public boolean isSleeping() {
-		// TODO Auto-generated method stub
-		return false;
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().isSleep();
 	}
 
 	@Override
 	public void setTimingStatistics() {
-		// TODO Auto-generated method stub
+		
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
+		execEngine.getReorderBuffer().setTimingStatistics();
 		
 	}
 
 	@Override
 	public void setPerCoreMemorySystemStatistics() {
-		// TODO Auto-generated method stub
+		
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
+		execEngine.getReorderBuffer().setPerCoreMemorySystemStatistics();
 		
 	}
 	
 	@Override
 	public void setPerCorePowerStatistics(){
-		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
+		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
+		execEngine.getReorderBuffer().setPerCorePowerStatistics();
 	}
 
-	@Override
-	public boolean isAvailable() {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	@Override
 	public void setExecutionComplete(boolean status) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
-	@Override
-	public void setAvailable(boolean isAvailable) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void adjustRunningThreads(int adjval) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setInputToPipeline(
+			GenericCircularQueue<Instruction>[] inputToPipeline) {
+		
+		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
 	

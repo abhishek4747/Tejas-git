@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import main.Main;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import config.SimulationConfig;
@@ -16,13 +17,11 @@ import generic.*;
 
 public class RunnableFromFile extends RunnableThread implements Runnable {
 
-	IpcBase ipcType;
+	//IpcBase ipcType;
 
-	public RunnableFromFile(String threadName, int tid1, IpcBase ipcType,
+	public RunnableFromFile(String threadName, int tid1, IpcBase ipcBase,
 			Core[] cores, TopLevelTokenBus tokenBus) {
-		super(threadName, tid1, cores, tokenBus);
-		// TODO Auto-generated constructor stub
-		this.ipcType = ipcType;
+		super(threadName, tid1, ipcBase, cores, tokenBus);
 		(new Thread(this, threadName)).start();
 	}
 
@@ -35,7 +34,7 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 	 */
 	public void run() {
 
-		threadParams[0].started=true;
+		emulatorThreadState[0].started=true;
 
 		long totMicroOps = readFile(SimulationConfig.InstructionsFilename);
 
@@ -45,7 +44,7 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 		noOfMicroOps[0] = totMicroOps;
 		currentEMUTHREADS = 1;
 		
-		Newmain.start = System.currentTimeMillis();
+		//Main.setStartTime(System.currentTimeMillis());
 		
 		super.finishAllPipelines();
 	}
@@ -64,7 +63,7 @@ public class RunnableFromFile extends RunnableThread implements Runnable {
 
 				if (obj instanceof Instruction) {
 					cnt++;
-					this.inputToPipeline[0].appendInstruction((Instruction)obj);
+					this.inputToPipeline[0].enqueue((Instruction)obj);
 					//System.out.println(((Instruction)obj).toString());
 				}
 

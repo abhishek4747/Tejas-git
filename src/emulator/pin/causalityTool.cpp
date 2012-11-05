@@ -27,7 +27,14 @@
 #endif
 
 // Defining  command line arguments
-KNOB<UINT64> KnobLong(KNOB_MODE_WRITEONCE, "pintool", "map", "1", "Maps");
+KNOB<UINT64>   KnobMap(KNOB_MODE_WRITEONCE,       "pintool",
+    "map", "1", "Maps");
+KNOB<UINT64>   KnobIgnore(KNOB_MODE_WRITEONCE,       "pintool",
+    "numIgn", "0", "Ignore these many profilable instructions");
+KNOB<INT64>   KnobSimulate(KNOB_MODE_WRITEONCE,       "pintool",
+    "numSim", "0", "Simulate these many profilable instructions (-1 if no subset simulation is desired)");
+KNOB<UINT64>   KnobId(KNOB_MODE_WRITEONCE,       "pintool",
+    "id", "1", "shm id to generate key");
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
@@ -36,6 +43,13 @@ UINT64 checkSum = 0;
 IPC::IPCBase *tst;
 bool pumpingStatus[MaxThreads];
 ADDRINT curSynchVar[MaxThreads];
+static UINT64 numIns = 0;
+UINT64 numInsToIgnore = 0;
+INT64 numInsToSimulate = 0;
+BOOL ignoreActive = false;
+UINT64 numCISC[MaxThreads];
+UINT64 totalNumCISC;
+bool threadAlive[MaxThreads];
 
 #define PacketEpoch 50
 uint32_t countPacket[MaxThreads];
@@ -87,23 +101,29 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	GetLock(&lock, threadid + 1);
 	numThreads++;
 	livethreads++;
+	threadAlive[threadid] = true;
 	printf("threads till now %d\n", numThreads);
 	fflush(stdout);
-	ReleaseLock(&lock);
-	ASSERT(livethreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
-
 	pumpingStatus[numThreads - 1] = true;
 	tst->onThread_start(threadid);
+	ReleaseLock(&lock);
+	ASSERT(livethreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
 }
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
-	while (tst->onThread_finish(tid) == -1) {
-		PIN_Yield();
-	}
+
 //	printf("thread %d finished exec\n",tid);
 //	fflush(stdout);
 	GetLock(&lock, tid + 1);
+	/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
+			PIN_Yield();
+	}*/
+	while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+				PIN_Yield();
+		}
+	printf("wrote -1 for tid %d\n", tid);
 	livethreads--;
+	threadAlive[tid] = false;
 	fflush(stdout);
 	ReleaseLock(&lock);
 }
@@ -111,6 +131,9 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 //Pass a memory read record
 VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
 	if (!isActive(tid))
+		return;
+
+	if(ignoreActive)
 		return;
 
 	sendTimerPacket(tid,false);
@@ -131,6 +154,9 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 	if (!isActive(tid))
 		return;
 
+	if(ignoreActive)
+		return;
+
 	sendTimerPacket(tid,false);
 
 	GetLock(&lock, tid + 1);
@@ -146,6 +172,9 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 
 VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 	if (!isActive(tid))
+		return;
+
+	if(ignoreActive)
 		return;
 
 	sendTimerPacket(tid,false);
@@ -169,7 +198,34 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 		}
 	}
 }
+VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
+{
+	if (ignoreActive) return;
+		checkSum+=6;
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t _nreg = MASK & (uint64_t)_reg;
+		while (tst->analysisFn(tid,nip,6,_nreg)== -1) {
+			PIN_Yield();
+		}
+}
 
+
+VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
+{
+	if (ignoreActive) return;
+		checkSum+=7;
+		uint64_t nip = MASK & (uint64_t)ip;
+		uint64_t _nreg = MASK & (uint64_t)_reg;
+		while (tst->analysisFn(tid,nip,7,_nreg)== -1) {
+			PIN_Yield();
+		}
+}
+VOID CountIns()
+{
+	if (!ignoreActive) return;
+	numIns++;
+	if (numIns>numInsToIgnore) ignoreActive = false;	//activate Now
+}
 //VOID FunEntry(ADDRINT first_arg, const string * name, THREADID threadid)
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
@@ -279,8 +335,131 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
         }
 }
 
+VOID printip(THREADID tid, VOID *ip) {
+	//numCISC[tid]++;
+	if(ignoreActive == false)
+		numCISC[tid]++;
+	totalNumCISC++;
+
+	/*if(numCISC[tid] > numInsToIgnore)
+	{
+		if(numInsToSimulate < 0 ||
+			numCISC[tid] < numInsToIgnore + numInsToSimulate)
+		{
+			ignoreActive = false;
+		}
+		else
+		{
+			ignoreActive = true;
+		}
+	}
+	else
+	{
+		ignoreActive = true;
+	}*/
+
+	if(totalNumCISC > numInsToIgnore)
+		{
+			if(numInsToSimulate < 0 ||
+				totalNumCISC < numInsToIgnore + numInsToSimulate)
+			{
+				ignoreActive = false;
+			}
+			else
+			{
+				ignoreActive = true;
+			}
+		}
+		else
+		{
+			ignoreActive = true;
+		}
+
+	/*if(numInsToSimulate > 0 &&
+			numCISC[tid] > numInsToIgnore + numInsToSimulate)*/
+	if(numInsToSimulate > 0 &&
+				totalNumCISC > numInsToIgnore + numInsToSimulate)
+	{
+		for(int i = 0; i < MaxThreads; i++)
+		{
+			if(threadAlive[i] == true)
+			{
+				tid = i;
+				GetLock(&lock, tid + 1);
+				printf("attempting to write -1\n");
+				/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
+						PIN_Yield();
+				}*/
+				while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+								PIN_Yield();
+						}
+				printf("wrote -1 for tid %d\n", tid);
+				livethreads--;
+				threadAlive[tid] = false;
+				fflush(stdout);
+				ReleaseLock(&lock);
+			}
+		}
+
+		if(livethreads == 0)
+		{
+			printf("subset simulation complete\n");
+			for(int i = 0; i < MaxThreads; i++)
+			{
+				//printf("numCISC = %lu\n", numCISC[i]);
+			}
+			fflush(stdout);
+			tst->unload();
+			exit(0);
+		}
+
+		ASSERT(livethreads != 0, "subset sim complete, but live threads not zero!!!\n");
+	}
+
+	if(numCISC[tid] % 1000000 == 0 && numCISC[tid] > 0)
+	{
+		printf("numCISC on thread %d = %lu, ignoreActive = %d\n", tid, numCISC[tid], ignoreActive);
+		fflush(stdout);
+	}
+
+	if(totalNumCISC % 1000000 == 0 && totalNumCISC > 0)
+	{
+		printf("totalNumCISC = %lu, ignoreActive = %d\n", totalNumCISC, ignoreActive);
+		fflush(stdout);
+	}
+//
+//	// ---------------------------
+//	static FILE* ciscIPFile = NULL;
+//	if(ciscIPFile==NULL) {
+//		ciscIPFile = fopen("/mnt/srishtistr0/home/raj/workspace/Tejas-Base-2/pin.ciscIP", "w");
+//	}
+//
+//	fprintf(ciscIPFile, "%p\n", ip);
+//	fflush(ciscIPFile);
+//	// ---------------------------
+}
+
+VOID funcHandler(CHAR* name, int a, int b, int c) {
+	printf("function encountered\n ");
+	printf("numSim = %ld\n", numCISC[0]);
+}
+
+void Image(IMG img,VOID *v) {
+	RTN funcRtn = RTN_FindByName(img, "funcA");
+	if (RTN_Valid(funcRtn)) {
+		RTN_Open(funcRtn);
+		RTN_InsertCall(funcRtn, IPOINT_BEFORE, (AFUNPTR)funcHandler,
+					  IARG_ADDRINT, "funcA", IARG_FUNCARG_ENTRYPOINT_VALUE,
+					  0, IARG_END);
+		RTN_Close(funcRtn);
+	}
+}
+
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v) {
+
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_THREAD_ID, IARG_INST_PTR, IARG_END);
+
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
 
 	if (INS_IsBranchOrCall(ins))//INS_IsIndirectBranchOrCall(ins))
@@ -380,10 +559,13 @@ INT32 Usage() {
 // argc, argv are the entire command line, including pin -t <toolname> -- ...
 int main(int argc, char * argv[]) {
 
-	UINT64 mask = KnobLong;
-	//printf("mask for pin %lld\n", mask);
-	fflush(stdout);
-	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *) &mask) < 0) {
+	// Knobs get initialized only after initlializing PIN
+
+	//if (numInsToIgnore>0)
+		ignoreActive = true;
+	UINT64 mask = KnobMap;
+
+	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
 	}
 
@@ -392,13 +574,28 @@ int main(int argc, char * argv[]) {
 	if (PIN_Init(argc, argv))
 		return Usage();
 
-	tst = new IPC::Shm();
+	//tst = new IPC::Shm ();
+	numInsToIgnore = KnobIgnore;
+	numInsToSimulate = KnobSimulate;
+	UINT64 id = KnobId;
+	printf("numIgn = %lu\n", numInsToIgnore);
+	printf("numSim = %ld\n", numInsToSimulate);
+	printf("id received = %lu\n", id);
+	tst = new IPC::Shm (id);
+
+	for(int i = 0; i < MaxThreads; i++)
+	{
+		numCISC[i] = 0;
+		threadAlive[i] = false;
+	}
+	totalNumCISC = 0;
 
 	PIN_AddThreadStartFunction(ThreadStart, 0);
 
 	// Register Instruction to be called to instrument instructions
 	INS_AddInstrumentFunction(Instruction, 0);
 
+	IMG_AddInstrumentFunction(Image,0);
 	// Register ThreadFini to be called when a thread exits
 	PIN_AddThreadFiniFunction(ThreadFini, 0);
 

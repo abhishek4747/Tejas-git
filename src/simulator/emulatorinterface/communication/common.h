@@ -25,7 +25,7 @@
 // platforms do not affect.
 typedef struct{
 	uint64_t ip;					/* address of instruction */
-	uint64_t value;					/* defines the encoding scheme,details in DynamicInstructionBuffer.java */
+	uint64_t volatile value;					/* defines the encoding scheme,details in DynamicInstructionBuffer.java */
 	uint64_t tgt;					/* value according to encoding scheme */
 }packet;
 

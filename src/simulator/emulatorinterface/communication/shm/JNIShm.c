@@ -36,7 +36,7 @@ jint gEmuThreadsPerJavaThread;
  */
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 (JNIEnv * env, jobject jobj, jint COUNT,jint MaxNumJavaThreads,jint EmuThreadsPerJavaThread,
-		jlong coremap) {
+		jlong coremap, jint pid) {
 	uint64_t mask = coremap;
 
 
@@ -48,7 +48,9 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 
 
 	int shmid;
-	key_t key=ftok(ftokpath,ftok_id);
+	//key_t key=ftok(ftokpath,ftok_id);
+	printf("jnishm : id = %d\n", pid);
+	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
 		perror("ftok");
@@ -186,14 +188,14 @@ JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmrea
 
 	}
 
-int shmreadvalue(int tid, long pointer, int index){
+uint64_t shmreadvalue(int tid, long pointer, int index){
 	packet *addr;
 	addr=(packet *)(intptr_t)pointer;
 
 	return (addr[tid*(gCOUNT+5)+index].value);
 }
 // Returns just the value, needed when we want to read just the "value" for lock managment
-JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
+JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmreadvalue
 (JNIEnv * env, jobject jobj,jint tid,jlong pointer,jint index) {
 	return shmreadvalue(tid,pointer, index);
 }
@@ -220,23 +222,23 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwri
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
 (JNIEnv * env, jobject jobj,jint tidApp) {
 	shmwrite(tidApp,shmAddress,gCOUNT+2,1);
-			asm volatile("" ::: "memory");
-			shmwrite(tidApp,shmAddress,gCOUNT+3,0);
-			asm volatile("" ::: "memory");
-			while( (shmreadvalue(tidApp,shmAddress,gCOUNT+1) == 1) &&
-					(shmreadvalue(tidApp,shmAddress,gCOUNT+3) == 0)) {
-			}
+//	__sync_synchronize();
+	shmwrite(tidApp,shmAddress,gCOUNT+3,0);
+	__sync_synchronize();
+	while( (shmreadvalue(tidApp,shmAddress,gCOUNT+1) == 1) &&
+			(shmreadvalue(tidApp,shmAddress,gCOUNT+3) == 0)) {
+	}
 
-			int size = shmreadvalue(tidApp, shmAddress, gCOUNT);
+	int size = shmreadvalue(tidApp, shmAddress, gCOUNT);
 
 
-					//release_lock(tidApp, shmAddress, COUNT);
-					shmwrite(tidApp,shmAddress, gCOUNT+2,0);
-					return size;
+			//release_lock(tidApp, shmAddress, COUNT);
+			shmwrite(tidApp,shmAddress, gCOUNT+2,0);
+			return size;
 }
 
 // hardware barriers dont seem to work.So using compiler barriers.
 JNIEXPORT void JNICALL Java_emulatorinterface_communication_shm_SharedMem_asmmfence 
 (JNIEnv * env, jobject jobj) {
-	asm volatile("" ::: "memory");
+	__sync_synchronize();
 }

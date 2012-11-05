@@ -22,27 +22,27 @@
 package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionLinkedList;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class NOP implements InstructionHandler 
+public class NOP implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList, TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps = new InstructionLinkedList();
+		instructionArrayList.appendInstruction(Instruction.getNOPInstruction());
 		
-		if(operand1==null && operand2==null && operand3==null)
-		{
-			microOps.appendInstruction(Instruction.getNOPInstruction());
-		}
-		else
-		{
-			misc.Error.invalidOperation("NOP", operand1, operand2, operand3);
-		}
+//		if(operand1==null && operand2==null && operand3==null)
+//		{
+//			instructionArrayList.appendInstruction(Instruction.getNOPInstruction());
+//		}
+//		else
+//		{
+//			misc.Error.invalidOperation("NOP", operand1, operand2, operand3);
+//		}
 	}
 }

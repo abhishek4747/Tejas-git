@@ -1,10 +1,7 @@
 package pipeline.outoforder;
 
-import memorysystem.LSQEntryContainingEvent;
 import config.SimulationConfig;
-//import memorysystem.LSQAddressReadyEvent;
 import generic.Core;
-import generic.Event;
 import generic.ExecCompleteEvent;
 import generic.GlobalClock;
 import generic.Instruction;
@@ -20,7 +17,7 @@ public class IWEntry {
 	Instruction instruction;
 	ReorderBufferEntry associatedROBEntry;
 	
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	InstructionWindow instructionWindow;
 	OperationType opType;
 	
@@ -29,7 +26,7 @@ public class IWEntry {
 	int pos;
 
 	public IWEntry(Core core, int pos,
-			ExecutionEngine execEngine, InstructionWindow instructionWindow)
+			OutOrderExecutionEngine execEngine, InstructionWindow instructionWindow)
 	{
 		this.core = core;
 		this.pos = pos;
@@ -39,27 +36,7 @@ public class IWEntry {
 		this.instructionWindow = instructionWindow;
 	}
 	
-	/*
-	public IWEntry(Core core, Instruction instruction, ReorderBufferEntry ROBEntry)
-	{
-		this.core = core;
-		this.instruction = instruction;
-		associatedROBEntry = ROBEntry;
-	}
-	*/
 	
-	//	issueInstruction()
-	//----------------------
-	//check if
-	//1) first operand available
-	//2) second operand available
-	//if so,
-	//		if FU available
-	//			issue the instruction
-	//				1) set issued = true
-	//				2) schedule ExecutionCompleteEvent
-	//		else
-	//			schedule an FUAvailableEvent
 	public boolean issueInstruction()
 	{
 		if(associatedROBEntry.isRenameDone == false ||
@@ -138,78 +115,45 @@ public class IWEntry {
 	
 	void issueLoadStore()
 	{
-		//if(instruction.getSourceOperand2() != null)
-		//{
-			
-			associatedROBEntry.setIssued(true);
-			if(opType == OperationType.store)
-			{
-				associatedROBEntry.setExecuted(true);
-				associatedROBEntry.setWriteBackDone1(true);
-				associatedROBEntry.setWriteBackDone2(true);
-				
-				this.core.powerCounters.incrementLsqAccess(1);
-				this.core.powerCounters.incrementLsqStoreDataAccess(1);
-				this.core.powerCounters.incrementLsqPregAccess(1);
-				
-			}
-			
-			if(opType == OperationType.load){
-				this.core.powerCounters.incrementLsqAccess(1);
-				this.core.powerCounters.incrementLsqWakeupAccess(1);
-
-			}
-			associatedROBEntry.setFUInstance(0);
-			
-			//remove IW entry
-			instructionWindow.removeFromWindow(this);
-			//TODO add event to indicate address ready
-//			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(
-//					new LSQEntryContainingEvent(
-//							core.getEventQueue(),
-//							core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
-//							null, //Requesting Element
-//							core.getExecEngine().coreMemSys.getLsqueue(), 
-//							RequestType.Tell_LSQ_Addr_Ready,
-//							associatedROBEntry.getLsqEntry()));
-			if(associatedROBEntry.lsqEntry.isValid() == true)
-			{
-				System.out.println("attempting to issue a load/store.. address is already valid");
-			}
-			
-			if(associatedROBEntry.lsqEntry.isForwarded() == true)
-			{
-				System.out.println("attempting to issue a load/store.. value forwarded is already valid");
-			}
-			core.getExecEngine().coreMemSys.issueRequestToLSQ(
-					null, 
-					associatedROBEntry);
-
-		//}
-		/*else
+		associatedROBEntry.setIssued(true);
+		if(opType == OperationType.store)
 		{
-			associatedROBEntry.setIssued(true);
-			if(opType == OperationType.store)
-			{
-				associatedROBEntry.setExecuted(true);
-				associatedROBEntry.setWriteBackDone1(true);
-				associatedROBEntry.setWriteBackDone2(true);
-			}
+			associatedROBEntry.setExecuted(true);
+			associatedROBEntry.setWriteBackDone1(true);
+			associatedROBEntry.setWriteBackDone2(true);
 			
-			instructionWindow.removeFromWindow(this);
-			//TODO add event to indicate address ready
-//			core.getExecEngine().coreMemSys.getLsqueue().getPort().put(
-//					new LSQEntryContainingEvent(
-//						core.getEventQueue(),
-//						core.getExecEngine().coreMemSys.getLsqueue().getLatencyDelay(), 
-//						null, //Requesting Element
-//						core.getExecEngine().coreMemSys.getLsqueue(), 
-//						RequestType.Tell_LSQ_Addr_Ready,
-//						associatedROBEntry.getLsqEntry()));
-			core.getExecEngine().coreMemSys.issueRequestToLSQ(
-					null, 
-					associatedROBEntry);
-		}*/
+			this.core.powerCounters.incrementLsqAccess(1);
+			this.core.powerCounters.incrementLsqStoreDataAccess(1);
+			this.core.powerCounters.incrementLsqPregAccess(1);
+			
+		}
+		
+		if(opType == OperationType.load){
+			this.core.powerCounters.incrementLsqAccess(1);
+			this.core.powerCounters.incrementLsqWakeupAccess(1);
+
+		}
+		
+		associatedROBEntry.setFUInstance(0);
+		
+		//remove IW entry
+		instructionWindow.removeFromWindow(this);
+		
+		if(associatedROBEntry.lsqEntry.isValid() == true)
+		{
+			System.out.println("attempting to issue a load/store.. address is already valid");
+		}
+		
+		if(associatedROBEntry.lsqEntry.isForwarded() == true)
+		{
+			System.out.println("attempting to issue a load/store.. value forwarded is already valid");
+		}
+		
+		//tell LSQ that address is available
+		execEngine.getCoreMemorySystem().issueRequestToLSQ(
+				null, 
+				associatedROBEntry);
+			
 
 		if(SimulationConfig.debugMode)
 		{

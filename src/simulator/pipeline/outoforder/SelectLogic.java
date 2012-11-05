@@ -11,7 +11,7 @@ import generic.SimulationElement;
 public class SelectLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	InstructionWindow IW;	
 	int issueWidth;
 	
@@ -23,7 +23,7 @@ public class SelectLogic extends SimulationElement {
 	int[] IWEntryROBIndex;
 	ReorderBufferEntry[] associatedROBEntries;
 	
-	public SelectLogic(Core core, ExecutionEngine execEngine)
+	public SelectLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;
@@ -51,7 +51,7 @@ public class SelectLogic extends SimulationElement {
 	 * 		so that in the next cycle they may be considered for execution
 	 * important - all issues must be attempted first; only then must awakening be done
 	 * 		this is because an awakened instruction is a
-	 * 		candidate for issue only in the next cycle 
+	 * 		candidate for issue ONLY in the next cycle 
 	 */
 	public void performSelect()
 	{
@@ -211,7 +211,6 @@ public class SelectLogic extends SimulationElement {
 				break;
 			}
 			
-			//TODO xchg case not handled
 			WakeUpLogic.wakeUpLogic(core, destRegOpndType[i], destRegPhyReg[i], associatedROBEntries[i].threadID, IWEntryROBIndex[i]);
 			
 			destRegOpndType[i] = OperandType.inValid;
@@ -223,8 +222,7 @@ public class SelectLogic extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
 }

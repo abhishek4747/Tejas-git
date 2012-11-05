@@ -4,7 +4,7 @@ import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
 import generic.InstructionTable;
 
-public class Xchg implements VisaHandler 
+public class Xchg implements DynamicInstructionHandler 
 {
 	public int handle(int microOpIndex, InstructionTable instructionTable,
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 

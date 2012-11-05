@@ -24,47 +24,65 @@ public class SharedMem extends  IpcBase
 {
 	// Must ensure that this is same as COUNT in shmem.h
 	public static final int COUNT = 1000;
+	private static int readerLocation[];
 	
-	public SharedMem() 
+	public SharedMem(int pid) 
 	{
 		super();
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
 		System.out.println("coremap "+SimulationConfig.MapJavaCores);
-		shmid = shmget(COUNT,MaxNumJavaThreads,getEmuThreadsPerJavaThread_Acutal(), SimulationConfig.MapJavaCores);
+		shmid = shmget(COUNT,MaxNumJavaThreads,getEmuThreadsPerJavaThread_Acutal(), SimulationConfig.MapJavaCores, pid);
 		shmAddress = shmat(shmid);
+		
+		// initialise the reader location of all application threads
+		readerLocation = new int[MaxNumJavaThreads * EmuThreadsPerJavaThread];
+		for(int tidApp = 0; tidApp<MaxNumJavaThreads * EmuThreadsPerJavaThread; tidApp++) {
+			readerLocation[tidApp] = 0;
+		}
 	}
 		
-	public int fetchManyPackets(int tidApp, int index, int numPackets,ArrayList<Packet> fromPIN){
-
+	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
+		int numPackets;
+		numPackets = numPackets(tidApp);
+		
+		// negative value must be inferred by the runnable.
+		if(numPackets <= 0) {
+			return numPackets;
+		}
+		 
 		long[] ret  = new long[3*numPackets]; 
-		SharedMem.shmreadMult(tidApp, shmAddress, index, numPackets,ret);
+		SharedMem.shmreadMult(tidApp, shmAddress, readerLocation[tidApp], numPackets,ret);
 			for (int i=0; i<numPackets; i++) {
 				//fromPIN.add(i, new Packet(ret[3*i],ret[3*i+1],ret[3*i+2]));
-				fromPIN.get(i).set(ret[3*i],ret[3*i+1],ret[3*i+2]);
+				fromEmulator.get(i).set(ret[3*i],ret[3*i+1],ret[3*i+2]);
 				//System.out.println(fromPIN.get(i).toString());
 			}
-			
-		return 0;
+		
+		readerLocation[tidApp] = (readerLocation[tidApp] + numPackets) % SharedMem.COUNT;
+		
+		// update the queue-size of the shared segment
+		update(tidApp, numPackets);
+		return numPackets;
 	}
 	
-	public int update(int tidApp, int numReads){
+	public long update(int tidApp, int numReads) {
 		get_lock(tidApp, shmAddress, COUNT);
-		int queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT);
+		long queue_size = SharedMem.shmreadvalue(tidApp, shmAddress, COUNT);
 		queue_size -= numReads;
 
 		// update queue_size
-		SharedMem
-				.shmwrite(tidApp, shmAddress, COUNT, queue_size);
+		SharedMem.shmwrite(tidApp, shmAddress, COUNT, (int)queue_size);
 		SharedMem.release_lock(tidApp, shmAddress, COUNT);
 		
 		return queue_size;
 	}
 	
-	public int totalProduced (int tidApp){
+	public long totalProduced (int tidApp) {
 		return shmreadvalue(tidApp, shmAddress, COUNT + 4);
 	}
+	
 	public void finish(){
 		shmd(shmAddress);
 		shmdel(shmid);
@@ -74,9 +92,10 @@ public class SharedMem extends  IpcBase
 		shmd(shmAddress);
 		shmdel(shmid);
 	}
+	
 	// calls shmget function and returns the shmid. Only 1 big segment is created and is indexed
 	// by the threads id. Also pass the core mapping read from config.xml
-	native int shmget(int COUNT,int MaxNumJavaThreads,int EmuThreadsPerJavaThread , long coremap);
+	native int shmget(int COUNT,int MaxNumJavaThreads,int EmuThreadsPerJavaThread , long coremap, int pid);
 	
 	// attaches to the shared memory segment identified by shmid and returns the pointer to 
 	// the memory attached. 
@@ -93,7 +112,7 @@ public class SharedMem extends  IpcBase
 	// reads only the "value" from the packet struct. could be done using shmread() as well,
 	// but if we only need to read value this saves from the heavy JNI callback and thus saves
 	// on time.
-	native static int shmreadvalue(int tid, long pointer, int index);
+	native static long shmreadvalue(int tid, long pointer, int index);
 	
 	// write in the shared memory. needed in peterson locks.
 	native static int shmwrite(int tid,long pointer, int index, int val);
@@ -145,29 +164,14 @@ public class SharedMem extends  IpcBase
 	static long shmAddress;
 	static int shmid;
 
-	@Override
 	public void initIpc() {
-		if (SimulationConfig.debugMode) 
-			System.out.println("-- SharedMem initialising");
-		
-		String name;
-		for (int i=0; i<MaxNumJavaThreads; i++){
-			name = "thread"+Integer.toString(i);
-			termination[i]=false;
-			started[i]=false;
-			//TODO not all cores are assigned to each thread
-			//when the mechanism to tie threads to cores is in place
-			//this has to be changed
+	}
+
+	public void errorCheck(int tidApp, long totalReads) {
+		long totalProduced = totalProduced(tidApp); 
+		if(totalReads > totalProduced) {
+			misc.Error.showErrorAndExit("For application thread" + tidApp
+					+"totalRead="+totalReads+" > totalProduced="+totalProduced);
 		}
-		
 	}
-
-
-	@Override
-	public Packet fetchOnePacket(int tidApp, int index) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	
 }

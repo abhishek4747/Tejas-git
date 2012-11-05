@@ -24,27 +24,26 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
 import generic.Operand;
 import generic.InstructionLinkedList;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class SingleOperandIntALUImplicitAccumulator implements InstructionHandler 
+public class SingleOperandIntALUImplicitAccumulator implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps = new InstructionLinkedList();
-
-		
 		if(operand1==null && operand2==null && operand3==null)
 		{
 			Operand accumulatorRegister = Registers.getAccumulatorRegister();
 			
 			//Perform integer alu operation
-			microOps.appendInstruction(Instruction.getIntALUInstruction(
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(
 					null, accumulatorRegister, accumulatorRegister));
 		}
   		else if(operand1.isImmediateOperand() && operand2==null && operand3==null)
@@ -53,7 +52,7 @@ public class SingleOperandIntALUImplicitAccumulator implements InstructionHandle
 			Operand accumulatorRegister = Registers.getAccumulatorRegister();
 			
 			//Perform integer alu operation
-			microOps.appendInstruction(Instruction.getIntALUInstruction(
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(
 					operand1, accumulatorRegister, accumulatorRegister));
 		}
 		else

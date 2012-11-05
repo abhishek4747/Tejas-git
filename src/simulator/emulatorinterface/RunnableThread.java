@@ -10,34 +10,38 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
+//import main.Main;
+import main.CustomObjectPool;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
+import pipeline.inorder.InorderExecutionEngine;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
+import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.BarrierTable;
 import generic.Core;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.Statistics;
+
 /* MaxNumThreads threads are created from this class. Each thread
  * continuously keeps reading from the shared memory segment according
  * to its index(taken care in the jni C file).
  */
-public class RunnableThread implements Encoding {
+public class RunnableThread implements Encoding, Runnable {
 	
 	TopLevelTokenBus tokenBus;
 
 	public static final int INSTRUCTION_THRESHOLD = 2000;
-	//private static final int PACKET_THRESHOLD = 000;
-	
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;
@@ -49,34 +53,184 @@ public class RunnableThread implements Encoding {
 	OutputStream bufferOut;
 	ObjectOutput output;
 
-	int tid;
+	int javaTid;
 	long sum = 0; // checksum
 	static int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
 	int currentEMUTHREADS = 0;  //total number of livethreads
 	int maxCoreAssign = 0;      //the maximum core id assigned 
 	
-	static ThreadParams[] threadParams = new ThreadParams[EMUTHREADS];
+	static EmulatorThreadState[] emulatorThreadState = new EmulatorThreadState[EMUTHREADS];
 
-	InstructionLinkedList[] inputToPipeline;
-	static long ignoredInstructions = 0;
+	GenericCircularQueue<Instruction>[] inputToPipeline;
+	// static long ignoredInstructions = 0;
 
 	// QQQ re-arrange packets for use by translate instruction.
-	DynamicInstructionBuffer[] dynamicInstructionBuffer;
+	// DynamicInstructionBuffer[] dynamicInstructionBuffer;
 
-	int[] decodeWidth;
-	int[] stepSize;
 	static long[] noOfMicroOps;
-	long[] numInstructions;
+	//long[] numInstructions;
 	//FIXME PipelineInterface should be in IpcBase and not here as pipelines from other RunnableThreads
 	// will need to interact.
 	PipelineInterface[] pipelineInterfaces;
 	long prevTotalInstructions, currentTotalInstructions;
 	long[] prevCycles;
+	
+	IpcBase ipcBase;
+
+	/*
+	 * This keeps on reading from the appropriate index in the shared memory
+	 * till it gets a -1 after which it stops. NOTE this depends on each thread
+	 * calling threadFini() which might not be the case. This function will
+	 * break if the threads which started do not call threadfini in the PIN (in
+	 * case of unclean termination). Although the problem is easily fixable.
+	 */
+	public void run() {
+
+		// create pool for emulator packets
+		ArrayList<Packet> fromEmulator = new ArrayList<Packet>(SharedMem.COUNT);
+		for (int i = 0; i < SharedMem.COUNT; i++) {
+			fromEmulator.add(new Packet());
+		}
+		
+		Packet pnew = new Packet();
+		
+		boolean allover = false;
+		//boolean emulatorStarted = false;
+
+		// start gets reinitialized when the program actually starts
+		//Main.setStartTime(System.currentTimeMillis());
+		EmulatorThreadState threadParam;
+		// keep on looping till there is something to read. iterates on the
+		// emulator threads from which it has to read.
+		// tid is java thread id
+		// tidEmu is the local notion of pin threads for the current java thread
+		// tidApp is the actual tid of a pin thread
+		while (true) {
+			
+			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
+
+				threadParam = emulatorThreadState[tidEmulator];
+
+				// Thread is halted on a barrier or a sleep
+				if (threadParam.halted /*|| thread.finished*/) {
+					continue;        //one bug need to be fixed to remove this comment
+				}
+				
+				int tidApplication = javaTid * EMUTHREADS + tidEmulator;
+				int numReads = 0;
+				long v = 0;
+
+				// get the number of packets to read. 'continue' and read from
+				// some other thread if there is nothing.
+				if ((numReads = ipcBase.fetchManyPackets(tidApplication, fromEmulator)) == 0) {
+					continue;
+				}
+				
+				// update the number of read packets
+				threadParam.totalRead += numReads;
+				
+				// If java thread itself is terminated then break out from this
+				// for loop. also update the variable all-over so that I can
+				// break from the outer while loop also.
+				if (ipcBase.javaThreadTermination[javaTid] == true) {
+					allover = true;
+					break;
+				}
+
+				// need to do this only the first time
+				if (ipcBase.javaThreadStarted[javaTid]==false) {
+					//emulatorStarted = true;
+					//Main.setStartTime(System.currentTimeMillis());
+					ipcBase.javaThreadStarted[javaTid] = true;
+				}
+
+				threadParam.checkStarted();
+
+				// Do not process new packets till we have sufficient pool of available instructions
+				while (poolExhausted()) {
+					//System.out.println("infinte loop");
+					runPipelines();
+				}
+				
+				// Process all the packets read from the communication channel
+				for (int i = 0; i < numReads; i++) {
+					pnew = fromEmulator.get(i);
+					v = pnew.value;
+					processPacket(threadParam, pnew, tidEmulator);
+				}
+				
+				// perform error check.
+				ipcBase.errorCheck(tidApplication, threadParam.totalRead);
+
+				// if we read -1, this means this emulator thread finished.
+				if (v == -1) {
+					System.out.println("runnableshm : last packet received for application-thread " + 
+							tidApplication + " numCISC=" + pnew.ip);
+					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmulator);
+					threadParam.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
+					signalFinish(tidApplication);
+				}
+
+				if (ipcBase.javaThreadTermination[javaTid] == true) {  //check if java thread is finished
+					allover = true;
+					break;
+				}
+			}
+			
+			runPipelines();
+			// System.out.println("after execution n=  "+n+" Thread finished ? "+threadParams[1].finished);
+
+			// this runnable thread can be stopped in two ways. Either the
+			// emulator threads from which it was supposed to read never
+			// started(none of them) so it has to be signalled by the main
+			// thread. When this happens 'all over' becomes 'true' and it
+			// breaks out from the loop. The second situation is that all the
+			// emulator threads which started have now finished, so probably
+			// this thread should now terminate.
+			// The second condition handles this situation.
+			// NOTE this ugly state management cannot be avoided unless we use
+			// some kind of a signalling mechanism between the emulator and
+			// simulator(TODO).
+			// Although this should handle most of the cases.
+			if (allover || (ipcBase.javaThreadStarted[javaTid]==true && emuThreadsFinished())) {
+				ipcBase.javaThreadTermination[javaTid] = true;
+				break;
+			}
+		}
+
+		finishAllPipelines();
+	}
+
+//	void errorCheck(int tidApp, int emuid, int queue_size,
+//			long numReads, long v) {
+//		
+//		// some error checking
+//		// threadParams[emuid].totalRead += numReads;
+//		long totalRead = threadParams[emuid].totalRead;
+//		long totalProduced = ipcBase.totalProduced(tidApp);
+//		
+//		if (totalRead > totalProduced) {
+//			System.out.println("numReads=" + numReads + " > totalProduced=" 
+//					+ totalProduced + " !!");
+//			
+//			System.out.println("queue_size=" + queue_size);
+//			System.exit(1);
+//		}
+//		
+//		if (queue_size < 0) {
+//			System.out.println("queue less than 0");
+//			System.exit(1);
+//		}
+//	}
+
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
-	public RunnableThread(String threadName, int tid1, Core[] cores, TopLevelTokenBus tokenBus) {
+	public RunnableThread(String threadName, int javaTid, IpcBase ipcBase, 
+			Core[] cores, TopLevelTokenBus tokenBus) {
 
+		this.ipcBase = ipcBase;
+		
 		if (writeToFile) {
 			try {
 				fileOut = new FileOutputStream( fileName );
@@ -91,36 +245,33 @@ public class RunnableThread implements Encoding {
 				e.printStackTrace();
 			}
 		}
-		this.tokenBus = tokenBus;
-		dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
-		inputToPipeline = new InstructionLinkedList[EMUTHREADS];
 		
-		decodeWidth = new int[EMUTHREADS];
-		stepSize = new int[EMUTHREADS];
+		this.tokenBus = tokenBus;
+		// dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
+		inputToPipeline = (GenericCircularQueue<Instruction> [])
+								Array.newInstance(GenericCircularQueue.class, EMUTHREADS);
+		
 		noOfMicroOps = new long[EMUTHREADS];
-		numInstructions = new long[EMUTHREADS];
+		//numInstructions = new long[EMUTHREADS];
 		pipelineInterfaces = new PipelineInterface[EMUTHREADS];
 		for(int i = 0; i < EMUTHREADS; i++)
 		{
-			int id = tid1*EMUTHREADS+i;
+			int id = javaTid*EMUTHREADS+i;
 			IpcBase.glTable.getStateTable().put(id, new ThreadState(id));
-			threadParams[i] = new ThreadParams();
+			emulatorThreadState[i] = new EmulatorThreadState();
 
 			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
-			inputToPipeline[i] = new InstructionLinkedList();
+			inputToPipeline[i] = new GenericCircularQueue<Instruction>(
+												Instruction.class, INSTRUCTION_THRESHOLD*10);
 			
-			dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
-			cores[i].setInputToPipeline(new InstructionLinkedList[]{inputToPipeline[i]});
-
-			if(cores[i].isPipelineInorder)
-				decodeWidth[i] = 1;
-			else if(cores[i].isPipelineMultiIssueInorder)
-				decodeWidth[i] = 1;
-			else
-				decodeWidth[i] = cores[i].getDecodeWidth();
-
-			stepSize[i] = cores[i].getStepSize();
+			// dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
+			
+			GenericCircularQueue<Instruction>[] toBeSet =
+													(GenericCircularQueue<Instruction>[])
+													Array.newInstance(GenericCircularQueue.class, 1);
+			toBeSet[0] = inputToPipeline[i];
+			pipelineInterfaces[i].setInputToPipeline(toBeSet);
 		}
 
 		/*		try
@@ -132,30 +283,29 @@ public class RunnableThread implements Encoding {
 			e.printStackTrace();
 		}
 		 */
-		this.tid = tid1;
-		System.out.println("--  starting java thread"+this.tid);
+		this.javaTid = javaTid;
+		System.out.println("--  starting java thread"+this.javaTid);
 		prevTotalInstructions=-1;
 		currentTotalInstructions=0;
 //		threadCoreMaping = new Hashtable<Integer, Integer>();
 		prevCycles=new long[EMUTHREADS];
+		
+		// Special case must be made for RunnableFromFile
+		if(this.ipcBase != null) {
+			(new Thread(this, threadName)).start();
+		}
 	}
 
 	protected void runPipelines() {
-//		int tEMUTHREADS;						//this is for avoiding operations on unused pipelines 
-//		if(currentEMUTHREADS > EMUTHREADS)
-//			tEMUTHREADS = EMUTHREADS;
-//		else 
-//			tEMUTHREADS = currentEMUTHREADS;
-		
 		int minN = Integer.MAX_VALUE;
 		for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
-			ThreadParams th = threadParams[tidEmu];
-			if ( th.halted  && !(this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD)) {
+			EmulatorThreadState th = emulatorThreadState[tidEmu];
+			if ( th.halted  && !(this.inputToPipeline[tidEmu].size() > INSTRUCTION_THRESHOLD)) {
 					//|| th.packets.size() > PACKET_THRESHOLD)){
 				th.halted = false;
 			//	System.out.println("Halting over..!! "+tidEmu);
 			}
-			int n = inputToPipeline[tidEmu].getListSize() / decodeWidth[tidEmu]
+			int n = inputToPipeline[tidEmu].size() / pipelineInterfaces[tidEmu].getCore().getDecodeWidth()
 					* pipelineInterfaces[tidEmu].getCoreStepSize();
 			if (n < minN && n != 0)
 				minN = n;
@@ -248,12 +398,12 @@ public class RunnableThread implements Encoding {
 		for (int i=0; i<maxCoreAssign; i++){
 			//finishing pipelines by adding invalid instruction to all pipeline
 			//already finished pipeline will not be affected 
-					this.inputToPipeline[i].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+					this.inputToPipeline[i].enqueue(Instruction.getInvalidInstruction());
 		}
 		for (int i=0; i<maxCoreAssign; i++) {
 			if (!pipelineInterfaces[i].isExecutionComplete() && pipelineInterfaces[i].isSleeping()) { 
 				System.err.println("not completed for "+i);  //not supposed to be here 
-				resumeSleep(IpcBase.glTable.resumePipelineTimer(i));
+				this.pipelineInterfaces[i].resumePipeline();
 			}
 		}
 
@@ -351,22 +501,23 @@ public class RunnableThread implements Encoding {
 			}
 		}*/
 		long dataRead = 0;
-		long totNumIns = 0;
-		long totMicroOps = 0;
+//		long totNuIns = 0;
+//		long totMicroOps = 0;
 		for (int i = 0; i < EMUTHREADS; i++) {
-			totMicroOps += noOfMicroOps[i];
-			dataRead += threadParams[i].totalRead;
-			totNumIns += numInstructions[i];
+//			totMicroOps += noOfMicroOps[i];
+			dataRead += emulatorThreadState[i].totalRead;
+			//totNumIns += numInstructions[i];
 		}
-		long timeTaken = System.currentTimeMillis() - Newmain.start;
-		System.out.println("\nThread" + tid + " Bytes-" + dataRead * 20
-				+ " instructions-" + numInstructions[tid] 
-				                                     +" microOps  "+totMicroOps
-				                                     +" MBPS-" + (double) (dataRead * 24)
-				                                     / (double) timeTaken / 1000.0 +" time-"
-				                                     + timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
-				                                     +" KIPS-" + (double) totNumIns / (double) timeTaken
-				                                     + "checksum " + sum + "\n");
+		
+//		long timeTaken = System.currentTimeMillis() - Main.getStartTime();
+//		System.out.println("\nThread" + javaTid + " Bytes-" + dataRead * 20
+//		   //+ " instructions-" + numInstructions[tid] 
+//             +" microOps  "+ totMicroOps
+//             +" MBPS-" + (double) (dataRead * 24)
+//             / (double) timeTaken / 1000.0 +" time-"
+//             + timeTaken +"\n microOp KIPS- "+ (double) totMicroOps / (double)timeTaken
+//             +" KIPS-" + (double) totNumIns / (double) timeTaken
+//             + "checksum " + sum + "\n");
 
 		//		System.out.println("number of micro-ops = " + noOfMicroOps + "\t\t;\thash = " + makeDigest());
 		if (writeToFile) {
@@ -377,19 +528,19 @@ public class RunnableThread implements Encoding {
 				e.printStackTrace();
 			}
 		}
-		Statistics.setDataRead(dataRead, tid);
-		Statistics.setNumInstructions(numInstructions, tid);
-		Statistics.setNoOfMicroOps(noOfMicroOps, tid);
+		
+		Statistics.setDataRead(dataRead, javaTid);
+		//Statistics.setNumHandledCISCInsn(numInstructions, 0, tid);
+		Statistics.setNoOfMicroOps(noOfMicroOps, javaTid);
 
 		
-		if (SimulationConfig.subsetSimulation)
+		/*if (SimulationConfig.subsetSimulation)
 		{
 			Process process;
-			String[] cmd = {
-					"/bin/sh",
-					"-c",
-					"kill -9 `ps -ef | grep " + Newmain.executableFile + " | awk {'print $2'} | head -n 3 | tail -n 1`"
-					};
+			String cmd[] = {"/bin/sh",
+				      "-c",
+				      "killall -9 " + Newmain.executableFile
+			};
 
 			try 
 			{
@@ -401,7 +552,7 @@ public class RunnableThread implements Encoding {
 			{
 				e.printStackTrace();
 			}
-		}
+		}*/
 		
 		IpcBase.free.release();
 	}
@@ -412,7 +563,7 @@ public class RunnableThread implements Encoding {
 	protected boolean emuThreadsFinished() {
 		boolean ret = true;
 		for (int i = 0; i < maxCoreAssign; i++) {
-			ThreadParams thread = threadParams[i];
+			EmulatorThreadState thread = emulatorThreadState[i];
 			if (thread.started == true
 					&& thread.finished == false) {
 				return false;
@@ -424,12 +575,9 @@ public class RunnableThread implements Encoding {
 	 * process each packet
 	 * parameters - Thread information, packet, thread id
 	 */
-	protected void processPacket(ThreadParams thread, Packet pnew, int tidEmu) {
+	protected void processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
 		if (doNotProcess) return;
-		int tidApp = tid * EMUTHREADS + tidEmu;
-//		int mappedCore = 0;
-//		if(!thread.isFirstPacket)
-//			mappedCore = threadCoreMaping.get(tidApp);
+		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
 		if (pnew.value == TIMER) {//leaving timer packet now
 			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
@@ -449,15 +597,11 @@ public class RunnableThread implements Encoding {
 			BarrierTable.barrierListAdd(pnew);
 			return;
 		}
+		
 		if (thread.isFirstPacket) {
-//			int coreId = tidApp;//getFreeCoreId();
-//			System.out.println(" thread " + tidApp + " asigned to core  " + coreId);
-//			threadCoreMaping.put(tidApp,tidApp );   //must remove this threadCoreMaping - obsolete idea
 			this.pipelineInterfaces[tidApp].getCore().currentThreads++;  //current number of threads in this pipeline
-//			System.out.println(" thread " + tidApp + " asigned to core  " + coreId + " with total correntThreads " + this.pipelineInterfaces[coreId].getCore().currentThreads );
-			this.pipelineInterfaces[tidApp].getCore().getExecutionEngineIn().setExecutionComplete(false);
-			this.pipelineInterfaces[tidApp].getCore().getExecutionEngineIn().setFetchComplete(false);
-//			this.pipelineInterfaces[coreId].getCore().getExecutionEngineIn().setIsAvailable(false);
+			System.out.println("num of threads on core " + tidApp + " = " + this.pipelineInterfaces[tidApp].getCore().currentThreads);
+			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionComplete(false);
 			currentEMUTHREADS ++;
 			if(tidApp>=maxCoreAssign)
 				maxCoreAssign = tidApp+1;
@@ -465,18 +609,29 @@ public class RunnableThread implements Encoding {
 			thread.pold = pnew;
 			thread.isFirstPacket=false;
 		}
+		
 		if (pnew.ip == thread.pold.ip && !(pnew.value>6 && pnew.value<26)) {
+			// just append the packet to outstanding packets for current instruction pointer
 			thread.packets.add(pnew);
 		} else {
-			(numInstructions[tidApp])++;
-			this.dynamicInstructionBuffer[tidApp].configurePackets(thread.packets);
-			InstructionLinkedList tempList = ObjParser.translateInstruction(thread.packets.get(0).ip, 
-					dynamicInstructionBuffer[tidApp]);
+			//(numInstructions[tidEmu])++;
+			//this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
 			
-			if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
-				ignoredInstructions += tempList.length();
-			else
-				noOfMicroOps[tidApp] += tempList.length();
+			int oldLength = inputToPipeline[tidEmu].size();
+			
+			long numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packets.get(0).ip, 
+					thread.packets, this.inputToPipeline[tidEmu]);
+			
+			Statistics.setNumHandledCISCInsn(
+					Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
+					javaTid, tidEmu);
+			
+			int newLength = inputToPipeline[tidEmu].size();
+			
+	//		if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
+	//			ignoredInstructions += newLength;
+	//		else
+				noOfMicroOps[tidEmu] += newLength - oldLength;
 				
 			
 /*			if(SimulationConfig.detachMemSys == true)	//TODO
@@ -494,14 +649,26 @@ public class RunnableThread implements Encoding {
 */
 			// Writing 20million instructions to a file
 			if (writeToFile) {
+				//use old length, new length
 				if (noOfMicroOps[0]>numInsToWrite) doNotProcess=true;
 				if (noOfMicroOps[0]>numInsToWrite && noOfMicroOps[0]< 20000005)
 					System.out.println("Done writing to file");
-				for (Instruction ins : tempList.instructionLinkedList) {
+				
+				/*for(int i = oldLength; i < newLength; i++) {
 					try {
-						this.output.writeObject(ins);
+						this.output.writeObject(this.inputToPipeline[tidEmu].peek(i));
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}*/
+				while(this.inputToPipeline[tidEmu].size() > 0)
+				{
+					Instruction toBeWritten = this.inputToPipeline[tidEmu].pollFirst();
+					try {
+						this.output.writeObject(toBeWritten);
+						this.output.flush();// TODO if flush is being ignored, may have to close and open the stream
+						CustomObjectPool.getInstructionPool().returnObject(toBeWritten);
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -513,56 +680,54 @@ public class RunnableThread implements Encoding {
 //					//Newmain.instructionPool.returnObject(tempList.pollFirst());
 //					tempList.peekInstructionAt(i).setSerialNo(noOfMicroOps[0]+i);
 //				}
-				if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
-				{
+	//			if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
+	//			{
 //					int coreId = threadCoreMaping.get(tidEmu);
-					this.inputToPipeline[tidEmu].appendInstruction(tempList);
-					if (!thread.halted && this.inputToPipeline[tidEmu].getListSize() > INSTRUCTION_THRESHOLD) {
+					if (!thread.halted && this.inputToPipeline[tidEmu].size() > INSTRUCTION_THRESHOLD) {
 						thread.halted = true;
 						//System.out.println("Halting "+tidEmu);
 					}	
-				}
-				else
-				{
-					int numIns = tempList.getListSize();
-					for (int i = 0; i < numIns; i++)
-					{
-						Newmain.instructionPool.returnObject(tempList.pollFirst());
-					}
-				}
+	//			}
+	//			else
+	//			{
+	//				while(this.inputToPipeline[tidEmu].size() > 0)
+	//				{
+	//					Newmain.instructionPool.returnObject(this.inputToPipeline[tidEmu].pollFirst());
+	//				}
+	//			}
 			
 /*				if (currentEMUTHREADS>1)
 				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
-*/				
-				long temp=noOfMicroOps[tidEmu] % 1000000;
-				if(temp < 5  && tempList.getListSize() > 0) {
-					//System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
-				}
-	
+*/					
 
-			thread.pold = pnew;
-			thread.packets.clear();
-			thread.packets.add(thread.pold);
+				thread.pold = pnew;
+				thread.packets.clear();
+				thread.packets.add(thread.pold);
+			}
+			
+			long temp=noOfMicroOps[tidEmu] % 1000000;
+			if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
+				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 		}
 
 	}
 
 	protected boolean poolExhausted() {
-		return (Newmain.instructionPool.getNumIdle() < 2000);
+		return (CustomObjectPool.getInstructionPool().getNumIdle() < 2000);
 	}
 
 	private void resumeSleep(ResumeSleep update) {
-		for (int i=0; i<update.getNumResumers(); i++) {
+/*		for (int i=0; i<update.getNumResumers(); i++) {
 			//never used ... resuming handled within pipeline exec
 //			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
 			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
 		}
-		for (int i=0; i<update.getNumSleepers(); i++) {
-			Instruction ins = new Instruction(OperationType.sync,null, null, null);
+*/		for (int i=0; i<update.getNumSleepers(); i++) {
+			Instruction ins = Instruction.getSyncInstruction();
 			ins.setRISCProgramCounter(update.barrierAddress);
 //			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
-			this.inputToPipeline[update.sleep.get(i)].appendInstruction(ins);
+			this.inputToPipeline[update.sleep.get(i)].enqueue(ins);
 			setThreadState(update.sleep.get(i), true);
 		}
 	}
@@ -572,32 +737,18 @@ public class RunnableThread implements Encoding {
 		//finished pipline
 		// TODO Auto-generated method stub
 //		System.out.println("signalfinish thread " + tidApp + " mapping " + threadCoreMaping.get(tidApp));
-		this.inputToPipeline[tidApp].appendInstruction(new Instruction(OperationType.inValid,null, null, null));
+		this.inputToPipeline[tidApp].enqueue(Instruction.getInvalidInstruction());
 		IpcBase.glTable.getStateTable().get((Integer)tidApp).lastTimerseen = Long.MAX_VALUE;//(long)-1>>>1;
 		//					System.out.println(tidApp+" pin thread got -1");
 		
 		//	FIXME threadParams should be on tidApp. Currently it is on tidEmu
-		threadParams[tidApp].finished = true;
+		emulatorThreadState[tidApp].finished = true;
 
 	}
 	
-//	private int getFreeCoreId()
-//	{
-//		for(int i=0; i < EMUTHREADS;i++) 
-//		{
-//			if(pipelineInterfaces[i].isAvailable())
-//			{
-//				pipelineInterfaces[i].setAvailable(false);
-//				return i;
-//			}
-//		}
-//		System.err.println(" error number of threads more than number of cores  ");
-//		System.exit(1);
-//		return -1;
-//	}
 	public static void setThreadState(int tid,boolean cond)
 	{
 //		System.out.println("set thread state halted" + tid + " to " + cond);
-		threadParams[tid].halted = cond;
+		emulatorThreadState[tid].halted = cond;
 	}
 }

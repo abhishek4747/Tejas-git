@@ -23,8 +23,9 @@ package emulatorinterface.translator.x86.operand;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 import generic.Operand;
 import generic.OperandType;
 import java.util.StringTokenizer;
@@ -36,23 +37,26 @@ import misc.Numbers;
 public class OperandTranslator 
 {
 	public static Operand simplifyOperand(String operandStr,
-			InstructionArrayList instructionArrayList)
+			InstructionList instructionList, TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
 		//If there is no operand, then just don't process it. 
-		if(operandStr == null)
+		if(operandStr == null) {
 			return null;
+		}
 		
 		
 		//Replace all the occurrences of registers with the 64-bit register versions
-		if(operandStr!=null)
+		if(operandStr!=null) {
 			operandStr = Registers.coarsifyRegisters(operandStr);
+		}
 		
 		
 		//If operand is a valid number, then it is an immediate
-		if(Numbers.isValidNumber(operandStr))
+		if(Numbers.isValidNumber(operandStr)) 
 		{
-			return new Operand(OperandType.immediate, Numbers.hexToLong(operandStr));
+			//FIXME : We do not care about the actual value of the immediate operand 
+			return Operand.getImmediateOperand();
 		}
 		else if(Registers.isIntegerRegister(operandStr))
 		{
@@ -67,14 +71,14 @@ public class OperandTranslator
 			return Operand.getMachineSpecificRegister(Registers.encodeRegister(operandStr));
 		}
 		//Simplify memory locations specified by [...]
-		else if(operandStr.matches(".*\\[.*\\]"))
+		else if(operandStr.matches(".*\\[.*\\].*"))
 		{
 			//contains a memory location specified by the memory address
 			//Strip the string enclosed in square brackets
 			String memLocation = operandStr = operandStr.substring(operandStr.indexOf("[") + 1, operandStr.indexOf("]"));
 			
 			//Mark the operand as an operand whose value is stored in the memory
-			return simplifyMemoryLocation(memLocation, instructionArrayList);
+			return simplifyMemoryLocation(memLocation, instructionList, tempRegisterNum);
 		}
 		
 		else if(operandStr.matches("[0-9a-f]+ <.*>"))
@@ -83,7 +87,7 @@ public class OperandTranslator
 			//This operand contains a memory address and a reference address enclosed in <>
 			//We just need the first field containing address. This is an immediate
 			String memLocation = new StringTokenizer(operandStr).nextToken();
-			return new Operand(OperandType.immediate, Numbers.hexToLong(memLocation));
+			return Operand.getImmediateOperand();
 		}
 		
 		else if(operandStr.matches("[a-zA-Z ]+:0x[0-9a-f]+"))
@@ -97,7 +101,7 @@ public class OperandTranslator
 			// If the operand contains the keyword PTR, mark it as stored in memory
 			if(operandStr.contains("PTR"))
 			{
-				return simplifyMemoryLocation(memLocation, instructionArrayList);
+				return simplifyMemoryLocation(memLocation, instructionList, tempRegisterNum);
 			}
 			else
 			{
@@ -115,7 +119,7 @@ public class OperandTranslator
 	
 
 	static Operand simplifyMemoryLocation(String operandStr,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList, TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
 		String memoryAddressTokens[] = operandStr.split("\\+|-");
@@ -197,7 +201,7 @@ public class OperandTranslator
 			}
 			else
 			{
-				scaledIndex = Registers.getTempIntReg();
+				scaledIndex = Registers.getTempIntReg(tempRegisterNum);
 				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(index, scale, scaledIndex));
 			}
 		}
@@ -252,7 +256,7 @@ public class OperandTranslator
 		{
 			if(pureRisc)
 			{
-				Operand tempRegister = Registers.getTempIntReg();
+				Operand tempRegister = Registers.getTempIntReg(tempRegisterNum);
 				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(scaledIndex, offset, tempRegister));
 				memoryLocationFirstOperand = base;
 				memoryLocationSecondOperand = tempRegister;
@@ -271,7 +275,7 @@ public class OperandTranslator
 		//pure risc -> pass a single operand
 		if(pureRisc && memoryLocationSecondOperand!=null)
 		{
-			Operand tempRegister = Registers.getTempIntReg();
+			Operand tempRegister = Registers.getTempIntReg(tempRegisterNum);
 			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(memoryLocationFirstOperand, memoryLocationFirstOperand, tempRegister));
 			memoryLocationFirstOperand = tempRegister;
 			memoryLocationSecondOperand = null;
@@ -286,7 +290,7 @@ public class OperandTranslator
 		return ((memoryAddressTokens.length>=1 && memoryAddressTokens.length<=3));
 	}
 	
-	public static Operand getLocationToStoreValue(Operand operand)
+	public static Operand getLocationToStoreValue(Operand operand, TempRegisterNum tempRegisterNum)
 	{
 		if(!operand.isMemoryOperand())
 		{
@@ -302,7 +306,7 @@ public class OperandTranslator
 		if(tempMemoryRegister == null)
 		{
 			//If we don't have any disposable register available, then use a new register
-			tempMemoryRegister = Registers.getTempIntReg();
+			tempMemoryRegister = Registers.getTempIntReg(tempRegisterNum);
 		}
 		
 		return tempMemoryRegister;

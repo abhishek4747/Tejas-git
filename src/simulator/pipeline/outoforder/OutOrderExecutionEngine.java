@@ -1,16 +1,17 @@
 package pipeline.outoforder;
 
 import memorysystem.CoreMemorySystem;
+import pipeline.ExecutionEngine;
 import generic.Core;
+import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
-import generic.Statistics;
 
 /**
  * execution engine comprises of : decode logic, ROB, instruction window, register files,
  * rename tables and functional units
  */
-public class ExecutionEngine {
+public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	//the containing core
 	private Core core;
@@ -38,7 +39,7 @@ public class ExecutionEngine {
 	private FunctionalUnitSet functionalUnitSet;
 	
 	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
-	public CoreMemorySystem coreMemSys;
+	private OutOrderCoreMemorySystem outOrderCoreMemorySystem;
 	
 	//flags
 	private boolean toStall1;					//if IW full
@@ -59,17 +60,13 @@ public class ExecutionEngine {
 	private boolean toStall5;					//if branch mis-predicted
 												//fetcher stall
 
-	private boolean isExecutionComplete;		//TRUE indicates end of simulation
-	private boolean isInputPipeEmpty[];
-	private boolean allPipesEmpty;
-
-	private long instructionMemStall;
-
-	public long prevCycles;
 	
+	public long prevCycles;
 
-	public ExecutionEngine(Core containingCore)
+	public OutOrderExecutionEngine(Core containingCore)
 	{
+		super();
+		
 		core = containingCore;
 		
 		
@@ -89,7 +86,6 @@ public class ExecutionEngine {
 													core.getAllLatencies());
 		
 		
-		iCacheBuffer = new ICacheBuffer(32);
 		fetchBuffer = new Instruction[core.getDecodeWidth()];
 		fetcher = new FetchLogic(core, this);
 		decodeBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
@@ -98,7 +94,7 @@ public class ExecutionEngine {
 		renamer = new RenameLogic(core, this);
 		IWPusher = new IWPushLogic(core, this);
 		selector = new SelectLogic(core, this);
-		executer = new ExecutionLogic(core);
+		executer = new ExecutionLogic(core, this);
 		writeBackLogic = new WriteBackLogic(core, this);
 		
 		
@@ -107,28 +103,9 @@ public class ExecutionEngine {
 		toStall3 = false;
 		toStall4 = false;
 		toStall5 = false;
-		isExecutionComplete = false;
-		isInputPipeEmpty = new boolean[core.getNo_of_input_pipes()];
-		allPipesEmpty = false;
-		instructionMemStall=0;
 		prevCycles=0;
 	}
 	
-	/*public void work()
-	{
-		if(!isExecutionComplete && !toStallDecode2)
-		{
-			//commit instruction at head of ROB
-			getReorderBuffer().performCommits();
-			
-			if(!isDecodePipeEmpty && !toStallDecode1)
-			{
-				//read decode pipe to add more instructions to ROB
-				decoder.scheduleDecodeCompletion();
-			}
-		}
-	}*/
-
 	public ICacheBuffer getiCacheBuffer() {
 		return iCacheBuffer;
 	}
@@ -161,22 +138,6 @@ public class ExecutionEngine {
 		return integerRenameTable;
 	}
 
-	public boolean isInputPipeEmpty(int threadIndex) {
-		return isInputPipeEmpty[threadIndex];
-	}
-
-	public void setInputPipeEmpty(int threadIndex, boolean isInputPipeEmpty) {
-		this.isInputPipeEmpty[threadIndex] = isInputPipeEmpty;
-	}
-
-	public boolean isExecutionComplete() {
-		return isExecutionComplete;
-	}
-
-	public void setExecutionComplete(boolean isExecutionComplete) {
-		this.isExecutionComplete = isExecutionComplete;
-	}
-
 	public RegisterFile getMachineSpecificRegisterFile(int threadID) {
 		return machineSpecificRegisterFile[threadID];
 	}
@@ -191,14 +152,6 @@ public class ExecutionEngine {
 
 	public void setInstructionWindow(InstructionWindow instructionWindow) {
 		this.instructionWindow = instructionWindow;
-	}
-	
-	public boolean isAllPipesEmpty() {
-		return allPipesEmpty;
-	}
-
-	public void setAllPipesEmpty(boolean allPipesEmpty) {
-		this.allPipesEmpty = allPipesEmpty;
 	}
 	
 	public boolean isToStall1() {
@@ -277,14 +230,23 @@ public class ExecutionEngine {
 		return writeBackLogic;
 	}
 
-	public void incrementInstructionMemStall(int i) {
-		this.instructionMemStall += i;
+	@Override
+	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inpList) {
+		
+		fetcher.setInputToPipeline(inpList);
 		
 	}
-
-	public long getInstructionMemStall() {
-		// TODO Auto-generated method stub
-		return instructionMemStall;
-	}
 	
+	public OutOrderCoreMemorySystem getCoreMemorySystem()
+	{
+		return outOrderCoreMemorySystem;
+	}
+
+	public void setCoreMemorySystem(CoreMemorySystem coreMemorySystem) {
+		this.coreMemorySystem = coreMemorySystem;
+		this.outOrderCoreMemorySystem = (OutOrderCoreMemorySystem)coreMemorySystem;
+		this.iCacheBuffer = new ICacheBuffer((int)(core.getDecodeWidth() *
+											coreMemorySystem.getiCache().getLatency()));
+		this.fetcher.setICacheBuffer(iCacheBuffer);
+	}
 }

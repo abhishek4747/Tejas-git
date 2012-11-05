@@ -21,28 +21,38 @@
 
 
 package memorysystem.nuca;
+import generic.Event;
+import generic.EventQueue;
 import generic.OMREntry;
+import generic.RequestType;
+import generic.SimulationElement;
 
-import java.util.Enumeration;
+import java.util.ArrayList;
 import java.util.Vector;
+
+import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
+import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
+import memorysystem.MESI;
+import memorysystem.MemorySystem;
+import memorysystem.MissStatusHoldingRegister;
+import memorysystem.Cache.CoherenceType;
 import misc.Util;
 import config.CacheConfig;
+import config.SimulationConfig;
 import net.NOC;
 import net.NOC.CONNECTIONTYPE;
 import net.optical.OpticalNOC;
 import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
 
-public abstract class NucaCache extends Cache
+public class NucaCache extends Cache
 {
 	public enum NucaType{
 		S_NUCA,
 		D_NUCA,
-		CB_S_NUCA,
-		CB_D_NUCA,
-		NONE
+		NONE, CB_D_NUCA
 	}
 	
 	public enum Mapping {
@@ -62,12 +72,12 @@ public abstract class NucaCache extends Cache
     public Mapping mapping;
     public int coreCacheMapping[][];
     public Vector<Vector<Vector<Integer>>> cacheMapping;
-    NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus)
+    public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus)
     {
     	super(cacheParameters, containingMemSys);
+    	this.nucaType = SimulationConfig.nucaType;
     	this.cacheRows = cacheParameters.getNumberOfBankRows();
         this.cacheColumns = cacheParameters.getNumberOfBankColumns();
-        //this.cacheBank=new NucaCacheBank[cacheRows][cacheColumns/2];
         this.numOfCores = SystemConfig.NoOfCores;
         this.cacheSize = cacheParameters.getSize();
         this.associativity = cacheParameters.getAssoc();
@@ -86,139 +96,19 @@ public abstract class NucaCache extends Cache
         	}
         }
         noc = new NOC();
-        initCacheMapping();
-        for(int i=0;i<cacheMapping.size();i++)
-        {
-        	System.out.println("Core " + i);
-        	for(int j=0;j<cacheMapping.get(i).size();j++)
-        	{
-        		System.out.println(cacheMapping.get(i).get(j));
-        	}
-        }
         makeCacheBanks(cacheParameters, containingMemSys, tokenbus);
-    }
-
-    Vector<Integer> sort(int coreId,Vector<Integer> list)
-    {
-    	int x1 = (coreId*2)/cacheRows;
-    	int y1 = (coreId*2)%cacheRows;
-    	Vector<Double> distance = new Vector<Double>();
-    	for(int i=0;i<list.size();i++)
-    	{
-        	int x2 = list.get(i)/cacheRows;
-        	int y2 = list.get(i)%cacheRows;
-        	int x = (x1-x2)*(x1-x2);
-        	int y = (y1-y2)*(y1-y2);
-        	distance.add(Math.sqrt(x+y));
-    	}
-    	for(int i=0;i<distance.size();i++)
-    	{
-    		int index = i;
-    		double val = distance.get(i);
-    		for(int j=i+1;j<distance.size();j++)
-    		{
-    			if( val > distance.get(j))
-    			{
-    				index = j;
-    				val = distance.get(j);
-    			}
-    		}
-    		if(index != i){
-	    		double temp = distance.get(i);
-				double temp1 = distance.get(index);
-				int t = list.get(i);
-				int t1 = list.get(index);
-				distance.remove(i);
-				distance.add(i, temp1);
-				distance.remove(index);
-				distance.add(index, temp);
-				list.remove(i);
-				list.add(i, t1);
-				list.remove(index);
-				list.add(index, t);
-    		}
-    	}
-    	
-    	return list;
-    }
-    
-    
-    void fillCacheMapping()
-    {
-    	int numOfCores = cacheRows*cacheColumns/2;
-    	for(int i=0;i<numOfCores;i++)
-    	{
-    		for(int j=0;j<cacheColumns;j++)
-    		{
-    			for(int k=0;k<cacheRows;k++)
-    			{
-    				if(j%2==0)
-    				{
-    					if(k%2 == 1)
-    					{
-    						cacheMapping.get(i).get(j).add(k*cacheColumns + j);
-    					}
-    					else
-    						continue;
-    				}
-    				else
-    				{
-    					if(k%2 == 0)
-    					{
-    						cacheMapping.get(i).get(j).add(k*cacheColumns + j);
-    					}
-    					else
-    						continue;
-    				}
-    			}
-    		}
-    	}
-    }
-    
-    void initCacheMapping()
-    {
-    	fillCacheMapping();
-    	int numOfCores = cacheRows*cacheColumns/2;
-    	for(int i=0;i<numOfCores;i++)
-    	{
-    		for(int j=0;j<cacheColumns;j++)
-    		{
-    			Vector<Integer> set= cacheMapping.get(i).remove(j);
-    			cacheMapping.get(i).add(j,sort(i,set));
-    		}
-    	}
-    	Vector<Vector<Integer>> temp = new Vector<Vector<Integer>>(cacheMapping.get(0));
-    	cacheMapping.add(0,temp);
-    }
-    
-    public void printMshrStatus(NucaCacheBank nucaCacheBank)
-    {
-    	//for(int i=0;i<cacheColumns;i++)
-    	{
-    		//for(int j=0;j<cacheRows;j++)
-    		{
-    			Enumeration<OMREntry> tempIte = nucaCacheBank.missStatusHoldingRegister.elements();
-    			Enumeration<Long> tempIte1 = nucaCacheBank.missStatusHoldingRegister.keys();
-    			System.out.println("bank id " + nucaCacheBank.getBankId());
-    			while(tempIte.hasMoreElements())
-    			{
-    				System.out.println("address "+ tempIte1.nextElement()  + "outstanding request size " + tempIte.nextElement().outStandingEvents.size());
-    			}
-    			System.out.println("\n \n");
-    		}
-    	}
-    }
-    
-    public void printidTOBankMapping()
-    {
-    	for(int i=0;i< cacheRows ; i++)
-    	{
-    		for(int j=0;j<cacheColumns ; j++)
-    		{
-    			System.out.println("bank number ["+ i + "]["+j+"]");
-    			System.out.println("bank id"+ cacheBank[i][j].getBankId());
-    		}
-    	}
+        for(int i=0;i<2;i++)
+		{
+			for(int j=0;j<cacheColumns;j++)
+			{
+				if(i==0)
+					cacheBank[cacheRows/2][j].isFirstLevel = true;
+				if(i==1)
+				{
+					cacheBank[cacheRows-1][j].isLastLevel = true; 
+				}
+			}
+		}
     }
     
     private void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus)
@@ -245,18 +135,52 @@ public abstract class NucaCache extends Cache
         	noc = new OpticalNOC();
 		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig,tokenBus);
 	}
+ 
+    public boolean addEvent(AddressCarryingEvent addrEvent)
+	{
+		if(missStatusHoldingRegister.isFull())
+		{
+			return false;
+		}
+		boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addrEvent);
+		if(entryCreated)
+		{
+			putEventToRouter(addrEvent);
+		}
+		return true;
+	}
+    
+    void putEventToRouter(AddressCarryingEvent addrEvent)
+	{
+		long address = addrEvent.getAddress();
+		Vector<Integer> sourceBankId = getSourceBankId(address,addrEvent.coreId);
+		Vector<Integer> destinationBankId = getDestinationBankId(address,addrEvent.coreId);
+		AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
+																								0,this, this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+																								addrEvent.getRequestType(), address,addrEvent.coreId,
+																								sourceBankId,destinationBankId);
+		eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
+		if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+		{
+			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+			getPort().put(eventToBeSent);
+		}
+		else
+		{
+			((OpticalNOC)this.noc).entryPoint.getPort().put(eventToBeSent);
+		}
+	}
     
     public int getBankNumber(long addr)
 	{
 		if(mapping == Mapping.SET_ASSOCIATIVE)
-			return (int)((addr>>>blockSizeBits)%getNumOfBanks());
+			return ((int)((addr>>>blockSizeBits)%getNumOfBanks())+getNumOfBanks());
 		else if(mapping == Mapping.ADDRESS)
 		{
 			long tag = (addr>>>blockSizeBits);
 			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
 			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
 			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
-	//		System.out.println(bankId);
 			return bankId;
 		}else
 		{
@@ -264,7 +188,6 @@ public abstract class NucaCache extends Cache
 			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
 			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
 			int bankId = (int)(tag >>> (tagSize-bankNumBits +1));
-	//		System.out.println(bankId);
 			return bankId;
 		}
 	}
@@ -291,23 +214,72 @@ public abstract class NucaCache extends Cache
 	
 	public int getNumOfBanks()
 	{
-		return cacheRows*cacheColumns;		
+		return cacheRows*cacheColumns/2;		
 	}
 	
-	public void setStatistics()
+	public Vector<Integer> getSourceBankId(long addr,int coreId)
 	{
-		for(int i=0;i<cacheRows;i++)
-		{
-			for(int j=0;j<cacheColumns;j++)
-			{
-				noOfRequests = noOfRequests + cacheBank[i][j].noOfRequests;
-				hits = hits + cacheBank[i][j].hits;
-				misses = misses + cacheBank[i][j].misses;
-			}			
-		}
+		Vector<Integer> bankId = new Vector<Integer>();
+		bankId.add(coreId/cacheColumns);
+		bankId.add(coreId%cacheColumns);
+		return bankId;
 	}
-
-	public abstract long getTag(long addr);
-	public abstract Vector<Integer> getDestinationBankId(long addr);
-	public abstract Vector<Integer> getNearestBankId(long addr,int coreId);
+	
+	public Vector<Integer> getDestinationBankId(long addr,int coreId)
+	{
+		Vector<Integer> destinationBankId = new Vector<Integer>();
+		int bankNumber= getBankNumber(addr);
+		if(SimulationConfig.nucaType == NucaType.D_NUCA)
+		{
+			destinationBankId.add(cacheRows/2);
+		}
+		else
+		{
+			destinationBankId.add(bankNumber /cacheColumns);
+		}
+		destinationBankId.add(bankNumber%cacheColumns);
+		return destinationBankId;
+	}
+	
+	
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+	   if(event.getRequestType() == RequestType.Mem_Response)
+	    {
+	    	handleMemResponse(eventQ,event);
+	    }
+	}
+	
+	
+	protected void handleMemResponse(EventQueue eventQ, Event event)
+	{
+		ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests((AddressCarryingEvent)event);
+		sendResponseToWaitingEvent(eventsToBeServed);
+	}
+	
+	
+	private void sendResponseToWaitingEvent(ArrayList<Event> outstandingRequestList)
+	{
+		while (!outstandingRequestList.isEmpty())
+		{	
+			AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0); 
+			if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
+			{
+				sendMemResponse(eventPoppedOut);
+			}
+			else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
+			{
+				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+				{
+					 AddressCarryingEvent addrEvent = new AddressCarryingEvent(eventPoppedOut.getEventQ(),
+							 																		MemorySystem.mainMemory.getLatency(),
+							 																		this,
+							 																		MemorySystem.mainMemory,
+							 																		RequestType.Main_Mem_Write,
+							 																		eventPoppedOut.coreId);
+					 MemorySystem.mainMemory.getPort().put(addrEvent);
+				}
+			}
+		}
+	}				
 }

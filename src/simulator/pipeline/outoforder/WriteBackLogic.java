@@ -6,7 +6,6 @@ import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Operand;
-import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -14,10 +13,10 @@ import generic.SimulationElement;
 public class WriteBackLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	ReorderBuffer ROB;
 	
-	public WriteBackLogic(Core core, ExecutionEngine execEngine)
+	public WriteBackLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, null, -1, -1);
 		this.core = core;
@@ -27,8 +26,7 @@ public class WriteBackLogic extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-
+		
 	}
 	
 	public void performWriteBack()

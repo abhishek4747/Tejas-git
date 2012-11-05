@@ -1,10 +1,10 @@
 package generic;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
 
 public class CustomOperandPool {
 	
-	Operand[] pool;
+	/*Operand[] pool;
 	int head;
 	int tail;
 	int poolSize;
@@ -61,6 +61,38 @@ public class CustomOperandPool {
 			tail = (tail + 1)%poolSize;
 		}
 		pool[tail] = arg0;
+	}
+	*/
+	
+	GenericCircularBuffer<Operand> pool;
+	
+	public CustomOperandPool(int poolSize)
+	{
+		pool = new GenericCircularBuffer<Operand>(Operand.class, poolSize, false);
+	}
+	
+	public Operand borrowObject()
+	{
+		if(pool.isEmpty()) {
+			misc.Error.showErrorAndExit("operand pool empty!!");
+			return null;
+		}
+		
+		return pool.removeObjectAtHead();		
+	}
+	
+	public void returnObject(Operand arg0)
+	{
+		if(arg0.getMemoryLocationFirstOperand() != null)
+		{
+			CustomObjectPool.getOperandPool().returnObject(arg0.getMemoryLocationFirstOperand());
+		}
+		if(arg0.getMemoryLocationSecondOperand() != null)
+		{
+			CustomObjectPool.getOperandPool().returnObject(arg0.getMemoryLocationSecondOperand());
+		}
+		
+		pool.append(arg0);
 	}
 
 }

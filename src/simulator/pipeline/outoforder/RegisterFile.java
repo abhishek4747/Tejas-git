@@ -85,7 +85,6 @@ public class RegisterFile extends SimulationElement{
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 }

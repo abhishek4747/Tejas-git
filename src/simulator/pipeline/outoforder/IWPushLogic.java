@@ -3,19 +3,20 @@ package pipeline.outoforder;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
 
 public class IWPushLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	ReorderBufferEntry[] renameBuffer;
 	int decodeWidth;
 	
 	InstructionWindow IW;
 	
-	public IWPushLogic(Core core, ExecutionEngine execEngine)
+	public IWPushLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
@@ -42,6 +43,17 @@ public class IWPushLogic extends SimulationElement {
 		{
 			if(renameBuffer[i] != null)
 			{
+				if(renameBuffer[i].getInstruction().getOperationType() == OperationType.inValid ||
+						renameBuffer[i].getInstruction().getOperationType() == OperationType.nop)
+				{
+					renameBuffer[i].setIssued(true);
+					renameBuffer[i].setExecuted(true);
+					renameBuffer[i].setWriteBackDone1(true);
+					renameBuffer[i].setWriteBackDone2(true);
+					renameBuffer[i] = null;
+					continue;
+				}
+				
 				if(IW.isFull())
 				{
 					execEngine.setToStall1(true);

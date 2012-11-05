@@ -1,108 +1,134 @@
 package pipeline.outoforder;
 
-import java.util.Hashtable;
-
 import config.SimulationConfig;
-import config.SystemConfig;
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.CoreMemorySystem;
-import memorysystem.InstructionCache;
+import generic.Barrier;
+import generic.BarrierTable;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.ExecCompleteEvent;
-import generic.GlobalClock;
+import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionLinkedList;
-import generic.OMREntry;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
-import generic.Statistics;
 
 public class FetchLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	ICacheBuffer iCacheBuffer;
 	Instruction[] fetchBuffer;
 	int fetchWidth;
 	int inputPipeToReadNext;
-	InstructionLinkedList[] inputToPipeline;
-	CoreMemorySystem coreMemSys;
-	Hashtable<Long,OMREntry> missStatusHoldingRegister;
+	GenericCircularQueue<Instruction>[] inputToPipeline;
+	boolean sleep;
+	
+	OperationType[] instructionsToBeDropped;
+	int invalidCount;
 
-
-	public FetchLogic(Core core, ExecutionEngine execEngine)
+	public FetchLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.execEngine = execEngine;
-		iCacheBuffer = execEngine.getiCacheBuffer();
+		//iCacheBuffer = execEngine.getiCacheBuffer();
 		fetchBuffer = execEngine.getFetchBuffer();
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;
-		coreMemSys = execEngine.coreMemSys;
-		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
+		sleep = false;
 
+		instructionsToBeDropped = new OperationType[] {
+															OperationType.interrupt,
+															OperationType.sync
+													};
+		
+		invalidCount = 0;
 	}
 	
-	/*
-	 * if decoder consumed all of the fetchBuffer in the previous cycle,
-	 * 		fetch decodeWidth more instructions
-	 * else
-	 * 		stall fetch
-	 */
-	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
-		return missStatusHoldingRegister;
-	}
-
-	public void setMissStatusHoldingRegister(
-			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
-		this.missStatusHoldingRegister = missStatusHoldingRegister;
-	}	
 	public void performFetch()
 	{
+		if(sleep == true)
+		{
+			return;
+		}
+		
 		Instruction newInstruction;
 		
+		//this loop reads from inputToPipeline and places the instruction in iCacheBuffer
+		//fetch of the instruction is also issued to the iCache
 		for(int i = 0; i < iCacheBuffer.size; i++)
 		{
-			if(inputToPipeline[inputPipeToReadNext].getListSize() <= 0)
+			if(inputToPipeline[inputPipeToReadNext].size() <= 0)
 			{
 				break;
 			}
 			
-			newInstruction = inputToPipeline[inputPipeToReadNext].peekInstructionAt(0);
+			newInstruction = inputToPipeline[inputPipeToReadNext].peek(0);
 			
-			if(newInstruction.getOperationType() == OperationType.inValid)
-			{
-				execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
-				break;
+			//process sync operation
+			if(newInstruction.getOperationType() == OperationType.sync){
+				long barrierAddress = newInstruction.getRISCProgramCounter();
+				System.out.println(barrierAddress);
+				Barrier bar = BarrierTable.barrierList.get(barrierAddress);
+				bar.incrementThreads();
+				
+				if(bar.timeToCross())
+				{
+					System.out.println("Time to cross");
+					setSleep(true);
+					for(int j=0; j<bar.getNumThreads(); j++ ){
+						this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
+					}
+					BarrierTable.barrierReset(barrierAddress);
+					this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+							this.core.eventQueue,
+							 1,
+							 this.core.coreBcastBus, 
+							 this.core.coreBcastBus, 
+							 RequestType.PIPELINE_RESUME, 
+							 0));
+
+				}
+				else
+				{
+					setSleep(true);
+					//return;
+				}
 			}
 			
+			//drop instructions on the drop list
+			if(shouldInstructionBeDropped(newInstruction) == true)
+			{
+				inputToPipeline[inputPipeToReadNext].pollFirst();
+				CustomObjectPool.getInstructionPool().returnObject(newInstruction);
+				i--;
+				continue;
+			}
+			
+			//drop memory operations if specified in configuration file
 			if(newInstruction.getOperationType() == OperationType.load ||
 					newInstruction.getOperationType() == OperationType.store)
 			{
 				if(SimulationConfig.detachMemSys == true)
 				{
 					inputToPipeline[inputPipeToReadNext].pollFirst();
-					Newmain.instructionPool.returnObject(newInstruction);
+					CustomObjectPool.getInstructionPool().returnObject(newInstruction);
 					i--;
 					continue;
 				}
 			}
 			
-			if(!iCacheBuffer.isFull())
+			if(!iCacheBuffer.isFull() && !execEngine.getCoreMemorySystem().getiMSHR().isFull())
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
-				//System.out.println(core.getCore_number() + "\tfetched : " + newInstruction);
-				if(SimulationConfig.detachMemSys == false)
+				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)
 				{
-						execEngine.coreMemSys.issueRequestToInstrCacheFromOutofOrder(this, newInstruction.getRISCProgramCounter(),this.core.getCore_number());
+						execEngine.getCoreMemorySystem().issueRequestToInstrCache(newInstruction.getRISCProgramCounter());
 				}
-				//System.out.println(core.getCoreMode() + " - no of insts  : " + noOfInstructionsThisEpoch);
 			}
 			else
 			{
@@ -116,81 +142,26 @@ public class FetchLogic extends SimulationElement {
 				!execEngine.isToStall4() &&
 				!execEngine.isToStall5())
 		{
-			int ctr = 0;
-			while(execEngine.isInputPipeEmpty(inputPipeToReadNext) == true
-					&& ctr < core.getNo_of_input_pipes())
-			{
-				inputPipeToReadNext = (inputPipeToReadNext + 1)%core.getNo_of_input_pipes();
-				
-				ctr++;
-			}
+			int fetchBufferIndex = 0;
 			
-			if(ctr == core.getNo_of_input_pipes())
+			//add instructions, for whom "fetch" from iCache has completed, to fetch buffer
+			//decode stage reads from this buffer
+			for(int i = 0; i < fetchWidth; i++)
 			{
-				execEngine.setAllPipesEmpty(true);
-			}
-			else
-			{
-				if (core.isPipelineStatistical == true)
+				newInstruction = iCacheBuffer.getNextInstruction();
+				if(newInstruction != null)
 				{
-					//readDecodePipe();
+					fetchBuffer[fetchBufferIndex++] = newInstruction;
 				}
 				else
 				{
-					int fetchBufferIndex = 0;
-					for(int i = 0; i < fetchWidth; i++)
-					{
-						if( this.core.getExecEngine().getFetcher().getMissStatusHoldingRegister().size() >= fetchWidth){
-							System.out.println("Exiting due to size exceed");
-							break;
-						}
-						
-						newInstruction = iCacheBuffer.getNextInstruction();
-						if(newInstruction != null)
-						{
-							if(newInstruction.getOperationType() == OperationType.inValid)
-							{
-								execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
-								break;
-							}
-							fetchBuffer[fetchBufferIndex++] = newInstruction;
-						}
-						else
-						{
-							this.core.getExecEngine().incrementInstructionMemStall(1); 
-							break;
-						}
-					}
-					
-					//this is a bad hack TODO
-					for(int i = 0; i < fetchWidth; i++)
-					{
-						if(inputToPipeline[inputPipeToReadNext].getListSize() > i &&
-								inputToPipeline[inputPipeToReadNext].peekInstructionAt(i).getOperationType()
-								== OperationType.inValid)
-						{
-							execEngine.setInputPipeEmpty(inputPipeToReadNext, true);
-							break;
-						}
-					}
+					this.core.getExecEngine().incrementInstructionMemStall(1); 
+					break;
 				}
 			}
-		}
-		
-		if(execEngine.isAllPipesEmpty() == false)
-		{
+			
 			inputPipeToReadNext = (inputPipeToReadNext + 1)%core.getNo_of_input_pipes();
 		}
-		/*
-		if(core.getCore_number() == 2)
-		{
-			System.out.println(GlobalClock.getCurrentTime()/27
-								+ "\tinsts : " + noOfInstructionsThisEpoch
-								+ "\ttotal insts : " + noFetched
-								+ "\tepochs : " + core.getNoOfEpochs()
-								+ "\tpipe to read next : " + inputPipeToReadNext);
-		}
-		*/
 	}
 
 	@Override
@@ -208,12 +179,45 @@ public class FetchLogic extends SimulationElement {
 		
 	}
 	
-	public InstructionLinkedList[] getInputToPipeline() {
+	boolean shouldInstructionBeDropped(Instruction instruction)
+	{
+		for(int i = 0; i < instructionsToBeDropped.length; i++)
+		{
+			if(instructionsToBeDropped[i] == instruction.getOperationType())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void processCompletionOfMemRequest(long address)
+	{
+		iCacheBuffer.updateFetchComplete(address);
+	}
+	
+	public GenericCircularQueue<Instruction>[] getInputToPipeline() {
 		return inputToPipeline;
 	}
 
-	public void setInputToPipeline(InstructionLinkedList[] inputToPipeline) {
+	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inputToPipeline) {
 		this.inputToPipeline = inputToPipeline;
 	}
 
+	public void setICacheBuffer(ICacheBuffer iCacheBuffer)
+	{
+		this.iCacheBuffer = iCacheBuffer;
+	}
+
+	public boolean isSleep() {
+		return sleep;
+	}
+
+	public void setSleep(boolean sleep) {
+		if(sleep == true)
+			System.out.println("sleeping pipeline " + this.core.getCore_number());
+		else
+			System.out.println("resuming pipeline " + this.core.getCore_number());
+		this.sleep = sleep;
+	}
 }

@@ -44,6 +44,7 @@ public enum RequestType {
 	
 	Tell_LSQ_Addr_Ready,
 	Validate_LSQ_Addr,
+	Attempt_L1_Issue,
 	Cache_Read,
 	Cache_Read_from_iCache,
 	Cache_Write,
@@ -69,11 +70,27 @@ public enum RequestType {
 	Reply_with_shared_copy,
 	Write_Modified_to_sharedmem, 
 	Main_Mem_Response,
-	COPY_BLOCK,
+
 	TOKEN,
 	LOCAL_TOKEN,
 	PIPELINE_RESUME,
-	PIPELINE_SLEEP
+	PIPELINE_SLEEP,
+	COPY_BLOCK,
+	ReadMissDirectoryUpdate,
+	WriteMissDirectoryUpdate,
+	WriteHitDirectoryUpdate,
+	EvictionDirectoryUpdate,
+	Cache_Read_Writeback,
+	Cache_Read_Writeback_Invalidate,
+	MemResponseDirectoryUpdate,
+	Send_Mem_Response,
+	Cache_Write_Writeback_Invalidate,
+	Send_Mem_Response_On_WriteHit,
+	PerformPulls, 
+	Send_Mem_Response_Invalidate,
+	Invalid_Event, Cache_Hit, Cache_Miss
+	
+	
 	
 //	MEM_READ,
 //	MEM_WRI

@@ -29,6 +29,8 @@ KNOB<UINT64>   KnobMap(KNOB_MODE_WRITEONCE,       "pintool",
     "map", "1", "Maps");
 KNOB<UINT64>   KnobIgnore(KNOB_MODE_WRITEONCE,       "pintool",
     "numIgn", "0", "Ignore these many profilable instructions");
+KNOB<UINT64>   KnobId(KNOB_MODE_WRITEONCE,       "pintool",
+    "id", "1", "shm id to generate key");
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
@@ -233,7 +235,10 @@ int main(int argc, char * argv[])
 	}
 
 
-	tst = new IPC::Shm ();
+	//tst = new IPC::Shm ();
+	UINT64 id = KnobId;
+	//printf("id received = %lld", id);
+	tst = new IPC::Shm (id);
 	PIN_AddThreadStartFunction(ThreadStart, 0);
 
 	// Register Instruction to be called to instrument instructions

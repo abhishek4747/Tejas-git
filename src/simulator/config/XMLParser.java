@@ -60,6 +60,7 @@ public class XMLParser
 			doc.getDocumentElement().normalize();
 			//System.out.println("Root element : " + doc.getDocumentElement().getNodeName());
 			
+			setEmulatorParameters();
 			setSimulationParameters();
 			setPowerParameters();
 			
@@ -148,24 +149,27 @@ public class XMLParser
 		  PowerConfig.dl2Port=Double.parseDouble(getImmediateString("dl2_port", powerElmnt));
 		  
 	}
-
+		
+	private static void setEmulatorParameters() {
+		NodeList nodeLst = doc.getElementsByTagName("Emulator");
+		Node emulatorNode = nodeLst.item(0);
+		Element emulatorElmnt = (Element) emulatorNode;
+		
+		EmulatorConfig.EmulatorType = Integer.parseInt(getImmediateString("EmulatorType", emulatorElmnt));
+		EmulatorConfig.CommunicationType = Integer.parseInt(getImmediateString("CommunicationType", emulatorElmnt));
+		EmulatorConfig.PinTool = getImmediateString("PinTool", emulatorElmnt);
+		EmulatorConfig.PinInstrumentor = getImmediateString("PinInstrumentor", emulatorElmnt);
+		EmulatorConfig.QemuTool = getImmediateString("QemuTool", emulatorElmnt);
+	}
 	
-private static void setSimulationParameters()
+	private static void setSimulationParameters()
 	{
 		NodeList nodeLst = doc.getElementsByTagName("Simulation");
 		Node simulationNode = nodeLst.item(0);
 		Element simulationElmnt = (Element) simulationNode;
-		SimulationConfig.PinTool = getImmediateString("PinTool", simulationElmnt);
-		SimulationConfig.PinInstrumentor = getImmediateString("PinInstrumentor", simulationElmnt);
-		SimulationConfig.Mode = Integer.parseInt(getImmediateString("Mode", simulationElmnt));
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
 		
-		if(getImmediateString("subsetSim", simulationElmnt).equals("true"))
-		{
-			SimulationConfig.subsetSimulation = true;
-			SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
-		}
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
 			SimulationConfig.IndexAddrModeEnable = false;
@@ -196,29 +200,26 @@ private static void setSimulationParameters()
 			SimulationConfig.detachMemSys = false;
 		}
 		
-		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==0){
-			SimulationConfig.isPipelineStatistical = true;
-			SimulationConfig.isPipelineInorder = false;
-			SimulationConfig.isPipelineMultiIssueInorder = false;
-		}
-		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
-			SimulationConfig.isPipelineStatistical = false;
+		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
 			SimulationConfig.isPipelineInorder = true;
 			SimulationConfig.isPipelineMultiIssueInorder = false;
+			SimulationConfig.isPipelineOutOfOrder = false;
 		}
 		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==2){
-			SimulationConfig.isPipelineStatistical = false;
 			SimulationConfig.isPipelineInorder = false;
 			SimulationConfig.isPipelineMultiIssueInorder = true;
+			SimulationConfig.isPipelineOutOfOrder = false;
 		}
 		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==3){
-			SimulationConfig.isPipelineStatistical = false;
 			SimulationConfig.isPipelineInorder = false;
 			SimulationConfig.isPipelineMultiIssueInorder = false;
+			SimulationConfig.isPipelineOutOfOrder = true;
 		}
 		else{
 			System.err.println("Please specify any of the four pipeline types in the config file");
 		}
+		SimulationConfig.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", simulationElmnt));
+		
 		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
 		{
@@ -236,13 +237,24 @@ private static void setSimulationParameters()
 				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
 		{
 			SimulationConfig.subsetSimulation = true;
+			SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
 		}
 		else
 		{
 			SimulationConfig.subsetSimulation = false;
+			SimulationConfig.subsetSimSize = -1;
 		}
 
-		SimulationConfig.subsetSimSize = Long.parseLong(getImmediateString("subsetSimSize", simulationElmnt));
+		if(getImmediateString("PrintPowerStats", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.powerStats = true;
+		}
+		else
+		{
+			SimulationConfig.powerStats = false;
+		}
+		
 		SimulationConfig.powerTrace = Integer.parseInt(getImmediateString("PowerTrace", simulationElmnt));
 		SimulationConfig.numInsForTrace = Long.parseLong(getImmediateString("NumInsForTrace", simulationElmnt));
 		SimulationConfig.numCyclesForTrace = Long.parseLong(getImmediateString("NumCyclesForTrace", simulationElmnt));
@@ -292,7 +304,12 @@ private static void setSimulationParameters()
 		SystemConfig.invalidationSendDelay = Integer.parseInt(getImmediateString("invalidationSendDelay", systemElmnt));
 		SystemConfig.invalidationAckCollectDelay = Integer.parseInt(getImmediateString("invalidationAckCollectDelay", systemElmnt));
 		SystemConfig.ownershipChangeDelay = Integer.parseInt(getImmediateString("ownershipChangeDelay", systemElmnt));
-		
+	
+		NodeList powerLst = doc.getElementsByTagName("Power");
+		Node powerNode = powerLst.item(0);
+		Element powerElmnt = (Element) powerNode;
+		SystemConfig.clockGatingStyle = Integer.parseInt(getImmediateString("clockGatingStyle", powerElmnt));
+
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
 		//for (int i = 0; i < SystemConfig.NoOfCores; i++)
@@ -351,7 +368,7 @@ private static void setSimulationParameters()
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
 			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
 			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
-			core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
+			//core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
 		
 			//Code for instruction cache configurations for each core
 			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
@@ -412,7 +429,13 @@ private static void setSimulationParameters()
 			}
 		}
 		
-		//System.out.println(SystemConfig.NoOfCores + ", " + SystemConfig.core[0].ROBSize);
+		//Set Directory Parameters
+		SystemConfig.directoryConfig = new CacheConfig();
+		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
+		Element dirElmnt = (Element) dirLst.item(0);
+		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
+		
+		
 	}
 	
 	private static void setCacheProperties(Element CacheType, CacheConfig cache)
@@ -478,11 +501,6 @@ private static void setSimulationParameters()
 		{
 			SimulationConfig.nucaType = NucaType.D_NUCA;
 			cache.nucaType = NucaType.D_NUCA;
-		}
-		else if (tempStr.equalsIgnoreCase("CBD"))
-		{
-			SimulationConfig.nucaType = NucaType.CB_D_NUCA;
-			cache.nucaType = NucaType.CB_D_NUCA;
 		}
 		else
 		{

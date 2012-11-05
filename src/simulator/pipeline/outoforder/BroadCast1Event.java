@@ -14,7 +14,7 @@ public class BroadCast1Event extends Event {
 			RequestType requestType,
 			ReorderBufferEntry ROBEntry)
 	{
-		super(null, eventTime, requestingElement, processingElement, requestType);
+		super(null, eventTime, requestingElement, processingElement, requestType, -1);
 		
 		this.ROBEntry = ROBEntry;
 	}

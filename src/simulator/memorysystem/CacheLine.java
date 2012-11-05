@@ -20,16 +20,30 @@
 *****************************************************************************/
 package memorysystem;
 
-public class CacheLine 
+public class CacheLine implements Cloneable
 {
 	private long tag;
 	private int line_num;
 //	private boolean valid;
 	private double timestamp;
+	private long address;
 //	private boolean modified;
 	private int pid;
 	private MESI state;
 
+	public Object clone()
+    {
+        try
+        {
+            // call clone in Object.
+            return super.clone();
+        } catch(CloneNotSupportedException e)
+        {
+            System.out.println("Cloning not allowed.");
+            return this;
+        }
+    }
+	
 	protected boolean hasTagMatch(long tag)
 	{
 		if (tag == this.getTag())
@@ -116,5 +130,13 @@ public class CacheLine
 
 	public void setState(MESI state) {
 		this.state = state;
+	}
+
+	public long getAddress() {
+		return address;
+	}
+
+	public void setAddress(long address) {
+		this.address = address;
 	}
 }

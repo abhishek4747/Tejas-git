@@ -17,6 +17,7 @@ import generic.SimulationElement;
 public class ExecutionLogic extends SimulationElement {
 	
 	Core core;
+	OutOrderExecutionEngine execEngine;
 	Instruction instruction;
 	int threadID = 0;
 	int FUInstance;
@@ -27,18 +28,19 @@ public class ExecutionLogic extends SimulationElement {
 	Event tempEvent;
 	ReorderBuffer ROB;
 	
-	public ExecutionLogic(Core core)
+	public ExecutionLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		
 		this.core = core;
+		this.execEngine = execEngine;
 	}
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 				
 		tempEvent = event;
-		ROB = core.getExecEngine().getReorderBuffer();
+		ROB = execEngine.getReorderBuffer();
 		
 		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
 		{
@@ -61,6 +63,7 @@ public class ExecutionLogic extends SimulationElement {
 		{
 			tempDestOpndType = null;
 		}
+		
 		if(event.getRequestType() == RequestType.EXEC_COMPLETE)
 		{
 			handleExecutionCompletion();
@@ -92,11 +95,6 @@ public class ExecutionLogic extends SimulationElement {
 			System.out.println("not yet issued, but execution complete");
 			//return;
 		}
-		/*
-		if(core.getCoreMode() == CoreMode.CheckerSMT)
-		{
-			System.out.println("exec\n" + reorderBufferEntry);
-		}*/
 		
 		if(tempDestOpnd == null)
 		{

@@ -26,28 +26,45 @@ public class Numbers {
 	static public Long hexToLong(String hexStr)
 	{
 		//Remove the 0x prefix
-		if(hexStr.length()>2 && hexStr.substring(0,2).contentEquals("0x"))
+		if(hexStr.length()>2 && hexStr.substring(0,2).contentEquals("0x")) {
 			hexStr = hexStr.substring(2);
+		}
 		
-		return new Long(Long.parseLong(hexStr,16));
+		//FIXME : try passing correct value. If not possible, then pass -1
+		try {
+			return new Long(Long.parseLong(hexStr,16));
+		} catch (NumberFormatException nfe) {
+			return new Long(-1);
+		}
 	}
 	
 	static public boolean isValidNumber(String numStr)
 	{
-		if(numStr==null)
+		if(numStr==null) {
 			return false;
-		
-		//Remove the 0x prefix
-		if(numStr.length()>2 && numStr.substring(0,2).contentEquals("0x"))
-			numStr = numStr.substring(2);
-		
-		//If conversion from string to number generates an exception then 
-		// the string probably ain't a valid number
-		try{
-			Long.parseLong(numStr,16);
-			return true;
-		}catch(NumberFormatException nfe){
-			return false;
+		} else {
+			if(numStr.length()>2 && numStr.substring(0,2).contentEquals("0x")) {
+				numStr = numStr.substring(2);
+			}
+			
+			if(numStr.matches("[0-9a-fA-F]+")) {
+				return true;
+			} else {
+				return false;
+			}
 		}
+		
+//		//Remove the 0x prefix
+//		if(numStr.length()>2 && numStr.substring(0,2).contentEquals("0x"))
+//			numStr = numStr.substring(2);
+//		
+//		//If conversion from string to number generates an exception then 
+//		// the string probably ain't a valid number
+//		try{
+//			Long.parseLong(numStr,16);
+//			return true;
+//		}catch(NumberFormatException nfe){
+//			return false;
+//		}
 	}
 }

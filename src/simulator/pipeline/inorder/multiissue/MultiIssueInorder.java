@@ -2,23 +2,28 @@ package pipeline.inorder.multiissue;
 
 import generic.Core;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
+import generic.Instruction;
 import pipeline.PipelineInterface;
+import pipeline.inorder.InorderExecutionEngine;
 import pipeline.inorder.InorderPipeline;
 
-public class MultiIssueInorder implements PipelineInterface{
+public class MultiIssueInorder implements PipelineInterface {
 
 	private InorderPipeline[] pipelines;
 	private int numPipelines;
 	private Core core;
 	private EventQueue eventQ;
 	private int coreStepSize;
+	InorderExecutionEngine containingExecutionEngine;
 	
 	public MultiIssueInorder(Core core, EventQueue eventQ){
 		this.core = core;
+		containingExecutionEngine = (InorderExecutionEngine)core.getExecEngine();
 		this.eventQ = eventQ;
 		this.coreStepSize = core.getStepSize();
-		this.numPipelines = core.getExecutionEngineIn().getNumPipelines();
+		this.numPipelines = containingExecutionEngine.getNumPipelines();
 		pipelines = new InorderPipeline[numPipelines];
 		for(int i=0;i<numPipelines;i++)
 					pipelines[i] = new InorderPipeline(core, eventQ, i);
@@ -31,12 +36,12 @@ public class MultiIssueInorder implements PipelineInterface{
 	 * */
 	public void oneCycleOperation() {
 		long currentTime = GlobalClock.getCurrentTime();
-		if(currentTime % getCoreStepSize()==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+		if(currentTime % getCoreStepSize()==0 && !containingExecutionEngine.getExecutionComplete()){
 	 		for(int i=0;i<numPipelines;i++)
 					pipelines[i].writeback();
 		}
 		drainEventQueue();
-		if(currentTime % getCoreStepSize()==0 && !core.getExecutionEngineIn().getExecutionComplete()){
+		if(currentTime % getCoreStepSize()==0 && !containingExecutionEngine.getExecutionComplete()){
 			
 			for(int i=0;i<numPipelines;i++)
 						pipelines[i].mem();
@@ -49,8 +54,8 @@ public class MultiIssueInorder implements PipelineInterface{
 					pipelines[i].decode();
 			}
 			
-			if(this.core.getExecutionEngineIn().getStallFetch()>0)
-				this.core.getExecutionEngineIn().decrementStallFetch(1);
+			if(containingExecutionEngine.getStallFetch()>0)
+				containingExecutionEngine.decrementStallFetch(1);
 			else
 				for(int i=0;i<numPipelines;i++)
 					pipelines[i].fetch();				
@@ -68,7 +73,7 @@ public class MultiIssueInorder implements PipelineInterface{
 	}
 	@Override
 	public boolean isExecutionComplete() {
-		return core.getExecutionEngineIn().getExecutionComplete();
+		return containingExecutionEngine.getExecutionComplete();
 	}
 
 	@Override
@@ -115,10 +120,9 @@ public class MultiIssueInorder implements PipelineInterface{
 		// TODO Auto-generated method stub
 		
 	}
-	@Override
-	public boolean isAvailable() {
-		// TODO Auto-generated method stub
-		return false;
+	public InorderPipeline getInorderPipeLine()
+	{
+		return this.pipelines[0];
 	}
 	@Override
 	public void setExecutionComplete(boolean status) {
@@ -126,13 +130,15 @@ public class MultiIssueInorder implements PipelineInterface{
 		
 	}
 	@Override
-	public void setAvailable(boolean isAvailable) {
+	public void adjustRunningThreads(int adjval) {
 		// TODO Auto-generated method stub
 		
 	}
 	@Override
-	public void adjustRunningThreads(int adjval) {
-		// TODO Auto-generated method stub
+	public void setInputToPipeline(
+			GenericCircularQueue<Instruction>[] inputToPipeline) {
+		
+		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
 

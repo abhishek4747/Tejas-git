@@ -1,7 +1,6 @@
 package pipeline.outoforder;
 
 import config.SimulationConfig;
-import emulatorinterface.Newmain;
 import pipeline.outoforder.ReorderBufferEntry;
 import generic.Core;
 import generic.Event;
@@ -15,12 +14,14 @@ import generic.SimulationElement;
 public class DecodeLogic extends SimulationElement {
 	
 	Core core;
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	Instruction[] fetchBuffer;
 	ReorderBufferEntry[] decodeBuffer;
 	int decodeWidth;
 	
-	public DecodeLogic(Core core, ExecutionEngine execEngine)
+	int invalidCount;
+	
+	public DecodeLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
@@ -30,13 +31,6 @@ public class DecodeLogic extends SimulationElement {
 		decodeWidth = core.getDecodeWidth();
 	}
 	
-	/*
-	 * if renamer consumed all of the decodeBuffer in the previous cycle,
-	 * 		make ROB entries for all instructions in fetch buffer, as long as there is space
-	 * 		in the ROB
-	 * else
-	 * 		stall decode
-	 */
 	public void performDecode()
 	{
 		if(execEngine.isToStall5() == true)
@@ -59,15 +53,12 @@ public class DecodeLogic extends SimulationElement {
 					break;
 				}
 				
-				if(fetchBuffer[i] != null
-						&& fetchBuffer[i].getOperationType() != OperationType.interrupt
-						//&& fetchBuffer[i].getOperationType() != OperationType.store
-						)
+				if(fetchBuffer[i] != null)
 				{
 					if(fetchBuffer[i].getOperationType() == OperationType.load ||
 							fetchBuffer[i].getOperationType() == OperationType.store)
 					{
-						if(execEngine.coreMemSys.getLsqueue().isFull())
+						if(execEngine.getCoreMemorySystem().getLsqueue().isFull())
 						{
 							execEngine.setToStall3(true);
 							break;
@@ -81,20 +72,6 @@ public class DecodeLogic extends SimulationElement {
 					if(SimulationConfig.debugMode)
 					{
 						System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + fetchBuffer[i]);
-					}
-				}
-				
-				if(fetchBuffer[i] != null)
-				{
-					if(fetchBuffer[i].getOperationType() == OperationType.interrupt ||
-							fetchBuffer[i].getOperationType() == OperationType.nop ||
-							fetchBuffer[i].getOperationType() == OperationType.inValid)
-					{
-						try {
-							Newmain.instructionPool.returnObject(fetchBuffer[i]);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
 					}
 				}
 				
@@ -112,9 +89,7 @@ public class DecodeLogic extends SimulationElement {
 			tempOpType = newInstruction.getOperationType();
 		}
 		
-		if(newInstruction != null &&
-				tempOpType != OperationType.nop &&
-				tempOpType != OperationType.inValid)
+		if(newInstruction != null)
 		{			
 			ReorderBufferEntry newROBEntry = execEngine.getReorderBuffer()
 											.addInstructionToROB(newInstruction, 0);	//TODO
@@ -132,7 +107,7 @@ public class DecodeLogic extends SimulationElement {
 					isLoad = false;
 					
 				//TODO
-				this.core.getExecEngine().coreMemSys.allocateLSQEntry(isLoad, 
+				execEngine.getCoreMemorySystem().allocateLSQEntry(isLoad, 
 						newROBEntry.getInstruction().getSourceOperand1().getValue(),
 						newROBEntry);
 			}

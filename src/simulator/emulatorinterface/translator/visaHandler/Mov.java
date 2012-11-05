@@ -4,7 +4,7 @@ import emulatorinterface.DynamicInstructionBuffer;
 import generic.Instruction;
 import generic.InstructionTable;
 
-public class Mov implements VisaHandler 
+public class Mov implements DynamicInstructionHandler 
 {
 	public int handle(int microOpIndex, InstructionTable instructionTable,
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 

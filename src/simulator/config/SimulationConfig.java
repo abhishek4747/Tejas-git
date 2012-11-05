@@ -20,26 +20,23 @@
 *****************************************************************************/
 package config;
 
-import java.io.ObjectOutput;
-
 import memorysystem.nuca.NucaCache.NucaType;
 
 public class SimulationConfig 
 {
-	public static int Mode;  // Mode for simulator to run
 	public static int NumTempIntReg; //Number of temporary Integer registers
 	public static boolean IndexAddrModeEnable; //Indexed addressing mode Enabled or disabled
 	public static long MapEmuCores;  //Emulator cores to run on
 	public static long MapJavaCores; //Java simulator cores to run on
 	public static long NumInsToIgnore; // Number of "Profilable" instructions to ignore from start
-	public static String PinTool;
-	public static String PinInstrumentor;
 	public static String outputFileName;
 	public static boolean debugMode;
 	public static boolean detachMemSys;
 	public static boolean isPipelineStatistical;
 	public static boolean isPipelineInorder;
 	public static boolean isPipelineMultiIssueInorder;
+	public static boolean isPipelineOutOfOrder;
+	public static int numInorderPipelines;
 	public static boolean writeToFile;
 	public static int numInstructionsToBeWritten;
 	public static String InstructionsFilename;
@@ -49,4 +46,6 @@ public class SimulationConfig
 	public static long numInsForTrace;
 	public static long numCyclesForTrace;
 	public static NucaType nucaType;
+	public static boolean powerStats;
+	public static boolean broadcast;
 }

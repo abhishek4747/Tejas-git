@@ -24,25 +24,25 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.Registers;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class SSEALU implements InstructionHandler 
+public class SSEALU implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps = new InstructionLinkedList();
 
 		if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand() &&
 				operand3==null)
 		{
 			//operand1 = operand1 + operand2
-			microOps.appendInstruction(Instruction.getFloatingPointALU(operand1,
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointALU(operand1,
 					operand2, operand1));
 		}
 		
@@ -50,13 +50,13 @@ public class SSEALU implements InstructionHandler
 				operand3==null)
 		{
 			//tempFloatRegister = [operand2]
-			Operand tempFloatRegister = Registers.getTempFloatReg();
+			Operand tempFloatRegister = Registers.getTempFloatReg(tempRegisterNum);
 	
-			microOps.appendInstruction(Instruction.getLoadInstruction(operand2,
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand2,
 					tempFloatRegister));
 			
 			//operand1 = operand1 +/- tempFloatRegister
-			microOps.appendInstruction(Instruction.getFloatingPointALU(operand1,
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointALU(operand1,
 					tempFloatRegister, operand1));
 		}
 		

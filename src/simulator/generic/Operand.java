@@ -23,7 +23,9 @@ package generic;
 
 import java.io.Serializable;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
+import main.Main;
+
 
 
 public class Operand implements Serializable
@@ -98,7 +100,7 @@ public class Operand implements Serializable
 		{
 			//this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
 			try {
-				this.memoryLocationFirstOperand = Newmain.operandPool.borrowObject();
+				this.memoryLocationFirstOperand = CustomObjectPool.getOperandPool().borrowObject();
 			} catch (Exception e) {
 				// TODO what if there are no more objects in the pool??
 				e.printStackTrace();
@@ -113,7 +115,7 @@ public class Operand implements Serializable
 		{
 			//this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
 			try {
-				this.memoryLocationSecondOperand = Newmain.operandPool.borrowObject();
+				this.memoryLocationSecondOperand = CustomObjectPool.getOperandPool().borrowObject();
 			} catch (Exception e) {
 				// TODO what if there are no more objects in the pool??
 				e.printStackTrace();
@@ -124,12 +126,17 @@ public class Operand implements Serializable
 	
 	public String toString()
 	{
-			return ("(" + type + ")" + Long.toHexString(value));
+			return ("(" + type + ")" + value);
 	}
 
 	public OperandType getOperandType()
 	{
 		return type;
+	}
+
+	public void setValue(long value) 
+	{
+		this.value = value; 
 	}
 		
 	public long getValue()
@@ -172,33 +179,57 @@ public class Operand implements Serializable
 		return (this.type == OperandType.floatRegister);
 	}
 	
+	private void set(OperandType operandType, long  operandValue)
+	{
+		this.type = operandType;
+		this.value = operandValue;
+		
+		this.memoryLocationFirstOperand = null;
+		this.memoryLocationSecondOperand = null;
+	}
+
+	private void set(OperandType operandType, long  operandValue,
+			Operand memoryLocationFirstOperand, Operand memoryOperandSecondOperand)
+	{
+		this.type = operandType;
+		this.value = operandValue;
+
+		this.memoryLocationFirstOperand = memoryLocationFirstOperand;
+		this.memoryLocationSecondOperand = memoryOperandSecondOperand;
+	}
+	
 	public static Operand getIntegerRegister(long value)
 	{
-		return new Operand(OperandType.integerRegister, value);
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.integerRegister, value);
+		return op;
 	}
 	
 	public static Operand getFloatRegister(long value)
 	{
-		return new Operand(OperandType.floatRegister, value);	
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.floatRegister, value);
+		return op;
 	}
 	
 	public static Operand getMachineSpecificRegister(long value)
 	{
-		return new Operand(OperandType.machineSpecificRegister, value);	
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.machineSpecificRegister, value);
+		return op;
 	}
 	
 	public static Operand getImmediateOperand()
 	{
-		return new Operand(OperandType.immediate, -1);
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.immediate, -1);
+		return op;
 	}
 	
 	public static Operand getMemoryOperand(Operand memoryOperand1, Operand memoryOperand2)
 	{
-		return new Operand(OperandType.memory, -1, memoryOperand1, memoryOperand2);
-	}
-
-	public void setValue(long value) 
-	{
-		this.value = value; 
+		Operand op = CustomObjectPool.getOperandPool().borrowObject();
+		op.set(OperandType.memory, -1, memoryOperand1, memoryOperand2);
+		return op;
 	}
 }

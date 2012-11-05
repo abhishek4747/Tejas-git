@@ -20,14 +20,9 @@
 *****************************************************************************/
 package memorysystem;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-
 import memorysystem.LSQEntry.LSQEntryType;
-
-import pipeline.outoforder.OpTypeToFUTypeMapping;
+import pipeline.outoforder.OutOrderCoreMemorySystem;
 import pipeline.outoforder.ReorderBufferEntry;
-import pipeline.statistical.DelayGenerator;
 
 import generic.*;
 
@@ -35,36 +30,34 @@ public class LSQ extends SimulationElement
 {
 	CoreMemorySystem containingMemSys;
 	protected LSQEntry[] lsqueue;
-	protected int tail = 0; // You can start adding at the tail index
-	protected int head = 0;	// Instructions retire at the head
+	protected int tail; // points to last valid entry
+	protected int head; // points to first valid entry
 	public int lsqSize;
 	protected int curSize;
 		
 	public int noOfMemRequests = 0;
-	public int NoOfLd = 0; //Total number of load instructions encountered
+	public int NoOfLd = 0;
 	public int NoOfSt = 0;
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
 	
 	public static final int INVALID_INDEX = -1;
-	Hashtable<Long,OMREntry> missStatusHoldingRegister;
+	
 	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
 		this.containingMemSys = containingMemSys;
 		this.lsqSize = lsqSize;
+		head = -1;
+		tail = -1;
 		curSize = 0;
-		lsqueue = new LSQEntry[lsqSize];	
-		this.missStatusHoldingRegister = new Hashtable<Long,OMREntry>();
-
-	}
-
-	public Hashtable<Long, OMREntry> getMissStatusHoldingRegister() {
-		return missStatusHoldingRegister;
-	}
-
-	public void setMissStatusHoldingRegister(
-			Hashtable<Long, OMREntry> missStatusHoldingRegister) {
-		this.missStatusHoldingRegister = missStatusHoldingRegister;
+		lsqueue = new LSQEntry[lsqSize];
+		for(int i = 0; i < lsqSize; i++)
+		{
+			LSQEntry entry = new LSQEntry(LSQEntryType.LOAD, null);
+			entry.setAddr(-1);
+			entry.setIndexInQ(i);
+			lsqueue[i] = entry;
+		}
 	}
 
 	public LSQEntry addEntry(boolean isLoad, long address, ReorderBufferEntry robEntry) //To be accessed at the time of allocating the entry
@@ -78,27 +71,34 @@ public class LSQ extends SimulationElement
 		else
 			NoOfSt++;
 		
-		LSQEntry entry = new LSQEntry(type, robEntry);
-		int index = tail;
+		if(head == -1)
+		{
+			head = tail = 0;
+		}
+		else
+		{
+			tail = (tail + 1)%lsqSize;
+		}
+		
+		LSQEntry entry = lsqueue[tail];
+		if(!entry.isRemoved())
+			System.err.println("entry currently in use being re-allocated");
+		entry.recycle();
+		entry.setType(type);
+		entry.setRobEntry(robEntry);
 		entry.setAddr(address);
-		entry.setIndexInQ(index);
-		lsqueue[index] = entry;
-		tail = incrementQ(tail);
 		this.curSize++;
-//		System.out.println(curSize);
 		return entry;
 	}
 
-	public boolean loadValidate(LSQEntry entry/*int index*/, Event event)//, long address)
+	public boolean loadValidate(LSQEntry entry)
 	{
-//		LSQEntry entry = lsqueue[index];
-		
 		//Test check
 		if (lsqueue[entry.getIndexInQ()] != entry)
-			System.out.println(" Entry index and actual entry dont match : LOAD" + entry.getIndexInQ());
+			System.err.println(" Entry index and actual entry dont match : LOAD" + entry.getIndexInQ());
 		
 		entry.setValid(true);
-		boolean couldForward = loadResolve(entry.getIndexInQ(), entry, event);
+		boolean couldForward = loadResolve(entry.getIndexInQ(), entry);
 		if(couldForward) 
 		{
 			NoOfForwards++;
@@ -114,9 +114,10 @@ public class LSQ extends SimulationElement
 		return couldForward;
 	}
 
-	protected boolean loadResolve(int index, LSQEntry entry, Event event)
+	protected boolean loadResolve(int index, LSQEntry entry)
 	{
 		int tmpIndex;
+		int ctr = 2;
 		
 		if (entry.getIndexInQ() == head)
 			return false;
@@ -125,6 +126,12 @@ public class LSQ extends SimulationElement
 
 		while(true)
 		{
+			if(ctr > curSize)
+			{
+				break;
+			}
+			ctr++;
+			
 			LSQEntry tmpEntry = lsqueue[tmpIndex];
 			if (tmpEntry.getType() == LSQEntry.LSQEntryType.STORE)
 			{
@@ -139,32 +146,23 @@ public class LSQ extends SimulationElement
 						// Successfully forwarded the value
 						entry.setForwarded(true);
 						if (entry.getRobEntry() != null && !entry.getRobEntry().getExecuted())
-							sendExecComplete(entry.getRobEntry());
-						//For perfect pipeline
-//						else if (entry.getRobEntry() == null)
-//						{
-//							Core.outstandingMemRequests--;
-//						}
+							((OutOrderCoreMemorySystem)containingMemSys).sendExecComplete(entry.getRobEntry());
 						return true;
 					}
 				}
 				else
 					break;
 			}
-			if(tmpIndex == head)
-				break;
 			tmpIndex = decrementQ(tmpIndex);
 		}
 		return false;
 	}
 
-	public void storeValidate(LSQEntry entry/*int index*/)//, long address)
+	public void storeValidate(LSQEntry entry)
 	{
-//		LSQEntry entry = lsqueue[index];
-
 		//Test check
 		if (lsqueue[entry.getIndexInQ()] != entry)
-			System.out.println(" Entry index and actual entry dont match : STORE" + entry.getIndexInQ());
+			System.err.println(" Entry index and actual entry dont match : STORE" + entry.getIndexInQ());
 		
 		entry.setValid(true);
 		storeResolve(entry.getIndexInQ(), entry);
@@ -173,9 +171,18 @@ public class LSQ extends SimulationElement
 	protected void storeResolve(int index, LSQEntry entry)
 	{
 		int sindex = incrementQ(index);
-		while (sindex != tail) //Alright
+		int ctr = 2;
+		
+		while (true)
 		{
 			LSQEntry tmpEntry = lsqueue[sindex];
+			
+			if(ctr > curSize)
+			{
+				break;
+			}
+			ctr++;
+			
 			if (tmpEntry.getType() == LSQEntry.LSQEntryType.LOAD)
 			{
 				if(tmpEntry.getAddr() == entry.getAddr()) 
@@ -188,13 +195,8 @@ public class LSQ extends SimulationElement
 						
 						tmpEntry.setForwarded(true);
 						if (tmpEntry.getRobEntry() != null && !tmpEntry.getRobEntry().getExecuted())
-							sendExecComplete(tmpEntry.getRobEntry());
+							((OutOrderCoreMemorySystem)containingMemSys).sendExecComplete(tmpEntry.getRobEntry());
 						
-						//For perfect pipeline
-//						else if (tmpEntry.getRobEntry() == null)
-//						{
-//							Core.outstandingMemRequests--;
-//						}
 						NoOfForwards++;
 					}
 				}
@@ -214,10 +216,6 @@ public class LSQ extends SimulationElement
 	//Only used by the statistical pipeline
 	public void processROBCommitForStatisticalPipeline(EventQueue eventQueue)
 	{
-//		if (!(lsqueue[head].getType() == LSQEntryType.STORE ||
-//				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))
-//			return true;
-		
 		while (curSize > 0 && ((lsqueue[head].getType() == LSQEntryType.STORE && lsqueue[head].isValid())||
 				(lsqueue[head].getType() == LSQEntryType.LOAD && lsqueue[head].isForwarded() == true)))
 		{
@@ -234,12 +232,20 @@ public class LSQ extends SimulationElement
 								this,
 								this.containingMemSys.l1Cache,
 								RequestType.Cache_Write,
-								entry));
+								entry,
+								this.containingMemSys.coreID));
 			}
 //			else
 //				Core.outstandingMemRequests--;
 	
-			this.head = this.incrementQ(this.head);
+			if(head == tail)
+			{
+				head = tail = -1;
+			}
+			else
+			{
+				this.head = this.incrementQ(this.head);
+			}
 			this.curSize--;
 //			System.out.println(curSize);
 			//containingMemSys.core.getExecEngine().outstandingMemRequests--;
@@ -301,9 +307,9 @@ public class LSQ extends SimulationElement
 		{
 			handleCommitsFromROB(eventQ, event);
 		}
-		else if (event.getRequestType() == RequestType.Mem_Response)
+		else if (event.getRequestType() == RequestType.Attempt_L1_Issue)
 		{
-			handleMemResponse(eventQ, event);
+			handleAttemptL1Issue(event);
 		}
 	}
 	
@@ -329,7 +335,7 @@ public class LSQ extends SimulationElement
 			this.getPort().put(
 					event.update(
 							eventQ,
-							this.containingMemSys.TLBuffer.getMissPenalty(),//MemorySystem.mainMemory.getLatencyDelay(),
+							this.containingMemSys.TLBuffer.getMissPenalty(),
 							null,
 							this,
 							RequestType.Validate_LSQ_Addr));
@@ -340,161 +346,175 @@ public class LSQ extends SimulationElement
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
-//		if(lsqEntry.getRobEntry().getIssued() == false)
-//		{
-//			System.out.println("validating a load/store that hasn't been issued");
-//		}
-		
 		//If the LSQ entry is a load
 		if (lsqEntry.getType() == LSQEntryType.LOAD)
 		{
-			//If the value could not be forwarded
-			Event eventNew = event.update(
-					eventQ,
-					this.containingMemSys.l1Cache.getLatencyDelay(),
-					this,
-					this.containingMemSys.l1Cache,
-					RequestType.Cache_Read);
-			if (!(this.loadValidate(lsqEntry/*.getIndexInQ()*/, event)))
-			{
-				
-//				this.containingMemSys.issueRequestToL1CacheFromOutofOrder(this, 
-//						RequestType.Cache_Read, 
-//						lsqEntry.getAddr(),containingMemSys.coreID);
-				
-				
-				this.containingMemSys.l1Cache.getPort().put(
-						eventNew);
-			}
 			
-/*			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
-			if(!missStatusHoldingRegister.containsKey(lsqEntry.getAddr()))
+			if (!(this.loadValidate(lsqEntry)))
 			{
-				ArrayList<Event> eventList = new ArrayList<Event>();
-				eventList.add(eventNew);
-				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,eventNew));
+				handleAttemptL1Issue(event);
 			}
-			else
-			{
-				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(eventNew);
-			}
-*/		}
+		}
 		else //If the LSQ entry is a store
 		{
 			this.storeValidate(lsqEntry);
 		}
 	}
 	
-	protected void handleMemResponse(EventQueue eventQ, Event event)
+	public void handleAttemptL1Issue(Event event)
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
-		if ((lsqEntry.getType() == LSQEntryType.LOAD) &&
-				!lsqEntry.isRemoved() &&
-				!lsqEntry.isForwarded())
+		if(lsqEntry.isForwarded() == true)
 		{
-			
-			//TODO Test check
-			if (!lsqEntry.isValid())
-				System.err.println(" 03 Invalid entry forwarded");
-			
-			lsqEntry.setForwarded(true);
-			
-			if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())	
-				sendExecComplete(lsqEntry.getRobEntry());
-			
-//			//For perfect pipeline
-//			else if (lsqEntry.getRobEntry() == null)
-//			{
-//				Core.outstandingMemRequests--;
-//			}
-		}/*
-		else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
+			// its possible that while waiting for the L1 cache to get free,
+			//this LSQ entry gets its value through forwarding
+			//as a result of an earlier store getting its address validated
+			return;
+		}
+		
+		boolean requestIssued = this.containingMemSys.issueRequestToL1Cache(RequestType.Cache_Read, lsqEntry.getAddr());
+		
+		if(requestIssued == false)
 		{
-			receivingLSQ.lsqueue[lsqIndex].setStoreCommitted(true);
-			//TODO : Also to increment the head of the queue. Following code is from the LSQCommitEventFromROB
-			/*
-			processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
-			processingLSQ.curSize--;
-			//long address = entry.getAddr();
-			*
-			//TODO : Commit the STORE entry in the LSQ and may be generate an event 
-			//to tell the ROB or something
-		}*/
+			event.addEventTime(1);
+			event.setRequestType(RequestType.Attempt_L1_Issue);
+			event.getEventQ().addEvent(event);
+		}
+		else
+		{
+			lsqEntry.setIssued(true);
+		}
+	}
+	
+	public void handleMemResponse(long address)
+	{
+		LSQEntry lsqEntry = null;
+		
+		int index = head;
+		for(int i = 0; i < curSize; i++)
+		{
+			lsqEntry = lsqueue[index];
 			
+			if ((lsqEntry.getType() == LSQEntryType.LOAD) &&
+					!lsqEntry.isRemoved() &&
+					!lsqEntry.isForwarded() &&
+					lsqEntry.getAddr() == address)
+			{
+				
+				//TODO Test check
+				if (!lsqEntry.isValid())
+				{
+					index = (index+1)%lsqSize;
+					continue;
+				}
+				
+				lsqEntry.setForwarded(true);
+				
+				if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted()
+						&& !containingMemSys.core.isPipelineStatistical)	
+					((OutOrderCoreMemorySystem)containingMemSys).sendExecComplete(lsqEntry.getRobEntry());
+			}/*
+			else if (receivingLSQ.lsqueue[lsqIndex].getType() == LSQEntryType.STORE)
+			{
+				receivingLSQ.lsqueue[lsqIndex].setStoreCommitted(true);
+				//TODO : Also to increment the head of the queue. Following code is from the LSQCommitEventFromROB
+				/*
+				processingLSQ.head = processingLSQ.incrementQ(processingLSQ.head);
+				processingLSQ.curSize--;
+				//long address = entry.getAddr();
+				*
+				//TODO : Commit the STORE entry in the LSQ and may be generate an event 
+				//to tell the ROB or something
+			}*/
+			
+			index = (index+1)%lsqSize;
+		}	
 	}
 	
 	public void handleCommitsFromROB(EventQueue eventQ, Event event)
 	{
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		
-		//Check the error condition
-//		if (lsqEntry.getIndexInQ() != this.head)
-//		{
-//			System.err.println("Error in LSQ :  ROB sent commit for an instruction other than the one at the head");
-//			System.exit(1);
-//		}
+		/*
+		 * a wide OOO pipeline may send multiple commits to the LSQ in one cycle;
+		 * these commits need not come in the same order as they were inserted;
+		 * (this is due to the priority queue implementation in the event queue)
+		 * to handle this, all memory operations from 'head' to the one in the event are committed
+		 */
 		
-		// advance the head of the queue
+		int commitUpto = lsqEntry.getIndexInQ();
 		
-		// if it is a store, send the request to the cache
-		if(lsqEntry.getType() == LSQEntry.LSQEntryType.STORE) 
+		if(lsqueue[commitUpto].isRemoved() == true)
 		{
-			//TODO Write to the cache
-//			this.containingMemSys.issueRequestToL1CacheFromOutofOrder(this, 
-//					RequestType.Cache_Write, 
-//					lsqEntry.getAddr(),containingMemSys.coreID);
-
-			Event eventNew = event.update(eventQ,this.containingMemSys.l1Cache.getLatencyDelay(),
-										this,this.containingMemSys.l1Cache,RequestType.Cache_Write);
+			return;
+		}
+		
+		int i = head;
+		
+		for(; ; i = (i+1)%lsqSize)
+		{
+			LSQEntry tmpEntry = lsqueue[i];
 			
-			this.containingMemSys.l1Cache.getPort().put(
-					eventNew);
-
-/*			Hashtable<Long,OMREntry> missStatusHoldingRegister =this.missStatusHoldingRegister;
-			if(!missStatusHoldingRegister.containsKey(lsqEntry.getAddr()))
+			// if it is a store, send the request to the cache
+			if(tmpEntry.getType() == LSQEntry.LSQEntryType.STORE) 
 			{
-				ArrayList<Event> eventList = new ArrayList<Event>();
-				eventList.add(eventNew);
-				missStatusHoldingRegister.put(lsqEntry.getAddr(), new OMREntry(eventList,true,eventNew));
+				if(tmpEntry.isValid() == false)
+				{
+					System.err.println("store not ready to be committed");
+				}
+				
+				boolean requestIssued = containingMemSys.issueRequestToL1Cache(RequestType.Cache_Write, tmpEntry.getAddr());
+				
+				if(requestIssued == false)
+				{
+					event.addEventTime(1);
+					event.getEventQ().addEvent(event);
+					break; //removals must be in-order : if u can't commit the operation at the head, u can't commit the ones that follow it
+				}
+
+				else
+				{
+					if(head == tail)
+					{
+						head = tail = -1;
+					}
+					else
+					{
+						this.head = this.incrementQ(this.head);
+					}
+					this.curSize--;
+					tmpEntry.setRemoved(true);
+				}
 			}
+			
+			//If it is a LOAD which has received its value
+			else if (tmpEntry.isForwarded())
+			{
+				if(head == tail)
+				{
+					head = tail = -1;
+				}
+				else
+				{
+					this.head = this.incrementQ(this.head);
+				}
+				this.curSize--;
+				tmpEntry.setRemoved(true);
+			}
+			
+			//If it is a LOAD which has not yet received its value
 			else
 			{
-				missStatusHoldingRegister.get(lsqEntry.getAddr()).outStandingEvents.add(eventNew);
-			}	
-*/
-			this.head = this.incrementQ(this.head);
-			this.curSize--;
-		}
-		
-		//If it is a LOAD which has received its value
-		else if (lsqEntry.isForwarded())
-		{
-			this.head = this.incrementQ(this.head);
-			this.curSize--;
-		}
-		
-		//If it is a LOAD which has not yet received its value
-		else
-		{
-			System.err.println("Error in LSQ " +this.containingMemSys.coreID+ " :  ROB sent commit for a load which has not received its value");
-			System.exit(1);
+				System.err.println("Error in LSQ " +this.containingMemSys.coreID+ " :  ROB sent commit for a load which has not received its value");
+				System.out.println(tmpEntry.getIndexInQ() + " : load : " + tmpEntry.getAddr());
+				System.exit(1);
+			}
+			
+			if(i == commitUpto)
+			{
+				break;
+			}
 		}
 	}
-	
-	public void sendExecComplete(ReorderBufferEntry robEntry)
-	{
-		if (!containingMemSys.getCore().isPipelineStatistical)
-			containingMemSys.getCore().getEventQueue().addEvent(
-					new ExecCompleteEvent(
-							containingMemSys.getCore().getEventQueue(),
-							GlobalClock.getCurrentTime(),
-							null,
-							containingMemSys.getCore().getExecEngine().getExecuter(),
-							RequestType.EXEC_COMPLETE,
-							robEntry));
-		else
-			DelayGenerator.insCountOut++;
-	}
-	
 }

@@ -1,7 +1,9 @@
 package pipeline.outoforder;
 
+import main.CustomObjectPool;
+import main.Main;
+import memorysystem.MemorySystem;
 import config.SimulationConfig;
-import emulatorinterface.Newmain;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -27,7 +29,7 @@ public class ReorderBuffer extends SimulationElement{
 	
 	int retireWidth;
 	
-	ExecutionEngine execEngine;
+	OutOrderExecutionEngine execEngine;
 	
 	int stall1Count;
 	int stall2Count;
@@ -38,8 +40,10 @@ public class ReorderBuffer extends SimulationElement{
 	long mispredCount;
 
 	private int j;
+	
+	int invalidCount;
 
-	public ReorderBuffer(Core _core, ExecutionEngine execEngine)
+	public ReorderBuffer(Core _core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, _core.getEventQueue(), -1, -1);
 		core = _core;
@@ -65,6 +69,8 @@ public class ReorderBuffer extends SimulationElement{
 		
 		retireWidth = core.getRetireWidth();
 		j=0;
+		
+		invalidCount = 0;
 	}
 	
 	public boolean isFull()
@@ -107,6 +113,11 @@ public class ReorderBuffer extends SimulationElement{
 				head = 0;
 			}
 			ReorderBufferEntry newReorderBufferEntry = ROB[tail];
+			
+			if(newReorderBufferEntry.isValid == true)
+			{
+				System.out.println("new rob entry is alread valid");
+			}
 			
 			newReorderBufferEntry.setInstruction(newInstruction);
 			newReorderBufferEntry.setThreadID(threadID);
@@ -176,27 +187,64 @@ public class ReorderBuffer extends SimulationElement{
 		{
 			for(int no_insts = 0; no_insts < retireWidth; no_insts++)
 			{
-				if(head == -1)
+				/*if(head == -1)
 				{
 					if(execEngine.isAllPipesEmpty() == true)
 					{
 						//if ROB is empty, and decode pipe is empty, that means execution is complete
-						execEngine.setExecutionComplete(true);
+						this.core.currentThreads--;
+						
+						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+															  //assigned to this pipeline	
+							execEngine.setExecutionComplete(true);
+						}
 						
 						setTimingStatistics();			
 						setPerCoreMemorySystemStatistics();
 						setPerCorePowerStatistics();
 					}
 					break;
+				}*/
+				
+				if(head == -1)
+				{
+					//ROB empty .. does not mean execution has completed
+					return;
 				}
 				
 				ReorderBufferEntry first = ROB[head];
 				Instruction firstInstruction = first.getInstruction();
 				OperationType firstOpType = firstInstruction.getOperationType();
-				Operand firstDestOpnd = firstInstruction.getDestinationOperand();
+				Operand firstDestOpnd = firstInstruction.getDestinationOperand();								
 				
 				if(first.isWriteBackDone() == true)
-				{
+				{					
+					if(firstOpType==OperationType.inValid)
+					{
+						this.core.currentThreads--;
+						//System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
+						//System.out.println("head = " + head);					
+						
+						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+															  //assigned to this pipeline	
+							execEngine.setExecutionComplete(true);
+							//System.out.println("DONE!! core : " + core.getCore_number() + "  - WB = " + first.isWriteBackDone());
+							
+							
+						}
+//						System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
+						setTimingStatistics();			
+						setPerCoreMemorySystemStatistics();
+						setPerCorePowerStatistics();
+						//memWbLatch.clear();
+						
+						if(this.core.currentThreads < 0)
+						{
+							this.core.currentThreads=0;
+							System.out.println("num threads < 0");
+						}
+					}
+					
 					//if store, and if store not yet validated
 					if(firstOpType == OperationType.store && !first.lsqEntry.isValid())
 					{
@@ -229,7 +277,7 @@ public class ReorderBuffer extends SimulationElement{
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
 					if(core.getNoOfInstructionsExecuted()%1000000==0){
-						System.out.println(this.j++ + " million done");
+						System.out.println(this.j++ + " million done on " + core.getCore_number());
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					
@@ -264,37 +312,44 @@ public class ReorderBuffer extends SimulationElement{
 //										first.getLsqEntry()));
 						if (!first.lsqEntry.isValid())
 							System.out.println("The committed entry is not valid");
-						execEngine.coreMemSys.issueLSQStoreCommit(first);
-						first.getLsqEntry().setRemoved(true);
+						//System.out.println("commiting robentry : " + first.getLsqEntry().getIndexInQ());
+						execEngine.getCoreMemorySystem().issueLSQCommit(first);
+						//first.getLsqEntry().setRemoved(true);
 					}
 					
-					ROB[head].setValid(false);
-					if(head == tail)
-					{
-						head = -1;
-						tail = -1;
-					}
-					else
-					{
-						head = (head+1)%MaxROBSize;
-					}
+					retireInstructionAtHead();
 					
 					if(firstOpType == OperationType.branch)
 					{
 						core.getBranchPredictor().Train(
-														first.getInstruction().getRISCProgramCounter(),
-														first.getInstruction().isBranchTaken(),
-														core.getBranchPredictor().predict(first.getInstruction().getRISCProgramCounter())
+														firstInstruction.getRISCProgramCounter(),
+														firstInstruction.isBranchTaken(),
+														core.getBranchPredictor().predict(firstInstruction.getRISCProgramCounter())
 														);
 						
 						branchCount++;
 						this.core.powerCounters.incrementBpredAccess(1);
 					}
 					
-					try {
-						Newmain.instructionPool.returnObject(firstInstruction);
-					} catch (Exception e) {
-						e.printStackTrace();
+					if(firstInstruction.getOperationType() != OperationType.inValid)
+					{
+						returnInstructionToPool(firstInstruction);
+					}
+					
+					if(execEngine.isExecutionComplete() == true)
+					{
+						if(((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().inputToPipeline[0].size() > 0)
+						{
+							System.out.println("input to pipeline not empty!!");
+						}
+						
+						/*for(int i = 0; i < 11; i++)
+						{
+							System.out.print(Newmain.cores[i].getExecEngine().isExecutionComplete() + " ");
+							System.out.print(Newmain.cores[i].currentThreads + " ");
+							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getReorderBuffer().head + " ");
+							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getFetcher().inputToPipeline[0].size() + " ");
+						}*/
 					}
 				}
 				else
@@ -419,6 +474,34 @@ public class ReorderBuffer extends SimulationElement{
 		}
 	}
 	
+	void retireInstructionAtHead()
+	{
+		ROB[head].setValid(false);
+		if(ROB[head].instruction.getOperationType() == OperationType.inValid && core.getCore_number() == 2)
+		{
+			System.out.println("retiring invalid");
+		}
+		ROB[head].instruction = null;
+		if(head == tail)
+		{
+			head = -1;
+			tail = -1;
+		}
+		else
+		{
+			head = (head+1)%MaxROBSize;
+		}
+	}
+	
+	void returnInstructionToPool(Instruction instruction)
+	{
+		try {
+			CustomObjectPool.getInstructionPool().returnObject(instruction);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void dump()
 	{
 		ReorderBufferEntry e;
@@ -494,22 +577,40 @@ public class ReorderBuffer extends SimulationElement{
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(execEngine.coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(execEngine.coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(execEngine.coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfValueForwards(execEngine.coreMemSys.getLsqueue().NoOfForwards, core.getCore_number());
-		Statistics.setNoOfTLBRequests(execEngine.coreMemSys.getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(execEngine.coreMemSys.getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(execEngine.coreMemSys.getTLBuffer().getTlbMisses(), core.getCore_number());
-		Statistics.setNoOfL1Requests(execEngine.coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(execEngine.coreMemSys.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(execEngine.coreMemSys.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(core.getExecEngine().coreMemSys.getiCache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfIHits(core.getExecEngine().coreMemSys.getiCache().hits, core.getCore_number());
-		Statistics.setNoOfIMisses(core.getExecEngine().coreMemSys.getiCache().misses, core.getCore_number());
+		Statistics.setNoOfMemRequests(execEngine.getCoreMemorySystem().getLsqueue().noOfMemRequests, core.getCore_number());
+		Statistics.setNoOfLoads(execEngine.getCoreMemorySystem().getLsqueue().NoOfLd, core.getCore_number());
+		Statistics.setNoOfStores(execEngine.getCoreMemorySystem().getLsqueue().NoOfSt, core.getCore_number());
+		Statistics.setNoOfValueForwards(execEngine.getCoreMemorySystem().getLsqueue().NoOfForwards, core.getCore_number());
+		Statistics.setNoOfTLBRequests(execEngine.getCoreMemorySystem().getTLBuffer().getTlbRequests(), core.getCore_number());
+		Statistics.setNoOfTLBHits(execEngine.getCoreMemorySystem().getTLBuffer().getTlbHits(), core.getCore_number());
+		Statistics.setNoOfTLBMisses(execEngine.getCoreMemorySystem().getTLBuffer().getTlbMisses(), core.getCore_number());
+		Statistics.setNoOfL1Requests(execEngine.getCoreMemorySystem().getL1Cache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfL1Hits(execEngine.getCoreMemorySystem().getL1Cache().hits, core.getCore_number());
+		Statistics.setNoOfL1Misses(execEngine.getCoreMemorySystem().getL1Cache().misses, core.getCore_number());
+		Statistics.setNoOfIRequests(execEngine.getCoreMemorySystem().getiCache().noOfRequests, core.getCore_number());
+		Statistics.setNoOfIHits(execEngine.getCoreMemorySystem().getiCache().hits, core.getCore_number());
+		Statistics.setNoOfIMisses(execEngine.getCoreMemorySystem().getiCache().misses, core.getCore_number());
+		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
+		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().misses);
+		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
+		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
+		Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
+
+		System.out.println("numAccesses = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfAccesses );
+		System.out.println("numWritesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesReceived );
+		System.out.println("numResponsesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesReceived );
+		System.out.println("numResponsesSent = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesSent );
+		System.out.println("numWritesForwarded = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesForwarded );
+		System.out.println("numAccesses = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfAccesses );
+		System.out.println("numWritesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesReceived );
+		System.out.println("numResponsesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesReceived );
+		System.out.println("numResponsesSent = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesSent );
+		System.out.println("numWritesForwarded = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesForwarded );
 	}
 
 	public void setPerCorePowerStatistics(){
+		//Clear access stats so that all counts can be transferred to total counts  
+		core.powerCounters.clearAccessStats();
 		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}

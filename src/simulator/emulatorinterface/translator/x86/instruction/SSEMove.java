@@ -22,26 +22,25 @@
 package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
 import generic.InstructionLinkedList;
 import generic.Operand;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
-public class SSEMove implements InstructionHandler 
+public class SSEMove implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps;
-		microOps = new InstructionLinkedList();
-
 		if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand()
 				&& operand3==null)
 		{
 			//If both operands are registers use a simple move operation.
-			microOps.appendInstruction(Instruction.getMoveInstruction(operand1,
+			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1,
 					operand2));
 		}
 		
@@ -49,7 +48,7 @@ public class SSEMove implements InstructionHandler
 				&& operand3==null)
 		{
 			//If the source operand is a memory location then use a load operation
-			microOps.appendInstruction(Instruction.getLoadInstruction(operand2,
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand2,
 					operand1));
 		}
 		
@@ -57,9 +56,8 @@ public class SSEMove implements InstructionHandler
 				&& operand3==null)
 		{
 			//If the destination operand is a memory location, its a store operation
-			microOps.appendInstruction(Instruction.getStoreInstruction(operand1,
+			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand1,
 					operand2));
-			
 		}
 		
 		else

@@ -1,10 +1,10 @@
 package generic;
 
-import emulatorinterface.Newmain;
+import main.CustomObjectPool;
 
 public class CustomInstructionPool {
 	
-	Instruction[] pool;
+	/*Instruction[] pool;
 	public int head;
 	public int tail;
 	public int poolSize;
@@ -95,7 +95,48 @@ public class CustomInstructionPool {
 		}
 		return (poolSize - head + tail + 1);
 	}
+	*/
 	
+	GenericCircularBuffer<Instruction> pool;
+	
+	public CustomInstructionPool(int poolSize)
+	{
+		pool = new GenericCircularBuffer<Instruction>(Instruction.class, poolSize, false);
+	}
+	
+	public Instruction borrowObject()
+	{
+		if(pool.isEmpty()) {
+			misc.Error.showErrorAndExit("instruction pool empty!!");
+			return null;
+		}
+		
+		return pool.removeObjectAtHead();		
+	}
+	
+	public void returnObject(Instruction arg0)
+	{
+//		System.out.println("return"+head+" "+tail);
+		if(arg0.getSourceOperand1() != null)
+		{
+			CustomObjectPool.getOperandPool().returnObject(arg0.getSourceOperand1());
+		}
+		if(arg0.getSourceOperand2() != null)
+		{
+			CustomObjectPool.getOperandPool().returnObject(arg0.getSourceOperand2());
+		}
+		if(arg0.getDestinationOperand() != null)
+		{
+			CustomObjectPool.getOperandPool().returnObject(arg0.getDestinationOperand());
+		}
+		
+		pool.append(arg0);
+	}
+	
+	public int getNumIdle()
+	{
+		return pool.size();
+	}
 }
 
 

@@ -17,27 +17,34 @@
 
 ******************************************************************************
 	Contributors:  Moksh Upadhyay, Abhishek Sagar
-*****************************************************************************/--><Configuration>
-
-	<!--Simulation Parameters-->
-	<Simulation>
+*****************************************************************************/-->
+<Configuration>
+	<Emulator>
+		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
+		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
 		<PinTool>/home/eldhose/workspace/PIN</PinTool>
 		<PinInstrumentor>/home/eldhose/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
+	</Emulator>
+	
+	<!--Simulation Parameters-->
+	<Simulation>
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
-		<Mode>1</Mode>   					<!--From file 0,  From shmem 1, TODO add others -->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
-		<PipelineType>1</PipelineType>	<!--0 => Statistical ; 1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
+		<PipelineType>3</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
+		<NumInorderPipelines>3</NumInorderPipelines>	<!--Only applicable if the pipeline type is multi issue inorder-->
 		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
 		<subsetSim>false</subsetSim>
-		<subsetSimSize>200000000</subsetSimSize>
-		<PowerTrace>1</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
+		<subsetSimSize>10000000</subsetSimSize>
+		<PrintPowerStats>false</PrintPowerStats>
+		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsForTrace>100000</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 	</Simulation>
@@ -52,8 +59,8 @@
 		<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
         <NearestBankToCores>0,4 0,4 12,4 12,4</NearestBankToCores>
-<!--Directory Access Latencies. Need to be removed when merged with NoC-->
-
+	
+	<!--Directory Access Latencies. Need to be removed when merged with NoC-->
 		<directoryAccessLatency>2</directoryAccessLatency>
 		<memWBDelay>200</memWBDelay>
 		<dataTransferDelay>3</dataTransferDelay>
@@ -114,7 +121,6 @@
 			<FloatDivLatency>1</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
 			<AddressFULatency>1</AddressFULatency>
 			<AcceleratedFULatency>1</AcceleratedFULatency>
-			<NumInorderPipelines>1</NumInorderPipelines>	<!--Only applicable if the pipeline type is multi issue inorder-->
 			<!--Specify only the iCache and L1 (immediately next to the core) cache of the core here-->
 			<iCache nextLevel="L2" type="Type0"/>
 			<L1Cache nextLevel="L2" type="Type1"/>
@@ -139,7 +145,42 @@
 			<NumSets>1024</NumSets>
 			<Associativity>4</Associativity>
 		</BTB>
-		
+		<Directory>
+		<Type0>
+			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+			<BlockSize>32</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
+			<Associativity>4</Associativity>
+			<Size>2</Size>					<!--In KBs-->
+			<Latency>1</Latency>				<!--In clock cycles-->
+			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<AccessPorts>4</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<MSHRSize>2</MSHRSize>
+			<BusOccupancy>0</BusOccupancy>
+			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumberOfBankRows>2</NumberOfBankRows>
+			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
+			<NocSelScheme>STATIC</NocSelScheme>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>OMEGA</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>OMEGA</NocRoutingAlgorithm>
+			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+			<NocRouterArbiter>RR</NocRouterArbiter>
+			<TechPoint>90</TechPoint>
+			<NocConnection>OPTICAL</NocConnection>
+		</Type0>
+
+		</Directory>
 		<!--Specify the caches other than the L1 caches after this-->
 		<Cache frequency="2000" name="L2" nextLevel="" type="Type2"/>
 
@@ -219,7 +260,7 @@
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>128</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>8192</Size>				<!--In KBs-->
+			<Size>4096</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -230,8 +271,8 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>2</NumberOfBankRows>
+			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
 			<NocSelScheme>ADAPTIVE</NocSelScheme>
 			<NocNumberOfBuffers>3</NocNumberOfBuffers>
@@ -306,7 +347,7 @@
 		  <dcache_power>1.57849</dcache_power>
 		  <dcache2_power>14.7095</dcache2_power>
 		  <clock_power>3.55331</clock_power>
-		  
+		  <clockGatingStyle>1</clockGatingStyle>
 		  <itlb>0.0217474</itlb>
 		  <dtlb>0.0217474</dtlb>
 		  <resultbus>2.76628</resultbus>

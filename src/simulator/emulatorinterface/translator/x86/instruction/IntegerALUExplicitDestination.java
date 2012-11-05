@@ -24,16 +24,18 @@ package emulatorinterface.translator.x86.instruction;
 
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
+import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
 import generic.Operand;
-import generic.InstructionArrayList;
+import generic.InstructionList;
 
 
-public class IntegerALUExplicitDestination implements InstructionHandler 
+public class IntegerALUExplicitDestination implements X86StaticInstructionHandler 
 {
 	public void handle(long instructionPointer, 
 			Operand operand1, Operand operand2, Operand operand3,
-			InstructionArrayList instructionArrayList) 
+			InstructionList instructionArrayList,
+			TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
 		if(
@@ -47,7 +49,7 @@ public class IntegerALUExplicitDestination implements InstructionHandler
 			//get value-operand for operand1
 			if(operand1.isMemoryOperand())
 			{
-				operand1ValueOperand = OperandTranslator.getLocationToStoreValue(operand1);
+				operand1ValueOperand = OperandTranslator.getLocationToStoreValue(operand1, tempRegisterNum);
 				instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand1, operand1ValueOperand));
 			}
 			else
@@ -59,7 +61,7 @@ public class IntegerALUExplicitDestination implements InstructionHandler
 			//get value-operand for operand2
 			if(operand2.isMemoryOperand())
 			{
-				operand2ValueOperand = OperandTranslator.getLocationToStoreValue(operand2);
+				operand2ValueOperand = OperandTranslator.getLocationToStoreValue(operand2, tempRegisterNum);
 				instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand2, operand2ValueOperand));
 			}
 			else

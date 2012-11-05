@@ -2,6 +2,7 @@ package pipeline.outoforder;
 
 import config.SimulationConfig;
 import generic.Instruction;
+import generic.OperationType;
 
 public class ICacheBuffer {
 	
@@ -36,13 +37,14 @@ public class ICacheBuffer {
 		}
 		
 		buffer[tail] = newInstruction;
-		if(SimulationConfig.detachMemSys == false)
+		if(SimulationConfig.detachMemSys == true ||
+				newInstruction.getOperationType() == OperationType.inValid)
 		{
-			fetchComplete[tail] = false;
+			fetchComplete[tail] = true;
 		}
 		else
 		{
-			fetchComplete[tail] = true;
+			fetchComplete[tail] = false;
 		}
 		
 		//System.out.println("adding ; " + head + " " + tail + " " + newInstruction);
@@ -99,6 +101,21 @@ public class ICacheBuffer {
 		if((tail + 1)%size == head && head != -1 && buffer[head] != null)
 			return true;
 		return false;
+	}
+	
+	public void dump()
+	{
+		if(head == -1)
+			return;
+		
+		for(int i = head; ; i = (i + 1)%size)
+		{
+			if(buffer[i] != null)
+				System.out.println(buffer[i].getRISCProgramCounter() + " : " + fetchComplete[i]);
+			
+			if(i == tail)
+				break;
+		}
 	}
 
 }
