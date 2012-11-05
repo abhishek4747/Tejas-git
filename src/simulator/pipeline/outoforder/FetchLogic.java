@@ -83,6 +83,7 @@ public class FetchLogic extends SimulationElement {
 					for(int j=0; j<bar.getNumThreads(); j++ ){
 						this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
 					}
+					BarrierTable.barrierReset(barrierAddress);
 					this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 							this.core.eventQueue,
 							 1,
