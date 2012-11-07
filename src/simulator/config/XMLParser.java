@@ -370,6 +370,10 @@ public class XMLParser
 			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
 			//core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
 		
+			if(getImmediateString("TreeBarrier", coreElmnt).compareTo("true") == 0)
+				core.TreeBarrier = true;
+			else
+				core.TreeBarrier = false;
 			//Code for instruction cache configurations for each core
 			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
 			Element iCacheElmnt = (Element) iCacheList.item(0);

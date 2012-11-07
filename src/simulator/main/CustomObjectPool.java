@@ -16,7 +16,7 @@ public class CustomObjectPool {
 	public static void initCustomPools(int maxApplicationThreads) {
 		// Create Pools of Instructions, Operands and AddressCarryingEvents
 		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*
-				IpcBase.getEmuThreadsPerJavaThread()*2*5;
+				IpcBase.getEmuThreadsPerJavaThread()*2*2;
 		
 		/* custom pool */
 		System.out.println("creating operand pool..");

@@ -121,6 +121,9 @@
 			<FloatDivLatency>1</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
 			<AddressFULatency>1</AddressFULatency>
 			<AcceleratedFULatency>1</AcceleratedFULatency>
+			
+			<TreeBarrier>false</TreeBarrier>
+			
 			<!--Specify only the iCache and L1 (immediately next to the core) cache of the core here-->
 			<iCache nextLevel="L2" type="Type0"/>
 			<L1Cache nextLevel="L2" type="Type1"/>

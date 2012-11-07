@@ -73,6 +73,7 @@ public class Core {
 	private int numInorderPipelines;
 	public CoreBcastBus coreBcastBus;
 
+	public boolean TreeBarrier;
 
 //	private InorderPipeline inorderPipeline;
 
@@ -135,6 +136,7 @@ public class Core {
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setNumInorderPipelines(SimulationConfig.numInorderPipelines);
+		setTreeBarrier(coreConfig.TreeBarrier);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
@@ -192,6 +194,10 @@ public class Core {
 		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.enqueue(Instruction.getSyncInstruction());
 	}
 
+	public void setTreeBarrier(boolean bar)
+	{
+		TreeBarrier = bar;
+	}
 	public int getIssueWidth() {
 		return issueWidth;
 	}

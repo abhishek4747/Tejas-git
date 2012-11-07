@@ -29,13 +29,17 @@ public class Barrier {
 	int numThreads;
 	int numThreadsArrived;
 	Vector<Integer> blockedThreads;
-	
+	Vector<Integer> TreeInfo;
 	public Barrier(long address, int numThreads)
 	{
+		int i;
 		this.address = address;
 		this.numThreads = numThreads;
 		this.numThreadsArrived = 0;
 		this.blockedThreads = new Vector<Integer>();
+		this.TreeInfo = new Vector<Integer>();
+		for(i=0;i<numThreads + 1; i++)
+			TreeInfo.add(0);
 	}
 	
 	public long getBarrierAddress()
@@ -77,6 +81,14 @@ public class Barrier {
 	public void resetBarrier(){
 		this.numThreadsArrived = 0;
 		this.blockedThreads.clear();
+	}
+	public int getTreeInfo(int node)
+	{
+		return TreeInfo.elementAt(node);
+	}
+	public void addTreeInfo(int node)
+	{
+		TreeInfo.set(node, TreeInfo.get(node) + 1);
 	}
 
 }
