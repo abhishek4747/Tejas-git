@@ -27,7 +27,7 @@ public class Packet
 
 	@Override
 	public String toString() {
-		return "Packet [ip=" + ip + ", tgt=" + tgt + ", value=" + value + "]";
+		return "Packet [ip=" + Long.toHexString(ip).toLowerCase() + ", tgt=" + tgt + ", value=" + value + "]";
 	}
 
 	public void set(long ip, long value, long tgt) {

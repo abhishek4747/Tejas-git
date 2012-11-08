@@ -68,6 +68,8 @@ public class Network extends IpcBase implements Encoding {
 	@Override
 	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
 		
+		int positionInQueueBeforeReading = CustomObjectPool.getCustomAsmCharPool().currentPosition(tidApp);
+		
 		if(tidApp>=maxApplicationThreads) {
 			return 0;
 		}
@@ -165,12 +167,15 @@ public class Network extends IpcBase implements Encoding {
 		}
 		
 		// print debug messages
+//		int numAsmPackets = 0;
 //		for(int i=0; i<numPacketsRead; i++) {
 //			if(fromEmulator.get(i).value==ASSEMBLY) {
-//				String assembly = new String(CustomObjectPool.getCustomAsmCharPool().peek(tidApp, i));
-//				System.out.println(fromEmulator.get(i) + " : " + assembly);
+//				String assembly = new String(CustomObjectPool.
+//						getCustomAsmCharPool().peek(tidApp, positionInQueueBeforeReading + numAsmPackets));
+//				numAsmPackets++;
+//				System.out.println("$$$ :" + i + " : " + fromEmulator.get(i) + " : " + assembly);
 //			} else {
-//				System.out.println(fromEmulator.get(i));
+//				System.out.println("$$$ :" + i + " : " + fromEmulator.get(i));
 //			}
 //		}
 		
