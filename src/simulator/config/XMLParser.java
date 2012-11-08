@@ -506,6 +506,11 @@ public class XMLParser
 			SimulationConfig.nucaType = NucaType.D_NUCA;
 			cache.nucaType = NucaType.D_NUCA;
 		}
+		else if (tempStr.equalsIgnoreCase("CBD"))
+		{
+			SimulationConfig.nucaType = NucaType.CB_D_NUCA;
+			cache.nucaType = NucaType.CB_D_NUCA;
+		}
 		else
 		{
 			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");

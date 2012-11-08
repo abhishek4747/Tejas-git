@@ -20,6 +20,7 @@ import config.SimulationConfig;
 public class CBDNuca extends NucaCache {
 	public CBDNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus) 
 	{
+		
 		super(cacheParameters,containingMemSys, tokenbus);
 		initCacheMapping();
 	}
@@ -124,8 +125,12 @@ public class CBDNuca extends NucaCache {
     	cacheMapping.add(34,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
     	cacheMapping.add(35,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
     	cacheMapping.add(36,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
-
-    	System.out.println(cacheMapping);
+    	for(int i =0 ;i<cacheMapping.size();i++) {
+    		System.out.println("cire number "+i);
+    		for (int j=0;j<cacheMapping.get(i).size();j++)
+    			System.out.println(cacheMapping.get(i).get(j));
+    		System.out.println("\n\n");
+    	}
     }
 	
 	public Vector<Integer> getNearestBankId(long address,int coreId)
@@ -157,7 +162,7 @@ public class CBDNuca extends NucaCache {
 		return getNearestBankId(addr, coreId);
 	}
 	
-	public boolean addEvent(AddressCarryingEvent addressEvent)
+	/*public boolean addEvent(AddressCarryingEvent addressEvent)
 	{
 		SimulationElement requestingElement = addressEvent.getRequestingElement();
 		long address = addressEvent.getAddress();
@@ -230,25 +235,37 @@ public class CBDNuca extends NucaCache {
 			
 		}
 		return true;
-	}
+	}*/
 	
-	void putEventToDestinationBankId(AddressCarryingEvent addrEvent, Vector<Integer> destinationbankId)
-	{
-		if(destinationbankId == null)
+	/* void putEventToRouter(AddressCarryingEvent addrEvent)
 		{
-			System.err.println(" destinationbank id not set ");
-			System.exit(1);
-		}
-		if(addrEvent == null )
-			System.err.println(" event to forward null ");
-		if(cacheBank[destinationbankId.get(0)][destinationbankId.get(1)] == null)
-			System.err.println(" cache bank is null ");
+			long address = addrEvent.getAddress();
+			Vector<Integer> sourceBankId = getSourceBankId(address,addrEvent.coreId);
+			Vector<Integer> destinationBankId = getDestinationBankId(address,addrEvent.coreId);
+			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
+																									0,this, this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+																									addrEvent.getRequestType(), address,addrEvent.coreId,
+																									sourceBankId,destinationBankId);
+			eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
+			if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+			{
+				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+				getPort().put(eventToBeSent);
+			}
+			else
+			{
+				((OpticalNOC)this.noc).entryPoint.getPort().put(eventToBeSent);
+			}
+		}*/
+	
+	void putAndBroadCast(AddressCarryingEvent addrEvent)
+	{
 		if(SimulationConfig.broadcast)
 		{
 			int setIndex = getSetIndex(addrEvent.getAddress());
 			for(int i=0;i< cacheMapping.get(addrEvent.coreId).get(setIndex).size();i++)
 			{
-				Vector<Integer> sourceBankId = addrEvent.getSourceBankId();
+				Vector<Integer> sourceBankId = getSourceBankId(addrEvent.getAddress(), addrEvent.coreId);
 				Vector<Integer> destinationBankId = (Vector<Integer>) integerToBankId(cacheMapping.get(addrEvent.coreId).get(setIndex).get(i)).clone();
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(addrEvent.getEventQ(),
 																		   0,addrEvent.getRequestingElement(),
@@ -262,10 +279,6 @@ public class CBDNuca extends NucaCache {
 				addressEvent.oldSourceBankId = (Vector<Integer>) sourceBankId.clone();
 				cacheBank[destinationBankId.get(0)][destinationBankId.get(1)].handleAccess(addressEvent.getEventQ(),addressEvent);
 			}
-		}
-		else 
-		{
-			cacheBank[destinationbankId.get(0)][destinationbankId.get(1)].handleAccess(addrEvent.getEventQ() , addrEvent);
 		}
 	}
 }
