@@ -441,11 +441,19 @@ VOID printip(THREADID tid, VOID *ip) {
 
 VOID funcHandler(CHAR* name, int a, int b, int c) {
 	printf("function encountered\n ");
-	printf("numSim = %ld\n", numCISC[0]);
+	printf("numSim = %ld\n", totalNumCISC);
 }
 
 void Image(IMG img,VOID *v) {
-	RTN funcRtn = RTN_FindByName(img, "funcA");
+	RTN funcRtn = RTN_FindByName(img, "__parsec_roi_begin");
+	if (RTN_Valid(funcRtn)) {
+		RTN_Open(funcRtn);
+		RTN_InsertCall(funcRtn, IPOINT_BEFORE, (AFUNPTR)funcHandler,
+					  IARG_ADDRINT, "funcA", IARG_FUNCARG_ENTRYPOINT_VALUE,
+					  0, IARG_END);
+		RTN_Close(funcRtn);
+	}
+	funcRtn = RTN_FindByName(img, "__parsec_roi_end");
 	if (RTN_Valid(funcRtn)) {
 		RTN_Open(funcRtn);
 		RTN_InsertCall(funcRtn, IPOINT_BEFORE, (AFUNPTR)funcHandler,

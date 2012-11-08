@@ -24,11 +24,13 @@ public class Policy {
 			{
 				misc.Error.showErrorAndExit(" source bank  id or destination bank id null ");
 			}
-			sourceBankId =new Vector<Integer>(event.getDestinationBankId());
-			destinationBankId = new Vector<Integer>(event.getSourceBankId());
+			sourceBankId = new Vector<Integer>(cacheBank.getBankId());
+			destinationBankId = (Vector<Integer>) nucaCache.getDestinationBankId(event.getAddress(), event.coreId);
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-																		 						0, cacheBank, cacheBank.getRouter(), requestType, 
-																		 						address, event.coreId, sourceBankId, destinationBankId);
+																		 0,  cacheBank, cacheBank.getRouter(), 
+																		 RequestType.Main_Mem_Read, address,
+																		 ((AddressCarryingEvent)event).coreId,
+																		 sourceBankId, destinationBankId);
 			return addressEvent;
 		} 
 		else if(nucaType == NucaType.CB_D_NUCA)
@@ -48,7 +50,8 @@ public class Policy {
 				if(index == nucaCache.cacheMapping.get(event.coreId).get(setIndex).size() -1 )
 				{
 					sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-					destinationBankId = new Vector<Integer>(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(0));
+					destinationBankId = (Vector<Integer>) nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(0)).clone();
+					//System.out.println("cache Miss  sending request to Main Memory"+destinationBankId + " to event"+ event);
 					AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																				 0,cacheBank, cacheBank.getRouter(), 
 																				 RequestType.Main_Mem_Read, 
@@ -59,8 +62,8 @@ public class Policy {
 				else
 				{
 					sourceBankId = (Vector<Integer>) cacheBank.getBankId().clone();
-					index++;
-					destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(index));
+					destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(index +1));
+					//System.out.println("cache Miss  sending request to cache bank"+destinationBankId + " to event"+ event);
 					requestType = event.getRequestType();
 					return event.updateEvent(event.getEventQ(), 
 									  		  0,cacheBank, cacheBank.router, 
@@ -166,6 +169,7 @@ public class Policy {
 		}
 		else
 		{
+			//System.out.println("cache Hit  for to event"+ event + event.getDestinationBankId());
 			sendResponseToWaitingEvent(event,cacheBank,true);
 		}
 	}

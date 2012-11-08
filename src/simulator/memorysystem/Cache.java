@@ -196,7 +196,7 @@ public class Cache extends SimulationElement
 		{
 			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
 			{
-				if(event.coreId != this.containingMemSys.coreID)
+				/*if(event.coreId != this.containingMemSys.coreID)
 				{
 					System.out.println("this print is from : " + this.levelFromTop + " of " + this.containingMemSys.coreID);
 					event.dump();
@@ -204,7 +204,7 @@ public class Cache extends SimulationElement
 					ArchitecturalComponent.dumpAllEventQueues();
 					ArchitecturalComponent.dumpAllMSHRs();
 					misc.Error.showErrorAndExit("coreIDs mismatch!!");					
-				}
+				}*/
 			}
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write)
