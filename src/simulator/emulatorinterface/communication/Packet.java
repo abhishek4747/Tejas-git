@@ -4,11 +4,11 @@ package emulatorinterface.communication;
 // are made here
 public class Packet 
 {
-	// If info packet then ip represents instruction pointer and tgt represents the target addr/mem 
-	// address. Else if synchronization packet then ip represents time and tgt represents lock 
-	// address. Else if timer packet then ip represents time and tgt represents nothing.
+	// If info packetList then ip represents instruction pointer and tgt represents the target addr/mem 
+	// address. Else if synchronization packetList then ip represents time and tgt represents lock 
+	// address. Else if timer packetList then ip represents time and tgt represents nothing.
 	
-	// For a qemu packet containing assembly of instruction, tgt indicates the size of the assembly string
+	// For a qemu packetList containing assembly of instruction, tgt indicates the size of the assembly string
 	public long ip;
 	public long value;
 	public long tgt;
@@ -35,6 +35,13 @@ public class Packet
 		this.value = value;
 		this.tgt = tgt;
 	}
+	
+	public void set(Packet p) {
+		this.ip = p.ip;
+		this.tgt = p.tgt;
+		this.value = p.value;
+	}
+	
 	/*
 	public Long getTgt()
 	{

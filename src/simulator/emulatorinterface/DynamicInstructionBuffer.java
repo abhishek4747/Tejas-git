@@ -47,7 +47,7 @@ public class DynamicInstructionBuffer implements Encoding
 	}
 
 	// read the packets from the arrayList and place them in suitable queues
-	public void configurePackets(ArrayList<Packet> arrayListPacket) 
+	public void configurePackets(EmulatorPacketList arrayListPacket) 
 	{
 		Packet p;
 		ArrayList<Packet> memReadAddr = new ArrayList<Packet>();

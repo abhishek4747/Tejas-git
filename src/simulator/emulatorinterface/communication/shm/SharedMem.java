@@ -101,7 +101,7 @@ public class SharedMem extends  IpcBase
 	// the memory attached. 
 	native  long shmat(int shmid);
 	
-	// returns the class corresponding to the packet struct in common.h. Takes as argument the
+	// returns the class corresponding to the packetList struct in common.h. Takes as argument the
 	// emulator thread id, the pointer corresponding to that thread, the index where we want to
 	// read and COUNT
 	native static Packet shmread(int tid,long pointer, int index);
@@ -109,7 +109,7 @@ public class SharedMem extends  IpcBase
 	// reads multiple packets into the arrays passed.
 	native static void shmreadMult(int tid,long pointer, int index, int numToRead, long[] ret);
 	
-	// reads only the "value" from the packet struct. could be done using shmread() as well,
+	// reads only the "value" from the packetList struct. could be done using shmread() as well,
 	// but if we only need to read value this saves from the heavy JNI callback and thus saves
 	// on time.
 	native static long shmreadvalue(int tid, long pointer, int index);

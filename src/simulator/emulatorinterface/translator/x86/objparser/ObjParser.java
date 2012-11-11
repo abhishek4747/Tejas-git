@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.objparser;
 
 import emulatorinterface.DynamicInstructionBuffer;
+import emulatorinterface.EmulatorPacketList;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.InvalidInstructionException;
@@ -588,7 +589,7 @@ public class ObjParser
 	 */
 	public static int fuseInstruction(
 			int tidApp, long startInstructionPointer,
-			ArrayList<Packet> arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
+			EmulatorPacketList arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
 	{		
 //		if(true) {
 //			return 0;
