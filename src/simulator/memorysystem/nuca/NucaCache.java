@@ -253,7 +253,7 @@ public class NucaCache extends Cache
 	
 	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
-		ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests((AddressCarryingEvent)event);
+		ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsIfAvailable((AddressCarryingEvent)event);
 		sendResponseToWaitingEvent(eventsToBeServed);
 	}
 	

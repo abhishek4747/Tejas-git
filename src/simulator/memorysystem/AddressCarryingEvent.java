@@ -136,4 +136,9 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	{
 		System.out.println(coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime + " : " + address);
 	}
+	
+	public String toString(){
+		String s = (coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime + " : " + address); 
+		return s;
+	}
 }

@@ -255,6 +255,15 @@ public class XMLParser
 			SimulationConfig.powerStats = false;
 		}
 		
+		if(getImmediateString("Broadcast", simulationElmnt).toLowerCase().compareTo("true") == 0)
+		{
+			SimulationConfig.broadcast = true;
+		}
+		else
+		{
+			SimulationConfig.broadcast = false;
+		}
+		
 		SimulationConfig.powerTrace = Integer.parseInt(getImmediateString("PowerTrace", simulationElmnt));
 		SimulationConfig.numInsForTrace = Long.parseLong(getImmediateString("NumInsForTrace", simulationElmnt));
 		SimulationConfig.numCyclesForTrace = Long.parseLong(getImmediateString("NumCyclesForTrace", simulationElmnt));

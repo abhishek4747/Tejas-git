@@ -33,6 +33,8 @@ public interface MissStatusHoldingRegister {
 	
 	public boolean removeEventIfAvailable(AddressCarryingEvent addrevent);
 	
+	public ArrayList<Event> removeRequestsIfAvailable(AddressCarryingEvent event);
+	
 	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent);
 	
 	public boolean containsWriteOfEvictedLine(long address);

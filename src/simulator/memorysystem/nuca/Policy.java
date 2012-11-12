@@ -38,11 +38,22 @@ public class Policy {
 			int setIndex = nucaCache.getSetIndex(address);
 			if(SimulationConfig.broadcast)
 			{
-				sourceBankId = new Vector<Integer>(event.getDestinationBankId());
-				destinationBankId = new Vector<Integer>(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(0));
-				event.updateEvent(event.getEventQ(), 0, cacheBank, cacheBank.getRouter(), 
-						  RequestType.Cache_Miss,sourceBankId,destinationBankId);
-				return event;
+				int index = ((CBDNuca)nucaCache).bankIdtoIndex(event.coreId,setIndex,cacheBank.bankId);
+				if(index == nucaCache.cacheMapping.get(event.coreId).get(setIndex).size() -1 )
+				{
+					sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
+					destinationBankId = (Vector<Integer>) nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(0)).clone();
+					//System.out.println("cache Miss  sending request to Main Memory"+destinationBankId + " to event"+ event);
+					AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
+																				 0,cacheBank, cacheBank.getRouter(), 
+																				 RequestType.Main_Mem_Read, 
+																				 address,((AddressCarryingEvent)event).coreId,
+																				 sourceBankId,destinationBankId);
+					//System.out.println("sent mem request from bank " + destinationBankId + "for event " + addressEvent);
+					return addressEvent;
+				} else {
+					return null;
+				}
 			}
 			else
 			{
@@ -159,7 +170,7 @@ public class Policy {
 	void updateEventOnHit(AddressCarryingEvent event,
 										  NucaCacheBank cacheBank)
 	{
-		if(SimulationConfig.nucaType == NucaType.CB_D_NUCA && SimulationConfig.broadcast)
+		/*if(SimulationConfig.nucaType == NucaType.CB_D_NUCA && SimulationConfig.broadcast)
 		{
 			Vector<Integer> sourceBankId = new Vector<Integer>(event.getDestinationBankId());
 			Vector<Integer> destinationBankId = new Vector<Integer>(event.oldSourceBankId);
@@ -167,7 +178,7 @@ public class Policy {
 							  RequestType.Cache_Hit,sourceBankId,destinationBankId);
 			cacheBank.getRouter().getPort().put(event);
 		}
-		else
+		else*/
 		{
 			//System.out.println("cache Hit  for to event"+ event + event.getDestinationBankId());
 			sendResponseToWaitingEvent(event,cacheBank,true);

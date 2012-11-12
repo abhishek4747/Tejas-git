@@ -63,6 +63,8 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 		{
 			System.out.println(" : " + event.getAddress() + " : " + event.getRequestType() + " : "+ event.getRequestingElement() + " : " + event.getProcessingElement());
 			misc.Error.showErrorAndExit(" null returned from removed event ");
+			//ArrayList<Event> toBeReturned = new ArrayList<Event>();
+			return null;
 		}
 		curLength--;
 		//System.out.println("current line of  ="  + curLength + " of "+ this);
@@ -78,6 +80,31 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 		return toBeReturned;
 	}
 
+	public ArrayList<Event> removeRequestsIfAvailable(AddressCarryingEvent event) {
+		//check_exit(tollerablesize);		
+		AddressCarryingEvent removedEvent = mshr.removeByAddress(event);
+		if(removedEvent == null )
+		{
+			System.out.println(" : " + event.getAddress() + " : " + event.getRequestType() + " : "+ event.getRequestingElement() + " : " + event.getProcessingElement());
+			//misc.Error.showErrorAndExit(" null returned from removed event ");
+			ArrayList<Event> toBeReturned = new ArrayList<Event>();
+			return toBeReturned;
+		}
+		curLength--;
+		//System.out.println("current line of  ="  + curLength + " of "+ this);
+		event.update(removedEvent.getEventQ(),
+						0,
+						removedEvent.getRequestingElement(),
+						removedEvent.getProcessingElement(),
+						removedEvent.getRequestType()
+						);
+		mshr.clearNode(removedEvent);
+		ArrayList<Event> toBeReturned =  new ArrayList<Event>();
+		toBeReturned.add(event);
+		return toBeReturned;
+	}
+
+	
 	@Override
 	public boolean removeEvent(AddressCarryingEvent addrevent) {
 		mshr.removeByRequestType(addrevent);
@@ -245,11 +272,11 @@ class PooledLinkedList {
 			prev = temp;
 			temp = temp.next;
 		}
-		System.out.println("called from mode1 MSHR-removeByAddress");
-		removeNode.dump();
-		ArchitecturalComponent.dumpOutStandingLoads();
-		ArchitecturalComponent.dumpAllMSHRs();
-		misc.Error.showErrorAndExit("returned null from remove");
+		//System.out.println("called from mode1 MSHR-removeByAddress");
+		//removeNode.dump();
+		//ArchitecturalComponent.dumpOutStandingLoads();
+		//ArchitecturalComponent.dumpAllMSHRs();
+		//misc.Error.showErrorAndExit("returned null from remove");
 		return null;
 	}
 	

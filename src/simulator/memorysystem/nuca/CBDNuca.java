@@ -258,14 +258,31 @@ public class CBDNuca extends NucaCache {
 			}
 		}*/
 	
+	 public boolean addEvent(AddressCarryingEvent addrEvent) {
+		 if(SimulationConfig.broadcast) {
+			 if(missStatusHoldingRegister.isFull())
+				{
+					return false;
+				}
+				boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addrEvent);
+				if(entryCreated)
+				{
+					putAndBroadCast(addrEvent);
+				}
+				return true;
+		 } else {
+			 return super.addEvent(addrEvent);
+		 }
+	 }
+	
 	void putAndBroadCast(AddressCarryingEvent addrEvent)
 	{
 		if(SimulationConfig.broadcast)
 		{
 			int setIndex = getSetIndex(addrEvent.getAddress());
+			Vector<Integer> sourceBankId = getSourceBankId(addrEvent.getAddress(), addrEvent.coreId);
 			for(int i=0;i< cacheMapping.get(addrEvent.coreId).get(setIndex).size();i++)
 			{
-				Vector<Integer> sourceBankId = getSourceBankId(addrEvent.getAddress(), addrEvent.coreId);
 				Vector<Integer> destinationBankId = (Vector<Integer>) integerToBankId(cacheMapping.get(addrEvent.coreId).get(setIndex).get(i)).clone();
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(addrEvent.getEventQ(),
 																		   0,addrEvent.getRequestingElement(),
@@ -274,10 +291,12 @@ public class CBDNuca extends NucaCache {
 																		   addrEvent.getAddress(),
 																		   addrEvent.coreId,
 																		   sourceBankId,destinationBankId);
-				addressEvent.index = i+1;
-				addressEvent.oldRequestingElement = (SimulationElement) addrEvent.getRequestingElement().clone();
-				addressEvent.oldSourceBankId = (Vector<Integer>) sourceBankId.clone();
-				cacheBank[destinationBankId.get(0)][destinationBankId.get(1)].handleAccess(addressEvent.getEventQ(),addressEvent);
+//				addressEvent.oldRequestingElement = (SimulationElement) addrEvent.getRequestingElement().clone();
+//				addressEvent.oldSourceBankId = (Vector<Integer>) sourceBankId.clone();
+				//cacheBank[destinationBankId.get(0)][destinationBankId.get(1)].handleAccess(addressEvent.getEventQ(),addressEvent);
+				//System.out.println("sent request to bank "+ destinationBankId + addressEvent);
+				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+				getPort().put(addressEvent);
 			}
 		}
 	}
