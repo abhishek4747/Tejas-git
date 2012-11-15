@@ -220,7 +220,21 @@ public class ObjParser
 				instructionList.setCISCProgramCounter(i, instructionPointer);
 				//FIXME : index in the array list - check ??
 				instructionList.setRISCProgramCounter(i, i);
+				
+				// increment references for each argument
+				if(instructionList.get(i).getOperand1()!=null) {
+					instructionList.get(i).getOperand1().incrementNumReferences();
+				}
+				
+				if(instructionList.get(i).getOperand2()!=null) {
+					instructionList.get(i).getOperand2().incrementNumReferences();
+				}
+				
+				if(instructionList.get(i).getDestinationOperand()!=null) {
+					instructionList.get(i).getDestinationOperand().incrementNumReferences();
+				}
 			}
+			
 		} catch(InvalidInstructionException inInstrEx) {
 			/*
 			 * microOps created for this instruction are not valid 

@@ -30,7 +30,7 @@ import main.Main;
 
 public class Operand implements Serializable
 {
-	
+	private int num_referrences = 0; 
 	private OperandType type;
 	private long value;			//if operand type is register, value indicates which register
 								//if operand type is immediate, value indicates the operand value
@@ -126,7 +126,7 @@ public class Operand implements Serializable
 	
 	public String toString()
 	{
-			return ("(" + type + ")" + value);
+			return ("(" + type + ") " + value + " ref=" + num_referrences);
 	}
 
 	public OperandType getOperandType()
@@ -231,5 +231,21 @@ public class Operand implements Serializable
 		Operand op = CustomObjectPool.getOperandPool().borrowObject();
 		op.set(OperandType.memory, -1, memoryOperand1, memoryOperand2);
 		return op;
+	}
+	
+	public void incrementNumReferences() {
+		this.num_referrences++;
+		if(this.type==OperandType.memory) { 
+			if(this.memoryLocationFirstOperand!=null) {this.memoryLocationFirstOperand.incrementNumReferences();}
+			if(this.memoryLocationSecondOperand!=null) {this.memoryLocationSecondOperand.incrementNumReferences();}
+		}
+	}
+	
+	public void decrementNumReferences() {
+		this.num_referrences--;
+	}
+	
+	public int getNumReferences() {
+		return this.num_referrences;
 	}
 }

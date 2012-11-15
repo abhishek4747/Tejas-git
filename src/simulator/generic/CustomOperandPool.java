@@ -83,6 +83,13 @@ public class CustomOperandPool {
 	
 	public void returnObject(Operand arg0)
 	{
+		arg0.decrementNumReferences();
+		if(arg0.getNumReferences()>0) {
+			return;
+		} else if(arg0.getNumReferences()<0) {
+			misc.Error.showErrorAndExit("numReferences < 0 !!");
+		}
+		
 		if(arg0.getMemoryLocationFirstOperand() != null)
 		{
 			CustomObjectPool.getOperandPool().returnObject(arg0.getMemoryLocationFirstOperand());
