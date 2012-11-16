@@ -33,12 +33,6 @@ public class Main {
 		String configFileName = arguments[0];
 		SimulationConfig.outputFileName = arguments[1];
 		
-		String emulatorArguments=" ";
-		setEmulatorFile(arguments[2]);
-		for(int i=2; i < arguments.length; i++) {
-			emulatorArguments = emulatorArguments + " " + arguments[i];
-		}
-
 		// Parse the command line arguments
 		XMLParser.parse(configFileName);
 		
@@ -66,6 +60,19 @@ public class Main {
 		// Start communication channel before starting emulator
 		IpcBase ipcBase = startCommunicationChannel(pid);
 		
+		String emulatorArguments=" ";
+		if(EmulatorConfig.CommunicationType == EmulatorConfig.COMMUNICATION_NETWORK) {
+			System.out.println("Emulator argument passed! portStart is: "+Network.portStart);
+			// Passing the start Port No through command line to the emulator
+			emulatorArguments += "-P " + Network.portStart;	
+		}
+		
+		setEmulatorFile(arguments[2]);
+		for(int i=2; i < arguments.length; i++) {
+			emulatorArguments = emulatorArguments + " " + arguments[i];
+		}
+
+
 		// start emulator
 		startEmulator(emulatorArguments, pid);
 

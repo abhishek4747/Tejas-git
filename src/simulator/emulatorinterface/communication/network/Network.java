@@ -14,7 +14,7 @@ import emulatorinterface.communication.Packet;
 
 public class Network extends IpcBase implements Encoding {
 	
-	static final int portStart = 9000;
+	public static int portStart = 9000;
 	ServerSocket serverSocket[];
 	Socket clientSocket[];
 	BufferedInputStream inputStream[];
@@ -34,16 +34,34 @@ public class Network extends IpcBase implements Encoding {
 		clientSocket = new Socket[maxApplicationThreads];
 		inputStream = new BufferedInputStream[maxApplicationThreads];
 		
+
 		for(int tidApp = 0; tidApp<maxApplicationThreads; tidApp++) {
+			
+			int portNumber = 0;
+			
 			try {
-				serverSocket[tidApp] = new ServerSocket(portStart+tidApp);
+				portNumber = portStart+tidApp;
+				serverSocket[tidApp] = new ServerSocket(portNumber);
 				clientSocket[tidApp] = null;
 				numOverflowBytes[tidApp] = 0;
-			} catch (IOException e) {
-				e.printStackTrace();
-				misc.Error.showErrorAndExit("error in opening socket on server side for tidApp : " + tidApp);
+			} catch (Exception e) {
+				for(int i=0; i<tidApp; i++) {
+					try {
+						serverSocket[i].close();
+					} catch (IOException ioE) {
+						misc.Error.showErrorAndExit("error in closing socket on server side for tidApp : " + i);
+					}
+				}
+				//tidApp must be zero for next iteration
+				tidApp = -1;
+				portStart += maxApplicationThreads;
+				//e.printStackTrace();
+				//misc.Error.showErrorAndExit("error in opening socket on server side for tidApp : " + tidApp);
 			}
+			
+//			System.out.println("Thread: "+tidApp+" binded to Port "+portNumber+" successfully!!");
 		}
+		System.out.println("All sockets initialize successfully!! PortStart is "+portStart);
 	}
 	
 	// Free buffers, free memory , deallocate any stuff.
