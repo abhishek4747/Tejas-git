@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 import misc.Error;
+import misc.ShutDownHook;
 import config.SimulationConfig;
 import config.XMLParser;
 import emulatorinterface.RunnableFromFile;
@@ -27,6 +28,9 @@ public class Main {
 	public static void main(String[] arguments)
 	{
 		startTime = System.currentTimeMillis();
+		
+		//register shut down hook
+		Runtime.getRuntime().addShutdownHook(new ShutDownHook());
 
 		checkCommandLineArguments(arguments);
 
@@ -67,7 +71,7 @@ public class Main {
 		// create PIN interface
 		IpcBase ipcBase = new SharedMem(pid);
 		if (SimulationConfig.Mode!=0) {
-			createPINinterface(ipcBase, executableArguments, pid);
+			createPINinterface(ipcBase, executableArguments, ((SharedMem)ipcBase).idToShmGet);
 		}
 
 
