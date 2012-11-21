@@ -37,20 +37,20 @@ Shm::Shm ()
 	key_t key=ftok(ftokpath,ftok_id);
 	if ( key == (key_t)-1 )
 	{
-		perror("ftok");
+		perror("ftok in pin ");
 		exit(1);
 	}
 
 	// get a segment for this key. This key is shared with the JNI through common.h
 	int size = (COUNT+5) * sizeof(packet)*MaxNumThreads;
 	if ((shmid = shmget(key, size, 0666)) < 0) {
-		perror("shmget");
+		perror("shmget in pin ");
 		exit(1);
 	}
 
 	// attach to this segment
 	if ((tldata[0].shm = (packet *)shmat(shmid, NULL, 0)) == (packet *)-1) {
-		perror("shmat");
+		perror("shmat in pin ");
 		exit(1);
 	}
 
@@ -75,20 +75,20 @@ Shm::Shm (uint64_t pid)
 	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
-		perror("ftok");
+		perror("ftok in pin ");
 		exit(1);
 	}
 
 	// get a segment for this key. This key is shared with the JNI through common.h
 	int size = (COUNT+5) * sizeof(packet)*MaxNumThreads;
 	if ((shmid = shmget(key, size, 0666)) < 0) {
-		perror("shmget");
+		perror("shmget in pin ");
 		exit(1);
 	}
 
 	// attach to this segment
 	if ((tldata[0].shm = (packet *)shmat(shmid, NULL, 0)) == (packet *)-1) {
-		perror("shmat");
+		perror("shmat in pin ");
 		exit(1);
 	}
 
