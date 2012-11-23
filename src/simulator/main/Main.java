@@ -46,13 +46,6 @@ public class Main {
 		
 		// Initialise pool of operands and instructions
 		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
-
-		// Create a hash-table for the static representation of the executable
-		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-			ObjParser.buildStaticInstructionTable(getEmulatorFile());
-		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-			ObjParser.initializeThreadMicroOpsList(1);
-		}
 		
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
@@ -76,7 +69,13 @@ public class Main {
 		for(int i=2; i < arguments.length; i++) {
 			emulatorArguments = emulatorArguments + " " + arguments[i];
 		}
-
+		
+		// Create a hash-table for the static representation of the executable
+		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			ObjParser.buildStaticInstructionTable(getEmulatorFile());
+		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			ObjParser.initializeThreadMicroOpsList(1);
+		}
 
 		// start emulator
 		startEmulator(emulatorArguments, pid, ipcBase);

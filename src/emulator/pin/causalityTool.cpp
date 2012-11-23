@@ -404,9 +404,9 @@ VOID printip(THREADID tid, VOID *ip) {
 	}
 	else
 	{
-		if(totalNumCISC > sliceArray[currentSlice] * 3000000)
+		if(totalNumCISC >= sliceArray[currentSlice] * 3000000)
 		{
-			if(totalNumCISC < (sliceArray[currentSlice] + 1) * 3000000)
+			if(totalNumCISC <= (sliceArray[currentSlice] + 1) * 3000000)
 			{
 				ignoreActive = false;
 			}
@@ -423,7 +423,7 @@ VOID printip(THREADID tid, VOID *ip) {
 			ignoreActive = true;
 		}
 
-		if(totalNumCISC >= (sliceArray[numberOfSlices - 1] + 1) * 3000000)
+		if(totalNumCISC > (sliceArray[numberOfSlices - 1] + 1) * 3000000)
 		{
 			for(int i = 0; i < MaxThreads; i++)
 			{

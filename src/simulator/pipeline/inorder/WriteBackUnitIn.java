@@ -1,5 +1,6 @@
 package pipeline.inorder;
 
+import config.SimulationConfig;
 import main.ArchitecturalComponent;
 import main.CustomObjectPool;
 import generic.Core;
@@ -9,6 +10,7 @@ import generic.GlobalClock;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
+import generic.Statistics;
 
 public class WriteBackUnitIn extends SimulationElement{
 	
@@ -53,9 +55,16 @@ public class WriteBackUnitIn extends SimulationElement{
 				if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
 													  //assigned to this pipeline	
 					containingExecutionEngine.setExecutionComplete(true);
-					containingExecutionEngine.setTimingStatistics();			
-					containingExecutionEngine.setPerCoreMemorySystemStatistics();
-					containingExecutionEngine.setPerCorePowerStatistics();
+					if(SimulationConfig.pinpointsSimulation == false)
+					{					
+						containingExecutionEngine.setTimingStatistics();			
+						containingExecutionEngine.setPerCoreMemorySystemStatistics();
+						containingExecutionEngine.setPerCorePowerStatistics();
+					}
+					else
+					{
+						Statistics.processEndOfSlice();
+					}
 				}
 				memWbLatch.clear();
 			}

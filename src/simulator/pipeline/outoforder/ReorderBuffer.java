@@ -240,6 +240,10 @@ public class ReorderBuffer extends SimulationElement{
 							setPerCoreMemorySystemStatistics();
 							setPerCorePowerStatistics();
 						}
+						else
+						{
+							Statistics.processEndOfSlice();
+						}
 						//memWbLatch.clear();
 						
 						if(this.core.currentThreads < 0)
