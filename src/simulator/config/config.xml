@@ -43,6 +43,8 @@
 		<writeToFile>false</writeToFile>
 		<subsetSim>true</subsetSim>
 		<subsetSimSize>1000000000</subsetSimSize>
+		<pinpointsSim>false</pinpointsSim>
+		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
 		<PrintPowerStats>false</PrintPowerStats>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsForTrace>100000</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
