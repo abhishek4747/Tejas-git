@@ -237,9 +237,9 @@ public class ReorderBuffer extends SimulationElement{
 						if(SimulationConfig.pinpointsSimulation == false)
 						{
 							setTimingStatistics();
-						}//TODO extend to memory and power
-						setPerCoreMemorySystemStatistics();
-						setPerCorePowerStatistics();
+							setPerCoreMemorySystemStatistics();
+							setPerCorePowerStatistics();
+						}
 						//memWbLatch.clear();
 						
 						if(this.core.currentThreads < 0)
