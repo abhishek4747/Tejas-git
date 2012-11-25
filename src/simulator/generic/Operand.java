@@ -38,6 +38,14 @@ public class Operand implements Serializable
 	Operand memoryLocationFirstOperand;
 	Operand memoryLocationSecondOperand;
 	
+	public void setMemoryLocationFirstOperand(Operand memoryLocationFirstOperand) {
+		this.memoryLocationFirstOperand = memoryLocationFirstOperand;
+	}
+
+	public void setMemoryLocationSecondOperand(Operand memoryLocationSecondOperand) {
+		this.memoryLocationSecondOperand = memoryLocationSecondOperand;
+	}
+
 	public Operand()
 	{
 		this.value = 0;
@@ -122,6 +130,8 @@ public class Operand implements Serializable
 			}
 			this.memoryLocationSecondOperand.copy(sourceOperand.memoryLocationSecondOperand);
 		}
+		
+		this.incrementNumReferences(); // this makes sure that pin packets have num_references = 1
 	}
 	
 	public String toString()

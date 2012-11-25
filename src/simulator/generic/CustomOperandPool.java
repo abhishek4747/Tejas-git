@@ -101,5 +101,27 @@ public class CustomOperandPool {
 		
 		pool.append(arg0);
 	}
+	
+	public void returnUnusedObject(Operand arg0) {
+		if(arg0.getNumReferences()!=0) {
+			misc.Error.showErrorAndExit(arg0 + " object is in use !!");
+		}
+		
+		// The components of arg0 will not be removed
+		if(arg0.getMemoryLocationFirstOperand()!=null) {
+			arg0.setMemoryLocationFirstOperand(null);
+		}
+		
+		if(arg0.getMemoryLocationSecondOperand()!=null) {
+			arg0.setMemoryLocationSecondOperand(null);
+		}
+		
+		arg0.incrementNumReferences();
+		returnObject(arg0);
+	}
+	
+	public int getSize() {
+		return pool.size();
+	}
 
 }

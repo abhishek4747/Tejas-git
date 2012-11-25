@@ -31,6 +31,19 @@ public class Instruction implements Serializable
 {
 	private OperationType type;
 	private Operand sourceOperand1;
+	
+	public void setSourceOperand1(Operand sourceOperand1) {
+		this.sourceOperand1 = sourceOperand1;
+	}
+
+	public void setSourceOperand2(Operand sourceOperand2) {
+		this.sourceOperand2 = sourceOperand2;
+	}
+
+	public void setDestinationOperand(Operand destinationOperand) {
+		this.destinationOperand = destinationOperand;
+	}
+
 	private Operand sourceOperand2;
 	private Operand destinationOperand;
 	
@@ -96,6 +109,8 @@ public class Instruction implements Serializable
 	public void copy(Instruction sourceInstruction)
 	{
 		this.type=sourceInstruction.type;
+		this.riscProgramCounter = sourceInstruction.riscProgramCounter;
+		this.ciscProgramCounter = sourceInstruction.ciscProgramCounter;
 		
 		if(sourceInstruction.sourceOperand1==null)
 			{this.sourceOperand1=null;}

@@ -37,14 +37,11 @@ public class SSEMultiplication implements X86StaticInstructionHandler
 			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
-		InstructionLinkedList microOps;
-		microOps = new InstructionLinkedList();
-
 		if(operand1.isFloatRegisterOperand() && operand2.isFloatRegisterOperand() &&
 				operand3==null)
 		{
 			//operand1 = operand1 * operand2
-			microOps.appendInstruction(Instruction.getFloatingPointMultiplication(operand1,
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointMultiplication(operand1,
 					operand2, operand1));
 		}
 		
@@ -53,11 +50,11 @@ public class SSEMultiplication implements X86StaticInstructionHandler
 		{
 			//tempFloatRegister = [operand2]
 			Operand tempFloatRegister = Registers.getTempFloatReg(tempRegisterNum);
-			microOps.appendInstruction(Instruction.getLoadInstruction(operand2,
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(operand2,
 					tempFloatRegister));
 			
 			//operand1 = operand1 * tempFloatRegister
-			microOps.appendInstruction(Instruction.getFloatingPointMultiplication(operand1,
+			instructionArrayList.appendInstruction(Instruction.getFloatingPointMultiplication(operand1,
 					tempFloatRegister, operand1));
 		}
 		
