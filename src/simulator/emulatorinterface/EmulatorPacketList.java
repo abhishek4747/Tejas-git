@@ -13,7 +13,7 @@ public class EmulatorPacketList {
 		super();
 		this.packetList = new ArrayList<Packet>();
 		
-		for(int i=0; i<50; i++) {
+		for(int i=0; i<1024; i++) {
 			packetList.add(new Packet());
 		}
 	}

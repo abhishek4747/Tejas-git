@@ -109,52 +109,33 @@ public class Instruction implements Serializable
 	public void copy(Instruction sourceInstruction)
 	{
 		this.type=sourceInstruction.type;
+
 		this.riscProgramCounter = sourceInstruction.riscProgramCounter;
 		this.ciscProgramCounter = sourceInstruction.ciscProgramCounter;
 		
-		if(sourceInstruction.sourceOperand1==null)
-			{this.sourceOperand1=null;}
-		else
-			{//this.sourceOperand1=new Operand(sourceInstruction.sourceOperand1);
-				try {
-					this.sourceOperand1 = CustomObjectPool.getOperandPool().borrowObject();
-				} catch (Exception e) {
-					// TODO what if there are no more objects in the pool??
-					e.printStackTrace();
-				}
-				this.sourceOperand1.copy(sourceInstruction.sourceOperand1);
-			}
-		
-		if(sourceInstruction.sourceOperand2==null)
-			{this.sourceOperand2=null;}
-		else
-			{//this.sourceOperand2=new Operand(sourceInstruction.sourceOperand2);
-				try {
-					this.sourceOperand2 = CustomObjectPool.getOperandPool().borrowObject();
-				} catch (Exception e) {
-					// TODO what if there are no more objects in the pool??
-					e.printStackTrace();
-				}
-				this.sourceOperand2.copy(sourceInstruction.sourceOperand2);
-			}
-		
-		if(sourceInstruction.destinationOperand==null)
-			{this.destinationOperand=null;}
-		else
-			{//this.destinationOperand=new Operand(sourceInstruction.destinationOperand);
-				try {
-					this.destinationOperand = CustomObjectPool.getOperandPool().borrowObject();
-				} catch (Exception e) {
-					// TODO what if there are no more objects in the pool??
-					e.printStackTrace();
-				}
-				this.destinationOperand.copy(sourceInstruction.destinationOperand);
-			}
-		
-		this.riscProgramCounter=sourceInstruction.riscProgramCounter;
-		this.ciscProgramCounter=sourceInstruction.ciscProgramCounter;
 		this.branchTaken=sourceInstruction.branchTaken;
 		this.branchTargetAddress=sourceInstruction.branchTargetAddress;
+
+		if(sourceInstruction.sourceOperand1==null) {
+			this.sourceOperand1=null;
+		} else {
+			this.sourceOperand1 = CustomObjectPool.getOperandPool().borrowObject();
+			this.sourceOperand1.copy(sourceInstruction.sourceOperand1);
+		}
+		
+		if(sourceInstruction.sourceOperand2==null) {
+			this.sourceOperand2=null;
+		} else {
+			this.sourceOperand2 = CustomObjectPool.getOperandPool().borrowObject();
+			this.sourceOperand2.copy(sourceInstruction.sourceOperand2);
+		}
+		
+		if(sourceInstruction.destinationOperand==null) {
+			this.destinationOperand=null;
+		} else {
+			this.destinationOperand = CustomObjectPool.getOperandPool().borrowObject();
+			this.destinationOperand.copy(sourceInstruction.destinationOperand);
+		}
 	}
 	
 	public long getCISCProgramCounter()

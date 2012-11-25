@@ -32,9 +32,9 @@ public class Numbers {
 				if(numBytes[i]>='0' && numBytes[i]<='9') {
 					num += pow * (numBytes[i]-'0');
 				} else if(numBytes[i]>='a' && numBytes[i]<='f') {
-					num += pow * (numBytes[i]-'a');
+					num += pow * (10 + numBytes[i]-'a');
 				} else if(numBytes[i]>='A' && numBytes[i]<='F') {
-					num += pow * (numBytes[i]-'A');
+					num += pow * (10 + numBytes[i]-'A');
 				} else if(numBytes[i]=='x' || numBytes[i]=='X') {
 					num += 0; // 0x or 0X for hex numbers
 				} else {

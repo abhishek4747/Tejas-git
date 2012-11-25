@@ -78,19 +78,15 @@ public class Operand implements Serializable
 		this.type=operand.type;
 		this.value=operand.value;
 		
-		if(operand.memoryLocationFirstOperand==null)
-		{
+		if(operand.memoryLocationFirstOperand==null) {
 			this.memoryLocationFirstOperand=null;
-		}else
-		{
+		} else {
 			this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
 		}
 		
-		if(this.memoryLocationSecondOperand==null)
-		{
+		if(operand.memoryLocationSecondOperand==null) {
 			this.memoryLocationSecondOperand=null;
-		}else
-		{
+		} else {
 			this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
 		}
 	}
@@ -101,33 +97,17 @@ public class Operand implements Serializable
 		this.type=sourceOperand.type;
 		this.value=sourceOperand.value;
 		
-		if(sourceOperand.memoryLocationFirstOperand==null)
-		{
+		if(sourceOperand.memoryLocationFirstOperand==null) {
 			this.memoryLocationFirstOperand=null;
-		}else
-		{
-			//this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
-			try {
-				this.memoryLocationFirstOperand = CustomObjectPool.getOperandPool().borrowObject();
-			} catch (Exception e) {
-				// TODO what if there are no more objects in the pool??
-				e.printStackTrace();
-			}
+		} else 	{
+			this.memoryLocationFirstOperand = CustomObjectPool.getOperandPool().borrowObject();
 			this.memoryLocationFirstOperand.copy(sourceOperand.memoryLocationFirstOperand);
 		}
 		
-		if(this.memoryLocationSecondOperand==null)
-		{
+		if(sourceOperand.memoryLocationSecondOperand==null) {
 			this.memoryLocationSecondOperand=null;
-		}else
-		{
-			//this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
-			try {
-				this.memoryLocationSecondOperand = CustomObjectPool.getOperandPool().borrowObject();
-			} catch (Exception e) {
-				// TODO what if there are no more objects in the pool??
-				e.printStackTrace();
-			}
+		} else 	{
+			this.memoryLocationSecondOperand = CustomObjectPool.getOperandPool().borrowObject();
 			this.memoryLocationSecondOperand.copy(sourceOperand.memoryLocationSecondOperand);
 		}
 		
@@ -257,5 +237,23 @@ public class Operand implements Serializable
 	
 	public int getNumReferences() {
 		return this.num_referrences;
+	}
+	
+	public int getNumDistinctRecursiveReferences() {
+		int numDistinctReferences = 0;
+		
+		if(this.getNumReferences()==1) {
+			numDistinctReferences++;
+		}
+		
+		if(this.getMemoryLocationFirstOperand()!=null) {
+			numDistinctReferences += getMemoryLocationFirstOperand().getNumDistinctRecursiveReferences();
+		}
+			
+		if(this.getMemoryLocationSecondOperand()!=null) {
+			numDistinctReferences += getMemoryLocationSecondOperand().getNumDistinctRecursiveReferences();
+		}
+		
+		return numDistinctReferences;
 	}
 }

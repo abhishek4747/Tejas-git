@@ -183,7 +183,7 @@ public class ObjParser
 			String operand1Str, String operand2Str, String operand3Str, 
 			InstructionList instructionList) 
 	{
-//		if(instructionPointer==4195456) {
+//		if(instructionPointer==4222125) {
 //			System.out.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
 //					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
 //		}
@@ -228,15 +228,18 @@ public class ObjParser
 					// increment references for each argument
 					if(instructionList.get(i).getOperand1()!=null) {
 						instructionList.get(i).getOperand1().incrementNumReferences();
-					} numDistinctOperand += getNumDistinctReferences(instructionList.get(i).getOperand1());
+						numDistinctOperand += instructionList.get(i).getOperand1().getNumDistinctRecursiveReferences();
+					}
 
 					if(instructionList.get(i).getOperand2()!=null) {
 						instructionList.get(i).getOperand2().incrementNumReferences();
-					} numDistinctOperand += getNumDistinctReferences(instructionList.get(i).getOperand2());
+						numDistinctOperand += instructionList.get(i).getOperand2().getNumDistinctRecursiveReferences();
+					}
 
 					if(instructionList.get(i).getDestinationOperand()!=null) {
 						instructionList.get(i).getDestinationOperand().incrementNumReferences();
-					} numDistinctOperand += getNumDistinctReferences(instructionList.get(i).getDestinationOperand());
+						numDistinctOperand += instructionList.get(i).getDestinationOperand().getNumDistinctRecursiveReferences();
+					}
 				}
 			}			
 		} catch(InvalidInstructionException inInstrEx) {
@@ -286,27 +289,6 @@ public class ObjParser
 		return (instructionList.length()-microOpsIndexBefore);
 	}
 	
-	private static int getNumDistinctReferences(Operand operand) {
-		int numDistinctReferences = 0;
-		if(operand!=null) {
-			if(operand.getNumReferences()==1) {
-				numDistinctReferences++;
-			}
-			
-			if(operand.getMemoryLocationFirstOperand()!=null && 
-				operand.getMemoryLocationFirstOperand().getNumReferences()==1) {
-				numDistinctReferences++;
-			}
-			
-			if(operand.getMemoryLocationSecondOperand()!=null && 
-				operand.getMemoryLocationSecondOperand().getNumReferences()==1) {
-				numDistinctReferences++;
-			}
-		}
-		
-		return numDistinctReferences;
-	}
-
 	//return true if the string is a valid instruction prefix
 	private static boolean isInstructionPrefix(String string)
 	{
@@ -695,6 +677,8 @@ public class ObjParser
 				}
 			}
 		} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
+			
 			assemblyPacketList = staticMicroOpList;
 			
 			// traverse dynamicInstruction Buffer to go to a known instruction
@@ -769,10 +753,12 @@ public class ObjParser
 					numCISC--;
 				}
 				break;
-			} else if(microOpIndex==-2){
+			} else if(microOpIndex==-2) {
+				
 				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 					break;
 				}
+				
 			} else {
 
 				if(staticMicroOp.getCISCProgramCounter()!=previousCISCIP) {

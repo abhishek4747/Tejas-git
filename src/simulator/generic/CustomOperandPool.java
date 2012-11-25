@@ -74,7 +74,7 @@ public class CustomOperandPool {
 	public Operand borrowObject()
 	{
 		if(pool.isEmpty()) {
-			misc.Error.showErrorAndExit("operand pool empty!!");
+			misc.Error.showErrorAndExit("operand pool empty!! : instructionPoolSize = " + CustomObjectPool.getInstructionPool().getNumIdle());
 			return null;
 		}
 		
