@@ -244,6 +244,18 @@ public class XMLParser
 			SimulationConfig.subsetSimulation = false;
 			SimulationConfig.subsetSimSize = -1;
 		}
+		
+		if(getImmediateString("pinpointsSim", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("pinpointsSim", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.pinpointsSimulation = true;
+			SimulationConfig.pinpointsFile = getImmediateString("pinpointsFile", simulationElmnt);
+		}
+		else
+		{
+			SimulationConfig.pinpointsSimulation = false;
+			SimulationConfig.pinpointsFile = "";
+		}
 
 		if(getImmediateString("PrintPowerStats", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
@@ -501,6 +513,11 @@ public class XMLParser
 		{
 			SimulationConfig.nucaType = NucaType.D_NUCA;
 			cache.nucaType = NucaType.D_NUCA;
+		}
+		else if (tempStr.equalsIgnoreCase("CBD"))
+		{
+			SimulationConfig.nucaType = NucaType.CB_D_NUCA;
+			cache.nucaType = NucaType.CB_D_NUCA;
 		}
 		else
 		{

@@ -18,15 +18,22 @@ public class Emulator {
 				SimulationConfig.subsetSimulation);
 
 		// Creating command for PIN tool.
-		String cmd = pinTool + "/pin" +
+		StringBuilder cmd = new StringBuilder(pinTool + "/pin" +
 				" -t " + pinInstrumentor +
 				" -map " + SimulationConfig.MapEmuCores +
 				" -numIgn " + SimulationConfig.NumInsToIgnore +
 				" -numSim " + SimulationConfig.subsetSimSize +
-				" -id " + pid +
-				" -- " + executableArguments;
+				" -id " + pid);
 		
-		startEmulator(cmd);
+		if(SimulationConfig.pinpointsSimulation == true)
+		{
+			cmd.append(" -pinpointsFile " + SimulationConfig.pinpointsFile);
+		}
+		
+		cmd.append(" -- " + executableArguments);
+		System.out.println("command is : " + cmd.toString());
+		
+		startEmulator(cmd.toString());
 	}
 	
 	public Emulator(String qemuTool, int pid)

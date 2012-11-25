@@ -29,6 +29,7 @@ import pipeline.outoforder.OutOrderCoreMemorySystem;
 import net.optical.TopLevelTokenBus;
 
 import main.ArchitecturalComponent;
+import memorysystem.nuca.CBDNuca;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCacheLine;
 
@@ -99,7 +100,12 @@ public class MemorySystem
 					flag = true;
 					newCache = new NucaCache(cacheParameterObj,null,tokenBus);
 				}
-				
+				else if (cacheParameterObj.getNucaType() == NucaType.CB_D_NUCA)
+				{	
+					nucaType = NucaType.CB_D_NUCA;
+					flag = true;
+					newCache = new CBDNuca(cacheParameterObj,null,tokenBus);
+				}
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
 				
