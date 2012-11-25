@@ -636,10 +636,8 @@ public class ObjParser
 	public static int fuseInstruction(
 			int tidApp, long startInstructionPointer,
 			EmulatorPacketList arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
-	{		
-//		if(true) {
-//			return 0;
-//		}
+	{
+//		System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
 		// Create a dynamic instruction buffer for all control packets
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
@@ -677,8 +675,6 @@ public class ObjParser
 				}
 			}
 		} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-			System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
-			
 			assemblyPacketList = staticMicroOpList;
 			
 			// traverse dynamicInstruction Buffer to go to a known instruction
