@@ -30,7 +30,7 @@ import main.Main;
 
 public class Operand implements Serializable
 {
-	private int num_referrences = 0; 
+	private int numReferrences = 0; 
 	private OperandType type;
 	private long value;			//if operand type is register, value indicates which register
 								//if operand type is immediate, value indicates the operand value
@@ -111,12 +111,13 @@ public class Operand implements Serializable
 			this.memoryLocationSecondOperand.copy(sourceOperand.memoryLocationSecondOperand);
 		}
 		
-		this.incrementNumReferences(); // this makes sure that pin packets have num_references = 1
+		// we must increment the numReferences of this operand only. Its component's numReferences will be increment in their copy method.
+		this.numReferrences++;
 	}
 	
 	public String toString()
 	{
-			return ("(" + type + ") " + value + " ref=" + num_referrences);
+			return ("(" + type + ") " + value + " ref=" + numReferrences);
 	}
 
 	public OperandType getOperandType()
@@ -224,19 +225,23 @@ public class Operand implements Serializable
 	}
 	
 	public void incrementNumReferences() {
-		this.num_referrences++;
-		if(this.type==OperandType.memory) { 
-			if(this.memoryLocationFirstOperand!=null) {this.memoryLocationFirstOperand.incrementNumReferences();}
-			if(this.memoryLocationSecondOperand!=null) {this.memoryLocationSecondOperand.incrementNumReferences();}
+		this.numReferrences++;
+		
+		if(this.memoryLocationFirstOperand!=null) {
+			this.memoryLocationFirstOperand.incrementNumReferences();
+		}
+		
+		if(this.memoryLocationSecondOperand!=null) {
+			this.memoryLocationSecondOperand.incrementNumReferences();
 		}
 	}
 	
 	public void decrementNumReferences() {
-		this.num_referrences--;
+		this.numReferrences--;
 	}
 	
 	public int getNumReferences() {
-		return this.num_referrences;
+		return this.numReferrences;
 	}
 	
 	public int getNumDistinctRecursiveReferences() {

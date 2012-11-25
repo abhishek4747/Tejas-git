@@ -124,4 +124,8 @@ public class CustomOperandPool {
 		return pool.size();
 	}
 
+	public long getNumIdle() {
+		return getSize();
+	}
+
 }
