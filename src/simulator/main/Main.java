@@ -60,7 +60,6 @@ public class Main {
 		
 		String emulatorArguments=" ";
 		if(EmulatorConfig.CommunicationType == EmulatorConfig.COMMUNICATION_NETWORK) {
-			System.out.println("Emulator argument passed! portStart is: "+Network.portStart);
 			// Passing the start Port No through command line to the emulator
 			emulatorArguments += "-P " + Network.portStart;	
 		}

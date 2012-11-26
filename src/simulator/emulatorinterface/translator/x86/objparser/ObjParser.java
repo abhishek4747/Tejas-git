@@ -733,8 +733,8 @@ public class ObjParser
 			
 			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 				dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
-				dynamicMicroOp.copy(assemblyPacketList.get(microOpIndex));
-			} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+				dynamicMicroOp.copy(staticMicroOp);
+			} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 				// This will ensure that the packet is returned to instruction pool
 				dynamicMicroOp = staticMicroOp;
 			}

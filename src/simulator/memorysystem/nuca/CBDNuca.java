@@ -125,12 +125,12 @@ public class CBDNuca extends NucaCache {
     	cacheMapping.add(34,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
     	cacheMapping.add(35,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
     	cacheMapping.add(36,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
-    	for(int i =0 ;i<cacheMapping.size();i++) {
-    		System.out.println("cire number "+i);
-    		for (int j=0;j<cacheMapping.get(i).size();j++)
-    			System.out.println(cacheMapping.get(i).get(j));
-    		System.out.println("\n\n");
-    	}
+//    	for(int i =0 ;i<cacheMapping.size();i++) {
+//    		System.out.println("cire number "+i);
+//    		for (int j=0;j<cacheMapping.get(i).size();j++)
+//    			System.out.println(cacheMapping.get(i).get(j));
+//    		System.out.println("\n\n");
+//    	}
     }
 	
 	public Vector<Integer> getNearestBankId(long address,int coreId)
