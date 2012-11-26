@@ -42,9 +42,9 @@
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>1000000000</subsetSimSize>
+		<subsetSimSize>500000000</subsetSimSize>
 		<PrintPowerStats>false</PrintPowerStats>
-		<Broadcast>false</Broadcast>
+		<Broadcast>true</Broadcast>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsForTrace>100000</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
@@ -276,7 +276,7 @@
 			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
 			<NocSelScheme>ADAPTIVE</NocSelScheme>
-			<NocNumberOfBuffers>3</NocNumberOfBuffers>
+			<NocNumberOfBuffers>1000000000</NocNumberOfBuffers>
 			<NocPortType>UL</NocPortType>
 			<NocAccessPorts>-1</NocAccessPorts>
 			<NocPortOccupancy>-1</NocPortOccupancy>

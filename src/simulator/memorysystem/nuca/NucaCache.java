@@ -258,7 +258,7 @@ public class NucaCache extends Cache
 	}
 	
 	
-	private void sendResponseToWaitingEvent(ArrayList<Event> outstandingRequestList)
+	protected void sendResponseToWaitingEvent(ArrayList<Event> outstandingRequestList)
 	{
 		while (!outstandingRequestList.isEmpty())
 		{	

@@ -38,22 +38,24 @@ public class Policy {
 			int setIndex = nucaCache.getSetIndex(address);
 			if(SimulationConfig.broadcast)
 			{
-				int index = ((CBDNuca)nucaCache).bankIdtoIndex(event.coreId,setIndex,cacheBank.bankId);
-				if(index == nucaCache.cacheMapping.get(event.coreId).get(setIndex).size() -1 )
+				//int index = ((CBDNuca)nucaCache).bankIdtoIndex(event.coreId,setIndex,cacheBank.bankId);
+				//if(index == nucaCache.cacheMapping.get(event.coreId).get(setIndex).size() -1 )
 				{
-					sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
-					destinationBankId = (Vector<Integer>) nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(0)).clone();
+					//sourceBankId = new Vector<Integer>(((AddressCarryingEvent)event).getDestinationBankId());
+					//destinationBankId = (Vector<Integer>) nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(0)).clone();
 					//System.out.println("cache Miss  sending request to Main Memory"+destinationBankId + " to event"+ event);
-					AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
+					/*AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																				 0,cacheBank, cacheBank.getRouter(), 
 																				 RequestType.Main_Mem_Read, 
 																				 address,((AddressCarryingEvent)event).coreId,
-																				 sourceBankId,destinationBankId);
+																				 sourceBankId,destinationBankId);*/
+					if(CBDNuca.debugPrint)System.out.println(event.getAddress() +" 2Cache Miss for address " );
+					event.update(event.getEventQ(), 0, event.getProcessingElement(), nucaCache, RequestType.Cache_Miss);
 					//System.out.println("sent mem request from bank " + destinationBankId + "for event " + addressEvent);
-					return addressEvent;
-				} else {
+					return event;
+				} /*else {
 					return null;
-				}
+				}*/
 			}
 			else
 			{
@@ -210,7 +212,14 @@ public class Policy {
 												cacheBank.getBankId(),destinationBankId);
 			cacheBank.getRouter().getPort().put(addrEvent);
 		}
-		event.setRequestingElement(nucaCache);
-		cacheBank.sendMemResponse(event);
+		
+		if(SimulationConfig.broadcast) {
+			if(CBDNuca.debugPrint)System.out.println(event.getAddress()+ " 2Cache Hit For Address ");
+			event.update(event.getEventQ(), 0, event.getProcessingElement(), nucaCache, RequestType.Cache_Hit);
+			nucaCache.getPort().put(event);
+		} else {
+			event.setRequestingElement(nucaCache);
+			cacheBank.sendMemResponse(event);
+		}
 	}
 }
