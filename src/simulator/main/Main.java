@@ -28,11 +28,11 @@ public class Main {
 	
 	public static void main(String[] arguments)
 	{
-		
 		//register shut down hook
 		Runtime.getRuntime().addShutdownHook(new ShutDownHook());
 		
 		checkCommandLineArguments(arguments);
+		setEmulatorFile(arguments[2]);
 
 		// Read the command line arguments
 		String configFileName = arguments[0];
@@ -65,8 +65,6 @@ public class Main {
 		// Start communication channel before starting emulator
 		// PS : communication channel must be started before starting the emulator
 		IpcBase ipcBase = startCommunicationChannel(pid);
-		
-		setEmulatorFile(arguments[2]);
 		
 		String benchmarkArguments=" ";
 		// read the command line arguments for the benchmark (not emulator) here.

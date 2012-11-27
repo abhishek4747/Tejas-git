@@ -96,6 +96,9 @@ public class ObjParser
 		BufferedReader input;
 
 		long noOfLines = noOfLines(executableFile);
+		if(noOfLines==0) {
+			misc.Error.showErrorAndExit("error in reading the output of objdump on " + executableFile);
+		}
 
 		// Read the assembly code from the program using object-dump utility
 		input = readObjDumpOutput(executableFile);
