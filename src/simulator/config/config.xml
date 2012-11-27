@@ -20,8 +20,8 @@
 *****************************************************************************/-->
 <Configuration>
 	<Emulator>
-		<EmulatorType>1</EmulatorType> <!-- 0-pin,1-qemu-->
-		<CommunicationType>2</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
+		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
+		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
 		<PinTool>/mnt/srishtistr0/home/mayur/Installed_Softwares/PIN</PinTool>
 		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/mnt/srishtistr0/home/nitingupta/workspace/qemu/x86_64-linux-user/qemu-x86_64</QemuTool>
@@ -40,13 +40,15 @@
 		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
-		<subsetSim>true</subsetSim>
-		<subsetSimSize>1000000000</subsetSimSize>
 		<PrintPowerStats>false</PrintPowerStats>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
+		<pinpointsSim>false</pinpointsSim>
+		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
 		<NumInsToIgnore>0000010</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
+		<subsetSim>true</subsetSim>
+		<subsetSimSize>1000000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
