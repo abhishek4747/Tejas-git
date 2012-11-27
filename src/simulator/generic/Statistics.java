@@ -572,7 +572,7 @@ System.out.println("execution time = "+executionTime);
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			misc.Error.showErrorAndExit("error in opening statistics file !!");
 		}
 	}	
 	public static void openStream()

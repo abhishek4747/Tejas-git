@@ -58,21 +58,19 @@ public class Main {
 		System.out.println("Newmain : pid = " + pid);
 
 		// Start communication channel before starting emulator
+		// PS : communication channel must be started before starting the emulator
 		IpcBase ipcBase = startCommunicationChannel(pid);
 		
-		String emulatorArguments=" ";
-		if(EmulatorConfig.CommunicationType == EmulatorConfig.COMMUNICATION_NETWORK) {
-			System.out.println("Emulator argument passed! portStart is: "+Network.portStart);
-			// Passing the start Port No through command line to the emulator
-			emulatorArguments += "-P " + Network.portStart;	
+		setEmulatorFile(arguments[2]);
+		
+		String benchmarkArguments=" ";
+		// read the command line arguments for the benchmark (not emulator) here.
+		for(int i=2; i < arguments.length; i++) {
+			benchmarkArguments = benchmarkArguments + " " + arguments[i];
 		}
 		
-		setEmulatorFile(arguments[2]);
-		for(int i=2; i < arguments.length; i++) {
-			emulatorArguments = emulatorArguments + " " + arguments[i];
-		}
-
-
+		String emulatorArguments = constructEmulatorArguments(benchmarkArguments);
+				
 		// start emulator
 		startEmulator(emulatorArguments, pid);
 
@@ -155,6 +153,27 @@ public class Main {
 		}
 	}
 
+	private static String constructEmulatorArguments(String benchmarkArguments) {
+		String emulatorArguments = " ";
+		
+		if(EmulatorConfig.CommunicationType == EmulatorConfig.COMMUNICATION_NETWORK) {
+			System.out.println("Emulator argument passed! portStart is: "+Network.portStart);
+			// Passing the start Port No through command line to the emulator
+			emulatorArguments += "-P " + Network.portStart;	
+		}
+		
+		if(EmulatorConfig.EmulatorType == EmulatorConfig.EMULATOR_QEMU) {
+			// send num instructions to skip and simulate to Qemu.
+			// semantics : this fields apply locally to all the threads in Qemu.
+			emulatorArguments += " -SO " + SimulationConfig.NumInsToIgnore 
+					+ " -ST " + SimulationConfig.numInsForTrace;
+		}
+		
+		// convention : benchmark specific arguments come at the end only.
+		emulatorArguments += benchmarkArguments;
+		return emulatorArguments;
+	}
+	
 	private static void initializeArchitecturalComponents() {
 		ArchitecturalComponent.setCoreBcastBus(ArchitecturalComponent.initCoreBcastBus());
 		ArchitecturalComponent.setCores(ArchitecturalComponent.initCores(ArchitecturalComponent.getCoreBcastBus()));
