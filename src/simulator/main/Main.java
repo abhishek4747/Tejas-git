@@ -3,6 +3,7 @@ package main;
 import java.io.File;
 import java.io.IOException;
 import misc.Error;
+import misc.ShutDownHook;
 import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.XMLParser;
@@ -27,6 +28,10 @@ public class Main {
 	
 	public static void main(String[] arguments)
 	{
+		
+		//register shut down hook
+		Runtime.getRuntime().addShutdownHook(new ShutDownHook());
+		
 		checkCommandLineArguments(arguments);
 
 		// Read the command line arguments
@@ -72,7 +77,7 @@ public class Main {
 		String emulatorArguments = constructEmulatorArguments(benchmarkArguments);
 				
 		// start emulator
-		startEmulator(emulatorArguments, pid);
+		startEmulator(emulatorArguments, pid, ipcBase);
 
 		//different core components may work at different frequencies
 		
@@ -136,14 +141,14 @@ public class Main {
 		return ipcBase;
 	}
 
-	private static void startEmulator(String emulatorArguments, int pid) {
+	private static void startEmulator(String emulatorArguments, int pid, IpcBase ipcBase) {
 		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
 			// The emulator is not needed when we are reading from a file
 			emulator = null;
 		} else {
 			if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 				emulator = new Emulator(EmulatorConfig.PinTool, EmulatorConfig.PinInstrumentor, 
-						emulatorArguments, pid);
+						emulatorArguments, ((SharedMem)ipcBase).idToShmGet);
 			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 				emulator = new Emulator(EmulatorConfig.QemuTool + " " + emulatorArguments, pid);
 			} else {

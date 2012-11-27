@@ -21,6 +21,7 @@
 
 package emulatorinterface.translator.x86.instruction;
 
+import main.CustomObjectPool;
 import emulatorinterface.translator.InvalidInstructionException;
 import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.Instruction;
@@ -35,6 +36,11 @@ public class NOP implements X86StaticInstructionHandler
 					throws InvalidInstructionException
 	{
 		instructionArrayList.appendInstruction(Instruction.getNOPInstruction());
+		
+		if(operand1!=null) {
+			operand1.incrementNumReferences(); // increment operand1's num references
+			CustomObjectPool.getOperandPool().returnObject(operand1); // operand1 is not being used.
+		}
 		
 //		if(operand1==null && operand2==null && operand3==null)
 //		{

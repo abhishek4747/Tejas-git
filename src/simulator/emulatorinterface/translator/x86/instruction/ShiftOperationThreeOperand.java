@@ -61,7 +61,7 @@ public class ShiftOperationThreeOperand implements X86StaticInstructionHandler
 		}
 		else
 		{
-			misc.Error.invalidOperation("Shift", operand1, operand2, operand3);
+			misc.Error.invalidOperation("Shift operation three operands", operand1, operand2, operand3);
 		}
 	}
 }

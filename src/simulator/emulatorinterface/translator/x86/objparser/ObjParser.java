@@ -22,6 +22,7 @@
 package emulatorinterface.translator.x86.objparser;
 
 import emulatorinterface.DynamicInstructionBuffer;
+import emulatorinterface.EmulatorPacketList;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.InvalidInstructionException;
@@ -33,6 +34,7 @@ import emulatorinterface.translator.x86.instruction.X86StaticInstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
 import emulatorinterface.translator.x86.registers.Registers;
 import emulatorinterface.translator.x86.registers.TempRegisterNum;
+import generic.CustomOperandPool;
 import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionList;
@@ -181,7 +183,16 @@ public class ObjParser
 			String operand1Str, String operand2Str, String operand3Str, 
 			InstructionList instructionList) 
 	{
+//		if(instructionPointer==4222125) {
+//			System.out.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
+//					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
+//		}
+		
+		int poolSizeBefore = CustomObjectPool.getOperandPool().getSize();
+		int numDistinctOperand = 0;
 		int microOpsIndexBefore = instructionList.length();
+		Operand operand1 = null, operand2 = null, operand3 = null;
+
 		
 		// System.out.println("instructionList size before = " + microOpsIndexBefore);
 		
@@ -190,36 +201,47 @@ public class ObjParser
 			//Determine the instruction class for this instruction
 			InstructionClass instructionClass;
 			instructionClass = InstructionClassTable.getInstructionClass(operation);
-			
-			// Simplify the operands
-			Operand operand1, operand2, operand3;
-			
-//			Registers.noOfIntTempRegs = 0;
-//			Registers.noOfFloatTempRegs = 0;
-			
-			TempRegisterNum tempRegisterNum = new TempRegisterNum();
-			
-			operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionList, tempRegisterNum);
-			operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionList, tempRegisterNum);
-			operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionList, tempRegisterNum);
-			
+
 			// Obtain a handler for this instruction
 			X86StaticInstructionHandler handler;
 			handler = InstructionClassTable.getInstructionClassHandler(instructionClass);
 			
 			// Handle the instruction
-			if(handler!=null)
-			{
+			if(handler!=null) {
+				// Simplify the operands
+	
+				TempRegisterNum tempRegisterNum = new TempRegisterNum();
+				
+				operand1 = OperandTranslator.simplifyOperand(operand1Str, instructionList, tempRegisterNum);
+				operand2 = OperandTranslator.simplifyOperand(operand2Str, instructionList, tempRegisterNum);
+				operand3 = OperandTranslator.simplifyOperand(operand3Str, instructionList, tempRegisterNum);
+				
 				handler.handle(instructionPointer, operand1, operand2, operand3, instructionList, tempRegisterNum);
-			}
-			
-			//now set the ip of all converted instructions to instructionPointer
-			for(int i=microOpsIndexBefore; i<instructionList.length(); i++)
-			{
-				instructionList.setCISCProgramCounter(i, instructionPointer);
-				//FIXME : index in the array list - check ??
-				instructionList.setRISCProgramCounter(i, i);
-			}
+				
+				//now set the ip of all converted instructions to instructionPointer
+				for(int i=microOpsIndexBefore; i<instructionList.length(); i++)
+				{
+					instructionList.setCISCProgramCounter(i, instructionPointer);
+					//FIXME : index in the array list - check ??
+					instructionList.setRISCProgramCounter(i, i);
+					
+					// increment references for each argument
+					if(instructionList.get(i).getOperand1()!=null) {
+						instructionList.get(i).getOperand1().incrementNumReferences();
+						numDistinctOperand += instructionList.get(i).getOperand1().getNumDistinctRecursiveReferences();
+					}
+
+					if(instructionList.get(i).getOperand2()!=null) {
+						instructionList.get(i).getOperand2().incrementNumReferences();
+						numDistinctOperand += instructionList.get(i).getOperand2().getNumDistinctRecursiveReferences();
+					}
+
+					if(instructionList.get(i).getDestinationOperand()!=null) {
+						instructionList.get(i).getDestinationOperand().incrementNumReferences();
+						numDistinctOperand += instructionList.get(i).getDestinationOperand().getNumDistinctRecursiveReferences();
+					}
+				}
+			}			
 		} catch(InvalidInstructionException inInstrEx) {
 			/*
 			 * microOps created for this instruction are not valid 
@@ -230,13 +252,38 @@ public class ObjParser
 //			System.err.print("Unable to riscify instruction : ");
 //			System.err.println("ip="+instructionPointer+"\toperation="+operation+"\top1="
 //					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
-			
-			
-			while(instructionList.getListSize()
-					!=microOpsIndexBefore)
-			{
-				instructionList.removeLastInstr();
+
+			if(operand1!=null) {
+				operand1.incrementNumReferences();
+				CustomObjectPool.getOperandPool().returnObject(operand1);
 			}
+			
+			if(operand2!=null) {
+				operand2.incrementNumReferences();
+				CustomObjectPool.getOperandPool().returnObject(operand2);
+			}
+			
+			if(operand3!=null) {
+				operand3.incrementNumReferences();
+				CustomObjectPool.getOperandPool().returnObject(operand3);
+			}
+			
+			while(instructionList.getListSize() != microOpsIndexBefore) {
+				instructionList.removeLastInstr(operand1, operand2, operand3);
+			}
+		}
+		
+		int numOperandsRemovedFromPool = (poolSizeBefore-CustomObjectPool.getOperandPool().getSize());
+		
+		if(numOperandsRemovedFromPool!=numDistinctOperand) {
+			System.out.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
+					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
+
+			System.out.println("ip=" + instructionPointer + 
+				"\t#operands removed from pool = " + numOperandsRemovedFromPool + 
+				"\tnumDistinctOperands = " + numDistinctOperand);
+			
+			misc.Error.showErrorAndExit("numOperandsRemovedFromPool!=numDistinctOperand");
 		}
 		
 		return (instructionList.length()-microOpsIndexBefore);
@@ -245,7 +292,7 @@ public class ObjParser
 	//return true if the string is a valid instruction prefix
 	private static boolean isInstructionPrefix(String string)
 	{
-		if(string.matches("rep|repe|repne|repz|repnz|lock"))
+		if(string.matches("rep|repe|repne|repz|repnz|lock|o16"))
 		{
 			return true;
 		}
@@ -470,7 +517,7 @@ public class ObjParser
 		
 		if(currentPointer==-1) {
 			assemblyTokens[0] = null;
-			assemblyTokens[1] = new String(asmBytes, 0, len(asmBytes));
+			assemblyTokens[1] = new String(asmBytes, 0, len(asmBytes)); // only operation field is present
 			assemblyTokens[2] = assemblyTokens[3] = assemblyTokens[4] = null;
 			return assemblyTokens;
 		}
@@ -588,11 +635,9 @@ public class ObjParser
 	 */
 	public static int fuseInstruction(
 			int tidApp, long startInstructionPointer,
-			ArrayList<Packet> arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
-	{		
-//		if(true) {
-//			return 0;
-//		}
+			EmulatorPacketList arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
+	{
+//		System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
 		// Create a dynamic instruction buffer for all control packets
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
@@ -651,7 +696,7 @@ public class ObjParser
 				{
 					/* The startInstructionPointer was part of the executable file and hence is present in
 					 * the hashTable. However, it has not been decoded yet. So, we gobble all the branch,
-					 *  memRead and memWrite instructions belnging to it from the dynamicInstructionBuffer.
+					 *  memRead and memWrite instructions belonging to it from the dynamicInstructionBuffer.
 					 */
 					dynamicInstructionBuffer.gobbleInstruction(startInstructionPointer);
 					
@@ -688,8 +733,8 @@ public class ObjParser
 			
 			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 				dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
-				dynamicMicroOp.copy(assemblyPacketList.get(microOpIndex));
-			} else {
+				dynamicMicroOp.copy(staticMicroOp);
+			} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 				// This will ensure that the packet is returned to instruction pool
 				dynamicMicroOp = staticMicroOp;
 			}
@@ -704,10 +749,12 @@ public class ObjParser
 					numCISC--;
 				}
 				break;
-			} else if(microOpIndex==-2){
+			} else if(microOpIndex==-2) {
+				
 				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 					break;
 				}
+				
 			} else {
 
 				if(staticMicroOp.getCISCProgramCounter()!=previousCISCIP) {

@@ -233,9 +233,17 @@ public class ReorderBuffer extends SimulationElement{
 							
 						}
 //						System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
-						setTimingStatistics();			
-						setPerCoreMemorySystemStatistics();
-						setPerCorePowerStatistics();
+						
+						if(SimulationConfig.pinpointsSimulation == false)
+						{
+							setTimingStatistics();
+							setPerCoreMemorySystemStatistics();
+							setPerCorePowerStatistics();
+						}
+						else
+						{
+							Statistics.processEndOfSlice();
+						}
 						//memWbLatch.clear();
 						
 						if(this.core.currentThreads < 0)

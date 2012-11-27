@@ -40,8 +40,8 @@
 		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
-		<subsetSim>false</subsetSim>
-		<subsetSimSize>0000000</subsetSimSize>
+		<subsetSim>true</subsetSim>
+		<subsetSimSize>1000000000</subsetSimSize>
 		<PrintPowerStats>false</PrintPowerStats>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<NumInsToIgnore>0000010</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
@@ -260,17 +260,17 @@
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>128</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>4096</Size>				<!--In KBs-->
-			<Latency>22</Latency>				<!--In clock cycles-->
+			<Size>128</Size>				<!--In KBs-->
+			<Latency>8</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
+			<AccessPorts>64</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>4</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>CBD</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
@@ -286,7 +286,7 @@
 			<NocLatencyBetweenBanks>2</NocLatencyBetweenBanks>
 			<NocRouterArbiter>RR</NocRouterArbiter>
 			<TechPoint>90</TechPoint>
-			<NocConnection>OPTICAL</NocConnection>
+			<NocConnection>ELECTRICAL</NocConnection>
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->

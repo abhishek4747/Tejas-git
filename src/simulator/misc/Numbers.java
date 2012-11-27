@@ -23,18 +23,29 @@ package misc;
 
 public class Numbers {
 
-	static public Long hexToLong(String hexStr)
+	static public long hexToLong(String hexStr)
 	{
-		//Remove the 0x prefix
-		if(hexStr.length()>2 && hexStr.substring(0,2).contentEquals("0x")) {
-			hexStr = hexStr.substring(2);
-		}
-		
-		//FIXME : try passing correct value. If not possible, then pass -1
 		try {
-			return new Long(Long.parseLong(hexStr,16));
+			long num = 0, pow = 1;
+			byte []numBytes = hexStr.getBytes(); 
+			for(int i=hexStr.length()-1; i>=0; i--, pow*=16) {
+				if(numBytes[i]>='0' && numBytes[i]<='9') {
+					num += pow * (numBytes[i]-'0');
+				} else if(numBytes[i]>='a' && numBytes[i]<='f') {
+					num += pow * (10 + numBytes[i]-'a');
+				} else if(numBytes[i]>='A' && numBytes[i]<='F') {
+					num += pow * (10 + numBytes[i]-'A');
+				} else if(numBytes[i]=='x' || numBytes[i]=='X') {
+					num += 0; // 0x or 0X for hex numbers
+				} else {
+					throw new NumberFormatException();
+				}
+			}
+			
+			return num;
 		} catch (NumberFormatException nfe) {
-			return new Long(-1);
+			misc.Error.showErrorAndExit("incorrect number string : " + hexStr);
+			return (-1);
 		}
 	}
 	
@@ -43,11 +54,7 @@ public class Numbers {
 		if(numStr==null) {
 			return false;
 		} else {
-			if(numStr.length()>2 && numStr.substring(0,2).contentEquals("0x")) {
-				numStr = numStr.substring(2);
-			}
-			
-			if(numStr.matches("[0-9a-fA-F]+")) {
+			if(numStr.matches("[0xX0-9a-fA-F]+")) {
 				return true;
 			} else {
 				return false;

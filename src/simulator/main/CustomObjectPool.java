@@ -20,7 +20,7 @@ public class CustomObjectPool {
 		
 		/* custom pool */
 		System.out.println("creating operand pool..");
-		setOperandPool(new CustomOperandPool(numInstructionsInPool *3));
+		setOperandPool(new CustomOperandPool(numInstructionsInPool * 3));
 		
 		System.out.println("creating instruction pool..");
 		setInstructionPool(new CustomInstructionPool(numInstructionsInPool));

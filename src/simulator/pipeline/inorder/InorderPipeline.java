@@ -212,4 +212,79 @@ public class InorderPipeline implements PipelineInterface{
 		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
+
+	@Override
+	public long getBranchCount() {
+		return core.powerCounters.getBpredAccess();
+	}
+
+	@Override
+	public long getMispredCount() {
+		return core.powerCounters.getBpredMisses();
+	}
+
+	@Override
+	public long getNoOfMemRequests() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getNoOfMemRequests();
+	}
+
+	@Override
+	public long getNoOfLoads() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getNoOfLd();
+	}
+
+	@Override
+	public long getNoOfStores() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getNoOfSt();
+	}
+
+	@Override
+	public long getNoOfValueForwards() {
+		return 0;
+	}
+
+	@Override
+	public long getNoOfTLBRequests() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbRequests();
+	}
+
+	@Override
+	public long getNoOfTLBHits() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbHits();
+	}
+
+	@Override
+	public long getNoOfTLBMisses() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbMisses();
+	}
+
+	@Override
+	public long getNoOfL1Requests() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getL1Cache().noOfRequests;
+	}
+
+	@Override
+	public long getNoOfL1Hits() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getL1Cache().hits;
+	}
+
+	@Override
+	public long getNoOfL1Misses() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getL1Cache().misses;
+	}
+
+	@Override
+	public long getNoOfIRequests() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiCache().noOfRequests;
+	}
+
+	@Override
+	public long getNoOfIHits() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiCache().hits;
+	}
+
+	@Override
+	public long getNoOfIMisses() {
+		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiCache().misses;
+	}
 }

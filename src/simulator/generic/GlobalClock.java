@@ -206,7 +206,7 @@ public class GlobalClock {
 		
 		for(i = 0; i < SystemConfig.NoOfCores; i++)
 		{
-			System.out.println("step size of core " + i + " is " + cores[i].getStepSize());
+			// System.out.println("step size of core " + i + " is " + cores[i].getStepSize());
 		}
 		/*for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); )
 		{

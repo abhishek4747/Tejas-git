@@ -143,6 +143,81 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
+
+	@Override
+	public long getBranchCount() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getReorderBuffer().getBranchCount();
+	}
+
+	@Override
+	public long getMispredCount() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getReorderBuffer().getMispredCount();
+	}
+
+	@Override
+	public long getNoOfMemRequests() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getLsqueue().noOfMemRequests;
+	}
+
+	@Override
+	public long getNoOfLoads() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getLsqueue().NoOfLd;
+	}
+
+	@Override
+	public long getNoOfStores() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getLsqueue().NoOfSt;
+	}
+
+	@Override
+	public long getNoOfValueForwards() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getLsqueue().NoOfForwards;
+	}
+
+	@Override
+	public long getNoOfTLBRequests() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbRequests();
+	}
+
+	@Override
+	public long getNoOfTLBHits() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbHits();
+	}
+
+	@Override
+	public long getNoOfTLBMisses() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbMisses();
+	}
+
+	@Override
+	public long getNoOfL1Requests() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getL1Cache().noOfRequests;
+	}
+
+	@Override
+	public long getNoOfL1Hits() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getL1Cache().hits;
+	}
+
+	@Override
+	public long getNoOfL1Misses() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getL1Cache().misses;
+	}
+
+	@Override
+	public long getNoOfIRequests() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiCache().noOfRequests;
+	}
+
+	@Override
+	public long getNoOfIHits() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiCache().hits;
+	}
+
+	@Override
+	public long getNoOfIMisses() {
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiCache().misses;
+	}
 	
 
 }

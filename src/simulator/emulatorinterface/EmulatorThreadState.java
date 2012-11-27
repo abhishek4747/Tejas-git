@@ -15,10 +15,10 @@ public class EmulatorThreadState {
 	
 	//int readerLocation;
 	long totalRead;
+	
+	
 	Packet pold = new Packet();
-	
-	ArrayList<Packet> packets=new ArrayList<Packet>();
-	
+	EmulatorPacketList packetList = new EmulatorPacketList();
 	
 	public void checkStarted() {
 		if (this.isFirstPacket) {

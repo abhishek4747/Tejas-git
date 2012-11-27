@@ -74,7 +74,7 @@ public class CustomOperandPool {
 	public Operand borrowObject()
 	{
 		if(pool.isEmpty()) {
-			misc.Error.showErrorAndExit("operand pool empty!!");
+			misc.Error.showErrorAndExit("operand pool empty!! : instructionPoolSize = " + CustomObjectPool.getInstructionPool().getNumIdle());
 			return null;
 		}
 		
@@ -83,6 +83,13 @@ public class CustomOperandPool {
 	
 	public void returnObject(Operand arg0)
 	{
+		arg0.decrementNumReferences();
+		if(arg0.getNumReferences()>0) {
+			return;
+		} else if(arg0.getNumReferences()<0) {
+			misc.Error.showErrorAndExit("numReferences < 0 !!");
+		}
+		
 		if(arg0.getMemoryLocationFirstOperand() != null)
 		{
 			CustomObjectPool.getOperandPool().returnObject(arg0.getMemoryLocationFirstOperand());
@@ -93,6 +100,32 @@ public class CustomOperandPool {
 		}
 		
 		pool.append(arg0);
+	}
+	
+	public void returnUnusedObject(Operand arg0) {
+		if(arg0.getNumReferences()!=0) {
+			misc.Error.showErrorAndExit(arg0 + " object is in use !!");
+		}
+		
+		// The components of arg0 will not be removed
+		if(arg0.getMemoryLocationFirstOperand()!=null) {
+			arg0.setMemoryLocationFirstOperand(null);
+		}
+		
+		if(arg0.getMemoryLocationSecondOperand()!=null) {
+			arg0.setMemoryLocationSecondOperand(null);
+		}
+		
+		arg0.incrementNumReferences();
+		returnObject(arg0);
+	}
+	
+	public int getSize() {
+		return pool.size();
+	}
+
+	public long getNumIdle() {
+		return getSize();
 	}
 
 }
