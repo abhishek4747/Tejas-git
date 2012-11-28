@@ -640,7 +640,7 @@ public class ObjParser
 			int tidApp, long startInstructionPointer,
 			EmulatorPacketList arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
 	{
-//		System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
+		//System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
 		// Create a dynamic instruction buffer for all control packets
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
@@ -648,14 +648,15 @@ public class ObjParser
 		
 		InstructionList assemblyPacketList = null;
 		
-		int numCISC = 0;
-		int microOpIndex = 0;
+		int numCISC = 1;
+		int microOpIndex = -1;
 		
 		// Riscify the assembly packets
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-			
+			assemblyPacketList = threadMicroOpsList[tidApp];
 			threadMicroOpsList[tidApp].clear();
 			
+			//FIXME : I am considering multiple assembly packets at once.
 			for (int i = 0; i < arrayListPacket.size(); i++) 
 			{
 				assemblyPacketList = threadMicroOpsList[tidApp]; 
@@ -677,95 +678,50 @@ public class ObjParser
 						assemblyPacketList);
 				}
 			}
+			
+			microOpIndex = 0;
+			
 		} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			assemblyPacketList = staticMicroOpList;
 			
-			// traverse dynamicInstruction Buffer to go to a known instruction
-			while(true)
+			microOpIndex = ciscIPtoRiscIP.getMicroOpIndex(startInstructionPointer);
+			
+			if((microOpIndex==-1) || 
+			  (assemblyPacketList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)) 
 			{
-				microOpIndex = ciscIPtoRiscIP.getMicroOpIndex(startInstructionPointer);
-				
-				if(microOpIndex==-1)
-				{
-					/* startInstructionPointer was never a part of the executable parsed earlier.
-					 * We do not probe further to find a known instruction in the dynamicInstruction
-					 * buffer since it would not be worth the extra effort for such a small window of
-					 * instructions */
-					dynamicInstructionBuffer.clearBuffer();
-					return numCISC;
-				}
-				
-				else if(assemblyPacketList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)
-				{
-					/* The startInstructionPointer was part of the executable file and hence is present in
-					 * the hashTable. However, it has not been decoded yet. So, we gobble all the branch,
-					 *  memRead and memWrite instructions belonging to it from the dynamicInstructionBuffer.
-					 */
-					dynamicInstructionBuffer.gobbleInstruction(startInstructionPointer);
-					
-					// go to the next microOpIndex and set startInstructionPointer = microOps ip.
-					//FIXME : Why was this required ?? -> microOpIndex++;
-					startInstructionPointer = assemblyPacketList.get(microOpIndex).getCISCProgramCounter();
-				}
-				
-				else
-				{
-					break;
-				}
+				dynamicInstructionBuffer.clearBuffer();
+				return 0;
 			}
 		}
 		
-		Instruction staticMicroOp;
+		Instruction staticMicroOp, dynamicMicroOp;
 		DynamicInstructionHandler dynamicInstructionHandler;
-		long previousCISCIP;
-		
-		// starting
-		previousCISCIP = -1;
-		
+				
 		// main translate loop.
 		while(true)
 		{
 			staticMicroOp = assemblyPacketList.get(microOpIndex); 
-			if(staticMicroOp==null) {
+			if(staticMicroOp==null || staticMicroOp.getCISCProgramCounter() != startInstructionPointer) {
 				break;
 			}
 			
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(staticMicroOp.getOperationType());
-			
-			Instruction dynamicMicroOp = null;
-			
-			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-				dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
-				dynamicMicroOp.copy(staticMicroOp);
-			} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-				// This will ensure that the packet is returned to instruction pool
-				dynamicMicroOp = staticMicroOp;
-			}
-			
-			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, ciscIPtoRiscIP, dynamicMicroOp, dynamicInstructionBuffer); //handle
+			dynamicMicroOp = getDynamicMicroOp(staticMicroOp);
+			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, ciscIPtoRiscIP, dynamicMicroOp, dynamicInstructionBuffer);
 			
 			if(microOpIndex==-1) {
-				// I was unable to fuse certain micro-ops of this instruction. So, I must remove any previously 
+				// I was unable to fuse certain micro-ops of this instruction. 
+				// So, I must remove any previously 
 				// computed micro-ops from the buffer
 				CustomObjectPool.getInstructionPool().returnObject(dynamicMicroOp);
-				if(removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter())==true) {
-					numCISC--;
-				}
+				removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter());
+				numCISC = 0;
 				break;
 			} else if(microOpIndex==-2) {
-				
 				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 					break;
 				}
-				
 			} else {
-
-				if(staticMicroOp.getCISCProgramCounter()!=previousCISCIP) {
-					previousCISCIP = staticMicroOp.getCISCProgramCounter();
-					//System.out.println("#### "+ Long.toHexString(previousCISCIP));
-					numCISC++;
-				}
-				
 				inputToPipeline.enqueue(dynamicMicroOp); //append microOp
 			}
 		}
@@ -774,5 +730,20 @@ public class ObjParser
 		dynamicInstructionBuffer.clearBuffer();
 		//System.out.println(inputToPipeline);
 		return numCISC;
+	}
+
+	private static Instruction getDynamicMicroOp(Instruction staticMicroOp) {
+		
+		Instruction dynamicMicroOp = null;
+		
+		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
+			dynamicMicroOp.copy(staticMicroOp);
+		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			// This will ensure that the packet is returned to instruction pool
+			dynamicMicroOp = staticMicroOp;
+		}
+		
+		return dynamicMicroOp;
 	}
 }

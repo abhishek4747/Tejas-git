@@ -169,7 +169,7 @@ public class Main {
 			// send num instructions to skip and simulate to Qemu.
 			// semantics : this fields apply locally to all the threads in Qemu.
 			emulatorArguments += " -SO " + SimulationConfig.NumInsToIgnore 
-					+ " -ST " + SimulationConfig.numInsForTrace;
+					+ " -ST " + SimulationConfig.subsetSimSize;
 		}
 		
 		// convention : benchmark specific arguments come at the end only.

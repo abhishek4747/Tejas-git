@@ -460,6 +460,15 @@ VOID printip(THREADID tid, VOID *ip) {
 
 	}
 
+	if(ignoreActive==false) {
+		// For every instruction, I am sending one Instruction packet to Tejas.
+		// For rep instruction, this function is called for each iteration of rep.
+		uint64_t nip = MASK & (uint64_t) ip;
+		while (tst->analysisFn(tid, nip, INSTRUCTION, 1) == -1) {
+			PIN_Yield();
+		}
+	}
+
 	if(numCISC[tid] % 1000000 == 0 && numCISC[tid] > 0)
 	{
 		printf("numCISC on thread %d = %lu, ignoreActive = %d\n", tid, numCISC[tid], ignoreActive);

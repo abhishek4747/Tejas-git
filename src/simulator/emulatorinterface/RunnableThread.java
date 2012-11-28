@@ -18,6 +18,7 @@ import main.CustomObjectPool;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import pipeline.inorder.InorderExecutionEngine;
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
@@ -576,6 +577,9 @@ public class RunnableThread implements Encoding, Runnable {
 	 * parameters - Thread information, packetList, thread id
 	 */
 	protected void processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
+		
+		//System.out.println("pnew : " + pnew);
+		
 		if (doNotProcess) return;
 		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
@@ -608,12 +612,13 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			//thread.pold = pnew;
 			thread.pold.set(pnew);
-			thread.packetList.add(thread.pold);
+			//thread.packetList.add(thread.pold);
 			thread.isFirstPacket=false;
+			return;
 		}
 		
-		if (pnew.ip == thread.pold.ip && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {
-			// just append the packetList to outstanding packets for current instruction pointer
+		if (pnew.value!=INSTRUCTION && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {
+			// just append the packet to outstanding packetList for current instruction pointer
 			thread.packetList.add(pnew);
 		} else {
 			//(numInstructions[tidEmu])++;
@@ -621,12 +626,14 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			int oldLength = inputToPipeline[tidEmu].size();
 			
-			long numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packetList.get(0).ip, 
-					thread.packetList, this.inputToPipeline[tidEmu]);
+			long numHandledInsn = 0;
 			
+			numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.pold.ip, 
+				thread.packetList, this.inputToPipeline[tidEmu]);
+									
 			Statistics.setNumHandledCISCInsn(
-					Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
-					javaTid, tidEmu);
+				Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
+				javaTid, tidEmu);
 			
 			int newLength = inputToPipeline[tidEmu].size();
 			
@@ -702,15 +709,19 @@ public class RunnableThread implements Encoding, Runnable {
 				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
 */					
 
-				thread.pold.set(pnew);
 				thread.packetList.clear();
-				thread.packetList.add(thread.pold);
+				thread.pold.set(pnew);
+				
+				// A instruction delimiter packet should not be added to the packet-list
+				if(!(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN && pnew.value==INSTRUCTION)){
+					thread.packetList.add(pnew);
+				}
 			}
 			
-			long temp=noOfMicroOps[tidEmu] % 1000000;
-			if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
-				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
-			}
+			//long temp=noOfMicroOps[tidEmu] % 1000000;
+			//if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
+			//	System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+			//}
 		}
 
 	}

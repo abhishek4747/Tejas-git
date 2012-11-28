@@ -8,12 +8,13 @@ public class EmulatorPacketList {
 	
 	ArrayList<Packet> packetList;
 	int size = 0;
+	final int listSize = 5; // load + store + branch + assembly + control-flow(thread)
 
 	public EmulatorPacketList() {
 		super();
 		this.packetList = new ArrayList<Packet>();
 		
-		for(int i=0; i<1024; i++) {
+		for(int i=0; i<listSize; i++) {
 			packetList.add(new Packet());
 		}
 	}

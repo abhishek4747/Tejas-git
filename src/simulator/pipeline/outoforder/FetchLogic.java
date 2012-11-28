@@ -6,6 +6,7 @@ import memorysystem.AddressCarryingEvent;
 import generic.Barrier;
 import generic.BarrierTable;
 import generic.Core;
+import generic.CustomInstructionPool;
 import generic.Event;
 import generic.EventQueue;
 import generic.GenericCircularQueue;
@@ -51,6 +52,23 @@ public class FetchLogic extends SimulationElement {
 	
 	public void performFetch()
 	{
+		boolean checkTranslatorSpeed = false;
+		
+		if(checkTranslatorSpeed)
+		{
+			Instruction inst;
+			while((inst = inputToPipeline[0].dequeue()) != null)
+			{
+				if(inst.getOperationType() == OperationType.inValid)
+				{
+					execEngine.setExecutionComplete(true);
+				}
+				CustomObjectPool.getInstructionPool().returnObject(inst);
+			}
+			
+			return;
+		}
+		
 		if(sleep == true)
 		{
 			return;
