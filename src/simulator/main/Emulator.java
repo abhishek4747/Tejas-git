@@ -44,6 +44,7 @@ public class Emulator {
 
 	// Start the PIN process. Parse the cmd accordingly
 	private void startEmulator(String cmd) {
+		emulatorCommand = cmd;
 		Runtime rt = Runtime.getRuntime();
 		try {
 			emulatorProcess = rt.exec(cmd);
@@ -90,6 +91,12 @@ public class Emulator {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private static String emulatorCommand = null;
+
+	public static String getEmulatorCommand() {
+		return emulatorCommand;
 	}
 	
 	

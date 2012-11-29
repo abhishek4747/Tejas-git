@@ -44,9 +44,8 @@ public class Main {
 		// Initialize the statistics
 		Statistics.initStatistics();
 		
-		// Initialise pool of operands and instructions
-		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
-
+		initializeObjectPools();
+		
 		// Create a hash-table for the static representation of the executable
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			ObjParser.buildStaticInstructionTable(getEmulatorFile());
@@ -119,6 +118,21 @@ public class Main {
 		System.out.println("\n\nSimulation completed !!");
 				
 		System.exit(0);
+	}
+
+	private static void initializeObjectPools() {
+		
+		int numStaticInstructions = 0;
+		
+		if(EmulatorConfig.EmulatorType == EmulatorConfig.EMULATOR_PIN) {
+			// approximately 3 micro-operations are required per cisc instruction
+			numStaticInstructions = ObjParser.noOfLines(getEmulatorFile()) * 3;
+		} else {
+			
+		}
+				
+		// Initialise pool of operands and instructions
+		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread, numStaticInstructions);
 	}
 
 	private static IpcBase startCommunicationChannel(int pid) {
