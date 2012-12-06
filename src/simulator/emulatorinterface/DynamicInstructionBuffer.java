@@ -104,17 +104,14 @@ public class DynamicInstructionBuffer implements Encoding
 		}
 	}
 	
-	public BranchInstr getBranchPacket(long instructionPointer)
+	public boolean getBranchTaken(long instructionPointer)
 	{
-		if(branchAddress==-1) {
-//			System.err.println("expected branch packet : " +
-//				"ip = " + Long.toHexString(ip).toLowerCase()+   
-//				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
-
-			return null;
-		} else {
-			return new BranchInstr(branchTaken, branchAddress);
-		}
+		return branchTaken;
+	}
+	
+	public long getBranchAddress(long instructionPointer)
+	{
+		return branchAddress;
 	}
 	
 	public long getSingleLoadAddress(long instructionPointer)

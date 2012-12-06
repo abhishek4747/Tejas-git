@@ -54,6 +54,8 @@ public class Main {
 			ObjParser.initializeThreadMicroOpsList(1);
 		}
 		
+		ObjParser.initializeDynamicInstructionBuffer(1);
+		
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
 		

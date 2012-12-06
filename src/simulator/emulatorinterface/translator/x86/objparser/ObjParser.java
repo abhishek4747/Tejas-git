@@ -79,6 +79,15 @@ public class ObjParser
 		}
 	}
 	
+	private static DynamicInstructionBuffer[] staticDynamicInstructionBuffers;
+	public static void initializeDynamicInstructionBuffer(int maxApplicationThreads) {
+		staticDynamicInstructionBuffers = new DynamicInstructionBuffer[maxApplicationThreads];
+		
+		for(int i=0; i<maxApplicationThreads; i++) {
+			staticDynamicInstructionBuffers[i] = new DynamicInstructionBuffer();
+		}
+	}
+	
 	/**
 	* This method translates a static instruction to dynamic instruction.
 	* It takes as arguments - instructionTable, instructionPointer and dynamic
@@ -642,12 +651,12 @@ public class ObjParser
 	{
 		//System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
-		if(startInstructionPointer==0x57d650) {
-			System.out.println("");
-		}
+//		if(startInstructionPointer==0x57d650) {
+//			System.out.println("");
+//		}
 		
 		// Create a dynamic instruction buffer for all control packets
-		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
+		DynamicInstructionBuffer dynamicInstructionBuffer = staticDynamicInstructionBuffers[tidApp];
 		dynamicInstructionBuffer.configurePackets(arrayListPacket);
 		
 		InstructionList assemblyPacketList = null;
