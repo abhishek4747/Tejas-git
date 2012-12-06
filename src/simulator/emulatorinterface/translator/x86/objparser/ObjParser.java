@@ -642,6 +642,10 @@ public class ObjParser
 	{
 		//System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
+		if(startInstructionPointer==0x57d650) {
+			System.out.println("");
+		}
+		
 		// Create a dynamic instruction buffer for all control packets
 		DynamicInstructionBuffer dynamicInstructionBuffer = new DynamicInstructionBuffer();
 		dynamicInstructionBuffer.configurePackets(arrayListPacket);
@@ -689,7 +693,7 @@ public class ObjParser
 			if((microOpIndex==-1) || 
 			  (assemblyPacketList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)) 
 			{
-				dynamicInstructionBuffer.clearBuffer();
+				// dynamicInstructionBuffer.clearBuffer();
 				return 0;
 			}
 		}
@@ -727,7 +731,7 @@ public class ObjParser
 		}
 		
 		/* clear the dynamicInstructionBuffer */		
-		dynamicInstructionBuffer.clearBuffer();
+		// dynamicInstructionBuffer.clearBuffer();
 		//System.out.println(inputToPipeline);
 		return numCISC;
 	}

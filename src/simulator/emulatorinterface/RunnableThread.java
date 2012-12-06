@@ -610,9 +610,8 @@ public class RunnableThread implements Encoding, Runnable {
 			if(tidApp>=maxCoreAssign)
 				maxCoreAssign = tidApp+1;
 			
-			//thread.pold = pnew;
-			thread.pold.set(pnew);
-			//thread.packetList.add(thread.pold);
+			//thread.pold.set(pnew);
+			thread.packetList.add(pnew);
 			thread.isFirstPacket=false;
 			return;
 		}
@@ -628,7 +627,7 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			long numHandledInsn = 0;
 			
-			numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.pold.ip, 
+			numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packetList.get(0).ip, 
 				thread.packetList, this.inputToPipeline[tidEmu]);
 									
 			Statistics.setNumHandledCISCInsn(
@@ -710,12 +709,7 @@ public class RunnableThread implements Encoding, Runnable {
 */					
 
 				thread.packetList.clear();
-				thread.pold.set(pnew);
-				
-				// A instruction delimiter packet should not be added to the packet-list
-				if(!(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN && pnew.value==INSTRUCTION)){
-					thread.packetList.add(pnew);
-				}
+				thread.packetList.add(pnew);
 			}
 			
 			//long temp=noOfMicroOps[tidEmu] % 1000000;

@@ -20,8 +20,8 @@
 *****************************************************************************/-->
 <Configuration>
 	<Emulator>
-		<EmulatorType>1</EmulatorType> <!-- 0-pin,1-qemu-->
-		<CommunicationType>2</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
+		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
+		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
 		<PinTool>/opt/pin</PinTool>
 		<PinInstrumentor>/home/prathmesh/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64</QemuTool>
@@ -48,7 +48,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>1000000</subsetSimSize>
+		<subsetSimSize>100000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->

@@ -17,7 +17,7 @@ public class EmulatorThreadState {
 	long totalRead;
 	
 	
-	Packet pold = new Packet();
+	// Packet pold = new Packet();
 	EmulatorPacketList packetList = new EmulatorPacketList();
 	
 	public void checkStarted() {

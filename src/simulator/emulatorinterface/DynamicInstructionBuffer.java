@@ -71,11 +71,11 @@ public class DynamicInstructionBuffer implements Encoding
 					break;
 				
 				case (0):
-					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
+					misc.Error.showErrorAndExit("error in configuring packet : " + p );
 					break;
 					
 				case (1):
-					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
+					misc.Error.showErrorAndExit("error in configuring packet : " + p);
 					break;
 					
 				case (MEMREAD):
@@ -107,6 +107,10 @@ public class DynamicInstructionBuffer implements Encoding
 	public BranchInstr getBranchPacket(long instructionPointer)
 	{
 		if(branchAddress==-1) {
+			System.err.println("expected branch packet : " +
+				"ip = " + Long.toHexString(ip).toLowerCase()+   
+				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
+
 			return null;
 		} else {
 			return new BranchInstr(branchTaken, branchAddress);
@@ -120,9 +124,9 @@ public class DynamicInstructionBuffer implements Encoding
 		if(memReadCount<memReadSize) {
 			ret = memRead[memReadCount++];
 		} else {
-			misc.Error.showErrorAndExit("expected load address : " +
-					"ip = " + Long.toHexString(ip).toLowerCase()+   
-					"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
+			System.err.println("expected load address : " +
+				"ip = " + Long.toHexString(ip).toLowerCase()+   
+				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
 		}
 		
 		return ret;
@@ -136,7 +140,9 @@ public class DynamicInstructionBuffer implements Encoding
 		if(memWriteCount<memWriteSize) {
 			ret = memWrite[memWriteCount++];
 		} else {
-			misc.Error.showErrorAndExit("expected store address for " + instructionPointer + " !!");
+			System.err.println("expected store address : " +
+				"ip = " + Long.toHexString(ip).toLowerCase()+   
+				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
 		}
 		
 		return ret;

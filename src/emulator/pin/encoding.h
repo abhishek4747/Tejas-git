@@ -1,6 +1,6 @@
 // Do not change these encodings, change Encoding.java too, if needed.
 
-#define INSTRUCTION 1
+#define INSTRUCTION 28
 #define MEMREAD	2
 #define MEMWRITE	3
 #define	TAKEN	4
