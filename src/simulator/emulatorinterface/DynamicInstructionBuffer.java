@@ -21,13 +21,8 @@
 
 package emulatorinterface;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
-import generic.BranchInstr;
 
 public class DynamicInstructionBuffer implements Encoding
 {
