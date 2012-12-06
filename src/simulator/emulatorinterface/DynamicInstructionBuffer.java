@@ -107,9 +107,9 @@ public class DynamicInstructionBuffer implements Encoding
 	public BranchInstr getBranchPacket(long instructionPointer)
 	{
 		if(branchAddress==-1) {
-			System.err.println("expected branch packet : " +
-				"ip = " + Long.toHexString(ip).toLowerCase()+   
-				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
+//			System.err.println("expected branch packet : " +
+//				"ip = " + Long.toHexString(ip).toLowerCase()+   
+//				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
 
 			return null;
 		} else {
@@ -124,9 +124,9 @@ public class DynamicInstructionBuffer implements Encoding
 		if(memReadCount<memReadSize) {
 			ret = memRead[memReadCount++];
 		} else {
-			System.err.println("expected load address : " +
-				"ip = " + Long.toHexString(ip).toLowerCase()+   
-				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
+//			System.err.println("expected load address : " +
+//				"ip = " + Long.toHexString(ip).toLowerCase()+   
+//				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
 		}
 		
 		return ret;
@@ -140,9 +140,9 @@ public class DynamicInstructionBuffer implements Encoding
 		if(memWriteCount<memWriteSize) {
 			ret = memWrite[memWriteCount++];
 		} else {
-			System.err.println("expected store address : " +
-				"ip = " + Long.toHexString(ip).toLowerCase()+   
-				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
+//			System.err.println("expected store address : " +
+//				"ip = " + Long.toHexString(ip).toLowerCase()+   
+//				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
 		}
 		
 		return ret;
