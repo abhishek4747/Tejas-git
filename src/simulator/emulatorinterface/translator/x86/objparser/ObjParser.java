@@ -338,8 +338,8 @@ public class ObjParser
 	}
 	
 	// Counts number of lines in a file.
-	private static long noOfLines(String executableFileName) {
-		long numLines = 0;
+	public static int noOfLines(String executableFileName) {
+		int numLines = 0;
 		BufferedReader input = null;
 
 		try {
