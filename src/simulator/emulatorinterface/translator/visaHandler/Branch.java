@@ -2,7 +2,6 @@ package emulatorinterface.translator.visaHandler;
 
 import config.EmulatorConfig;
 import emulatorinterface.DynamicInstructionBuffer;
-import generic.BranchInstr;
 import generic.Instruction;
 import generic.InstructionTable;
 
