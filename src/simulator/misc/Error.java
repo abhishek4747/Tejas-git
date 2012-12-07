@@ -21,6 +21,7 @@
 
 package misc;
 
+import main.Emulator;
 import main.Main;
 import emulatorinterface.translator.InvalidInstructionException;
 import generic.Operand;
@@ -30,7 +31,8 @@ public class Error
 	public static void showErrorAndExit(String message)
 	{
 		new Exception().printStackTrace();
-		System.err.print(message);
+		System.err.println(message);
+		System.err.println("emulator command is : " + Emulator.getEmulatorCommand());
 		shutDown("");
 		System.exit(1);
 	}
