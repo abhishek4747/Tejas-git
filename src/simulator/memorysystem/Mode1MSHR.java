@@ -7,8 +7,6 @@ import generic.RequestType;
 
 import java.util.ArrayList;
 
-import sun.misc.Cleaner;
-
 import main.ArchitecturalComponent;
 
 public class Mode1MSHR implements MissStatusHoldingRegister {

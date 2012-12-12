@@ -307,7 +307,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			System.out.println();
 		}
 	}
-	
+	/*methods with errors TODO
 	public void pullFromUpperMshrs()
 	{
 		startIndexForPulling = (startIndexForPulling + 1)%connectedMSHR.size();
@@ -361,20 +361,20 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			}
 			if(entryCreated)
 			{
-				/*
+				*//*
 				 * if the pulled event results in a new omrEntry,
 				 * the processing of the request must be done
-				 */
+				 *//*
 				handleAccess(omrEntry.eventToForward.getEventQ() , omrEntry.eventToForward);
 			}
 			else
 			{
-				/*
+				*//*
 				 * if the pulled event is a write (omr entry already exists),
 				 * it may be that the cache line already exists at this level (either in the cache, or in the MSHR),
 				 * therefore, this request is effectively a hit;
 				 * to handle this possibility, we call handleAccess()
-				 */
+				 *//*
 				AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
 				if(eventToForward != null &&
 						eventToForward.getRequestType() == RequestType.Cache_Write)
@@ -384,7 +384,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			}
 		}
 	}
-	
+	*/
 	public void populateConnectedMSHR(ArrayList<Cache> prevLevel)
 	{
 		for(int i = 0; i < prevLevel.size(); i++)
@@ -398,12 +398,42 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		
 		//only receives RequestType.PerformPulls
 		
-		pullFromUpperMshrs();
+		/*TODO error in this line. pullFromUpperMshrs();*/
 		
 		//schedule pulling for the next cycle
 		event.addEventTime(1);
 		event.getEventQ().addEvent(event);
 		
+	}
+
+	@Override
+	public int getCurrentSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getMSHRStructSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getMaxSizeReached() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int numOutStandingRequests(Event event) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean removeEventIfAvailable(AddressCarryingEvent addrevent) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
