@@ -18,6 +18,7 @@ import main.CustomObjectPool;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import pipeline.inorder.InorderExecutionEngine;
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
@@ -164,10 +165,10 @@ public class RunnableThread implements Encoding, Runnable {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
-					System.out.println("runnableshm : last packet received for application-thread " + 
+					System.out.println("runnableshm : last packetList received for application-thread " + 
 							tidApplication + " numCISC=" + pnew.ip);
 					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmulator);
-					threadParam.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
+					threadParam.isFirstPacket = true;  //preparing the thread for next packetList in same pipeline
 					signalFinish(tidApplication);
 				}
 
@@ -572,14 +573,14 @@ public class RunnableThread implements Encoding, Runnable {
 		return ret;
 	}
 	/*
-	 * process each packet
-	 * parameters - Thread information, packet, thread id
+	 * process each packetList
+	 * parameters - Thread information, packetList, thread id
 	 */
 	protected void processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
 		if (doNotProcess) return;
 		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
-		if (pnew.value == TIMER) {//leaving timer packet now
+		if (pnew.value == TIMER) {//leaving timer packetList now
 			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
 			return;
 		}
@@ -606,25 +607,28 @@ public class RunnableThread implements Encoding, Runnable {
 			if(tidApp>=maxCoreAssign)
 				maxCoreAssign = tidApp+1;
 			
-			thread.pold = pnew;
+			//thread.pold.set(pnew);
+			thread.packetList.add(pnew);
 			thread.isFirstPacket=false;
 		}
 		
-		if (pnew.ip == thread.pold.ip && !(pnew.value>6 && pnew.value<26)) {
-			// just append the packet to outstanding packets for current instruction pointer
-			thread.packets.add(pnew);
+		if (pnew.value!=INSTRUCTION && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {
+			// just append the packet to outstanding packetList for current instruction pointer
+			thread.packetList.add(pnew);
 		} else {
 			//(numInstructions[tidEmu])++;
 			//this.dynamicInstructionBuffer[tidEmu].configurePackets(thread.packets);
 			
 			int oldLength = inputToPipeline[tidEmu].size();
 			
-			long numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packets.get(0).ip, 
-					thread.packets, this.inputToPipeline[tidEmu]);
+			long numHandledInsn = 0;
 			
+			numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packetList.get(0).ip, 
+				thread.packetList, this.inputToPipeline[tidEmu]);
+									
 			Statistics.setNumHandledCISCInsn(
-					Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
-					javaTid, tidEmu);
+				Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
+				javaTid, tidEmu);
 			
 			int newLength = inputToPipeline[tidEmu].size();
 			
@@ -673,8 +677,7 @@ public class RunnableThread implements Encoding, Runnable {
 					}
 				}
 			}
-			else 
-			{
+			else {
 				
 //				int temmm = tempList.getListSize();
 //				for (int i = 0; i < temmm; i++) {
@@ -701,9 +704,8 @@ public class RunnableThread implements Encoding, Runnable {
 				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
 */					
 
-				thread.pold = pnew;
-				thread.packets.clear();
-				thread.packets.add(thread.pold);
+				thread.packetList.clear();
+				thread.packetList.add(pnew);
 			}
 			
 			long temp=noOfMicroOps[tidEmu] % 1000000;

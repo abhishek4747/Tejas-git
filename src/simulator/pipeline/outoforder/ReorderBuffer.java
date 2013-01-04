@@ -3,7 +3,6 @@ package pipeline.outoforder;
 import main.CustomObjectPool;
 import main.Main;
 import memorysystem.MemorySystem;
-import memorysystem.nuca.CBDNuca;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -234,9 +233,17 @@ public class ReorderBuffer extends SimulationElement{
 							
 						}
 //						System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
-						setTimingStatistics();			
-						setPerCoreMemorySystemStatistics();
-						setPerCorePowerStatistics();
+						
+						if(SimulationConfig.pinpointsSimulation == false)
+						{
+							setTimingStatistics();
+							setPerCoreMemorySystemStatistics();
+							setPerCorePowerStatistics();
+						}
+						else
+						{
+							Statistics.processEndOfSlice();
+						}
 						//memWbLatch.clear();
 						
 						if(this.core.currentThreads < 0)
@@ -279,10 +286,6 @@ public class ReorderBuffer extends SimulationElement{
 					core.incrementNoOfInstructionsExecuted();
 					if(core.getNoOfInstructionsExecuted()%1000000==0){
 						System.out.println(this.j++ + " million done on " + core.getCore_number());
-						/*if(j == 11) 
-						{
-							CBDNuca.debugPrint = true;
-						}*/
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					

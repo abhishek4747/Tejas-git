@@ -116,6 +116,8 @@ public class CustomInstructionPool {
 	
 	public void returnObject(Instruction arg0)
 	{
+//		System.out.println("ip = " + arg0.getCISCProgramCounter());
+		
 //		System.out.println("return"+head+" "+tail);
 		if(arg0.getSourceOperand1() != null)
 		{

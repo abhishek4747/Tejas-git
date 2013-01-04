@@ -141,5 +141,80 @@ public class MultiIssueInorder implements PipelineInterface {
 		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
 		
 	}
+	@Override
+	public long getBranchCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getMispredCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfIHits() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfIMisses() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfIRequests() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfL1Hits() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfL1Misses() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfL1Requests() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfLoads() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfMemRequests() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfStores() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfTLBHits() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfTLBMisses() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfTLBRequests() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public long getNoOfValueForwards() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 
 }

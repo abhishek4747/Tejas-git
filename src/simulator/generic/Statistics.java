@@ -1,11 +1,14 @@
 package generic;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Enumeration;
 
+import main.ArchitecturalComponent;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache;
@@ -19,9 +22,11 @@ import emulatorinterface.communication.IpcBase;
 
 public class Statistics {
 	
+	
 	static FileWriter outputFileWriter,traceWriter;
 	
-	
+	static float[] weightsArray;
+	static int currentSlice;
 	
 	static String benchmark;
 	public static void printSystemConfig()
@@ -72,7 +77,10 @@ public class Statistics {
 		for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
 		{
 			for (int j=0; j<IpcBase.getEmuThreadsPerJavaThread(); j++) {
-				totalNumMicroOps += noOfMicroOps[i][j];
+				if(SimulationConfig.pinpointsSimulation == false)
+				{
+					totalNumMicroOps += noOfMicroOps[i][j];
+				}
 //				totalNumMicroOps += numCoreInstructions[i];
 				totalHandledCISCInsn += numHandledCISCInsn[i][j];
 				totalPINCISCInsn += numPINCISCInsn[i][j];
@@ -80,6 +88,15 @@ public class Statistics {
 		}
 		
 		dynamicCoverage = ((double)totalHandledCISCInsn/(double)totalPINCISCInsn)*(double)100.0;
+		
+		if(SimulationConfig.pinpointsSimulation == true)
+		{
+			for(int i = 0; i < SystemConfig.NoOfCores; i++)
+			{
+				totalNumMicroOps += numCoreInstructions[i];
+			}
+			totalHandledCISCInsn = 3000000;
+		}
 		
 		//for each java thread, print number of instructions provided by PIN and number of instructions forwarded to the pipeline
 		try
@@ -123,6 +140,12 @@ public class Statistics {
 	static long totalPINCISCInsn = 0;
 	static Counters powerCounters[];
 	
+	//for pinpoints
+	static long tempcoreCyclesTaken[];
+	static long tempnumCoreInstructions[];
+	static long tempbranchCount[];
+	static long tempmispredictedBranchCount[];
+	
 	public static void printTimingStatistics()
 	{
 		long maxCoreCycles = 0;
@@ -149,7 +172,7 @@ public class Statistics {
 			
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
-				if(coreCyclesTaken[i]==0){
+				if(numCoreInstructions[i]==0){
 					outputFileWriter.write("Nothing executed on core "+i+"\n");
 					continue;
 				}
@@ -157,8 +180,16 @@ public class Statistics {
 				outputFileWriter.write("instructions executed\t=\t" + numCoreInstructions[i] + "\n");
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
 				//FIXME will work only if java thread is 1
-				outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[0][i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
-				outputFileWriter.write("IPC\t\t=\t" + (double)numHandledCISCInsn[0][i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				if(SimulationConfig.pinpointsSimulation == false)
+				{
+					outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[0][i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
+					outputFileWriter.write("IPC\t\t=\t" + (double)numHandledCISCInsn[0][i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				}
+				else
+				{
+					outputFileWriter.write("IPC\t\t=\t" + (double)numCoreInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
+					outputFileWriter.write("IPC\t\t=\t" + (double)3000000/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+				}
 				
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
 				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
@@ -205,6 +236,29 @@ public class Statistics {
 	static long noOfDirDataForwards;
 	static long noOfDirInvalidations;
 	static long noOfDirWritebacks;
+	
+	//for pinpoints
+	static long tempnoOfMemRequests[];
+	static long tempnoOfLoads[];
+	static long tempnoOfStores[];
+	static long tempnoOfValueForwards[];
+	static long tempnoOfTLBRequests[];
+	static long tempnoOfTLBHits[];
+	static long tempnoOfTLBMisses[];
+	static long tempnoOfL1Requests[];
+	static long tempnoOfL1Hits[];
+	static long tempnoOfL1Misses[];
+	static long tempnoOfL2Requests;
+	static long tempnoOfL2Hits;
+	static long tempnoOfL2Misses;
+	static long tempnoOfIRequests[];
+	static long tempnoOfIHits[];
+	static long tempnoOfIMisses[];
+	static long tempnoOfDirHits;
+	static long tempnoOfDirMisses;
+	static long tempnoOfDirDataForwards;
+	static long tempnoOfDirInvalidations;
+	static long tempnoOfDirWritebacks;
 	
 	
 	public static void printMemorySystemStatistics()
@@ -543,24 +597,79 @@ System.out.println("execution time = "+executionTime);
 		numCoreInstructions = new long[SystemConfig.NoOfCores];
 		branchCount = new long[SystemConfig.NoOfCores];
 		mispredictedBranchCount = new long[SystemConfig.NoOfCores];
+		tempcoreCyclesTaken = new long[SystemConfig.NoOfCores];
+		tempnumCoreInstructions = new long[SystemConfig.NoOfCores];
+		tempbranchCount = new long[SystemConfig.NoOfCores];
+		tempmispredictedBranchCount = new long[SystemConfig.NoOfCores];
 		
 		noOfMemRequests = new long[SystemConfig.NoOfCores];
+		tempnoOfMemRequests = new long[SystemConfig.NoOfCores];
 		noOfLoads = new long[SystemConfig.NoOfCores];
+		tempnoOfLoads = new long[SystemConfig.NoOfCores];
 		noOfStores = new long[SystemConfig.NoOfCores];
+		tempnoOfStores = new long[SystemConfig.NoOfCores];
 		noOfValueForwards = new long[SystemConfig.NoOfCores];
+		tempnoOfValueForwards = new long[SystemConfig.NoOfCores];
 		noOfTLBRequests = new long[SystemConfig.NoOfCores];
+		tempnoOfTLBRequests = new long[SystemConfig.NoOfCores];
 		noOfTLBHits = new long[SystemConfig.NoOfCores];
+		tempnoOfTLBHits = new long[SystemConfig.NoOfCores];
 		noOfTLBMisses = new long[SystemConfig.NoOfCores];
+		tempnoOfTLBMisses = new long[SystemConfig.NoOfCores];
 		noOfL1Requests = new long[SystemConfig.NoOfCores];
+		tempnoOfL1Requests = new long[SystemConfig.NoOfCores];
 		noOfL1Hits = new long[SystemConfig.NoOfCores];
+		tempnoOfL1Hits = new long[SystemConfig.NoOfCores];
 		noOfL1Misses = new long[SystemConfig.NoOfCores];
+		tempnoOfL1Misses = new long[SystemConfig.NoOfCores];
 		noOfIRequests = new long[SystemConfig.NoOfCores];
+		tempnoOfIRequests = new long[SystemConfig.NoOfCores];
 		noOfIHits = new long[SystemConfig.NoOfCores];
+		tempnoOfIHits = new long[SystemConfig.NoOfCores];
 		noOfIMisses = new long[SystemConfig.NoOfCores];
+		tempnoOfIMisses = new long[SystemConfig.NoOfCores];
 		
 		powerCounters = new Counters[SystemConfig.NoOfCores];
 		for(int i=0;i<SystemConfig.NoOfCores;i++){
 			powerCounters[i] = new Counters();
+		}
+		
+		if(SimulationConfig.pinpointsSimulation == true)
+		{		
+			FileReader pinpointsFileReader = null;
+			BufferedReader pinpointsBufferedReader = null;
+			int numberOfSlices = 0;
+			String lineRead;
+			
+			try {
+				pinpointsFileReader = new FileReader(SimulationConfig.pinpointsFile);
+				pinpointsBufferedReader = new BufferedReader(pinpointsFileReader);
+				
+				while((lineRead = pinpointsBufferedReader.readLine()) != null)
+				{
+					numberOfSlices++;
+				}
+				
+				weightsArray = new float[numberOfSlices];
+
+				pinpointsBufferedReader.close();
+				pinpointsFileReader.close();
+				pinpointsFileReader = new FileReader(SimulationConfig.pinpointsFile);
+				pinpointsBufferedReader = new BufferedReader(pinpointsFileReader);
+				int index = 0;
+				
+				while((lineRead = pinpointsBufferedReader.readLine()) != null)
+				{
+					String subs[] = lineRead.split("[ \t]");
+					weightsArray[index++] = Float.parseFloat(subs[2]);
+				}			
+				
+			} catch (Exception e) {
+				misc.Error.showErrorAndExit("pinpoints file not found");
+				e.printStackTrace();
+			}
+			
+			currentSlice = 0;
 		}
 		
 	}	
@@ -572,7 +681,7 @@ System.out.println("execution time = "+executionTime);
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			misc.Error.showErrorAndExit("error in opening trace file !!");
 		}
 	}	
 	public static void openStream()
@@ -648,6 +757,14 @@ System.out.println("execution time = "+executionTime);
 
 	public static void setNumHandledCISCInsn(long numInstructions, int javaThread, int emuThread) {
 		Statistics.numHandledCISCInsn[javaThread][emuThread] = numInstructions;
+		
+		if(SimulationConfig.pinpointsSimulation == true)
+		{
+			if(numHandledCISCInsn[javaThread][emuThread] > 3000000 * (currentSlice + 1))
+			{
+				processEndOfSlice();
+			}
+		}
 	}
 	
 	public static void setNumPINCISCInsn(long numInstructions, int javaThread, int emuThread) {
@@ -856,4 +973,79 @@ System.out.println("execution time = "+executionTime);
 		
 		Statistics.closeStream();
 	}	
+	
+	public static void processEndOfSlice()
+	{
+		Core core;
+		
+		if(currentSlice < weightsArray.length)
+		{
+		
+			for(int i = 0; i < ArchitecturalComponent.getCores().length; i++)
+			{
+				core = ArchitecturalComponent.getCores()[i];
+				
+				if(core.getNoOfInstructionsExecuted() == 0)
+				{
+					continue;
+				}
+				
+				System.out.println("\n\n!!!!!!process end of slice!!!!!!!!\n\n");
+				System.out.print(coreCyclesTaken[i] + " : " + GlobalClock.getCurrentTime()/core.getStepSize());
+				System.out.println(" : " + tempcoreCyclesTaken[i]);
+				
+				coreCyclesTaken[i] += (long) (GlobalClock.getCurrentTime()/core.getStepSize() - tempcoreCyclesTaken[i]) * weightsArray[currentSlice];
+				tempcoreCyclesTaken[i] = GlobalClock.getCurrentTime()/core.getStepSize();
+				System.out.println(coreCyclesTaken[i] + " : " + tempcoreCyclesTaken[i]);
+				System.out.println();
+				coreFrequencies[i] = core.getFrequency();
+				numCoreInstructions[i] += (long) (core.getNoOfInstructionsExecuted() - tempnumCoreInstructions[i]) * weightsArray[currentSlice];
+				tempnumCoreInstructions[i] = core.getNoOfInstructionsExecuted();
+				branchCount[i] += (long) (core.getPipelineInterface().getBranchCount() - tempbranchCount[i]) * weightsArray[currentSlice];
+				tempbranchCount[i] = core.getPipelineInterface().getBranchCount();
+				mispredictedBranchCount[i] += (long) (core.getPipelineInterface().getMispredCount() - tempmispredictedBranchCount[i]) * weightsArray[currentSlice];
+				tempmispredictedBranchCount[i] = core.getPipelineInterface().getMispredCount();
+				
+				noOfMemRequests[i] += (long) (core.getPipelineInterface().getNoOfMemRequests() - tempnoOfMemRequests[i]) * weightsArray[currentSlice];
+				tempnoOfMemRequests[i] = core.getPipelineInterface().getNoOfMemRequests();
+				noOfLoads[i] += (long) (core.getPipelineInterface().getNoOfLoads() - tempnoOfLoads[i]) * weightsArray[currentSlice];
+				tempnoOfLoads[i] = core.getPipelineInterface().getNoOfLoads();
+				noOfStores[i] += (long) (core.getPipelineInterface().getNoOfStores() - tempnoOfStores[i]) * weightsArray[currentSlice];
+				tempnoOfStores[i] = core.getPipelineInterface().getNoOfStores();
+				noOfValueForwards[i] += (long) (core.getPipelineInterface().getNoOfValueForwards() - tempnoOfValueForwards[i]) * weightsArray[currentSlice];
+				tempnoOfValueForwards[i] = core.getPipelineInterface().getNoOfValueForwards();
+				noOfTLBRequests[i] += (long) (core.getPipelineInterface().getNoOfTLBRequests() - tempnoOfTLBRequests[i]) * weightsArray[currentSlice];
+				tempnoOfTLBRequests[i] = core.getPipelineInterface().getNoOfTLBRequests();
+				noOfTLBHits[i] += (long) (core.getPipelineInterface().getNoOfTLBHits() - tempnoOfTLBHits[i]) * weightsArray[currentSlice];
+				tempnoOfTLBHits[i] = core.getPipelineInterface().getNoOfTLBHits();
+				noOfTLBMisses[i] += (long) (core.getPipelineInterface().getNoOfTLBMisses() - tempnoOfTLBMisses[i]) * weightsArray[currentSlice];
+				tempnoOfTLBMisses[i] = core.getPipelineInterface().getNoOfTLBMisses();
+				noOfL1Requests[i] += (long) (core.getPipelineInterface().getNoOfL1Requests() - tempnoOfL1Requests[i]) * weightsArray[currentSlice];
+				tempnoOfL1Requests[i] = core.getPipelineInterface().getNoOfL1Requests();
+				noOfL1Hits[i] += (long) (core.getPipelineInterface().getNoOfL1Hits() - tempnoOfL1Hits[i]) * weightsArray[currentSlice];
+				tempnoOfL1Hits[i] = core.getPipelineInterface().getNoOfL1Hits();
+				noOfL1Misses[i] += (long) (core.getPipelineInterface().getNoOfL1Misses() - tempnoOfL1Misses[i]) * weightsArray[currentSlice];
+				tempnoOfL1Misses[i] = core.getPipelineInterface().getNoOfL1Misses();
+				noOfIRequests[i] += (long) (core.getPipelineInterface().getNoOfIRequests() - tempnoOfIRequests[i]) * weightsArray[currentSlice];
+				tempnoOfIRequests[i] = core.getPipelineInterface().getNoOfIRequests();
+				noOfIHits[i] += (long) (core.getPipelineInterface().getNoOfIHits() - tempnoOfIHits[i]) * weightsArray[currentSlice];
+				tempnoOfIHits[i] = core.getPipelineInterface().getNoOfIHits();
+				noOfIMisses[i] += (long) (core.getPipelineInterface().getNoOfIMisses() - tempnoOfIMisses[i]) * weightsArray[currentSlice];
+				tempnoOfIMisses[i] = core.getPipelineInterface().getNoOfIMisses();
+				
+				noOfDirHits = (long) ((MemorySystem.getDirectoryCache().hits - tempnoOfDirHits) * weightsArray[currentSlice]);
+				tempnoOfDirHits = MemorySystem.getDirectoryCache().hits;
+				noOfDirMisses = (long) ((MemorySystem.getDirectoryCache().misses - tempnoOfDirMisses) * weightsArray[currentSlice]);
+				tempnoOfDirMisses = MemorySystem.getDirectoryCache().misses;
+				noOfDirInvalidations = (long) ((MemorySystem.getDirectoryCache().getInvalidations() - tempnoOfDirInvalidations) * weightsArray[currentSlice]);
+				tempnoOfDirInvalidations = MemorySystem.getDirectoryCache().getInvalidations();
+				noOfDirDataForwards = (long) ((MemorySystem.getDirectoryCache().getDataForwards() - tempnoOfDirDataForwards) * weightsArray[currentSlice]);
+				tempnoOfDirDataForwards = MemorySystem.getDirectoryCache().getDataForwards();
+				noOfDirWritebacks = (long) ((MemorySystem.getDirectoryCache().getWritebacks() - tempnoOfDirWritebacks) * weightsArray[currentSlice]);
+				tempnoOfDirWritebacks = MemorySystem.getDirectoryCache().getWritebacks();
+			}
+		}
+		
+		currentSlice++;
+	}
 }

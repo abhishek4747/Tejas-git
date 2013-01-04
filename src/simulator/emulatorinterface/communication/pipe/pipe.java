@@ -43,7 +43,7 @@ public class pipe// extends IpcBase
 	// returns the numberOfPackets which are currently there in the stream for tidApp
 	public int numPackets(int tidApp){return -1;}
 	
-	// fetch one packet for tidApp from index
+	// fetch one packetList for tidApp from index
 	public Packet fetchOnePacket(int tidApp, int index ){ return null;}
 	
 	public int update(int tidApp, int numReads){ return -1;}

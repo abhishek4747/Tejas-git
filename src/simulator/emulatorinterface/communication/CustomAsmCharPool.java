@@ -18,6 +18,8 @@ public class CustomAsmCharPool {
 	
 	public void enqueue(int tidApp, byte inputBytes[], int offset)
 	{
+		// System.out.println("enqueue : " + new String(inputBytes, offset, 64));
+		
 		if(isFull(tidApp)) {
 			misc.Error.showErrorAndExit("unable to handle new asm bytes");
 		}
@@ -48,6 +50,7 @@ public class CustomAsmCharPool {
 			head[tidApp] = (head[tidApp] + 1)%bufferSize;
 		}
 		
+		// System.out.println("dequeue : " + new String(toBeReturned, 0, 64));
 		return toBeReturned;
 	}
 	
@@ -105,6 +108,16 @@ public class CustomAsmCharPool {
 		else
 		{
 			return false;
+		}
+	}
+	
+	public int currentPosition(int tidApp) {
+		if(isEmpty(tidApp)) {
+			return 0;
+		} else if (head[tidApp]<=tail[tidApp]) {
+			return (tail[tidApp]-head[tidApp]+1);
+		} else {
+			return (bufferSize-(head[tidApp]-tail[tidApp]-1));
 		}
 	}
 }

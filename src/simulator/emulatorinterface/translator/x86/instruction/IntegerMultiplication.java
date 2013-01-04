@@ -38,7 +38,6 @@ public class IntegerMultiplication implements X86StaticInstructionHandler
 			TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
-		Operand accumulatorRegister = Registers.getAccumulatorRegister();
 		Operand multiplier;
 		Operand multiplicand;
 		
@@ -58,6 +57,7 @@ public class IntegerMultiplication implements X86StaticInstructionHandler
 				multiplier = operand1;
 			}
 			
+			Operand accumulatorRegister = Registers.getAccumulatorRegister();
 			
 			instructionArrayList.appendInstruction(Instruction.getIntegerMultiplicationInstruction
 					(accumulatorRegister, multiplier, accumulatorRegister));

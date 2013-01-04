@@ -94,7 +94,6 @@ public class MemMap extends IpcBase
 		}
 	}
 
-	@Override
 	public Packet fetchOnePacket(int tidApp, int index) {
 		 //TODO
 		//this should return a packet	(ibuf.get( (index) %COUNT ) );
@@ -134,7 +133,6 @@ public class MemMap extends IpcBase
 		}
 	}
 
-	@Override
 	public int numPackets(int tidApp) {
 		get_lock(lockBuf, 0, lBuf);
 		int queue_size = lockBuf.get(0);
@@ -158,12 +156,10 @@ public class MemMap extends IpcBase
 
 	}
 
-	@Override
 	public long totalProduced(int tidApp) {
 		return lockBuf.get(0 + 4);
 	}
 
-	@Override
 	public long update(int tidApp, int numReads) {
 		int queue_size;
 		get_lock(lockBuf, 0, lBuf);
@@ -185,5 +181,17 @@ public class MemMap extends IpcBase
 			int numReads) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void errorCheck(int tidApp, long totalReads) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }
