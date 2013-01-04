@@ -48,13 +48,12 @@ public class CacheConfig
 	public CoherenceType coherence;
 	public int numberOfBuses;
 	public int busOccupancy;
-	public int numberOfBankColumns;
-	public int numberOfBankRows;
+//	public int numberOfBankColumns;
+//	public int numberOfBankRows;
 	public int numberOfBuffers;
 	public int mshrSize;
-	public NocConfig nocConfig = new NocConfig();
 	public NucaType nucaType;
-	public Mapping mapping;
+
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -161,19 +160,10 @@ public class CacheConfig
 	public int getNumberOfBuses() {
 		return numberOfBuses;
 	}
-	
-	public int getNumberOfBankRows(){
-		return this.numberOfBankRows;
-	}
-	public int getNumberOfBankColumns(){
-		return this.numberOfBankColumns;
-	}
-
 	public int getBankSize()
 	{
-		return size/(numberOfBankColumns*numberOfBankRows);
+		return size/(SystemConfig.nocConfig.numberOfBankColumns * SystemConfig.nocConfig.numberOfBankRows);
 	}
-	
 	public NucaType getNucaType() {
 		return nucaType;
 	}
