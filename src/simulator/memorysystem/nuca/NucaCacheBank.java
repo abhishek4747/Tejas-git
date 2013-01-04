@@ -174,10 +174,15 @@ public class NucaCacheBank extends Cache
 					 event.coreId);
 			nucaCache.getPort().put(addressEvent);
 		}
+		
+		//System.out.println(addrEvent.getSourceBankId() +  "  "+addrEvent.getDestinationBankId()+"  " + addrEvent);
 		CacheLine cl = nucaCache.cacheBank[addrEvent.getSourceBankId().get(0)][addrEvent.getSourceBankId().get(1)].access(((AddressCarryingEvent)event).getAddress());
 		if(cl != null)
 		{
 			cl.setState(MESI.INVALID);
+			//System.out.println(cl.getState());
+		} else {
+			//misc.Error.showErrorAndExit("Should not reach here Cache Line not present");
 		}
 	}
 	
@@ -227,7 +232,7 @@ public class NucaCacheBank extends Cache
 			this.getRouter().getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
 					1, 
 					this, 
-					(OpticalRouter)this.getRouter(), 
+					this.getRouter(), 
 					requestType,
 					sourceBankId,
 					destinationBankId));		
@@ -256,7 +261,7 @@ public class NucaCacheBank extends Cache
 			AddressCarryingEvent tempEvent= policy.updateEventOnMiss( (AddressCarryingEvent)event,this);
 			if(tempEvent != null)
 			{
-				this.getRouter().getPort().put(tempEvent);
+				tempEvent.getProcessingElement().getPort().put(tempEvent);
 			}
 		}
 	}

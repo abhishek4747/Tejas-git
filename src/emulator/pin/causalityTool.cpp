@@ -35,6 +35,8 @@ KNOB<INT64>   KnobSimulate(KNOB_MODE_WRITEONCE,       "pintool",
     "numSim", "0", "Simulate these many profilable instructions (-1 if no subset simulation is desired)");
 KNOB<UINT64>   KnobId(KNOB_MODE_WRITEONCE,       "pintool",
     "id", "1", "shm id to generate key");
+KNOB<std::string>   KnobPinPointsFile(KNOB_MODE_WRITEONCE,       "pintool",
+    "pinpointsFile", "nofile", "pinpoints file (pass numIgn = 0, numSim = -1)");
 
 PIN_LOCK lock;
 INT32 numThreads = 0;
@@ -50,6 +52,10 @@ BOOL ignoreActive = false;
 UINT64 numCISC[MaxThreads];
 UINT64 totalNumCISC;
 bool threadAlive[MaxThreads];
+std::string pinpointsFilename;
+unsigned long * sliceArray;
+int numberOfSlices;
+int currentSlice;
 
 #define PacketEpoch 50
 uint32_t countPacket[MaxThreads];
@@ -112,7 +118,7 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 
-	printf("thread %d finished exec\n",tid);
+//	printf("thread %d finished exec\n",tid);
 //	fflush(stdout);
 	GetLock(&lock, tid + 1);
 	/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
@@ -121,7 +127,7 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 	while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
 				PIN_Yield();
 		}
-	//printf("wrote -1 for tid %d\n", tid);
+	printf("wrote -1 for tid %d\n", tid);
 	livethreads--;
 	threadAlive[tid] = false;
 	fflush(stdout);
@@ -306,33 +312,75 @@ VOID printip(THREADID tid, VOID *ip) {
 		numCISC[tid]++;
 	totalNumCISC++;
 
-	/*if(numCISC[tid] > numInsToIgnore)
+	if(pinpointsFilename.compare("nofile") == 0)
 	{
-		if(numInsToSimulate < 0 ||
-			numCISC[tid] < numInsToIgnore + numInsToSimulate)
+		if(totalNumCISC > numInsToIgnore)
+			{
+				if(numInsToSimulate < 0 ||
+					totalNumCISC < numInsToIgnore + numInsToSimulate)
+				{
+					ignoreActive = false;
+				}
+				else
+				{
+					ignoreActive = true;
+				}
+			}
+			else
+			{
+				ignoreActive = true;
+			}
+
+		if(numInsToSimulate > 0 &&
+					totalNumCISC > numInsToIgnore + numInsToSimulate)
 		{
-			ignoreActive = false;
-		}
-		else
-		{
-			ignoreActive = true;
+			for(int i = 0; i < MaxThreads; i++)
+			{
+				if(threadAlive[i] == true)
+				{
+					tid = i;
+					GetLock(&lock, tid + 1);
+					printf("attempting to write -1\n");
+					while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+									PIN_Yield();
+							}
+					printf("wrote -1 for tid %d\n", tid);
+					livethreads--;
+					threadAlive[tid] = false;
+					fflush(stdout);
+					ReleaseLock(&lock);
+				}
+			}
+
+			if(livethreads == 0)
+			{
+				printf("subset simulation complete\n");
+				for(int i = 0; i < MaxThreads; i++)
+				{
+					//printf("numCISC = %lu\n", numCISC[i]);
+				}
+				fflush(stdout);
+				tst->unload();
+				exit(0);
+			}
+
+			ASSERT(livethreads != 0, "subset sim complete, but live threads not zero!!!\n");
 		}
 	}
 	else
 	{
-		ignoreActive = true;
-	}*/
-
-	if(totalNumCISC > numInsToIgnore)
+		if(totalNumCISC >= sliceArray[currentSlice] * 3000000)
 		{
-			if(numInsToSimulate < 0 ||
-				totalNumCISC < numInsToIgnore + numInsToSimulate)
+			if(totalNumCISC <= (sliceArray[currentSlice] + 1) * 3000000)
 			{
 				ignoreActive = false;
 			}
 			else
 			{
 				ignoreActive = true;
+				cout << "completed slice : " << currentSlice << "\t\ttotalNumCisc = " << totalNumCISC << "\n";
+				cout << totalNumCISC << "\t\t" << (sliceArray[numberOfSlices - 1] + 1) * 3000000 << "\t\t" <<numberOfSlices<< "\n";
+				currentSlice++;
 			}
 		}
 		else
@@ -340,57 +388,62 @@ VOID printip(THREADID tid, VOID *ip) {
 			ignoreActive = true;
 		}
 
-	/*if(numInsToSimulate > 0 &&
-			numCISC[tid] > numInsToIgnore + numInsToSimulate)*/
-	if(numInsToSimulate > 0 &&
-				totalNumCISC > numInsToIgnore + numInsToSimulate)
-	{
-		for(int i = 0; i < MaxThreads; i++)
+		if(totalNumCISC > (sliceArray[numberOfSlices - 1] + 1) * 3000000)
 		{
-			if(threadAlive[i] == true)
-			{
-				tid = i;
-				GetLock(&lock, tid + 1);
-				printf("attempting to write -1\n");
-				/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
-						PIN_Yield();
-				}*/
-				while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
-								PIN_Yield();
-						}
-			//	printf("wrote -1 for tid %d\n", tid);
-				livethreads--;
-				threadAlive[tid] = false;
-				fflush(stdout);
-				ReleaseLock(&lock);
-			}
-		}
-
-		if(livethreads == 0)
-		{
-			printf("subset simulation complete\n");
 			for(int i = 0; i < MaxThreads; i++)
 			{
-				//printf("numCISC = %lu\n", numCISC[i]);
+				if(threadAlive[i] == true)
+				{
+					tid = i;
+					GetLock(&lock, tid + 1);
+					printf("attempting to write -1\n");
+					while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+									PIN_Yield();
+							}
+					printf("wrote -1 for tid %d\n", tid);
+					livethreads--;
+					threadAlive[tid] = false;
+					fflush(stdout);
+					ReleaseLock(&lock);
+				}
 			}
-			fflush(stdout);
-			tst->unload();
-			exit(0);
+
+			if(livethreads == 0)
+			{
+				printf("subset simulation complete\n");
+				for(int i = 0; i < MaxThreads; i++)
+				{
+					//printf("numCISC = %lu\n", numCISC[i]);
+				}
+				fflush(stdout);
+				tst->unload();
+				exit(0);
+			}
+
+			ASSERT(livethreads != 0, "subset sim complete, but live threads not zero!!!\n");
 		}
 
-		ASSERT(livethreads != 0, "subset sim complete, but live threads not zero!!!\n");
+	}
+
+	if(ignoreActive==false) {
+		// For every instruction, I am sending one Instruction packet to Tejas.
+		// For rep instruction, this function is called for each iteration of rep.
+		uint64_t nip = MASK & (uint64_t) ip;
+		while (tst->analysisFn(tid, nip, INSTRUCTION, 1) == -1) {
+			PIN_Yield();
+		}
 	}
 
 	if(numCISC[tid] % 1000000 == 0 && numCISC[tid] > 0)
 	{
-//		printf("numCISC on thread %d = %lu, ignoreActive = %d\n", tid, numCISC[tid], ignoreActive);
-//		fflush(stdout);
+		printf("numCISC on thread %d = %lu, ignoreActive = %d\n", tid, numCISC[tid], ignoreActive);
+		fflush(stdout);
 	}
 
 	if(totalNumCISC % 1000000 == 0 && totalNumCISC > 0)
 	{
-//		printf("totalNumCISC = %lu, ignoreActive = %d\n", totalNumCISC, ignoreActive);
-//		fflush(stdout);
+		printf("totalNumCISC = %lu, ignoreActive = %d\n", totalNumCISC, ignoreActive);
+		fflush(stdout);
 	}
 //
 //	// ---------------------------
@@ -555,13 +608,50 @@ int main(int argc, char * argv[]) {
 	if (PIN_Init(argc, argv))
 		return Usage();
 
-	//tst = new IPC::Shm ();
 	numInsToIgnore = KnobIgnore;
 	numInsToSimulate = KnobSimulate;
+	pinpointsFilename = KnobPinPointsFile;
 	UINT64 id = KnobId;
 	printf("numIgn = %lu\n", numInsToIgnore);
 	printf("numSim = %ld\n", numInsToSimulate);
 	printf("id received = %lu\n", id);
+	std::cout << "pinpoints file received = " << pinpointsFilename << "\n";
+
+	if(pinpointsFilename.compare("nofile") != 0)
+	{
+		ifstream pinpointsFile;
+		std::string line;
+		numberOfSlices = 0;
+		pinpointsFile.open(pinpointsFilename.c_str(), ios::in);
+		while ( pinpointsFile.good() )
+		{
+		  getline (pinpointsFile,line);
+		  numberOfSlices++;
+		}
+		pinpointsFile.close();
+
+		numberOfSlices--;//required because of the way good() works
+		sliceArray = new unsigned long[numberOfSlices];
+		int sliceArrayIndex = 0;
+
+		pinpointsFile.open(pinpointsFilename.c_str(), ios::in);
+		while ( pinpointsFile.good() )
+		{
+			getline (pinpointsFile,line);
+			std::string temp;
+			int index = 0;
+			if(line.length() != 0)
+			{
+				while(line.at(index) != ' ')
+				{
+					temp.append(1,line.at(index++));
+				}
+				sliceArray[sliceArrayIndex++] = strtol(temp.c_str(), NULL, 10);
+			}
+		}
+		pinpointsFile.close();
+	}
+
 	tst = new IPC::Shm (id);
 
 	for(int i = 0; i < MaxThreads; i++)

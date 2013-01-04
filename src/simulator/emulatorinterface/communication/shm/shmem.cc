@@ -12,8 +12,6 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-//pthread_mutex_t mul_lock;
-
 namespace IPC
 {
 
@@ -39,20 +37,20 @@ Shm::Shm ()
 	key_t key=ftok(ftokpath,ftok_id);
 	if ( key == (key_t)-1 )
 	{
-		perror("ftok");
+		perror("ftok in pin ");
 		exit(1);
 	}
 
 	// get a segment for this key. This key is shared with the JNI through common.h
 	int size = (COUNT+5) * sizeof(packet)*MaxNumThreads;
 	if ((shmid = shmget(key, size, 0666)) < 0) {
-		perror("shmget");
+		perror("shmget in pin ");
 		exit(1);
 	}
 
 	// attach to this segment
 	if ((tldata[0].shm = (packet *)shmat(shmid, NULL, 0)) == (packet *)-1) {
-		perror("shmat");
+		perror("shmat in pin ");
 		exit(1);
 	}
 
@@ -69,7 +67,6 @@ Shm::Shm ()
 		myData->avail = 1;
 //		myData->tid = 0;
 	}
-	//pthread_mutex_init(&mul_lock, NULL);
 }
 
 Shm::Shm (uint64_t pid)
@@ -78,20 +75,20 @@ Shm::Shm (uint64_t pid)
 	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
-		perror("ftok");
+		perror("ftok in pin ");
 		exit(1);
 	}
 
 	// get a segment for this key. This key is shared with the JNI through common.h
 	int size = (COUNT+5) * sizeof(packet)*MaxNumThreads;
 	if ((shmid = shmget(key, size, 0666)) < 0) {
-		perror("shmget");
+		perror("shmget in pin ");
 		exit(1);
 	}
 
 	// attach to this segment
 	if ((tldata[0].shm = (packet *)shmat(shmid, NULL, 0)) == (packet *)-1) {
-		perror("shmat");
+		perror("shmat in pin ");
 		exit(1);
 	}
 
@@ -108,7 +105,6 @@ Shm::Shm (uint64_t pid)
 		myData->avail = 1;
 //		myData->tid = 0;
 	}
-	//pthread_mutex_init(&mul_lock, NULL);
 }
 
 
@@ -152,7 +148,6 @@ void
 Shm::onThread_start (int tid)
 {
 	int i;
-	//pthread_mutex_lock(&mul_lock);
 	for(i=0;i<MaxNumThreads;i++){
 		if(tldata[i].avail == 1)
 		{
@@ -165,7 +160,6 @@ Shm::onThread_start (int tid)
 //	myData->avail =0;
 //	printf("Thread %d start alloc to %d in = %d  out=%d sum=%d prod_ptr=%d\n",tid,i,myData->in,myData->out,myData->sum,myData->prod_ptr);
 	memMapping[tid] = i;
-	//pthread_mutex_unlock(&mul_lock);
 	//get_lock(shmem);
 	shmem[COUNT].value = 0; // queue size pointer
 	shmem[COUNT + 1].value = 0; // flag[0] = 0
@@ -178,9 +172,7 @@ int
 Shm::onThread_finish (int tid, long numCISC)
 {
 	int actual_tid = tid;
-	//pthread_mutex_lock(&mul_lock);
 	tid = memMapping[tid];   //find the mapped mem segment
-	//pthread_mutex_unlock(&mul_lock);
 	THREAD_DATA *myData = &tldata[tid];
 
 	// keep writing till we empty our local queue
@@ -193,12 +185,9 @@ Shm::onThread_finish (int tid, long numCISC)
 	int ret = Shm::shmwrite(actual_tid,1, numCISC);
 
 	if(ret != -1){
-		//pthread_mutex_lock(&mul_lock);
 		myData->avail = 1;
-		//pthread_mutex_unlock(&mul_lock);
 		myData->tlqsize = 0;
 	}
-//	printf("Thread %d Finish in = %d  out=%d sum=%d prod_ptr=%d\n",tid,myData->in,myData->out,myData->sum,myData->prod_ptr);
 	return ret;
 }
 

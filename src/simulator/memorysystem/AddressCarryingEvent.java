@@ -13,13 +13,8 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	private long address;
 	private Vector<Integer> sourceBankId;
 	private Vector<Integer> destinationBankId;
-	public RequestType oldRequestType;
-	public SimulationElement oldRequestingElement;
-	public Vector<Integer> oldSourceBankId;
-	public int index;
-	public boolean copyLine;
-	public Stack<SimulationElement> requestingElementStack = new Stack<SimulationElement>();
-	public Stack<RequestType> requestTypeStack = new Stack<RequestType>();
+	public long event_id;
+	
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -29,9 +24,6 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		this.address = address;
 		sourceBankId = null;
 		destinationBankId = null;
-		oldSourceBankId = null;
-		copyLine = false;
-		index = 0 ;
 	}
 	
 	public Object clone()
@@ -52,8 +44,6 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		this.address = -1;
 		sourceBankId = null;
 		destinationBankId = null;
-		oldSourceBankId = null;
-		copyLine = false;
 	}
 	
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
@@ -135,5 +125,10 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	public void dump()
 	{
 		System.out.println(coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime + " : " + address);
+	}
+	
+	public String toString(){
+		String s = (coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime + " : " + address); 
+		return s;
 	}
 }

@@ -246,6 +246,18 @@ public class XMLParser
 			SimulationConfig.subsetSimulation = false;
 			SimulationConfig.subsetSimSize = -1;
 		}
+		
+		if(getImmediateString("pinpointsSim", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("pinpointsSim", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.pinpointsSimulation = true;
+			SimulationConfig.pinpointsFile = getImmediateString("pinpointsFile", simulationElmnt);
+		}
+		else
+		{
+			SimulationConfig.pinpointsSimulation = false;
+			SimulationConfig.pinpointsFile = "";
+		}
 
 		if(getImmediateString("PrintPowerStats", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
@@ -255,6 +267,15 @@ public class XMLParser
 		else
 		{
 			SimulationConfig.powerStats = false;
+		}
+		
+		if(getImmediateString("Broadcast", simulationElmnt).toLowerCase().compareTo("true") == 0)
+		{
+			SimulationConfig.broadcast = true;
+		}
+		else
+		{
+			SimulationConfig.broadcast = false;
 		}
 		
 		SimulationConfig.powerTrace = Integer.parseInt(getImmediateString("PowerTrace", simulationElmnt));

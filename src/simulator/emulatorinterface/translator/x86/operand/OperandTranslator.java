@@ -31,6 +31,7 @@ import generic.OperandType;
 import java.util.StringTokenizer;
 
 
+import main.CustomObjectPool;
 import misc.Numbers;
 
 
@@ -45,6 +46,7 @@ public class OperandTranslator
 			return null;
 		}
 		
+		operandStr.trim();
 		
 		//Replace all the occurrences of registers with the 64-bit register versions
 		if(operandStr!=null) {
@@ -142,26 +144,32 @@ public class OperandTranslator
 			//base register
 			if(Registers.isIntegerRegister(memoryAddressTokens[i]))
 			{
-				base = Operand.getIntegerRegister(Registers.encodeRegister(memoryAddressTokens[i]));
+				if(base==null) {
+					base = Operand.getIntegerRegister(Registers.encodeRegister(memoryAddressTokens[i]));
+				} else {
+					index = Operand.getIntegerRegister(Registers.encodeRegister(memoryAddressTokens[i]));
+				}
 			}
+			
 			else if(Registers.isMachineSpecificRegister(memoryAddressTokens[i]))
 			{
-				base = Operand.getMachineSpecificRegister(Registers.encodeRegister(memoryAddressTokens[i]));	
+				if(base==null) {
+					base = Operand.getMachineSpecificRegister(Registers.encodeRegister(memoryAddressTokens[i]));
+				} else {
+					index = Operand.getMachineSpecificRegister(Registers.encodeRegister(memoryAddressTokens[i]));
+				}
 			}
-			
-			
+						
 			//offset
 			else if(Numbers.isValidNumber(memoryAddressTokens[i]))
 			{
-				//if offset is zero, then this won't be considered as an offset in
-				//actual address
-				if(Numbers.hexToLong(memoryAddressTokens[i])==0)
+				//if offset is zero, then this won't be considered as an offset in actual address
+				if(Numbers.hexToLong(memoryAddressTokens[i])==0) {
 					continue;
+				}
 				
 				offset = Operand.getImmediateOperand();
 			}
-			
-			
 			
 			//index*scale
 			else if(memoryAddressTokens[i].matches("[a-zA-Z0-9]+\\*[0x123456789abcdef]+"))
@@ -170,18 +178,23 @@ public class OperandTranslator
 				scaleStr = memoryAddressTokens[i].split("\\*")[1];
 				
 				//if index is eiz then it means that this is a dummy scaled operand
-				if(indexStr.contentEquals("eiz"))
+				if(indexStr.contentEquals("eiz")) {
 					continue;
-				
-				if(Registers.isIntegerRegister(memoryAddressTokens[i].split("\\*")[0]))
-				{
+				} else if(Registers.isIntegerRegister(indexStr)) {
 					index = Operand.getIntegerRegister(Registers.encodeRegister(indexStr));
-				}
-				else if(Registers.isMachineSpecificRegister(memoryAddressTokens[i].split("\\*")[0]))
-				{
+				} else if(Registers.isMachineSpecificRegister(indexStr)) {
 					index = Operand.getMachineSpecificRegister(Registers.encodeRegister(indexStr));
+				} else {
+					throw new InvalidInstructionException("illegal operand : operandStr = " + operandStr, true);
 				}
-				scale = Operand.getImmediateOperand();
+				
+				if(Numbers.hexToLong(scaleStr)==0) {
+					index.incrementNumReferences(); // 
+					CustomObjectPool.getOperandPool().returnObject(index); // optimisation : index will not be used
+					index = null;
+				} else if(Numbers.hexToLong(scaleStr)!=1) {
+					scale = Operand.getImmediateOperand();
+				}
 			}
 			
 			else
@@ -193,20 +206,13 @@ public class OperandTranslator
 
 		//Create scaled index
 		Operand scaledIndex = null;
-		if(scale!=null)
-		{
-			if(Numbers.hexToLong(scaleStr)==1)
-			{
-				scaledIndex = index;
-			}
-			else
-			{
-				scaledIndex = Registers.getTempIntReg(tempRegisterNum);
-				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(index, scale, scaledIndex));
-			}
+		if(scale!=null) {
+			scaledIndex = Registers.getTempIntReg(tempRegisterNum);
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(index, scale, scaledIndex));
+		} else {
+			scaledIndex = index;
 		}
-		
-				
+						
 		//TODO : Once xml file is ready, we have to read this boolean from the configuration parameters
 		//Default value is true.
 		boolean pureRisc;
@@ -266,6 +272,9 @@ public class OperandTranslator
 			{
 				memoryLocationFirstOperand = base;
 				memoryLocationSecondOperand = scaledIndex;
+				
+				offset.incrementNumReferences(); // offset operand is not being used. So we must return it.
+				CustomObjectPool.getOperandPool().returnObject(offset);
 			}
 		}
 		

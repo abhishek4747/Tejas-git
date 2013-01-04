@@ -75,7 +75,7 @@ VPATH = $(TOPDIR):$(COMMDIR):$(SHMDIR):$(PIPEDIR):$(MMAPDIR):$(NETWORKDIR)
 PINCOMM_INCLUDE = -I$(COMMDIR) -I$(SHMDIR) -I$(PIPEDIR) -I$(MMAPDIR) -I$(NETWORKDIR)
 
 JNIPACKAGE = emulatorinterface.communication.shm.SharedMem
-JNINCLUDE = -I/usr/lib/jvm/java-6-openjdk/include -I/usr/lib/jvm/java-6-openjdk/include/linux
+JNINCLUDE = -I/usr/lib/jvm/java-6-openjdk/include -I/usr/lib/jvm/java-6-openjdk/include/linux -I/usr/lib/jvm/java-6-openjdk-amd64/include/
 JNILinkingFlags = -shared -Wall -fPIC
 JAVAH = javah -jni
 

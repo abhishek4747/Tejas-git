@@ -53,7 +53,7 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
-		perror("ftok");
+		perror("ftok in jni ");
 		return (-1);
 	}
 
@@ -71,7 +71,7 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 	//size1 is the number of packets needed in the segment.
 	int size=sizeof(packet)*(COUNT+5)*MaxNumJavaThreads*EmuThreadsPerJavaThread;
 	if ((shmid = shmget(key, size, IPC_CREAT | IPC_EXCL | 0666)) < 0) {
-		perror("shmget-:");
+		perror("shmget in jni -:");
 		return (-1);
 	}
 
@@ -84,7 +84,7 @@ JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmat
 (JNIEnv * env, jobject jobj, jint shmid) {
 	packet *shm;
 	if ((shm = (packet *)shmat(shmid, NULL, 0)) == (packet *) -1) {
-		perror("shmat");
+		perror("shmat in jni ");
 		return (-1);
 	}
 	intptr_t ret=(intptr_t)shm;
@@ -100,7 +100,7 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmd
 	addr=(packet *)(intptr_t)pointer;
 	register int rtrn;
 	if ((rtrn=shmdt(addr))==-1) {
-		perror("shmdt");
+		perror("shmdt in jni ");
 		exit(1);
 	}
 
@@ -114,7 +114,7 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmdel
 	struct shmid_ds  shmid_ds;
 	register int rtrn;
 	if ((rtrn = shmctl(shmid, IPC_RMID, &shmid_ds)) == -1) {
-		perror("shmdel");
+		perror("shmdel in jni ");
 		exit(1);
 	}
 

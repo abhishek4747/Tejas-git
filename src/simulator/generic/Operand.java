@@ -30,7 +30,7 @@ import main.Main;
 
 public class Operand implements Serializable
 {
-	
+	private int numReferrences = 0; 
 	private OperandType type;
 	private long value;			//if operand type is register, value indicates which register
 								//if operand type is immediate, value indicates the operand value
@@ -38,6 +38,14 @@ public class Operand implements Serializable
 	Operand memoryLocationFirstOperand;
 	Operand memoryLocationSecondOperand;
 	
+	public void setMemoryLocationFirstOperand(Operand memoryLocationFirstOperand) {
+		this.memoryLocationFirstOperand = memoryLocationFirstOperand;
+	}
+
+	public void setMemoryLocationSecondOperand(Operand memoryLocationSecondOperand) {
+		this.memoryLocationSecondOperand = memoryLocationSecondOperand;
+	}
+
 	public Operand()
 	{
 		this.value = 0;
@@ -70,19 +78,15 @@ public class Operand implements Serializable
 		this.type=operand.type;
 		this.value=operand.value;
 		
-		if(operand.memoryLocationFirstOperand==null)
-		{
+		if(operand.memoryLocationFirstOperand==null) {
 			this.memoryLocationFirstOperand=null;
-		}else
-		{
+		} else {
 			this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
 		}
 		
-		if(this.memoryLocationSecondOperand==null)
-		{
+		if(operand.memoryLocationSecondOperand==null) {
 			this.memoryLocationSecondOperand=null;
-		}else
-		{
+		} else {
 			this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
 		}
 	}
@@ -93,40 +97,27 @@ public class Operand implements Serializable
 		this.type=sourceOperand.type;
 		this.value=sourceOperand.value;
 		
-		if(sourceOperand.memoryLocationFirstOperand==null)
-		{
+		if(sourceOperand.memoryLocationFirstOperand==null) {
 			this.memoryLocationFirstOperand=null;
-		}else
-		{
-			//this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
-			try {
-				this.memoryLocationFirstOperand = CustomObjectPool.getOperandPool().borrowObject();
-			} catch (Exception e) {
-				// TODO what if there are no more objects in the pool??
-				e.printStackTrace();
-			}
+		} else 	{
+			this.memoryLocationFirstOperand = CustomObjectPool.getOperandPool().borrowObject();
 			this.memoryLocationFirstOperand.copy(sourceOperand.memoryLocationFirstOperand);
 		}
 		
-		if(this.memoryLocationSecondOperand==null)
-		{
+		if(sourceOperand.memoryLocationSecondOperand==null) {
 			this.memoryLocationSecondOperand=null;
-		}else
-		{
-			//this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
-			try {
-				this.memoryLocationSecondOperand = CustomObjectPool.getOperandPool().borrowObject();
-			} catch (Exception e) {
-				// TODO what if there are no more objects in the pool??
-				e.printStackTrace();
-			}
+		} else 	{
+			this.memoryLocationSecondOperand = CustomObjectPool.getOperandPool().borrowObject();
 			this.memoryLocationSecondOperand.copy(sourceOperand.memoryLocationSecondOperand);
 		}
+		
+		// we must increment the numReferences of this operand only. Its component's numReferences will be increment in their copy method.
+		this.numReferrences++;
 	}
 	
 	public String toString()
 	{
-			return ("(" + type + ")" + value);
+			return ("(" + type + ") " + value + " ref=" + numReferrences);
 	}
 
 	public OperandType getOperandType()
@@ -231,5 +222,43 @@ public class Operand implements Serializable
 		Operand op = CustomObjectPool.getOperandPool().borrowObject();
 		op.set(OperandType.memory, -1, memoryOperand1, memoryOperand2);
 		return op;
+	}
+	
+	public void incrementNumReferences() {
+		this.numReferrences++;
+		
+		if(this.memoryLocationFirstOperand!=null) {
+			this.memoryLocationFirstOperand.incrementNumReferences();
+		}
+		
+		if(this.memoryLocationSecondOperand!=null) {
+			this.memoryLocationSecondOperand.incrementNumReferences();
+		}
+	}
+	
+	public void decrementNumReferences() {
+		this.numReferrences--;
+	}
+	
+	public int getNumReferences() {
+		return this.numReferrences;
+	}
+	
+	public int getNumDistinctRecursiveReferences() {
+		int numDistinctReferences = 0;
+		
+		if(this.getNumReferences()==1) {
+			numDistinctReferences++;
+		}
+		
+		if(this.getMemoryLocationFirstOperand()!=null) {
+			numDistinctReferences += getMemoryLocationFirstOperand().getNumDistinctRecursiveReferences();
+		}
+			
+		if(this.getMemoryLocationSecondOperand()!=null) {
+			numDistinctReferences += getMemoryLocationSecondOperand().getNumDistinctRecursiveReferences();
+		}
+		
+		return numDistinctReferences;
 	}
 }

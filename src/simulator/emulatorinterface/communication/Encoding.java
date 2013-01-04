@@ -4,6 +4,7 @@ package emulatorinterface.communication;
 
 // change encoding.h if any change here.
 public interface Encoding {
+	
 	static final int MEMREAD  = 2;
 	static final int MEMWRITE = 3;
 	static final int TAKEN = 4;
@@ -29,4 +30,5 @@ public interface Encoding {
 	
 	// An instruction can have two assembly
 	static final int ASSEMBLY = 27;
+	static final int INSTRUCTION = 28;
 }

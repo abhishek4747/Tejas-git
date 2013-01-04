@@ -22,8 +22,6 @@ package memorysystem;
 
 import java.util.*;
 
-import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
-
 import power.Counters;
 import main.ArchitecturalComponent;
 import memorysystem.directory.CentralizedDirectoryCache;
@@ -834,7 +832,7 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		protected CacheLine fill(long addr, MESI stateToSet) //Returns a copy of the evicted line
+		public CacheLine fill(long addr, MESI stateToSet) //Returns a copy of the evicted line
 		{
 			CacheLine evictedLine = null;
     		/* compute startIdx and the tag */

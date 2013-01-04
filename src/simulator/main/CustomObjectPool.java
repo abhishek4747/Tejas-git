@@ -13,14 +13,17 @@ public class CustomObjectPool {
 	private static CustomInstructionPool instructionPool;
 	private static CustomAsmCharPool customAsmCharPool;
 	
-	public static void initCustomPools(int maxApplicationThreads) {
+	public static void initCustomPools(int maxApplicationThreads, int staticInstructionPoolSize) {
+		
 		// Create Pools of Instructions, Operands and AddressCarryingEvents
-		int numInstructionsInPool = RunnableThread.INSTRUCTION_THRESHOLD*
-				IpcBase.getEmuThreadsPerJavaThread()*2*6;
+		int runTimePool =  RunnableThread.INSTRUCTION_THRESHOLD * maxApplicationThreads;
+		int staticTimePool = staticInstructionPoolSize;
+		
+		int numInstructionsInPool = runTimePool + staticTimePool;
 		
 		/* custom pool */
 		System.out.println("creating operand pool..");
-		setOperandPool(new CustomOperandPool(numInstructionsInPool *3));
+		setOperandPool(new CustomOperandPool(numInstructionsInPool * 3));
 		
 		System.out.println("creating instruction pool..");
 		setInstructionPool(new CustomInstructionPool(numInstructionsInPool));

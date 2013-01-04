@@ -53,6 +53,11 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			return false;
 		}
 		
+		if(L1MissStatusHoldingRegister.getCurrentSize() >= L1MissStatusHoldingRegister.getMSHRStructSize())
+		{
+			return false;
+		}
+		
 		//if not full add event to own mshr
 		boolean newOMREntryCreated = L1MissStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		

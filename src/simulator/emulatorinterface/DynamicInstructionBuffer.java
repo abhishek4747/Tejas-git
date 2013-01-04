@@ -21,44 +21,41 @@
 
 package emulatorinterface;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
-import generic.BranchInstr;
-
 
 public class DynamicInstructionBuffer implements Encoding
 {
-	//FIXME: Queue must be maintained using pooling scheme.
-	//Current scheme will put pressure on the garbage collector
-	private Queue<ArrayList<Packet>> memReadQueue = null;
-	private Queue<ArrayList<Packet>> memWriteQueue = null;
-	private Queue<Packet> branchQueue = null;
+	private long memRead[];
+	int memReadSize, memReadCount;
+	
+	private long memWrite[];
+	int memWriteSize, memWriteCount;
+	
+	private boolean branchTaken;
+	private long branchAddress;
+	
+	private long ip;
 	
 	public DynamicInstructionBuffer() 
 	{
-		// Create max number of queues
-		memReadQueue = new LinkedList<ArrayList<Packet>>();
-		memWriteQueue = new LinkedList<ArrayList<Packet>>();
-		branchQueue = new LinkedList<Packet>();
+		memRead = new long[64];
+		memWrite = new long[64];
 	}
 
 	// read the packets from the arrayList and place them in suitable queues
-	public void configurePackets(ArrayList<Packet> arrayListPacket) 
+	public void configurePackets(EmulatorPacketList arrayListPacket) 
 	{
-		Packet p;
-		ArrayList<Packet> memReadAddr = new ArrayList<Packet>();
-		ArrayList<Packet> memWriteAddr = new ArrayList<Packet>();
-		Packet branchPacket = null;
-
-		long ip = arrayListPacket.get(0).ip;
+		memReadCount = 0;  memReadSize = 0;
+		memWriteCount = 0; memWriteSize = 0;
+		
+		branchAddress = -1;
+		
+		ip = arrayListPacket.get(0).ip;
 		
 		for (int i = 0; i < arrayListPacket.size(); i++) 
 		{
-			p = arrayListPacket.get(i);
+			Packet p = arrayListPacket.get(i);
 			assert (ip == p.ip) : "all instruction pointers not matching";
 			
 			// System.out.println(i + " : " + p);
@@ -69,282 +66,82 @@ public class DynamicInstructionBuffer implements Encoding
 					break;
 				
 				case (0):
-//					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
+					misc.Error.showErrorAndExit("error in configuring packets "+p);
 					break;
 					
 				case (1):
-					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
+					misc.Error.showErrorAndExit("error in configuring packet : " + p);
 					break;
 					
 				case (MEMREAD):
-					memReadAddr.add(p);
+					memRead[memReadSize++] = p.value;
 					break;
 					
 				case (MEMWRITE):
-					memWriteAddr.add(p);
+					memRead[memWriteSize++] = p.value;
 					break;
 					
 				case (TAKEN):
-					branchPacket = p;
+					branchTaken = true;
+					branchAddress = p.value;
 					break;
 					
 				case (NOTTAKEN):
-					branchPacket = p;
+					branchTaken = false;
+					branchAddress = p.value;
 					break;
 					
 				default:
-					System.out.println("error in configuring packets"+p.value);
+//					System.out.println("error in configuring packets"+p.value);
 //					misc.Error.showErrorAndExit("error in configuring packets"+p.value);
 					
 			}
 		}
-		
-		if(!memReadAddr.isEmpty())
-		{
-			this.memReadQueue.add(memReadAddr);
-		}
-		
-		if(!memWriteAddr.isEmpty())
-		{
-			this.memWriteQueue.add(memWriteAddr);
-		}
-		
-		if(branchPacket != null)
-		{
-			this.branchQueue.add(branchPacket);
-		}
 	}
 	
-	public BranchInstr getBranchPacket(long instructionPointer)
+	public boolean getBranchTaken(long instructionPointer)
 	{
-		Packet headPacket = null;
-		
-		while(!branchQueue.isEmpty())
-		{
-			headPacket = branchQueue.poll();
-			
-			if(headPacket.ip == instructionPointer)
-			{
-				return new BranchInstr(headPacket.value==4, headPacket.tgt);
-			}
-			else
-			{
-			//	System.out.print("\n\tExtra branch instruction found : original instruction=" +
-			//			Long.toHexString(instructionPointer) + " found instruction=" + 
-			//			Long.toHexString(headPacket.ip) + "\n");
-
-			//	System.exit(0);
-			}
-		}
-		
-		return null;
+		return branchTaken;
+	}
+	
+	public long getBranchAddress(long instructionPointer)
+	{
+		return branchAddress;
 	}
 	
 	public long getSingleLoadAddress(long instructionPointer)
 	{
-		ArrayList<Packet> headPacket = null;
+		long ret = -1;
 		
-		while(!memReadQueue.isEmpty())
-		{
-			headPacket = memReadQueue.poll();
-			
-			// check the ip of this instruction
-			if(headPacket.get(0).ip == instructionPointer)
-			{
-				// return the first readAddress.
-				// Hope that this instruction does not have more pending reads.
-				return headPacket.get(0).tgt;
-			}
-			else
-			{
-			//	System.out.print("\n\tExtra memRead instruction found : original instruction=" +
-			//			Long.toHexString(instructionPointer) + " found instruction=" + 
-			//			Long.toHexString(headPacket.get(0).ip) + "\n");
-				
-//				System.exit(0);
-			}
+		if(memReadCount<memReadSize) {
+			ret = memRead[memReadCount++];
+		} else {
+//			System.err.println("expected load address : " +
+//				"ip = " + Long.toHexString(ip).toLowerCase()+   
+//				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
 		}
 		
-		return -1;
+		return ret;
 	}
 	
-	public LinkedList<Long> getMultipleLoadAddresses(long instructionPointer)
-	{
-		ArrayList<Packet> headPacket = null;
 		
-		while(!memReadQueue.isEmpty())
-		{
-			headPacket = memReadQueue.poll();
-			
-			// check the ip of this instruction
-			if(headPacket.get(0).ip == instructionPointer)
-			{
-				// read Addresses contains all addresses read by this instruction.
-				LinkedList<Long> readAddessList = new LinkedList<Long>();
-
-				for(int i=0; i<headPacket.size(); i++)
-				{
-					readAddessList.add(headPacket.get(i).tgt);
-				}
-				
-				return readAddessList;
-			}
-			else
-			{
-			//	System.out.print("\n\tExtra memRead instruction found : original instruction=" +
-			//			Long.toHexString(instructionPointer) + " found instruction=" + 
-			//			Long.toHexString(headPacket.get(0).ip) + "\n");
-				
-//				System.exit(0);
-			}
-		}
-		
-		return null;
-	}
-	
 	public long getSingleStoreAddress(long instructionPointer)
 	{
-		ArrayList<Packet> headPacket = null;
+		long ret = -1;
 		
-		while(!memWriteQueue.isEmpty())
-		{
-			headPacket = memWriteQueue.poll();
-			
-			// check the ip of this instruction
-			if(headPacket.get(0).ip == instructionPointer)
-			{
-				return headPacket.get(0).tgt;
-			}
-			else
-			{
-			//	System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
-			//			Long.toHexString(instructionPointer) + " found instruction=" + 
-			//			Long.toHexString(headPacket.get(0).ip) + "\n");
-
-//				System.exit(0);
-			}
+		if(memWriteCount<memWriteSize) {
+			ret = memWrite[memWriteCount++];
+		} else {
+//			System.err.println("expected store address : " +
+//				"ip = " + Long.toHexString(ip).toLowerCase()+   
+//				"\tinstructionP = " + Long.toHexString(instructionPointer).toLowerCase() + " !!");
 		}
 		
-		return -1;
+		return ret;
 	}
 
-	
-	public LinkedList<Long> getMultipleStoreAddresses(long instructionPointer)
-	{
-		ArrayList<Packet> headPacket = null;
-		
-		while(!memWriteQueue.isEmpty())
-		{
-			headPacket = memWriteQueue.poll();
-			
-			// check the ip of this instruction
-			if(headPacket.get(0).ip == instructionPointer)
-			{
-				// read Addresses contains all addresses read by this instruction.
-				LinkedList<Long> writeAddessList = new LinkedList<Long>();
-								
-				for(int i=0; i<headPacket.size(); i++)
-				{
-					writeAddessList.add(headPacket.get(i).tgt);
-				}
-								
-				return writeAddessList;
-			}
-			else
-			{
-			//	System.out.print("\n\tExtra memWrite instruction found : original instruction=" +
-				//		Long.toHexString(instructionPointer) + " found instruction=" + 
-					//	Long.toHexString(headPacket.get(0).ip) + "\n");
-
-			//	System.exit(0);
-			}
-		}
-		
-		return null;
-	}
-	
-	/*
-	 * This function removes multiple packets belonging to instructionPointer
-	 * from the head of the queue. 
-	 */
-	public void gobbleInstruction(long instructionPointer)
-	{
-		// gobble branch instructions
-		Packet headBranchPacket;
-		while(!this.branchQueue.isEmpty())
-		{
-			headBranchPacket = branchQueue.peek();
-			
-			if(headBranchPacket.ip == instructionPointer)
-			{
-				// remove all the branch instructions whose ip=instructionPointer
-				branchQueue.poll();
-			}
-			else
-			{
-				// no need to look into this queue further
-				break;
-			}
-		}
-
-		// gobble memRead instructions		
-		ArrayList<Packet> headMemReadPacket;
-		while(!this.memReadQueue.isEmpty())
-		{
-			headMemReadPacket = memReadQueue.peek();
-			
-			if(headMemReadPacket.get(0).ip == instructionPointer)
-			{
-				// remove all memRead instructions whose ip=instructionPointer
-				memReadQueue.poll();
-			}
-			else
-			{
-				// no need to look into this queue further
-				break;
-			}
-		}
-		
-		// gobble memWrite instructions
-		ArrayList<Packet> headMemWritePacket;
-		while(!this.memWriteQueue.isEmpty())
-		{
-			headMemWritePacket = memWriteQueue.peek();
-			
-			if(headMemWritePacket.get(0).ip == instructionPointer)
-			{
-				// remove all memRead instructions whose ip=instructionPointer
-				memWriteQueue.poll();
-			}
-			else
-			{
-				// no need to look into this queue further
-				break;
-			}
-		}
-	}
-
-	public void clearBuffer() 
-	{
-		this.branchQueue.clear();
-		this.memReadQueue.clear();
-		this.memWriteQueue.clear();
-	}
-	
 	public void printBuffer()
 	{
-		//print branch info
-		System.out.print("\n\n\tBranch Info : ");
-		if(branchQueue.isEmpty())
-		{
-			Object[] branchInstrs = branchQueue.toArray();
-			Packet branchPacket;
-			for(int i=0; i<branchInstrs.length; i++)
-			{
-				branchPacket = (Packet)branchInstrs[i];
-				System.out.print("\ttaken = " + (branchPacket.value==4) + " addr = " + branchPacket.tgt + "\n");
-			}
-		}
-		//print memory read addresses
+		//TODO
 	}
 }

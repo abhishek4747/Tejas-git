@@ -52,76 +52,27 @@ public class FetchLogic extends SimulationElement {
 	
 	public void performFetch()
 	{
+		boolean checkTranslatorSpeed = false;
+		
+		if(checkTranslatorSpeed)
+		{
+			Instruction inst;
+			while((inst = inputToPipeline[0].dequeue()) != null)
+			{
+				if(inst.getOperationType() == OperationType.inValid)
+				{
+					execEngine.setExecutionComplete(true);
+				}
+				CustomObjectPool.getInstructionPool().returnObject(inst);
+			}
+			
+			return;
+		}
+		
 		if(sleep == true)
 		{
 			return;
 		}
-		
-//		boolean checkSync = true;
-//		
-//		if(checkSync)
-//		{
-//			for(int i = 0; i < core.getDecodeWidth(); i++)
-//			{
-//				Instruction inst = inputToPipeline[0].pollFirst();
-//				if(inst != null && inst.getOperationType() == OperationType.inValid)
-//				{
-//					execEngine.setExecutionComplete(true);
-//				}
-//				if(inst != null && inst.getOperationType() == OperationType.sync)
-//				{
-//					
-//					long barrierAddress = inst.getRISCProgramCounter();
-//					System.out.println("Recieved barrier on " + core.getCore_number() +" bar add "+ barrierAddress);
-//					Barrier bar = BarrierTable.barrierList.get(barrierAddress);
-//					bar.incrementThreads();
-//					if(this.core.TreeBarrier == true){
-//						setSleep(true);
-//						int coreId = this.core.getCore_number();
-//						this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
-//								this.core.eventQueue,
-//								 1,
-//								 this.core.coreBcastBus, 
-//								 this.core.coreBcastBus, 
-//								 RequestType.TREE_BARRIER, 
-//								 barrierAddress,
-//								 coreId));
-//					}
-//					else{
-//						if(bar.timeToCross())
-//						{
-//							System.out.println("    Time to cross " + bar.getBarrierAddress());
-//							setSleep(true);
-//							for(int j=0; j<bar.getNumThreads(); j++ ){
-//								this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
-//							}
-//	//						BarrierTable.barrierReset(barrierAddress);
-//							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
-//									this.core.eventQueue,
-//									 1,
-//									 this.core.coreBcastBus, 
-//									 this.core.coreBcastBus, 
-//									 RequestType.PIPELINE_RESUME, 
-//									 0));
-//		
-//						}
-//						else
-//						{
-//							System.out.println("Total on bar " + bar.getBarrierAddress() + " is " + bar.getNumThreadsArrived());
-//							setSleep(true);
-//							//return;
-//						}
-//					}
-//				}
-//				
-//				if(inst != null)
-//				{
-//					CustomObjectPool.getInstructionPool().returnObject(inst);
-//				}
-//			}
-//			
-//			return;
-//		}
 		
 		Instruction newInstruction;
 		

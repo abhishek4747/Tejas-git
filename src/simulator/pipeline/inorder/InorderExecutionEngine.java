@@ -207,15 +207,15 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
 	
-	private long getNoOfSt() {
+	public long getNoOfSt() {
 		return noOfSt;
 	}
 
-	private long getNoOfLd() {
+	public long getNoOfLd() {
 		return noOfLd;
 	}
 
-	private long getNoOfMemRequests() {
+	public long getNoOfMemRequests() {
 		return noOfMemRequests;
 	}
 

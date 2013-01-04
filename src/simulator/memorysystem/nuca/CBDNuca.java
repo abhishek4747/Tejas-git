@@ -2,8 +2,11 @@ package memorysystem.nuca;
 
 import generic.Event;
 import generic.EventQueue;
+import generic.RequestType;
 import generic.SimulationElement;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.NOC.CONNECTIONTYPE;
@@ -13,11 +16,19 @@ import net.optical.TopLevelTokenBus;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
+import memorysystem.MESI;
+import memorysystem.MainMemory;
+import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache.NucaType;
 import config.CacheConfig;
 import config.SimulationConfig;
 
 public class CBDNuca extends NucaCache {
+	
+	Hashtable<Long,BroadCastRequestHandler> sendRequests = new Hashtable<Long,BroadCastRequestHandler>();
+	
+	public static boolean debugPrint = false;
+	long event_idx =0;
 	public CBDNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus) 
 	{
 		
@@ -107,6 +118,70 @@ public class CBDNuca extends NucaCache {
     	}
     }
     
+    public void handleEvent(EventQueue eventQ, Event event) 
+    {
+    	if(event.getRequestType() == RequestType.Cache_Hit || 
+    		  event.getRequestType() == RequestType.Cache_Miss) 
+    	{
+    		handleCacheBankResponses(eventQ,(AddressCarryingEvent)event);
+    	} else if(event.getRequestType() == RequestType.Main_Mem_Response) 
+    	{
+    		handleMainMemResponse(eventQ,(AddressCarryingEvent)event);
+    	}
+    }
+    
+    protected void handleCacheBankResponses(EventQueue eventQ, AddressCarryingEvent event)
+	{
+		if(!sendRequests.containsKey(event.event_id)) 
+		{
+			misc.Error.showErrorAndExit("event_id: " + event.event_id +" Not Present in send Requests hash");
+		} 
+		
+		BroadCastRequestHandler br = sendRequests.get(event.event_id);
+		if(debugPrint)System.out.println(event.event_id + " reduced number of requests for event with address: " + event.getAddress() );
+		br.num_requests--;
+		if(event.getRequestType() == RequestType.Cache_Hit) {
+			br.hit = true;
+		}
+		
+		if(br.num_requests == 0) {
+			this.noOfRequests++;
+			if(br.hit) {
+				this.hits++;
+		    	ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsIfAvailable((AddressCarryingEvent)event);
+				sendResponseToWaitingEvent(eventsToBeServed);
+				if(debugPrint)System.out.println(event.event_id +  " removed entry for address  from cachebankreadwrite for address: "+ event.getAddress());
+				sendRequests.remove(event.event_id);
+			} else {
+				this.misses++;
+				AddressCarryingEvent addrEvent = new AddressCarryingEvent(eventQ,
+												MemorySystem.mainMemory.getLatencyDelay(), this, 
+												MemorySystem.mainMemory, RequestType.Main_Mem_Read,event.getAddress(), 
+												event.coreId,event.getSourceBankId(),event.getDestinationBankId());
+				addrEvent.event_id = event.event_id;
+				MemorySystem.mainMemory.getPort().put(addrEvent);
+			}
+		}
+	}
+    
+    protected void handleMainMemResponse(EventQueue eventQ, AddressCarryingEvent event)
+    {
+		if(!sendRequests.containsKey(event.event_id)) 
+		{
+			misc.Error.showErrorAndExit("event_id: " + event.event_id +" Not Present in send Requests hash" + event.getAddress());
+		} 
+
+		BroadCastRequestHandler br = sendRequests.get(event.event_id);
+    	ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsIfAvailable((AddressCarryingEvent)event);
+		sendResponseToWaitingEvent(eventsToBeServed);
+		//if(debugPrint)System.out.println(event.getAddress() +" 4removed entry for address  from maim mem response " +  br.num_unique_req);
+		sendRequests.remove(event.event_id);
+		if(debugPrint)System.out.println("removed entry for event_id " + event.event_id + " from maim mem response for address: " + event.getAddress());
+		int setIndex = getSetIndex(event.getAddress());
+    	Vector<Integer> bankId = integerToBankId(cacheMapping.get(event.coreId).get(setIndex).get(cacheMapping.get(event.coreId).get(setIndex).size() -1));
+    	cacheBank[bankId.get(0)][bankId.get(1)].fill(event.getAddress(), MESI.EXCLUSIVE);
+    }
+    
     void initCacheMapping()
     {
     	fillCacheMapping();
@@ -125,12 +200,12 @@ public class CBDNuca extends NucaCache {
     	cacheMapping.add(34,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
     	cacheMapping.add(35,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
     	cacheMapping.add(36,(Vector<Vector<Integer>>) cacheMapping.get(0).clone());
-    	for(int i =0 ;i<cacheMapping.size();i++) {
-    		System.out.println("cire number "+i);
-    		for (int j=0;j<cacheMapping.get(i).size();j++)
-    			System.out.println(cacheMapping.get(i).get(j));
-    		System.out.println("\n\n");
-    	}
+    	//    	for(int i =0 ;i<cacheMapping.size();i++) {
+//    		System.out.println("cire number "+i);
+//    		for (int j=0;j<cacheMapping.get(i).size();j++)
+//    			System.out.println(cacheMapping.get(i).get(j));
+//    		System.out.println("\n\n");
+//    	}
     }
 	
 	public Vector<Integer> getNearestBankId(long address,int coreId)
@@ -162,110 +237,43 @@ public class CBDNuca extends NucaCache {
 		return getNearestBankId(addr, coreId);
 	}
 	
-	/*public boolean addEvent(AddressCarryingEvent addressEvent)
-	{
-		SimulationElement requestingElement = addressEvent.getRequestingElement();
-		long address = addressEvent.getAddress();
-		Vector<Integer> sourceBankId = getSourceBankId(address,addressEvent.coreId);
-		Vector<Integer> destinationBankId = getDestinationBankId(address,addressEvent.coreId);
-		addressEvent.oldRequestingElement = (SimulationElement) requestingElement.clone();
-		addressEvent.setDestinationBankId(destinationBankId);
-		addressEvent.setSourceBankId(sourceBankId);
-		addressEvent.setProcessingElement(this.cacheBank[destinationBankId.get(0)][destinationBankId.get(1)]);
-		addressEvent.oldSourceBankId = (Vector<Integer>) sourceBankId.clone();
-		if(missStatusHoldingRegister.isFull())
-		{
-			return false;
-		}
-				
-		boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
-		if(entryCreated)
-		{
-			if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-			{
-				if(SimulationConfig.broadcast)
+
+	 public boolean addEvent(AddressCarryingEvent addrEvent) {
+		 if(SimulationConfig.broadcast) {
+			 if(missStatusHoldingRegister.isFull())
 				{
-					int setIndex = getSetIndex(address);
-					for(int i=0;i< cacheMapping.get(addressEvent.coreId).get(setIndex).size();i++)
-					{
-						destinationBankId = (Vector<Integer>) integerToBankId(cacheMapping.get(addressEvent.coreId).get(setIndex).get(i)).clone();
-						//System.out.println("added event to cache bank "+ destinationBankId + "address ="+ addressEvent.getAddress());
-						AddressCarryingEvent addrEvent = new AddressCarryingEvent(addressEvent.getEventQ(),
-																				   0,requestingElement,
-																				   this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(),
-																				   addressEvent.getRequestType(),
-																				   addressEvent.getAddress(),
-																				   addressEvent.coreId,
-																				   sourceBankId,destinationBankId);
-						addrEvent.index = i+1;
-						if(requestingElement.getClass() != Cache.class)
-						{
-							System.err.println(" requesting element other than cache ");
-						}
-						addrEvent.oldRequestingElement = (SimulationElement) requestingElement.clone();
-						addrEvent.oldSourceBankId = (Vector<Integer>) sourceBankId.clone();
-						this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().getPort().put(addrEvent);
-					}
+					return false;
 				}
-				else
+				boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addrEvent);
+				if(entryCreated)
 				{
-					this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
-					getPort().put(addressEvent.
-											updateEvent(addressEvent.getEventQ(), 
-														0,
-														requestingElement, 
-														this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-														addressEvent.getRequestType(), 
-														sourceBankId, 
-														destinationBankId));
+					putAndBroadCast(addrEvent);
 				}
-			}
-			else{
-//				System.out.println("Event to NOC" + "from" + sourceBankId + "to" +destinationBankId + "with address" + address);
-				((OpticalNOC)this.noc).entryPoint.
-				getPort().put(addressEvent.
-										updateEvent(addressEvent.getEventQ(), 
-													0,//to be  changed to some constant(wire delay) 
-													requestingElement, 
-													((OpticalNOC)this.noc).entryPoint, 
-													addressEvent.getRequestType(), 
-													sourceBankId, 
-													destinationBankId));
-			}
-			
-		}
-		return true;
-	}*/
-	
-	/* void putEventToRouter(AddressCarryingEvent addrEvent)
-		{
-			long address = addrEvent.getAddress();
-			Vector<Integer> sourceBankId = getSourceBankId(address,addrEvent.coreId);
-			Vector<Integer> destinationBankId = getDestinationBankId(address,addrEvent.coreId);
-			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
-																									0,this, this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-																									addrEvent.getRequestType(), address,addrEvent.coreId,
-																									sourceBankId,destinationBankId);
-			eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
-			if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-			{
-				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
-				getPort().put(eventToBeSent);
-			}
-			else
-			{
-				((OpticalNOC)this.noc).entryPoint.getPort().put(eventToBeSent);
-			}
-		}*/
+				return true;
+		 } else {
+			 return super.addEvent(addrEvent);
+		 }
+	 }
 	
 	void putAndBroadCast(AddressCarryingEvent addrEvent)
 	{
 		if(SimulationConfig.broadcast)
 		{
 			int setIndex = getSetIndex(addrEvent.getAddress());
+			/*if(sendRequests.containsKey(addrEvent.getAddress())) {
+				//sendRequests.get(addrEvent.getAddress()).num_requests += cacheMapping.get(addrEvent.coreId).get(setIndex).size();
+				sendRequests.get(addrEvent.getAddress()).num_unique_req++;
+				if(debugPrint)System.out.println(addrEvent.getAddress()+ " 1Send Request"  + cacheMapping.get(addrEvent.coreId).get(setIndex).size() + " number of unique requests "+sendRequests.get(addrEvent.getAddress()).num_unique_req + "  " +sendRequests.get(addrEvent.getAddress()).num_requests+"  for address ");
+				return;
+			} else */
+
+			
+			BroadCastRequestHandler br = new BroadCastRequestHandler(cacheMapping.get(addrEvent.coreId).get(setIndex).size(),false);
+			sendRequests.put(event_idx++, br);
+			Vector<Integer> sourceBankId = getSourceBankId(addrEvent.getAddress(), addrEvent.coreId);
+			//if(debugPrint)System.out.println(addrEvent.getAddress()+ " 1Send Request"  + cacheMapping.get(addrEvent.coreId).get(setIndex).size() + "  for address "  );
 			for(int i=0;i< cacheMapping.get(addrEvent.coreId).get(setIndex).size();i++)
 			{
-				Vector<Integer> sourceBankId = getSourceBankId(addrEvent.getAddress(), addrEvent.coreId);
 				Vector<Integer> destinationBankId = (Vector<Integer>) integerToBankId(cacheMapping.get(addrEvent.coreId).get(setIndex).get(i)).clone();
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(addrEvent.getEventQ(),
 																		   0,addrEvent.getRequestingElement(),
@@ -274,11 +282,20 @@ public class CBDNuca extends NucaCache {
 																		   addrEvent.getAddress(),
 																		   addrEvent.coreId,
 																		   sourceBankId,destinationBankId);
-				addressEvent.index = i+1;
-				addressEvent.oldRequestingElement = (SimulationElement) addrEvent.getRequestingElement().clone();
-				addressEvent.oldSourceBankId = (Vector<Integer>) sourceBankId.clone();
-				cacheBank[destinationBankId.get(0)][destinationBankId.get(1)].handleAccess(addressEvent.getEventQ(),addressEvent);
+				addressEvent.event_id = event_idx -1;
+				if(debugPrint)System.out.println("Added event with event_id: "+ addressEvent.event_id + " for address "+ addressEvent.getAddress());
+				this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
+				getPort().put(addressEvent);
 			}
 		}
+	}
+}
+
+class BroadCastRequestHandler {
+	int num_requests;
+	boolean hit;
+	public BroadCastRequestHandler(int num_requests,boolean hit) {
+		this.num_requests = num_requests;
+		this.hit = hit;
 	}
 }
