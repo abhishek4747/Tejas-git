@@ -2,6 +2,7 @@ package memorysystem.nuca;
 
 import generic.Event;
 import generic.EventQueue;
+import generic.RequestType;
 import generic.SimulationElement;
 
 import java.util.ArrayList;

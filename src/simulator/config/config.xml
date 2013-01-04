@@ -278,7 +278,7 @@
 			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
 			<NocSelScheme>ADAPTIVE</NocSelScheme>
-			<NocNumberOfBuffers>1000000000</NocNumberOfBuffers>
+			<NocNumberOfBuffers>10</NocNumberOfBuffers>
 			<NocPortType>UL</NocPortType>
 			<NocAccessPorts>-1</NocAccessPorts>
 			<NocPortOccupancy>-1</NocPortOccupancy>
