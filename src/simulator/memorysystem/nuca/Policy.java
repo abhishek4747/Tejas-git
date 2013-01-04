@@ -49,7 +49,7 @@ public class Policy {
 																				 RequestType.Main_Mem_Read, 
 																				 address,((AddressCarryingEvent)event).coreId,
 																				 sourceBankId,destinationBankId);*/
-					if(CBDNuca.debugPrint)System.out.println(event.getAddress() +" 2Cache Miss for address " );
+					if(CBDNuca.debugPrint)System.out.println(event.event_id +" Cache Miss for address: " + event.getAddress());
 					event.update(event.getEventQ(), 0, event.getProcessingElement(), nucaCache, RequestType.Cache_Miss);
 					//System.out.println("sent mem request from bank " + destinationBankId + "for event " + addressEvent);
 					return event;
@@ -214,7 +214,7 @@ public class Policy {
 		}
 		
 		if(SimulationConfig.broadcast) {
-			if(CBDNuca.debugPrint)System.out.println(event.getAddress()+ " 2Cache Hit For Address ");
+			if(CBDNuca.debugPrint)System.out.println(event.event_id+ " Cache Hit For Address: " + event.getAddress());
 			event.update(event.getEventQ(), 0, event.getProcessingElement(), nucaCache, RequestType.Cache_Hit);
 			nucaCache.getPort().put(event);
 		} else {

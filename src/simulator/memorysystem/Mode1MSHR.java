@@ -313,8 +313,8 @@ class PooledLinkedList {
 			prev = temp;
 			temp = temp.next;
 		}
-		System.out.println("called from mode1 MSHR - removeByRequestType");
-		removeNode.dump();
+		//System.out.println("called from mode1 MSHR - removeByRequestType");
+		//removeNode.dump();
 		//ArchitecturalComponent.dumpOutStandingLoads();
 		//ArchitecturalComponent.dumpAllMSHRs();
 		//ArchitecturalComponent.exitOnAssertionFail("returned null from remove");

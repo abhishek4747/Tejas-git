@@ -673,7 +673,8 @@ public class RunnableThread implements Encoding, Runnable {
 					}
 				}
 			}
-			else {
+			else 
+			{
 				
 //				int temmm = tempList.getListSize();
 //				for (int i = 0; i < temmm; i++) {

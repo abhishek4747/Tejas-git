@@ -159,7 +159,7 @@ public class NucaCache extends Cache
 																								0,this, this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
 																								addrEvent.getRequestType(), address,addrEvent.coreId,
 																								sourceBankId,destinationBankId);
-		eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
+		//eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
 		if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 		{
 			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().

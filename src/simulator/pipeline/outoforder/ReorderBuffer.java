@@ -279,9 +279,10 @@ public class ReorderBuffer extends SimulationElement{
 					core.incrementNoOfInstructionsExecuted();
 					if(core.getNoOfInstructionsExecuted()%1000000==0){
 						System.out.println(this.j++ + " million done on " + core.getCore_number());
-						if(j == 18) {
+						/*if(j == 11) 
+						{
 							CBDNuca.debugPrint = true;
-						}
+						}*/
 					}
 					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
 					
