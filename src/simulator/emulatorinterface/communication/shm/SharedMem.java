@@ -42,9 +42,10 @@ public class SharedMem extends  IpcBase
 			readerLocation[tidApp] = 0;
 		}
 	}
-		
+	static int bar_wait = 0;
 	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
 		int numPackets;
+		
 		numPackets = numPackets(tidApp);
 		
 		// negative value must be inferred by the runnable.

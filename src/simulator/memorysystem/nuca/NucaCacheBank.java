@@ -227,7 +227,7 @@ public class NucaCacheBank extends Cache
 			this.getRouter().getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
 					1, 
 					this, 
-					this.getRouter(), 
+					(OpticalRouter)this.getRouter(), 
 					requestType,
 					sourceBankId,
 					destinationBankId));		

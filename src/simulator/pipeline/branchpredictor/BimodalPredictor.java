@@ -42,8 +42,8 @@ public class BimodalPredictor implements BranchPredictor {
          /*
          * Constructor Bimodal_Predictor() to take the value of PCBits and number of saturating_bits
          * Also it initialises values of all the member variable of the class
-         */
-        BimodalPredictor(int PCBits,int saturating_bits)
+         */ 
+        public BimodalPredictor(int PCBits,int saturating_bits)
         {
                 this.PCBits=PCBits;
                 this.saturating_states=(1<<saturating_bits)-1;

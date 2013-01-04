@@ -38,6 +38,8 @@ import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
+import config.BranchPredictorConfig.*;
+
 import power.PowerConfig;
 
 import memorysystem.nuca.NucaCache.Mapping;
@@ -433,6 +435,16 @@ public class XMLParser
 			}
 		}
 		
+		//set Predictor Parameters
+		
+		SystemConfig.branchPredictor = new BranchPredictorConfig();
+		NodeList predictorLst = systemElmnt.getElementsByTagName("Predictor");
+		Element predictorElmnt = (Element) predictorLst.item(0);
+		
+		NodeList BTBLst = systemElmnt.getElementsByTagName("BTB");
+		Element BTBElmnt = (Element) BTBLst.item(0);
+		setBranchPredictorProperties(predictorElmnt, BTBElmnt, SystemConfig.branchPredictor);
+		
 		//Set Directory Parameters
 		SystemConfig.directoryConfig = new CacheConfig();
 		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
@@ -590,6 +602,54 @@ public class XMLParser
 			cache.nocConfig.ConnType = CONNECTIONTYPE.ELECTRICAL;
 		else
 			cache.nocConfig.ConnType = CONNECTIONTYPE.OPTICAL;
+	}
+	private static void setBranchPredictorProperties(Element predictorElmnt, Element BTBElmnt, BranchPredictorConfig branchPredictor){
+		
+		NodeList bimodLst = predictorElmnt.getElementsByTagName("Bimod");
+		Element bimodElmnt = (Element) bimodLst.item(0);
+		
+		NodeList twoLevLst = predictorElmnt.getElementsByTagName("TwoLevel");
+		Element twoLevElmnt = (Element) twoLevLst.item(0);
+		
+		NodeList combLst = predictorElmnt.getElementsByTagName("CombConfig");
+		Element combElmnt = (Element) combLst.item(0);
+		
+		NodeList tournamentLst = predictorElmnt.getElementsByTagName("Tournament");
+		Element tournamentElmnt = (Element) tournamentLst.item(0);
+		
+		String tempStr = getImmediateString("Predictor_Mode", predictorElmnt);
+		if(tempStr.equalsIgnoreCase("Tournament"))
+			branchPredictor.predictorMode = BP.Tournament;
+		else if(tempStr.equalsIgnoreCase("Bimodal"))
+			branchPredictor.predictorMode = BP.Bimodal;
+		else if(tempStr.equalsIgnoreCase("GAg"))
+			branchPredictor.predictorMode = BP.GAg;
+		else if(tempStr.equalsIgnoreCase("GAp"))
+			branchPredictor.predictorMode = BP.GAp;
+		else if(tempStr.equalsIgnoreCase("GShare"))
+			branchPredictor.predictorMode = BP.GShare;
+		else if(tempStr.equalsIgnoreCase("PAg"))
+			branchPredictor.predictorMode = BP.PAg;
+		else if(tempStr.equalsIgnoreCase("PAp"))
+			branchPredictor.predictorMode = BP.PAp;
+		
+		branchPredictor.bimod_table_size = Integer.parseInt(getImmediateString("TableSize", bimodElmnt));
+		
+		branchPredictor.two_lev_L1 = Integer.parseInt(getImmediateString("L1", twoLevElmnt));
+		branchPredictor.two_lev_L2 = Integer.parseInt(getImmediateString("L2", twoLevElmnt));
+		branchPredictor.two_lev_histoyRegSize = Integer.parseInt(getImmediateString("HistoryRegSize", twoLevElmnt));
+		branchPredictor.two_lev_XOR = Integer.parseInt(getImmediateString("XOR", twoLevElmnt));
+		
+		branchPredictor.combConfig_metaTableSize = Integer.parseInt(getImmediateString("MetaTableSize", combElmnt));
+		
+		branchPredictor.BTB_numSets = Integer.parseInt(getImmediateString("NumSets", BTBElmnt));
+		branchPredictor.BTB_Assosiativity = Integer.parseInt(getImmediateString("Associativity", BTBElmnt));
+		
+		branchPredictor.PCBits = Integer.parseInt(getImmediateString("PCBits", tournamentElmnt));
+		branchPredictor.BHRsize = Integer.parseInt(getImmediateString("BHRsize", tournamentElmnt));
+		branchPredictor.saturating_bits = Integer.parseInt(getImmediateString("saturating_bits", tournamentElmnt));
+		
+		
 	}
 	
 	private static boolean setDirectoryCoherent(String immediateString) {

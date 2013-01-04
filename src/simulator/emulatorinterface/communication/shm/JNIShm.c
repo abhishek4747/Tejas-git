@@ -222,7 +222,7 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmwri
 JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_numPacketsAlternate
 (JNIEnv * env, jobject jobj,jint tidApp) {
 	shmwrite(tidApp,shmAddress,gCOUNT+2,1);
-//	__sync_synchronize();
+	__sync_synchronize();
 	shmwrite(tidApp,shmAddress,gCOUNT+3,0);
 	__sync_synchronize();
 	while( (shmreadvalue(tidApp,shmAddress,gCOUNT+1) == 1) &&

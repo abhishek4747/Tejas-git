@@ -53,7 +53,7 @@ class ResumeSleep {
 }
 
 public final class GlobalTable implements Encoding {
-
+	
 	private Hashtable<Long, SynchPrimitive> synchTable;
 	private Hashtable<Integer, ThreadState> stateTable;
 	private IpcBase ipcType;
@@ -82,6 +82,8 @@ public final class GlobalTable implements Encoding {
 	@SuppressWarnings("unused")
 	public ResumeSleep update(long addressSynchItem, int thread, long time,
 			long value) {
+
+		
 		SynchPrimitive s;
 		if (synchTable.containsKey(addressSynchItem))
 			s = (SynchPrimitive)synchTable.get(addressSynchItem);
@@ -118,24 +120,36 @@ public final class GlobalTable implements Encoding {
 				while(bar.blockedThreadSize() == bar.getNumThreads()){ //to track re initialization of barrier
 					bar = BarrierTable.barrierList.get(++addressSynchItem);
 					if(bar == null){
-						System.out.println(thread + " returned due to bar == null");
-						return ret;
+						addressSynchItem = BarrierTable.barrierCopy(--addressSynchItem);
+						bar = BarrierTable.barrierList.get(addressSynchItem);
+						System.out.println(thread + " bar was null");
+						//return ret;
 					}
 				}
 				while(bar.containsThread(thread)){                     //to block the same thread entering barrier twice
+					int i = bar.getNumThreads();
+					//addressSynchItem = BarrierTable.barrierCopy(addressSynchItem);
 					System.out.println("already contains " + thread);
 					bar = BarrierTable.barrierList.get(++addressSynchItem);
+					if(bar == null){
+						bar = new Barrier(addressSynchItem, i);
+						BarrierTable.barrierList.put(addressSynchItem, bar);
+						break;
+					}
 				}
 				if(bar==null){
 					System.err.println("barrier not yet initialized");
 					System.exit(0);
 				}
+				System.out.println("             thread " + thread + " waiting on " +bar.getBarrierAddress() +" " + addressSynchItem);
+				System.out.println(BarrierTable.barrierList.get(addressSynchItem).getBlockedThreads());
 				bar.addThread(thread);
+				System.out.println(BarrierTable.barrierList.get(addressSynchItem).getBlockedThreads());
 				ret.setBarrierAddress((long)addressSynchItem);
 				ret.addSleeper(thread);
 				
 				return ret;
-			}	
+			}
 			break;
 		case (BCAST + 1):
 			// TODO

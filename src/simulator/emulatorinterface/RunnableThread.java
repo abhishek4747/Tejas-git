@@ -41,7 +41,7 @@ public class RunnableThread implements Encoding, Runnable {
 	
 	TopLevelTokenBus tokenBus;
 
-	public static final int INSTRUCTION_THRESHOLD = 500;
+	public static final int INSTRUCTION_THRESHOLD = 2000;
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;
@@ -74,7 +74,7 @@ public class RunnableThread implements Encoding, Runnable {
 	PipelineInterface[] pipelineInterfaces;
 	long prevTotalInstructions, currentTotalInstructions;
 	long[] prevCycles;
-	
+	public static int num_bar=0;
 	IpcBase ipcBase;
 
 	/*
@@ -105,7 +105,9 @@ public class RunnableThread implements Encoding, Runnable {
 		// tid is java thread id
 		// tidEmu is the local notion of pin threads for the current java thread
 		// tidApp is the actual tid of a pin thread
+		
 		while (true) {
+			
 			
 			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
 
@@ -156,6 +158,8 @@ public class RunnableThread implements Encoding, Runnable {
 				for (int i = 0; i < numReads; i++) {
 					pnew = fromEmulator.get(i);
 					v = pnew.value;
+//					if(v == Encoding.MEMREAD)
+//						System.err.println("mem read recieved for thread " + tidEmulator + " num "+ ++num_bar);
 					processPacket(threadParam, pnew, tidEmulator);
 				}
 				
@@ -164,8 +168,8 @@ public class RunnableThread implements Encoding, Runnable {
 
 				// if we read -1, this means this emulator thread finished.
 				if (v == -1) {
-					System.out.println("runnableshm : last packet received for application-thread " + 
-							tidApplication + " numCISC=" + pnew.ip);
+				//	System.out.println("runnableshm : last packet received for application-thread " + 
+				//			tidApplication + " numCISC=" + pnew.ip);
 					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmulator);
 					threadParam.isFirstPacket = true;  //preparing the thread for next packet in same pipeline
 					signalFinish(tidApplication);
@@ -575,7 +579,8 @@ public class RunnableThread implements Encoding, Runnable {
 	 * process each packet
 	 * parameters - Thread information, packet, thread id
 	 */
-	protected void processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
+	protected void processPacket(EmulatorThreadState thread, Packet pnew_old, int tidEmu) {
+		Packet pnew = new Packet(pnew_old.ip, pnew_old.value, pnew_old.tgt);
 		if (doNotProcess) return;
 		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
@@ -600,7 +605,7 @@ public class RunnableThread implements Encoding, Runnable {
 		
 		if (thread.isFirstPacket) {
 			this.pipelineInterfaces[tidApp].getCore().currentThreads++;  //current number of threads in this pipeline
-			System.out.println("num of threads on core " + tidApp + " = " + this.pipelineInterfaces[tidApp].getCore().currentThreads);
+//			System.out.println("num of threads on core " + tidApp + " = " + this.pipelineInterfaces[tidApp].getCore().currentThreads);
 			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionComplete(false);
 			currentEMUTHREADS ++;
 			if(tidApp>=maxCoreAssign)
@@ -707,7 +712,7 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			long temp=noOfMicroOps[tidEmu] % 1000000;
 			if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
-				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+//				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 		}
 
@@ -718,15 +723,10 @@ public class RunnableThread implements Encoding, Runnable {
 	}
 
 	private void resumeSleep(ResumeSleep update) {
-/*		for (int i=0; i<update.getNumResumers(); i++) {
-			//never used ... resuming handled within pipeline exec
-//			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
-			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
-		}
-*/		for (int i=0; i<update.getNumSleepers(); i++) {
+		for (int i=0; i<update.getNumSleepers(); i++) {
 			Instruction ins = Instruction.getSyncInstruction();
 			ins.setRISCProgramCounter(update.barrierAddress);
-//			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
+			System.out.println( "Enqueued a barrier packet into  "+ update.sleep.get(i) + " with add " + update.barrierAddress);
 			this.inputToPipeline[update.sleep.get(i)].enqueue(ins);
 			setThreadState(update.sleep.get(i), true);
 		}

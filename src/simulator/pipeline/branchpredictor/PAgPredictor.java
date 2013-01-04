@@ -72,7 +72,7 @@ public class PAgPredictor implements BranchPredictor {
          * number of saturating bits for counter(saturating_bits)
          * and initializes each member variable of the class
          */
-        PAgPredictor(int PCBits,int BHRsize,int saturating_bits)
+        public PAgPredictor(int PCBits,int BHRsize,int saturating_bits)
         {
 
                 maskbits=(1<<PCBits);

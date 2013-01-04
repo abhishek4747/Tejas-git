@@ -566,14 +566,14 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setBranchCount(branchCount, core.getCore_number());
 		Statistics.setMispredictedBranchCount(mispredCount, core.getCore_number());
 		
-		System.out.println(core.getCore_number());
+		/*System.out.println(core.getCore_number());
 		System.out.println(core.getCore_number()+"IW full : " + stall1Count);
 		System.out.println(core.getCore_number()+"phy reg unavailable : " + stall2Count);
 		System.out.println(core.getCore_number()+"LSQ full : " + stall3Count);
 		System.out.println(core.getCore_number()+"ROB full : " + stall4Count);
 		System.out.println(core.getCore_number()+"branch mispredicted : " + stall5Count);
 		System.out.println(core.getCore_number()+"Instruction Mem Stall : " + core.getExecEngine().getInstructionMemStall());
-	}
+	*/}
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
@@ -596,7 +596,7 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
 		Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
 
-		System.out.println("numAccesses = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfAccesses );
+/*		System.out.println("numAccesses = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfAccesses );
 		System.out.println("numWritesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesReceived );
 		System.out.println("numResponsesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesReceived );
 		System.out.println("numResponsesSent = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesSent );
@@ -606,7 +606,7 @@ public class ReorderBuffer extends SimulationElement{
 		System.out.println("numResponsesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesReceived );
 		System.out.println("numResponsesSent = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesSent );
 		System.out.println("numWritesForwarded = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesForwarded );
-	}
+*/	}
 
 	public void setPerCorePowerStatistics(){
 		//Clear access stats so that all counts can be transferred to total counts  

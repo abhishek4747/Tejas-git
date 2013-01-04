@@ -145,7 +145,7 @@ public class Statistics {
 			//outputFileWriter.write("\n");
 			outputFileWriter.write("Total Cycles taken\t\t=\t" + maxCoreCycles + "\n\n");
 			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumMicroOps/maxCoreCycles + "\t\tin terms of micro-ops\n");
-			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalHandledCISCInsn/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
+			outputFileWriter.write("Total IIPC\t\t=\t" + (double)totalHandledCISCInsn/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
 			
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{

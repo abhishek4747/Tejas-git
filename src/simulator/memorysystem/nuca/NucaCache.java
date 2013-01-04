@@ -155,18 +155,24 @@ public class NucaCache extends Cache
 		long address = addrEvent.getAddress();
 		Vector<Integer> sourceBankId = getSourceBankId(address,addrEvent.coreId);
 		Vector<Integer> destinationBankId = getDestinationBankId(address,addrEvent.coreId);
-		AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
-																								0,this, this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
-																								addrEvent.getRequestType(), address,addrEvent.coreId,
-																								sourceBankId,destinationBankId);
-		eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
+		
 		if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 		{
+			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
+					0,this, this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter(), 
+					addrEvent.getRequestType(), address,addrEvent.coreId,
+					sourceBankId,destinationBankId);
+			eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
 			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
 			getPort().put(eventToBeSent);
 		}
 		else
 		{
+			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
+					0,this, ((OpticalNOC)this.noc).entryPoint, 
+					addrEvent.getRequestType(), address,addrEvent.coreId,
+					sourceBankId,destinationBankId);
+			eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
 			((OpticalNOC)this.noc).entryPoint.getPort().put(eventToBeSent);
 		}
 	}

@@ -7,10 +7,12 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include <errno.h>
-
+#include <pthread.h>
 
 #include <sys/syscall.h>
 #include <unistd.h>
+
+//pthread_mutex_t mul_lock;
 
 namespace IPC
 {
@@ -18,7 +20,7 @@ namespace IPC
 void
 Shm::get_lock(packet *map) {
 	map[COUNT+1].value = 1; 				// flag[0] = 1
-//	__sync_synchronize();			// compiler barriers
+	__sync_synchronize();			// compiler barriers
 	map[COUNT+3].value = 1; 				// turn = 1
 	__sync_synchronize();
 	while((map[COUNT+2].value == 1) && (map[COUNT+3].value == 1)) {}
@@ -67,6 +69,7 @@ Shm::Shm ()
 		myData->avail = 1;
 //		myData->tid = 0;
 	}
+	//pthread_mutex_init(&mul_lock, NULL);
 }
 
 Shm::Shm (uint64_t pid)
@@ -105,6 +108,7 @@ Shm::Shm (uint64_t pid)
 		myData->avail = 1;
 //		myData->tid = 0;
 	}
+	//pthread_mutex_init(&mul_lock, NULL);
 }
 
 
@@ -114,6 +118,7 @@ Shm::Shm (uint64_t pid)
 int
 Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 {
+//	static int mem_read = 0;
 	int actual_tid = tid;
 	tid = memMapping[tid];
 	THREAD_DATA *myData = &tldata[tid];
@@ -128,7 +133,11 @@ Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 	packet *myQueue = myData->tlq;
 	uint32_t *in = &(myData->in);
 	packet *sendPacket = &(myQueue[*in]);
-
+//    if(val == 2)
+//    {
+//    	printf("mem read in shmem =  %d  \n",++mem_read);
+//    	fflush(stdout);
+//    }
 	sendPacket->ip = (uint64_t)ip;
 	sendPacket->value = val;
 	sendPacket->tgt = (uint64_t)addr;
@@ -143,6 +152,7 @@ void
 Shm::onThread_start (int tid)
 {
 	int i;
+	//pthread_mutex_lock(&mul_lock);
 	for(i=0;i<MaxNumThreads;i++){
 		if(tldata[i].avail == 1)
 		{
@@ -153,11 +163,14 @@ Shm::onThread_start (int tid)
 	THREAD_DATA *myData = &tldata[i];
 	packet *shmem = myData->shm;
 //	myData->avail =0;
+//	printf("Thread %d start alloc to %d in = %d  out=%d sum=%d prod_ptr=%d\n",tid,i,myData->in,myData->out,myData->sum,myData->prod_ptr);
 	memMapping[tid] = i;
-
+	//pthread_mutex_unlock(&mul_lock);
+	//get_lock(shmem);
 	shmem[COUNT].value = 0; // queue size pointer
 	shmem[COUNT + 1].value = 0; // flag[0] = 0
 	shmem[COUNT + 2].value = 0; // flag[1] = 0
+	//release_lock(shmem);
 
 }
 
@@ -165,18 +178,28 @@ int
 Shm::onThread_finish (int tid, long numCISC)
 {
 	int actual_tid = tid;
+	//pthread_mutex_lock(&mul_lock);
 	tid = memMapping[tid];   //find the mapped mem segment
-
+	//pthread_mutex_unlock(&mul_lock);
 	THREAD_DATA *myData = &tldata[tid];
 
 	// keep writing till we empty our local queue
 	while (myData->tlqsize !=0) {
 		if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
 	}
-	myData->avail = 1;
+
 
 	// last write to our shared memory. This time write a -1 in the 'value' field of the packet
-	return Shm::shmwrite(actual_tid,1, numCISC);
+	int ret = Shm::shmwrite(actual_tid,1, numCISC);
+
+	if(ret != -1){
+		//pthread_mutex_lock(&mul_lock);
+		myData->avail = 1;
+		//pthread_mutex_unlock(&mul_lock);
+		myData->tlqsize = 0;
+	}
+//	printf("Thread %d Finish in = %d  out=%d sum=%d prod_ptr=%d\n",tid,myData->in,myData->out,myData->sum,myData->prod_ptr);
+	return ret;
 }
 
 /* Read at 'out' of a local queue and write as many slots available in
@@ -187,7 +210,10 @@ Shm::onThread_finish (int tid, long numCISC)
 int
 Shm::shmwrite (int tid, int last, long numCISC)
 {
+	static int num_shmem=0;
+	//pthread_mutex_lock(&mul_lock);
 	tid = memMapping[tid];
+	//pthread_mutex_unlock(&mul_lock);
 	int queue_size;
 	int numWrite;
 
@@ -205,27 +231,42 @@ Shm::shmwrite (int tid, int last, long numCISC)
 	if (last ==0) {
 
 		// write 'numWrite' or 'local_queue_size' packets, whichever is less
+
 		numWrite = numWrite<myData->tlqsize ? numWrite:myData->tlqsize;
+
 
 		for (int i=0; i< numWrite; i++) {
 
+//			if(myData->tlq[(myData->out+i)%locQ].value== 2){
+//				printf("Mem Read going to write in shmem.cc %d\t%d\n",++num_shmem,tid);
+//				fflush(stdout);
+//			}
 			// for checksum
 			myData->sum+=myData->tlq[(myData->out+i)%locQ].value;
 
 			// copy 1 packet from local buffer to the shared memory
+			get_lock(shmem);
 			memcpy(&(shmem[(myData->prod_ptr+i)%COUNT]),&(myData->tlq[(myData->out+i)%locQ]),
 					sizeof(packet));
+			release_lock(shmem);
 		}
+		// some bookkeeping of the threads state.
+		myData->out = (myData->out + numWrite)%locQ;
+		myData->tlqsize=myData->tlqsize-numWrite;
+
 	}
 	else {
 		numWrite = 1;
+		get_lock(shmem);
 		shmem[myData->prod_ptr % COUNT].value = -1;
 		shmem[myData->prod_ptr % COUNT].ip = numCISC;
+		release_lock(shmem);
+
 	}
 
-	// some bookkeeping of the threads state.
-	myData->out = (myData->out + numWrite)%locQ;
-	myData->tlqsize=myData->tlqsize-numWrite;
+//	// some bookkeeping of the threads state.
+//	myData->out = (myData->out + numWrite)%locQ;
+//	myData->tlqsize=myData->tlqsize-numWrite;
 	myData->prod_ptr = (myData->prod_ptr + numWrite) % COUNT;
 
 	// update queue_size

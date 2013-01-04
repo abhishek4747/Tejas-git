@@ -55,7 +55,7 @@ public class GShare implements BranchPredictor{
          * Constructor <code> GShare() </code> to take the value of PCBits/BHRsize and number of saturating_bits
          * Also it initialises values of all the member variable of the class
          */
-        GShare(int BHRsize,int saturating_bits)
+        public GShare(int BHRsize,int saturating_bits)
         {
                 this.BHRsize=BHRsize;
                 this.saturating_states=(1<<saturating_bits)-1;

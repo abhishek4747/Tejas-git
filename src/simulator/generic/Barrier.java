@@ -42,6 +42,16 @@ public class Barrier {
 			TreeInfo.add(0);
 	}
 	
+//	public Barrier() {
+//		// TODO Auto-generated constructor stub
+//		int i;
+//		this.numThreadsArrived = 0;
+//		this.blockedThreads = new Vector<Integer>();
+//		this.TreeInfo = new Vector<Integer>();
+//		for(i=0;i<numThreads + 1; i++)
+//			TreeInfo.add(0);
+//	}
+
 	public long getBarrierAddress()
 	{
 		return this.address;
@@ -89,6 +99,12 @@ public class Barrier {
 	public void addTreeInfo(int node)
 	{
 		TreeInfo.set(node, TreeInfo.get(node) + 1);
+	}
+
+	public void setAddress(long l, int i) {
+		// TODO Auto-generated method stub
+		this.address = l;
+		this.numThreads = i;
 	}
 
 }

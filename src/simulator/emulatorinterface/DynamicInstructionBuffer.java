@@ -69,7 +69,7 @@ public class DynamicInstructionBuffer implements Encoding
 					break;
 				
 				case (0):
-					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
+//					misc.Error.showErrorAndExit("error in configuring packets "+p.value);
 					break;
 					
 				case (1):
@@ -93,7 +93,7 @@ public class DynamicInstructionBuffer implements Encoding
 					break;
 					
 				default:
-//					System.out.println("error in configuring packets"+p.value);
+					System.out.println("error in configuring packets"+p.value);
 //					misc.Error.showErrorAndExit("error in configuring packets"+p.value);
 					
 			}

@@ -82,7 +82,7 @@ public class CoreBcastBus extends SimulationElement{
 				bar.addTreeInfo(coreId);
 				if(bar.getTreeInfo(coreId) == 3){
 					if(coreId == 1){
-						BarrierTable.barrierReset(barAddress);
+					//	BarrierTable.barrierReset(barAddress);
 						this.getPort().put(new AddressCarryingEvent(
 								eventQ,
 								 0,
