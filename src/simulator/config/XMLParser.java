@@ -456,11 +456,7 @@ public class XMLParser
 				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
 			}
 		}
-		//set NOC Parameters
-		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
-		Element NocElmnt = (Element) NocLst.item(0);
-		SystemConfig.nocConfig = new NocConfig();
-		setNocProperties(NocElmnt, SystemConfig.nocConfig);
+		
 		
 		//set Predictor Parameters
 		
@@ -471,6 +467,12 @@ public class XMLParser
 		NodeList BTBLst = systemElmnt.getElementsByTagName("BTB");
 		Element BTBElmnt = (Element) BTBLst.item(0);
 		setBranchPredictorProperties(predictorElmnt, BTBElmnt, SystemConfig.branchPredictor);
+		
+		//set NOC Parameters
+		SystemConfig.nocConfig = new NocConfig();
+		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
+		Element NocElmnt = (Element) NocLst.item(0);
+		setNocProperties(NocElmnt, SystemConfig.nocConfig);
 		
 		//Set Directory Parameters
 		SystemConfig.directoryConfig = new CacheConfig();
@@ -492,9 +494,7 @@ public class XMLParser
 		nocConfig.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", NocType));
 		nocConfig.latencyBetweenBanks = Integer.parseInt(getImmediateString("NocLatencyBetweenBanks", NocType));
 		
-		String tempStr = getImmediateString("NocTopology", NocType);
-		
-		tempStr = getImmediateString("NucaMapping", NocType);
+		String tempStr = getImmediateString("NucaMapping", NocType);
 		if (tempStr.equalsIgnoreCase("S"))
 			nocConfig.mapping = Mapping.SET_ASSOCIATIVE;
 		else if (tempStr.equalsIgnoreCase("A"))
@@ -507,6 +507,7 @@ public class XMLParser
 			System.exit(1);
 		}
 		
+		tempStr = getImmediateString("NocTopology", NocType);
 		if(tempStr.equalsIgnoreCase("MESH"))
 			nocConfig.topology = NOC.TOPOLOGY.MESH;
 		else if(tempStr.equalsIgnoreCase("TORUS"))

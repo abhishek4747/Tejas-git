@@ -39,8 +39,6 @@ public class NocConfig
 	public int portOccupancy;
 	public int numberOfBuffers;
 	public RoutingAlgo.ALGO rAlgo;
-	public int numberOfRows;
-	public int numberOfColumns;
 	public int latencyBetweenBanks;
 	public SELSCHEME selScheme;
 	public ARBITER arbiterType;

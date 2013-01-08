@@ -83,7 +83,7 @@ public class NucaCache extends Cache
         this.associativity = cacheParameters.getAssoc();
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
         coreCacheMapping = SystemConfig.coreCacheMapping.clone();
-        this.mapping = cacheParameters.mapping;
+        this.mapping = SystemConfig.nocConfig.mapping;
         cacheMapping = new Vector<Vector<Vector<Integer>>>();
         for(int i=0;i<SystemConfig.NoOfCores;i++)
         {

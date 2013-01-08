@@ -21,7 +21,6 @@
 package config;
 
 import memorysystem.Cache.CoherenceType;
-import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.Cache;
 import generic.PortType;
@@ -50,7 +49,6 @@ public class CacheConfig
 	public int busOccupancy;
 //	public int numberOfBankColumns;
 //	public int numberOfBankRows;
-	public int numberOfBuffers;
 	public int mshrSize;
 	public NucaType nucaType;
 

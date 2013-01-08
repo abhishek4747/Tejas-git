@@ -60,8 +60,8 @@ public class Router extends Switch{
 		super(nocConfig);
 		this.topology = nocConfig.topology;
 		this.rAlgo = nocConfig.rAlgo;
-		this.numberOfRows = nocConfig.numberOfRows;
-		this.numberOfColumns = nocConfig.numberOfColumns;
+		this.numberOfRows = nocConfig.numberOfBankRows;
+		this.numberOfColumns = nocConfig.numberOfBankColumns;
 		this.bankReference = bankReference;
 		this.latencyBetweenBanks = nocConfig.latencyBetweenBanks;
 		this.neighbours= new Vector<Router>(4);
