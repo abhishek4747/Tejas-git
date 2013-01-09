@@ -436,4 +436,10 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		return false;
 	}
 
+	@Override
+	public ArrayList<Event> removeRequestsIfAvailable(AddressCarryingEvent event) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

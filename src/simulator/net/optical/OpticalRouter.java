@@ -118,7 +118,7 @@ public class OpticalRouter extends Router{
 				//System.out.println("Optical router to dataEvent "+  reqType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 				readyToSend = true;
 				
-				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+				/*SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
 								(eventQ, 
 								0, 
 								event.getRequestingElement(),
@@ -133,7 +133,7 @@ public class OpticalRouter extends Router{
 								((AddressCarryingEvent)event).oldRequestingElement,
 								((AddressCarryingEvent)event).requestingElementStack,
 								((AddressCarryingEvent)event).requestTypeStack);
-				this.dataEvent.add(WaveEvent);
+				this.dataEvent.add(WaveEvent);*/
 
 			}
 
@@ -142,7 +142,7 @@ public class OpticalRouter extends Router{
 								   == this.bankReference.getBankId().elementAt(1))
 				{
 					readyToSendLocally =true;
-					SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+					/*SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
 							(eventQ, 
 							0, 
 							event.getRequestingElement(),
@@ -157,11 +157,11 @@ public class OpticalRouter extends Router{
 							((AddressCarryingEvent)event).oldRequestingElement,
 							((AddressCarryingEvent)event).requestingElementStack,
 							((AddressCarryingEvent)event).requestTypeStack);
-					this.localDataEvent.add(WaveEvent);
+					this.localDataEvent.add(WaveEvent);*/
 				}
 				else {
 					readyToSend = true;
-					SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+					/*SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
 							(eventQ, 
 							0, 
 							event.getRequestingElement(),
@@ -176,7 +176,7 @@ public class OpticalRouter extends Router{
 							((AddressCarryingEvent)event).oldRequestingElement,
 							((AddressCarryingEvent)event).requestingElementStack,
 							((AddressCarryingEvent)event).requestTypeStack);
-					this.dataEvent.add(WaveEvent);
+					this.dataEvent.add(WaveEvent);*/
 				}
 			}
 			else if(this.bankReference.getBankId().equals(((AddressCarryingEvent)event).getDestinationBankId()))

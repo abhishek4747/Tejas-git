@@ -252,7 +252,7 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->

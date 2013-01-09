@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- WARNING: Eclipse auto-generated file.
-              Any modifications will be overwritten.
-              To include a user specific buildfile here, simply create one in the same
-              directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. -->
+
 <project basedir="." default="build" name="Tejas-Base-2">
+	<!-- change these as required -->
+	    <property name="jar-dir" value="jars"/>    <!-- directory where the jars are generated -->
+	    <property name="jar-name" value="tejas"/>  <!-- name of the jar -->
+	    <property name="main-class" value="main.Main"/> <!-- path to the main class -->
+	<!-- ________________________ -->
+
     <property environment="env"/>
-    <property name="ECLIPSE_HOME" value="../../../../usr/lib/eclipse"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
-    <path id="JUnit 4.libraryclasspath">
-        <pathelement location="${ECLIPSE_HOME}/dropins/jdt/plugins/org.junit_4.8.2.v4_8_2_v20110321-1705/junit.jar"/>
-        <pathelement location="${ECLIPSE_HOME}/dropins/jdt/plugins/org.hamcrest.core_1.1.0.jar"/>
-    </path>
     <path id="Tejas-Base-2.classpath">
         <pathelement location="bin"/>
-        <path refid="JUnit 4.libraryclasspath"/>
         <pathelement location="src/log4j-1.2.16.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
+                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
                 <exclude name="simulator/"/>
                 <exclude name="emulator/pin/"/>
@@ -30,20 +27,22 @@
         </copy>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src/simulator">
+                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src/emulator/pin">
+                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
     </target>
-    <target name="clean">
+    <target name="clean" depends="clean-pin">
         <delete dir="bin"/>
     </target>
     <target depends="clean" name="cleanall"/>
-    <target depends="build-subprojects,build-project" name="build"/>
+    <target depends="build-subprojects,build-project,build-pin" name="build"/>
     <target name="build-subprojects"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
@@ -62,161 +61,21 @@
             <classpath refid="Tejas-Base-2.classpath"/>
         </javac>
     </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
-    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
-        <copy todir="${ant.library.dir}">
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </copy>
-        <unzip dest="${ant.library.dir}">
-            <patternset includes="jdtCompilerAdapter.jar"/>
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </unzip>
+    <target name="clean-pin">
+        <exec dir="src/emulator/pin" executable="make">
+            <arg value="clean"/>
+        </exec>
     </target>
-    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
-        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
-        <antcall target="build"/>
+    <target name="build-pin">
+        <exec dir="src/emulator/pin" executable="make">
+        </exec>
     </target>
-    <target name="stream">
-        <java classname="emulatorinterface.Newmain" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_stream /home/eldhose/PARSEC/parsec-2.1-core/pkgs/kernels/streamcluster/src/streamcluster 10 20 32 4096 4096 1000 none /home/eldhose/PARSEC/parsec-2.1-core/pkgs/kernels/streamcluster/run/output.txt 1"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="trial">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/steady-heat.tmp /home/eldhose/trail"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="mat_mult">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/mat_mult_3.tmp /home/eldhose/matrix_mult"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="live_3_soft">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/livemore_3_soft.tmp /home/eldhose/livermore_3_soft"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="simple_barrier">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_simple_barrier /home/eldhose/simple_barrier"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="livermore_1">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/livemore_1.tmp /home/eldhose/livermore_1"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="spmv">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_spmv /home/eldhose/Downloads/parboil/benchmarks/spmv/build/omp_base_default/spmv /home/eldhose/Downloads/parboil/benchmarks/spmv/build/omp_base_default/spmv -i /home/eldhose/Downloads/parboil/datasets/spmv/medium/input/bcsstk18.mtx,/home/eldhose/Downloads/parboil/datasets/spmv/medium/input/vector.bin -o /home/eldhose/Downloads/parboil/benchmarks/spmv/run/medium/bcsstk18.mtx.out"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="mri-q">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_mri-q /home/eldhose/Downloads/parboil/benchmarks/mri-q/build/omp_base_default/mri-q -i /home/eldhose/Downloads/parboil/datasets/mri-q/small/input/32_32_32_dataset.bin -o /home/eldhose/Downloads/parboil/benchmarks/mri-q/run/small/32_32_32_dataset.out"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="live_6">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/livemore_6.tmp /home/eldhose/livermore_6"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="sgemm">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_sgemm /home/eldhose/Downloads/parboil/benchmarks/sgemm/build/omp_base_default/sgemm /home/eldhose/Downloads/parboil/benchmarks/sgemm/build/omp_base_default/sgemm -i /home/eldhose/Downloads/parboil/datasets/sgemm/small/input/matrix1.txt,/home/eldhose/Downloads/parboil/datasets/sgemm/small/input/matrix2t.txt,/home/eldhose/Downloads/parboil/datasets/sgemm/small/input/matrix2t.txt -o /home/eldhose/Downloads/parboil/benchmarks/sgemm/run/small/matrix3.txt"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="calculix">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_calculix /home/eldhose/specbenchmarks/benchspec/CPU2006/454.calculix/run/run_base_test_amd64-m64-gcc43-nn.0000/calculix_base.amd64-m64-gcc43-nn -i /home/eldhose/specbenchmarks/benchspec/CPU2006/454.calculix/run/run_base_test_amd64-m64-gcc43-nn.0000/beampic"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="steady-heat">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/steady-heat.tmp /home/eldhose/steady-heat"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="live_3">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/livemore_3.tmp /home/eldhose/livermore_3"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="tests">
-        <java classname="emulatorinterface.Newmain" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/test.tmp /home/eldhose/tt"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="bfs">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_bfs /home/eldhose/Downloads/parboil/benchmarks/bfs/build/omp_base_default/bfs /home/eldhose/Downloads/parboil/benchmarks/bfs/build/omp_base_default/bfs -i /home/eldhose/Downloads/parboil/datasets/bfs/NY/input/graph_input.dat -o /home/eldhose/Downloads/parboil/benchmarks/bfs/run/NY/bfs.out"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="trail">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/trail_tread.tmp /home/eldhose/trail_tread"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="histo">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_histo /home/eldhose/Downloads/parboil/benchmarks/histo/build/omp_base_default/histo -i /home/eldhose/Downloads/parboil/datasets/histo/default/input/img.bin -o /home/eldhose/Downloads/parboil/benchmarks/histo/run/default/ref.bmp -- 20 4"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="genCircQTest">
-        <java classname="main.genCircQTest" failonerror="true" fork="yes">
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="merge_sort">
-        <java classname="emulatorinterface.Newmain" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/merge_sort.tmp /home/eldhose/merge_sort"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="op-test">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_op-test /home/eldhose/a.out"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="stencil">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_stencil /home/eldhose/Downloads/parboil/benchmarks/stencil/build/omp_base_default/stencil -i /home/eldhose/Downloads/parboil/datasets/stencil/small/input/128x128x32.bin -o /home/eldhose/Downloads/parboil/benchmarks/stencil/run/small/128x128x32.out -- 128 128 32 100"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="stream2">
-        <java classname="emulatorinterface.Newmain" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_stream /home/eldhose/PARSEC/parsec-2.1-core/pkgs/kernels/streamcluster/inst/amd64-linux.gcc/bin/streamcluster 10 20 32 4096 4096 1000 none /home/eldhose/PARSEC/parsec-2.1-core/pkgs/kernels/streamcluster/run/output.txt 1"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="tournament_barrier">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/output_tournament_barrier /home/eldhose/tournament"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
-    </target>
-    <target name="monte-carlo">
-        <java classname="main.Main" failonerror="true" fork="yes">
-            <arg line="/home/eldhose/workspace/Tejas-Base-2/src/simulator/config/config.xml /tmp/monte-carlo.tmp /home/eldhose/monte-carlo"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
-        </java>
+    <target name="make-jar" depends="build">
+        <mkdir dir="${jar-dir}"/>
+        <jar destfile="${jar-dir}/${jar-name}.jar" basedir="bin">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+        </jar>
     </target>
 </project>
