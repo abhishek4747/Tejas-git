@@ -300,17 +300,13 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		StringTokenizer coreNucaMapping = new StringTokenizer((getImmediateString("NearestBankToCores", systemElmnt)));
-		SystemConfig.coreCacheMapping = new int[SystemConfig.NoOfCores][2];
+				
+		//Set Directory Parameters
+		SystemConfig.directoryConfig = new CacheConfig();
+		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
+		Element dirElmnt = (Element) dirLst.item(0);
+		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
 		
-		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
-		{
-			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
-			for(int j=0;tempTok.hasMoreTokens();j++)
-			{
-				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
-			}
-		}
 		/*for(int i=0;i<numOfCores;i++)
 		{
 			for(int j=0;j<2;j++)
@@ -449,14 +445,6 @@ public class XMLParser
 				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
 			}
 		}
-		
-		//Set Directory Parameters
-		SystemConfig.directoryConfig = new CacheConfig();
-		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
-		Element dirElmnt = (Element) dirLst.item(0);
-		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
-		
-		
 	}
 	
 	private static void setCacheProperties(Element CacheType, CacheConfig cache)
@@ -511,10 +499,14 @@ public class XMLParser
 		cache.busOccupancy = Integer.parseInt(getImmediateString("BusOccupancy", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
-		if (tempStr.equalsIgnoreCase("N"))
+		if (tempStr.equalsIgnoreCase("N")) 
+		{
+			SimulationConfig.nucaType = NucaType.NONE;
 			cache.nucaType = NucaType.NONE;
+		}
 		else if (tempStr.equalsIgnoreCase("S"))
 		{
+			
 			SimulationConfig.nucaType = NucaType.S_NUCA;
 			cache.nucaType = NucaType.S_NUCA;
 		}

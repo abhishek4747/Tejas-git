@@ -2,6 +2,8 @@ package main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Scanner;
+
 import misc.Error;
 import misc.ShutDownHook;
 import config.EmulatorConfig;
@@ -33,10 +35,15 @@ public class Main {
 		
 		checkCommandLineArguments(arguments);
 		setEmulatorFile(arguments[2]);
-
+		
 		// Read the command line arguments
 		String configFileName = arguments[0];
 		SimulationConfig.outputFileName = arguments[1];
+		
+		/*Scanner sc = new Scanner(System.in);
+		System.out.println("enter string");
+		String s = sc.next();*/
+
 		
 		// Parse the command line arguments
 		XMLParser.parse(configFileName);

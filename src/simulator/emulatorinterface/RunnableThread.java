@@ -42,7 +42,7 @@ public class RunnableThread implements Encoding, Runnable {
 	
 	TopLevelTokenBus tokenBus;
 
-	public static final int INSTRUCTION_THRESHOLD = 2000;
+	public static final int INSTRUCTION_THRESHOLD = 500;
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;

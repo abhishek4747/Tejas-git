@@ -30,6 +30,7 @@ import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
 import config.SimulationConfig;
+import config.SystemConfig;
 import misc.Util;
 import generic.*;
 
@@ -131,7 +132,10 @@ public class Cache extends SimulationElement
 			}
 			else
 			{
-				missStatusHoldingRegister = new Mode1MSHR(40000);
+				if(SimulationConfig.nucaType == NucaType.NONE) 
+				{
+					missStatusHoldingRegister = new Mode1MSHR(40000);
+				}
 			}
 			this.nucaType = NucaType.NONE;
 		}

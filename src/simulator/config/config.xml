@@ -41,7 +41,7 @@
 		<numInstructionsToBeWritten>18000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
 		<PrintPowerStats>false</PrintPowerStats>
-		<Broadcast>true</Broadcast>
+		<Broadcast>false</Broadcast>
 		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<pinpointsSim>false</pinpointsSim>
 		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
@@ -49,7 +49,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>1000000</subsetSimSize>
+		<subsetSimSize>100000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -273,7 +273,7 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>CBD</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>8</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
@@ -306,7 +306,7 @@
 			<NumBuses>1</NumBuses>				<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<NumberOfBankColumns>2</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>2</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
