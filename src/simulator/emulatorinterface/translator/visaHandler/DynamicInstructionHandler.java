@@ -10,6 +10,6 @@ public interface DynamicInstructionHandler
 	// It takes an Instruction and a DynamicInstructionBuffer, changes microOp appropriately.
 	// It will raise an error and terminate if it is not able to get an expected value, from
 	// dynamicInstructionBuffer.
-	public int handle(int microOpIndex, InstructionTable instructionTable,
-			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer);
+	public int handle(int microOpIndex, Instruction microOp, 
+			DynamicInstructionBuffer dynamicInstructionBuffer);
 }

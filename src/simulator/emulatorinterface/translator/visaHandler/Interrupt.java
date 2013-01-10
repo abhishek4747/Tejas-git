@@ -6,7 +6,7 @@ import generic.InstructionTable;
 
 public class Interrupt implements DynamicInstructionHandler 
 {
-	public int handle(int microOpIndex, InstructionTable instructionTable,
+	public int handle(int microOpIndex, 
 			Instruction microOp,
 			DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{

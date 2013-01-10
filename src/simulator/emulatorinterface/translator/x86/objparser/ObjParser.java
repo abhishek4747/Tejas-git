@@ -720,7 +720,7 @@ public class ObjParser
 			
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(staticMicroOp.getOperationType());
 			dynamicMicroOp = getDynamicMicroOp(staticMicroOp);
-			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, ciscIPtoRiscIP, dynamicMicroOp, dynamicInstructionBuffer);
+			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, dynamicMicroOp, dynamicInstructionBuffer);
 			
 			if(microOpIndex==-1) {
 				// I was unable to fuse certain micro-ops of this instruction. 
@@ -730,10 +730,6 @@ public class ObjParser
 				removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter());
 				numCISC = 0;
 				break;
-			} else if(microOpIndex==-2) {
-				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-					break;
-				}
 			} else {
 				inputToPipeline.enqueue(dynamicMicroOp); //append microOp
 			}
