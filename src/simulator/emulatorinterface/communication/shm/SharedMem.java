@@ -48,7 +48,7 @@ public class SharedMem extends  IpcBase
 				shmAddress = shmat(shmid);
 				if(shmAddress < 0)
 				{
-					shmdel(idToShmGet);
+					shmdel(shmid);
 					idToShmGet = (idToShmGet + 1)%Integer.MAX_VALUE;
 				}
 			}

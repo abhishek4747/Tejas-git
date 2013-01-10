@@ -22,8 +22,8 @@
 	<Emulator>
 		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
 		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
-		<PinTool>/mnt/srishtistr0/home/mayur/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/scratch/rajshekar/pin-2.12-53271-gcc.4.4.7-ia32_intel64-linux</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/raj/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
 	</Emulator>
 	
@@ -252,7 +252,7 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->

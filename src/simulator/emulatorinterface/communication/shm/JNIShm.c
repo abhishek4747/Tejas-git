@@ -41,19 +41,20 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 
 
 
-	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
+	/*if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
 		perror("sched_setaffinity");
-	}
+	}*/
 
 
 
 	int shmid;
 	//key_t key=ftok(ftokpath,ftok_id);
-	printf("jnishm : id = %d\n", pid);
+	//printf("jnishm : id = %d\n", pid);
 	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
-		perror("ftok in jni ");
+		//perror("ftok in jni ");
+		//printf("error in shmget : ftok failed\n");
 		return (-1);
 	}
 
@@ -61,7 +62,8 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 	// first create a dummy and delete
 	shmid = shmget(key,32, IPC_CREAT | 0666);
 	struct shmid_ds  sds;
-	shmctl(shmid,IPC_RMID,&sds);
+	if(shmid > 0)
+		shmctl(shmid,IPC_RMID,&sds);
 
 	//set the global variables
 	gCOUNT = COUNT;
@@ -71,7 +73,8 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 	//size1 is the number of packets needed in the segment.
 	int size=sizeof(packet)*(COUNT+5)*MaxNumJavaThreads*EmuThreadsPerJavaThread;
 	if ((shmid = shmget(key, size, IPC_CREAT | IPC_EXCL | 0666)) < 0) {
-		perror("shmget in jni -:");
+		//perror("shmget in jni -:");
+		//printf("error in shmget : shmget failed\n");
 		return (-1);
 	}
 
@@ -84,7 +87,8 @@ JNIEXPORT jlong JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmat
 (JNIEnv * env, jobject jobj, jint shmid) {
 	packet *shm;
 	if ((shm = (packet *)shmat(shmid, NULL, 0)) == (packet *) -1) {
-		perror("shmat in jni ");
+		//perror("shmat in jni ");
+		//printf("error in shmat\n");
 		return (-1);
 	}
 	intptr_t ret=(intptr_t)shm;
@@ -100,8 +104,9 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmd
 	addr=(packet *)(intptr_t)pointer;
 	register int rtrn;
 	if ((rtrn=shmdt(addr))==-1) {
-		perror("shmdt in jni ");
-		exit(1);
+		//perror("shmdt in jni ");
+		//exit(1);
+		//printf("error in shmdt\n");
 	}
 
 	return (rtrn);
@@ -114,8 +119,9 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmdel
 	struct shmid_ds  shmid_ds;
 	register int rtrn;
 	if ((rtrn = shmctl(shmid, IPC_RMID, &shmid_ds)) == -1) {
-		perror("shmdel in jni ");
-		exit(1);
+		//perror("shmdel in jni ");
+		//exit(1);
+		//printf("error in shmdel\n");
 	}
 
 	return (rtrn);
