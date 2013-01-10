@@ -75,7 +75,7 @@ public class RunnableThread implements Encoding, Runnable {
 	PipelineInterface[] pipelineInterfaces;
 	long prevTotalInstructions, currentTotalInstructions;
 	long[] prevCycles;
-	public static int num_bar=0;
+	
 	IpcBase ipcBase;
 
 	/*

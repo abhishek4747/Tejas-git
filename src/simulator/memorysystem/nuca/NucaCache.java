@@ -37,6 +37,7 @@ import memorysystem.CoreMemorySystem;
 import memorysystem.MESI;
 import memorysystem.MemorySystem;
 import memorysystem.MissStatusHoldingRegister;
+import memorysystem.Mode1MSHR;
 import memorysystem.Cache.CoherenceType;
 import misc.Util;
 import config.CacheConfig;
@@ -70,7 +71,6 @@ public class NucaCache extends Cache
     int blockSizeBits;
     public NOC noc;
     public Mapping mapping;
-    public int coreCacheMapping[][];
     public Vector<Vector<Vector<Integer>>> cacheMapping;
     public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus)
     {
@@ -82,7 +82,6 @@ public class NucaCache extends Cache
         this.cacheSize = cacheParameters.getSize();
         this.associativity = cacheParameters.getAssoc();
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
-        coreCacheMapping = SystemConfig.coreCacheMapping.clone();
         this.mapping = SystemConfig.nocConfig.mapping;
         cacheMapping = new Vector<Vector<Vector<Integer>>>();
         for(int i=0;i<SystemConfig.NoOfCores;i++)
@@ -96,6 +95,7 @@ public class NucaCache extends Cache
         	}
         }
         noc = new NOC();
+        missStatusHoldingRegister = new Mode1MSHR(40000);
         makeCacheBanks(cacheParameters, containingMemSys, tokenbus);
         for(int i=0;i<2;i++)
 		{

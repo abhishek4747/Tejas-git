@@ -301,24 +301,6 @@ public class XMLParser
 		SystemConfig.mainMemoryAccessPorts = Integer.parseInt(getImmediateString("MainMemoryAccessPorts", systemElmnt));
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
-		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		StringTokenizer coreNucaMapping = new StringTokenizer((getImmediateString("NearestBankToCores", systemElmnt)));
-		SystemConfig.coreCacheMapping = new int[SystemConfig.NoOfCores][2];
-		
-		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
-		{
-			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
-			for(int j=0;tempTok.hasMoreTokens();j++)
-			{
-				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
-			}
-		}
-		/*for(int i=0;i<numOfCores;i++)
-		{
-			for(int j=0;j<2;j++)
-			System.out.print("\t"+ SystemConfig.coreNucaMapping[i][j]);
-			System.out.println();
-		}*/
 
 		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
 		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
@@ -436,6 +418,12 @@ public class XMLParser
 			//core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
 		}
 		
+		//Set Directory Parameters
+		SystemConfig.directoryConfig = new CacheConfig();
+		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
+		Element dirElmnt = (Element) dirLst.item(0);
+		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
+		
 		//Code for remaining Cache configurations
 		NodeList cacheLst = systemElmnt.getElementsByTagName("Cache");
 		for (int i = 0; i < cacheLst.getLength(); i++)
@@ -459,7 +447,6 @@ public class XMLParser
 		
 		
 		//set Predictor Parameters
-		
 		SystemConfig.branchPredictor = new BranchPredictorConfig();
 		NodeList predictorLst = systemElmnt.getElementsByTagName("Predictor");
 		Element predictorElmnt = (Element) predictorLst.item(0);
@@ -473,15 +460,8 @@ public class XMLParser
 		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
 		Element NocElmnt = (Element) NocLst.item(0);
 		setNocProperties(NocElmnt, SystemConfig.nocConfig);
-		
-		//Set Directory Parameters
-		SystemConfig.directoryConfig = new CacheConfig();
-		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
-		Element dirElmnt = (Element) dirLst.item(0);
-		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
-		
-		
 	}
+
 	private static void setNocProperties(Element NocType, NocConfig nocConfig)
 	{
 		nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", NocType));
@@ -599,8 +579,10 @@ public class XMLParser
 		cache.busOccupancy = Integer.parseInt(getImmediateString("BusOccupancy", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
-		if (tempStr.equalsIgnoreCase("N"))
+		if (tempStr.equalsIgnoreCase("N")) {
+			SimulationConfig.nucaType = NucaType.NONE;
 			cache.nucaType = NucaType.NONE;
+		}
 		else if (tempStr.equalsIgnoreCase("S"))
 		{
 			SimulationConfig.nucaType = NucaType.S_NUCA;

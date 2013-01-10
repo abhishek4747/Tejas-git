@@ -131,7 +131,10 @@ public class Cache extends SimulationElement
 			}
 			else
 			{
-				missStatusHoldingRegister = new Mode1MSHR(40000);
+				if(SimulationConfig.nucaType == NucaType.NONE) 
+				{
+					missStatusHoldingRegister = new Mode1MSHR(40000);
+				}
 			}
 			this.nucaType = NucaType.NONE;
 		}
