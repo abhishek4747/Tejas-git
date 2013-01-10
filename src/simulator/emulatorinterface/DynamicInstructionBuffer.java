@@ -66,7 +66,7 @@ public class DynamicInstructionBuffer implements Encoding
 					break;
 				
 				case (0):
-					misc.Error.showErrorAndExit("error in configuring packet : " + p );
+					misc.Error.showErrorAndExit("error in configuring packets "+p);
 					break;
 					
 				case (1):

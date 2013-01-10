@@ -197,40 +197,6 @@ class PooledLinkedList {
 		}
 	}
 	
-	/*public void resize(int bufferSize) {
-		LinkedListNode curr = head;
-		LinkedListNode next = null;
-		if(bufferSize == 0) {
-			while(curr != null) {
-				next = curr.next;
-				curr.next = null;
-				curr = next;
-			}
-			this.head = null;
-			this.tail = null;
-			this.addPoint = null;
-		} else {
-			if(bufferSize < this.bufferSize) {
-				int count = 0;
-				while(curr != null) {
-					if(count < bufferSize) {
-						count++;
-						curr = curr.next;
-					} else {
-						next = curr.next;
-						curr.next = null;
-						curr = next;
-					}
-				}
-				addPoint = tail = head;
-			} else {
-				
-			}
-		}
-		this.bufferSize = bufferSize;
-		
-	}*/
-	
 	public AddressCarryingEvent searchByAddress(AddressCarryingEvent searchNode)
 	{
 		LinkedListNode temp;
@@ -345,8 +311,8 @@ class PooledLinkedList {
 			prev = temp;
 			temp = temp.next;
 		}
-		//System.out.println("called from mode1 MSHR - removeByRequestType");
-		//removeNode.dump();
+//		System.out.println("called from mode1 MSHR - removeByRequestType");
+//		removeNode.dump();
 		//ArchitecturalComponent.dumpOutStandingLoads();
 		//ArchitecturalComponent.dumpAllMSHRs();
 		//ArchitecturalComponent.exitOnAssertionFail("returned null from remove");

@@ -132,29 +132,42 @@ public class FetchUnitIn extends SimulationElement
 						long barrierAddress = ins.getRISCProgramCounter();
 						Barrier bar = BarrierTable.barrierList.get(barrierAddress);
 						bar.incrementThreads();
-						
-						if(bar.timeToCross())
-						{
-							ifIdLatch.setInstruction(null);
-							sleepThePipeline();
-							for(int i=0; i<bar.getNumThreads(); i++ ){
-								this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
-							}
-							BarrierTable.barrierReset(barrierAddress);
+						if(this.core.TreeBarrier == true){
+							setSleep(true);
+							int coreId = this.core.getCore_number();
 							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 									this.core.eventQueue,
 									 1,
 									 this.core.coreBcastBus, 
 									 this.core.coreBcastBus, 
-									 RequestType.PIPELINE_RESUME, 
-									 0));
-
+									 RequestType.TREE_BARRIER, 
+									 barrierAddress,
+									 coreId));
 						}
-						else
-						{
-							ifIdLatch.setInstruction(null);
-							sleepThePipeline();
-							return;
+						else{
+							if(bar.timeToCross())
+							{
+								ifIdLatch.setInstruction(null);
+								sleepThePipeline();
+								for(int i=0; i<bar.getNumThreads(); i++ ){
+									this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
+								}
+							//	BarrierTable.barrierReset(barrierAddress);
+								this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+										this.core.eventQueue,
+										 1,
+										 this.core.coreBcastBus, 
+										 this.core.coreBcastBus, 
+										 RequestType.PIPELINE_RESUME, 
+										 0));
+	
+							}
+							else
+							{
+								ifIdLatch.setInstruction(null);
+								sleepThePipeline();
+								return;
+							}
 						}
 						ins = this.fetchBuffer[fetchBufferIndex];
 					}

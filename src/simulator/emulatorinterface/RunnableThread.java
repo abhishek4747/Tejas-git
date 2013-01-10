@@ -42,7 +42,7 @@ public class RunnableThread implements Encoding, Runnable {
 	
 	TopLevelTokenBus tokenBus;
 
-	public static final int INSTRUCTION_THRESHOLD = 500;
+	public static final int INSTRUCTION_THRESHOLD = 2000;
 	
 	boolean doNotProcess = false;
 	boolean writeToFile = SimulationConfig.writeToFile;
@@ -106,7 +106,9 @@ public class RunnableThread implements Encoding, Runnable {
 		// tid is java thread id
 		// tidEmu is the local notion of pin threads for the current java thread
 		// tidApp is the actual tid of a pin thread
+		
 		while (true) {
+			
 			
 			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
 
@@ -721,15 +723,10 @@ public class RunnableThread implements Encoding, Runnable {
 	}
 
 	private void resumeSleep(ResumeSleep update) {
-/*		for (int i=0; i<update.getNumResumers(); i++) {
-			//never used ... resuming handled within pipeline exec
-//			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
-			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
-		}
-*/		for (int i=0; i<update.getNumSleepers(); i++) {
+		for (int i=0; i<update.getNumSleepers(); i++) {
 			Instruction ins = Instruction.getSyncInstruction();
 			ins.setRISCProgramCounter(update.barrierAddress);
-//			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
+			System.out.println( "Enqueued a barrier packet into  "+ update.sleep.get(i) + " with add " + update.barrierAddress);
 			this.inputToPipeline[update.sleep.get(i)].enqueue(ins);
 			setThreadState(update.sleep.get(i), true);
 		}

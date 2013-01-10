@@ -1,6 +1,13 @@
 package generic;
 
 import pipeline.ExecutionEngine;
+import pipeline.branchpredictor.BimodalPredictor;
+import pipeline.branchpredictor.BranchPredictor;
+import pipeline.branchpredictor.GAgpredictor;
+import pipeline.branchpredictor.GApPredictor;
+import pipeline.branchpredictor.GShare;
+import pipeline.branchpredictor.PAgPredictor;
+import pipeline.branchpredictor.PApPredictor;
 import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.ExecutionEnginePerfect;
 //import pipeline.perfect.PerformDecodeEventPerfect;
@@ -12,6 +19,8 @@ import pipeline.inorder.multiissue.MultiIssueInorder;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
 import power.Counters;
+import config.BranchPredictorConfig;
+import config.BranchPredictorConfig.BP;
 import config.CoreConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
@@ -63,7 +72,7 @@ public class Core {
 
 	private int[] threadIDs;
 	
-	private TournamentPredictor branchPredictor;
+	private BranchPredictor branchPredictor;
 	
 	private int noOfInstructionsExecuted;
 	
@@ -73,6 +82,7 @@ public class Core {
 	private int numInorderPipelines;
 	public CoreBcastBus coreBcastBus;
 
+	public boolean TreeBarrier;
 
 //	private InorderPipeline inorderPipeline;
 
@@ -101,7 +111,29 @@ public class Core {
 		else
 			this.execEngine = new OutOrderExecutionEngine(this);
 		
-		this.branchPredictor = new TournamentPredictor();
+		if(SystemConfig.branchPredictor.predictorMode == BP.Tournament)
+			this.branchPredictor = new TournamentPredictor();
+		else if(SystemConfig.branchPredictor.predictorMode == BP.Bimodal)
+			this.branchPredictor = new BimodalPredictor(SystemConfig.branchPredictor.PCBits,
+					SystemConfig.branchPredictor.saturating_bits);
+		else if(SystemConfig.branchPredictor.predictorMode == BP.GShare)
+			this.branchPredictor = new GShare(SystemConfig.branchPredictor.BHRsize, 
+					SystemConfig.branchPredictor.saturating_bits);
+		else if(SystemConfig.branchPredictor.predictorMode == BP.GAg)
+			this.branchPredictor = new GAgpredictor(SystemConfig.branchPredictor.BHRsize);
+		else if(SystemConfig.branchPredictor.predictorMode == BP.GAp)
+			this.branchPredictor = new GApPredictor(SystemConfig.branchPredictor.BHRsize, 
+					SystemConfig.branchPredictor.PCBits);
+		else if(SystemConfig.branchPredictor.predictorMode == BP.PAg)
+			this.branchPredictor = new PAgPredictor(SystemConfig.branchPredictor.PCBits, 
+					SystemConfig.branchPredictor.BHRsize, 
+					SystemConfig.branchPredictor.saturating_bits);
+		else if(SystemConfig.branchPredictor.predictorMode == BP.PAp)
+			this.branchPredictor = new PApPredictor(SystemConfig.branchPredictor.PCBits, 
+					SystemConfig.branchPredictor.BHRsize, 
+					SystemConfig.branchPredictor.saturating_bits);
+		
+		
 		this.noOfInstructionsExecuted = 0;
 		this.numReturns=0;
 		if(this.isPipelineInorder)
@@ -135,6 +167,7 @@ public class Core {
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setNumInorderPipelines(SimulationConfig.numInorderPipelines);
+		setTreeBarrier(coreConfig.TreeBarrier);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
@@ -192,6 +225,10 @@ public class Core {
 		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.enqueue(Instruction.getSyncInstruction());
 	}
 
+	public void setTreeBarrier(boolean bar)
+	{
+		TreeBarrier = bar;
+	}
 	public int getIssueWidth() {
 		return issueWidth;
 	}
@@ -348,7 +385,7 @@ public class Core {
 		return core_number;
 	}
 
-	public TournamentPredictor getBranchPredictor() {
+	public BranchPredictor getBranchPredictor() {
 		return branchPredictor;
 	}
 

@@ -38,6 +38,8 @@ import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
+import config.BranchPredictorConfig.*;
+
 import power.PowerConfig;
 
 import memorysystem.nuca.NucaCache.Mapping;
@@ -300,13 +302,17 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 		//SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-				
-		//Set Directory Parameters
-		SystemConfig.directoryConfig = new CacheConfig();
-		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
-		Element dirElmnt = (Element) dirLst.item(0);
-		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
+		StringTokenizer coreNucaMapping = new StringTokenizer((getImmediateString("NearestBankToCores", systemElmnt)));
+		SystemConfig.coreCacheMapping = new int[SystemConfig.NoOfCores][2];
 		
+		for(int i=0;coreNucaMapping.hasMoreTokens();i++)
+		{
+			StringTokenizer tempTok = new StringTokenizer(coreNucaMapping.nextToken(),",");
+			for(int j=0;tempTok.hasMoreTokens();j++)
+			{
+				SystemConfig.coreCacheMapping[i][j] = Integer.parseInt(tempTok.nextToken());
+			}
+		}
 		/*for(int i=0;i<numOfCores;i++)
 		{
 			for(int j=0;j<2;j++)
@@ -387,6 +393,10 @@ public class XMLParser
 			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
 			//core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
 		
+			if(getImmediateString("TreeBarrier", coreElmnt).compareTo("true") == 0)
+				core.TreeBarrier = true;
+			else
+				core.TreeBarrier = false;
 			//Code for instruction cache configurations for each core
 			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
 			Element iCacheElmnt = (Element) iCacheList.item(0);
@@ -432,6 +442,7 @@ public class XMLParser
 		{
 			Element cacheElmnt = (Element) cacheLst.item(i);
 			String cacheName = cacheElmnt.getAttribute("name");
+
 			if (!(SystemConfig.declaredCaches.containsKey(cacheName)))	//If the identically named cache is not already present
 			{
 				CacheConfig newCacheConfigEntry = new CacheConfig();
@@ -445,8 +456,108 @@ public class XMLParser
 				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
 			}
 		}
+		
+		
+		//set Predictor Parameters
+		
+		SystemConfig.branchPredictor = new BranchPredictorConfig();
+		NodeList predictorLst = systemElmnt.getElementsByTagName("Predictor");
+		Element predictorElmnt = (Element) predictorLst.item(0);
+		
+		NodeList BTBLst = systemElmnt.getElementsByTagName("BTB");
+		Element BTBElmnt = (Element) BTBLst.item(0);
+		setBranchPredictorProperties(predictorElmnt, BTBElmnt, SystemConfig.branchPredictor);
+		
+		//set NOC Parameters
+		SystemConfig.nocConfig = new NocConfig();
+		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
+		Element NocElmnt = (Element) NocLst.item(0);
+		setNocProperties(NocElmnt, SystemConfig.nocConfig);
+		
+		//Set Directory Parameters
+		SystemConfig.directoryConfig = new CacheConfig();
+		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
+		Element dirElmnt = (Element) dirLst.item(0);
+		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
+		
+		
 	}
-	
+	private static void setNocProperties(Element NocType, NocConfig nocConfig)
+	{
+		nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", NocType));
+		nocConfig.portType = setPortType(getImmediateString("NocPortType", NocType));
+		nocConfig.accessPorts = Integer.parseInt(getImmediateString("NocAccessPorts", NocType));
+		nocConfig.portOccupancy = Integer.parseInt(getImmediateString("NocPortOccupancy", NocType));
+		nocConfig.latency = Integer.parseInt(getImmediateString("NocLatency", NocType));
+		nocConfig.operatingFreq = Integer.parseInt(getImmediateString("NocOperatingFreq", NocType));
+		nocConfig.numberOfBankColumns = Integer.parseInt(getImmediateString("NumberOfBankColumns", NocType));
+		nocConfig.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", NocType));
+		nocConfig.latencyBetweenBanks = Integer.parseInt(getImmediateString("NocLatencyBetweenBanks", NocType));
+		
+		String tempStr = getImmediateString("NucaMapping", NocType);
+		if (tempStr.equalsIgnoreCase("S"))
+			nocConfig.mapping = Mapping.SET_ASSOCIATIVE;
+		else if (tempStr.equalsIgnoreCase("A"))
+			nocConfig.mapping = Mapping.ADDRESS;
+		else if (tempStr.equalsIgnoreCase("B"))
+			nocConfig.mapping = Mapping.BOTH;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");
+			System.exit(1);
+		}
+		
+		tempStr = getImmediateString("NocTopology", NocType);
+		if(tempStr.equalsIgnoreCase("MESH"))
+			nocConfig.topology = NOC.TOPOLOGY.MESH;
+		else if(tempStr.equalsIgnoreCase("TORUS"))
+			nocConfig.topology = NOC.TOPOLOGY.TORUS;
+		else if(tempStr.equalsIgnoreCase("BUS"))
+			nocConfig.topology = NOC.TOPOLOGY.BUS;
+		else if(tempStr.equalsIgnoreCase("RING"))
+			nocConfig.topology = NOC.TOPOLOGY.RING;
+		else if(tempStr.equalsIgnoreCase("FATTREE"))
+			nocConfig.topology = NOC.TOPOLOGY.FATTREE;
+		else if(tempStr.equalsIgnoreCase("OMEGA"))
+			nocConfig.topology = NOC.TOPOLOGY.OMEGA;
+		else if(tempStr.equalsIgnoreCase("BUTTERFLY"))
+			nocConfig.topology = NOC.TOPOLOGY.BUTTERFLY;
+		
+		tempStr = getImmediateString("NocRoutingAlgorithm", NocType);
+		if(tempStr.equalsIgnoreCase("SIMPLE"))
+			nocConfig.rAlgo = RoutingAlgo.ALGO.SIMPLE;
+		else if(tempStr.equalsIgnoreCase("WESTFIRST"))
+			nocConfig.rAlgo = RoutingAlgo.ALGO.WESTFIRST;
+		else if(tempStr.equalsIgnoreCase("NORTHLAST"))
+			nocConfig.rAlgo = RoutingAlgo.ALGO.NORTHLAST;
+		else if(tempStr.equalsIgnoreCase("NEGATIVEFIRST"))
+			nocConfig.rAlgo = RoutingAlgo.ALGO.NEGATIVEFIRST;
+		else if(tempStr.equalsIgnoreCase("FATTREE"))
+			nocConfig.rAlgo = RoutingAlgo.ALGO.FATTREE;
+		else if(tempStr.equalsIgnoreCase("OMEGA"))
+			nocConfig.rAlgo = RoutingAlgo.ALGO.OMEGA;
+		else if(tempStr.equalsIgnoreCase("BUTTERFLY"))
+			nocConfig.rAlgo = RoutingAlgo.ALGO.BUTTERFLY;
+
+		tempStr = getImmediateString("NocSelScheme", NocType);
+		if(tempStr.equalsIgnoreCase("STATIC"))
+			nocConfig.selScheme = RoutingAlgo.SELSCHEME.STATIC;
+		else
+			nocConfig.selScheme = RoutingAlgo.SELSCHEME.ADAPTIVE;
+		tempStr = getImmediateString("NocRouterArbiter", NocType);
+		if(tempStr.equalsIgnoreCase("RR"))
+			nocConfig.arbiterType = RoutingAlgo.ARBITER.RR_ARBITER;
+		else if(tempStr.equalsIgnoreCase("MATRIX"))
+			nocConfig.arbiterType = RoutingAlgo.ARBITER.MATRIX_ARBITER;
+		else
+			nocConfig.arbiterType = RoutingAlgo.ARBITER.QUEUE_ARBITER;
+		nocConfig.technologyPoint = Integer.parseInt(getImmediateString("TechPoint", NocType));
+		tempStr = getImmediateString("NocConnection", NocType);
+		if(tempStr.equalsIgnoreCase("ELECTRICAL"))
+			nocConfig.ConnType = CONNECTIONTYPE.ELECTRICAL;
+		else
+			nocConfig.ConnType = CONNECTIONTYPE.OPTICAL;
+	}
 	private static void setCacheProperties(Element CacheType, CacheConfig cache)
 	{
 		String tempStr = getImmediateString("WriteMode", CacheType);
@@ -471,18 +582,7 @@ public class XMLParser
 		cache.portOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", CacheType));
 		cache.multiportType = setMultiPortingType(getImmediateString("MultiPortingType", CacheType));
 		cache.mshrSize = Integer.parseInt(getImmediateString("MSHRSize", CacheType));
-		cache.numberOfBankColumns = Integer.parseInt(getImmediateString("NumberOfBankColumns", CacheType));
-		cache.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", CacheType));		
-		cache.nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", CacheType));
-		cache.nocConfig.portType = setPortType(getImmediateString("NocPortType", CacheType));
-		cache.nocConfig.accessPorts = Integer.parseInt(getImmediateString("NocAccessPorts", CacheType));
-		cache.nocConfig.portOccupancy = Integer.parseInt(getImmediateString("NocPortOccupancy", CacheType));
-		cache.nocConfig.latency = Integer.parseInt(getImmediateString("NocLatency", CacheType));
-		cache.nocConfig.operatingFreq = Integer.parseInt(getImmediateString("NocOperatingFreq", CacheType));
-		cache.nocConfig.numberOfRows = cache.numberOfBankRows;
-		cache.nocConfig.numberOfColumns = cache.numberOfBankColumns;
-		cache.nocConfig.latencyBetweenBanks = Integer.parseInt(getImmediateString("NocLatencyBetweenBanks", CacheType));
-
+				
 		tempStr = getImmediateString("Coherence", CacheType);
 		if (tempStr.equalsIgnoreCase("N"))
 			cache.coherence = CoherenceType.None;
@@ -499,14 +599,10 @@ public class XMLParser
 		cache.busOccupancy = Integer.parseInt(getImmediateString("BusOccupancy", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
-		if (tempStr.equalsIgnoreCase("N")) 
-		{
-			SimulationConfig.nucaType = NucaType.NONE;
+		if (tempStr.equalsIgnoreCase("N"))
 			cache.nucaType = NucaType.NONE;
-		}
 		else if (tempStr.equalsIgnoreCase("S"))
 		{
-			
 			SimulationConfig.nucaType = NucaType.S_NUCA;
 			cache.nucaType = NucaType.S_NUCA;
 		}
@@ -526,18 +622,7 @@ public class XMLParser
 			System.exit(1);
 		}
 		
-		tempStr = getImmediateString("NucaMapping", CacheType);
-		if (tempStr.equalsIgnoreCase("S"))
-			cache.mapping = Mapping.SET_ASSOCIATIVE;
-		else if (tempStr.equalsIgnoreCase("A"))
-			cache.mapping = Mapping.ADDRESS;
-		else if (tempStr.equalsIgnoreCase("B"))
-			cache.mapping = Mapping.BOTH;
-		else
-		{
-			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");
-			System.exit(1);
-		}
+		
 		
 	tempStr = getImmediateString("LastLevel", CacheType);
 		if (tempStr.equalsIgnoreCase("Y"))
@@ -549,56 +634,55 @@ public class XMLParser
 			System.err.println("XML Configuration error : Invalid value of 'isLastLevel' (please enter 'Y' for yes or 'N' for no)");
 			System.exit(1);
 		}
-		tempStr = getImmediateString("NocTopology", CacheType);
-		if(tempStr.equalsIgnoreCase("MESH"))
-			cache.nocConfig.topology = NOC.TOPOLOGY.MESH;
-		else if(tempStr.equalsIgnoreCase("TORUS"))
-			cache.nocConfig.topology = NOC.TOPOLOGY.TORUS;
-		else if(tempStr.equalsIgnoreCase("BUS"))
-			cache.nocConfig.topology = NOC.TOPOLOGY.BUS;
-		else if(tempStr.equalsIgnoreCase("RING"))
-			cache.nocConfig.topology = NOC.TOPOLOGY.RING;
-		else if(tempStr.equalsIgnoreCase("FATTREE"))
-			cache.nocConfig.topology = NOC.TOPOLOGY.FATTREE;
-		else if(tempStr.equalsIgnoreCase("OMEGA"))
-			cache.nocConfig.topology = NOC.TOPOLOGY.OMEGA;
-		else if(tempStr.equalsIgnoreCase("BUTTERFLY"))
-			cache.nocConfig.topology = NOC.TOPOLOGY.BUTTERFLY;
 		
-		tempStr = getImmediateString("NocRoutingAlgorithm", CacheType);
-		if(tempStr.equalsIgnoreCase("SIMPLE"))
-			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.SIMPLE;
-		else if(tempStr.equalsIgnoreCase("WESTFIRST"))
-			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.WESTFIRST;
-		else if(tempStr.equalsIgnoreCase("NORTHLAST"))
-			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.NORTHLAST;
-		else if(tempStr.equalsIgnoreCase("NEGATIVEFIRST"))
-			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.NEGATIVEFIRST;
-		else if(tempStr.equalsIgnoreCase("FATTREE"))
-			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.FATTREE;
-		else if(tempStr.equalsIgnoreCase("OMEGA"))
-			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.OMEGA;
-		else if(tempStr.equalsIgnoreCase("BUTTERFLY"))
-			cache.nocConfig.rAlgo = RoutingAlgo.ALGO.BUTTERFLY;
-
-		tempStr = getImmediateString("NocSelScheme", CacheType);
-		if(tempStr.equalsIgnoreCase("STATIC"))
-			cache.nocConfig.selScheme = RoutingAlgo.SELSCHEME.STATIC;
-		else
-			cache.nocConfig.selScheme = RoutingAlgo.SELSCHEME.ADAPTIVE;
-		tempStr = getImmediateString("NocRouterArbiter", CacheType);
-		if(tempStr.equalsIgnoreCase("RR"))
-			cache.nocConfig.arbiterType = RoutingAlgo.ARBITER.RR_ARBITER;
-		else if(tempStr.equalsIgnoreCase("MATRIX"))
-			cache.nocConfig.arbiterType = RoutingAlgo.ARBITER.MATRIX_ARBITER;
-		else
-			cache.nocConfig.arbiterType = RoutingAlgo.ARBITER.QUEUE_ARBITER;
-		cache.nocConfig.technologyPoint = Integer.parseInt(getImmediateString("TechPoint", CacheType));
-		tempStr = getImmediateString("NocConnection", CacheType);
-		if(tempStr.equalsIgnoreCase("ELECTRICAL"))
-			cache.nocConfig.ConnType = CONNECTIONTYPE.ELECTRICAL;
-		else
-			cache.nocConfig.ConnType = CONNECTIONTYPE.OPTICAL;
+	}
+	private static void setBranchPredictorProperties(Element predictorElmnt, Element BTBElmnt, BranchPredictorConfig branchPredictor){
+		
+		NodeList bimodLst = predictorElmnt.getElementsByTagName("Bimod");
+		Element bimodElmnt = (Element) bimodLst.item(0);
+		
+		NodeList twoLevLst = predictorElmnt.getElementsByTagName("TwoLevel");
+		Element twoLevElmnt = (Element) twoLevLst.item(0);
+		
+		NodeList combLst = predictorElmnt.getElementsByTagName("CombConfig");
+		Element combElmnt = (Element) combLst.item(0);
+		
+		NodeList tournamentLst = predictorElmnt.getElementsByTagName("Tournament");
+		Element tournamentElmnt = (Element) tournamentLst.item(0);
+		
+		String tempStr = getImmediateString("Predictor_Mode", predictorElmnt);
+		if(tempStr.equalsIgnoreCase("Tournament"))
+			branchPredictor.predictorMode = BP.Tournament;
+		else if(tempStr.equalsIgnoreCase("Bimodal"))
+			branchPredictor.predictorMode = BP.Bimodal;
+		else if(tempStr.equalsIgnoreCase("GAg"))
+			branchPredictor.predictorMode = BP.GAg;
+		else if(tempStr.equalsIgnoreCase("GAp"))
+			branchPredictor.predictorMode = BP.GAp;
+		else if(tempStr.equalsIgnoreCase("GShare"))
+			branchPredictor.predictorMode = BP.GShare;
+		else if(tempStr.equalsIgnoreCase("PAg"))
+			branchPredictor.predictorMode = BP.PAg;
+		else if(tempStr.equalsIgnoreCase("PAp"))
+			branchPredictor.predictorMode = BP.PAp;
+		
+		branchPredictor.bimod_table_size = Integer.parseInt(getImmediateString("TableSize", bimodElmnt));
+		
+		branchPredictor.two_lev_L1 = Integer.parseInt(getImmediateString("L1", twoLevElmnt));
+		branchPredictor.two_lev_L2 = Integer.parseInt(getImmediateString("L2", twoLevElmnt));
+		branchPredictor.two_lev_histoyRegSize = Integer.parseInt(getImmediateString("HistoryRegSize", twoLevElmnt));
+		branchPredictor.two_lev_XOR = Integer.parseInt(getImmediateString("XOR", twoLevElmnt));
+		
+		branchPredictor.combConfig_metaTableSize = Integer.parseInt(getImmediateString("MetaTableSize", combElmnt));
+		
+		branchPredictor.BTB_numSets = Integer.parseInt(getImmediateString("NumSets", BTBElmnt));
+		branchPredictor.BTB_Assosiativity = Integer.parseInt(getImmediateString("Associativity", BTBElmnt));
+		
+		branchPredictor.PCBits = Integer.parseInt(getImmediateString("PCBits", tournamentElmnt));
+		branchPredictor.BHRsize = Integer.parseInt(getImmediateString("BHRsize", tournamentElmnt));
+		branchPredictor.saturating_bits = Integer.parseInt(getImmediateString("saturating_bits", tournamentElmnt));
+		
+		
 	}
 	
 	private static boolean setDirectoryCoherent(String immediateString) {

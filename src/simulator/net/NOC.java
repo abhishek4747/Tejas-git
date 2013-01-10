@@ -26,6 +26,7 @@ import java.util.Vector;
 import net.optical.TopLevelTokenBus;
 
 import config.NocConfig;
+import config.SystemConfig;
 import memorysystem.nuca.NucaCacheBank;
 
 public class NOC{
@@ -55,7 +56,7 @@ public class NOC{
 	
 	public void ConnectBanks(NucaCacheBank cacheBank[][],int bankRows,int bankColumns,NocConfig nocConfig, TopLevelTokenBus tokenBus)
 	{
-		switch (nocConfig.topology) {
+		switch (SystemConfig.nocConfig.topology) {
 		case MESH:
 			ConnectBanksMesh(cacheBank, bankRows, bankColumns);
 			break;

@@ -64,7 +64,7 @@ public class PApPredictor implements BranchPredictor{
          * @param saturating_bits number of saturating bits for counter
          * and initializes each member variable of the class
          */
-        PApPredictor(int PCBits,int BHRsize,int saturating_bits)
+        public PApPredictor(int PCBits,int BHRsize,int saturating_bits)
         {
 
                 maskbits=(1<<PCBits);

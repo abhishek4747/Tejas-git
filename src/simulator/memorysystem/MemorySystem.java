@@ -100,6 +100,7 @@ public class MemorySystem
 					flag = true;
 					newCache = new NucaCache(cacheParameterObj,null,tokenBus);
 				}
+				
 				else if (cacheParameterObj.getNucaType() == NucaType.CB_D_NUCA)
 				{	
 					nucaType = NucaType.CB_D_NUCA;

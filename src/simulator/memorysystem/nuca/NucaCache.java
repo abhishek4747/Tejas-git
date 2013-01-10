@@ -76,13 +76,13 @@ public class NucaCache extends Cache
     {
     	super(cacheParameters, containingMemSys);
     	this.nucaType = SimulationConfig.nucaType;
-    	this.cacheRows = cacheParameters.getNumberOfBankRows();
-        this.cacheColumns = cacheParameters.getNumberOfBankColumns();
+    	this.cacheRows = SystemConfig.nocConfig.getNumberOfBankRows();
+        this.cacheColumns = SystemConfig.nocConfig.getNumberOfBankColumns();
         this.numOfCores = SystemConfig.NoOfCores;
         this.cacheSize = cacheParameters.getSize();
         this.associativity = cacheParameters.getAssoc();
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
-        this.mapping = cacheParameters.mapping;
+        this.mapping = SystemConfig.nocConfig.mapping;
         cacheMapping = new Vector<Vector<Vector<Integer>>>();
         for(int i=0;i<SystemConfig.NoOfCores;i++)
         {
@@ -115,8 +115,8 @@ public class NucaCache extends Cache
 	{
 		int bankColumns,bankRows,i,j;
 		
-		bankColumns = cacheParameters.getNumberOfBankColumns();  //number banks should be power of 2 otherwise truncated
-		bankRows = cacheParameters.getNumberOfBankRows();  //number banks should be power of 2 otherwise truncated
+		bankColumns = SystemConfig.nocConfig.getNumberOfBankColumns();  //number banks should be power of 2 otherwise truncated
+		bankRows = SystemConfig.nocConfig.getNumberOfBankRows();  //number banks should be power of 2 otherwise truncated
 		this.cacheBank = new NucaCacheBank[bankRows][bankColumns];
 		for(i=0;i<bankRows;i++)
 		{
@@ -129,11 +129,11 @@ public class NucaCache extends Cache
 				this.cacheBank[i][j] = new NucaCacheBank(bankId,cacheParameters,containingMemSys,this);
 			}
 		}
-	    if(cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+	    if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
         	noc = new NOC();
         else
         	noc = new OpticalNOC();
-		noc.ConnectBanks(cacheBank,bankRows,bankColumns,cacheParameters.nocConfig,tokenBus);
+		noc.ConnectBanks(cacheBank,bankRows,bankColumns,SystemConfig.nocConfig,tokenBus);
 	}
  
     public boolean addEvent(AddressCarryingEvent addrEvent)
@@ -160,7 +160,7 @@ public class NucaCache extends Cache
 																								addrEvent.getRequestType(), address,addrEvent.coreId,
 																								sourceBankId,destinationBankId);
 		//eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
-		if(this.cacheBank[0][0].cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 		{
 			this.cacheBank[sourceBankId.get(0)][sourceBankId.get(1)].getRouter().
 			getPort().put(eventToBeSent);

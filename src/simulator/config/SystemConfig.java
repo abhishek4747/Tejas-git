@@ -37,6 +37,8 @@ public class SystemConfig
 	public static int cacheBusLatency;
 	public static String coherenceEnforcingCache;
 	public static CacheConfig directoryConfig;
+	public static BranchPredictorConfig branchPredictor;
+	public static NocConfig nocConfig;
 	//Directory Latencies:
 	public static int directoryAccessLatency;
 	public static int memWBDelay;

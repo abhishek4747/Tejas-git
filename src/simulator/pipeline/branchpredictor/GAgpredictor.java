@@ -47,7 +47,7 @@ public class GAgpredictor implements BranchPredictor {
          * Takes the size of the window of the BHR Register
          */
 
-         GAgpredictor(int BHRsize){
+         public GAgpredictor(int BHRsize){
                this.BHRsize=BHRsize;
                initialBHR=(int) (Math.pow(2, BHRsize));
                BHR=(initialBHR)-1;

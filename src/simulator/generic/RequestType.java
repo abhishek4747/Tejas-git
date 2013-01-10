@@ -76,6 +76,8 @@ public enum RequestType {
 	PIPELINE_RESUME,
 	PIPELINE_SLEEP,
 	COPY_BLOCK,
+	TREE_BARRIER,
+	TREE_BARRIER_RELEASE,
 	ReadMissDirectoryUpdate,
 	WriteMissDirectoryUpdate,
 	WriteHitDirectoryUpdate,

@@ -805,7 +805,7 @@ public class Counters {
 		}
 	
 	public void updatePowerAfterCompletion(long totalCycles){
-		System.out.println("Total Cycles = "+totalCycles);
+	//	System.out.println("Total Cycles = "+totalCycles);
 		int clockGatingStyle=SystemConfig.clockGatingStyle;
 		double temp=0;
 		switch(clockGatingStyle){

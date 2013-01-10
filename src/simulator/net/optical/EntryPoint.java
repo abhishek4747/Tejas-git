@@ -60,12 +60,12 @@ public class EntryPoint extends SimulationElement{
 		{
 			if(event.getRequestType() == RequestType.Mem_Response){
 				//System.out.println("entry Point to L1 Mem_Response  " + ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
-				((AddressCarryingEvent)event).oldRequestingElement.getPort().put(event.
-						update(eventQ,
-							  ((AddressCarryingEvent)event).oldRequestingElement.getLatencyDelay() , 
-							  this,
-							  ((AddressCarryingEvent)event).oldRequestingElement,
-							  RequestType.Mem_Response));
+//				((AddressCarryingEvent)event).oldRequestingElement.getPort().put(event.
+//						update(eventQ,
+//							  ((AddressCarryingEvent)event).oldRequestingElement.getLatencyDelay() , 
+//							  this,
+//							  ((AddressCarryingEvent)event).oldRequestingElement,
+//							  RequestType.Mem_Response));
 
 			}
 
@@ -73,27 +73,27 @@ public class EntryPoint extends SimulationElement{
 					requestType == RequestType.Cache_Read_from_iCache ||
 					requestType == RequestType.Cache_Write ){
 				Vector<Integer> bankId = ((AddressCarryingEvent)event).getDestinationBankId();
-				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
-						(eventQ, 
-						0, 
-						event.getRequestingElement(),
-						event.getProcessingElement(),
-						requestType, 
-						((AddressCarryingEvent)event).getAddress(),
-						findWavelength(bankId),
-						((AddressCarryingEvent)event).getSourceBankId(),
-						bankId,
-						((AddressCarryingEvent)event).coreId,
-						((AddressCarryingEvent)event).oldSourceBankId,
-						((AddressCarryingEvent)event).oldRequestingElement,
-						((AddressCarryingEvent)event).requestingElementStack,
-						((AddressCarryingEvent)event).requestTypeStack);
-				broadcastBus.elementAt(bankId.elementAt(1)).getPort().put(WaveEvent.
-						update(eventQ,
-								1, 
-								this, 
-								this.broadcastBus.elementAt(bankId.elementAt(1)), 
-								requestType));
+//				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+//						(eventQ, 
+//						0, 
+//						event.getRequestingElement(),
+//						event.getProcessingElement(),
+//						requestType, 
+//						((AddressCarryingEvent)event).getAddress(),
+//						findWavelength(bankId),
+//						((AddressCarryingEvent)event).getSourceBankId(),
+//						bankId,
+//						((AddressCarryingEvent)event).coreId,
+//						((AddressCarryingEvent)event).oldSourceBankId,
+//						((AddressCarryingEvent)event).oldRequestingElement,
+//						((AddressCarryingEvent)event).requestingElementStack,
+//						((AddressCarryingEvent)event).requestTypeStack);
+//				broadcastBus.elementAt(bankId.elementAt(1)).getPort().put(WaveEvent.
+//						update(eventQ,
+//								1, 
+//								this, 
+//								this.broadcastBus.elementAt(bankId.elementAt(1)), 
+//								requestType));
 			}
 			else if( requestType == RequestType.Main_Mem_Read ||
 					 requestType == RequestType.Main_Mem_Write )
@@ -109,22 +109,27 @@ public class EntryPoint extends SimulationElement{
 				//System.out.println("put the event to dataEvent from entrypoint " + event.getRequestType());
 //				if(requestType == RequestType.Main_Mem_Response)
 //					((SignalWavelengthEvent)event).setWavelength(findWavelength(((AddressCarryingEvent)event).getDestinationBankId()));
-				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
-						(eventQ, 
-						0, 
-						event.getRequestingElement(),
-						event.getProcessingElement(),
-						requestType, 
-						((AddressCarryingEvent)event).getAddress(),
-						findWavelength(((AddressCarryingEvent)event).getDestinationBankId()),
-						((AddressCarryingEvent)event).getSourceBankId(),
-						((AddressCarryingEvent)event).getDestinationBankId(),
-						((AddressCarryingEvent)event).coreId,
-						((AddressCarryingEvent)event).oldSourceBankId,
-						((AddressCarryingEvent)event).oldRequestingElement,
-						((AddressCarryingEvent)event).requestingElementStack,
-						((AddressCarryingEvent)event).requestTypeStack);
-				dataEvent.add(WaveEvent);
+
+				//commented
+//				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
+//						(eventQ, 
+//						0, 
+//						event.getRequestingElement(),
+//						event.getProcessingElement(),
+//						requestType, 
+//						((AddressCarryingEvent)event).getAddress(),
+//						findWavelength(((AddressCarryingEvent)event).getDestinationBankId()),
+//						((AddressCarryingEvent)event).getSourceBankId(),
+//						((AddressCarryingEvent)event).getDestinationBankId(),
+//						((AddressCarryingEvent)event).coreId,
+//						((AddressCarryingEvent)event).oldSourceBankId,
+//						((AddressCarryingEvent)event).oldRequestingElement,
+//						((AddressCarryingEvent)event).requestingElementStack,
+//						((AddressCarryingEvent)event).requestTypeStack);
+//				dataEvent.add(WaveEvent);
+				//till here
+				
+				
 //				dataEvent.add((AddressCarryingEvent) event);
 //				dataBus.getPort().put(event.
 //						update(eventQ,

@@ -16,7 +16,7 @@ public class CustomObjectPool {
 	public static void initCustomPools(int maxApplicationThreads, int staticInstructionPoolSize) {
 		
 		// Create Pools of Instructions, Operands and AddressCarryingEvents
-		int runTimePool =  RunnableThread.INSTRUCTION_THRESHOLD * maxApplicationThreads/30;
+		int runTimePool =  RunnableThread.INSTRUCTION_THRESHOLD * maxApplicationThreads;
 		int staticTimePool = staticInstructionPoolSize;
 		
 		int numInstructionsInPool = runTimePool + staticTimePool;

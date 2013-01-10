@@ -53,7 +53,7 @@ public class GApPredictor implements BranchPredictor {
          * Constructor GApPredictor() which takes BHRsize and PCBits as its input values
          * And initialises all the member varialbles of this class
          */
-        GApPredictor(int BHRsize,int PCBits){
+        public GApPredictor(int BHRsize,int PCBits){
                 this.BHRsize=BHRsize;
                 this.PCBits=PCBits;
                 int i,PHTsize;

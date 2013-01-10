@@ -136,12 +136,15 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 
 //Pass a memory read record
 VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
+//	static int num_mem=0;
 	if (!isActive(tid))
 		return;
 
 	if(ignoreActive)
 		return;
 
+//	printf("\npin num_mem read = %d\t %d\n",++num_mem,tid);
+//			fflush(stdout);
 	sendTimerPacket(tid,false);
 
 	GetLock(&lock, tid + 1);
@@ -235,29 +238,14 @@ VOID CountIns()
 //VOID FunEntry(ADDRINT first_arg, const string * name, THREADID threadid)
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
-/*
-	if (!isActive(tid)) {
-		//		printf("tid %d could not register %d entry as not active\n", tid,
-		//				encode);
-		//		fflush(stdout);
-		return;
-	}
-	deActivate(tid, first_arg);
-*/
+//	static int num_bar=0;
 
 	sendTimerPacket(tid,true);
-/*
 
-	if (encode == LOCK || encode == UNLOCK) {
-		char *temp = findType(encode);
-		GetLock(&lock, tid + 1);
-		printf("%d %s with first arg %p    --%llu \n", tid, temp,
-				(void *) first_arg, time);
-		fflush(stdout);
-		ReleaseLock(&lock);
-	}
-*/
-
+//	if(encode == BARRIERWAIT){
+//		printf("\npin num_bar = %d\t %d\n",++num_bar,tid);
+//		fflush(stdout);
+//		}
 	GetLock(&lock, tid + 1);
 	checkSum +=encode;
 	ReleaseLock(&lock);
@@ -270,6 +258,7 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 
 VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
+
 /*
 	if (!isActive(tid) && !hasEntered(tid,first_arg)) {
 		//		printf("tid %d could not register %d exit as not active\n", tid,
@@ -293,7 +282,7 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 		ReleaseLock(&lock);
 	}
 */
-
+	
 	GetLock(&lock, tid + 1);
 	checkSum +=encode;
 	ReleaseLock(&lock);
@@ -306,30 +295,6 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 }
 
 VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
-//        uint64_t time = ClockGetTime();
-/*
-        if (!isActive(tid)) {
-                //              printf("tid %d could not register %d entry as not active\n", tid,
-                //                              encode);
-                //              fflush(stdout);
-                return;
-        }
-        deActivate(tid, first_arg);
-*/
-
-//        sendTimerPacket(tid,true);
-/*
-
-        if (encode == LOCK || encode == UNLOCK) {
-                char *temp = findType(encode);
-                GetLock(&lock, tid + 1);
-                printf("%d %s with first arg %p    --%llu \n", tid, temp,
-                                (void *) first_arg, time);
-                fflush(stdout);
-                ReleaseLock(&lock);
-        }
-*/
-
         GetLock(&lock, tid + 1);
         checkSum +=encode;
         ReleaseLock(&lock);
@@ -553,6 +518,7 @@ VOID Instruction(INS ins, VOID *v) {
 // This is a routine level instrumentation
 VOID FlagRtn(RTN rtn, VOID* v) {
 	RTN_Open(rtn);
+//	static int num_bar=0;
 	const string* rtn_name = new string(RTN_Name(rtn));
 	INT32 encode;
 
@@ -568,8 +534,15 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 		encode = JOIN;
 	else if (cmp("pthread_cond_wait"))
 		encode = CONDWAIT;
-	else if (cmp("pthread_barrier_wait"))
+	else if (cmp("tejas_barrier_wait")){
+		encode = CONDWAIT;
+		printf("FOUND THE TEJAS BARRIER\n");
+	}
+
+	else if (cmp("pthread_barrier_wait")){
+		
 		encode = BARRIERWAIT;
+	}
 	/*else if (cmp("parsec_barrier_wait"))
 			encode = BARRIERWAIT;*/
 	else if (cmp("pthread_barrier_init")) {
@@ -622,7 +595,8 @@ int main(int argc, char * argv[]) {
 
 	// Knobs get initialized only after initlializing PIN
 
-	ignoreActive = true;
+	//if (numInsToIgnore>0)
+		ignoreActive = true;
 	UINT64 mask = KnobMap;
 
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
