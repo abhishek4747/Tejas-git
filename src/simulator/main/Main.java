@@ -134,7 +134,7 @@ public class Main {
 		}
 				
 		// Initialise pool of operands and instructions
-		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread, numStaticInstructions);
+		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread/30, numStaticInstructions);
 	}
 
 	private static IpcBase startCommunicationChannel(int pid) {

@@ -49,7 +49,7 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmget
 
 	int shmid;
 	//key_t key=ftok(ftokpath,ftok_id);
-	printf("jnishm : id = %d\n", pid);
+//	printf("jnishm : id = %d\n", pid);
 	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
 	{
@@ -113,10 +113,10 @@ JNIEXPORT jint JNICALL Java_emulatorinterface_communication_shm_SharedMem_shmdel
 
 	struct shmid_ds  shmid_ds;
 	register int rtrn;
-	if ((rtrn = shmctl(shmid, IPC_RMID, &shmid_ds)) == -1) {
+	/*if ((rtrn = shmctl(shmid, IPC_RMID, &shmid_ds)) == -1) {
 		perror("shmdel in jni ");
 		exit(1);
-	}
+	}*/
 
 	return (rtrn);
 }

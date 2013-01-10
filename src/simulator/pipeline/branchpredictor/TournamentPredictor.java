@@ -59,9 +59,6 @@ public class TournamentPredictor implements BranchPredictor{
                 pred2=new PApPredictor(SystemConfig.branchPredictor.PCBits,
 										SystemConfig.branchPredictor.BHRsize,
 										SystemConfig.branchPredictor.saturating_bits);
-                System.out.println(SystemConfig.branchPredictor.PCBits+ "  " +
-                						SystemConfig.branchPredictor.BHRsize + "  " +
-                						SystemConfig.branchPredictor.saturating_bits);
                 counter=0;
         }
         /**
