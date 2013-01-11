@@ -13,7 +13,8 @@ import generic.OperationType;
 
 public class TranslatedInstructionCache {
 	private static final int cacheSize = 100000;
-	public static long cacheHit =0;
+	private static long cacheHit =0;
+	private static long cacheMiss =0;
 	public static  LRUCache translatedInstructionTable;
 	
 	private static void createTranslatedInstructionTable(){
@@ -75,10 +76,27 @@ public class TranslatedInstructionCache {
 	}
 	
 	public static boolean isPresent(String instText) {
-		if(translatedInstructionTable == null)
+		if(translatedInstructionTable == null) {
 			return false;
-		else 
-			return translatedInstructionTable.containsKey(instText);
+		} else {
+			boolean ret = translatedInstructionTable.containsKey(instText);
+			
+			if (ret) {
+				cacheHit++;
+			} else {
+				cacheMiss++;
+			}
+			
+			return ret;
+		}
+	}
+	
+	public static float getHitRate() {
+		if((cacheHit+cacheMiss)==0) {
+			return -1f;
+		} else {
+			return ((float)(cacheHit)/(float)(cacheHit+cacheMiss));
+		}
 	}
 }
 

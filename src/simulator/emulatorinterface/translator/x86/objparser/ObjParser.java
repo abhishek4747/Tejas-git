@@ -691,8 +691,6 @@ public class ObjParser
 						assemblyPacketList.setRISCProgramCounter(j, j);
 					}
 					
-					TranslatedInstructionCache.cacheHit++;
-					
 				} else {
 					// System.out.println(i + " : " + assemblyLine);
 					long instructionPointer = p.ip;

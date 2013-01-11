@@ -19,6 +19,7 @@ import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.communication.IpcBase;
+import emulatorinterface.translator.qemuTranslationCache.TranslatedInstructionCache;
 
 public class Statistics {
 	
@@ -970,6 +971,15 @@ System.out.println("execution time = "+executionTime);
 		
 		if(SimulationConfig.powerStats)
 			Statistics.printPowerStats();
+		
+		if(TranslatedInstructionCache.getHitRate()!=-1) {
+			try {
+				outputFileWriter.write("[Qemu translation cache]\n");
+				outputFileWriter.write("Hit-rate = " + (TranslatedInstructionCache.getHitRate() * 100 ) + " %");
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+		}
 		
 		Statistics.closeStream();
 	}	
