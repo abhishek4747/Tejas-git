@@ -719,7 +719,8 @@ public class RunnableThread implements Encoding, Runnable {
 	}
 
 	protected boolean poolExhausted() {
-		return (CustomObjectPool.getInstructionPool().getNumIdle() < 2000);
+		return false; //we have a growable pool now
+		//return (CustomObjectPool.getInstructionPool().getNumIdle() < 2000);
 	}
 
 	private void resumeSleep(ResumeSleep update) {

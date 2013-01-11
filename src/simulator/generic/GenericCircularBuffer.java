@@ -13,21 +13,26 @@ public class GenericCircularBuffer<E> {
 	Class type;
 	Element<E> head;
 	Element<E> tail;
-	int bufferSize;
+	int minBufferSize;
+	int maxBufferSize;
+	int currentMaxBufferSize; // ensures that we do not return more objects than we gave out
 	boolean isGrowable;
 	int currentSize;
 	
 	@SuppressWarnings("unchecked")
-	public GenericCircularBuffer(Class E, int bufferSize, boolean isGrowable)
+	public GenericCircularBuffer(Class E, int minBufferSize, int maxBufferSize,
+			boolean isGrowable)
 	{
 		this.type = E;
-		this.bufferSize = bufferSize;
-		this.currentSize = bufferSize;
+		this.minBufferSize = minBufferSize;
+		this.maxBufferSize = maxBufferSize;
+		this.currentMaxBufferSize = minBufferSize;
+		this.currentSize = minBufferSize;
 		
 		tail = new Element<E>(E, null);
 		
 		Element<E> temp = tail;
-		for(int i = 0; i < bufferSize - 1; i++)
+		for(int i = 0; i < minBufferSize - 1; i++)
 		{
 			temp = new Element<E>(E, temp);
 		}
@@ -72,19 +77,44 @@ public class GenericCircularBuffer<E> {
 		
 		else
 		{
-			Element<E> newElement = new Element<E>(type, tail);
-			head.next = newElement;
+//			When we have to increment by just one element
+//			Element<E> newElement = new Element<E>(type, tail);
+//			head.next = newElement;
+//			
+//			bufferSize++;
+//			currentSize++;
+//			
+//			return newElement.object;
+
+			// When we have to increment by dynamic number of elements
+			Element<E> temp = head.next;
+			int numElementsAdded = (int)(0.2*minBufferSize); // 0.2 -> 20% 
 			
-			bufferSize++;
-			currentSize++;
+			if((currentMaxBufferSize+numElementsAdded) > maxBufferSize) {
+				misc.Error.showErrorAndExit("pool overflow !!");
+			}
 			
-			return newElement.object;
+			for(int i = 0; i < numElementsAdded - 1; i++) 
+			{
+				temp = new Element<E>(this.type, temp);
+			}
+			
+			head.next=temp;
+			head = head.next;
+			
+			//System.out.println("pool size increased from " + currentMaxBufferSize + " to "
+			//		+ (currentMaxBufferSize + numElementsAdded));
+			
+			currentMaxBufferSize += numElementsAdded;
+			currentSize += numElementsAdded;
+			
+			return removeObjectAtHead();
 		}
 	}
 	
 	public boolean isFull()
 	{
-		if(currentSize == bufferSize)
+		if(currentSize == currentMaxBufferSize)
 		{
 			return true;
 		}

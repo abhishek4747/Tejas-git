@@ -66,17 +66,18 @@ public class CustomOperandPool {
 	
 	GenericCircularBuffer<Operand> pool;
 	
-	public CustomOperandPool(int poolSize)
+	public CustomOperandPool(int minPoolSize, int maxPoolSize)
 	{
-		pool = new GenericCircularBuffer<Operand>(Operand.class, poolSize, false);
+		pool = new GenericCircularBuffer<Operand>(Operand.class, minPoolSize, 
+				maxPoolSize, true);
 	}
 	
 	public Operand borrowObject()
 	{
-		if(pool.isEmpty()) {
-			misc.Error.showErrorAndExit("operand pool empty!! : instructionPoolSize = " + CustomObjectPool.getInstructionPool().getNumIdle());
-			return null;
-		}
+//		if(pool.isEmpty()) {
+//			misc.Error.showErrorAndExit("operand pool empty!! : instructionPoolSize = " + CustomObjectPool.getInstructionPool().getNumIdle());
+//			return null;
+//		}
 		
 		return pool.removeObjectAtHead();		
 	}

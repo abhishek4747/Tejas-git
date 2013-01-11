@@ -117,6 +117,8 @@ public class Main {
 		endTime = System.currentTimeMillis();
 		Statistics.printAllStatistics(getEmulatorFile(), startTime, endTime);
 		
+		System.out.println("operand pool size = " + CustomObjectPool.getOperandPool().getSize());
+		System.out.println("instruction pool size = " + CustomObjectPool.getOperandPool().getSize());
 		System.out.println("\n\nSimulation completed !!");
 				
 		System.exit(0);

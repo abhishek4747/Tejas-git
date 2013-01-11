@@ -285,18 +285,18 @@ public class ObjParser
 			}
 		}
 		
-		int numOperandsRemovedFromPool = (poolSizeBefore-CustomObjectPool.getOperandPool().getSize());
-		
-		if(numOperandsRemovedFromPool!=numDistinctOperand) {
-			System.out.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
-					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
-
-			System.out.println("ip=" + instructionPointer + 
-				"\t#operands removed from pool = " + numOperandsRemovedFromPool + 
-				"\tnumDistinctOperands = " + numDistinctOperand);
-			
-			misc.Error.showErrorAndExit("numOperandsRemovedFromPool!=numDistinctOperand");
-		}
+//		int numOperandsRemovedFromPool = (poolSizeBefore-CustomObjectPool.getOperandPool().getSize());
+//		
+//		if(numOperandsRemovedFromPool!=numDistinctOperand) {
+//			System.out.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
+//					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
+//
+//			System.out.println("ip=" + instructionPointer + 
+//				"\t#operands removed from pool = " + numOperandsRemovedFromPool + 
+//				"\tnumDistinctOperands = " + numDistinctOperand);
+//			
+//			misc.Error.showErrorAndExit("numOperandsRemovedFromPool!=numDistinctOperand");
+//		}
 		
 		return (instructionList.length()-microOpsIndexBefore);
 	}
