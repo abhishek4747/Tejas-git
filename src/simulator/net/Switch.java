@@ -35,7 +35,7 @@ public class Switch extends SimulationElement{
 		this.selScheme = nocConfig.selScheme;
 		this.connection = new Switch[4];
 		this.level = level; //used in omega network
-		this.cacheBankColumns = nocConfig.numberOfColumns;
+		this.cacheBankColumns = nocConfig.numberOfBankColumns;
 		this.topology = nocConfig.topology;
 		this.rAlgo = nocConfig.rAlgo;
 		this.availBuff = nocConfig.numberOfBuffers;

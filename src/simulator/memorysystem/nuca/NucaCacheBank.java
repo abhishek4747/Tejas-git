@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 import config.CacheConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CacheLine;
@@ -63,18 +64,18 @@ public class NucaCacheBank extends Cache
         super(cacheParameters,containingMemSys);
     	this.timestamp = 0;
     	this.cacheParameters = cacheParameters;
-    	if(cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-    		this.router = new Router(cacheParameters.nocConfig,this);
+    	if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+    		this.router = new Router(SystemConfig.nocConfig,this);
     	else
-    		this.router = new OpticalRouter(cacheParameters.nocConfig, this);
+    		this.router = new OpticalRouter(SystemConfig.nocConfig, this);
         isLastLevel = false;
         isFirstLevel = false;
         nucaType = NucaType.S_NUCA;
-        topology = cacheParameters.nocConfig.topology;
+        topology = SystemConfig.nocConfig.topology;
         policy = new Policy(nucaCache);
         this.nucaCache = nucaCache;
-        this.cacheBankColumns = cacheParameters.getNumberOfBankColumns();
-        this.cacheBankRows = cacheParameters.getNumberOfBankRows();
+        this.cacheBankColumns = SystemConfig.nocConfig.getNumberOfBankColumns();
+        this.cacheBankRows = SystemConfig.nocConfig.getNumberOfBankRows();
         this.bankId  = bankId;
   //      this.noc = noc;
     }
@@ -174,10 +175,15 @@ public class NucaCacheBank extends Cache
 					 event.coreId);
 			nucaCache.getPort().put(addressEvent);
 		}
+		
+		//System.out.println(addrEvent.getSourceBankId() +  "  "+addrEvent.getDestinationBankId()+"  " + addrEvent);
 		CacheLine cl = nucaCache.cacheBank[addrEvent.getSourceBankId().get(0)][addrEvent.getSourceBankId().get(1)].access(((AddressCarryingEvent)event).getAddress());
 		if(cl != null)
 		{
 			cl.setState(MESI.INVALID);
+			//System.out.println(cl.getState());
+		} else {
+			//misc.Error.showErrorAndExit("Should not reach here Cache Line not present");
 		}
 	}
 	
@@ -215,7 +221,7 @@ public class NucaCacheBank extends Cache
 		Vector<Integer> destinationBankId = new Vector<Integer>(addrEvent.getSourceBankId());
 		
 		RequestType requestType = event.getRequestType();
-		if(this.cacheParameters.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
 		{
 			MemorySystem.mainMemory.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
 																											MemorySystem.mainMemory.getLatencyDelay(), this, 
@@ -256,7 +262,7 @@ public class NucaCacheBank extends Cache
 			AddressCarryingEvent tempEvent= policy.updateEventOnMiss( (AddressCarryingEvent)event,this);
 			if(tempEvent != null)
 			{
-				this.getRouter().getPort().put(tempEvent);
+				tempEvent.getProcessingElement().getPort().put(tempEvent);
 			}
 		}
 	}

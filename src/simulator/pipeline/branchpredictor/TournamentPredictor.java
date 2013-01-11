@@ -23,6 +23,8 @@
 
 package pipeline.branchpredictor;
 
+import config.SystemConfig;
+
 /**
  *
  * @author Rikita
@@ -51,8 +53,12 @@ public class TournamentPredictor implements BranchPredictor{
          */
         public TournamentPredictor()
         {
-                pred1=new PAgPredictor(10,10,2);
-                pred2=new PApPredictor(10,10,2);
+                pred1=new PAgPredictor(SystemConfig.branchPredictor.PCBits,
+                						SystemConfig.branchPredictor.BHRsize,
+                						SystemConfig.branchPredictor.saturating_bits);
+                pred2=new PApPredictor(SystemConfig.branchPredictor.PCBits,
+										SystemConfig.branchPredictor.BHRsize,
+										SystemConfig.branchPredictor.saturating_bits);
                 counter=0;
         }
         /**

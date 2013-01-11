@@ -2,6 +2,7 @@ package generic;
 
 import emulatorinterface.communication.Packet;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class BarrierTable {
@@ -30,5 +31,20 @@ public class BarrierTable {
 		bar.resetBarrier();
 		barrierList.put(add, bar);
 	}
+	public static long barrierCopy(long add){
+		Barrier bar = barrierList.get(add);
+		
+		while(true){
+			if(barrierList.get(add + 1) != null){
+				bar = barrierList.get(++add);
+			}
+			else
+				break;
+		}
+		Barrier bar_new = new Barrier(++add, bar.getNumThreads());
+		barrierList.put(add, bar_new);
+		return add;
+	}
+	
 
 }

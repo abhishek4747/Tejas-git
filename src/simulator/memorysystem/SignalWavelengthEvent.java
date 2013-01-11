@@ -42,12 +42,12 @@ public class SignalWavelengthEvent  extends AddressCarryingEvent{
 		this.wavelength = wavelength; 
 		this.setSourceBankId(sourceBankId);
 		this.setDestinationBankId(destinationBankId);
-		this.oldSourceBankId = oldSourceBankId;
+//		this.oldSourceBankId = oldSourceBankId;
 		this.coreId = coreId;
-		this.oldRequestingElement = oldReqElement;
+/*		this.oldRequestingElement = oldReqElement;
 		this.requestingElementStack = simStack;
 		this.requestTypeStack = reqStack;
-		
+*/		
 	}
 	
 	public void setWavelength(int wavelength){

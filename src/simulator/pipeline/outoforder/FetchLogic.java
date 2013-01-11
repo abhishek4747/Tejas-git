@@ -90,31 +90,42 @@ public class FetchLogic extends SimulationElement {
 			//process sync operation
 			if(newInstruction.getOperationType() == OperationType.sync){
 				long barrierAddress = newInstruction.getRISCProgramCounter();
-				System.out.println(barrierAddress);
 				Barrier bar = BarrierTable.barrierList.get(barrierAddress);
 				bar.incrementThreads();
-				
-				if(bar.timeToCross())
-				{
-					System.out.println("Time to cross");
+				if(this.core.TreeBarrier == true){
 					setSleep(true);
-					for(int j=0; j<bar.getNumThreads(); j++ ){
-						this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
-					}
-					BarrierTable.barrierReset(barrierAddress);
+					int coreId = this.core.getCore_number();
 					this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 							this.core.eventQueue,
 							 1,
 							 this.core.coreBcastBus, 
 							 this.core.coreBcastBus, 
-							 RequestType.PIPELINE_RESUME, 
-							 0));
-
+							 RequestType.TREE_BARRIER, 
+							 barrierAddress,
+							 coreId));
 				}
-				else
-				{
-					setSleep(true);
-					//return;
+				else{
+					if(bar.timeToCross())
+					{
+						System.out.println("    Time to cross " + bar.getBarrierAddress());
+						setSleep(true);
+						for(int j=0; j<bar.getNumThreads(); j++ ){
+							this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
+						}
+						this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+								this.core.eventQueue,
+								 1,
+								 this.core.coreBcastBus, 
+								 this.core.coreBcastBus, 
+								 RequestType.PIPELINE_RESUME, 
+								 0));
+	
+					}
+					else
+					{
+						System.out.println("Total on bar " + bar.getBarrierAddress() + " is " + bar.getNumThreadsArrived());
+						setSleep(true);
+					}
 				}
 			}
 			

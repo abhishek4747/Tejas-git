@@ -45,7 +45,6 @@ import generic.PartialDecodedInstruction;
 import generic.Statistics;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -54,7 +53,6 @@ import config.EmulatorConfig;
 import main.CustomObjectPool;
 import misc.Error;
 import misc.Numbers;
-import java.util.zip.Adler32;
 
 /**
  * Objparser class contains methods to parse a static executable file and to
@@ -70,8 +68,6 @@ import java.util.zip.Adler32;
  */
 public class ObjParser 
 {
-	public static Adler32 translationOpcodeChecksum = null;
-	private static FileWriter hitFile = null;
 	private static InstructionTable ciscIPtoRiscIP = null;
 	private static InstructionList staticMicroOpList = null;
 	private static InstructionList threadMicroOpsList[] = null;
@@ -738,7 +734,7 @@ public class ObjParser
 			
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(staticMicroOp.getOperationType());
 			dynamicMicroOp = getDynamicMicroOp(staticMicroOp);
-			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, ciscIPtoRiscIP, dynamicMicroOp, dynamicInstructionBuffer);
+			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, dynamicMicroOp, dynamicInstructionBuffer);
 			
 			if(microOpIndex==-1) {
 				// I was unable to fuse certain micro-ops of this instruction. 
@@ -748,10 +744,6 @@ public class ObjParser
 				removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter());
 				numCISC = 0;
 				break;
-			} else if(microOpIndex==-2) {
-				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-					break;
-				}
 			} else {
 				inputToPipeline.enqueue(dynamicMicroOp); //append microOp
 			}

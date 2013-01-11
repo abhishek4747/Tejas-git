@@ -106,7 +106,9 @@ public class RunnableThread implements Encoding, Runnable {
 		// tid is java thread id
 		// tidEmu is the local notion of pin threads for the current java thread
 		// tidApp is the actual tid of a pin thread
+		
 		while (true) {
+			
 			
 			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
 
@@ -577,9 +579,6 @@ public class RunnableThread implements Encoding, Runnable {
 	 * parameters - Thread information, packetList, thread id
 	 */
 	protected void processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
-		
-		//System.out.println("pnew : " + pnew);
-		
 		if (doNotProcess) return;
 		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
@@ -613,7 +612,6 @@ public class RunnableThread implements Encoding, Runnable {
 			//thread.pold.set(pnew);
 			thread.packetList.add(pnew);
 			thread.isFirstPacket=false;
-			return;
 		}
 		
 		if (pnew.value!=INSTRUCTION && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {
@@ -712,28 +710,24 @@ public class RunnableThread implements Encoding, Runnable {
 				thread.packetList.add(pnew);
 			}
 			
-			//long temp=noOfMicroOps[tidEmu] % 1000000;
-			//if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
-			//	System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
-			//}
+			long temp=noOfMicroOps[tidEmu] % 1000000;
+			if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
+				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
+			}
 		}
 
 	}
 
 	protected boolean poolExhausted() {
-		return (CustomObjectPool.getInstructionPool().getNumIdle() < 2000);
+		return false; //we have a growable pool now
+		//return (CustomObjectPool.getInstructionPool().getNumIdle() < 2000);
 	}
 
 	private void resumeSleep(ResumeSleep update) {
-/*		for (int i=0; i<update.getNumResumers(); i++) {
-			//never used ... resuming handled within pipeline exec
-//			System.out.println( "resuming "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
-			this.pipelineInterfaces[update.resume.get(i)].resumePipeline();
-		}
-*/		for (int i=0; i<update.getNumSleepers(); i++) {
+		for (int i=0; i<update.getNumSleepers(); i++) {
 			Instruction ins = Instruction.getSyncInstruction();
 			ins.setRISCProgramCounter(update.barrierAddress);
-//			System.out.println( "sleeping "+threadCoreMaping.get(update.sleep.get(i)) + " -> " +update.sleep.get(i));
+			System.out.println( "Enqueued a barrier packet into  "+ update.sleep.get(i) + " with add " + update.barrierAddress);
 			this.inputToPipeline[update.sleep.get(i)].enqueue(ins);
 			setThreadState(update.sleep.get(i), true);
 		}

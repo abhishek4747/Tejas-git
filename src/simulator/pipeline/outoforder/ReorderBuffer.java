@@ -575,12 +575,12 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setMispredictedBranchCount(mispredCount, core.getCore_number());
 		
 		System.out.println(core.getCore_number());
-		System.out.println(core.getCore_number()+"IW full : " + stall1Count);
-		System.out.println(core.getCore_number()+"phy reg unavailable : " + stall2Count);
-		System.out.println(core.getCore_number()+"LSQ full : " + stall3Count);
-		System.out.println(core.getCore_number()+"ROB full : " + stall4Count);
-		System.out.println(core.getCore_number()+"branch mispredicted : " + stall5Count);
-		System.out.println(core.getCore_number()+"Instruction Mem Stall : " + core.getExecEngine().getInstructionMemStall());
+		System.out.println(core.getCore_number()+" IW full : " + stall1Count);
+		System.out.println(core.getCore_number()+" phy reg unavailable : " + stall2Count);
+		System.out.println(core.getCore_number()+" LSQ full : " + stall3Count);
+		System.out.println(core.getCore_number()+" ROB full : " + stall4Count);
+		System.out.println(core.getCore_number()+" branch mispredicted : " + stall5Count);
+		System.out.println(core.getCore_number()+" Instruction Mem Stall : " + core.getExecEngine().getInstructionMemStall());
 	}
 	
 	public void setPerCoreMemorySystemStatistics()

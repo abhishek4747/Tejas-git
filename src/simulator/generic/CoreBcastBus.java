@@ -37,8 +37,75 @@ public class CoreBcastBus extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
-		
-		if(event.getRequestType() == RequestType.PIPELINE_RESUME){
+		if(event.getRequestType() == RequestType.TREE_BARRIER_RELEASE){
+			long barAddress = ((AddressCarryingEvent)event).getAddress();
+			coreList.get(((AddressCarryingEvent)event).coreId).activatePipeline();
+			if(((AddressCarryingEvent)event).coreId * 2 < BarrierTable.barrierList.get(barAddress).numThreads){
+			this.getPort().put(new AddressCarryingEvent(
+					eventQ,
+					 1,
+					 this, 
+					 this, 
+					 RequestType.TREE_BARRIER_RELEASE, 
+					 barAddress,
+					 ((AddressCarryingEvent)event).coreId *2));
+			this.getPort().put(new AddressCarryingEvent(
+					eventQ,
+					 1,
+					 this, 
+					 this, 
+					 RequestType.TREE_BARRIER_RELEASE, 
+					 barAddress,
+					 ((AddressCarryingEvent)event).coreId *2 + 1));
+			}
+		}
+		else if(event.getRequestType() == RequestType.TREE_BARRIER){
+			
+			long barAddress = ((AddressCarryingEvent)event).getAddress();
+			int coreId = ((AddressCarryingEvent)event).coreId;
+			
+			Barrier bar = BarrierTable.barrierList.get(barAddress);
+			int numThreads = bar.getNumThreads();
+			int level = (int) (Math.log(numThreads + 1)/Math.log(2));
+			if(coreId >= Math.pow(2, level - 1) && coreId < Math.pow(2,level)){
+				this.getPort().put(new AddressCarryingEvent(
+						eventQ,
+						 1,
+						 this, 
+						 this, 
+						 RequestType.TREE_BARRIER,
+						 barAddress,
+						 (int)coreId/2));
+			}
+			else{
+				System.out.println("Core Id : " + coreId );
+				bar.addTreeInfo(coreId);
+				if(bar.getTreeInfo(coreId) == 3){
+					if(coreId == 1){
+					//	BarrierTable.barrierReset(barAddress);
+						this.getPort().put(new AddressCarryingEvent(
+								eventQ,
+								 0,
+								 this, 
+								 this, 
+								 RequestType.TREE_BARRIER_RELEASE, 
+								 barAddress,
+								 1));
+					}
+					else{
+						this.getPort().put(new AddressCarryingEvent(
+								eventQ,
+								 1,
+								 this, 
+								 this, 
+								 RequestType.TREE_BARRIER, 
+								 barAddress,
+								 (int)coreId/2));
+					}
+				}
+			}
+		}
+		else if(event.getRequestType() == RequestType.PIPELINE_RESUME){
 			for(int i : toResume){
 				coreList.get(i).activatePipeline();
 				RunnableThread.setThreadState(i,false);

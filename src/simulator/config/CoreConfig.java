@@ -80,5 +80,6 @@ public class CoreConfig
 	public CacheConfig l3Cache = new CacheConfig();
 
 	public int numInorderPipelines;
+	public boolean TreeBarrier;
 
 }

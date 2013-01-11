@@ -99,17 +99,18 @@ public class CustomInstructionPool {
 	
 	GenericCircularBuffer<Instruction> pool;
 	
-	public CustomInstructionPool(int poolSize)
+	public CustomInstructionPool(int minPoolSize, int maxPoolSize)
 	{
-		pool = new GenericCircularBuffer<Instruction>(Instruction.class, poolSize, false);
+		pool = new GenericCircularBuffer<Instruction>(Instruction.class, minPoolSize, 
+				maxPoolSize, true);
 	}
 	
 	public Instruction borrowObject()
 	{
-		if(pool.isEmpty()) {
-			misc.Error.showErrorAndExit("instruction pool empty!!");
-			return null;
-		}
+//		if(pool.isEmpty()) {
+//			misc.Error.showErrorAndExit("instruction pool empty!!");
+//			return null;
+//		}
 		
 		return pool.removeObjectAtHead();		
 	}

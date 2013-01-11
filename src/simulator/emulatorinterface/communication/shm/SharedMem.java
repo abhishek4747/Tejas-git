@@ -48,7 +48,7 @@ public class SharedMem extends  IpcBase
 				shmAddress = shmat(shmid);
 				if(shmAddress < 0)
 				{
-					shmdel(idToShmGet);
+					shmdel(shmid);
 					idToShmGet = (idToShmGet + 1)%Integer.MAX_VALUE;
 				}
 			}
@@ -61,7 +61,7 @@ public class SharedMem extends  IpcBase
 			readerLocation[tidApp] = 0;
 		}
 	}
-		
+	static int bar_wait = 0;
 	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
 		int numPackets;
 		numPackets = numPackets(tidApp);

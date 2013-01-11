@@ -22,8 +22,6 @@ package memorysystem;
 
 import java.util.*;
 
-import com.sun.xml.internal.ws.api.addressing.AddressingVersion;
-
 import power.Counters;
 import main.ArchitecturalComponent;
 import memorysystem.directory.CentralizedDirectoryCache;
@@ -133,7 +131,10 @@ public class Cache extends SimulationElement
 			}
 			else
 			{
-				missStatusHoldingRegister = new Mode1MSHR(40000);
+				if(SimulationConfig.nucaType == NucaType.NONE) 
+				{
+					missStatusHoldingRegister = new Mode1MSHR(40000);
+				}
 			}
 			this.nucaType = NucaType.NONE;
 		}
@@ -834,7 +835,7 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		protected CacheLine fill(long addr, MESI stateToSet) //Returns a copy of the evicted line
+		public CacheLine fill(long addr, MESI stateToSet) //Returns a copy of the evicted line
 		{
 			CacheLine evictedLine = null;
     		/* compute startIdx and the tag */

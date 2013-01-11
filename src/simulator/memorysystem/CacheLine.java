@@ -23,12 +23,11 @@ package memorysystem;
 public class CacheLine implements Cloneable
 {
 	private long tag;
-	private int line_num;
+
 //	private boolean valid;
 	private double timestamp;
 	private long address;
-//	private boolean modified;
-	private int pid;
+
 	private MESI state;
 
 	public Object clone()
@@ -54,23 +53,19 @@ public class CacheLine implements Cloneable
 	
 	protected CacheLine(int line_num)
 	{
-		this.setLine_num(line_num);
 		this.setTag(-1);
 		this.setState(MESI.INVALID);
 		this.setTimestamp(0);
 		//this.setModified(false);
-		this.setPid(0);
 	}
 	
 	public CacheLine copy()
 	{
 		CacheLine newLine = new CacheLine(0);
-		newLine.setLine_num(this.getLine_num());
 		newLine.setTag(this.getTag());
 		newLine.setState(this.getState());
 		newLine.setTimestamp(this.getTimestamp());
 		//newLine.setModified(this.isModified());
-		newLine.setPid(this.getPid());
 		return newLine;
 	}
 
@@ -82,13 +77,6 @@ public class CacheLine implements Cloneable
 		this.tag = tag;
 	}
 
-	protected int getLine_num() {
-		return line_num;
-	}
-
-	protected void setLine_num(int lineNum) {
-		line_num = lineNum;
-	}
 
 	public boolean isValid() {
 		if (state != MESI.INVALID)
@@ -116,14 +104,6 @@ public class CacheLine implements Cloneable
 		this.modified = modified;
 	}
 */
-	protected int getPid() {
-		return pid;
-	}
-
-	protected void setPid(int pid) {
-		this.pid = pid;
-	}
-
 	public MESI getState() {
 		return state;
 	}

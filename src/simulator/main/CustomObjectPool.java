@@ -16,17 +16,19 @@ public class CustomObjectPool {
 	public static void initCustomPools(int maxApplicationThreads, int staticInstructionPoolSize) {
 		
 		// Create Pools of Instructions, Operands and AddressCarryingEvents
-		int runTimePool =  RunnableThread.INSTRUCTION_THRESHOLD * maxApplicationThreads;
+		int runTimePoolPerAppThread =  RunnableThread.INSTRUCTION_THRESHOLD;
 		int staticTimePool = staticInstructionPoolSize;
 		
-		int numInstructionsInPool = runTimePool + staticTimePool;
-		
+		// best case -> single threaded application
+		int minInstructionPoolSize = staticTimePool + runTimePoolPerAppThread;
+		int maxInstructionPoolSize = staticTimePool + runTimePoolPerAppThread * maxApplicationThreads;
+				
 		/* custom pool */
 		System.out.println("creating operand pool..");
-		setOperandPool(new CustomOperandPool(numInstructionsInPool * 3));
+		setOperandPool(new CustomOperandPool(minInstructionPoolSize*3, maxInstructionPoolSize*3));
 		
 		System.out.println("creating instruction pool..");
-		setInstructionPool(new CustomInstructionPool(numInstructionsInPool));
+		setInstructionPool(new CustomInstructionPool(minInstructionPoolSize, maxInstructionPoolSize));
 		
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 			System.out.println("creating custom asm-char pool. max threads = " + maxApplicationThreads);

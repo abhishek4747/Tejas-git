@@ -8,7 +8,7 @@ import java.util.LinkedList;
 
 public class Store implements DynamicInstructionHandler 
 {
-	public int handle(int microOpIndex, InstructionTable instructionTable,
+	public int handle(int microOpIndex, 
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
 		long memoryWriteAddress;
