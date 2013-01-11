@@ -31,4 +31,8 @@ public interface Encoding {
 	// An instruction can have two assembly
 	static final int ASSEMBLY = 27;
 	static final int INSTRUCTION = 28;
+	
+	static final int INTERRUPT = 30;
+	static final int PROCESS_SWITCH = 31;
+	static final int DOM_SWITCH = 32;
 }
