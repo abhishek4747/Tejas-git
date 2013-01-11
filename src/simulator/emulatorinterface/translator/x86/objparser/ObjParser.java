@@ -26,7 +26,7 @@ import emulatorinterface.EmulatorPacketList;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.InvalidInstructionException;
-import emulatorinterface.translator.TranslatedInstructionCache;
+import emulatorinterface.translator.qemuTranslationCache.TranslatedInstructionCache;
 import emulatorinterface.translator.visaHandler.DynamicInstructionHandler;
 import emulatorinterface.translator.visaHandler.VisaHandlerSelector;
 import emulatorinterface.translator.x86.instruction.InstructionClass;
@@ -674,44 +674,42 @@ public class ObjParser
 			assemblyPacketList = threadMicroOpsList[tidApp];
 			threadMicroOpsList[tidApp].clear();
 			
-			//FIXME : I am considering multiple assembly packets at once.
-			for (int i = 0; i < arrayListPacket.size(); i++) 
-			{
-				//This is a bug(at least in case of caching): assemblyPacketList = threadMicroOpsList[tidApp]; 
-				Packet p = arrayListPacket.get(i);
+			//This is a bug(at least in case of caching): assemblyPacketList = threadMicroOpsList[tidApp]; 
+			Packet p = arrayListPacket.get(0);
 				
-				if(p.value==Encoding.ASSEMBLY) {
-					byte asmBytes[] = CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
-					String assemblyTokens[] = tokenizeQemuAssemblyCode(asmBytes);
-					String asmText = concatenateStringArray(assemblyTokens);
-			
-					//check if present in translated-instruction cache
-					if(TranslatedInstructionCache.isPresent(asmText)) {
-						assemblyPacketList = TranslatedInstructionCache.getInstructionList(asmText);
-						
-						for(int j=0; j<assemblyPacketList.length(); j++) {
-							assemblyPacketList.setCISCProgramCounter(j, p.ip);
-							assemblyPacketList.setRISCProgramCounter(j, j);
-						}
-						
-						TranslatedInstructionCache.cacheHit++;
-						
-					} else {
-						// System.out.println(i + " : " + assemblyLine);
-						long instructionPointer = p.ip;
-						String instructionPrefix, operation, operand1, operand2, operand3;
-						instructionPrefix = assemblyTokens[0]; operation = assemblyTokens[1];
-						operand1 = assemblyTokens[2]; operand2 = assemblyTokens[3]; operand3 = assemblyTokens[4];
-						
-						riscifyInstruction( instructionPointer, 
-							instructionPrefix, operation, 
-							operand1, operand2, operand3, 
-							assemblyPacketList);
-						
-						//Add to translated-instruction cache
-						TranslatedInstructionCache.add(asmText, assemblyPacketList);
+			if(p.value==Encoding.ASSEMBLY) {
+				byte asmBytes[] = CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
+				String assemblyTokens[] = tokenizeQemuAssemblyCode(asmBytes);
+				String asmText = concatenateStringArray(assemblyTokens);
+		
+				//check if present in translated-instruction cache
+				if(TranslatedInstructionCache.isPresent(asmText)) {
+					assemblyPacketList = TranslatedInstructionCache.getInstructionList(asmText);
+					
+					for(int j=0; j<assemblyPacketList.length(); j++) {
+						assemblyPacketList.setCISCProgramCounter(j, p.ip);
+						assemblyPacketList.setRISCProgramCounter(j, j);
 					}
+					
+					TranslatedInstructionCache.cacheHit++;
+					
+				} else {
+					// System.out.println(i + " : " + assemblyLine);
+					long instructionPointer = p.ip;
+					String instructionPrefix, operation, operand1, operand2, operand3;
+					instructionPrefix = assemblyTokens[0]; operation = assemblyTokens[1];
+					operand1 = assemblyTokens[2]; operand2 = assemblyTokens[3]; operand3 = assemblyTokens[4];
+					
+					riscifyInstruction( instructionPointer, 
+						instructionPrefix, operation, 
+						operand1, operand2, operand3, 
+						assemblyPacketList);
+					
+					//Add to translated-instruction cache
+					TranslatedInstructionCache.add(asmText, assemblyPacketList);
 				}
+			} else {
+				misc.Error.showErrorAndExit("First packet to fuse instruction must be assembly packet !!");
 			}
 			
 			microOpIndex = 0;

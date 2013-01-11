@@ -1,5 +1,5 @@
 
-package emulatorinterface.translator;
+package emulatorinterface.translator.qemuTranslationCache;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
