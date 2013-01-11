@@ -20,12 +20,9 @@ public class CustomObjectPool {
 		int staticTimePool = staticInstructionPoolSize;
 		
 		// best case -> single threaded application
-		//int minInstructionPoolSize = staticTimePool + runTimePoolPerAppThread;
-		//int maxInstructionPoolSize = staticTimePool + runTimePoolPerAppThread * maxApplicationThreads;
-		
-		int minInstructionPoolSize = 100;
+		int minInstructionPoolSize = staticTimePool + runTimePoolPerAppThread;
 		int maxInstructionPoolSize = staticTimePool + runTimePoolPerAppThread * maxApplicationThreads;
-		
+				
 		/* custom pool */
 		System.out.println("creating operand pool..");
 		setOperandPool(new CustomOperandPool(minInstructionPoolSize*3, maxInstructionPoolSize*3));
