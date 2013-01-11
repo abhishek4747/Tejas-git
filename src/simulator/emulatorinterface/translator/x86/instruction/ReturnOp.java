@@ -39,26 +39,40 @@ public class ReturnOp implements X86StaticInstructionHandler
 		if ((operand1 == null || operand1.isImmediateOperand())
 				&& operand2 == null && operand3 == null) 
 		{
+      // Create stack-pointer and [stack-pointer]
+		  Operand stackPointer = Registers.getStackPointer();
+		  Operand stackPointerLocation = Operand.getMemoryOperand(stackPointer, null);
+
 			Operand newInstructionPointer;
 			newInstructionPointer = Registers.getInstructionPointer();
 
-			// pop the new instruction-pointer from the stack
-			(new Pop()).handle(instructionPointer,
-					newInstructionPointer, null, null, instructionArrayList, tempRegisterNum);
+			// load the new instruction-pointer from the stack
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(stackPointerLocation,	newInstructionPointer));
 
 			// perform an unconditional jump to the new location
 			(new UnconditionalJump()).handle(instructionPointer,
 					newInstructionPointer, null, null, instructionArrayList, tempRegisterNum);
+      
+      if(operand1==null) {
+        
+			  //stack-pointer = stack-pointer - 4
+			  instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(stackPointer, Operand.getImmediateOperand(), stackPointer));
 
-			if (operand1 != null && operand1.isImmediateOperand()) 
-			{
-				// If operand1 is an immediate value, then it must be added to
-				// the stack pointer
-				Operand stackPointer = Registers.getStackPointer();
-				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(
-						stackPointer, Operand.getImmediateOperand(),
-						stackPointer));
-			}
+      } else if (operand1 != null && operand1.isImmediateOperand()) {
+        //stack-pointer = stack-pointer - (operand1+4)
+        
+        Operand tempRegister = Registers.getTempIntReg(tempRegisterNum);
+        
+        //temp = operand1 + 4
+			  instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(operand1, Operand.getImmediateOperand(), tempRegister));
+
+        // stack-pointer = stack-pointer + temp-Register
+			  instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(stackPointer, tempRegister, stackPointer));
+			} else {
+      	
+        misc.Error.invalidOperation("Return Operation", operand1, operand2,
+					operand3);
+      }
 		}
 		else 
 		{
