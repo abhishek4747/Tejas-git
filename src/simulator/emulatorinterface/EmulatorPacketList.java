@@ -21,8 +21,12 @@ public class EmulatorPacketList {
 	
 	public void add(Packet p) {
 		if(size==packetList.size()) {
-			misc.Error.showErrorAndExit("packetList : trying to push more packets for fuse function" +
+			System.out.println("IP = " + p.ip + " Type = " +p.value);
+//			misc.Error.showErrorAndExit("packetList : trying to push more packets for fuse function" +
+//				"current size = " + size);
+			System.out.println("packetList : trying to push more packets for fuse function" +
 				"current size = " + size);
+			return;
 		}
 		this.packetList.get(size).set(p);
 		size++;
