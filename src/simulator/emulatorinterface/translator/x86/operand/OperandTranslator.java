@@ -46,13 +46,15 @@ public class OperandTranslator
 			return null;
 		}
 		
-		operandStr.trim();
+		// Some libraries like udis86 add keyword like byte, dword, qword to indicate the granularity of 
+		// the operand. This keyword must be removed before processing as we are not using them.
+		operandStr = operandStr.replaceAll("byte|dword|qword|word", "");
 		
-		//Replace all the occurrences of registers with the 64-bit register versions
-		if(operandStr!=null) {
-			operandStr = Registers.coarsifyRegisters(operandStr);
-		}
+		// Remove spaces from both ends. Helps in making patterns for coming code.
+		operandStr = operandStr.trim();
 		
+		// Replace all the occurrences of registers with the 64-bit register versions
+		operandStr = Registers.coarsifyRegisters(operandStr);
 		
 		//If operand is a valid number, then it is an immediate
 		if(Numbers.isValidNumber(operandStr)) 
