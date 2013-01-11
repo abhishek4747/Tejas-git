@@ -26,6 +26,7 @@ import emulatorinterface.EmulatorPacketList;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.InvalidInstructionException;
+import emulatorinterface.translator.TranslatedInstructionCache;
 import emulatorinterface.translator.visaHandler.DynamicInstructionHandler;
 import emulatorinterface.translator.visaHandler.VisaHandlerSelector;
 import emulatorinterface.translator.x86.instruction.InstructionClass;
@@ -44,6 +45,7 @@ import generic.PartialDecodedInstruction;
 import generic.Statistics;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -52,6 +54,7 @@ import config.EmulatorConfig;
 import main.CustomObjectPool;
 import misc.Error;
 import misc.Numbers;
+import java.util.zip.Adler32;
 
 /**
  * Objparser class contains methods to parse a static executable file and to
@@ -67,6 +70,8 @@ import misc.Numbers;
  */
 public class ObjParser 
 {
+	public static Adler32 translationOpcodeChecksum = null;
+	private static FileWriter hitFile = null;
 	private static InstructionTable ciscIPtoRiscIP = null;
 	private static InstructionList staticMicroOpList = null;
 	private static InstructionList threadMicroOpsList[] = null;
@@ -513,6 +518,10 @@ public class ObjParser
 		return -1;
 	}
 	
+	private static String concatenateStringArray(String[] strArray) {
+		String concatenatedString = new String(strArray[0] + strArray[1] + strArray[2] + strArray[3]);
+		return concatenatedString;
+	}
 	// for  a line of assembly code, this would return the
 	// linear address, operation, operand1,operand2, operand3
 	private static String[] tokenizeQemuAssemblyCode(byte[] asmBytes) {
@@ -651,10 +660,6 @@ public class ObjParser
 	{
 		//System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
-//		if(startInstructionPointer==0x57d650) {
-//			System.out.println("");
-//		}
-		
 		// Create a dynamic instruction buffer for all control packets
 		DynamicInstructionBuffer dynamicInstructionBuffer = staticDynamicInstructionBuffers[tidApp];
 		dynamicInstructionBuffer.configurePackets(arrayListPacket);
@@ -672,23 +677,40 @@ public class ObjParser
 			//FIXME : I am considering multiple assembly packets at once.
 			for (int i = 0; i < arrayListPacket.size(); i++) 
 			{
-				assemblyPacketList = threadMicroOpsList[tidApp]; 
+				//This is a bug(at least in case of caching): assemblyPacketList = threadMicroOpsList[tidApp]; 
 				Packet p = arrayListPacket.get(i);
 				
 				if(p.value==Encoding.ASSEMBLY) {
 					byte asmBytes[] = CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
-					
-					// System.out.println(i + " : " + assemblyLine);
-					long instructionPointer = p.ip;
-					String instructionPrefix, operation, operand1, operand2, operand3;
 					String assemblyTokens[] = tokenizeQemuAssemblyCode(asmBytes);
-					instructionPrefix = assemblyTokens[0]; operation = assemblyTokens[1];
-					operand1 = assemblyTokens[2]; operand2 = assemblyTokens[3]; operand3 = assemblyTokens[4];
-					
-					riscifyInstruction( instructionPointer, 
-						instructionPrefix, operation, 
-						operand1, operand2, operand3, 
-						assemblyPacketList);
+					String asmText = concatenateStringArray(assemblyTokens);
+			
+					//check if present in translated-instruction cache
+					if(TranslatedInstructionCache.isPresent(asmText)) {
+						assemblyPacketList = TranslatedInstructionCache.getInstructionList(asmText);
+						
+						for(int j=0; j<assemblyPacketList.length(); j++) {
+							assemblyPacketList.setCISCProgramCounter(j, p.ip);
+							assemblyPacketList.setRISCProgramCounter(j, j);
+						}
+						
+						TranslatedInstructionCache.cacheHit++;
+						
+					} else {
+						// System.out.println(i + " : " + assemblyLine);
+						long instructionPointer = p.ip;
+						String instructionPrefix, operation, operand1, operand2, operand3;
+						instructionPrefix = assemblyTokens[0]; operation = assemblyTokens[1];
+						operand1 = assemblyTokens[2]; operand2 = assemblyTokens[3]; operand3 = assemblyTokens[4];
+						
+						riscifyInstruction( instructionPointer, 
+							instructionPrefix, operation, 
+							operand1, operand2, operand3, 
+							assemblyPacketList);
+						
+						//Add to translated-instruction cache
+						TranslatedInstructionCache.add(asmText, assemblyPacketList);
+					}
 				}
 			}
 			
