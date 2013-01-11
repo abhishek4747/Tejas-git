@@ -72,24 +72,24 @@ public class Operand implements Serializable
 		this.memoryLocationSecondOperand = memoryOperandSecondOperand;
 	}
 	
-	/* our copy constructor */
-	public Operand(Operand operand)
-	{
-		this.type=operand.type;
-		this.value=operand.value;
-		
-		if(operand.memoryLocationFirstOperand==null) {
-			this.memoryLocationFirstOperand=null;
-		} else {
-			this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
-		}
-		
-		if(operand.memoryLocationSecondOperand==null) {
-			this.memoryLocationSecondOperand=null;
-		} else {
-			this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
-		}
-	}
+//	/* our copy constructor */
+//	public Operand(Operand operand)
+//	{
+//		this.type=operand.type;
+//		this.value=operand.value;
+//		
+//		if(operand.memoryLocationFirstOperand==null) {
+//			this.memoryLocationFirstOperand=null;
+//		} else {
+//			this.memoryLocationFirstOperand=new Operand(operand.memoryLocationFirstOperand);
+//		}
+//		
+//		if(operand.memoryLocationSecondOperand==null) {
+//			this.memoryLocationSecondOperand=null;
+//		} else {
+//			this.memoryLocationSecondOperand=new Operand(operand.memoryLocationSecondOperand);
+//		}
+//	}
 	
 	//all properties of sourceOperand is copied to the current operand
 	public void copy(Operand sourceOperand)

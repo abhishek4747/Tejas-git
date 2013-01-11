@@ -5,6 +5,8 @@ package emulatorinterface.translator.qemuTranslationCache;
 //import java.util.Map;
 import java.io.FileWriter;
 
+import main.CustomObjectPool;
+
 import generic.Instruction;
 import generic.InstructionList;
 import generic.OperationType;
@@ -25,7 +27,9 @@ public class TranslatedInstructionCache {
 		
 		InstructionList instList = new InstructionList(instructionList.length());
 		for(int i=0; i<instructionList.length(); i++) {
-			instList.appendInstruction(new Instruction(instructionList.get(i)));
+			Instruction newInsn = CustomObjectPool.getInstructionPool().borrowObject();
+			newInsn.copy(instructionList.get(i));
+			instList.appendInstruction(newInsn);
 		}
 		
 		translatedInstructionTable.put(asmText, instList);
