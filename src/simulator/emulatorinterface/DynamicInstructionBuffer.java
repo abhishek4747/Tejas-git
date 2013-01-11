@@ -21,8 +21,12 @@
 
 package emulatorinterface;
 
+import java.nio.ByteBuffer;
+
+import config.EmulatorConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
+import emulatorinterface.translator.x86.objparser.ObjParser;
 
 public class DynamicInstructionBuffer implements Encoding
 {
@@ -53,6 +57,8 @@ public class DynamicInstructionBuffer implements Encoding
 		
 		ip = arrayListPacket.get(0).ip;
 		
+		int numAssemblyPackets = 0;
+		
 		for (int i = 0; i < arrayListPacket.size(); i++) 
 		{
 			Packet p = arrayListPacket.get(i);
@@ -74,28 +80,35 @@ public class DynamicInstructionBuffer implements Encoding
 					break;
 					
 				case (MEMREAD):
-					memRead[memReadSize++] = p.value;
+					memRead[memReadSize++] = p.tgt;
 					break;
 					
 				case (MEMWRITE):
-					memRead[memWriteSize++] = p.value;
+					memWrite[memWriteSize++] = p.tgt;
 					break;
 					
 				case (TAKEN):
 					branchTaken = true;
-					branchAddress = p.value;
+					branchAddress = p.tgt;
 					break;
 					
 				case (NOTTAKEN):
 					branchTaken = false;
-					branchAddress = p.value;
+					branchAddress = p.tgt;
 					break;
+				
+				case (ASSEMBLY):
+					numAssemblyPackets++;
 					
 				default:
 //					System.out.println("error in configuring packets"+p.value);
 //					misc.Error.showErrorAndExit("error in configuring packets"+p.value);
 					
 			}
+		}
+		
+		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			assert(numAssemblyPackets==1) : "Invalid number of assembly packets : " + numAssemblyPackets;
 		}
 	}
 	
