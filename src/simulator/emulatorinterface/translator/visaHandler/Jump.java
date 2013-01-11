@@ -7,7 +7,7 @@ import generic.InstructionTable;
 
 public class Jump implements DynamicInstructionHandler 
 {
-	public int handle(int microOpIndex, InstructionTable instructionTable,
+	public int handle(int microOpIndex, 
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer) 
 	{
 		//BranchInstr branchInstruction;
@@ -21,13 +21,7 @@ public class Jump implements DynamicInstructionHandler
 			microOp.setBranchTaken(true);
 			microOp.setBranchTargetAddress(branchAddress);
 			
-			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-				return instructionTable.getMicroOpIndex(branchAddress);
-			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-				return -2; // conventiontion for qemu
-			} else {
-				return -1;
-			}
+			return ++microOpIndex;
 		}
 		else
 		{

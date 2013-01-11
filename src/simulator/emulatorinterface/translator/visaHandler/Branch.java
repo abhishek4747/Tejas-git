@@ -7,7 +7,7 @@ import generic.InstructionTable;
 
 public class Branch implements DynamicInstructionHandler 
 {
-	public int handle(int microOpIndex, InstructionTable instructionTable,
+	public int handle(int microOpIndex, 
 			Instruction microOp, DynamicInstructionBuffer dynamicInstructionBuffer)
 	{
 		boolean branchTaken = dynamicInstructionBuffer.getBranchTaken(microOp.getCISCProgramCounter());
@@ -21,26 +21,7 @@ public class Branch implements DynamicInstructionHandler
 			microOp.setBranchTaken(branchTaken);
 			microOp.setBranchTargetAddress(branchAddress);
 			
-			if(branchTaken == true)
-			{
-				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-					return instructionTable.getMicroOpIndex(branchAddress);
-				} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-					return -2; // conventiontion for qemu
-				} else {
-					return -1;
-				}
-			}
-			else
-			{
-				if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-					return ++microOpIndex;
-				} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-					return -2; // conventiontion for qemu
-				} else {
-					return -1;
-				}
-			}
+			return ++microOpIndex; // Actually the next micro-op will be from a different cisc instruction
 		}
 		else
 		{
