@@ -201,7 +201,9 @@ public class ObjParser
 //					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
 //		}
 		
-		int poolSizeBefore = CustomObjectPool.getOperandPool().getSize();
+		int previousPoolSize = CustomObjectPool.getOperandPool().getSize();
+		int previousPoolCapacity = CustomObjectPool.getOperandPool().getPoolCapacity();
+		
 		int numDistinctOperand = 0;
 		int microOpsIndexBefore = instructionList.length();
 		Operand operand1 = null, operand2 = null, operand3 = null;
@@ -286,17 +288,18 @@ public class ObjParser
 			}
 		}
 		
-		int numOperandsRemovedFromPool = (poolSizeBefore-CustomObjectPool.getOperandPool().getSize());
+		int numOperandsRemovedFromPool = (previousPoolSize-CustomObjectPool.getOperandPool().getSize());
+		int currentPoolCapacity = CustomObjectPool.getOperandPool().getPoolCapacity();
 		
-		if(numOperandsRemovedFromPool!=numDistinctOperand) {
-			System.out.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
+		if((currentPoolCapacity==previousPoolCapacity) && (numOperandsRemovedFromPool!=numDistinctOperand)) {
+			System.err.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
 					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
 
-			System.out.println("ip=" + instructionPointer + 
+			System.err.println("ip=" + instructionPointer + 
 				"\t#operands removed from pool = " + numOperandsRemovedFromPool + 
 				"\tnumDistinctOperands = " + numDistinctOperand);
 			
-			misc.Error.showErrorAndExit("numOperandsRemovedFromPool!=numDistinctOperand");
+			//misc.Error.showErrorAndExit("numOperandsRemovedFromPool!=numDistinctOperand");
 		}
 		
 		return (instructionList.length()-microOpsIndexBefore);

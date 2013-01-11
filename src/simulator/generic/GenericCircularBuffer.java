@@ -18,7 +18,7 @@ public class GenericCircularBuffer<E> {
 	int currentMaxBufferSize; // ensures that we do not return more objects than we gave out
 	boolean isGrowable;
 	int currentSize;
-	
+		
 	@SuppressWarnings("unchecked")
 	public GenericCircularBuffer(Class E, int minBufferSize, int maxBufferSize,
 			boolean isGrowable)
@@ -136,6 +136,10 @@ public class GenericCircularBuffer<E> {
 	public int size()
 	{
 		return currentSize;
+	}
+
+	public int getPoolCapacity() {
+		return currentMaxBufferSize;
 	}
 }
 

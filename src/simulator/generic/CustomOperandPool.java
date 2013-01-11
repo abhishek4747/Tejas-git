@@ -129,4 +129,8 @@ public class CustomOperandPool {
 		return getSize();
 	}
 
+	public int getPoolCapacity() {
+		return pool.getPoolCapacity();
+	}
+
 }
