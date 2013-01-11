@@ -364,7 +364,7 @@ VOID printip(THREADID tid, VOID *ip) {
 				cout << "subset simulation complete\n";
 				for(int i = 0; i < MaxThreads; i++)
 				{
-					//printf("numCISC = %lu\n", numCISC[i]);
+					//cout << "numCISC = " << numCISC[i] << "\n";
 				}
 				fflush(stdout);
 				tst->unload();
@@ -423,7 +423,7 @@ VOID printip(THREADID tid, VOID *ip) {
 				cout << "subset simulation complete\n";
 				for(int i = 0; i < MaxThreads; i++)
 				{
-					//printf("numCISC = %lu\n", numCISC[i]);
+					//cout << "numCISC = " << numCISC[i] << "\n";
 				}
 				fflush(stdout);
 				tst->unload();
@@ -446,15 +446,13 @@ VOID printip(THREADID tid, VOID *ip) {
 
 	if(numCISC[tid] % 1000000 == 0 && numCISC[tid] > 0)
 	{
-		//printf("numCISC on thread %d = %lu, ignoreActive = %d\n", tid, numCISC[tid], ignoreActive);
-		cout << "numCISC on thread " << tid << " = " << numCISC[tid] << ", ignoreActive = " << ignoreActive << "\n";
+		cout << "numCISC on thread " << tid <<" = "<<numCISC[tid] <<" ignoreActive = "<< ignoreActive <<"\n";
 		fflush(stdout);
 	}
 
 	if(totalNumCISC % 1000000 == 0 && totalNumCISC > 0)
 	{
-		//printf("totalNumCISC = %lu, ignoreActive = %d\n", totalNumCISC, ignoreActive);
-		cout << "totalNumCISC = " << totalNumCISC << ", ignoreActive = " << ignoreActive << "\n";
+		cout <<"totalNumCISC = "<<totalNumCISC <<" ignoreActive = "<< ignoreActive <<"\n";
 		fflush(stdout);
 	}
 //
@@ -588,7 +586,7 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v) {
-//	printf("checkSum is %lld\n", checkSum);
+	//cout <<"checkSum is "<<checkSum<<"\n";
 	tst->unload();
 }
 

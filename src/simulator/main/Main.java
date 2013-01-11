@@ -33,7 +33,7 @@ public class Main {
 		
 		checkCommandLineArguments(arguments);
 		setEmulatorFile(arguments[2]);
-		
+
 		// Read the command line arguments
 		String configFileName = arguments[0];
 		SimulationConfig.outputFileName = arguments[1];
