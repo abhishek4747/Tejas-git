@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Enumeration;
 
 import main.ArchitecturalComponent;
@@ -54,6 +55,8 @@ public class Statistics {
 			else if (SimulationConfig.isPipelineStatistical)
 				outputFileWriter.write("Statistical Pipeline\n");
 			else outputFileWriter.write("OutOrder Pipeline\n");
+			
+			outputFileWriter.write("Schedule: " + (new Date()).toString() + "\n");
 		}
 		catch (IOException e)
 		{
@@ -972,6 +975,7 @@ System.out.println("execution time = "+executionTime);
 		if(SimulationConfig.powerStats)
 			Statistics.printPowerStats();
 		
+		// Qemu translation cache stats
 		if(TranslatedInstructionCache.getHitRate()!=-1) {
 			try {
 				outputFileWriter.write("[Qemu translation cache]\n");
