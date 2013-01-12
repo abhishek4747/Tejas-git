@@ -109,7 +109,7 @@ public class Registers
 		
 		//-------------------------Floating-point register-----------------------------------------
 		//Stack registers
-		floatRegistersHashTable.put("st", new Long(0));
+		floatRegistersHashTable.put("st",    new Long(0));
 		floatRegistersHashTable.put("st(0)", new Long(0));
 		floatRegistersHashTable.put("st(1)", new Long(1));
 		floatRegistersHashTable.put("st(2)", new Long(2));
@@ -119,22 +119,30 @@ public class Registers
 		floatRegistersHashTable.put("st(6)", new Long(6));
 		floatRegistersHashTable.put("st(7)", new Long(7));
 		
-		//TODO This register-set can be used to perform integer operations too.
+		//FIXME : This register-set can be used to perform integer operations too.
 		//So its exact type - integer or floating point is ambiguous
-		floatRegistersHashTable.put("xmm0", new Long(9));
-		floatRegistersHashTable.put("xmm1", new Long(10));
-		floatRegistersHashTable.put("xmm2", new Long(11));
-		floatRegistersHashTable.put("xmm3", new Long(12));
-		floatRegistersHashTable.put("xmm4", new Long(13));
-		floatRegistersHashTable.put("xmm5", new Long(14));
-		floatRegistersHashTable.put("xmm6", new Long(15));
-		floatRegistersHashTable.put("xmm7", new Long(16));
+		floatRegistersHashTable.put("xmm0",  new Long(9));
+		floatRegistersHashTable.put("xmm1",  new Long(10));
+		floatRegistersHashTable.put("xmm2",  new Long(11));
+		floatRegistersHashTable.put("xmm3",  new Long(12));
+		floatRegistersHashTable.put("xmm4",  new Long(13));
+		floatRegistersHashTable.put("xmm5",  new Long(14));
+		floatRegistersHashTable.put("xmm6",  new Long(15));
+		floatRegistersHashTable.put("xmm7",  new Long(16));
+		floatRegistersHashTable.put("xmm8",  new Long(17));
+		floatRegistersHashTable.put("xmm9",  new Long(18));
+		floatRegistersHashTable.put("xmm10", new Long(19));
+		floatRegistersHashTable.put("xmm11", new Long(20));
+		floatRegistersHashTable.put("xmm12", new Long(21));
+		floatRegistersHashTable.put("xmm13", new Long(22));
+		floatRegistersHashTable.put("xmm14", new Long(23));
+		floatRegistersHashTable.put("xmm15", new Long(24));		
 		
 		//temporary floating-point registers
-		floatRegistersHashTable.put("tempFloat0", new Long(17));
-		floatRegistersHashTable.put("tempFloat1", new Long(18));
-		floatRegistersHashTable.put("tempFloat2", new Long(19));
-		floatRegistersHashTable.put("tempFloat3", new Long(20));
+		floatRegistersHashTable.put("tempFloat0", new Long(25));
+		floatRegistersHashTable.put("tempFloat1", new Long(26));
+		floatRegistersHashTable.put("tempFloat2", new Long(27));
+		floatRegistersHashTable.put("tempFloat3", new Long(28));
 	}
 
 	
