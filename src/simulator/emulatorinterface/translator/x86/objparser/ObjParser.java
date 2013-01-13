@@ -266,9 +266,9 @@ public class ObjParser
 			 * complete its execution.
 			 */
 			
-			System.err.print("Unable to riscify instruction : ");
-			System.err.println("ip="+instructionPointer+"\toperation="+operation+"\top1="
-					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
+//			System.err.print("Unable to riscify instruction : ");
+//			System.err.println("ip="+instructionPointer+"\toperation="+operation+"\top1="
+//					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
 
 			if(operand1!=null) {
 				operand1.incrementNumReferences();
