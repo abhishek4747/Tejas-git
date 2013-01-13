@@ -256,6 +256,8 @@ public class ObjParser
 						numDistinctOperand += instructionList.get(i).getDestinationOperand().getNumDistinctRecursiveReferences();
 					}
 				}
+			} else {
+				throw new InvalidInstructionException("", false);
 			}			
 		} catch(Exception inInstrEx) {
 			/*
@@ -720,6 +722,7 @@ public class ObjParser
 			  (assemblyPacketList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)) 
 			{
 				// dynamicInstructionBuffer.clearBuffer();
+				//System.out.println("static -- " + microOpIndex);
 				return 0;
 			}
 		}
@@ -740,6 +743,7 @@ public class ObjParser
 			microOpIndex = dynamicInstructionHandler.handle(microOpIndex, dynamicMicroOp, dynamicInstructionBuffer);
 			
 			if(microOpIndex==-1) {
+				//System.out.println("dynamic");
 				// I was unable to fuse certain micro-ops of this instruction. 
 				// So, I must remove any previously 
 				// computed micro-ops from the buffer
