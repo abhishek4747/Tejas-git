@@ -58,6 +58,9 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 			return false;
 		}
 		
+		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {
+			return false;
+		}
 		//if not full add event to own mshr
 		boolean newOMREntryCreated = L1MissStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
@@ -78,7 +81,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 
 				if(addressEvent.getRequestType() == RequestType.Cache_Write)
 				{
-					L1MissStatusHoldingRegister.removeEvent(addressEvent);
+					// L1MissStatusHoldingRegister.removeEvent(addressEvent); // Commented out for rate-control
 				}
 			}
 		}
