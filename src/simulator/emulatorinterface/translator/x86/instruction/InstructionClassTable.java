@@ -388,7 +388,7 @@ public class InstructionClassTable {
 		for (int i = 0; i < SSEMove.length; i++)
 			instructionClassTable.put(SSEMove[i], InstructionClass.SSE_MOVE);
 
-		String SSEALU[] = "addps|addpd|addss|addsd|subps|subpd|subss|subsd|andps|andpd|andnps|andnpd|orps|orpd|xorps|xorpd"
+		String SSEALU[] = "addps|addpd|addss|addsd|subps|subpd|subss|subsd|andps|andpd|andnps|andnpd|orps|orpd|xorps|xorpd|pand|por|pxor"
 				.split("\\|");
 		for (int i = 0; i < SSEALU.length; i++)
 			instructionClassTable.put(SSEALU[i], InstructionClass.SSE_ALU);
@@ -403,7 +403,7 @@ public class InstructionClassTable {
 			instructionClassTable.put(SSEDivision[i],
 					InstructionClass.SSE_DIVISION);
 		
-		String SSEComparePackedData[] = "pcmpeqb|pcmpeqw|pcmpeqd".split("\\|");
+		String SSEComparePackedData[] = "pcmpeqb|pcmpeqw|pcmpeqd|pcmpgtb|pcmpgtw|pcmpgtd".split("\\|");
 		for (int i = 0; i < SSEComparePackedData.length; i++)
 			instructionClassTable.put(SSEComparePackedData[i],
 					InstructionClass.SSE_COMPARE_PACKED_DATA);
