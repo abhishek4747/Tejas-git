@@ -140,29 +140,17 @@ public class ObjParser
 				continue;
 			}
 
-			String assemblyCodeTokens[] = tokenizeAssemblyCode(line);
+			String assemblyCodeTokens[] = tokenizeObjDumpAssemblyCode(line);
 
 			// read the assembly code tokens
 			instructionPointer = Numbers.hexToLong(assemblyCodeTokens[0]);
 			
-			//initialize different parameters of an instruction.
-			if(isInstructionPrefix(assemblyCodeTokens[1]))
-			{
-				instructionPrefix = assemblyCodeTokens[1];
-				operation = assemblyCodeTokens[2];
-				operand1 = assemblyCodeTokens[3];
-				operand2 = assemblyCodeTokens[4];
-				operand3 = null;
-			}
-			else
-			{
-				instructionPrefix = null;
-				operation = assemblyCodeTokens[1];
-				operand1 = assemblyCodeTokens[2];
-				operand2 = assemblyCodeTokens[3];
-				operand3 = assemblyCodeTokens[4];
-			}
-			
+			instructionPrefix = assemblyCodeTokens[1];
+			operation = assemblyCodeTokens[2];
+			operand1 = assemblyCodeTokens[3];
+			operand2 = assemblyCodeTokens[4];
+			operand3 = assemblyCodeTokens[5];
+						
 			// Riscify current instruction
 			int microOpsIndexBefore = microOpsIndex;
 			int numRicscInsn = riscifyInstruction( instructionPointer, 
@@ -370,7 +358,6 @@ public class ObjParser
 		return numLines;
 	}
 
-
 	// reads the next line of buffered reader "input"
 	private static String readNextLineOfObjDump(BufferedReader input) 
 	{
@@ -396,12 +383,12 @@ public class ObjParser
 		return line.matches("[0-9a-fA-F]+ <.*> [a-zA-Z]+.*");
 	}
 
-	
 	// for a line of assembly code, this would return the
 	// linear address, operation, operand1,operand2, operand3
-	private static String[] tokenizeAssemblyCode(String line) 
+	private static String[] tokenizeObjDumpAssemblyCode(String line) 
 	{
 		String linearAddress;
+		String instructionPrefix;
 		String operation;
 		String operand1, operand2, operand3;
 		String operands;
@@ -423,7 +410,17 @@ public class ObjParser
 		// Read the tokens into required variables
 		linearAddress = lineTokenizer.nextToken();
 		lineTokenizer.nextToken(); // skip the referred address
-		operation = lineTokenizer.nextToken();
+		
+		// Determine the instruction prefix and operation
+		String tempToken = lineTokenizer.nextToken();
+		if(isInstructionPrefix(tempToken)) {
+			instructionPrefix = tempToken;
+			operation = lineTokenizer.nextToken();
+		} else {
+			instructionPrefix = null;
+			operation = tempToken;
+		}
+		
 		if (lineTokenizer.hasMoreTokens())
 			operands = lineTokenizer.nextToken();
 
@@ -444,7 +441,7 @@ public class ObjParser
 				operand3 = operandTokenizer.nextToken();
 		}
 
-		return new String[] { linearAddress, operation, operand1, operand2,
+		return new String[] { linearAddress, instructionPrefix, operation, operand1, operand2,
 				operand3 };
 	}
 	
