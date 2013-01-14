@@ -75,13 +75,12 @@ public enum InstructionClass
 	REPEAT,
 	LOCK,
 
-	
 	//TODO SSE Instructions
 	SSE_MOVE,
 	SSE_ALU,
 	SSE_MULTIPLICATION,
 	SSE_DIVISION,
-	
+	SSE_COMPARE_PACKED_DATA,
 	
 	INVALID,  
 }

@@ -176,6 +176,10 @@ public class InstructionClassTable {
 				new SSEDivision());
 		
 		instructionClassHandlerTable.put(
+				InstructionClass.SSE_COMPARE_PACKED_DATA,
+				new SSEComparePackedData());
+		
+		instructionClassHandlerTable.put(
 				InstructionClass.FLOATING_POINT_COMPARE,
 				new FloatingPointCompare());
 				
@@ -398,6 +402,11 @@ public class InstructionClassTable {
 		for (int i = 0; i < SSEDivision.length; i++)
 			instructionClassTable.put(SSEDivision[i],
 					InstructionClass.SSE_DIVISION);
+		
+		String SSEComparePackedData[] = "pcmpeqb|pcmpeqw|pcmpeqd".split("\\|");
+		for (int i = 0; i < SSEComparePackedData.length; i++)
+			instructionClassTable.put(SSEComparePackedData[i],
+					InstructionClass.SSE_COMPARE_PACKED_DATA);
 		
 		String FUCompare[] = "fcom|fcomp|fcompp|fucom|fucomp|fucompp|fcomi|fcomip|fucomi|fucomip".split("\\|");
 		for(int i=0; i < FUCompare.length; i++)
