@@ -78,14 +78,15 @@ public class StringCompare implements X86StaticInstructionHandler
 			
 			//Load the value at the destination Location in a temporary register
 			Operand destinationIndex = Registers.getTempIntReg(tempRegisterNum);
-			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(sourceLocation, destinationIndex));
+			instructionArrayList.appendInstruction(Instruction.getLoadInstruction(destinationLocation, destinationIndex));
 
 			//Perform compare operation
-			IntegerALUExplicitDestination integerALUExplicitDestination = 
-						new IntegerALUExplicitDestination();
-			
-			integerALUExplicitDestination.handle(instructionPointer, sourceIndex, 
-					destinationIndex, null, instructionArrayList, tempRegisterNum);
+//			IntegerALUExplicitDestination integerALUExplicitDestination = 
+//						new IntegerALUExplicitDestination();
+//			
+//			integerALUExplicitDestination.handle(instructionPointer, sourceIndex, 
+//					destinationIndex, null, instructionArrayList, tempRegisterNum);
+			instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(sourceIndex, destinationIndex, destinationIndex));
 		}
 		
 		else

@@ -184,8 +184,8 @@ public class ObjParser
 			String operand1Str, String operand2Str, String operand3Str, 
 			InstructionList instructionList) 
 	{
-//		if(instructionPointer==4222125) {
-//			System.out.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
+//		if(instructionPointer==4363909) {
+//			System.err.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
 //					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
 //		}
 		
@@ -285,9 +285,12 @@ public class ObjParser
 			System.err.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
 					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
 
-			System.err.println("ip=" + instructionPointer + 
-				"\t#operands removed from pool = " + numOperandsRemovedFromPool + 
+			System.err.println("#operands removed from pool = " + numOperandsRemovedFromPool + 
 				"\tnumDistinctOperands = " + numDistinctOperand);
+			
+			for(int i=microOpsIndexBefore; i<instructionList.getListSize(); i++) {
+				System.err.println((i-microOpsIndexBefore) + " : " + instructionList.get(i));
+			}
 			
 			//misc.Error.showErrorAndExit("numOperandsRemovedFromPool!=numDistinctOperand");
 		}
