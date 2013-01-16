@@ -97,7 +97,7 @@ public class BimodalPredictor implements BranchPredictor {
          * @param address takes in the values the PC address whose branch has to be trained
          * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
          */
-        public boolean predict(long address) {
+        public boolean predict(long address, boolean outcome) {
                 int index=(int)(address&maskbits);
                 int state=PHT[index];
                 if(state<=not_taken_states)

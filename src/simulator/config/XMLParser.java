@@ -633,7 +633,15 @@ public class XMLParser
 		Element tournamentElmnt = (Element) tournamentLst.item(0);
 		
 		String tempStr = getImmediateString("Predictor_Mode", predictorElmnt);
-		if(tempStr.equalsIgnoreCase("Tournament"))
+		if(tempStr.equalsIgnoreCase("NoPredictor"))
+			branchPredictor.predictorMode = BP.NoPredictor;
+		else if(tempStr.equalsIgnoreCase("PerfectPredictor"))
+			branchPredictor.predictorMode = BP.PerfectPredictor;
+		else if(tempStr.equalsIgnoreCase("AlwaysTaken"))
+			branchPredictor.predictorMode = BP.AlwaysTaken;
+		else if(tempStr.equalsIgnoreCase("AlwaysNotTaken"))
+			branchPredictor.predictorMode = BP.AlwaysNotTaken;
+		else if(tempStr.equalsIgnoreCase("Tournament"))
 			branchPredictor.predictorMode = BP.Tournament;
 		else if(tempStr.equalsIgnoreCase("Bimodal"))
 			branchPredictor.predictorMode = BP.Bimodal;

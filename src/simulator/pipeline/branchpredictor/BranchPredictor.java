@@ -49,7 +49,8 @@ public interface BranchPredictor {
   *
   * @param address takes in the values the PC address whose branch has to be trained
   * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
+  * NOTE : the outcome field is useful only in the NoPredictor and PerfectPredictor cases
   */
-public  boolean predict(long address);
+public  boolean predict(long address, boolean outcome);
 
 }
