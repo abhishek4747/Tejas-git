@@ -53,7 +53,7 @@ public class Main {
 			ObjParser.initializeThreadMicroOpsList(1);
 		}
 		
-		ObjParser.initializeDynamicInstructionBuffer(1);
+		ObjParser.initializeDynamicInstructionBuffer(IpcBase.EmuThreadsPerJavaThread*IpcBase.getEmuThreadsPerJavaThread_Acutal());
 		
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
