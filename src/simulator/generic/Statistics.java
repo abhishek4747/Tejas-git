@@ -1,6 +1,7 @@
 package generic;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -690,33 +691,32 @@ System.out.println("execution time = "+executionTime);
 	}	
 	public static void openStream()
 	{
-		if(SimulationConfig.outputFileName != null && SimulationConfig.outputFileName.compareTo("default") != 0)
+		if(SimulationConfig.outputFileName == null)
 		{
-			try
-			{
-				outputFileWriter = new FileWriter(SimulationConfig.outputFileName);
-			}
-			catch (IOException e)
-			{
-				StringBuilder sb = new StringBuilder();
-				sb.append("DEFAULT_");
-			    Calendar cal = Calendar.getInstance();
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-				sb.append(sdf.format(cal.getTime()));
-				try
-				{
-					outputFileWriter = new FileWriter(sb.toString());
-				}
-				catch (IOException e1)
-				{
-					e1.printStackTrace();
-				}
-				System.out.println("unable to create specified output file");
-				System.out.println("statistics written to " + sb.toString());
-			}
+			SimulationConfig.outputFileName = "default";
 		}
-		else
-		{
+		
+		try {
+			File outputFile = new File(SimulationConfig.outputFileName);
+			
+			if(outputFile.exists()) {
+				
+				// rename the previous output file
+				Date lastModifiedDate = new Date(outputFile.lastModified());
+				File backupFile = new File(SimulationConfig.outputFileName + "_" + lastModifiedDate.toString());
+				if(!outputFile.renameTo(backupFile)) {
+					System.err.println("error in creating a backup of your previous output file !!\n");
+				}
+				
+				// again point to the new file
+				outputFile = new File(SimulationConfig.outputFileName);
+			}
+			
+			outputFileWriter = new FileWriter(outputFile);
+			
+			
+		} catch (IOException e) {
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("DEFAULT_");
 		    Calendar cal = Calendar.getInstance();
@@ -726,14 +726,14 @@ System.out.println("execution time = "+executionTime);
 			{
 				outputFileWriter = new FileWriter(sb.toString());
 			}
-			catch (IOException e)
+			catch (IOException e1)
 			{
-				e.printStackTrace();
+				e1.printStackTrace();
 			}
+			System.out.println("unable to create specified output file");
 			System.out.println("statistics written to " + sb.toString());
-			System.out.println("power trace written to " + SimulationConfig.outputFileName+"Trace.csv");
 		}
-	}	
+	}
 	
 	public static void closeStream()
 	{
