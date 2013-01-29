@@ -620,18 +620,6 @@ public class XMLParser
 	}
 	private static void setBranchPredictorProperties(Element predictorElmnt, Element BTBElmnt, BranchPredictorConfig branchPredictor){
 		
-		NodeList bimodLst = predictorElmnt.getElementsByTagName("Bimod");
-		Element bimodElmnt = (Element) bimodLst.item(0);
-		
-		NodeList twoLevLst = predictorElmnt.getElementsByTagName("TwoLevel");
-		Element twoLevElmnt = (Element) twoLevLst.item(0);
-		
-		NodeList combLst = predictorElmnt.getElementsByTagName("CombConfig");
-		Element combElmnt = (Element) combLst.item(0);
-		
-		NodeList tournamentLst = predictorElmnt.getElementsByTagName("Tournament");
-		Element tournamentElmnt = (Element) tournamentLst.item(0);
-		
 		String tempStr = getImmediateString("Predictor_Mode", predictorElmnt);
 		if(tempStr.equalsIgnoreCase("NoPredictor"))
 			branchPredictor.predictorMode = BP.NoPredictor;
@@ -656,23 +644,9 @@ public class XMLParser
 		else if(tempStr.equalsIgnoreCase("PAp"))
 			branchPredictor.predictorMode = BP.PAp;
 		
-		branchPredictor.bimod_table_size = Integer.parseInt(getImmediateString("TableSize", bimodElmnt));
-		
-		branchPredictor.two_lev_L1 = Integer.parseInt(getImmediateString("L1", twoLevElmnt));
-		branchPredictor.two_lev_L2 = Integer.parseInt(getImmediateString("L2", twoLevElmnt));
-		branchPredictor.two_lev_histoyRegSize = Integer.parseInt(getImmediateString("HistoryRegSize", twoLevElmnt));
-		branchPredictor.two_lev_XOR = Integer.parseInt(getImmediateString("XOR", twoLevElmnt));
-		
-		branchPredictor.combConfig_metaTableSize = Integer.parseInt(getImmediateString("MetaTableSize", combElmnt));
-		
-		branchPredictor.BTB_numSets = Integer.parseInt(getImmediateString("NumSets", BTBElmnt));
-		branchPredictor.BTB_Assosiativity = Integer.parseInt(getImmediateString("Associativity", BTBElmnt));
-		
-		branchPredictor.PCBits = Integer.parseInt(getImmediateString("PCBits", tournamentElmnt));
-		branchPredictor.BHRsize = Integer.parseInt(getImmediateString("BHRsize", tournamentElmnt));
-		branchPredictor.saturating_bits = Integer.parseInt(getImmediateString("saturating_bits", tournamentElmnt));
-		
-		
+		branchPredictor.PCBits = Integer.parseInt(getImmediateString("PCBits", predictorElmnt));
+		branchPredictor.BHRsize = Integer.parseInt(getImmediateString("BHRsize", predictorElmnt));
+		branchPredictor.saturating_bits = Integer.parseInt(getImmediateString("saturating_bits", predictorElmnt));
 	}
 	
 	private static boolean setDirectoryCoherent(String immediateString) {
