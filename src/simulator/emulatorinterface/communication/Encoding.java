@@ -35,4 +35,5 @@ public interface Encoding {
 	static final int INTERRUPT = 30;
 	static final int PROCESS_SWITCH = 31;
 	static final int DOM_SWITCH = 32;
+	static final int CPL_SWITCH = 34;
 }

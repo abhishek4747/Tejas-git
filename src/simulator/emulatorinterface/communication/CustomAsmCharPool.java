@@ -27,7 +27,11 @@ public class CustomAsmCharPool {
 		tail[tidApp] = (tail[tidApp]+1)%bufferSize;
 		//pool[tidApp][tail[tidApp]] = newBytes
 		for(int i=0; i<64; i++) {
-			pool[tidApp][tail[tidApp]][i] = inputBytes[offset+i];
+			if( (offset+i) < inputBytes.length) {
+				pool[tidApp][tail[tidApp]][i] = inputBytes[offset+i];	
+			} else {//asm packets for filePacket interface may have less than 64 characters
+				break;
+			}
 		}
 		
 		if(head[tidApp]==-1) {

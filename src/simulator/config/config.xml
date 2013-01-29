@@ -20,11 +20,11 @@
 *****************************************************************************/-->
 <Configuration>
 	<Emulator>
-		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
-		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
+		<EmulatorType>1</EmulatorType> <!-- 0-pin,1-qemu-->
+		<CommunicationType>3</CommunicationType>  <!--0-fileMicroOps, 1-shmem, 2-socket, 3-filePacket -->
 		<PinTool>/mnt/srishtistr0/scratch/rajshekar/pin-2.12-53271-gcc.4.4.7-ia32_intel64-linux</PinTool>
 		<PinInstrumentor>/mnt/srishtistr0/home/raj/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
-		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
+		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64</QemuTool>
 	</Emulator>
 	
 	<!--Simulation Parameters-->
@@ -37,7 +37,7 @@
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
 		<PipelineType>1</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
 		<NumInorderPipelines>3</NumInorderPipelines>	<!--Only applicable if the pipeline type is multi issue inorder-->
-		<InstructionsFilename>fluidanimate_10M.ser</InstructionsFilename><!-- The file in which instructions are written -->
+		<InstructionsFilename>/mnt/srishtistr0/home/nitingupta/workspace/qemu/q_trace.out</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
 		<PrintPowerStats>false</PrintPowerStats>

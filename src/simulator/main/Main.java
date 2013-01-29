@@ -10,6 +10,7 @@ import config.XMLParser;
 import emulatorinterface.RunnableFromFile;
 import emulatorinterface.RunnableThread;
 import emulatorinterface.communication.IpcBase;
+import emulatorinterface.communication.filePacket.FilePacket;
 import emulatorinterface.communication.network.Network;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
@@ -96,7 +97,7 @@ public class Main {
 			
 			name = "thread"+Integer.toString(i);
 			
-			if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
+			if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
 				runners[i] = new RunnableFromFile(name,i, ipcBase, ArchitecturalComponent.getCores(), 
 						ArchitecturalComponent.getTokenBus());
 			} else {
@@ -106,11 +107,11 @@ public class Main {
 		}
 		
 		ipcBase.waitForJavaThreads();
-		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE) {
+		if(emulator!=null) {
 			emulator.waitForEmulator();
 		}
 		
-		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE) {
+		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
 			ipcBase.finish();
 		}
 
@@ -141,7 +142,7 @@ public class Main {
 
 	private static IpcBase startCommunicationChannel(int pid) {
 		IpcBase ipcBase = null;
-		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
+		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
 			// ipc is not required for file
 			ipcBase = null;
 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SHM) {
@@ -149,6 +150,8 @@ public class Main {
  		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_NETWORK) {
  			//ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
  			ipcBase = new Network(1);
+ 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_PACKET) {
+ 			ipcBase = new FilePacket(1);
  		} else {
  			ipcBase = null;
  			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);
@@ -158,10 +161,14 @@ public class Main {
 	}
 
 	private static void startEmulator(String emulatorArguments, int pid, IpcBase ipcBase) {
-		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE) {
+		if(	EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_MICROOPS ||
+				EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_PACKET) {
+			
 			// The emulator is not needed when we are reading from a file
 			emulator = null;
+			
 		} else {
+			
 			if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 				emulator = new Emulator(EmulatorConfig.PinTool, EmulatorConfig.PinInstrumentor, 
 						emulatorArguments, ((SharedMem)ipcBase).idToShmGet);
