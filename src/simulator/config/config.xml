@@ -20,8 +20,8 @@
 *****************************************************************************/-->
 <Configuration>
 	<Emulator>
-		<EmulatorType>1</EmulatorType> <!-- 0-pin,1-qemu-->
-		<CommunicationType>3</CommunicationType>  <!--0-fileMicroOps, 1-shmem, 2-socket, 3-filePacket -->
+		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
+		<CommunicationType>1</CommunicationType>  <!--0-fileMicroOps, 1-shmem, 2-socket, 3-filePacket -->
 		<PinTool>/mnt/srishtistr0/scratch/rajshekar/pin-2.12-53271-gcc.4.4.7-ia32_intel64-linux</PinTool>
 		<PinInstrumentor>/mnt/srishtistr0/home/raj/workspace/Tejas-Base-2/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64</QemuTool>
@@ -124,9 +124,7 @@
 			<FloatDivLatency>8</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
 			<AddressFULatency>1</AddressFULatency>
 			<AcceleratedFULatency>1</AcceleratedFULatency>
-			
 			<TreeBarrier>false</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
-			
 			<!--Specify only the iCache and L1 (immediately next to the core) cache of the core here-->
 			<iCache nextLevel="L2" type="Type0"/>
 			<L1Cache nextLevel="L2" type="Type1"/>
@@ -134,29 +132,11 @@
 			<!--L3Cache type = "Type3"/-->
 		</Core>
 		<Predictor>
-			<Predictor_Mode>AlwaysNotTaken</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
-			<Bimod>
-				<TableSize>4096</TableSize>	
-			</Bimod>
-			<TwoLevel>
-				<L1>1</L1>
-				<L2>1024</L2>
-				<HistoryRegSize>10</HistoryRegSize>
-				<XOR>0</XOR>
-			</TwoLevel>
-			<CombConfig>
-				<MetaTableSize>4096</MetaTableSize>
-			</CombConfig>
-			<Tournament>
-				<PCBits>1</PCBits>
-				<BHRsize>2</BHRsize>
-				<saturating_bits>4</saturating_bits>
-			</Tournament>
+			<Predictor_Mode>GAg</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
+			<PCBits>1</PCBits>
+			<BHRsize>2</BHRsize>
+			<saturating_bits>4</saturating_bits>
 		</Predictor>
-		<BTB>
-			<NumSets>1024</NumSets>
-			<Associativity>4</Associativity>
-		</BTB>
 		<NOC>
 			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>1</NumberOfBankRows>

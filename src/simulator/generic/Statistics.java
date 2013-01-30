@@ -17,9 +17,12 @@ import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
 
 import power.Counters;
+import config.BranchPredictorConfig;
 import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
+import config.BranchPredictorConfig.BP;
+import config.XMLParser;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.translator.qemuTranslationCache.TranslatedInstructionCache;
 
@@ -204,6 +207,13 @@ public class Statistics {
 				outputFileWriter.write("number of mispredicted branches\t=\t" + mispredictedBranchCount[i] + "\n");
 				outputFileWriter.write("branch predictor accuracy\t=\t" + (double)((double)(branchCount[i]-mispredictedBranchCount[i])*100/branchCount[i]) + " %\n");
 				outputFileWriter.write("\n");
+				
+				outputFileWriter.write("predictor type = " + SystemConfig.branchPredictor.predictorMode + "\n");
+				outputFileWriter.write("PC bits = " + SystemConfig.branchPredictor.PCBits + "\n");
+				outputFileWriter.write("BHR size = " + SystemConfig.branchPredictor.BHRsize + "\n");
+				outputFileWriter.write("Saturating bits = " + SystemConfig.branchPredictor.saturating_bits + "\n");
+				outputFileWriter.write("\n");
+				
 			}
 			outputFileWriter.write("\n");
 		}
