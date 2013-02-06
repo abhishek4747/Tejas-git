@@ -12,7 +12,7 @@
 
 // This must be equal to the MAXNUMTHREADS*EMUTHREADS in IPCBase.java file. This is
 // important so that we attach to the same sized memory segment
-#define MaxNumThreads	(1000)
+#define MaxNumThreads	(32)
 #define MaxThreads (10000)
 
 namespace IPC

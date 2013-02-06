@@ -18,7 +18,7 @@ public class Emulator {
 				SimulationConfig.subsetSimulation);
 
 		// Creating command for PIN tool.
-		StringBuilder cmd = new StringBuilder(pinTool + "/pin" +// " -injection child "+
+		StringBuilder cmd = new StringBuilder(pinTool + "/pin" + " -injection child "+
 				" -t " + pinInstrumentor +
 				" -map " + SimulationConfig.MapEmuCores +
 				" -numIgn " + SimulationConfig.NumInsToIgnore +
