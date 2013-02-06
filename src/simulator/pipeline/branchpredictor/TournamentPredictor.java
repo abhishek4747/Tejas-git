@@ -85,9 +85,9 @@ public class TournamentPredictor implements BranchPredictor{
          * @param address takes in the values the PC address whose branch has to be trained
          * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
          */
-        public boolean predict(long address) {
-               PAp_pred=pred1.predict(address);
-               PAp_pred=pred2.predict(address);
+        public boolean predict(long address, boolean outcome) {
+               PAp_pred=pred1.predict(address, outcome);
+               PAp_pred=pred2.predict(address, outcome);
                if(counter==0 ||counter==1)
                        return PAp_pred;
                else

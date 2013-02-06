@@ -1,13 +1,17 @@
 package generic;
 
 import pipeline.ExecutionEngine;
+import pipeline.branchpredictor.AlwaysNotTaken;
+import pipeline.branchpredictor.AlwaysTaken;
 import pipeline.branchpredictor.BimodalPredictor;
 import pipeline.branchpredictor.BranchPredictor;
 import pipeline.branchpredictor.GAgpredictor;
 import pipeline.branchpredictor.GApPredictor;
 import pipeline.branchpredictor.GShare;
+import pipeline.branchpredictor.NoPredictor;
 import pipeline.branchpredictor.PAgPredictor;
 import pipeline.branchpredictor.PApPredictor;
+import pipeline.branchpredictor.PerfectPredictor;
 import pipeline.branchpredictor.TournamentPredictor;
 //import pipeline.perfect.ExecutionEnginePerfect;
 //import pipeline.perfect.PerformDecodeEventPerfect;
@@ -111,7 +115,15 @@ public class Core {
 		else
 			this.execEngine = new OutOrderExecutionEngine(this);
 		
-		if(SystemConfig.branchPredictor.predictorMode == BP.Tournament)
+		if(SystemConfig.branchPredictor.predictorMode == BP.NoPredictor)
+			this.branchPredictor = new NoPredictor();
+		else if(SystemConfig.branchPredictor.predictorMode == BP.PerfectPredictor)
+			this.branchPredictor = new PerfectPredictor();
+		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysTaken)
+			this.branchPredictor = new AlwaysTaken();
+		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysNotTaken)
+			this.branchPredictor = new AlwaysNotTaken();
+		else if(SystemConfig.branchPredictor.predictorMode == BP.Tournament)
 			this.branchPredictor = new TournamentPredictor();
 		else if(SystemConfig.branchPredictor.predictorMode == BP.Bimodal)
 			this.branchPredictor = new BimodalPredictor(SystemConfig.branchPredictor.PCBits,

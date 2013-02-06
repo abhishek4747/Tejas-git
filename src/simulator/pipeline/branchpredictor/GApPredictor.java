@@ -125,7 +125,7 @@ public class GApPredictor implements BranchPredictor {
          * @param address takes in the values the PC address whose branch has to be trained
          * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
          */
-        public boolean predict(long address) {
+        public boolean predict(long address, boolean outcome) {
                 /*maskbits are used to extract the desired bits from the PC address*/
                 int newaddress=(int)(address&maskbits);
 

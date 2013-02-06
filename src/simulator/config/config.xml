@@ -21,7 +21,7 @@
 <Configuration>
 	<Emulator>
 		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
-		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
+		<CommunicationType>1</CommunicationType>  <!--0-fileMicroOps, 1-shmem, 2-socket, 3-filePacket -->
 		<PinTool>/home/eldhose/workspace/PIN</PinTool>
 		<PinInstrumentor>//home/eldhose/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
@@ -48,7 +48,7 @@
 		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
-		<subsetSim>true</subsetSim>
+		<subsetSim>false</subsetSim>
 		<subsetSimSize>100000000</subsetSimSize>
 	</Simulation>
 
@@ -105,7 +105,7 @@
 			<RegFilePortType>UL</RegFilePortType>		<!--Type of access ports in the Reg File (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<RegFilePorts>4</RegFilePorts>			<!--Number of ports in the register file-->
 			<RegFileOccupancy>1</RegFileOccupancy>		<!--Occupancy of the register file ports (in clock cycles)-->
-			<BranchMispredPenalty>20</BranchMispredPenalty>	<!--Branch misprediction penalty-->
+			<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->
 	
 			<IntALUNum>4</IntALUNum>			<!--Number of Integer ALUs-->
 			<IntMulNum>1</IntMulNum>			<!--Number of Integer Multipliers-->
@@ -117,16 +117,14 @@
 			<AcceleratedFUNum>4</AcceleratedFUNum>
 			
 			<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
-			<IntMulLatency>1</IntMulLatency>		<!--Latency of Integer Multipliers-->
-			<IntDivLatency>1</IntDivLatency>		<!--Latency of Integer Dividers-->
-			<FloatALULatency>1</FloatALULatency>		<!--Latency of Floating Point ALUs-->
-			<FloatMulLatency>1</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
-			<FloatDivLatency>1</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
+			<IntMulLatency>2</IntMulLatency>		<!--Latency of Integer Multipliers-->
+			<IntDivLatency>4</IntDivLatency>		<!--Latency of Integer Dividers-->
+			<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
+			<FloatMulLatency>4</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
+			<FloatDivLatency>8</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
 			<AddressFULatency>1</AddressFULatency>
 			<AcceleratedFULatency>1</AcceleratedFULatency>
-			
-			<TreeBarrier>true</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
-			
+			<TreeBarrier>false</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
 			<!--Specify only the iCache and L1 (immediately next to the core) cache of the core here-->
 			<iCache nextLevel="L2" type="Type0"/>
 			<L1Cache nextLevel="L2" type="Type1"/>
@@ -134,29 +132,11 @@
 			<!--L3Cache type = "Type3"/-->
 		</Core>
 		<Predictor>
-			<Predictor_Mode>Tournament</Predictor_Mode>
-			<Bimod>
-				<TableSize>4096</TableSize>	
-			</Bimod>
-			<TwoLevel>
-				<L1>1</L1>
-				<L2>1024</L2>
-				<HistoryRegSize>10</HistoryRegSize>
-				<XOR>0</XOR>
-			</TwoLevel>
-			<CombConfig>
-				<MetaTableSize>4096</MetaTableSize>
-			</CombConfig>
-			<Tournament>
-				<PCBits>1</PCBits>
-				<BHRsize>2</BHRsize>
-				<saturating_bits>4</saturating_bits>
-			</Tournament>
+			<Predictor_Mode>GAg</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
+			<PCBits>1</PCBits>
+			<BHRsize>2</BHRsize>
+			<saturating_bits>4</saturating_bits>
 		</Predictor>
-		<BTB>
-			<NumSets>1024</NumSets>
-			<Associativity>4</Associativity>
-		</BTB>
 		<NOC>
 			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
 			<NumberOfBankRows>1</NumberOfBankRows>
@@ -241,9 +221,9 @@
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>128</BlockSize>			<!--In bytes-->
+			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>4096</Size>				<!--In KBs-->
+			<Size>2048</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->

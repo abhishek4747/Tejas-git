@@ -113,7 +113,7 @@ public class GAgpredictor implements BranchPredictor {
   * @param address takes in the values the PC address whose branch has to be trained
   * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
   */
-       public boolean predict(long address) {
+       public boolean predict(long address, boolean outcome) {
                 boolean pred;
                 int current_state=PHT[BHR];
                 if(current_state==0 || current_state==1)

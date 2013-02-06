@@ -140,7 +140,7 @@ public class PAgPredictor implements BranchPredictor {
          * @param address takes in the values the PC address whose branch has to be trained
          * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
          */
-        public boolean predict(long address) {
+        public boolean predict(long address, boolean outcome) {
                index=(int)(maskbits&address);
                BHR=PBHT[index];
                state=PHT[BHR];

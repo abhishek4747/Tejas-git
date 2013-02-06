@@ -1,6 +1,7 @@
 package generic;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,9 +17,12 @@ import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
 
 import power.Counters;
+import config.BranchPredictorConfig;
 import config.EmulatorConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
+import config.BranchPredictorConfig.BP;
+import config.XMLParser;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.translator.qemuTranslationCache.TranslatedInstructionCache;
 
@@ -203,6 +207,13 @@ public class Statistics {
 				outputFileWriter.write("number of mispredicted branches\t=\t" + mispredictedBranchCount[i] + "\n");
 				outputFileWriter.write("branch predictor accuracy\t=\t" + (double)((double)(branchCount[i]-mispredictedBranchCount[i])*100/branchCount[i]) + " %\n");
 				outputFileWriter.write("\n");
+				
+				outputFileWriter.write("predictor type = " + SystemConfig.branchPredictor.predictorMode + "\n");
+				outputFileWriter.write("PC bits = " + SystemConfig.branchPredictor.PCBits + "\n");
+				outputFileWriter.write("BHR size = " + SystemConfig.branchPredictor.BHRsize + "\n");
+				outputFileWriter.write("Saturating bits = " + SystemConfig.branchPredictor.saturating_bits + "\n");
+				outputFileWriter.write("\n");
+				
 			}
 			outputFileWriter.write("\n");
 		}
@@ -690,33 +701,32 @@ System.out.println("execution time = "+executionTime);
 	}	
 	public static void openStream()
 	{
-		if(SimulationConfig.outputFileName != null && SimulationConfig.outputFileName.compareTo("default") != 0)
+		if(SimulationConfig.outputFileName == null)
 		{
-			try
-			{
-				outputFileWriter = new FileWriter(SimulationConfig.outputFileName);
-			}
-			catch (IOException e)
-			{
-				StringBuilder sb = new StringBuilder();
-				sb.append("DEFAULT_");
-			    Calendar cal = Calendar.getInstance();
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-				sb.append(sdf.format(cal.getTime()));
-				try
-				{
-					outputFileWriter = new FileWriter(sb.toString());
-				}
-				catch (IOException e1)
-				{
-					e1.printStackTrace();
-				}
-				System.out.println("unable to create specified output file");
-				System.out.println("statistics written to " + sb.toString());
-			}
+			SimulationConfig.outputFileName = "default";
 		}
-		else
-		{
+		
+		try {
+			File outputFile = new File(SimulationConfig.outputFileName);
+			
+			if(outputFile.exists()) {
+				
+				// rename the previous output file
+				Date lastModifiedDate = new Date(outputFile.lastModified());
+				File backupFile = new File(SimulationConfig.outputFileName + "_" + lastModifiedDate.toString());
+				if(!outputFile.renameTo(backupFile)) {
+					System.err.println("error in creating a backup of your previous output file !!\n");
+				}
+				
+				// again point to the new file
+				outputFile = new File(SimulationConfig.outputFileName);
+			}
+			
+			outputFileWriter = new FileWriter(outputFile);
+			
+			
+		} catch (IOException e) {
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("DEFAULT_");
 		    Calendar cal = Calendar.getInstance();
@@ -726,14 +736,14 @@ System.out.println("execution time = "+executionTime);
 			{
 				outputFileWriter = new FileWriter(sb.toString());
 			}
-			catch (IOException e)
+			catch (IOException e1)
 			{
-				e.printStackTrace();
+				e1.printStackTrace();
 			}
+			System.out.println("unable to create specified output file");
 			System.out.println("statistics written to " + sb.toString());
-			System.out.println("power trace written to " + SimulationConfig.outputFileName+"Trace.csv");
 		}
-	}	
+	}
 	
 	public static void closeStream()
 	{
