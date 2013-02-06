@@ -12,6 +12,8 @@ package emulatorinterface.communication.shm;
 import java.lang.System;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
+
+import config.EmulatorConfig;
 import config.SimulationConfig;
 import emulatorinterface.communication.*;
 import emulatorinterface.*;
@@ -30,6 +32,11 @@ public class SharedMem extends  IpcBase
 	public SharedMem(int pid) 
 	{
 		super();
+		
+		// loads the library which contains the implementation of these native functions. The name of
+		// the library should match in the makefile.
+		System.load(EmulatorConfig.ShmLibDirectory + "/libshmlib.so");
+		
 		// MAXNUMTHREADS is the max number of java threads while EMUTHREADS is the number of 
 		// emulator(PIN) threads it is reading from. For each emulator threads 5 packets are
 		// needed for lock management, queue size etc. For details look common.h
@@ -172,10 +179,6 @@ public class SharedMem extends  IpcBase
 */		return numPacketsAlternate(tidApp);
 	}
 	
-	// loads the library which contains the implementation of these native functions. The name of
-	// the library should match in the makefile.
-	static { System.loadLibrary("shmlib"); }
-
 	// cores associated with this java thread
 	Core[] cores;
 

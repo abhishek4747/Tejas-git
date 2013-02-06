@@ -17,4 +17,5 @@ public class EmulatorConfig {
 	public static String PinTool = null;
 	public static String PinInstrumentor = null;
 	public static String QemuTool = null;
+	public static String ShmLibDirectory;
 }
