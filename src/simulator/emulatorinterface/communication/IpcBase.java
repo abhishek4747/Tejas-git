@@ -119,8 +119,4 @@ public abstract class IpcBase {
 	public static int getEmuThreadsPerJavaThread() {
 		return IpcBase.EmuThreadsPerJavaThread;
 	}
-	
-	public static int getEmuThreadsPerJavaThread_Acutal() {
-		return IpcBase.EmuThreadsPerJavaThread;
-	}
 }
