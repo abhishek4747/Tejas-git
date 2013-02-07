@@ -45,7 +45,7 @@ public class SharedMem extends  IpcBase
 		
 		do
 		{
-			shmid = shmget(COUNT,MaxNumJavaThreads,getEmuThreadsPerJavaThread_Acutal(), SimulationConfig.MapJavaCores, idToShmGet);
+			shmid = shmget(COUNT,MaxNumJavaThreads,getEmuThreadsPerJavaThread(), SimulationConfig.MapJavaCores, idToShmGet);
 			if(shmid < 0)
 			{
 				idToShmGet = (idToShmGet + 1)%Integer.MAX_VALUE;
