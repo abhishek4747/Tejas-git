@@ -312,6 +312,8 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
 
 VOID printip(THREADID tid, VOID *ip) {
 	//numCISC[tid]++;
+	GetLock(&lock, tid + 1);
+
 	if(ignoreActive == false)
 		numCISC[tid]++;
 	totalNumCISC++;
@@ -336,25 +338,23 @@ VOID printip(THREADID tid, VOID *ip) {
 			}
 
 		if(numInsToSimulate > 0 &&
-					totalNumCISC > numInsToIgnore + numInsToSimulate)
+					totalNumCISC >= numInsToIgnore + numInsToSimulate)
 		{
 			for(int i = 0; i < MaxThreads; i++)
 			{
 				if(threadAlive[i] == true)
 				{
-					tid = i;
-					GetLock(&lock, tid + 1);
+					int tid_1 = i;
 					//printf("attempting to write -1\n");
 					cout << "attempting to write -1\n";
-					while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+					while (tst->onThread_finish(tid_1, (numCISC[tid_1])) == -1) {
 									PIN_Yield();
 							}
 					//printf("wrote -1 for tid %d\n", tid);
-					cout << "wrote -1 for tid " << tid << "\n";
+					cout << "wrote -1 for tid " << tid_1 << "\n";
 					livethreads--;
-					threadAlive[tid] = false;
+					threadAlive[tid_1] = false;
 					fflush(stdout);
-					ReleaseLock(&lock);
 				}
 			}
 
@@ -401,19 +401,17 @@ VOID printip(THREADID tid, VOID *ip) {
 			{
 				if(threadAlive[i] == true)
 				{
-					tid = i;
-					GetLock(&lock, tid + 1);
+					int tid_1 = i;
 					//printf("attempting to write -1\n");
 					cout << "attempting to write -1\n";
-					while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
+					while (tst->onThread_finish(tid_1, (numCISC[tid_1])) == -1) {
 									PIN_Yield();
 							}
 					//printf("wrote -1 for tid %d\n", tid);
-					cout << "wrote -1 for tid " << tid << "\n";
+					cout << "wrote -1 for tid " << tid_1 << "\n";
 					livethreads--;
-					threadAlive[tid] = false;
+					threadAlive[tid_1] = false;
 					fflush(stdout);
-					ReleaseLock(&lock);
 				}
 			}
 
@@ -427,6 +425,7 @@ VOID printip(THREADID tid, VOID *ip) {
 				}
 				fflush(stdout);
 				tst->unload();
+				ReleaseLock(&lock);
 				exit(0);
 			}
 
@@ -455,7 +454,9 @@ VOID printip(THREADID tid, VOID *ip) {
 		cout <<"totalNumCISC = "<<totalNumCISC <<" ignoreActive = "<< ignoreActive <<"\n";
 		fflush(stdout);
 	}
-//
+	ReleaseLock(&lock);
+
+	//
 //	// ---------------------------
 //	static FILE* ciscIPFile = NULL;
 //	if(ciscIPFile==NULL) {
