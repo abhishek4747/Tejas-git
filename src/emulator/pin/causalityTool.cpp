@@ -312,7 +312,7 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
 
 VOID printip(THREADID tid, VOID *ip) {
 	//numCISC[tid]++;
-	GetLock(&lock, tid + 1);
+	GetLock(&lock, tid);
 
 	if(ignoreActive == false)
 		numCISC[tid]++;
@@ -320,7 +320,7 @@ VOID printip(THREADID tid, VOID *ip) {
 
 	if(pinpointsFilename.compare("nofile") == 0)
 	{
-		if(totalNumCISC > numInsToIgnore)
+		if(totalNumCISC >= numInsToIgnore)
 			{
 				if(numInsToSimulate < 0 ||
 					totalNumCISC < numInsToIgnore + numInsToSimulate)
