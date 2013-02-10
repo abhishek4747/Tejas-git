@@ -88,18 +88,18 @@ public class GShare implements BranchPredictor{
                int state=PHT[index];
                if(predict==outcome)
                {
-                       if(predict==false && state!=0)
-                               state--;
-                       else if(predict==true && state!=saturating_states)
+                       if(outcome && state!=saturating_states)
                                state++;
+                       else if(!outcome && state!=0)
+                               state--;
+
                }
                else
                {
-                       if(state<=not_taken_states)
+                       if(!predict && state!=saturating_states)
                                state++;
-                       else
+                       else if(predict && state!=0)
                                state--;
-
                }
                PHT[index]=state;
                BHR=BHR<<1;

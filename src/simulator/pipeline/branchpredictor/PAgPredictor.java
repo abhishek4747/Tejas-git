@@ -106,21 +106,23 @@ public class PAgPredictor implements BranchPredictor {
                index=(int)(maskbits&address);
                BHR=PBHT[index];
                state=PHT[BHR];
+
                if(predict==outcome)
                {
-                       if(predict==false && state!=0)
-                               state--;
-                       else if(predict==true && state!=saturating_states)
+                       if(outcome && state!=saturating_states)
                                state++;
-               }
-               else
-               {
-                       if(state<=not_taken_states)
-                               state++;
-                       else
+                       else if(!outcome && state!=0)
                                state--;
 
                }
+               else
+               {
+                       if(!predict && state!=saturating_states)
+                               state++;
+                       else if(predict && state!=0)
+                               state--;
+               }
+               
                PHT[BHR]=state;
                BHR=BHR<<1;
                if(outcome==true)

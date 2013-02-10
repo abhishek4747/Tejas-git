@@ -78,9 +78,9 @@ public class BimodalPredictor implements BranchPredictor {
                 }
                 else
                 {
-                        if(state<=saturating_states)
+                        if(!predict && state!=saturating_states)
                                 state++;
-                        else
+                        else if(predict && state!=0)
                                 state--;
                 }
                PHT[index]=state;

@@ -57,7 +57,7 @@ public class GApPredictor implements BranchPredictor {
                 this.BHRsize=BHRsize;
                 this.PCBits=PCBits;
                 int i,PHTsize;
-                PHTsize=1<<PCBits+BHRsize;
+                PHTsize=1<<(PCBits+BHRsize);
                 PHT=new int[PHTsize];
                 BHR=1<<BHRsize;
                 BHR=BHR-1;
