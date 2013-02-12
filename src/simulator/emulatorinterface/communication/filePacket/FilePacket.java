@@ -12,6 +12,7 @@ import main.CustomObjectPool;
 
 import config.EmulatorConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
@@ -20,6 +21,7 @@ public class FilePacket extends IpcBase implements Encoding {
 
 	BufferedReader inputBufferedReader[];
 	int maxApplicationThreads = -1;
+	long totalFetchedPackets = 0;
 	
 	public FilePacket() {
 		this.maxApplicationThreads = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
@@ -63,6 +65,11 @@ public class FilePacket extends IpcBase implements Encoding {
 			
 			try {
 				
+				if(SimulationConfig.subsetSimulation && totalFetchedPackets >= SimulationConfig.subsetSimSize) {
+					fromEmulator.get(0).set(-1, -1, -1);
+					return 1;
+				}
+				
 				String inputLine = inputBufferedReader[tidApp].readLine();
 				
 				if(inputLine != null) {
@@ -76,12 +83,14 @@ public class FilePacket extends IpcBase implements Encoding {
 					if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 					
 						tgt = Long.parseLong(stringTokenizer.nextToken());
+						totalFetchedPackets += 1;
 					
 					} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 						
 						if(value!=ASSEMBLY) {
 							tgt = Long.parseLong(stringTokenizer.nextToken());
 						} else {
+							totalFetchedPackets += 1;
 							tgt = -1;
 							CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, inputLine.getBytes(), 0);
 						}
@@ -113,7 +122,9 @@ public class FilePacket extends IpcBase implements Encoding {
 	public void finish() {
 		for(int i=0; i<maxApplicationThreads; i++) {
 			try {
-				inputBufferedReader[i].close();
+				if(inputBufferedReader[i] != null) {
+					inputBufferedReader[i].close();	
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
