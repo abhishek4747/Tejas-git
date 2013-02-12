@@ -21,8 +21,8 @@ public class FilePacket extends IpcBase implements Encoding {
 	BufferedReader inputBufferedReader[];
 	int maxApplicationThreads = -1;
 	
-	public FilePacket(int maxApplicationThreads) {
-		this.maxApplicationThreads = maxApplicationThreads;
+	public FilePacket() {
+		this.maxApplicationThreads = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
 		
 		inputBufferedReader = new BufferedReader[maxApplicationThreads];
 		
@@ -32,7 +32,13 @@ public class FilePacket extends IpcBase implements Encoding {
 				inputBufferedReader[i] = new BufferedReader(
 					new FileReader(	new File(inputFileName)));
 			} catch (FileNotFoundException e) {
-				misc.Error.showErrorAndExit("Error in reading input packet file " + inputFileName);
+				if(i==0) {
+					// not able to find first file is surely an error.
+					misc.Error.showErrorAndExit("Error in reading input packet file " + inputFileName);
+				} else {
+					System.out.println("FilePacket : no trace file found for tidApp = " + i);
+					continue;
+				}
 			}
 		}
 	}
@@ -44,6 +50,10 @@ public class FilePacket extends IpcBase implements Encoding {
 	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
 		
 		if(tidApp>=maxApplicationThreads) {
+			misc.Error.showErrorAndExit("FilePacket cannot handle tid=" + tidApp);
+		}
+		
+		if(inputBufferedReader[tidApp]==null) {
 			return 0;
 		}
 		

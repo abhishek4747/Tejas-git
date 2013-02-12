@@ -149,9 +149,9 @@ public class Main {
 			ipcBase = new SharedMem(pid);
  		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_NETWORK) {
  			//ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
- 			ipcBase = new Network(1);
+ 			ipcBase = new Network();
  		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_PACKET) {
- 			ipcBase = new FilePacket(1);
+ 			ipcBase = new FilePacket();
  		} else {
  			ipcBase = null;
  			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);
