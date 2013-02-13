@@ -21,7 +21,7 @@ public class FilePacket extends IpcBase implements Encoding {
 
 	BufferedReader inputBufferedReader[];
 	int maxApplicationThreads = -1;
-	long totalFetchedPackets = 0;
+	long totalFetchedAssemblyPackets = 0;
 	
 	public FilePacket() {
 		this.maxApplicationThreads = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
@@ -65,8 +65,8 @@ public class FilePacket extends IpcBase implements Encoding {
 			
 			try {
 				
-				if(SimulationConfig.subsetSimulation && totalFetchedPackets >= SimulationConfig.subsetSimSize) {
-					fromEmulator.get(0).set(-1, -1, -1);
+				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= SimulationConfig.subsetSimSize) {
+					fromEmulator.get(0).set(totalFetchedAssemblyPackets, -1, -1);
 					return 1;
 				}
 				
@@ -83,16 +83,16 @@ public class FilePacket extends IpcBase implements Encoding {
 					if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 					
 						tgt = Long.parseLong(stringTokenizer.nextToken());
-						totalFetchedPackets += 1;
+						totalFetchedAssemblyPackets += 1;
 					
 					} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 						
 						if(value!=ASSEMBLY) {
 							tgt = Long.parseLong(stringTokenizer.nextToken());
 						} else {
-							totalFetchedPackets += 1;
+							totalFetchedAssemblyPackets += 1;
 							tgt = -1;
-							CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, inputLine.getBytes(), 0);
+							CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, stringTokenizer.nextToken("\n").getBytes(), 1);
 						}
 						
 					} else {
