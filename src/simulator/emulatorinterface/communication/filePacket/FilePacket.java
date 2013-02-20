@@ -66,8 +66,8 @@ public class FilePacket extends IpcBase implements Encoding {
 			try {
 				
 				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= SimulationConfig.subsetSimSize) {
-					fromEmulator.get(0).set(totalFetchedAssemblyPackets, -1, -1);
-					return 1;
+					fromEmulator.get(i).set(totalFetchedAssemblyPackets, -1, -1);
+					return (i+1);
 				}
 				
 				String inputLine = inputBufferedReader[tidApp].readLine();
