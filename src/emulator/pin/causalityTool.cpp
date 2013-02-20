@@ -38,7 +38,7 @@ KNOB<UINT64>   KnobId(KNOB_MODE_WRITEONCE,       "pintool",
 KNOB<std::string>   KnobPinPointsFile(KNOB_MODE_WRITEONCE,       "pintool",
     "pinpointsFile", "nofile", "pinpoints file (pass numIgn = 0, numSim = -1)");
 
-PIN_LOCK lock;
+PIN_MUTEX lock;
 INT32 numThreads = 0;
 INT32 livethreads = 0;
 UINT64 checkSum = 0;
@@ -72,9 +72,9 @@ uint64_t ClockGetTime() {
 // so that even if halts we have a timer packet here.
 void sendTimerPacket(int tid, bool compulsory) {
 	if ((countPacket[tid]++ % PacketEpoch)==0 || compulsory){
-		GetLock(&lock, tid + 1);
+		PIN_MutexLock(&lock);
 		checkSum +=TIMER;
-		ReleaseLock(&lock);
+		PIN_MutexUnlock(&lock);
 
 		countPacket[tid]=0;
 		uint64_t time = ClockGetTime();
@@ -106,7 +106,7 @@ bool hasEntered(int tid, ADDRINT addr) {
 }
 
 VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
-	GetLock(&lock, threadid + 1);
+	PIN_MutexLock(&lock);
 	numThreads++;
 	livethreads++;
 	threadAlive[threadid] = true;
@@ -115,7 +115,7 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	fflush(stdout);
 	pumpingStatus[numThreads - 1] = true;
 	tst->onThread_start(threadid);
-	ReleaseLock(&lock);
+	PIN_MutexUnlock(&lock);
 	ASSERT(livethreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
 }
 
@@ -123,7 +123,7 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 
 //	printf("thread %d finished exec\n",tid);
 //	fflush(stdout);
-	GetLock(&lock, tid + 1);
+	PIN_MutexLock(&lock);
 	/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
 			PIN_Yield();
 	}*/
@@ -135,7 +135,7 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 	livethreads--;
 	threadAlive[tid] = false;
 	fflush(stdout);
-	ReleaseLock(&lock);
+	PIN_MutexUnlock(&lock);
 }
 
 //Pass a memory read record
@@ -151,9 +151,9 @@ VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
 //			fflush(stdout);
 	sendTimerPacket(tid,false);
 
-	GetLock(&lock, tid + 1);
+	PIN_MutexLock(&lock);
 	checkSum +=MEMREAD;
-	ReleaseLock(&lock);
+	PIN_MutexUnlock(&lock);
 
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t naddr = MASK & (uint64_t) addr;
@@ -172,9 +172,9 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 
 	sendTimerPacket(tid,false);
 
-	GetLock(&lock, tid + 1);
+	PIN_MutexLock(&lock);
 	checkSum +=MEMWRITE;
-	ReleaseLock(&lock);
+	PIN_MutexUnlock(&lock);
 
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t naddr = MASK & (uint64_t) addr;
@@ -195,17 +195,17 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 	uint64_t nip = MASK & (uint64_t) ip;
 	uint64_t ntadr = MASK & (uint64_t) tadr;
 	if (taken) {
-		GetLock(&lock, tid + 1);
+		PIN_MutexLock(&lock);
 		checkSum +=TAKEN;
-		ReleaseLock(&lock);
+		PIN_MutexUnlock(&lock);
 
 		while (tst->analysisFn(tid, nip, TAKEN, ntadr) == -1) {
 			PIN_Yield();
 		}
 	} else {
-		GetLock(&lock, tid + 1);
+		PIN_MutexLock(&lock);
 		checkSum +=NOTTAKEN;
-		ReleaseLock(&lock);
+		PIN_MutexUnlock(&lock);
 		while (tst->analysisFn(tid, nip, NOTTAKEN, ntadr) == -1) {
 			PIN_Yield();
 		}
@@ -250,9 +250,9 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 //		printf("\npin num_bar = %d\t %d\n",++num_bar,tid);
 //		fflush(stdout);
 //		}
-	GetLock(&lock, tid + 1);
+	PIN_MutexLock(&lock);
 	checkSum +=encode;
-	ReleaseLock(&lock);
+	PIN_MutexUnlock(&lock);
 
 	uint64_t uarg = MASK & (uint64_t) first_arg;
 	while (tst->analysisFn(tid, time, encode, uarg) == -1) {
@@ -283,13 +283,13 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 		printf("%d %s with first arg %p   --%llu\n", tid, temp,
 				(void *) first_arg, time);
 		//TraceFile << threadid <<" exit "<< *name << " returns " << ret << endl;
-		ReleaseLock(&lock);
+		PIN_MutexUnlock(&lock);
 	}
 */
 	
-	GetLock(&lock, tid + 1);
+	PIN_MutexLock(&lock);
 	checkSum +=encode;
-	ReleaseLock(&lock);
+	PIN_MutexUnlock(&lock);
 
 	uint64_t uarg = MASK & (uint64_t) first_arg;
 	while (tst->analysisFn(tid, time, encode, uarg) == -1) {
@@ -299,9 +299,9 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 }
 
 VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
-        GetLock(&lock, tid + 1);
+        PIN_MutexLock(&lock);
         checkSum +=encode;
-        ReleaseLock(&lock);
+        PIN_MutexUnlock(&lock);
 
         uint64_t uarg = MASK & (uint64_t) first_arg;
         uint64_t value = MASK & (uint64_t) val;
@@ -312,7 +312,7 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
 
 VOID printip(THREADID tid, VOID *ip) {
 	//numCISC[tid]++;
-	GetLock(&lock, tid);
+	PIN_MutexLock(&lock);
 
 	if(ignoreActive == false)
 		numCISC[tid]++;
@@ -425,7 +425,6 @@ VOID printip(THREADID tid, VOID *ip) {
 				}
 				fflush(stdout);
 				tst->unload();
-				ReleaseLock(&lock);
 				exit(0);
 			}
 
@@ -454,7 +453,7 @@ VOID printip(THREADID tid, VOID *ip) {
 		cout <<"totalNumCISC = "<<totalNumCISC <<" ignoreActive = "<< ignoreActive <<"\n";
 		fflush(stdout);
 	}
-	ReleaseLock(&lock);
+	PIN_MutexUnlock(&lock);
 
 	//
 //	// ---------------------------
