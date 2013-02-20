@@ -612,6 +612,7 @@ public class RunnableThread implements Encoding, Runnable {
 			//thread.pold.set(pnew);
 			thread.packetList.add(pnew);
 			thread.isFirstPacket=false;
+			return;
 		}
 		
 		if (pnew.value!=INSTRUCTION && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {
