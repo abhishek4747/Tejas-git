@@ -30,6 +30,7 @@ public class CustomAsmCharPool {
 			if( (offset+i) < inputBytes.length) {
 				pool[tidApp][tail[tidApp]][i] = inputBytes[offset+i];	
 			} else {//asm packets for filePacket interface may have less than 64 characters
+				pool[tidApp][tail[tidApp]][i] = (byte)0;
 				break;
 			}
 		}
