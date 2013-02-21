@@ -1,6 +1,8 @@
 // Do not change these encodings, change Encoding.java too, if needed.
 
-#define INSTRUCTION 28
+#define THREADCOMPLETE -1
+#define SUBSETSIMCOMPLETE -2
+
 #define MEMREAD	2
 #define MEMWRITE	3
 #define	TAKEN	4
@@ -18,6 +20,12 @@
 #define	CONDWAIT	20
 #define	BARRIERWAIT	22
 #define BARRIERINIT 26
+#define ASSEMBLY 27
+#define INSTRUCTION 28
+#define INTERRUPT 30
+#define PROCESS_SWITCH 31
+#define DOM_SWITCH 32
+#define CPL_SWITCH 34
 
 
 const char* findType(int type){

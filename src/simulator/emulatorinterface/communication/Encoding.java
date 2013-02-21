@@ -5,6 +5,9 @@ package emulatorinterface.communication;
 // change encoding.h if any change here.
 public interface Encoding {
 	
+	static final int THREADCOMPLETE = -1;
+	static final int SUBSETSIMCOMPLETE = -2;
+	
 	static final int MEMREAD  = 2;
 	static final int MEMWRITE = 3;
 	static final int TAKEN = 4;
