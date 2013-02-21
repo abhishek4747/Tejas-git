@@ -347,7 +347,7 @@ VOID printip(THREADID tid, VOID *ip) {
 					int tid_1 = i;
 					//printf("attempting to write -1\n");
 					cout << "attempting to write -1\n";
-					while (tst->onThread_finish(tid_1, (numCISC[tid_1])) == -1) {
+					while (tst->onSubset_finish(tid_1, (numCISC[tid_1])) == -1) {
 									PIN_Yield();
 							}
 					//printf("wrote -1 for tid %d\n", tid);

@@ -191,6 +191,28 @@ Shm::onThread_finish (int tid, long numCISC)
 	return ret;
 }
 
+int Shm::onSubset_finish (int tid, long numCISC)
+{
+	int actual_tid = tid;
+		tid = memMapping[tid];   //find the mapped mem segment
+		THREAD_DATA *myData = &tldata[tid];
+
+		// keep writing till we empty our local queue
+		while (myData->tlqsize !=0) {
+			if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
+		}
+
+
+		// last write to our shared memory. This time write a -2 in the 'value' field of the packet
+		int ret = Shm::shmwrite(actual_tid,2, numCISC);
+
+		if(ret != -1){
+			myData->avail = 1;
+			myData->tlqsize = 0;
+		}
+		return ret;
+}
+
 /* Read at 'out' of a local queue and write as many slots available in
  * shared memory. If none available then block
  * If last is 0 then normal write and if last is 1 then write -1 at the end
@@ -244,13 +266,20 @@ Shm::shmwrite (int tid, int last, long numCISC)
 		myData->tlqsize=myData->tlqsize-numWrite;
 
 	}
-	else {
+	else if(last == 1){
 		numWrite = 1;
 		get_lock(shmem);
-		shmem[myData->prod_ptr % COUNT].value = -1;
+		shmem[myData->prod_ptr % COUNT].value = THREADCOMPLETE;
 		shmem[myData->prod_ptr % COUNT].ip = numCISC;
 		release_lock(shmem);
 
+	}
+	else if(last == 2){
+		numWrite = 1;
+		get_lock(shmem);
+		shmem[myData->prod_ptr % COUNT].value = SUBSETSIMCOMPLETE;
+		shmem[myData->prod_ptr % COUNT].ip = numCISC;
+		release_lock(shmem);
 	}
 
 //	// some bookkeeping of the threads state.

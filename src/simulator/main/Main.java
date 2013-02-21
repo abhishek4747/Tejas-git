@@ -23,6 +23,7 @@ public class Main {
 	
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
+	public static volatile boolean statFileWritten = false;
 	
 	private static  String emulatorFile = " ";
 
@@ -108,7 +109,7 @@ public class Main {
 		
 		ipcBase.waitForJavaThreads();
 		if(emulator!=null) {
-			emulator.waitForEmulator();
+			emulator.forceKill();
 		}
 		
 		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
@@ -117,6 +118,7 @@ public class Main {
 
 		endTime = System.currentTimeMillis();
 		Statistics.printAllStatistics(getEmulatorFile(), startTime, endTime);
+		statFileWritten = true;
 		
 		System.out.println("operand pool size = " + CustomObjectPool.getOperandPool().getSize());
 		System.out.println("instruction pool size = " + CustomObjectPool.getOperandPool().getSize());

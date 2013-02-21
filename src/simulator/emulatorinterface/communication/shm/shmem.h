@@ -7,6 +7,8 @@
 #include <string.h>
 #include "../IPCBase.h"
 
+#include "../encoding.h"
+
 // Must ensure that this is same as in SharedMem.java
 #define COUNT	(1000)
 #define locQ	(50)
@@ -46,6 +48,7 @@ public:
 	int analysisFn (int tid,uint64_t ip, uint64_t value, uint64_t tgt);
 	void onThread_start (int tid);
 	int onThread_finish (int tid, long numCISC);
+	int onSubset_finish (int tid, long numCISC);
 	int shmwrite (int tid, int last, long numCISC);
 	void get_lock(packet *map);
 	void release_lock(packet *map);
