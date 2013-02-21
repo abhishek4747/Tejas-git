@@ -49,6 +49,7 @@ public class GenericCircularQueue<E> {
 		}
 		
 		E toBeReturned = buffer[head];
+		buffer[head] = null;
 		if(head == tail)
 		{
 			head = -1;
@@ -135,6 +136,7 @@ public class GenericCircularQueue<E> {
 		}
 		
 		E toBeReturned = buffer[tail];
+		buffer[tail] = null;
 		if(head == tail)
 		{
 			head = -1;

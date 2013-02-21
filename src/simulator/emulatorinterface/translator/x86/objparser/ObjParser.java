@@ -630,24 +630,35 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 	
-	private static boolean removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer) {
+	private static boolean removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer, int previousSize) {
 		
-		Instruction removedInstruction;
-		boolean foundThisCISC = false;
-		
-		while( (inputToPipeline.isEmpty()== false) &&
-			(inputToPipeline.peek(inputToPipeline.size()-1).getCISCProgramCounter()==instructionPointer))
-		{
-			foundThisCISC = true;
-			removedInstruction = inputToPipeline.pop();
-			try {
-				CustomObjectPool.getInstructionPool().returnObject(removedInstruction);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		if(inputToPipeline.size()<previousSize) {
+			misc.Error.showErrorAndExit("This is not possible !!!");
 		}
 		
-		return foundThisCISC;
+//		Instruction removedInstruction;
+//		boolean foundThisCISC = false;
+//		
+//		while( (inputToPipeline.isEmpty()== false) &&
+//			(inputToPipeline.peek(inputToPipeline.size()-1).getCISCProgramCounter()==instructionPointer))
+//		{
+//			foundThisCISC = true;
+//			removedInstruction = inputToPipeline.pop();
+//			try {
+//				CustomObjectPool.getInstructionPool().returnObject(removedInstruction);
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		
+//		return foundThisCISC;
+		
+		while(inputToPipeline.size()>previousSize) {
+			Instruction ins = inputToPipeline.pop();
+			CustomObjectPool.getInstructionPool().returnObject(ins);
+		}
+		
+		return false;
 	}
 
 	/*
@@ -659,6 +670,8 @@ public class ObjParser
 			int tidApp, long startInstructionPointer,
 			EmulatorPacketList arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
 	{
+		int prevLengthOfInputToPipeLine = inputToPipeline.size();
+
 		//System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
 		// Create a dynamic instruction buffer for all control packets
@@ -670,6 +683,7 @@ public class ObjParser
 		int numCISC = 1;
 		int microOpIndex = -1;
 		
+		boolean removedFromTail = false;		
 		// Riscify the assembly packets
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 			assemblyPacketList = threadMicroOpsList[tidApp];
@@ -748,14 +762,19 @@ public class ObjParser
 				// So, I must remove any previously 
 				// computed micro-ops from the buffer
 				CustomObjectPool.getInstructionPool().returnObject(dynamicMicroOp);
-				removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter());
+				removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter(), prevLengthOfInputToPipeLine);
+				removedFromTail = true;
 				numCISC = 0;
 				break;
 			} else {
 				inputToPipeline.enqueue(dynamicMicroOp); //append microOp
 			}
 		}
-		
+		if((removedFromTail == true )&& inputToPipeline.size()!=prevLengthOfInputToPipeLine) {
+			System.err.println("\ncurrentSize = " + inputToPipeline.size());
+			System.err.println("previousSize = " + prevLengthOfInputToPipeLine);
+			misc.Error.showErrorAndExit("");
+		}
 		/* clear the dynamicInstructionBuffer */		
 		// dynamicInstructionBuffer.clearBuffer();
 		//System.out.println(inputToPipeline);

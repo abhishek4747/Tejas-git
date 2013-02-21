@@ -64,9 +64,9 @@ public class FilePacket extends IpcBase implements Encoding {
 		for(int i=0; i<maxSize; i++) {
 			
 			try {
-				
-				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= SimulationConfig.subsetSimSize) {
-					fromEmulator.get(i).set(totalFetchedAssemblyPackets, -1, -1);
+				//Subset Simulation
+				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= (SimulationConfig.subsetSimSize + SimulationConfig.NumInsToIgnore)) {
+					fromEmulator.get(i).set(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -1, -1);
 					return (i+1);
 				}
 				
@@ -98,6 +98,22 @@ public class FilePacket extends IpcBase implements Encoding {
 					} else {
 						misc.Error.showErrorAndExit("Invalid emulator type : " + 
 								EmulatorConfig.EmulatorType + "!!");
+					}
+					
+					//TODO: implement NumInsToIgnore for PIN
+					//NumsToIgnore implemented only for QEMU
+					if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+						//ignore these many instructions: NumInsToIgnore 
+						if(totalFetchedAssemblyPackets < SimulationConfig.NumInsToIgnore) {
+							if(value == ASSEMBLY) {
+								CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
+							}
+							return 0;
+						// totalFetchedAssemblyPackets just became equal to NumInsToIgnore, so 
+						// we start setting fromEmulator packets
+						} else if(totalFetchedAssemblyPackets == SimulationConfig.NumInsToIgnore && value==ASSEMBLY) {
+							i=0;						
+						}	
 					}
 					
 					fromEmulator.get(i).set(ip, value, tgt);
