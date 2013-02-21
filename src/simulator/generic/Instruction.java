@@ -61,6 +61,14 @@ public class Instruction implements Serializable
 		this.destinationOperand = null;
 	}
 	
+	public void clear()
+	{
+		this.type = null;
+		this.sourceOperand1 = null;
+		this.sourceOperand2 = null;
+		this.destinationOperand = null;
+	}
+	
 	public Instruction(OperationType type, Operand sourceOperand1,
 			Operand sourceOperand2, Operand destinationOperand)
 	{

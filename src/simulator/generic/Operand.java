@@ -52,6 +52,13 @@ public class Operand implements Serializable
 		this.memoryLocationFirstOperand = null;
 		this.memoryLocationSecondOperand = null;
 	}
+	 
+	public void clear()
+	{
+		this.value = 0;
+		this.memoryLocationFirstOperand = null;
+		this.memoryLocationSecondOperand = null;
+	}
 	
 	public Operand(OperandType operandType, long  operandValue)
 	{

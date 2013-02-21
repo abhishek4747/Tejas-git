@@ -132,7 +132,7 @@ public class CustomInstructionPool {
 		{
 			CustomObjectPool.getOperandPool().returnObject(arg0.getDestinationOperand());
 		}
-		
+		arg0.clear();
 		pool.append(arg0);
 	}
 	

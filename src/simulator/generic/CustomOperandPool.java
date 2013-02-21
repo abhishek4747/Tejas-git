@@ -99,7 +99,7 @@ public class CustomOperandPool {
 		{
 			CustomObjectPool.getOperandPool().returnObject(arg0.getMemoryLocationSecondOperand());
 		}
-		
+		arg0.clear();
 		pool.append(arg0);
 	}
 	
