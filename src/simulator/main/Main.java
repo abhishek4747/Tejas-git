@@ -120,8 +120,6 @@ public class Main {
 		Statistics.printAllStatistics(getEmulatorFile(), startTime, endTime);
 		statFileWritten = true;
 		
-		System.out.println("operand pool size = " + CustomObjectPool.getOperandPool().getSize());
-		System.out.println("instruction pool size = " + CustomObjectPool.getOperandPool().getSize());
 		System.out.println("\n\nSimulation completed !!");
 				
 		System.exit(0);
@@ -137,9 +135,12 @@ public class Main {
 		} else {
 			
 		}
-				
-		// Initialise pool of operands and instructions
+		
+		// Initialise pool of instructions
 		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread, numStaticInstructions);
+		
+		// Pre-allocate all the possible operands
+		
 	}
 
 	private static IpcBase startCommunicationChannel(int pid) {

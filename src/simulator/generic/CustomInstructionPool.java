@@ -1,7 +1,5 @@
 package generic;
 
-import main.CustomObjectPool;
-
 public class CustomInstructionPool {
 	
 	/*Instruction[] pool;
@@ -120,18 +118,7 @@ public class CustomInstructionPool {
 //		System.out.println("ip = " + arg0.getCISCProgramCounter());
 		
 //		System.out.println("return"+head+" "+tail);
-		if(arg0.getSourceOperand1() != null)
-		{
-			CustomObjectPool.getOperandPool().returnObject(arg0.getSourceOperand1());
-		}
-		if(arg0.getSourceOperand2() != null)
-		{
-			CustomObjectPool.getOperandPool().returnObject(arg0.getSourceOperand2());
-		}
-		if(arg0.getDestinationOperand() != null)
-		{
-			CustomObjectPool.getOperandPool().returnObject(arg0.getDestinationOperand());
-		}
+		
 		arg0.clear();
 		pool.append(arg0);
 	}

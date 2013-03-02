@@ -23,6 +23,8 @@ package generic;
 
 import java.io.Serializable;
 
+import emulatorinterface.translator.x86.registers.Registers;
+
 import main.CustomObjectPool;
 import main.Main;
 
@@ -30,11 +32,78 @@ import main.Main;
 
 public class Operand implements Serializable
 {
-	private int numReferrences = 0; 
+	// pre-allocated operands
+	private static Operand floatRegisterOperands[];
+	private static Operand integerRegisterOperands[];
+	private static Operand machineSpecificRegisterOperands[];
+	private static Operand memoryOperands[][];
+	
+	public static void preAllocateOperands() {
+		
+		// Create integer registers
+		integerRegisterOperands = new Operand[Registers.getMaxIntegerRegisters()];
+		for(int i=0; i<Registers.getMaxIntegerRegisters(); i++) {
+			integerRegisterOperands[i] = new Operand();
+			integerRegisterOperands[i].type = OperandType.integerRegister;
+			integerRegisterOperands[i].value = i;
+		}
+		
+		// Create float registers
+		floatRegisterOperands = new Operand[Registers.getMaxFloatRegisters()];
+		for(int i=0; i<Registers.getMaxFloatRegisters(); i++) {
+			floatRegisterOperands[i] = new Operand();
+			floatRegisterOperands[i].type = OperandType.floatRegister;
+			floatRegisterOperands[i].value = i;
+		}
+		
+		// Create machine specific registers
+		machineSpecificRegisterOperands = new Operand[Registers.getMaxMachineSpecificRegisters()];
+		for(int i=0; i<Registers.getMaxMachineSpecificRegisters(); i++) {
+			machineSpecificRegisterOperands[i] = new Operand();
+			machineSpecificRegisterOperands[i].type = OperandType.machineSpecificRegister; 
+			machineSpecificRegisterOperands[i].value = i;
+		}
+		
+		// Create memory operands
+		// Options : integer-integer, integer-msr, msr-msr
+		memoryOperands = new Operand[(integerRegisterOperands.length*machineSpecificRegisterOperands.length)]
+				[(integerRegisterOperands.length*machineSpecificRegisterOperands.length)];
+		
+		// allocate integer-integer operands
+		for(int i=0; i<integerRegisterOperands.length; i++) {
+			for(int j=0; j<integerRegisterOperands.length; j++) {
+				memoryOperands[i][j] = new Operand();
+				memoryOperands[i][j].type = OperandType.memory;
+				memoryOperands[i][j].memoryLocationFirstOperand = integerRegisterOperands[i];
+				memoryOperands[i][j].memoryLocationSecondOperand = integerRegisterOperands[j];
+			}
+		}
+		
+		// allocate integer-msr operands
+		for(int i=0; i<integerRegisterOperands.length; i++) {
+			for(int j=0; j<machineSpecificRegisterOperands.length; j++) {
+				memoryOperands[i][j+integerRegisterOperands.length] = new Operand();
+				memoryOperands[i][j+integerRegisterOperands.length].memoryLocationFirstOperand = integerRegisterOperands[i];
+				memoryOperands[i][j+integerRegisterOperands.length].memoryLocationSecondOperand = machineSpecificRegisterOperands[j]; 
+			}
+		}
+		
+		// allocate msr-msr operands
+		for(int i=0; i<machineSpecificRegisterOperands.length; i++) {
+			for(int j=0; j<machineSpecificRegisterOperands.length; j++) {
+				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length] = new Operand();
+				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length].type = OperandType.memory;
+				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
+				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length].memoryLocationSecondOperand = machineSpecificRegisterOperands[j];
+			}
+		}
+	}
+	
+	
+	
 	private OperandType type;
 	private long value;			//if operand type is register, value indicates which register
 								//if operand type is immediate, value indicates the operand value
-	
 	Operand memoryLocationFirstOperand;
 	Operand memoryLocationSecondOperand;
 	

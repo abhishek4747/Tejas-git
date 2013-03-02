@@ -317,4 +317,19 @@ public class Registers
 	{
 		return Operand.getMachineSpecificRegister(encodeRegister("FP_CWORD"));
 	}
+
+	public static int getMaxIntegerRegisters() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public static int getMaxFloatRegisters() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public static int getMaxMachineSpecificRegisters() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
  }

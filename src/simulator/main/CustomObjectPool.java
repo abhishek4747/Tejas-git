@@ -3,13 +3,10 @@ package main;
 import config.EmulatorConfig;
 import emulatorinterface.RunnableThread;
 import emulatorinterface.communication.CustomAsmCharPool;
-import emulatorinterface.communication.IpcBase;
 import generic.CustomInstructionPool;
-import generic.CustomOperandPool;
 
 public class CustomObjectPool {
 	
-	private static CustomOperandPool operandPool;
 	private static CustomInstructionPool instructionPool;
 	private static CustomAsmCharPool customAsmCharPool;
 	
@@ -24,9 +21,6 @@ public class CustomObjectPool {
 		int maxInstructionPoolSize = staticTimePool + runTimePoolPerAppThread * maxApplicationThreads;
 				
 		/* custom pool */
-		System.out.println("creating operand pool..");
-		setOperandPool(new CustomOperandPool(minInstructionPoolSize*3, maxInstructionPoolSize*3));
-		
 		System.out.println("creating instruction pool..");
 		setInstructionPool(new CustomInstructionPool(minInstructionPoolSize, maxInstructionPoolSize));
 		
@@ -34,14 +28,6 @@ public class CustomObjectPool {
 			System.out.println("creating custom asm-char pool. max threads = " + maxApplicationThreads);
 			customAsmCharPool = new CustomAsmCharPool(maxApplicationThreads);
 		}
-	}
-
-	public static CustomOperandPool getOperandPool() {
-		return operandPool;
-	}
-
-	public static void setOperandPool(CustomOperandPool operandPool) {
-		CustomObjectPool.operandPool = operandPool;
 	}
 
 	public static CustomInstructionPool getInstructionPool() {
