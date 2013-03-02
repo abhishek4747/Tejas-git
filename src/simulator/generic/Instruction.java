@@ -32,6 +32,10 @@ public class Instruction implements Serializable
 	private OperationType type;
 	private Operand sourceOperand1;
 	
+	private long sourceOperand1MemValue;
+	private long sourceOperand2MemValue;
+	private long destinationOperandMemValue;
+	
 	public void setSourceOperand1(Operand sourceOperand1) {
 		this.sourceOperand1 = sourceOperand1;
 	}
@@ -352,4 +356,29 @@ public class Instruction implements Serializable
 	public void setSerialNo(long serialNo) {
 		this.serialNo = serialNo;
 	}
+
+	public long getSourceOperand1MemValue() {
+		return sourceOperand1MemValue;
+	}
+
+	public void setSourceOperand1MemValue(long sourceOperand1MemValue) {
+		this.sourceOperand1MemValue = sourceOperand1MemValue;
+	}
+
+	public long getSourceOperand2MemValue() {
+		return sourceOperand2MemValue;
+	}
+
+	public void setSourceOperand2MemValue(long sourceOperand2MemValue) {
+		this.sourceOperand2MemValue = sourceOperand2MemValue;
+	}
+
+	public long getDestinationOperandMemValue() {
+		return destinationOperandMemValue;
+	}
+
+	public void setDestinationOperandMemValue(long destinationOperandMemValue) {
+		this.destinationOperandMemValue = destinationOperandMemValue;
+	}
+
 }
