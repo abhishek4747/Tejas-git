@@ -124,26 +124,9 @@ public class Instruction implements Serializable
 		this.branchTaken=sourceInstruction.branchTaken;
 		this.branchTargetAddress=sourceInstruction.branchTargetAddress;
 
-		if(sourceInstruction.sourceOperand1==null) {
-			this.sourceOperand1=null;
-		} else {
-			this.sourceOperand1 = CustomObjectPool.getOperandPool().borrowObject();
-			this.sourceOperand1.copy(sourceInstruction.sourceOperand1);
-		}
-		
-		if(sourceInstruction.sourceOperand2==null) {
-			this.sourceOperand2=null;
-		} else {
-			this.sourceOperand2 = CustomObjectPool.getOperandPool().borrowObject();
-			this.sourceOperand2.copy(sourceInstruction.sourceOperand2);
-		}
-		
-		if(sourceInstruction.destinationOperand==null) {
-			this.destinationOperand=null;
-		} else {
-			this.destinationOperand = CustomObjectPool.getOperandPool().borrowObject();
-			this.destinationOperand.copy(sourceInstruction.destinationOperand);
-		}
+		this.sourceOperand1 = sourceInstruction.sourceOperand1;
+		this.sourceOperand2 = sourceInstruction.sourceOperand2;
+		this.destinationOperand = sourceInstruction.destinationOperand;
 	}
 	
 	public long getCISCProgramCounter()

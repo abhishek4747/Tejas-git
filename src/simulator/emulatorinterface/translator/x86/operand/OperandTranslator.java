@@ -191,8 +191,6 @@ public class OperandTranslator
 				}
 				
 				if(Numbers.hexToLong(scaleStr)==0) {
-					index.incrementNumReferences(); // 
-					CustomObjectPool.getOperandPool().returnObject(index); // optimisation : index will not be used
 					index = null;
 				} else if(Numbers.hexToLong(scaleStr)!=1) {
 					scale = Operand.getImmediateOperand();
@@ -274,9 +272,6 @@ public class OperandTranslator
 			{
 				memoryLocationFirstOperand = base;
 				memoryLocationSecondOperand = scaledIndex;
-				
-				offset.incrementNumReferences(); // offset operand is not being used. So we must return it.
-				CustomObjectPool.getOperandPool().returnObject(offset);
 			}
 		}
 		
