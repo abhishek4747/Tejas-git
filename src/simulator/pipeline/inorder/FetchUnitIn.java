@@ -122,7 +122,7 @@ public class FetchUnitIn extends SimulationElement
 				this.stall==0 && 
 				containingExecutionEngine.getStallFetch()==0 
 				&& this.fetchBufferStatus[this.fetchBufferIndex])
-		{
+	        	{
 					ins = this.fetchBuffer[this.fetchBufferIndex];
 
 					if(ins.getOperationType()==OperationType.sync)
@@ -169,6 +169,7 @@ public class FetchUnitIn extends SimulationElement
 								return;
 							}
 						}
+						ifIdLatch.setInstruction(null);
 						ins = this.fetchBuffer[fetchBufferIndex];
 					}
 					else{
