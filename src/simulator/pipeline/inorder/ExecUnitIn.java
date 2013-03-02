@@ -101,7 +101,7 @@ public class ExecUnitIn extends SimulationElement{
 						//System.out.println(" load issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
 						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Read,
-								ins.getSourceOperand1().getValue());
+								ins.getSourceOperand1MemValue());
 					}
 				}
 				else if(ins.getOperationType()==OperationType.store)
@@ -116,7 +116,7 @@ public class ExecUnitIn extends SimulationElement{
 						//System.out.println(" store issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
 						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Write,
-								ins.getSourceOperand1().getValue());
+								ins.getSourceOperand1MemValue());
 					}
 				}
 				else

@@ -108,7 +108,7 @@ public class DecodeLogic extends SimulationElement {
 					
 				//TODO
 				execEngine.getCoreMemorySystem().allocateLSQEntry(isLoad, 
-						newROBEntry.getInstruction().getSourceOperand1().getValue(),
+						newROBEntry.getInstruction().getSourceOperand1MemValue(),
 						newROBEntry);
 			}
 			

@@ -222,11 +222,19 @@ public class Operand implements Serializable
 
 	public void setValue(long value) 
 	{
+		if(this.type==OperandType.memory) {
+			misc.Error.showErrorAndExit("please do not use value field for memory operand");
+		}
+		
 		this.value = value; 
 	}
 		
 	public long getValue()
 	{
+		if(this.type==OperandType.memory) {
+			misc.Error.showErrorAndExit("please do not use value field for memory operand");
+		}
+		
 		return value;
 	}
 	
