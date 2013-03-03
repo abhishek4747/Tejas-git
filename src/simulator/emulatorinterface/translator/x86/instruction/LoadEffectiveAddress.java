@@ -45,22 +45,12 @@ public class LoadEffectiveAddress implements X86StaticInstructionHandler
 				//If b is invalid operand, operand1 = a
 				instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1, 
 						operand2.getMemoryLocationFirstOperand()));
-
-				operand2.setMemoryLocationSecondOperand(null); // operand2's component must not be returned to the pool
-				operand2.setMemoryLocationFirstOperand(null); // operand2's component must not be returned to the pool
-				operand2.incrementNumReferences(); // increment number of references to operand2 to one before returning it
-				CustomObjectPool.getOperandPool().returnObject(operand2); // if operand2 is not used, ensure that it is returned to the pool
 			}
 			else
 			{
 				//operand1=a+b
 				instructionArrayList.appendInstruction(Instruction.getIntALUInstruction(operand2.getMemoryLocationFirstOperand(),
 						operand2.getMemoryLocationSecondOperand(), operand1));
-
-				operand2.setMemoryLocationSecondOperand(null); // operand2's component must not be returned to the pool
-				operand2.setMemoryLocationFirstOperand(null); // operand2's component must not be returned to the pool
-				operand2.incrementNumReferences(); // increment number of references to operand2 to one before returning it
-				CustomObjectPool.getOperandPool().returnObject(operand2); // if operand2 is not used, ensure that it is returned to the pool
 			}
 		}
 		else

@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 import main.CustomObjectPool;
@@ -25,9 +27,10 @@ public class Network extends IpcBase implements Encoding {
 	byte inputBytes[][];
 	int numOverflowBytes[];
 		
-	public Network(int maxApplicationThreads) {
+	public Network() {
 		
-		this.maxApplicationThreads = maxApplicationThreads;
+		this.maxApplicationThreads = (IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
+		
 		inputBytes = new byte[maxApplicationThreads][bufferSize];
 		numOverflowBytes = new int[maxApplicationThreads];
 		serverSocket = new ServerSocket[maxApplicationThreads];
@@ -41,7 +44,10 @@ public class Network extends IpcBase implements Encoding {
 			
 			try {
 				portNumber = portStart+tidApp;
+				
 				serverSocket[tidApp] = new ServerSocket(portNumber);
+				serverSocket[tidApp].setSoTimeout(1000); // set time-out of 1 second.
+
 				clientSocket[tidApp] = null;
 				numOverflowBytes[tidApp] = 0;
 			} catch (Exception e) {
@@ -86,16 +92,38 @@ public class Network extends IpcBase implements Encoding {
 	@Override
 	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
 		
-		int positionInQueueBeforeReading = CustomObjectPool.getCustomAsmCharPool().currentPosition(tidApp);
+		// int positionInQueueBeforeReading = CustomObjectPool.getCustomAsmCharPool().currentPosition(tidApp);
 		
 		if(tidApp>=maxApplicationThreads) {
-			return 0;
+			misc.Error.showErrorAndExit("Network cannot handle tid=" + tidApp);
 		}
 		
 		// If you are reading from a thread for the first time, open the connection with thread first
 		if(clientSocket[tidApp]==null) {
+			
+			// This socket has been tested before.
+			if(serverSocket[tidApp]==null) {
+				return 0;
+			}
+
 			try {
-				clientSocket[tidApp] = serverSocket[tidApp].accept();
+				try{
+					clientSocket[tidApp] = serverSocket[tidApp].accept();
+				} catch (SocketException e) {
+					misc.Error.showErrorAndExit("error in setting timeout for tidApp = " + tidApp);
+				} catch (SocketTimeoutException e) {
+					
+					if(tidApp==0) {
+						misc.Error.showErrorAndExit("error in accepting connected for tidApp = " + tidApp);
+					}
+					
+					// close this socket now. There is a very high chance that this thread may not connect again.
+					serverSocket[tidApp].close();
+					serverSocket[tidApp] = null;
+					System.out.println("Network timed out for tidApp = " + tidApp);
+					return 0;
+				}
+				
 				String address = clientSocket[tidApp].getInetAddress().getHostName();
 				System.out.println("tidApp : "+ tidApp +" received connection request from " + address);
 				inputStream[tidApp] = new BufferedInputStream(clientSocket[tidApp].getInputStream());

@@ -158,7 +158,7 @@ public class RunnableThread implements Encoding, Runnable {
 				// Process all the packets read from the communication channel
 				for (int i = 0; i < numReads; i++) {
 					pnew = fromEmulator.get(i);
-					v = pnew.value;
+					v = pnew.value;					
 					processPacket(threadParam, pnew, tidEmulator);
 				}
 				
@@ -166,12 +166,17 @@ public class RunnableThread implements Encoding, Runnable {
 				ipcBase.errorCheck(tidApplication, threadParam.totalRead);
 
 				// if we read -1, this means this emulator thread finished.
-				if (v == -1) {
+				if (v == Encoding.THREADCOMPLETE) {
 					System.out.println("runnableshm : last packetList received for application-thread " + 
 							tidApplication + " numCISC=" + pnew.ip);
 					Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmulator);
 					threadParam.isFirstPacket = true;  //preparing the thread for next packetList in same pipeline
 					signalFinish(tidApplication);
+				}
+				
+				if(v == Encoding.SUBSETSIMCOMPLETE)
+				{
+					allover = true;
 				}
 
 				if (ipcBase.javaThreadTermination[javaTid] == true) {  //check if java thread is finished
@@ -612,6 +617,7 @@ public class RunnableThread implements Encoding, Runnable {
 			//thread.pold.set(pnew);
 			thread.packetList.add(pnew);
 			thread.isFirstPacket=false;
+			return;
 		}
 		
 		if (pnew.value!=INSTRUCTION && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {

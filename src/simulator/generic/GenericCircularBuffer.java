@@ -41,6 +41,7 @@ public class GenericCircularBuffer<E> {
 		tail.next = head;
 		
 		this.isGrowable = isGrowable;
+		//this.isGrowable = false;
 	}
 	
 	public boolean append(E newObject)
@@ -94,13 +95,13 @@ public class GenericCircularBuffer<E> {
 				misc.Error.showErrorAndExit("pool overflow !!");
 			}
 			
-			for(int i = 0; i < numElementsAdded - 1; i++) 
+			for(int i = 0; i < numElementsAdded ; i++) 
 			{
 				temp = new Element<E>(this.type, temp);
 			}
 			
 			head.next=temp;
-			head = head.next;
+//			head = head.next;
 			
 			//System.out.println("pool size increased from " + currentMaxBufferSize + " to "
 			//		+ (currentMaxBufferSize + numElementsAdded));

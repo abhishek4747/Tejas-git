@@ -32,6 +32,10 @@ public class Instruction implements Serializable
 	private OperationType type;
 	private Operand sourceOperand1;
 	
+	private long sourceOperand1MemValue;
+	private long sourceOperand2MemValue;
+	private long destinationOperandMemValue;
+	
 	public void setSourceOperand1(Operand sourceOperand1) {
 		this.sourceOperand1 = sourceOperand1;
 	}
@@ -56,6 +60,14 @@ public class Instruction implements Serializable
 	
 	public Instruction()
 	{
+		this.sourceOperand1 = null;
+		this.sourceOperand2 = null;
+		this.destinationOperand = null;
+	}
+	
+	public void clear()
+	{
+		this.type = null;
 		this.sourceOperand1 = null;
 		this.sourceOperand2 = null;
 		this.destinationOperand = null;
@@ -116,26 +128,9 @@ public class Instruction implements Serializable
 		this.branchTaken=sourceInstruction.branchTaken;
 		this.branchTargetAddress=sourceInstruction.branchTargetAddress;
 
-		if(sourceInstruction.sourceOperand1==null) {
-			this.sourceOperand1=null;
-		} else {
-			this.sourceOperand1 = CustomObjectPool.getOperandPool().borrowObject();
-			this.sourceOperand1.copy(sourceInstruction.sourceOperand1);
-		}
-		
-		if(sourceInstruction.sourceOperand2==null) {
-			this.sourceOperand2=null;
-		} else {
-			this.sourceOperand2 = CustomObjectPool.getOperandPool().borrowObject();
-			this.sourceOperand2.copy(sourceInstruction.sourceOperand2);
-		}
-		
-		if(sourceInstruction.destinationOperand==null) {
-			this.destinationOperand=null;
-		} else {
-			this.destinationOperand = CustomObjectPool.getOperandPool().borrowObject();
-			this.destinationOperand.copy(sourceInstruction.destinationOperand);
-		}
+		this.sourceOperand1 = sourceInstruction.sourceOperand1;
+		this.sourceOperand2 = sourceInstruction.sourceOperand2;
+		this.destinationOperand = sourceInstruction.destinationOperand;
 	}
 	
 	public long getCISCProgramCounter()
@@ -361,4 +356,29 @@ public class Instruction implements Serializable
 	public void setSerialNo(long serialNo) {
 		this.serialNo = serialNo;
 	}
+
+	public long getSourceOperand1MemValue() {
+		return sourceOperand1MemValue;
+	}
+
+	public void setSourceOperand1MemValue(long sourceOperand1MemValue) {
+		this.sourceOperand1MemValue = sourceOperand1MemValue;
+	}
+
+	public long getSourceOperand2MemValue() {
+		return sourceOperand2MemValue;
+	}
+
+	public void setSourceOperand2MemValue(long sourceOperand2MemValue) {
+		this.sourceOperand2MemValue = sourceOperand2MemValue;
+	}
+
+	public long getDestinationOperandMemValue() {
+		return destinationOperandMemValue;
+	}
+
+	public void setDestinationOperandMemValue(long destinationOperandMemValue) {
+		this.destinationOperandMemValue = destinationOperandMemValue;
+	}
+
 }

@@ -17,7 +17,7 @@ public class Store implements DynamicInstructionHandler
 		
 		if(memoryWriteAddress!=-1)
 		{
-			microOp.getOperand1().setValue(memoryWriteAddress);
+			microOp.setSourceOperand1MemValue(memoryWriteAddress);
 			return ++microOpIndex;
 		}
 		else

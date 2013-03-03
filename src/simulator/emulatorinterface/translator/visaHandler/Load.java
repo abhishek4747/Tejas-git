@@ -15,7 +15,7 @@ public class Load implements DynamicInstructionHandler
 		
 		if(memoryReadAddress != -1)
 		{
-			microOp.getOperand1().setValue(memoryReadAddress);
+			microOp.setSourceOperand1MemValue(memoryReadAddress);
 			return ++microOpIndex;
 		}
 		else

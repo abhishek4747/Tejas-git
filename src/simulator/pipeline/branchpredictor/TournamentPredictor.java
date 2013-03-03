@@ -69,15 +69,15 @@ public class TournamentPredictor implements BranchPredictor{
          * <code>true</code> when branch taken otherwise <code>false</code>
          */
         public void Train(long address, boolean outcome, boolean predict) {
-              pred1.Train(address, outcome, PAp_pred);
-              pred2.Train(address, outcome, PAp_pred);
-              if(PAp_pred!=PAp_pred)
-              {
-                      if (PAp_pred == outcome && counter != 0)
-                              counter--;
-                      else if(PAp_pred==outcome && counter!=3)
-                              counter++;
-              }
+	        	pred1.Train(address, outcome, PAg_pred);
+	            pred2.Train(address, outcome, PAp_pred);
+	            if(PAg_pred!=PAp_pred)
+	            {
+	                    if (PAg_pred == outcome && counter != 0)
+	                            counter--;
+	                    else if(PAp_pred==outcome && counter!=3)
+	                            counter++;
+	            }
         }
 
         /**
@@ -86,12 +86,12 @@ public class TournamentPredictor implements BranchPredictor{
          * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
          */
         public boolean predict(long address, boolean outcome) {
-               PAp_pred=pred1.predict(address, outcome);
-               PAp_pred=pred2.predict(address, outcome);
-               if(counter==0 ||counter==1)
-                       return PAp_pred;
-               else
-                       return PAp_pred;
+	        	PAg_pred=pred1.predict(address, outcome);
+	            PAp_pred=pred2.predict(address, outcome);
+	            if(counter==0 ||counter==1)
+	                    return PAg_pred;
+	            else
+	                    return PAp_pred;
         }
 
 

@@ -33,9 +33,7 @@ import emulatorinterface.translator.x86.instruction.InstructionClass;
 import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.X86StaticInstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
-import emulatorinterface.translator.x86.registers.Registers;
 import emulatorinterface.translator.x86.registers.TempRegisterNum;
-import generic.CustomOperandPool;
 import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionList;
@@ -44,10 +42,8 @@ import generic.Operand;
 import generic.PartialDecodedInstruction;
 import generic.Statistics;
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.StringTokenizer;
 import config.EmulatorConfig;
 import main.CustomObjectPool;
@@ -189,10 +185,6 @@ public class ObjParser
 //					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
 //		}
 		
-		int previousPoolSize = CustomObjectPool.getOperandPool().getSize();
-		int previousPoolCapacity = CustomObjectPool.getOperandPool().getPoolCapacity();
-		
-		int numDistinctOperand = 0;
 		int microOpsIndexBefore = instructionList.length();
 		Operand operand1 = null, operand2 = null, operand3 = null;
 
@@ -225,24 +217,7 @@ public class ObjParser
 				for(int i=microOpsIndexBefore; i<instructionList.length(); i++)
 				{
 					instructionList.setCISCProgramCounter(i, instructionPointer);
-					//FIXME : index in the array list - check ??
 					instructionList.setRISCProgramCounter(i, i);
-					
-					// increment references for each argument
-					if(instructionList.get(i).getOperand1()!=null) {
-						instructionList.get(i).getOperand1().incrementNumReferences();
-						numDistinctOperand += instructionList.get(i).getOperand1().getNumDistinctRecursiveReferences();
-					}
-
-					if(instructionList.get(i).getOperand2()!=null) {
-						instructionList.get(i).getOperand2().incrementNumReferences();
-						numDistinctOperand += instructionList.get(i).getOperand2().getNumDistinctRecursiveReferences();
-					}
-
-					if(instructionList.get(i).getDestinationOperand()!=null) {
-						instructionList.get(i).getDestinationOperand().incrementNumReferences();
-						numDistinctOperand += instructionList.get(i).getDestinationOperand().getNumDistinctRecursiveReferences();
-					}
 				}
 			} else {
 				throw new InvalidInstructionException("", false);
@@ -254,45 +229,9 @@ public class ObjParser
 			 * complete its execution.
 			 */
 			
-//			System.err.print("Unable to riscify instruction : ");
-//			System.err.println("ip="+instructionPointer+"\toperation="+operation+"\top1="
-//					+operand1Str+"\top2="+operand2Str+"\top3="+operand3Str);
-
-			if(operand1!=null) {
-				operand1.incrementNumReferences();
-				CustomObjectPool.getOperandPool().returnObject(operand1);
-			}
-			
-			if(operand2!=null) {
-				operand2.incrementNumReferences();
-				CustomObjectPool.getOperandPool().returnObject(operand2);
-			}
-			
-			if(operand3!=null) {
-				operand3.incrementNumReferences();
-				CustomObjectPool.getOperandPool().returnObject(operand3);
-			}
-			
 			while(instructionList.getListSize() != microOpsIndexBefore) {
 				instructionList.removeLastInstr(operand1, operand2, operand3);
 			}
-		}
-		
-		int numOperandsRemovedFromPool = (previousPoolSize-CustomObjectPool.getOperandPool().getSize());
-		int currentPoolCapacity = CustomObjectPool.getOperandPool().getPoolCapacity();
-		
-		if((currentPoolCapacity==previousPoolCapacity) && (numOperandsRemovedFromPool!=numDistinctOperand)) {
-			System.err.println("ip=" + instructionPointer + "\tprefix=" + instructionPrefix + 
-					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
-
-			System.err.println("#operands removed from pool = " + numOperandsRemovedFromPool + 
-				"\tnumDistinctOperands = " + numDistinctOperand);
-			
-			for(int i=microOpsIndexBefore; i<instructionList.getListSize(); i++) {
-				System.err.println((i-microOpsIndexBefore) + " : " + instructionList.get(i));
-			}
-			
-			//misc.Error.showErrorAndExit("numOperandsRemovedFromPool!=numDistinctOperand");
 		}
 		
 		return (instructionList.length()-microOpsIndexBefore);
@@ -630,24 +569,35 @@ public class ObjParser
 				+ partialDecodedInstruction.getInstructionList());
 	}
 	
-	private static boolean removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer) {
+	private static boolean removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer, int previousSize) {
 		
-		Instruction removedInstruction;
-		boolean foundThisCISC = false;
-		
-		while( (inputToPipeline.isEmpty()== false) &&
-			(inputToPipeline.peek(inputToPipeline.size()-1).getCISCProgramCounter()==instructionPointer))
-		{
-			foundThisCISC = true;
-			removedInstruction = inputToPipeline.pop();
-			try {
-				CustomObjectPool.getInstructionPool().returnObject(removedInstruction);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		if(inputToPipeline.size()<previousSize) {
+			misc.Error.showErrorAndExit("This is not possible !!!");
 		}
 		
-		return foundThisCISC;
+//		Instruction removedInstruction;
+//		boolean foundThisCISC = false;
+//		
+//		while( (inputToPipeline.isEmpty()== false) &&
+//			(inputToPipeline.peek(inputToPipeline.size()-1).getCISCProgramCounter()==instructionPointer))
+//		{
+//			foundThisCISC = true;
+//			removedInstruction = inputToPipeline.pop();
+//			try {
+//				CustomObjectPool.getInstructionPool().returnObject(removedInstruction);
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		
+//		return foundThisCISC;
+		
+		while(inputToPipeline.size()>previousSize) {
+			Instruction ins = inputToPipeline.pop();
+			CustomObjectPool.getInstructionPool().returnObject(ins);
+		}
+		
+		return false;
 	}
 
 	/*
@@ -659,6 +609,8 @@ public class ObjParser
 			int tidApp, long startInstructionPointer,
 			EmulatorPacketList arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
 	{
+		int prevLengthOfInputToPipeLine = inputToPipeline.size();
+
 		//System.out.println("ip = " + startInstructionPointer + "\t" + Long.toHexString(startInstructionPointer));
 		
 		// Create a dynamic instruction buffer for all control packets
@@ -670,6 +622,7 @@ public class ObjParser
 		int numCISC = 1;
 		int microOpIndex = -1;
 		
+		boolean removedFromTail = false;		
 		// Riscify the assembly packets
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 			assemblyPacketList = threadMicroOpsList[tidApp];
@@ -748,14 +701,19 @@ public class ObjParser
 				// So, I must remove any previously 
 				// computed micro-ops from the buffer
 				CustomObjectPool.getInstructionPool().returnObject(dynamicMicroOp);
-				removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter());
+				removeInstructionFromTail(inputToPipeline, staticMicroOp.getCISCProgramCounter(), prevLengthOfInputToPipeLine);
+				removedFromTail = true;
 				numCISC = 0;
 				break;
 			} else {
 				inputToPipeline.enqueue(dynamicMicroOp); //append microOp
 			}
 		}
-		
+		if((removedFromTail == true )&& inputToPipeline.size()!=prevLengthOfInputToPipeLine) {
+			System.err.println("\ncurrentSize = " + inputToPipeline.size());
+			System.err.println("previousSize = " + prevLengthOfInputToPipeLine);
+			misc.Error.showErrorAndExit("");
+		}
 		/* clear the dynamicInstructionBuffer */		
 		// dynamicInstructionBuffer.clearBuffer();
 		//System.out.println(inputToPipeline);

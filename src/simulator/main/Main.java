@@ -14,6 +14,7 @@ import emulatorinterface.communication.filePacket.FilePacket;
 import emulatorinterface.communication.network.Network;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import generic.Operand;
 import generic.Statistics;
 
 
@@ -23,6 +24,7 @@ public class Main {
 	
 	// the reader threads. Each thread reads from EMUTHREADS
 	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
+	public static volatile boolean statFileWritten = false;
 	
 	private static  String emulatorFile = " ";
 
@@ -108,7 +110,7 @@ public class Main {
 		
 		ipcBase.waitForJavaThreads();
 		if(emulator!=null) {
-			emulator.waitForEmulator();
+			emulator.forceKill();
 		}
 		
 		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
@@ -117,9 +119,8 @@ public class Main {
 
 		endTime = System.currentTimeMillis();
 		Statistics.printAllStatistics(getEmulatorFile(), startTime, endTime);
+		statFileWritten = true;
 		
-		System.out.println("operand pool size = " + CustomObjectPool.getOperandPool().getSize());
-		System.out.println("instruction pool size = " + CustomObjectPool.getOperandPool().getSize());
 		System.out.println("\n\nSimulation completed !!");
 				
 		System.exit(0);
@@ -135,9 +136,12 @@ public class Main {
 		} else {
 			
 		}
-				
-		// Initialise pool of operands and instructions
+		
+		// Initialise pool of instructions
 		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread, numStaticInstructions);
+		
+		// Pre-allocate all the possible operands
+		Operand.preAllocateOperands();
 	}
 
 	private static IpcBase startCommunicationChannel(int pid) {
@@ -149,9 +153,9 @@ public class Main {
 			ipcBase = new SharedMem(pid);
  		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_NETWORK) {
  			//ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
- 			ipcBase = new Network(1);
+ 			ipcBase = new Network();
  		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_PACKET) {
- 			ipcBase = new FilePacket(1);
+ 			ipcBase = new FilePacket();
  		} else {
  			ipcBase = null;
  			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);

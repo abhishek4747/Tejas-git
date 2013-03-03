@@ -121,53 +121,9 @@ public class InstructionList
 		return instructionQueue.peek(position);
 	}
 	
-	private boolean matchesOperandOrItsComponents(Operand op, Operand match) {
-		if(match==null || op==null) {
-			return false;
-		} else {
-			if(op==match || 
-				op==match.getMemoryLocationFirstOperand() || op==match.memoryLocationSecondOperand) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
-	
 	// remove last instruction but leave out operand1,operand2,operand3 or their components
 	public void removeLastInstr(Operand operand1, Operand operand2, Operand operand3)
 	{
-		Operand op;
-		op = get(getListSize()-1).getOperand1(); 
-		if(matchesOperandOrItsComponents(op, operand1) ||
-		   matchesOperandOrItsComponents(op, operand2) ||
-		   matchesOperandOrItsComponents(op, operand3)) 
-		{
-			get(getListSize()-1).setSourceOperand1(null);
-		} else if (op!=null) {
-			op.incrementNumReferences();
-		}
-		
-		op = get(getListSize()-1).getOperand2(); 
-		if(matchesOperandOrItsComponents(op, operand1) ||
-		   matchesOperandOrItsComponents(op, operand2) ||
-		   matchesOperandOrItsComponents(op, operand3)) 
-		{
-			get(getListSize()-1).setSourceOperand2(null);
-		} else if (op!=null) {
-			op.incrementNumReferences();
-		}
-		
-		op = get(getListSize()-1).getDestinationOperand(); 
-		if(matchesOperandOrItsComponents(op, operand1) ||
-		   matchesOperandOrItsComponents(op, operand2) ||
-		   matchesOperandOrItsComponents(op, operand3)) 
-		{
-			get(getListSize()-1).setDestinationOperand(null);
-		} else if (op!=null) {
-			op.incrementNumReferences();
-		}
-		
 		//this.instructionArrayList.remove(instructionArrayList.size()-1);
 		CustomObjectPool.getInstructionPool().returnObject(this.instructionQueue.pop());
 	}

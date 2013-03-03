@@ -12,6 +12,7 @@ import main.CustomObjectPool;
 
 import config.EmulatorConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
@@ -20,9 +21,10 @@ public class FilePacket extends IpcBase implements Encoding {
 
 	BufferedReader inputBufferedReader[];
 	int maxApplicationThreads = -1;
+	long totalFetchedAssemblyPackets = 0;
 	
-	public FilePacket(int maxApplicationThreads) {
-		this.maxApplicationThreads = maxApplicationThreads;
+	public FilePacket() {
+		this.maxApplicationThreads = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
 		
 		inputBufferedReader = new BufferedReader[maxApplicationThreads];
 		
@@ -32,7 +34,13 @@ public class FilePacket extends IpcBase implements Encoding {
 				inputBufferedReader[i] = new BufferedReader(
 					new FileReader(	new File(inputFileName)));
 			} catch (FileNotFoundException e) {
-				misc.Error.showErrorAndExit("Error in reading input packet file " + inputFileName);
+				if(i==0) {
+					// not able to find first file is surely an error.
+					misc.Error.showErrorAndExit("Error in reading input packet file " + inputFileName);
+				} else {
+					System.out.println("FilePacket : no trace file found for tidApp = " + i);
+					continue;
+				}
 			}
 		}
 	}
@@ -44,6 +52,10 @@ public class FilePacket extends IpcBase implements Encoding {
 	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
 		
 		if(tidApp>=maxApplicationThreads) {
+			misc.Error.showErrorAndExit("FilePacket cannot handle tid=" + tidApp);
+		}
+		
+		if(inputBufferedReader[tidApp]==null) {
 			return 0;
 		}
 		
@@ -52,6 +64,11 @@ public class FilePacket extends IpcBase implements Encoding {
 		for(int i=0; i<maxSize; i++) {
 			
 			try {
+				//Subset Simulation
+				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= (SimulationConfig.subsetSimSize + SimulationConfig.NumInsToIgnore)) {
+					fromEmulator.get(i).set(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -1, -1);
+					return (i+1);
+				}
 				
 				String inputLine = inputBufferedReader[tidApp].readLine();
 				
@@ -66,19 +83,37 @@ public class FilePacket extends IpcBase implements Encoding {
 					if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 					
 						tgt = Long.parseLong(stringTokenizer.nextToken());
+						totalFetchedAssemblyPackets += 1;
 					
 					} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 						
 						if(value!=ASSEMBLY) {
 							tgt = Long.parseLong(stringTokenizer.nextToken());
 						} else {
+							totalFetchedAssemblyPackets += 1;
 							tgt = -1;
-							CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, inputLine.getBytes(), 0);
+							CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, stringTokenizer.nextToken("\n").getBytes(), 1);
 						}
 						
 					} else {
 						misc.Error.showErrorAndExit("Invalid emulator type : " + 
 								EmulatorConfig.EmulatorType + "!!");
+					}
+					
+					//TODO: implement NumInsToIgnore for PIN
+					//NumsToIgnore implemented only for QEMU
+					if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+						//ignore these many instructions: NumInsToIgnore 
+						if(totalFetchedAssemblyPackets < SimulationConfig.NumInsToIgnore) {
+							if(value == ASSEMBLY) {
+								CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
+							}
+							return 0;
+						// totalFetchedAssemblyPackets just became equal to NumInsToIgnore, so 
+						// we start setting fromEmulator packets
+						} else if(totalFetchedAssemblyPackets == SimulationConfig.NumInsToIgnore && value==ASSEMBLY) {
+							i=0;						
+						}	
 					}
 					
 					fromEmulator.get(i).set(ip, value, tgt);
@@ -103,7 +138,9 @@ public class FilePacket extends IpcBase implements Encoding {
 	public void finish() {
 		for(int i=0; i<maxApplicationThreads; i++) {
 			try {
-				inputBufferedReader[i].close();
+				if(inputBufferedReader[i] != null) {
+					inputBufferedReader[i].close();	
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
