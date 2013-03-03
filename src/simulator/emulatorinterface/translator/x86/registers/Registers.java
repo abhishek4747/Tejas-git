@@ -88,13 +88,13 @@ public class Registers
 		integerRegistersHashTable.put("r15", new Long(11));
 		
 		//Index registers
-		machineSpecificRegistersHashTable.put("rsi", new Long(12));
-		machineSpecificRegistersHashTable.put("rdi", new Long(13));
-		machineSpecificRegistersHashTable.put("rbp", new Long(14));
-		machineSpecificRegistersHashTable.put("rsp", new Long(15));
+		integerRegistersHashTable.put("rsi", new Long(12));
+		integerRegistersHashTable.put("rdi", new Long(13));
+		integerRegistersHashTable.put("rbp", new Long(14));
+		integerRegistersHashTable.put("rsp", new Long(15));
 		
 		//Weird Register
-		machineSpecificRegistersHashTable.put("riz", new Long(17));
+		integerRegistersHashTable.put("riz", new Long(17));
 		
 		//Temporary registers
 		integerRegistersHashTable.put("temp0", new Long(18));
@@ -232,7 +232,7 @@ public class Registers
  	
  	public static Operand getStackPointer()
  	{
- 		return Operand.getMachineSpecificRegister(encodeRegister("rsp"));
+ 		return Operand.getIntegerRegister(encodeRegister("rsp"));
  	}
  	
  	public static Operand getAccumulatorRegister()
@@ -319,17 +319,17 @@ public class Registers
 	}
 
 	public static int getMaxIntegerRegisters() {
-		// TODO Auto-generated method stub
-		return 0;
+		checkAndCreateRegisterHashTable();
+		return integerRegistersHashTable.size();
 	}
 
 	public static int getMaxFloatRegisters() {
-		// TODO Auto-generated method stub
-		return 0;
+		checkAndCreateRegisterHashTable();
+		return floatRegistersHashTable.size();
 	}
 
 	public static int getMaxMachineSpecificRegisters() {
-		// TODO Auto-generated method stub
-		return 0;
+		checkAndCreateRegisterHashTable();
+		return machineSpecificRegistersHashTable.size();
 	}
  }

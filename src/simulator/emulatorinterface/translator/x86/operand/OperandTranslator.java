@@ -66,6 +66,7 @@ public class OperandTranslator
 		{
 			return Operand.getIntegerRegister(Registers.encodeRegister(operandStr));
 		}
+
 		else if(Registers.isFloatRegister(operandStr))
 		{
 			return Operand.getFloatRegister(Registers.encodeRegister(operandStr));

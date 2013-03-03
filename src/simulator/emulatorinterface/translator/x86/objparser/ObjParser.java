@@ -185,7 +185,6 @@ public class ObjParser
 //					"\top=" + operation + "\top1=" + operand1Str + "\top2=" + operand2Str + "\top3=" + operand3Str);
 //		}
 		
-		int numDistinctOperand = 0;
 		int microOpsIndexBefore = instructionList.length();
 		Operand operand1 = null, operand2 = null, operand3 = null;
 

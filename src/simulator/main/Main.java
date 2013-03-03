@@ -14,6 +14,7 @@ import emulatorinterface.communication.filePacket.FilePacket;
 import emulatorinterface.communication.network.Network;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import generic.Operand;
 import generic.Statistics;
 
 
@@ -140,7 +141,7 @@ public class Main {
 		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread, numStaticInstructions);
 		
 		// Pre-allocate all the possible operands
-		
+		Operand.preAllocateOperands();
 	}
 
 	private static IpcBase startCommunicationChannel(int pid) {

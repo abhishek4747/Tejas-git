@@ -333,7 +333,7 @@ public class InorderExecutionEngine extends ExecutionEngine{
 
 	public void setMemDone(long address, boolean b) {
 		for(int i=0;i<this.numPipelines;i++){
-			if(exMemLatch[i].getOperationType()==OperationType.load && exMemLatch[i].getInstruction().getSourceOperand1().getValue()==address){
+			if(exMemLatch[i].getOperationType()==OperationType.load && exMemLatch[i].getInstruction().getSourceOperand1MemValue()==address){
 				exMemLatch[i].setMemDone(b);
 //				idExLatch[i].setStallCount(0);
 			}

@@ -36,7 +36,22 @@ public class Operand implements Serializable
 	private static Operand floatRegisterOperands[];
 	private static Operand integerRegisterOperands[];
 	private static Operand machineSpecificRegisterOperands[];
-	private static Operand memoryOperands[][];
+	
+	// different types of memory operands : integer-msr-immediate
+	private static Operand memoryIntegerOperands[];
+	private static Operand memoryIntegerIntegerOperands[][];
+	private static Operand memoryIntegerMSROperands[][];
+	private static Operand[] memoryIntegerImmediateOperands;
+	
+	private static Operand memoryMSROperands[];
+	private static Operand memoryMSRMSROperands[][];
+	private static Operand[] memoryMSRImmediateOperands;
+	
+	private static Operand memoryImmediateOperand;
+	private static Operand memoryImmediateImmediateOperand;
+	
+	
+	
 	private static Operand immediateOperand;
 	
 	public static void preAllocateOperands() {
@@ -71,66 +86,78 @@ public class Operand implements Serializable
 		}
 		
 		// Create memory operands
-		// Options : integer-integer, integer-msr, msr-msr
-		// order  :  integer-register --- msr --- immediate
-		memoryOperands = new Operand[(integerRegisterOperands.length*machineSpecificRegisterOperands.length)+1]
-				[(integerRegisterOperands.length*machineSpecificRegisterOperands.length)+1];
+		memoryIntegerOperands = new Operand[integerRegisterOperands.length];
+		for(int i=0; i<integerRegisterOperands.length; i++) {
+			memoryIntegerOperands[i] = new Operand();
+			memoryIntegerOperands[i].type = OperandType.memory;
+			memoryIntegerOperands[i].memoryLocationFirstOperand = integerRegisterOperands[i];
+			memoryIntegerOperands[i].memoryLocationSecondOperand = null;
+		}
 		
-		// allocate integer-integer operands
+		memoryIntegerIntegerOperands = new Operand[integerRegisterOperands.length][integerRegisterOperands.length];
 		for(int i=0; i<integerRegisterOperands.length; i++) {
 			for(int j=0; j<integerRegisterOperands.length; j++) {
-				memoryOperands[i][j] = new Operand();
-				memoryOperands[i][j].type = OperandType.memory;
-				memoryOperands[i][j].memoryLocationFirstOperand = integerRegisterOperands[i];
-				memoryOperands[i][j].memoryLocationSecondOperand = integerRegisterOperands[j];
-				memoryOperands[i][j].value = -1;
+				memoryIntegerIntegerOperands[i][j] = new Operand();
+				memoryIntegerIntegerOperands[i][j].type = OperandType.memory;
+				memoryIntegerIntegerOperands[i][j].memoryLocationFirstOperand = integerRegisterOperands[i];
+				memoryIntegerIntegerOperands[i][j].memoryLocationSecondOperand = integerRegisterOperands[j];
 			}
 		}
 		
-		// allocate integer-msr operands
+		memoryIntegerMSROperands = new Operand[integerRegisterOperands.length][machineSpecificRegisterOperands.length];
 		for(int i=0; i<integerRegisterOperands.length; i++) {
-			for(int j=0; j<machineSpecificRegisterOperands.length; j++) {
-				memoryOperands[i][j+integerRegisterOperands.length] = new Operand();
-				memoryOperands[i][j+integerRegisterOperands.length].memoryLocationFirstOperand = integerRegisterOperands[i];
-				memoryOperands[i][j+integerRegisterOperands.length].memoryLocationSecondOperand = machineSpecificRegisterOperands[j];
-				memoryOperands[i][j+integerRegisterOperands.length].value = -1;
+			for(int j=0;j<machineSpecificRegisterOperands.length; j++) {
+				memoryIntegerMSROperands[i][j] = new Operand();
+				memoryIntegerMSROperands[i][j].type = OperandType.memory;
+				memoryIntegerMSROperands[i][j].memoryLocationFirstOperand = integerRegisterOperands[i];
+				memoryIntegerMSROperands[i][j].memoryLocationSecondOperand = machineSpecificRegisterOperands[j];
 			}
 		}
 		
-		// allocate msr-msr operands
+		memoryIntegerImmediateOperands = new Operand[integerRegisterOperands.length];
+		for(int i=0; i<integerRegisterOperands.length; i++) {
+			memoryIntegerImmediateOperands[i] = new Operand();
+			memoryIntegerImmediateOperands[i].type = OperandType.memory;
+			memoryIntegerImmediateOperands[i].memoryLocationFirstOperand = integerRegisterOperands[i];
+			memoryIntegerImmediateOperands[i].memoryLocationSecondOperand = immediateOperand;
+		}
+		
+		// first msr operand
+		memoryMSROperands = new Operand[machineSpecificRegisterOperands.length];
+		for(int i=0; i<machineSpecificRegisterOperands.length; i++) {
+			memoryMSROperands[i] = new Operand();
+			memoryMSROperands[i].type = OperandType.memory;
+			memoryMSROperands[i].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
+			memoryMSROperands[i].memoryLocationSecondOperand = null;
+		}
+		
+		memoryMSRMSROperands = new Operand[machineSpecificRegisterOperands.length][machineSpecificRegisterOperands.length];
 		for(int i=0; i<machineSpecificRegisterOperands.length; i++) {
 			for(int j=0; j<machineSpecificRegisterOperands.length; j++) {
-				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length] = new Operand();
-				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length].type = OperandType.memory;
-				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
-				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length].memoryLocationSecondOperand = machineSpecificRegisterOperands[j];
-				memoryOperands[i+integerRegisterOperands.length][j+integerRegisterOperands.length].value = -1;
+				memoryMSRMSROperands[i][j] = new Operand();
+				memoryMSRMSROperands[i][j].type = OperandType.memory;
+				memoryMSRMSROperands[i][j].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
+				memoryMSRMSROperands[i][j].memoryLocationSecondOperand = machineSpecificRegisterOperands[j];
 			}
 		}
 		
-		// allocate integer-immediate
-		for(int i=0; i<integerRegisterOperands.length; i++) {
-			memoryOperands[i][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1] = new Operand();
-			memoryOperands[i][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].type = OperandType.memory;
-			memoryOperands[i][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].memoryLocationFirstOperand = integerRegisterOperands[i];
-			memoryOperands[i][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].memoryLocationSecondOperand = immediateOperand;
-			memoryOperands[i][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].value = -1;
-		}
-		
-		// allocate msr-immediate
+		memoryMSRImmediateOperands = new Operand[machineSpecificRegisterOperands.length];
 		for(int i=0; i<machineSpecificRegisterOperands.length; i++) {
-			memoryOperands[i+integerRegisterOperands.length][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1] = new Operand();
-			memoryOperands[i+integerRegisterOperands.length][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].type = OperandType.memory;
-			memoryOperands[i+integerRegisterOperands.length][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
-			memoryOperands[i+integerRegisterOperands.length][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].memoryLocationSecondOperand = immediateOperand;
-			memoryOperands[i+integerRegisterOperands.length][integerRegisterOperands.length+machineSpecificRegisterOperands.length+1].value = -1;
+			memoryMSRImmediateOperands[i] = new Operand();
+			memoryMSRImmediateOperands[i].type = OperandType.memory;
+			memoryMSRImmediateOperands[i].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
+			memoryMSRImmediateOperands[i].memoryLocationSecondOperand = immediateOperand;
 		}
 		
-		// allocate immediate memory operand
-		memoryOperands[integerRegisterOperands.length+machineSpecificRegisterOperands.length+1][0] = new Operand();
-		memoryOperands[integerRegisterOperands.length+machineSpecificRegisterOperands.length+1][0].memoryLocationFirstOperand = immediateOperand;
-		memoryOperands[integerRegisterOperands.length+machineSpecificRegisterOperands.length+1][0].memoryLocationSecondOperand = null;
-		memoryOperands[integerRegisterOperands.length+machineSpecificRegisterOperands.length+1][0].value = -1;
+		memoryImmediateOperand = new Operand();
+		memoryImmediateOperand.type = OperandType.memory;
+		memoryImmediateOperand.memoryLocationFirstOperand = immediateOperand;
+		memoryImmediateOperand.memoryLocationSecondOperand = null;
+		
+		memoryImmediateImmediateOperand = new Operand();
+		memoryImmediateImmediateOperand.type = OperandType.memory;
+		memoryImmediateImmediateOperand.memoryLocationFirstOperand = immediateOperand;
+		memoryImmediateImmediateOperand.memoryLocationSecondOperand = immediateOperand;
 	}
 	
 	
@@ -150,7 +177,7 @@ public class Operand implements Serializable
 
 	public Operand()
 	{
-		this.value = 0;
+		this.value = -1;
 		this.memoryLocationFirstOperand = null;
 		this.memoryLocationSecondOperand = null;
 	}
@@ -312,33 +339,44 @@ public class Operand implements Serializable
 		return immediateOperand;
 	}
 	
-	public static Operand getMemoryOperand(Operand memoryOperand1, Operand memoryOperand2)
+	public static Operand getMemoryOperand(Operand op1, Operand op2)
 	{
-		int index1 = -1, index2 = -1;
-		
-		// operand1's index
-		if (memoryOperand1.type==OperandType.integerRegister) {
-			index1 = (int) memoryOperand1.value;
-		} else if (memoryOperand1.type==OperandType.machineSpecificRegister) {
-			index1 = (int) (memoryOperand1.value + integerRegisterOperands.length);
-		} else if (memoryOperand1.type==OperandType.immediate) {
-			index1 = integerRegisterOperands.length + floatRegisterOperands.length + 1;
-		} else {
-			System.out.println("invalid memOp1 = " + memoryOperand1);
+		switch(op1.type) {
+			case integerRegister:
+				if (op2==null) {
+					return memoryIntegerOperands[(int) op1.value];
+				} else if (op2.type==OperandType.integerRegister) {
+					return memoryIntegerIntegerOperands[(int) op1.value][(int) op2.value];
+				} else if (op2.type==OperandType.machineSpecificRegister) {
+					return memoryIntegerMSROperands[(int) op1.value][(int) op2.value];
+				} else if (op2.type==OperandType.immediate) {
+					return memoryIntegerImmediateOperands[(int) op1.value];
+				}
+				break;
+				
+			case machineSpecificRegister:
+				if(op2==null) {
+					return memoryMSROperands[(int) op1.value];
+				} else if(op2.type==OperandType.machineSpecificRegister) {
+					return memoryMSRMSROperands[(int) op1.value][(int) op2.value];
+				} else if(op2.type==OperandType.immediate) {
+					return memoryMSRImmediateOperands[(int) op1.value];
+				}
+				break;
+				
+			case immediate:
+				if(op2==null) {
+					return memoryImmediateOperand;
+				} else if (op2.type==OperandType.immediate) {
+					return memoryImmediateImmediateOperand;
+				}
+				break;
+				
+			default:
+				misc.Error.showErrorAndExit("invalid operand type for memory : " + op1);
 		}
 		
-		// operand2's index
-		if (memoryOperand2.type==OperandType.integerRegister) {
-			index2 = (int) memoryOperand2.value;
-		} else if (memoryOperand2.type==OperandType.machineSpecificRegister) {
-			index2 = (int) (memoryOperand2.value + integerRegisterOperands.length);
-		} else if (memoryOperand2.type==OperandType.immediate) {
-			index2 = integerRegisterOperands.length + floatRegisterOperands.length + 1;
-		} else {
-			System.out.println("invalid memOp2 = " + memoryOperand2);
-		}
-		
-		return memoryOperands[index1][index2];
+		return null;
 	}
 	
 }
