@@ -205,9 +205,9 @@
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
-			<Associativity>8</Associativity>
-			<Size>32</Size>					<!--In KBs-->
+			<BlockSize>1</BlockSize>			<!--In bytes-->
+			<Associativity>2</Associativity>
+			<Size>2</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->

@@ -698,3 +698,54 @@ int main(int argc, char * argv[]) {
 
 	return 0;
 }
+
+const char* findType(int type) {
+	switch(type) {
+	case(MEMREAD) :
+			return "MEMREAD";
+	case(MEMWRITE) :
+				return "MEMWRITE";
+	case(TAKEN) :
+				return "TAKEN";
+	case(NOTTAKEN) :
+				return "NOTTAKEN";
+	case(REGREAD) :
+				return "REGREAD";
+	case(REGWRITE) :
+				return "REGWRITE";
+	case(BCAST) :
+				return "BCAST ENTER";
+	case(BCAST+1) :
+				return "BCAST EXIT";
+	case(SIGNAL) :
+				return "SIGNAL ENTER";
+	case(SIGNAL+1) :
+				return "SIGNAL EXIT";
+	case(LOCK) :
+				return "LOCK ENTER";
+	case(LOCK+1) :
+				return "LOCK EXIT";
+	case(UNLOCK) :
+				return "UNLOCK ENTER";
+	case(UNLOCK+1) :
+				return "UNLOCK EXIT";
+	case(JOIN) :
+				return "JOIN ENTER";
+	case(JOIN+1) :
+				return "JOIN EXIT";
+	case(CONDWAIT) :
+				return "WAIT ENTER";
+	case(CONDWAIT+1) :
+				return "WAIT EXIT";
+	case(BARRIERWAIT) :
+				return "BARRIER ENTER";
+	case(BARRIERWAIT+1) :
+				return "BARRIER EXIT";
+	case(TIMER) :
+				return "Timer packet";
+	case(BARRIERINIT) :
+				return "BARRIER INIT";
+	default:
+		return "ADD THIS IN encoding.h";
+	}
+}

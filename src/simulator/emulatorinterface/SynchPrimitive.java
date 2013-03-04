@@ -12,7 +12,7 @@ import emulatorinterface.communication.IpcBase;
 
 public class SynchPrimitive implements Encoding {
 
-	private static final Logger logger = Logger.getLogger(SynchPrimitive.class);
+//	private static final Logger logger = Logger.getLogger(SynchPrimitive.class);
 	private static final boolean debugMode = true; 
 	LinkedList<SynchType> entries;
 	long address;
