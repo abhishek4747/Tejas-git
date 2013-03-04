@@ -141,10 +141,10 @@ public final class GlobalTable implements Encoding {
 					System.err.println("barrier not yet initialized");
 					System.exit(0);
 				}
-				System.out.println("             thread " + thread + " waiting on " +bar.getBarrierAddress() +" " + addressSynchItem);
-				System.out.println(BarrierTable.barrierList.get(addressSynchItem).getBlockedThreads());
+			//	System.out.println("             thread " + thread + " waiting on " +bar.getBarrierAddress() +" " + addressSynchItem);
+			//	System.out.println(BarrierTable.barrierList.get(addressSynchItem).getBlockedThreads());
 				bar.addThread(thread);
-				System.out.println(BarrierTable.barrierList.get(addressSynchItem).getBlockedThreads());
+			//	System.out.println(BarrierTable.barrierList.get(addressSynchItem).getBlockedThreads());
 				ret.setBarrierAddress((long)addressSynchItem);
 				ret.addSleeper(thread);
 				

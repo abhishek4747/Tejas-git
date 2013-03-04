@@ -7,7 +7,7 @@
 #include <string.h>
 #include "../IPCBase.h"
 
-#include "../encoding.h"
+#include "/home/eldhose/workspace/Tejas/src/emulator/pin/encoding.h"
 
 // Must ensure that this is same as in SharedMem.java
 #define COUNT	(1000)
@@ -34,7 +34,7 @@ protected:
 		uint64_t tot_prod;							/* total packets produced */
 		uint64_t sum;								/* checksum */
 		uint8_t _pad[PADSIZE];						/* to handle false sharing */
-		uint32_t avail;								/* check the avilabiltiy 1 = yes, 0= no */
+		uint32_t avail;								/* check the availability 1 = yes, 0= no */
 //		uint32_t tid;								/* current tid running on it (implemented for shmem reuse)*/
 	};
 
