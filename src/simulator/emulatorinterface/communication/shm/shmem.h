@@ -7,7 +7,7 @@
 #include <string.h>
 #include "../IPCBase.h"
 
-#include "../encoding.h"
+#include "../../../../emulator/pin/encoding.h"
 
 // Must ensure that this is same as in SharedMem.java
 #define COUNT	(1000)
