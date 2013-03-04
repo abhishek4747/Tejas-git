@@ -150,9 +150,16 @@ public class RunnableThread implements Encoding, Runnable {
 				threadParam.checkStarted();
 
 				// Do not process new packets till we have sufficient pool of available instructions
-				while (poolExhausted()) {
+				while (poolExhausted(tidEmulator)) {
 					//System.out.println("infinte loop");
 					runPipelines();
+				}
+				
+				// if this thread has filled 95% of its input to pipeline, run other threads for a while
+				// int maxAllowed = (int)((float)0.95*(float)INSTRUCTION_THRESHOLD);
+				int maxAllowed = INSTRUCTION_THRESHOLD-(numReads*3);
+				if(inputToPipeline[tidEmulator].size()>=maxAllowed) {
+					continue;
 				}
 				
 				// Process all the packets read from the communication channel
@@ -271,7 +278,7 @@ public class RunnableThread implements Encoding, Runnable {
 			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
 			inputToPipeline[i] = new GenericCircularQueue<Instruction>(
-												Instruction.class, INSTRUCTION_THRESHOLD*10);
+												Instruction.class, INSTRUCTION_THRESHOLD);
 			
 			// dynamicInstructionBuffer[i] = new DynamicInstructionBuffer();
 			
@@ -724,9 +731,9 @@ public class RunnableThread implements Encoding, Runnable {
 
 	}
 
-	protected boolean poolExhausted() {
+	protected boolean poolExhausted(int tidEmulator) {
 		return false; //we have a growable pool now
-		//return (CustomObjectPool.getInstructionPool().getNumIdle() < 2000);
+		//return (CustomObjectPool.getInstructionPool().getNumPoolAllowed() < 2000);
 	}
 
 	private void resumeSleep(ResumeSleep update) {
