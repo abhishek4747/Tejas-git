@@ -42,7 +42,7 @@ import memorysystem.MemorySystem;
 import memorysystem.MissStatusHoldingRegister;
 import memorysystem.nuca.NucaCache.NucaType;
 
-public class NucaCacheBank extends Cache
+public class NucaCacheBank extends Cache implements NocInterface
 {
 	public Router router;
 	CacheConfig cacheParameters;
@@ -84,13 +84,30 @@ public class NucaCacheBank extends Cache
 	{
 		return this.router;
 	}
-    public Vector<Integer> getBankId()
+    public Vector<Integer> getId()
 	{
 		return this.bankId;
 	}
     
     @Override
 	public void handleEvent(EventQueue eventQ, Event event){
+    	
+    	RequestType requestType = event.getRequestType();
+    	if(requestType == RequestType.CacheBank_Read)
+			event.setRequestType(RequestType.Cache_Read);
+		else if(requestType == RequestType.CacheBank_Write)
+			event.setRequestType(RequestType.Cache_Write);
+		else if(requestType == RequestType.CacheBank_Read_from_iCache)
+			event.setRequestType(RequestType.Cache_Read_from_iCache);
+		else if(requestType == RequestType.MemBank_Response)
+			event.setRequestType(RequestType.Mem_Response);
+		else if(requestType == RequestType.Main_MemBank_Read)
+			event.setRequestType(RequestType.Main_Mem_Read);
+		else if(requestType == RequestType.Main_MemBank_Write)
+			event.setRequestType(RequestType.Main_Mem_Write);
+		else if(requestType == RequestType.Main_MemBank_Response)
+			event.setRequestType(RequestType.Main_Mem_Response);
+    	
     	if (event.getRequestType() == RequestType.Cache_Read
 				|| event.getRequestType() == RequestType.Cache_Write ) 
     	{
@@ -265,5 +282,10 @@ public class NucaCacheBank extends Cache
 				tempEvent.getProcessingElement().getPort().put(tempEvent);
 			}
 		}
+	}
+
+	@Override
+	public SimulationElement getSimulationElement() {
+		return this;
 	}
 }

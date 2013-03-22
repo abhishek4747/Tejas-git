@@ -24,7 +24,7 @@ public class Policy {
 			{
 				misc.Error.showErrorAndExit(" source bank  id or destination bank id null ");
 			}
-			sourceBankId = new Vector<Integer>(cacheBank.getBankId());
+			sourceBankId = new Vector<Integer>(cacheBank.getId());
 			destinationBankId = (Vector<Integer>) nucaCache.getDestinationBankId(event.getAddress(), event.coreId);
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																		 0,  cacheBank, cacheBank.getRouter(), 
@@ -74,7 +74,7 @@ public class Policy {
 				}
 				else
 				{
-					sourceBankId = (Vector<Integer>) cacheBank.getBankId().clone();
+					sourceBankId = (Vector<Integer>) cacheBank.getId().clone();
 					destinationBankId = nucaCache.integerToBankId(nucaCache.cacheMapping.get(event.coreId).get(setIndex).get(index +1));
 					//System.out.println("cache Miss  sending request to cache bank"+destinationBankId + " to event"+ event);
 					requestType = event.getRequestType();
@@ -89,7 +89,7 @@ public class Policy {
 		{
 			if(cacheBank.isLastLevel)
 			{
-				sourceBankId = new Vector<Integer>(cacheBank.getBankId());
+				sourceBankId = new Vector<Integer>(cacheBank.getId());
 				destinationBankId = (Vector<Integer>) nucaCache.getDestinationBankId(event.getAddress(), event.coreId);
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																			 0,  cacheBank, cacheBank.getRouter(), 
@@ -119,7 +119,7 @@ public class Policy {
 	
 	private Vector<Integer> getDestinationBankId(AddressCarryingEvent event,NucaCacheBank cacheBank)
 	{
-		Vector<Integer> sourceBankId = new Vector<Integer>(cacheBank.getBankId());
+		Vector<Integer> sourceBankId = new Vector<Integer>(cacheBank.getId());
 		Vector<Integer> destinationBankId = null;
 		NucaType nucaType = SimulationConfig.nucaType;
 		if(nucaType == NucaType.S_NUCA)
@@ -209,7 +209,7 @@ public class Policy {
 			AddressCarryingEvent addrEvent = new AddressCarryingEvent(event.getEventQ(),
 												0,cacheBank,cacheBank.getRouter(),
 												requestType,event.getAddress(),event.coreId,
-												cacheBank.getBankId(),destinationBankId);
+												cacheBank.getId(),destinationBankId);
 			cacheBank.getRouter().getPort().put(addrEvent);
 		}
 		

@@ -577,9 +577,9 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 
 	}
 	else if(encode != -1 && RTN_Valid(rtn)){
-		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) BarrierInit,
-				IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_UINT32, encode,
-				IARG_THREAD_ID, IARG_END);
+//		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) BarrierInit,
+//				IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_UINT32, encode,
+//				IARG_THREAD_ID, IARG_END);
 	}
 	RTN_Close(rtn);
 }
@@ -587,6 +587,14 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v) {
 	//cout <<"checkSum is "<<checkSum<<"\n";
+//	cout <<"within FINI"<<"\t"<<code<<" "<<"\n";
+//	fflush(stdout);
+//	while (tst->onSubset_finish(0, (numCISC[0])) == -1) {
+//										PIN_Yield();
+//								}
+//	sleep(10);
+//	cout<<"After subset\n";
+
 	tst->unload();
 }
 

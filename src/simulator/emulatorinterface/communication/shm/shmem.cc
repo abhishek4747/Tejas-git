@@ -205,7 +205,7 @@ int Shm::onSubset_finish (int tid, long numCISC)
 
 		// last write to our shared memory. This time write a -2 in the 'value' field of the packet
 		int ret = Shm::shmwrite(actual_tid,2, numCISC);
-
+		printf("wrote -2 in shmem.cc\n");
 		if(ret != -1){
 			myData->avail = 1;
 			myData->tlqsize = 0;

@@ -44,7 +44,7 @@ public class Router extends Switch{
 //	public RoutingAlgo.ALGO rAlgo;
 	protected int numberOfRows;
 	protected int numberOfColumns;
-	protected NucaCacheBank bankReference;
+	protected NocInterface reference;
 	protected int latencyBetweenBanks;
 	protected Vector<Router> neighbours;
 	
@@ -62,15 +62,15 @@ public class Router extends Switch{
 		this.rAlgo = nocConfig.rAlgo;
 		this.numberOfRows = nocConfig.numberOfBankRows;
 		this.numberOfColumns = nocConfig.numberOfBankColumns;
-		this.bankReference = bankReference;
+		this.reference = bankReference;
 		this.latencyBetweenBanks = nocConfig.latencyBetweenBanks;
 		this.neighbours= new Vector<Router>(4);
 		this.hopCounters = 0;
 	}
 
-	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir,NucaCacheBank cacheBank)
+	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir,NocInterface networkElements)
 	{
-		this.neighbours.add(dir.ordinal(), cacheBank.getRouter());
+		this.neighbours.add(dir.ordinal(), networkElements.getRouter());
 	}
 	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir)
 	{
@@ -135,7 +135,7 @@ public class Router extends Switch{
 		// TODO Auto-generated method stub
 		RoutingAlgo.DIRECTION nextID;
 		boolean reqOrReply;
-		Vector<Integer> currentId = this.bankReference.getBankId();
+		Vector<Integer> currentId = this.reference.getId();
 		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
 		RequestType requestType = event.getRequestType();
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
@@ -152,26 +152,12 @@ public class Router extends Switch{
 		}
 		else if(currentId.equals(destinationId))
 		{
-			if(requestType == RequestType.CacheBank_Read)
-				requestType = RequestType.Cache_Read;
-			else if(requestType == RequestType.CacheBank_Write)
-				requestType = RequestType.Cache_Write;
-			else if(requestType == RequestType.CacheBank_Read_from_iCache)
-				requestType = RequestType.Cache_Read_from_iCache;
-			else if(requestType == RequestType.MemBank_Response)
-				requestType = RequestType.Mem_Response;
-			else if(requestType == RequestType.Main_MemBank_Read)
-				requestType = RequestType.Main_Mem_Read;
-			else if(requestType == RequestType.Main_MemBank_Write)
-				requestType = RequestType.Main_Mem_Write;
-			else if(requestType == RequestType.Main_MemBank_Response)
-				requestType = RequestType.Main_Mem_Response;
-			this.bankReference.getPort().put(
+			this.reference.getPort().put(
 					event.update(
 							eventQ,
 							0,
 							this, 
-							this.bankReference,
+							this.reference.getSimulationElement(),
 							requestType));
 			this.FreeBuffer();
 		}

@@ -50,7 +50,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>100000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>false</subsetSim>
-		<subsetSimSize>100000000</subsetSimSize>
+		<subsetSimSize>100</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -139,8 +139,8 @@
 			<saturating_bits>1</saturating_bits>
 		</Predictor>
 		<NOC>
-			<NumberOfBankColumns>8</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>1</NumberOfBankRows>
+			<NumberOfBankColumns>4</NumberOfBankColumns>	<!--NumberOfBanks-->
+			<NumberOfBankRows>4</NumberOfBankRows>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
 			<NocSelScheme>STATIC</NocSelScheme>
 			<NocNumberOfBuffers>4</NocNumberOfBuffers>
@@ -149,8 +149,8 @@
 			<NocPortOccupancy>-1</NocPortOccupancy>
 			<NocLatency>1</NocLatency>
 			<NocOperatingFreq>2000</NocOperatingFreq>
-			<NocTopology>OMEGA</NocTopology>     <!--NOCTopology-->
-			<NocRoutingAlgorithm>OMEGA</NocRoutingAlgorithm>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
 			<NocRouterArbiter>RR</NocRouterArbiter>
 			<TechPoint>90</TechPoint>
@@ -205,9 +205,9 @@
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>1</BlockSize>			<!--In bytes-->
-			<Associativity>2</Associativity>
-			<Size>2</Size>					<!--In KBs-->
+			<BlockSize>4</BlockSize>			<!--In bytes-->
+			<Associativity>1</Associativity>
+			<Size>1</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -234,7 +234,7 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->

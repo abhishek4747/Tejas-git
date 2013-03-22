@@ -155,7 +155,7 @@ public class FetchUnitIn extends SimulationElement
 							//	BarrierTable.barrierReset(barrierAddress);
 								this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 										this.core.eventQueue,
-										 1,
+										 2,
 										 this.core.coreBcastBus, 
 										 this.core.coreBcastBus, 
 										 RequestType.PIPELINE_RESUME, 
