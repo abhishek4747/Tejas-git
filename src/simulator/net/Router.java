@@ -123,6 +123,13 @@ public class Router extends Switch{
 		return choices.elementAt(0);
 	}
 	
+	public boolean reqOrReply(RequestType requestType){
+		if(requestType == RequestType.Main_Mem_Read || requestType == RequestType.Main_Mem_Response ||
+				requestType == RequestType.Main_Mem_Write || requestType == RequestType.Mem_Response)
+			return true;  //for reply messages
+		else
+			return false; //for incoming messages
+	}
 	/************************************************************************
      * Method Name  : handleEvent
      * Purpose      : handle the event request and service it
@@ -150,7 +157,7 @@ public class Router extends Switch{
 							this.connection[0],
 							requestType));
 		}
-		else if(currentId.equals(destinationId))
+		else if(currentId.equals(destinationId))                         //If this is the destination
 		{
 			this.reference.getPort().put(
 					event.update(
@@ -161,6 +168,31 @@ public class Router extends Switch{
 							requestType));
 			this.FreeBuffer();
 		}
+		else if(event.getRequestingElement().getClass() != Router.class){ //If this event is just entering NOC,
+																			//then allocate buffer for it
+			if(this.AllocateBuffer(false))
+			{
+				this.getPort().put(
+						event.update(
+								eventQ,
+								0,	//this.getLatency()
+								this, 
+								this,
+								requestType));
+			}
+			else
+			{
+				//post event to this ID
+				this.getPort().put(
+						event.update(
+								eventQ,
+								latencyBetweenBanks,
+								this, 
+								this,
+								requestType));
+			}
+		}
+		/*
 		else if(requestType == RequestType.Cache_Read)
 		{
 			requestType = RequestType.CacheBank_Read;
@@ -317,32 +349,27 @@ public class Router extends Switch{
 				//System.out.println(event.getRequestingElement());
 			}
 		}
-		
+		*/
 		else
 		{
 			nextID = this.RouteComputation(currentId, destinationId);
-			if(requestType == RequestType.Main_Mem_Read || requestType == RequestType.Main_Mem_Response ||
-					requestType == RequestType.Main_Mem_Write || requestType == RequestType.Main_MemBank_Read  ||
-					requestType == RequestType.Main_MemBank_Response || requestType == RequestType.Main_MemBank_Write ||
-					requestType == RequestType.Mem_Response || requestType == RequestType.MemBank_Response)
-				reqOrReply = true;  //for reply messages
-			else
-				reqOrReply = false; //for incoming messages
-			if(this.CheckNeighbourBuffer(nextID,reqOrReply))
+			reqOrReply = reqOrReply(requestType);
+			if(this.CheckNeighbourBuffer(nextID,reqOrReply))   //If buffer is available
+																//forward the event
 			{
 				//post event to nextID
 				this.hopCounters++;
 				this.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
 								eventQ,
-								latencyBetweenBanks,	//this.getLatency()
+								latencyBetweenBanks,        	//this.getLatency()
 								this, 
 								this.GetNeighbours().elementAt(nextID.ordinal()),
 								requestType));
 				this.FreeBuffer();
 			}
-			else
-			{
+			else                                               //If buffer is not available
+			{													//keep the event here itself
 				//post event to this ID
 				this.getPort().put(
 						event.update(

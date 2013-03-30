@@ -93,7 +93,7 @@ public class NucaCacheBank extends Cache implements NocInterface
 	public void handleEvent(EventQueue eventQ, Event event){
     	
     	RequestType requestType = event.getRequestType();
-    	if(requestType == RequestType.CacheBank_Read)
+ /*   	if(requestType == RequestType.CacheBank_Read)
 			event.setRequestType(RequestType.Cache_Read);
 		else if(requestType == RequestType.CacheBank_Write)
 			event.setRequestType(RequestType.Cache_Write);
@@ -107,26 +107,26 @@ public class NucaCacheBank extends Cache implements NocInterface
 			event.setRequestType(RequestType.Main_Mem_Write);
 		else if(requestType == RequestType.Main_MemBank_Response)
 			event.setRequestType(RequestType.Main_Mem_Response);
-    	
-    	if (event.getRequestType() == RequestType.Cache_Read
-				|| event.getRequestType() == RequestType.Cache_Write ) 
+  */  	
+    	if (requestType == RequestType.Cache_Read
+				|| requestType == RequestType.Cache_Write ) 
     	{
 			this.handleAccess(eventQ, (AddressCarryingEvent)event);
     	}
-		else if (event.getRequestType() == RequestType.Mem_Response)
+		else if (requestType == RequestType.Mem_Response)
 		{
 			this.handleMemResponse(eventQ, event);
 		}
-		else if (event.getRequestType() == RequestType.Main_Mem_Read ||
-				  event.getRequestType() == RequestType.Main_Mem_Write )
+		else if (requestType == RequestType.Main_Mem_Read ||
+				requestType == RequestType.Main_Mem_Write )
 		{
 			this.handleMemoryReadWrite(eventQ,event);
 		}
-		else if (event.getRequestType() == RequestType.Main_Mem_Response )
+		else if (requestType == RequestType.Main_Mem_Response )
 		{
 			handleMainMemoryResponse(eventQ, event);
 		}
-		else if( event.getRequestType() == RequestType.COPY_BLOCK )
+		else if( requestType == RequestType.COPY_BLOCK )
 		{
 			this.handleCopyBlock(eventQ, event);
 		}
@@ -241,9 +241,9 @@ public class NucaCacheBank extends Cache implements NocInterface
 		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
 		{
 			MemorySystem.mainMemory.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
-																											MemorySystem.mainMemory.getLatencyDelay(), this, 
-																											MemorySystem.mainMemory, requestType, sourceBankId,
-																											destinationBankId));
+													MemorySystem.mainMemory.getLatencyDelay(), this, 
+													MemorySystem.mainMemory, requestType, sourceBankId,
+													destinationBankId));
 		}
 		else{
 		/*	unwanted code */

@@ -19,7 +19,7 @@ public class Switch extends SimulationElement{
 	protected Switch connection[];
 	protected int range[];
 	protected int level;
-	protected int cacheBankColumns;
+	protected int numColumns;
 	public TOPOLOGY topology;
 	public ALGO rAlgo;
 	protected int availBuff;           //available number of buffers
@@ -35,7 +35,7 @@ public class Switch extends SimulationElement{
 		this.selScheme = nocConfig.selScheme;
 		this.connection = new Switch[4];
 		this.level = level; //used in omega network
-		this.cacheBankColumns = nocConfig.numberOfBankColumns;
+		this.numColumns = nocConfig.numberOfBankColumns;
 		this.topology = nocConfig.topology;
 		this.rAlgo = nocConfig.rAlgo;
 		this.availBuff = nocConfig.numberOfBuffers;
@@ -63,13 +63,13 @@ public class Switch extends SimulationElement{
 			return 3;
 	}
 	
-	public int nextIdFatTree(int bankNumber)
+	public int nextIdFatTree(int elementNumber)
 	{
-		if(bankNumber < range[0] || bankNumber > range[1])
+		if(elementNumber < range[0] || elementNumber > range[1])
 			return 0;
 		else
 		{
-			if((range[0] + range[1])/2 < bankNumber)
+			if((range[0] + range[1])/2 < elementNumber)
 				return 1;
 			else
 				return 3;
@@ -115,20 +115,20 @@ public class Switch extends SimulationElement{
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
 		int nextID;
 		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
-		int bankNumber = destinationId.elementAt(1);
-		String binary = Integer.toBinaryString(cacheBankColumns | bankNumber).substring(1);
+		int elementNumber = destinationId.elementAt(1);     //bank id interpreted as one row, multiple column number
+															//and second element gives the actual number and first number
+															//will be zero always.
+		String binary = Integer.toBinaryString(numColumns | elementNumber).substring(1);
 		RequestType requestType = event.getRequestType();
 		
 		if(topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.OMEGA)
-			nextID = nextIdbutterflyOmega(binary);
-		else //if(topology == TOPOLOGY.FATTREE)
-			nextID = nextIdFatTree(bankNumber);
+			nextID = nextIdbutterflyOmega(binary);			//binary representation of number needed for routing
+		else                                               //if(topology == TOPOLOGY.FATTREE)
+			nextID = nextIdFatTree(elementNumber);
 		this.hopCounters++;
-		this.connection[nextID].getPort().put(
+		this.connection[nextID].getPort().put(             //posting event to nextID
 				event.update(
 						eventQ,
 						1,
