@@ -624,10 +624,12 @@ public class RunnableThread implements Encoding, Runnable {
 		
 		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
+		
 		if (pnew.value == TIMER) {//leaving timer packetList now
 			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
 			return isSpaceInPipelineBuffer;
 		}
+		
 		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) { //for barrier enter and barrier exit
 			ResumeSleep ret = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
 			if(ret!=null){
@@ -635,6 +637,7 @@ public class RunnableThread implements Encoding, Runnable {
 			}
 			return isSpaceInPipelineBuffer;
 		}
+		
 		if(pnew.value == BARRIERINIT)  //for barrier initialization
 		{
 		
@@ -643,7 +646,8 @@ public class RunnableThread implements Encoding, Runnable {
 			return isSpaceInPipelineBuffer;
 		}
 		
-		if (thread.isFirstPacket) {
+		if (thread.isFirstPacket) 
+		{
 			this.pipelineInterfaces[tidApp].getCore().currentThreads++;  //current number of threads in this pipeline
 			System.out.println("num of threads on core " + tidApp + " = " + this.pipelineInterfaces[tidApp].getCore().currentThreads);
 			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionComplete(false);
@@ -700,9 +704,9 @@ public class RunnableThread implements Encoding, Runnable {
 					System.out.println("Done writing to file");
 				}
 				
-				while(thread.outstandingMicroOps.size() > 0)
+				while(inputToPipeline[tidEmu].size() > 0)
 				{
-					Instruction toBeWritten = thread.outstandingMicroOps.pollFirst();
+					Instruction toBeWritten = inputToPipeline[tidEmu].pollFirst();
 					try {
 						this.output.writeObject(toBeWritten);
 						this.output.flush();// TODO if flush is being ignored, may have to close and open the stream
