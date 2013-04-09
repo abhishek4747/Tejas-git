@@ -168,6 +168,10 @@ public class GenericCircularQueue<E> {
 		}
 		return str;
 	}
+
+	public int spaceLeft() {
+		return this.bufferSize - this.size();
+	}
 	
 	
 }

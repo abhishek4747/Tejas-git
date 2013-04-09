@@ -122,6 +122,18 @@ public class RunnableThread implements Encoding, Runnable {
 				int tidApplication = javaTid * EMUTHREADS + tidEmulator;
 				int numReads = 0;
 				long v = 0;
+				
+				// add outstanding micro-operations to input to pipeline
+				if (threadParam.outstandingMicroOps.isEmpty() == false) {
+					if(threadParam.outstandingMicroOps.size()<inputToPipeline[tidEmulator].spaceLeft()) {
+						while(threadParam.outstandingMicroOps.isEmpty() == false) {
+							inputToPipeline[tidEmulator].enqueue(threadParam.outstandingMicroOps.pollFirst());
+						}
+					} else {
+						// there is no space in pipelineBuffer. So don't fetch any more instructions
+						continue;
+					}
+				}
 
 				// get the number of packets to read. 'continue' and read from
 				// some other thread if there is nothing.
@@ -593,28 +605,37 @@ public class RunnableThread implements Encoding, Runnable {
 	/*
 	 * process each packetList
 	 * parameters - Thread information, packetList, thread id
+	 * Call fuseInstruction on a outstanding micro-ops list instead of pipeline buffer
+	 * If we are not able to add packets from outstanding micro-ops list to pipeline buffer, then 
+	 * return false (there is no space in pipeline buffer).
 	 */
-	protected void processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
-		if (doNotProcess) return;
+	protected boolean processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
+		
+		boolean isSpaceInPipelineBuffer = true;
+		
+		if (doNotProcess) {
+			return isSpaceInPipelineBuffer;
+		}
+		
 		int tidApp = javaTid * EMUTHREADS + tidEmu;
 		sum += pnew.value;
 		if (pnew.value == TIMER) {//leaving timer packetList now
 			//resumeSleep(IpcBase.glTable.tryResumeOnWaitingPipelines(tidApp, pnew.ip)); 
-			return;
+			return isSpaceInPipelineBuffer;
 		}
 		if (pnew.value>SYNCHSTART && pnew.value<SYNCHEND) { //for barrier enter and barrier exit
 			ResumeSleep ret = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
 			if(ret!=null){
 				resumeSleep(ret);
 			}
-			return;
+			return isSpaceInPipelineBuffer;
 		}
 		if(pnew.value == BARRIERINIT)  //for barrier initialization
 		{
 		
 //			System.out.println("Packet is " + pnew.toString());
 			BarrierTable.barrierListAdd(pnew);
-			return;
+			return isSpaceInPipelineBuffer;
 		}
 		
 		if (thread.isFirstPacket) {
@@ -628,7 +649,7 @@ public class RunnableThread implements Encoding, Runnable {
 			//thread.pold.set(pnew);
 			thread.packetList.add(pnew);
 			thread.isFirstPacket=false;
-			return;
+			return isSpaceInPipelineBuffer;
 		}
 		
 		if (pnew.value!=INSTRUCTION && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {
@@ -643,7 +664,17 @@ public class RunnableThread implements Encoding, Runnable {
 			long numHandledInsn = 0;
 			
 			numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packetList.get(0).ip, 
-				thread.packetList, this.inputToPipeline[tidEmu]);
+				thread.packetList, thread.outstandingMicroOps);
+			
+			// Either add all outstanding micro-ops or none.
+			if(thread.outstandingMicroOps.size()<this.inputToPipeline[tidEmu].spaceLeft()) {
+				// add outstanding micro-operations to input to pipeline
+				while(thread.outstandingMicroOps.isEmpty() == false) {
+					this.inputToPipeline[tidEmu].enqueue(thread.outstandingMicroOps.pollFirst());
+				}
+			} else {
+				isSpaceInPipelineBuffer = false;
+			}
 									
 			Statistics.setNumHandledCISCInsn(
 				Statistics.getNumHandledCISCInsn(javaTid, tidEmu) + numHandledInsn,
@@ -651,42 +682,22 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			int newLength = inputToPipeline[tidEmu].size();
 			
-	//		if (ignoredInstructions < SimulationConfig.NumInsToIgnore)
-	//			ignoredInstructions += newLength;
-	//		else
-				noOfMicroOps[tidEmu] += newLength - oldLength;
-				
+			noOfMicroOps[tidEmu] += newLength - oldLength;
 			
-/*			if(SimulationConfig.detachMemSys == true)	//TODO
-			{
-				for(int i = 0; i < tempList.getListSize(); i++)
-				{
-					if(tempList.peekInstructionAt(i).getOperationType() == OperationType.load ||
-							tempList.peekInstructionAt(i).getOperationType() == OperationType.store)
-					{
-						tempList.removeInstructionAt(i);
-						i--;
-					}
-				}
-			}
-*/
 			// Writing 20million instructions to a file
 			if (writeToFile) {
 				//use old length, new length
-				if (noOfMicroOps[0]>numInsToWrite) doNotProcess=true;
-				if (noOfMicroOps[0]>numInsToWrite && noOfMicroOps[0]< 20000005)
-					System.out.println("Done writing to file");
+				if (noOfMicroOps[0]>numInsToWrite) {
+					doNotProcess=true;
+				}
 				
-				/*for(int i = oldLength; i < newLength; i++) {
-					try {
-						this.output.writeObject(this.inputToPipeline[tidEmu].peek(i));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}*/
-				while(this.inputToPipeline[tidEmu].size() > 0)
+				if (noOfMicroOps[0]>numInsToWrite && noOfMicroOps[0]< 20000005) {
+					System.out.println("Done writing to file");
+				}
+				
+				while(thread.outstandingMicroOps.size() > 0)
 				{
-					Instruction toBeWritten = this.inputToPipeline[tidEmu].pollFirst();
+					Instruction toBeWritten = thread.outstandingMicroOps.pollFirst();
 					try {
 						this.output.writeObject(toBeWritten);
 						this.output.flush();// TODO if flush is being ignored, may have to close and open the stream
@@ -698,30 +709,9 @@ public class RunnableThread implements Encoding, Runnable {
 			}
 			else {
 				
-//				int temmm = tempList.getListSize();
-//				for (int i = 0; i < temmm; i++) {
-//					//Newmain.instructionPool.returnObject(tempList.pollFirst());
-//					tempList.peekInstructionAt(i).setSerialNo(noOfMicroOps[0]+i);
-//				}
-	//			if (ignoredInstructions >= SimulationConfig.NumInsToIgnore)
-	//			{
-//					int coreId = threadCoreMaping.get(tidEmu);
 					if (!thread.halted && this.inputToPipeline[tidEmu].size() > INSTRUCTION_THRESHOLD) {
 						thread.halted = true;
-						//System.out.println("Halting "+tidEmu);
 					}	
-	//			}
-	//			else
-	//			{
-	//				while(this.inputToPipeline[tidEmu].size() > 0)
-	//				{
-	//					Newmain.instructionPool.returnObject(this.inputToPipeline[tidEmu].pollFirst());
-	//				}
-	//			}
-			
-/*				if (currentEMUTHREADS>1)
-				System.out.print("len["+tidEmu+"]="+this.inputToPipeline[tidEmu].length()+"\n");
-*/					
 
 				thread.packetList.clear();
 				thread.packetList.add(pnew);
@@ -732,7 +722,8 @@ public class RunnableThread implements Encoding, Runnable {
 				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
 			}
 		}
-
+		
+		return isSpaceInPipelineBuffer;
 	}
 
 	protected boolean poolExhausted(int tidEmulator) {

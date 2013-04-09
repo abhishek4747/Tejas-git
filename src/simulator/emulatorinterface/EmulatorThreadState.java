@@ -1,10 +1,7 @@
 package emulatorinterface;
 
-import java.util.ArrayList;
-
-import emulatorinterface.communication.IpcBase;
-import emulatorinterface.communication.Packet;
-import generic.InstructionLinkedList;
+import generic.GenericCircularQueue;
+import generic.Instruction;
 
 public class EmulatorThreadState {
 	
@@ -16,6 +13,9 @@ public class EmulatorThreadState {
 	//int readerLocation;
 	long totalRead;
 	
+	// We are assuming that one assembly instruction can have atmost 50 micro-operations.
+	// Its an over-estimation.
+	GenericCircularQueue<Instruction> outstandingMicroOps = new GenericCircularQueue<Instruction>(Instruction.class, 50);
 	
 	// Packet pold = new Packet();
 	EmulatorPacketList packetList = new EmulatorPacketList();
