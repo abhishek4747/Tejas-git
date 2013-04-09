@@ -195,7 +195,12 @@ public class RunnableThread implements Encoding, Runnable {
 					}
 					
 					
-					processPacket(threadParam, pnew, tidEmulator);
+					boolean ret = processPacket(threadParam, pnew, tidEmulator);
+					if(ret==false) {
+						// There is not enough space in pipeline buffer. 
+						// So don't process any more packets.
+						break;
+					}
 				}
 				
 				// perform error check.
@@ -670,7 +675,7 @@ public class RunnableThread implements Encoding, Runnable {
 			if(thread.outstandingMicroOps.size()<this.inputToPipeline[tidEmu].spaceLeft()) {
 				// add outstanding micro-operations to input to pipeline
 				while(thread.outstandingMicroOps.isEmpty() == false) {
-					this.inputToPipeline[tidEmu].enqueue(thread.outstandingMicroOps.pollFirst());
+					this.inputToPipeline[tidEmu].enqueue(thread.outstandingMicroOps.dequeue());
 				}
 			} else {
 				isSpaceInPipelineBuffer = false;
