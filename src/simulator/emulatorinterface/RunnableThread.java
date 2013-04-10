@@ -88,13 +88,10 @@ public class RunnableThread implements Encoding, Runnable {
 	public void run() {
 
 		// create pool for emulator packets
-		ArrayList<ArrayList<Packet>> fromEmulatorAll = new ArrayList<ArrayList<Packet>>(EMUTHREADS);
+		ArrayList<GenericCircularQueue<Packet>> fromEmulatorAll = new ArrayList<GenericCircularQueue<Packet>>(EMUTHREADS);
 		for(int i=0; i<EMUTHREADS; i++) {
-			ArrayList<Packet> fromEmulator = new ArrayList<Packet>(SharedMem.COUNT);
+			GenericCircularQueue<Packet> fromEmulator = new GenericCircularQueue<Packet>(Packet.class, SharedMem.COUNT);
 			fromEmulatorAll.add(fromEmulator);
-			for (int j = 0; j<SharedMem.COUNT; j++) {
-				fromEmulator.add(new Packet());
-			}
 		}
 		
 		Packet pnew = new Packet();
