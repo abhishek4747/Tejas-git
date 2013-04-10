@@ -88,9 +88,13 @@ public class RunnableThread implements Encoding, Runnable {
 	public void run() {
 
 		// create pool for emulator packets
-		ArrayList<Packet> fromEmulator = new ArrayList<Packet>(SharedMem.COUNT);
-		for (int i = 0; i < SharedMem.COUNT; i++) {
-			fromEmulator.add(new Packet());
+		ArrayList<ArrayList<Packet>> fromEmulatorAll = new ArrayList<ArrayList<Packet>>(EMUTHREADS);
+		for(int i=0; i<EMUTHREADS; i++) {
+			ArrayList<Packet> fromEmulator = new ArrayList<Packet>(SharedMem.COUNT);
+			fromEmulatorAll.add(fromEmulator);
+			for (int j = 0; j<SharedMem.COUNT; j++) {
+				fromEmulator.add(new Packet());
+			}
 		}
 		
 		Packet pnew = new Packet();
@@ -112,6 +116,8 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
 
+				ArrayList<Packet> fromEmulator = fromEmulatorAll.get(tidEmulator);
+				
 				threadParam = emulatorThreadState[tidEmulator];
 
 				// Thread is halted on a barrier or a sleep
