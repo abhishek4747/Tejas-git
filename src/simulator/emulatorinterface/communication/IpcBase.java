@@ -16,6 +16,8 @@ import java.util.concurrent.Semaphore;
 
 import emulatorinterface.GlobalTable;
 import emulatorinterface.RunnableThread;
+import generic.CircularPacketQueue;
+import generic.GenericCircularQueue;
 
 public abstract class IpcBase {
 
@@ -70,7 +72,7 @@ public abstract class IpcBase {
 	//public abstract Packet fetchOnePacket(int tidApp, int index);
 	
 	//public abstract int fetchManyPackets(int tidApp, int readerLocation, int numReads,ArrayList<Packet> fromPIN);
-	public abstract int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator);
+	public abstract int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator);
 	
 	//public abstract long update(int tidApp, int numReads);
 	// The main thread waits for the finish of reader threads and returns total number of 

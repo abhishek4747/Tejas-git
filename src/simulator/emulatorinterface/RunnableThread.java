@@ -26,6 +26,7 @@ import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.BarrierTable;
+import generic.CircularPacketQueue;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
@@ -88,9 +89,9 @@ public class RunnableThread implements Encoding, Runnable {
 	public void run() {
 
 		// create pool for emulator packets
-		ArrayList<GenericCircularQueue<Packet>> fromEmulatorAll = new ArrayList<GenericCircularQueue<Packet>>(EMUTHREADS);
+		ArrayList<CircularPacketQueue> fromEmulatorAll = new ArrayList<CircularPacketQueue>(EMUTHREADS);
 		for(int i=0; i<EMUTHREADS; i++) {
-			GenericCircularQueue<Packet> fromEmulator = new GenericCircularQueue<Packet>(Packet.class, SharedMem.COUNT);
+			CircularPacketQueue fromEmulator = new CircularPacketQueue(SharedMem.COUNT);
 			fromEmulatorAll.add(fromEmulator);
 		}
 		
@@ -113,7 +114,7 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			for (int tidEmulator = 0; tidEmulator < EMUTHREADS ; tidEmulator++) {
 
-				ArrayList<Packet> fromEmulator = fromEmulatorAll.get(tidEmulator);
+				CircularPacketQueue fromEmulator = fromEmulatorAll.get(tidEmulator);
 				
 				threadParam = emulatorThreadState[tidEmulator];
 
@@ -178,8 +179,8 @@ public class RunnableThread implements Encoding, Runnable {
 				}
 				
 				// Process all the packets read from the communication channel
-				for (int i = 0; i < numReads; i++) {
-					pnew = fromEmulator.get(i);
+				while(fromEmulator.isEmpty() == false) {
+					pnew = fromEmulator.dequeue();
 					v = pnew.value;
 
 					// if we read -1, this means this emulator thread finished.
