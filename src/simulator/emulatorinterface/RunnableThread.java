@@ -165,18 +165,18 @@ public class RunnableThread implements Encoding, Runnable {
 
 				threadParam.checkStarted();
 
-				// Do not process new packets till we have sufficient pool of available instructions
-				while (poolExhausted(tidEmulator)) {
-					//System.out.println("infinte loop");
-					runPipelines();
-				}
-				
-				// if this thread has filled 95% of its input to pipeline, run other threads for a while
-				// int maxAllowed = (int)((float)0.95*(float)INSTRUCTION_THRESHOLD);
-				int maxAllowed = INSTRUCTION_THRESHOLD-(numReads*3);
-				if(inputToPipeline[tidEmulator].size()>=maxAllowed) {
-					continue;
-				}
+//				// Do not process new packets till we have sufficient pool of available instructions
+//				while (poolExhausted(tidEmulator)) {
+//					//System.out.println("infinte loop");
+//					runPipelines();
+//				}
+//				
+//				// if this thread has filled 95% of its input to pipeline, run other threads for a while
+//				// int maxAllowed = (int)((float)0.95*(float)INSTRUCTION_THRESHOLD);
+//				int maxAllowed = INSTRUCTION_THRESHOLD-(numReads*3);
+//				if(inputToPipeline[tidEmulator].size()>=maxAllowed) {
+//					continue;
+//				}
 				
 				// Process all the packets read from the communication channel
 				while(fromEmulator.isEmpty() == false) {
