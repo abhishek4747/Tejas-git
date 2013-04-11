@@ -71,6 +71,7 @@ public class SharedMem extends  IpcBase
 		}
 	}
 	static int bar_wait = 0;
+	static int numSharedMemPackets = 0;
 	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
 		int numPackets;
 		numPackets = numPackets(tidApp);
@@ -80,8 +81,10 @@ public class SharedMem extends  IpcBase
 			return numPackets;
 		}
 		
+		System.out.println("numPackets = " + numPackets + "\nfromEmulator = " + fromEmulator.spaceLeft());
+		
 		// do not add packets to fromEmulator if there is not enough space to hold them
-		if(numPackets<fromEmulator.spaceLeft()) {
+		if(numPackets>fromEmulator.spaceLeft()) {
 			numPackets = fromEmulator.spaceLeft();
 			if(numPackets<=0) {
 				return numPackets;
@@ -91,6 +94,7 @@ public class SharedMem extends  IpcBase
 		long[] ret  = new long[3*numPackets]; 
 		SharedMem.shmreadMult(tidApp, shmAddress, readerLocation[tidApp], numPackets,ret);
 			for (int i=0; i<numPackets; i++) {
+				System.out.println("$sharedMem " + (++numSharedMemPackets) + " : " + ret[3*i]);
 				fromEmulator.enqueue(ret[3*i], ret[3*i+1], ret[3*i+2]);
 				//System.out.println(fromPIN.get(i).toString());
 			}
