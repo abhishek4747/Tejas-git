@@ -29,18 +29,18 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	private boolean executionComplete;
 	private boolean fetchComplete;
 	public InorderCoreMemorySystem inorderCoreMemorySystem;
-	private int noOfMemRequests;
-	private int noOfLd;
-	private int noOfSt;
-	private int memStall;
-	private int dataHazardStall;
-	public int l2memres;
-	public int oldl2req;
-	public int freshl2req;
-	public int icachehit;
-	public int l2memoutstanding;
-	public int l2hits;
-	public int l2accesses;
+	private long noOfMemRequests;
+	private long noOfLd;
+	private long noOfSt;
+	private long memStall;
+	private long dataHazardStall;
+	public long l2memres;
+	public long oldl2req;
+	public long freshl2req;
+	public long icachehit;
+	public long l2memoutstanding;
+	public long l2hits;
+	public long l2accesses;
 	private int numPipelines;
 	private boolean isAvailable;
 	
@@ -239,11 +239,11 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		return numCycles;
 	}
 
-	public int getMemStall() {
+	public long getMemStall() {
 		return memStall;
 	}
 
-	public int getDataHazardStall() {
+	public long getDataHazardStall() {
 		return dataHazardStall;
 	}
 

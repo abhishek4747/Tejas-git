@@ -76,12 +76,15 @@ public class Cache extends SimulationElement
 		
 		public MissStatusHoldingRegister missStatusHoldingRegister;
 		
-		public int noOfRequests;
-		public int noOfAccesses;public int noOfResponsesReceived;public int noOfResponsesSent;public int noOfWritesForwarded;
-		public int noOfWritesReceived;
-		public int hits;
-		public int misses;
-		public int evictions;
+		public long noOfRequests;
+		public long noOfAccesses;
+		public long noOfResponsesReceived;
+		public long noOfResponsesSent;
+		public long noOfWritesForwarded;
+		public long noOfWritesReceived;
+		public long hits;
+		public long misses;
+		public long evictions;
 		public boolean debug =false;
 		public NucaType nucaType;
 		

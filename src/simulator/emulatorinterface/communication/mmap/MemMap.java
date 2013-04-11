@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import config.SimulationConfig;
 
 import emulatorinterface.communication.*;
+import generic.CircularPacketQueue;
 
 
 /*XXX
@@ -190,7 +191,7 @@ public class MemMap extends IpcBase
 	}
 
 	@Override
-	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
+	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

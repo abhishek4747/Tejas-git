@@ -16,6 +16,7 @@ import config.SystemConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
+import generic.CircularPacketQueue;
 
 public class FilePacket extends IpcBase implements Encoding {
 
@@ -146,5 +147,11 @@ public class FilePacket extends IpcBase implements Encoding {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	@Override
+	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

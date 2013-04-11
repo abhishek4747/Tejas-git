@@ -13,6 +13,7 @@ import config.EmulatorConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
+import generic.CircularPacketQueue;
 
 public class Network extends IpcBase implements Encoding {
 	
@@ -251,5 +252,11 @@ public class Network extends IpcBase implements Encoding {
 	@Override
 	public void errorCheck(int tidApp, long totalReads) {
 		// Error check not required for network code.
+	}
+
+	@Override
+	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

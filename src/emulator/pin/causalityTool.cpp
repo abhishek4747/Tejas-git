@@ -121,8 +121,8 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 
-//	printf("thread %d finished exec\n",tid);
-//	fflush(stdout);
+	printf("thread %d finished exec\n",tid);
+	fflush(stdout);
 	PIN_MutexLock(&lock);
 	/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
 			PIN_Yield();
@@ -147,7 +147,7 @@ VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
 	if(ignoreActive)
 		return;
 
-//	printf("\npin num_mem read = %d\t %d\n",++num_mem,tid);
+//	printf("qqqPin %d %ld\n",++num_mem,(uint64_t)ip);
 //			fflush(stdout);
 	sendTimerPacket(tid,false);
 
@@ -546,7 +546,7 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 		encode = JOIN;
 	else if (cmp("pthread_cond_wait"))
 		encode = CONDWAIT;
-	else if (cmp("tejas_barrier_wait")){
+/*	else if (cmp("tejas_barrier_wait")){
 		encode = CONDWAIT;
 		//printf("FOUND THE TEJAS BARRIER\n");
 		cout << "FOUND THE TEJAS BARRIER\n";
@@ -556,13 +556,13 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 		
 		encode = BARRIERWAIT;
 	}
-	/*else if (cmp("parsec_barrier_wait"))
-			encode = BARRIERWAIT;*/
+	else if (cmp("parsec_barrier_wait"))
+			encode = BARRIERWAIT;
 	else if (cmp("pthread_barrier_init")) {
 		//printf("barrier init encountered !!\n");
 		cout << "barrier init encountered !!\n";
 		encode = BARRIERINIT;
-	}
+	}*/
 	else
 		encode = -1;
 
@@ -586,15 +586,8 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v) {
-	//cout <<"checkSum is "<<checkSum<<"\n";
-//	cout <<"within FINI"<<"\t"<<code<<" "<<"\n";
-//	fflush(stdout);
-//	while (tst->onSubset_finish(0, (numCISC[0])) == -1) {
-//										PIN_Yield();
-//								}
-//	sleep(10);
-//	cout<<"After subset\n";
-
+	cout <<"checkSum is "<<checkSum<<"\n";
+	fflush(stdout);
 	tst->unload();
 }
 
