@@ -50,7 +50,7 @@ public class CircularPacketQueue {
 		}
 		
 		Packet toBeReturned = buffer[head];
-		buffer[head] = null;
+		// buffer[head] = null; : should not be set to null
 		if(head == tail)
 		{
 			head = -1;
@@ -137,7 +137,7 @@ public class CircularPacketQueue {
 		}
 		
 		Packet toBeReturned = buffer[tail];
-		buffer[tail] = null;
+		// buffer[tail] = null; setting to null is not needed.
 		if(head == tail)
 		{
 			head = -1;

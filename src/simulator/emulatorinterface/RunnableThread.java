@@ -618,7 +618,10 @@ public class RunnableThread implements Encoding, Runnable {
 	 * If we are not able to add packets from outstanding micro-ops list to pipeline buffer, then 
 	 * return false (there is no space in pipeline buffer).
 	 */
+	static int numProcessPackets = 0;
 	protected boolean processPacket(EmulatorThreadState thread, Packet pnew, int tidEmu) {
+		
+		// System.out.println("&processPacket " + (++numProcessPackets) + " : " + pnew.ip);
 		
 		boolean isSpaceInPipelineBuffer = true;
 		

@@ -218,6 +218,8 @@ int Shm::onSubset_finish (int tid, long numCISC)
  * If last is 0 then normal write and if last is 1 then write -1 at the end
  * The numCISC's value is valid only if this is the last packet
  */
+//static FILE *pinTraceFile = NULL;
+//static int numShmWritePackets = 0;
 int
 Shm::shmwrite (int tid, int last, long numCISC)
 {
@@ -248,10 +250,13 @@ Shm::shmwrite (int tid, int last, long numCISC)
 
 		for (int i=0; i< numWrite; i++) {
 
-//			if(myData->tlq[(myData->out+i)%locQ].value== 2){
-//				printf("Mem Read going to write in shmem.cc %d\t%d\n",++num_shmem,tid);
-//				fflush(stdout);
+//			if(pinTraceFile == NULL) {
+//				pinTraceFile = fopen("/tmp/pinTrace.out", "w");
 //			}
+//
+//			fprintf(pinTraceFile, "pinTrace %d : %ld\n", (++numShmWritePackets),
+//					myData->tlq[(myData->out+i)%locQ].ip);
+
 			// for checksum
 			myData->sum+=myData->tlq[(myData->out+i)%locQ].value;
 
