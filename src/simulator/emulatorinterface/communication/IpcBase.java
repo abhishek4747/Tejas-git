@@ -121,9 +121,4 @@ public abstract class IpcBase {
 	public static int getEmuThreadsPerJavaThread() {
 		return IpcBase.EmuThreadsPerJavaThread;
 	}
-
-	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 }

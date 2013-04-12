@@ -91,7 +91,7 @@ public class Network extends IpcBase implements Encoding {
 	}
 
 	@Override
-	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
+	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
 		
 		// int positionInQueueBeforeReading = CustomObjectPool.getCustomAsmCharPool().currentPosition(tidApp);
 		
@@ -163,7 +163,7 @@ public class Network extends IpcBase implements Encoding {
 				
 			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 				
-				for(int index=0; ; index++) {
+				for(int numPacketsAdded=0; numPacketsAdded<fromEmulator.spaceLeft(); numPacketsAdded++) {
 		
 					// we must be able to read at-least 3 longs
 					if((numBytesRead-numBytesConsumed) < (3*8)) {
@@ -201,7 +201,7 @@ public class Network extends IpcBase implements Encoding {
 							}
 						}
 						
-						fromEmulator.get(index).set(ip, value, tgt);
+						fromEmulator.enqueue(ip, value, tgt);
 					}
 				}
 				
@@ -249,14 +249,7 @@ public class Network extends IpcBase implements Encoding {
 		return value;
 	}
 
-	@Override
 	public void errorCheck(int tidApp, long totalReads) {
 		// Error check not required for network code.
-	}
-
-	@Override
-	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }
