@@ -158,12 +158,12 @@ public class Network extends IpcBase implements Encoding {
 			numOverflowBytes[tidApp]=0;
 			
 			int numBytesConsumed = 0;
-			
+			int maxSize = fromEmulator.spaceLeft();
 			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 				
 			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 				
-				for(int numPacketsAdded=0; numPacketsAdded<fromEmulator.spaceLeft(); numPacketsAdded++) {
+				for(int numPacketsAdded=0; numPacketsAdded<maxSize; numPacketsAdded++) {
 		
 					// we must be able to read at-least 3 longs
 					if((numBytesRead-numBytesConsumed) < (3*8)) {
