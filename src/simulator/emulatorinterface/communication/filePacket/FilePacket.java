@@ -50,24 +50,24 @@ public class FilePacket extends IpcBase implements Encoding {
 		// this does nothing
 	}
 
-	public int fetchManyPackets(int tidApp, ArrayList<Packet> fromEmulator) {
+	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
 		
 		if(tidApp>=maxApplicationThreads) {
-			misc.Error.showErrorAndExit("FilePacket cannot handle tid=" + tidApp);
+			misc.Error.showErrorAndExit("FilePacket cannot handle tid = " + tidApp);
 		}
 		
 		if(inputBufferedReader[tidApp]==null) {
 			return 0;
 		}
 		
-		int maxSize = fromEmulator.size();
+		int maxSize = fromEmulator.spaceLeft();
 		
 		for(int i=0; i<maxSize; i++) {
 			
 			try {
 				//Subset Simulation
 				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= (SimulationConfig.subsetSimSize + SimulationConfig.NumInsToIgnore)) {
-					fromEmulator.get(i).set(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -1, -1);
+					fromEmulator.enqueue(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -1, -1);
 					return (i+1);
 				}
 				
@@ -117,7 +117,7 @@ public class FilePacket extends IpcBase implements Encoding {
 						}	
 					}
 					
-					fromEmulator.get(i).set(ip, value, tgt);
+					fromEmulator.enqueue(ip, value, tgt);
 					
 //					System.out.println("sending packet : " + fromEmulator.get(i));
 					
@@ -147,11 +147,5 @@ public class FilePacket extends IpcBase implements Encoding {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	@Override
-	public int fetchManyPackets(int tidApp, CircularPacketQueue fromEmulator) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }
