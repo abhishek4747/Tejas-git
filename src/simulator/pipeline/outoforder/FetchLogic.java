@@ -169,7 +169,8 @@ public class FetchLogic extends SimulationElement {
 				!execEngine.isToStall2() &&
 				!execEngine.isToStall3() &&
 				!execEngine.isToStall4() &&
-				!execEngine.isToStall5())
+				!execEngine.isToStall5() &&
+				!execEngine.isToStall6())
 		{
 			int fetchBufferIndex = 0;
 			

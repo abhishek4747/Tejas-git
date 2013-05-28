@@ -108,23 +108,17 @@ public class RenameTable extends SimulationElement{
 		this.associatedRegisterFile.setValueValid(false, newPhyReg);		
 		this.archToPhyMapping[threadID][archReg] = newPhyReg;
 		
-		if(this.associatedRegisterFile.getNoOfActiveWriters(oldPhyReg) == 0)
+		if(this.associatedRegisterFile.getValueValid(oldPhyReg) == true)
 		{
-			if(this.mappingValid[oldPhyReg] == false)
-			{
-				System.out.println("attempting to add a register, whose mapping is false, to the available list!!");
-			}
 			addToAvailableList(oldPhyReg);
 		}
-		if(this.associatedRegisterFile.getNoOfActiveWriters(oldPhyReg) < 0)
+		else
 		{
-			System.out.println("number of active writers < 0!!");
+			this.mappingValid[oldPhyReg] = false;
 		}
-
-		this.mappingValid[newPhyReg] = true;
-		this.mappingValid[oldPhyReg] = false;
 		
-		this.associatedRegisterFile.incrementNoOfActiveWriters(newPhyReg);
+		this.mappingValid[newPhyReg] = true;
+		
 		
 		return newPhyReg;
 	}

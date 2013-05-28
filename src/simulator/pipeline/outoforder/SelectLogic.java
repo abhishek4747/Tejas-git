@@ -192,7 +192,7 @@ public class SelectLogic extends SimulationElement {
 				}
 				
 				i = (i+1)%ROB.MaxROBSize;
-			}while(i != ROB.tail);
+			}while(i != (ROB.tail+1)%ROB.MaxROBSize);
 		}
 		
 		if(wakeUpListCtr != IW.maxIWSize)

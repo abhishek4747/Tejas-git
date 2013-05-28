@@ -59,6 +59,11 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	
 	private boolean toStall5;					//if branch mis-predicted
 												//fetcher stall
+	
+	private boolean toStall6[];					//if physical register (msr) cannot be
+												//allocated to the dest of an instruction,
+												//all subsequent processing of that thread must stall
+												//fetcher and decoder stall
 
 	
 	public long prevCycles;
@@ -103,6 +108,11 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		toStall3 = false;
 		toStall4 = false;
 		toStall5 = false;
+		toStall6 = new boolean[1];
+		for(int i = 0; i < 1; i++)
+		{
+			toStall6[i] = false;
+		}
 		prevCycles=0;
 	}
 	
@@ -192,6 +202,14 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	public void setToStall5(boolean toStall5) {
 		this.toStall5 = toStall5;
+	}
+
+	public boolean isToStall6() {
+		return toStall6[0];
+	}
+
+	public void setToStall6(boolean toStall5) {
+		this.toStall6[0] = toStall5;
 	}
 	
 	public Instruction[] getFetchBuffer() {

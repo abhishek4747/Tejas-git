@@ -57,6 +57,7 @@ public class Instruction implements Serializable
 	private boolean branchTaken;
 	private long branchTargetAddress;
 	private long serialNo;
+	private long threadID;
 	
 	public Instruction()
 	{
@@ -355,6 +356,10 @@ public class Instruction implements Serializable
 
 	public void setSerialNo(long serialNo) {
 		this.serialNo = serialNo;
+	}
+
+	public long getThreadID() {
+		return threadID;
 	}
 
 	public long getSourceOperand1MemValue() {

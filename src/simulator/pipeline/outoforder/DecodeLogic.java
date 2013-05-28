@@ -33,7 +33,7 @@ public class DecodeLogic extends SimulationElement {
 	
 	public void performDecode()
 	{
-		if(execEngine.isToStall5() == true)
+		if(execEngine.isToStall5() == true || execEngine.isToStall6() == true)
 		{
 			//pipeline stalled due to branch mis-prediction
 			return;

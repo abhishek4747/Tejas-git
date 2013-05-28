@@ -159,9 +159,167 @@ public class WakeUpLogic {
 		{
 			execEngine.getFloatingPointRenameTable().setValueValid(true, physicalRegister);
 		}
+//		else if(opndType == OperandType.machineSpecificRegister)
+//		{
+//			execEngine.getMachineSpecificRegisterFile(threadID).setValueValid(true, physicalRegister);
+//		} suspect bug : register file value valid should be set only at write back
 		else if(opndType == OperandType.machineSpecificRegister)
 		{
-			execEngine.getMachineSpecificRegisterFile(threadID).setValueValid(true, physicalRegister);
+			for(int j = 0; j < core.getDecodeWidth(); j++)
+			{
+				if(execEngine.getRenameBuffer()[j] != null && execEngine.getRenameBuffer()[j].getInstruction().getThreadID() == threadID)
+				{
+					Operand tempOpnd = execEngine.getRenameBuffer()[j].getInstruction().getSourceOperand1();
+					if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+					{
+						if(physicalRegister == (int)tempOpnd.getValue())
+						{
+							execEngine.getRenameBuffer()[j].setOperand1Available(true);
+						}
+					}
+					else if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.memory)
+					{
+						tempOpnd = execEngine.getRenameBuffer()[j].getInstruction().getSourceOperand1().getMemoryLocationFirstOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getRenameBuffer()[j].setOperand11Available(true);
+								if(execEngine.getRenameBuffer()[j].isOperand12Available() == true)
+								{
+									execEngine.getRenameBuffer()[j].setOperand1Available(true);
+								}
+							}
+						}
+						tempOpnd = execEngine.getRenameBuffer()[j].getInstruction().getSourceOperand1().getMemoryLocationSecondOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getRenameBuffer()[j].setOperand12Available(true);
+								if(execEngine.getRenameBuffer()[j].isOperand11Available() == true)
+								{
+									execEngine.getRenameBuffer()[j].setOperand1Available(true);
+								}
+							}
+						}
+					}
+					
+					tempOpnd = execEngine.getRenameBuffer()[j].getInstruction().getSourceOperand2();
+					if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+					{
+						if(physicalRegister == (int)tempOpnd.getValue())
+						{
+							execEngine.getRenameBuffer()[j].setOperand2Available(true);
+						}
+					}
+					else if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.memory)
+					{
+						tempOpnd = execEngine.getRenameBuffer()[j].getInstruction().getSourceOperand2().getMemoryLocationFirstOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getRenameBuffer()[j].setOperand21Available(true);
+								if(execEngine.getRenameBuffer()[j].isOperand22Available() == true)
+								{
+									execEngine.getRenameBuffer()[j].setOperand2Available(true);
+								}
+							}
+						}
+						tempOpnd = execEngine.getRenameBuffer()[j].getInstruction().getSourceOperand2().getMemoryLocationSecondOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getRenameBuffer()[j].setOperand22Available(true);
+								if(execEngine.getRenameBuffer()[j].isOperand21Available() == true)
+								{
+									execEngine.getRenameBuffer()[j].setOperand2Available(true);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			for(int j = 0; j < core.getDecodeWidth(); j++)
+			{
+				if(execEngine.getDecodeBuffer()[j] != null && execEngine.getDecodeBuffer()[j].getInstruction().getThreadID() == threadID)
+				{
+					Operand tempOpnd = execEngine.getDecodeBuffer()[j].getInstruction().getSourceOperand1();
+					if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+					{
+						if(physicalRegister == (int)tempOpnd.getValue())
+						{
+							execEngine.getDecodeBuffer()[j].setOperand1Available(true);
+						}
+					}
+					else if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.memory)
+					{
+						tempOpnd = execEngine.getDecodeBuffer()[j].getInstruction().getSourceOperand1().getMemoryLocationFirstOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getDecodeBuffer()[j].setOperand11Available(true);
+								if(execEngine.getDecodeBuffer()[j].isOperand12Available() == true)
+								{
+									execEngine.getDecodeBuffer()[j].setOperand1Available(true);
+								}
+							}
+						}
+						tempOpnd = execEngine.getDecodeBuffer()[j].getInstruction().getSourceOperand1().getMemoryLocationSecondOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getDecodeBuffer()[j].setOperand12Available(true);
+								if(execEngine.getDecodeBuffer()[j].isOperand11Available() == true)
+								{
+									execEngine.getDecodeBuffer()[j].setOperand1Available(true);
+								}
+							}
+						}
+					}
+					
+					tempOpnd = execEngine.getDecodeBuffer()[j].getInstruction().getSourceOperand2();
+					if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+					{
+						if(physicalRegister == (int)tempOpnd.getValue())
+						{
+							execEngine.getDecodeBuffer()[j].setOperand2Available(true);
+						}
+					}
+					else if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.memory)
+					{
+						tempOpnd = execEngine.getDecodeBuffer()[j].getInstruction().getSourceOperand2().getMemoryLocationFirstOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getDecodeBuffer()[j].setOperand21Available(true);
+								if(execEngine.getDecodeBuffer()[j].isOperand22Available() == true)
+								{
+									execEngine.getDecodeBuffer()[j].setOperand2Available(true);
+								}
+							}
+						}
+						tempOpnd = execEngine.getDecodeBuffer()[j].getInstruction().getSourceOperand2().getMemoryLocationSecondOperand();
+						if(tempOpnd != null && tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+						{
+							if(physicalRegister == (int)tempOpnd.getValue())
+							{
+								execEngine.getDecodeBuffer()[j].setOperand22Available(true);
+								if(execEngine.getDecodeBuffer()[j].isOperand21Available() == true)
+								{
+									execEngine.getDecodeBuffer()[j].setOperand2Available(true);
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 

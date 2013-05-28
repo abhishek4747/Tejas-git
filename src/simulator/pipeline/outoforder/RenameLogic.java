@@ -100,6 +100,12 @@ public class RenameLogic extends SimulationElement {
 
 	private void processOperand1(ReorderBufferEntry reorderBufferEntry)
 	{
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+		{
+			//handled in processDestOperand()
+			return;
+		}
+		
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
 		if(tempOpnd == null ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
@@ -111,9 +117,10 @@ public class RenameLogic extends SimulationElement {
 		}
 
 		OperandType tempOpndType = tempOpnd.getOperandType();
-		int archReg = (int) tempOpnd.getValue();
+		int archReg;
 		if(tempOpndType == OperandType.integerRegister)
 		{
+			archReg = (int) tempOpnd.getValue();
 			//Increment counters for power calculations  FIXME is this correct ? on every process operand, rename table is accessed!
 			this.core.powerCounters.incrementIntegerRenameAccess(1);
 			reorderBufferEntry.setOperand1PhyReg1(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
@@ -121,6 +128,7 @@ public class RenameLogic extends SimulationElement {
 		}
 		else if(tempOpndType == OperandType.floatRegister)
 		{
+			archReg = (int) tempOpnd.getValue();
 			//Increment counters for power calculations 
 			this.core.powerCounters.incrementFloatRenameAccess(1);
 			reorderBufferEntry.setOperand1PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
@@ -128,6 +136,7 @@ public class RenameLogic extends SimulationElement {
 		}
 		else if(tempOpndType == OperandType.machineSpecificRegister)
 		{
+			archReg = (int) tempOpnd.getValue();
 			reorderBufferEntry.setOperand1PhyReg1(archReg);
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
@@ -209,6 +218,12 @@ public class RenameLogic extends SimulationElement {
 	
 	private void processOperand2(ReorderBufferEntry reorderBufferEntry)
 	{
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+		{
+			//handled in processDestOperand()
+			return;
+		}
+		
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
 		
 		if(tempOpnd == null ||
@@ -221,9 +236,10 @@ public class RenameLogic extends SimulationElement {
 		}
 
 		OperandType tempOpndType = tempOpnd.getOperandType();
-		int archReg = (int) tempOpnd.getValue();
+		int archReg;
 		if(tempOpndType == OperandType.integerRegister)
-		{			
+		{
+			archReg = (int) tempOpnd.getValue();
 			//Increment counters for power calculations  FIXME is this correct ? on every process operand, rename table is accessed!
 			this.core.powerCounters.incrementIntegerRenameAccess(1);
 			reorderBufferEntry.setOperand2PhyReg1(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
@@ -231,6 +247,7 @@ public class RenameLogic extends SimulationElement {
 		}
 		else if(tempOpndType == OperandType.floatRegister)
 		{
+			archReg = (int) tempOpnd.getValue();
 			//Increment counters for power calculations 
 			this.core.powerCounters.incrementFloatRenameAccess(1);
 			reorderBufferEntry.setOperand2PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
@@ -238,6 +255,7 @@ public class RenameLogic extends SimulationElement {
 		}
 		else if(tempOpndType == OperandType.machineSpecificRegister)
 		{
+			archReg = (int) tempOpnd.getValue();
 			reorderBufferEntry.setOperand2PhyReg1(archReg);
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
@@ -320,7 +338,54 @@ public class RenameLogic extends SimulationElement {
 	
 	private boolean processDestOperand(ReorderBufferEntry reorderBufferEntry)
 	{
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
+		Operand tempOpnd;
+		OperandType tempOpndType;
+		
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+		{
+			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
+			tempOpndType = tempOpnd.getOperandType();
+			
+			boolean op1handled = false;
+			
+			if(tempOpndType == OperandType.machineSpecificRegister)
+			{
+				op1handled = handleMSR(reorderBufferEntry, 2);
+			}
+			else
+			{
+				op1handled = handleIntFloat(reorderBufferEntry, 2);
+			}
+			
+			if(op1handled == true)
+			{
+				tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
+				tempOpndType = tempOpnd.getOperandType();
+				
+				if(tempOpndType == reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() &&
+						tempOpnd.getValue() == reorderBufferEntry.getInstruction().getSourceOperand1().getValue())
+				{
+					//of the form xchg rx, rx
+					reorderBufferEntry.setOperand2PhyReg1(reorderBufferEntry.getOperand1PhyReg1());
+					return true;
+				}
+				
+				if(tempOpndType == OperandType.machineSpecificRegister)
+				{
+					return handleMSR(reorderBufferEntry, 3);
+				}
+				else
+				{
+					return handleIntFloat(reorderBufferEntry, 3);
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 		if(tempOpnd == null ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
@@ -328,7 +393,7 @@ public class RenameLogic extends SimulationElement {
 			return true;
 		}
 		
-		OperandType tempOpndType = tempOpnd.getOperandType(); 
+		tempOpndType = tempOpnd.getOperandType(); 
 		
 		if(tempOpndType != OperandType.integerRegister &&
 				tempOpndType != OperandType.floatRegister &&
@@ -340,29 +405,68 @@ public class RenameLogic extends SimulationElement {
 		{
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
-				return handleMSR(reorderBufferEntry);				
+				return handleMSR(reorderBufferEntry, 1);				
 			}			
 			else
 			{
-				return handleIntFloat(reorderBufferEntry);				
+				return handleIntFloat(reorderBufferEntry, 1);				
 			}
 		}
 	}
 	
-	boolean handleMSR(ReorderBufferEntry reorderBufferEntry)
+	boolean handleMSR(ReorderBufferEntry reorderBufferEntry, int whichOperand)		//whichOperand : 1 = dest; 2 = srcOp1; 3 = srcOp2
 	{
 		RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
+		Operand tempOpnd;
+		int destPhyReg;
 		
-		int destPhyReg = (int) tempOpnd.getValue();
-		reorderBufferEntry.setPhysicalDestinationRegister(destPhyReg);
+		if(whichOperand == 1)
+		{
+			tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
+			destPhyReg = (int) tempOpnd.getValue();
+		}
+		else if(whichOperand == 2)
+		{
+			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
+			destPhyReg = (int) tempOpnd.getValue();
+		}
+		else if(whichOperand == 3)
+		{
+			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
+			destPhyReg = (int) tempOpnd.getValue();			
+		}
+		else
+		{
+			System.err.println("invalid whichoperand!");
+			return true;
+		}
 		
-		if(tempRF.getValueValid(destPhyReg) == true)
+		
+		if(tempRF.getValueValid(destPhyReg) == true ||
+				tempRF.getProducerROBEntry(destPhyReg) == reorderBufferEntry/* ||
+				CheckerMain.isLeaderInstruction(reorderBufferEntry.getInstruction()) == false*/)
 		{
 			//destination MSR available
-			
+			if(whichOperand == 1)
+			{
+				reorderBufferEntry.setPhysicalDestinationRegister(destPhyReg);				
+			}
+			else if(whichOperand == 2)
+			{
+				reorderBufferEntry.setOperand1PhyReg1(destPhyReg);				
+			}
+			else if(whichOperand == 3)
+			{
+				reorderBufferEntry.setOperand2PhyReg1(destPhyReg);
+			}
+			else
+			{
+				System.err.println("invalid whichoperand!");
+				return true;
+			}
 			tempRF.setProducerROBEntry(reorderBufferEntry, destPhyReg);
 			tempRF.setValueValid(false, destPhyReg);
+			execEngine.setToStall6(false);
 			
 			return true;
 		}
@@ -370,16 +474,39 @@ public class RenameLogic extends SimulationElement {
 		else
 		{
 			//stall decode because physical register for destination was not allocated
-			execEngine.setToStall2(true);
+			execEngine.setToStall6(true);
 			return false;
 		}
 	}
 	
-	boolean handleIntFloat(ReorderBufferEntry reorderBufferEntry)
+	boolean handleIntFloat(ReorderBufferEntry reorderBufferEntry, int whichOperand)
 	{
 		RenameTable tempRN;
-		OperandType tempOpndType = reorderBufferEntry.getInstruction().
+		OperandType tempOpndType;
+		int registerNumber;
+		
+		if(whichOperand == 1)
+		{
+			tempOpndType = reorderBufferEntry.getInstruction().
 									getDestinationOperand().getOperandType();
+			registerNumber = (int) reorderBufferEntry.getInstruction().getDestinationOperand().getValue();
+		}
+		else if(whichOperand == 2)
+		{
+			tempOpndType = reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType();
+			registerNumber = (int) reorderBufferEntry.getInstruction().getSourceOperand1().getValue();
+		}
+		else if(whichOperand == 3)
+		{
+			tempOpndType = reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType();
+			registerNumber = (int) reorderBufferEntry.getInstruction().getSourceOperand2().getValue();
+		}
+		else
+		{
+			System.err.println("invalid whichOperand!");
+			return true;
+		}
+		
 		if(tempOpndType == OperandType.integerRegister)
 		{
 			tempRN = execEngine.getIntegerRenameTable();
@@ -393,14 +520,31 @@ public class RenameLogic extends SimulationElement {
 			this.core.powerCounters.incrementFloatRenameAccess(1);
 		}
 		
-		int r = tempRN.allocatePhysicalRegister(threadID, (int) reorderBufferEntry.getInstruction().getDestinationOperand().getValue());
+		int r = tempRN.allocatePhysicalRegister(threadID, registerNumber);
 		if(r >= 0)
 		{
 			//physical register found
 			
-			reorderBufferEntry.setPhysicalDestinationRegister(r);
+			if(whichOperand == 1)
+			{
+				reorderBufferEntry.setPhysicalDestinationRegister(r);
+			}
+			else if(whichOperand == 2)
+			{
+				reorderBufferEntry.setOperand1PhyReg1(r);
+			}
+			else if(whichOperand == 3)
+			{
+				reorderBufferEntry.setOperand2PhyReg1(r);
+			}
+			else
+			{
+				System.err.println("invalid whichOperand!");
+				return true;
+			}
 			tempRN.setValueValid(false, r);
 			tempRN.setProducerROBEntry(reorderBufferEntry, r);
+			execEngine.setToStall2(false);
 			
 			return true;
 		}
@@ -415,6 +559,13 @@ public class RenameLogic extends SimulationElement {
 	
 	void checkOperand1Availability()
 	{
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+		{
+			//handled in processDestOperand()
+			reorderBufferEntry.setOperand1Available(true);
+			return;
+		}
+		
 		Operand tempOpnd = instruction.getSourceOperand1();
 		if(tempOpnd == null ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
@@ -459,18 +610,6 @@ public class RenameLogic extends SimulationElement {
 					this.core.powerCounters.incrementWindowPregAccess(1);
 
 					reorderBufferEntry.setOperand1Available(true);
-					if(opType == OperationType.xchg)
-					{
-						tempRF.setValueValid(false, tempOpndPhyReg1);
-						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
-						//tempRF.incrementNoOfActiveWriters(tempOpndPhyReg1);
-						//2nd operand may be the same register as 1st operand
-						if(tempOpndType == instruction.getSourceOperand2().getOperandType()
-								&& tempOpndPhyReg1 == reorderBufferEntry.getOperand2PhyReg1())
-						{
-							reorderBufferEntry.setOperand2Available(true);							
-						}
-					}
 				}
 			}
 			else if(tempOpndType == OperandType.integerRegister ||
@@ -493,24 +632,6 @@ public class RenameLogic extends SimulationElement {
 					this.core.powerCounters.incrementWindowPregAccess(1);
 
 					reorderBufferEntry.setOperand1Available(true);
-						
-					if(opType == OperationType.xchg)
-					{
-						tempRN.setValueValid(false, tempOpndPhyReg1);
-						tempRN.getAssociatedRegisterFile().setValueValid(false, tempOpndPhyReg1);
-						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
-						//2nd operand may be the same register as 1st operand
-						if(tempOpndType == reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType()
-								&& tempOpndPhyReg1 == reorderBufferEntry.getOperand2PhyReg1())
-						{
-							reorderBufferEntry.setOperand2Available(true);							
-						}
-					}
-				}
-				
-				if(opType == OperationType.xchg)
-				{
-					tempRN.getAssociatedRegisterFile().incrementNoOfActiveWriters(tempOpndPhyReg1);					
 				}
 			}
 		}
@@ -554,6 +675,13 @@ public class RenameLogic extends SimulationElement {
 	
 	void checkOperand2Availability()
 	{
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+		{
+			//handled in processDestOperand()
+			reorderBufferEntry.setOperand2Available(true);
+			return;
+		}
+		
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
 		if(tempOpnd == null ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
@@ -598,14 +726,6 @@ public class RenameLogic extends SimulationElement {
 					this.core.powerCounters.incrementWindowPregAccess(1);
 					
 					reorderBufferEntry.setOperand2Available(true);
-					if(opType == OperationType.xchg)
-							//|| reorderBufferEntry.getInstruction().getDestinationOperand() != null &&
-							//reorderBufferEntry.getInstruction().getDestinationOperand().getValue() == tempOpndPhyReg1)
-					{
-						tempRF.setValueValid(false, tempOpndPhyReg1);
-						tempRF.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
-						//tempRF.incrementNoOfActiveWriters(tempOpndPhyReg2);
-					}
 				}
 			}
 			else if(tempOpndType == OperandType.integerRegister ||
@@ -629,20 +749,6 @@ public class RenameLogic extends SimulationElement {
 					this.core.powerCounters.incrementWindowPregAccess(1);
 
 					reorderBufferEntry.setOperand2Available(true);
-					
-					if(opType == OperationType.xchg)
-					{
-						tempRN.setValueValid(false, tempOpndPhyReg1);
-						tempRN.getAssociatedRegisterFile().setValueValid(false, tempOpndPhyReg1);
-						tempRN.setProducerROBEntry(reorderBufferEntry, tempOpndPhyReg1);
-					}
-				}
-				
-				if(opType == OperationType.xchg &&
-						(tempOpndPhyReg1 != reorderBufferEntry.operand1PhyReg1 ||
-						tempOpndType != reorderBufferEntry.getInstruction().getOperand1().getOperandType()))
-				{
-					tempRN.getAssociatedRegisterFile().incrementNoOfActiveWriters(tempOpndPhyReg1);					
 				}
 			}
 		}
