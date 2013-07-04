@@ -2,31 +2,29 @@ package memorysystem.directory;
 
 import memorysystem.CacheLine;
 import memorysystem.MESI;
+import memorysystem.Cache.CacheType;
 
-public class DirectoryEntry {
-	DirectoryState state;
+public class DirectoryEntry extends CacheLine {
+	MESI state;
 	boolean[] presenceBits;
-	int numPresenceBits;
-	private long tag;
-	private long line_num;
+	
 //	private boolean valid;
 	private double timestamp;
 //	private boolean modified;
-	private int pid;
-	public long address;
-	
+
 	public DirectoryEntry(int noOfCores, long lineNum){
+		super(1);
 		presenceBits=new boolean[noOfCores];
-		numPresenceBits=noOfCores;
-		line_num=lineNum;
-		for(int i=0;i<numPresenceBits;i++)
+		
+		state = MESI.INVALID;
+		tag = 0;
+		for(int i=0;i<noOfCores;i++)
 			presenceBits[i]=false;
 	}
 	
-	protected DirectoryEntry copy()
+	public DirectoryEntry copy()
 	{
-		DirectoryEntry newLine = new DirectoryEntry(this.numPresenceBits,0);
-		newLine.setLine_num(this.getLine_num());
+		DirectoryEntry newLine = new DirectoryEntry(this.presenceBits.length,0);
 		newLine.setTag(this.getTag());
 		newLine.setState(this.getState());
 		newLine.setTimestamp(this.getTimestamp());
@@ -35,21 +33,25 @@ public class DirectoryEntry {
 	
 	public int getOwner(){
 		//This should be called only when the state of the directory entry is "modified"
-		for(int i=0;i<numPresenceBits;i++){
+		for(int i=0;i<this.presenceBits.length;i++){
 			if(presenceBits[i])
 				return i;
 		}
 		return -1;
 	}
-	public DirectoryState getState(){
+	
+	public MESI getState(){
 		return this.state;
 	}
-	public void setState(DirectoryState state){
+	
+	public void setState(MESI state){
 		this.state=state;
 	}
+	
 	public boolean getPresenceBit(int i){
 		return this.presenceBits[i];
 	}
+	
 	public void setPresenceBit(int i,boolean presenceBit){
 		this.presenceBits[i]=presenceBit;
 	}
@@ -69,14 +71,8 @@ public class DirectoryEntry {
 		this.tag = tag;
 	}
 
-	protected long getLine_num() {
-		return line_num;
-	}
-
-	protected void setLine_num(long lineNum) {
-		line_num = lineNum;
-	}
-	protected double getTimestamp() {
+	
+	public double getTimestamp() {
 		return timestamp;
 	}
 
@@ -86,9 +82,23 @@ public class DirectoryEntry {
 	
 	public void resetAllPresentBits()
 	{
-		for(int i=0;i< numPresenceBits ; i++)
+		for(int i=0;i< this.presenceBits.length ; i++)
 		{
 			presenceBits[i] = false;
 		}
+	}
+	
+	public String toString()
+	{
+		StringBuilder s = new StringBuilder();
+		s.append("line number = " + this.getTag() + " : "  + "state = " + this.getState() + " : " );
+		for(int i = 0; i< presenceBits.length;i++)
+		{
+			if(presenceBits[i])
+				s.append(1 + " ");
+			else 
+				s.append(0 + " ");
+		}
+		return s.toString();
 	}
 }

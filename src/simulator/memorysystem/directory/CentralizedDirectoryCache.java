@@ -1,64 +1,128 @@
+/*****************************************************************************
+				BhartiSim Simulator
+------------------------------------------------------------------------------------------------------------
+
+   Copyright [2010] [Indian Institute of Technology, Delhi]
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+------------------------------------------------------------------------------------------------------------
+
+				Contributor: Mayur Harne
+*****************************************************************************/
 package memorysystem.directory;
 
 import generic.Core;
 import generic.Event;
+import generic.EventComparator;
 import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Vector;
 
 import config.CacheConfig;
+import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MESI;
 import memorysystem.MemorySystem;
+import memorysystem.Cache.CacheType;
 
 public class CentralizedDirectoryCache extends Cache{
 
 	private int numPresenceBits;
 	private long invalidations;
+	private long directoryMisses;
+	private long numReadMiss;
+	private long numWriteMiss;
+	private long numReadHit;
+	private long numWriteHit;
+	private long directoryHits;
 	private long writebacks;
 	private long dataForwards;
 	Core[] cores;
+	private DirectoryEntry[] lines;
 	public boolean debug =false;
-	
+	private long timestamp=0;
+	public static final long DIRECTORYSIZE = 32000;
 	
 	private HashMap<Long, DirectoryEntry> directoryHashmap;
+	private PriorityQueue<DirectoryEntry> dirEntryHeap;
+	
 	public CentralizedDirectoryCache(CacheConfig cacheParameters,
 			CoreMemorySystem containingMemSys, int numCores, Core[] coresArray) {
 		super(cacheParameters, containingMemSys);
 		directoryHashmap = new HashMap<Long, DirectoryEntry>();
-		numPresenceBits = numCores;
-		invalidations=0;
-		writebacks=0;
-		dataForwards=0;
+		lines = new DirectoryEntry[cacheParameters.getSize()*1024];
+		for(int i=0;i<lines.length;i++) {
+			lines[i] = new DirectoryEntry(numCores, i);
+		}
+		invalidations =0;
+		writebacks =0;
+		dataForwards =0;
+		directoryHits = 0;
+		directoryMisses = 0;
 		cores = coresArray;
-		new HashMap<Long, Cache>();
 		this.levelFromTop = CacheType.Directory;
+		dirEntryHeap = new PriorityQueue<DirectoryEntry>(1, new DirectoryEntryComparator());
 	}
-	public int getNumPresenceBits() {
-		return numPresenceBits;
+	
+	public long computeTag(long addr) {
+		long tag = addr >>> (numSetsBits);
+		return tag;
 	}
-	public void setNumPresenceBits(int numPresenceBits) {
-		this.numPresenceBits = numPresenceBits;
+	
+	public int getSetIdx(long addr)
+	{
+		int startIdx = getStartIdx(addr);
+		return startIdx/assoc;
 	}
-	public DirectoryEntry lookup(long address, boolean calledFromEviction) {
+	
+	public int getStartIdx(long addr) {
+		long SetMask = ( 1 << (numSetsBits) )- 1;
+		int startIdx = (int) ((addr ) & (SetMask));
+		return startIdx;
+	}
+	
+	public CacheLine getCacheLine(int idx) {
+		return this.lines[idx];
+	}
+	
+	
+	public DirectoryEntry lookup(AddressCarryingEvent event ,long address, boolean calledFromEviction) {
 		//	Search for the directory entry 
 		//if not found, create one with invalid state 
-		CacheLine cl = processRequest(RequestType.Cache_Read, address);
-		if(cl==null) 
+		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, address);
+		if(dirEntry ==null) 
 		{
-			fill(address, MESI.EXCLUSIVE);	//State is a dummy here. It can be anything but invalid
-											//Actual DirectoryState is maintained in the dirEntry
-											//processRequest and fill are called just to account for hits and misses in the directory
+			DirectoryEntry evictedDirEntry =  (DirectoryEntry) fill(address, MESI.UNCACHED);
+			if(evictedDirEntry != null) 
+			{
+				sendeventToSharers(evictedDirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate,true);
+			}
+			dirEntry = (DirectoryEntry) access(address);
 		}
-		DirectoryEntry dirEntry = directoryHashmap.get(address);
+		/*DirectoryEntry dirEntry = directoryHashmap.get(address);
 		if(dirEntry==null){
 			if(calledFromEviction)
 			{
+				return null;
 				System.out.println(" address not found  " + address);
 				System.err.println("cache line evicted but no entry in directory found " + address);
 				System.exit(1);
@@ -66,27 +130,12 @@ public class CentralizedDirectoryCache extends Cache{
 			dirEntry=new DirectoryEntry(numPresenceBits, address);
 			dirEntry.setState( DirectoryState.uncached  );		//Needless as when dirEntry is initialized, state is set to invalid
 			directoryHashmap.put( address, dirEntry );
-		}
+			dirEntryHeap.add(dirEntry);
+		}*/
 		return dirEntry;
 	}
-	public long getInvalidations() {
-		return invalidations;
-	}
-	public void incrementInvalidations(int invalidations) {
-		this.invalidations += invalidations;
-	}
-	public long getWritebacks() {
-		return writebacks;
-	}
-	public void incrementWritebacks(int writebacks) {
-		this.writebacks += writebacks;
-	}
-	public long getDataForwards() {
-		return dataForwards;
-	}
-	public void incrementDataForwards(int dataForwards) {
-		this.dataForwards += dataForwards;
-	}
+	
+	
 	
 	public void handleEvent( EventQueue eventQ, Event event )
 	{
@@ -115,7 +164,11 @@ public class CentralizedDirectoryCache extends Cache{
 	private void memResponseDIrectoryUpdate(EventQueue eventQ, Event event) 
 	{
 		long dirAddress = getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = lookup(dirAddress,true);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
+		if(dirEntry == null)
+		{
+			return;
+		}
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
 		dirEntry.setPresenceBit(requestingCore, true);
@@ -123,18 +176,18 @@ public class CentralizedDirectoryCache extends Cache{
 	
 	private boolean checkAndScheduleEventForNextCycle(long dirAddress, Event event)
 	{
-		DirectoryEntry dirEntry  = lookup(dirAddress,false);
+		DirectoryEntry dirEntry  = lookup((AddressCarryingEvent)event,dirAddress,false);
 		if(dirEntry.getOwner() == -1)
 		{
-			if(dirEntry.getState() == DirectoryState.uncached)
+			if(dirEntry.getState() == MESI.UNCACHED)
 			{
 				return false;
 			}
 			this.getPort().put(event.update(event.getEventQ(),
-														 1,
-														 event.getRequestingElement(), 
-														 this, 
-														 event.getRequestType()));
+								 1,
+								 event.getRequestingElement(), 
+								 this, 
+								 event.getRequestType()));
 			return true;
 		} 
 		if(debug) System.out.println("returned false");
@@ -143,24 +196,34 @@ public class CentralizedDirectoryCache extends Cache{
 	
 	public void EvictionDirectoryUpdate(EventQueue eventQ,Event event) 
 	{
-		long address = ((AddressCarryingEvent)event).getAddress();
-		long dirAddress =getDirectoryAddress((AddressCarryingEvent)event);
-		DirectoryEntry dirEntry = lookup(dirAddress,true);
-		DirectoryState state = dirEntry.getState();
+		long dirAddress = getDirectoryAddress((AddressCarryingEvent)event);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,true);
+		if(dirEntry == null)
+		{
+			return;
+		}
+		MESI state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
 		
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 			return;
-
-		if(state==DirectoryState.Modified){
+		//System.out.println(event);
+		//System.out.println(dirEntry);
+		dirEntry.setTimestamp(++timestamp);
+		/*dirEntryHeap.remove(dirEntry);
+		dirEntryHeap.add(dirEntry);
+*/
+		if(state==MESI.MODIFIED) {
 			//Writeback the result
 			int prevOwner = dirEntry.getOwner();
 			if( prevOwner==requestingCore ){
+				this.writebacks++;
+				incrementDirectoryMisses(1);
 				((Cache)requestingElement).propogateWrite((AddressCarryingEvent)event);
 				dirEntry.setPresenceBit(prevOwner, false);
 				//Set the state to invalid - i.e. uncached
-				dirEntry.setState(DirectoryState.uncached );
+				dirEntry.setState(MESI.INVALID );
 				dirEntry.resetAllPresentBits();
 			}
 			else{
@@ -170,18 +233,18 @@ public class CentralizedDirectoryCache extends Cache{
 				//If some other node is the owner, that means that the line in this node was already invalid.
 				//No need to do anything.
 				if(dirEntry.getOwner() == -1)
-					dirEntry.setState(DirectoryState.uncached);
+					dirEntry.setState(MESI.INVALID);
 			}
 		}
-		else if(state==DirectoryState.Shared || 
-				        state == DirectoryState.Exclusive )
+		else if(state==MESI.SHARED || 
+				        state == MESI.EXCLUSIVE )
 		{
 			//Unset the presence bit of this cache - i.e. uncached
 			dirEntry.setPresenceBit(requestingCore, false);
 			//If no owner left, set the dirState to invalid
 			int owner = dirEntry.getOwner();
 			if(owner==-1)
-				dirEntry.setState(DirectoryState.uncached );
+				dirEntry.setState(MESI.INVALID );
 		}
 	}
 
@@ -189,20 +252,29 @@ public class CentralizedDirectoryCache extends Cache{
 	public void readMissDirectoryUpdate(EventQueue eventQ,Event event) {
 
 		long dirAddress =getDirectoryAddress((AddressCarryingEvent)event);
-		DirectoryEntry dirEntry = lookup(dirAddress,false);
-		DirectoryState state = dirEntry.getState();
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
+		MESI state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
+		
 
-		DirectoryState stateToSet = DirectoryState.uncached;
+		MESI stateToSet = MESI.UNCACHED;
 		
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 		{
 			return;
 		}
-		
-		if( state==DirectoryState.uncached  )
+
+		//System.out.println(event);
+		//System.out.println(dirEntry);
+		dirEntry.setTimestamp(++timestamp);
+		/*dirEntryHeap.remove(dirEntry);
+		dirEntryHeap.add(dirEntry);
+*/
+		incrementNumReadMiss(1);
+		if( state==MESI.UNCACHED  )
 		{
-			stateToSet = DirectoryState.Exclusive;
+			incrementDirectoryMisses(1);
+			stateToSet = MESI.EXCLUSIVE;
 			if (((Cache)requestingElement).isLastLevel)
 			{
 				sendRequestToMainMemory( (AddressCarryingEvent)event );
@@ -213,21 +285,23 @@ public class CentralizedDirectoryCache extends Cache{
 				requestingCache.sendReadRequestToLowerCache((AddressCarryingEvent)event);
 			}
 		}
-		else if(state==DirectoryState.Modified )
+		else if(state==MESI.MODIFIED )
 		{
 			incrementWritebacks(1);
+			incrementDirectoryHits(1);
+			incrementDirectoryMisses(1);
 			sendMemResponse(dirEntry, (AddressCarryingEvent)event, RequestType.Cache_Read_Writeback);
-			stateToSet = DirectoryState.Shared; //TODO check at owner whether the line is evicted or not
-																							//Presently It is not checked
+			stateToSet = MESI.SHARED; //TODO check at owner whether the line is evicted or not Presently It is not checked
 		}
-		else if(state==DirectoryState.Shared 
-				       ||  state == DirectoryState.Exclusive )
+		else if(state==MESI.SHARED 
+				       ||  state == MESI.EXCLUSIVE )
 		{
-			incrementDataForwards(1);
+			incrementDirectoryHits(1);
 			sendMemResponse(dirEntry, (AddressCarryingEvent)event, RequestType.Send_Mem_Response);
-			stateToSet = DirectoryState.Shared;
+			stateToSet = MESI.SHARED;
 		}
 		dirEntry.setState(stateToSet);
+		//updateDirectoryLRUQueue(dirAddress, (AddressCarryingEvent)event);
 	}
 
 	
@@ -235,19 +309,26 @@ public class CentralizedDirectoryCache extends Cache{
 
 		long address = ((AddressCarryingEvent)event).getAddress();
 		long dirAddress =getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = lookup(dirAddress,false);
-		DirectoryState state = dirEntry.getState();
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
+		MESI state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
 		int requestingCore = ((Cache)requestingElement).containingMemSys.getCore().getCore_number(); 
-
+		
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 		{
 			return;
 		}
-		
-		if(state==DirectoryState.uncached )
+		//System.out.println(event);
+		//System.out.println(dirEntry);
+		incrementNumWriteMiss(1);
+		dirEntry.setTimestamp(++timestamp);
+		/*dirEntryHeap.remove(dirEntry);
+		dirEntryHeap.add(dirEntry);
+		*/
+		if(state == MESI.UNCACHED )
 		{
-			dirEntry.setState(DirectoryState.Exclusive);
+			incrementDirectoryMisses(1);
+			dirEntry.setState( MESI.EXCLUSIVE );
 			//Request lower levels
 			if (((Cache)requestingElement).isLastLevel)
 			{
@@ -259,9 +340,10 @@ public class CentralizedDirectoryCache extends Cache{
 				requestingCache.sendReadRequestToLowerCache((AddressCarryingEvent)event);
 			}
 		}
-		else if( state==DirectoryState.Modified  )
+		else if( state==MESI.MODIFIED  )
 		{
 			//request for the blocks from the previous owner
+			incrementDirectoryHits(1);
 			int prevOwner = dirEntry.getOwner();
 			if(prevOwner == event.coreId)
 			{
@@ -277,25 +359,28 @@ public class CentralizedDirectoryCache extends Cache{
 			}
 			else
 			{
+				incrementInvalidations(1);
 				sendMemResponse(dirEntry,(AddressCarryingEvent) event, RequestType.Send_Mem_Response_Invalidate);
 				dirEntry.resetAllPresentBits();
 			}
 		}
-		else if( state==DirectoryState.Shared  )
+		else if( state == MESI.SHARED )
 		{
 			//request for the blocks from any of the owners
+			incrementDirectoryHits(1);
 			sendMemResponse(dirEntry,(AddressCarryingEvent) event, RequestType.Send_Mem_Response_Invalidate);
 
 			//invalidate all except for the one from which the block has been requested
-			sendeventToSharers(dirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate);
+			sendeventToSharers(dirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate,false);
 			dirEntry.resetAllPresentBits();
-			dirEntry.setState( DirectoryState.Modified );
+			dirEntry.setState( MESI.MODIFIED );
 		}
-		else if(state==DirectoryState.Exclusive )
+		else if( state == MESI.EXCLUSIVE )
 		{
+			incrementDirectoryHits(1);
 			if(requestingCore == dirEntry.getOwner())
 			{
-				dirEntry.setState(DirectoryState.Modified);
+				dirEntry.setState(MESI.MODIFIED);
 				cores[requestingCore].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 						new AddressCarryingEvent(
 										eventQ,
@@ -310,52 +395,96 @@ public class CentralizedDirectoryCache extends Cache{
 			{
 				sendMemResponse(dirEntry, (AddressCarryingEvent)event,RequestType.Send_Mem_Response_Invalidate );
 				dirEntry.resetAllPresentBits();
-				dirEntry.setState( DirectoryState.Modified );
+				dirEntry.setState( MESI.MODIFIED );
 			}
 		}
+		//updateDirectoryLRUQueue(dirAddress, (AddressCarryingEvent)event);
 	}
 
 	public void writeHitDirectoryUpdate(EventQueue eventQ,Event event) {
 		long dirAddress =getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = lookup(dirAddress,false);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
 		int requestingCore = event.coreId; 
-
+		
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
 		{
 			return;
 		}
-		
-		if(dirEntry.getState()==DirectoryState.uncached ){
+		//System.out.println(event);
+		//System.out.println(dirEntry);
+		//incrementDirectoryHits(1);
+		incrementNumWriteHit(1);
+		dirEntry.setTimestamp(++timestamp);
+	/*	dirEntryHeap.remove(dirEntry);
+		dirEntryHeap.add(dirEntry);
+	*/	if(dirEntry.getState() == MESI.UNCACHED ){
 			//System.err.println(" not possible because of cache hit ");
 		}
-		else if(dirEntry.getState()==DirectoryState.Modified)
+		else if(dirEntry.getState() == MESI.MODIFIED )
 		{
-			if(requestingCore != dirEntry.getOwner())
+			if( requestingCore != dirEntry.getOwner() )
 			{
 				sendMemResponse(dirEntry, (AddressCarryingEvent)event,RequestType.Send_Mem_Response_On_WriteHit );			
 				dirEntry.resetAllPresentBits();
 			}
 		}
-		else if(dirEntry.getState()==DirectoryState.Shared)
+		else if( dirEntry.getState() == MESI.SHARED )
 		{
-			sendeventToSharers(dirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate);	
-			dirEntry.setState(DirectoryState.Modified);
+			sendeventToSharers(dirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate,false);	
+			dirEntry.setState(MESI.MODIFIED);
 			dirEntry.resetAllPresentBits();
 			dirEntry.setPresenceBit(requestingCore, true);
 		}
-		else if(dirEntry.getState()==DirectoryState.Exclusive )
+		else if(dirEntry.getState()==MESI.EXCLUSIVE )
 		{
 			if(requestingCore == dirEntry.getOwner( ))
 			{
-				dirEntry.setState(DirectoryState.Modified);
+				dirEntry.setState(MESI.MODIFIED);
 			}
 			else
 			{
 				sendMemResponse(dirEntry, (AddressCarryingEvent)event,RequestType.Send_Mem_Response_On_WriteHit);
 				dirEntry.resetAllPresentBits();
-				dirEntry.setState( DirectoryState.Modified );
+				dirEntry.setState( MESI.MODIFIED );
 			}
 		}
+		
+		//updateDirectoryLRUQueue(dirAddress, (AddressCarryingEvent)event);
+	}
+	
+	
+	
+	private long counter = 0;
+	
+	void updateDirectoryLRUQueue(long dirAddress,AddressCarryingEvent event) 
+	{
+		counter++;
+		if(counter%1000 != 0)
+		{
+			return;
+		}
+		//Vector<DirectoryEntry> temp = new Vector<DirectoryEntry>( this.directoryHashmap.values());
+		while(dirEntryHeap.size() >= DIRECTORYSIZE)
+		{
+			DirectoryEntry dirEntry = dirEntryHeap.peek();
+			sendeventToSharers(dirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate,true);
+		}
+		
+		//System.out.println("directory LRUQueue size: " + directoryLRUQueue.size() + "directorySize: "+ temp.size());
+		
+		/*if(directoryLRUQueue.contains(dirAddress)) 
+		{
+			
+			directoryLRUQueue.remove(dirAddress);
+			//elemIndex.remove(dirAddress);
+		}
+		//int size = directoryLRUQueue.size();
+		directoryLRUQueue.add(dirAddress);
+		//elemIndex.put(dirAddress, size);
+		if(directoryLRUQueue.size() != temp.size()) {
+			Vector v = null;
+			v.size();
+		}*/
 	}
 	
 	private void sendMemResponse(DirectoryEntry dirEntry,AddressCarryingEvent event,RequestType requestType)
@@ -370,7 +499,7 @@ public class CentralizedDirectoryCache extends Cache{
 		cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 				new AddressCarryingEvent(
 						event.getEventQ(),
-						cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
+						cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache().getLatency() +getNetworkDelay(),
 						event.getRequestingElement(), 
 						cores[owner].getExecEngine().getCoreMemorySystem().getL1Cache(),
 						requestType, 
@@ -378,7 +507,7 @@ public class CentralizedDirectoryCache extends Cache{
 						(event).coreId));
 	}
 	
-	private void sendeventToSharers(DirectoryEntry dirEntry,AddressCarryingEvent event, RequestType requestType)
+	private void sendeventToSharers(DirectoryEntry dirEntry,AddressCarryingEvent event, RequestType requestType,boolean flag)
 	{
 		int requestingCore = event.coreId;
 		for(int i=0;i<numPresenceBits;i++){
@@ -386,7 +515,7 @@ public class CentralizedDirectoryCache extends Cache{
 			{
 				//Invalidate others
 				incrementInvalidations(1);
-				if(i!=requestingCore)
+				if(i!=requestingCore || flag)
 				{ 
 					dirEntry.setPresenceBit(i,false);
 					if(cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().levelFromTop != CacheType.L1)
@@ -397,7 +526,7 @@ public class CentralizedDirectoryCache extends Cache{
 					cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
-									cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
+									cores[i].getExecEngine().getCoreMemorySystem().getL1Cache().getLatency() + getNetworkDelay(),
 									this, 
 									cores[i].getExecEngine().getCoreMemorySystem().getL1Cache(),
 									requestType, 
@@ -429,5 +558,113 @@ public class CentralizedDirectoryCache extends Cache{
 		if(debug) System.out.println("address returned " + addressToStore);
 		
 		return addressToStore;
+	}
+	public MESI updateDirectoryWarmUp(long address,int coreid,RequestType requestType)
+	{
+		DirectoryEntry dirEntry= search(address);
+//		DirectoryEntry dirEntry = look
+		MESI state=MESI.INVALID;
+		MESI dirState = MESI.UNCACHED;
+		
+		if(dirEntry==null)
+		{
+			dirEntry=new DirectoryEntry(numPresenceBits, address);
+			state=MESI.EXCLUSIVE;
+			dirState = MESI.EXCLUSIVE;
+			directoryHashmap.put( address, dirEntry );
+		}
+		else
+		{
+			if(dirEntry.getState() == MESI.UNCACHED )
+			{
+				state=MESI.EXCLUSIVE;
+				dirState=MESI.EXCLUSIVE;
+			}
+			else //Instead of Invalidating Others 
+			{
+				state=MESI.SHARED;
+				dirState=MESI.SHARED;
+			}
+		}
+		
+		dirEntry.setState(dirState);
+		dirEntry.setPresenceBit(coreid,true);
+		return state;
+	}
+
+	public DirectoryEntry search(long address)
+	{
+		return directoryHashmap.get(address);
+	}
+	public long getInvalidations() {
+		return invalidations;
+	}	
+	public void incrementInvalidations(int invalidations) {
+		this.invalidations += invalidations;
+	}	
+	public long getWritebacks() {
+		return writebacks;
+	}	
+	public void incrementWritebacks(int writebacks) {
+		this.writebacks += writebacks;
+	}	
+	public long getDataForwards() {
+		return dataForwards;
+	}	
+	public void incrementDataForwards(int dataForwards) {
+		this.dataForwards += dataForwards;
+	}
+	public long getDirectoryMisses() {
+		return directoryMisses;
+	}
+	public void incrementDirectoryMisses(long directoryMisses) {
+		this.directoryMisses += directoryMisses;
+	}
+	public long getDirectoryHits() {
+		return directoryHits;
+	}
+	public void incrementDirectoryHits(long directoryHits) {
+		this.directoryHits += directoryHits;
+	}
+	public long getNumReadMiss() {
+		return numReadMiss;
+	}
+	public void incrementNumReadMiss(long numReadMiss) {
+		this.numReadMiss += numReadMiss;
+	}
+	public long getNumWriteMiss() {
+		return numWriteMiss;
+	}
+	public void incrementNumWriteMiss(long numWriteMiss) {
+		this.numWriteMiss += numWriteMiss;
+	}
+	public long getNumReadHit() {
+		return numReadHit;
+	}
+	public void incrementNumReadHit(long numReadHit) {
+		this.numReadHit += numReadHit;
+	}
+	public long getNumWriteHit() {
+		return numWriteHit;
+	}
+	public void incrementNumWriteHit(long numWriteHit) {
+		this.numWriteHit += numWriteHit;
+	}
+	
+	public long getNumberOfDirectoryEntries() {
+		Vector<DirectoryEntry> temp = new Vector<DirectoryEntry>( this.directoryHashmap.values());
+		return temp.size();
+	}
+	
+	public int getNetworkDelay() {
+		return 6;
+	}
+	
+	public String toString()
+	{
+		StringBuilder s = new StringBuilder();
+		s.append(this.levelFromTop + " : ");
+		
+		return s.toString();
 	}
 }

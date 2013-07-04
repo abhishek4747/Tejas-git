@@ -25,6 +25,7 @@ import java.util.*;
 import power.Counters;
 import main.ArchitecturalComponent;
 import memorysystem.directory.CentralizedDirectoryCache;
+import memorysystem.directory.DirectoryEntry;
 import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
@@ -267,6 +268,9 @@ public class Cache extends SimulationElement
 				/*if(this.levelFromTop == CacheType.Lower){
 					System.out.println(event.getEventTime()+"  cache hit for address "+ event.getAddress() + "with tag = "+ computeTag(event.getAddress()));
 				}*/
+			//	int setNumber = this.getStartIdx(event.getAddress());
+				//System.out.println(setNumber+" setNumber "+ this.getId() + " " + event.coreId+" " + event.getAddress());
+				//setAccessFreq[setNumber][event.coreId]++;
 				processBlockAvailable(event);				
 			}
 			
@@ -322,7 +326,7 @@ public class Cache extends SimulationElement
 				handleInvalidate(event);
 			}
 
-			sendMemResponse(event);
+			sendMemResponseDirectory(event);
 		}
 		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{noOfResponsesReceived++;
@@ -483,7 +487,9 @@ public class Cache extends SimulationElement
 			{
 				return false;
 			}
-
+			
+			long address = addressEvent.getAddress();
+			//System.out.println(address + " in l1 setNumber : " +this.getStartIdx(address));
 			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
 			if(entryCreated)
 			{
@@ -609,7 +615,16 @@ public class Cache extends SimulationElement
 												RequestType.Mem_Response));
 		}
 		
-		
+		public void sendMemResponseDirectory(AddressCarryingEvent eventToRespondTo)
+		{
+			eventToRespondTo.getRequestingElement().getPort().put(
+										eventToRespondTo.update(
+												eventToRespondTo.getEventQ(),
+												MemorySystem.getDirectoryCache().getNetworkDelay(),
+												eventToRespondTo.getProcessingElement(),
+												eventToRespondTo.getRequestingElement(),
+												RequestType.Mem_Response));
+		}
 		
 		private AddressCarryingEvent  putEventToPort(Event event, SimulationElement simElement, RequestType requestType, boolean flag, boolean time  )
 		{
@@ -764,11 +779,15 @@ public class Cache extends SimulationElement
 			int startIdx = (int) ((addr >>> blockSizeBits) & (SetMask));
 			return startIdx;
 		}
-		private int getNextIdx(int startIdx,int idx) {
+		
+		public int getNextIdx(int startIdx,int idx) {
 			int index = startIdx +( idx << numSetsBits);
 			return index;
 		}
-
+		
+		public CacheLine getCacheLine(int idx) {
+			return this.lines[idx];
+		}
 
 		public CacheLine access(long addr)
 		{
@@ -782,8 +801,8 @@ public class Cache extends SimulationElement
 				// calculate the index
 				int index = getNextIdx(startIdx,idx);
 				// fetch the cache line
-				CacheLine ll = this.lines[index];
-
+				CacheLine ll = getCacheLine(index);
+	
 				// If the tag is matching, we have a hit
 				if(ll.hasTagMatch(tag) && (ll.getState() != MESI.INVALID)) {
 					return  ll;
@@ -844,7 +863,7 @@ public class Cache extends SimulationElement
     		/* compute startIdx and the tag */
 			int startIdx = getStartIdx(addr);
 			long tag = computeTag(addr); 
-			
+			boolean addressAlreadyPresent = false;
 			/* find any invalid lines -- no eviction */
 			CacheLine fillLine = null;
 			boolean evicted = false;
@@ -852,7 +871,19 @@ public class Cache extends SimulationElement
 			for (int idx = 0; idx < assoc; idx++) 
 			{
 				int nextIdx = getNextIdx(startIdx, idx);
-				CacheLine ll = this.lines[nextIdx];
+				CacheLine ll = getCacheLine(nextIdx);
+				if (ll.getTag() == tag && ll.getState() != MESI.INVALID) 
+				{	
+					addressAlreadyPresent = true;
+					fillLine = ll;
+					break;
+				}
+			}
+			
+			for (int idx = 0;!addressAlreadyPresent && idx < assoc; idx++) 
+			{
+				int nextIdx = getNextIdx(startIdx, idx);
+				CacheLine ll = getCacheLine(nextIdx);
 				if (!(ll.isValid())) 
 				{
 					fillLine = ll;
@@ -868,7 +899,7 @@ public class Cache extends SimulationElement
 				for(int idx=0; idx<assoc; idx++) 
 				{
 					int index = getNextIdx(startIdx, idx);
-					CacheLine ll = this.lines[index];
+					CacheLine ll = getCacheLine(index);
 					if(minTimeStamp > ll.getTimestamp()) 
 					{
 						minTimeStamp = ll.getTimestamp();
@@ -916,7 +947,65 @@ public class Cache extends SimulationElement
 		public MissStatusHoldingRegister getMissStatusHoldingRegister() {
 			return missStatusHoldingRegister;
 		}
-		
+		public void warmUp(Instruction ins,int coreId)
+		{
+			RequestType requestType=null;
+			long address;
+			if(ins.getOperationType()==OperationType.load)
+			{
+				requestType = RequestType.Cache_Read;
+			}
+			else if(ins.getOperationType()==OperationType.store)
+			{
+				requestType = RequestType.Cache_Write;
+			}
+			address= ins.getSourceOperand1().getValue();
+
+			CacheLine cl = this.processRequest(requestType, address);
+			//System.out.println("Address Tag :" + computeTag(address));
+
+			//IF Miss
+			if (cl == null)
+			{
+				
+				
+				if(this.isLastLevel) //L2 cache
+				{
+					this.fill(address, MESI.EXCLUSIVE);
+				}
+				else //L1 cache
+				{
+					//System.out.println("Miss at address :" + address + "Tag "+(address >>> blockSizeBits));
+					this.nextLevel.warmUp(ins,coreId);
+					MESI state=MemorySystem.getDirectoryCache().updateDirectoryWarmUp(address >>> blockSizeBits,this.containingMemSys.coreID,requestType);
+					CacheLine evictedLine=this.fill(address, state);
+					if(evictedLine!=null)
+					{
+						//System.out.println("Evicted line :" + evictedLine.getAddress());
+						this.nextLevel.fill(evictedLine.getAddress(),MESI.EXCLUSIVE);
+					}
+				}
+			}
+			// If hit
+			else
+			{
+				if(!this.isLastLevel) {
+					//System.out.println("Hit for address :" + address + " TAG = 	" + (address >>> blockSizeBits));
+					cl.setState(MESI.MODIFIED);
+					MemorySystem.getDirectoryCache().updateDirectoryWarmUp(address,this.containingMemSys.coreID,requestType);
+				}
+			}
+		}
+		public static void warmUpDump(Core core)
+		{
+			System.out.println("Core " + core.getCore_number() + " warmUpDump");
+			Cache cache = core.getExecEngine().getCoreMemorySystem().getL1Cache();
+			for(int i=0;i<cache.numLines;i++)
+			{
+				if(cache.lines[i].getAddress()!=0)
+				System.out.println("Line " + i + " :" + cache.lines[i].getAddress());
+			}
+		}
 		public String toString()
 		{
 			StringBuilder s = new StringBuilder();

@@ -251,7 +251,10 @@ public class Statistics {
 	static long noOfDirDataForwards;
 	static long noOfDirInvalidations;
 	static long noOfDirWritebacks;
-	
+	static long noOfDirReadMiss;
+	static long noOfDirWriteMiss;
+	static long noOfDirWriteHits;
+	static long numOfDirEntries;
 	//for pinpoints
 	static long tempnoOfMemRequests[];
 	static long tempnoOfLoads[];
@@ -352,11 +355,16 @@ public class Statistics {
 				outputFileWriter.write("Router Hops\t=\t" + hopcount + "\n");
 			}
 			
+			
+			outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + noOfDirReadMiss + "\n");
+			outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + noOfDirWriteMiss + "\n");
+			outputFileWriter.write("Directory Access due to Write-Hit\t=\t" + noOfDirWriteHits + "\n");
 			outputFileWriter.write("Directory Hits\t=\t" + noOfDirHits + "\n");
 			outputFileWriter.write("Directory Misses\t=\t" + noOfDirMisses + "\n");
 			outputFileWriter.write("Directory Invalidations\t=\t" + noOfDirInvalidations + "\n");
 			outputFileWriter.write("Directory DataForwards\t=\t" + noOfDirDataForwards + "\n");
 			outputFileWriter.write("Directory Writebacks\t=\t" + noOfDirWritebacks + "\n");
+			outputFileWriter.write("Directory Entries\t=\t" + numOfDirEntries + "\n");
 			if (noOfDirHits+noOfDirMisses != 0)
 			{
 				outputFileWriter.write("Directory Hit-Rate\t=\t" + (float)(noOfDirHits)/(noOfDirHits+noOfDirMisses) + "\n");
@@ -925,6 +933,22 @@ System.out.println("execution time = "+executionTime);
 	public static void setNoOfDirInvalidations(long noOfDirInvalidations) {
 		Statistics.noOfDirInvalidations = noOfDirInvalidations;
 	}
+
+	public static void setNoOfDirReadMiss(long noOfDirInvalidations) {
+		Statistics.noOfDirReadMiss = noOfDirInvalidations;
+	}
+	public static void setNoOfDirWriteMiss(long noOfDirInvalidations) {
+		Statistics.noOfDirWriteMiss = noOfDirInvalidations;
+	}
+	public static void setNoOfDirWriteHits(long noOfDirInvalidations) {
+		Statistics.noOfDirWriteHits = noOfDirInvalidations;
+	}
+	
+	public static void setNoOfDirEntries(long dirEntries)
+	{
+		Statistics.numOfDirEntries = dirEntries;
+		
+	}
 	public static long getNoOfDirWritebacks() {
 		return noOfDirWritebacks;
 	}
@@ -933,6 +957,8 @@ System.out.println("execution time = "+executionTime);
 		Statistics.noOfDirWritebacks = noOfDirWritebacks;
 	}
 	
+	static int temp = 0;
+	
 	public static void printAllStatistics(String benchmarkName, 
 			long startTime, long endTime) {
 		//set up statistics module
@@ -940,7 +966,14 @@ System.out.println("execution time = "+executionTime);
 		// Statistics.initStatistics();
 		
 		Statistics.setExecutable(benchmarkName);
-		
+		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().getDirectoryHits());
+		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().getDirectoryMisses());
+		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
+		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
+		Statistics.setNoOfDirReadMiss(MemorySystem.getDirectoryCache().getNumReadMiss());
+		Statistics.setNoOfDirWriteMiss(MemorySystem.getDirectoryCache().getNumWriteMiss());
+		Statistics.setNoOfDirWriteHits(MemorySystem.getDirectoryCache().getNumWriteHit());
+		Statistics.setNoOfDirEntries(MemorySystem.getDirectoryCache().getNumberOfDirectoryEntries());
 		//set memory statistics for levels L2 and below
 		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{

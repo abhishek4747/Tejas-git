@@ -22,14 +22,16 @@ package memorysystem;
 
 public class CacheLine implements Cloneable
 {
-	private long tag;
+	protected long tag;
 
 //	private boolean valid;
-	private double timestamp;
-	private long address;
+	protected double timestamp;
+	protected long address;
+//	private boolean modified;
 
-	private MESI state;
+	protected MESI state;
 
+	
 	public Object clone()
     {
         try
