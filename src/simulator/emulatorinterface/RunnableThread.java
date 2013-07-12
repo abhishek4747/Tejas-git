@@ -678,9 +678,17 @@ public class RunnableThread implements Encoding, Runnable {
 			int oldLength = inputToPipeline[tidEmu].size();
 			
 			long numHandledInsn = 0;
+			int numMicroOpsBefore = thread.outstandingMicroOps.size();
 			
-			numHandledInsn = ObjParser.fuseInstruction(tidApp, thread.packetList.get(0).ip, 
+			ObjParser.fuseInstruction(tidApp, thread.packetList.get(0).ip, 
 				thread.packetList, thread.outstandingMicroOps);
+			
+			int numMicroOpsAfter = thread.outstandingMicroOps.size();
+			if(numMicroOpsAfter>numMicroOpsBefore) {
+				numHandledInsn = 1;
+			} else {
+				numHandledInsn = 0;
+			}
 			
 			// Either add all outstanding micro-ops or none.
 			if(thread.outstandingMicroOps.size()<this.inputToPipeline[tidEmu].spaceLeft()) {

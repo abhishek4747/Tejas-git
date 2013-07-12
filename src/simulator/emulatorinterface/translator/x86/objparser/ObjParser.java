@@ -625,7 +625,7 @@ public class ObjParser
 	 * New micro-ops are added to the circular buffer(argument). Finally it returns the number of CISC instructions it could 
 	 * translate.
 	 */
-	public static int fuseInstruction(
+	public static void fuseInstruction(
 			int tidApp, long startInstructionPointer,
 			EmulatorPacketList arrayListPacket, GenericCircularQueue<Instruction> inputToPipeline)
 	{
@@ -745,61 +745,54 @@ public class ObjParser
 			//This instruction could not be translated. However, if there are some 
 			//load/store/branch operations in this instruction, they must be pushed 
 			//to pipeline.
-			return flushDynamicInformationPackets(startInstructionPointer, dynamicInstructionBuffer, inputToPipeline);
+			flushDynamicInformationPackets(startInstructionPointer, dynamicInstructionBuffer, inputToPipeline);
 		}
 		
 		/* clear the dynamicInstructionBuffer */		
 		// dynamicInstructionBuffer.clearBuffer();
 		//System.out.println(inputToPipeline);
-		return numCISC;
+		//return numCISC;
 	}
 	
 	//Some instructions are not translated by the translator. However, if there are some 
 	//load/store/branch operations in this instruction, they must be pushed 
 	//to pipeline.
-	private static int flushDynamicInformationPackets(
+	private static void flushDynamicInformationPackets(
 			long instructionPointer,
 			DynamicInstructionBuffer dynamicInstructionBuffer,
 			GenericCircularQueue<Instruction> inputToPipeline) 
 	{
 		Instruction dynamicMicroOp;
 		DynamicInstructionHandler dynamicInstructionHandler;
-		int numMicroOpsAdded = 0;
 		
 		// load information
 		for(int i=dynamicInstructionBuffer.getMemReadCount(); i<dynamicInstructionBuffer.getMemReadSize(); i++)
 		{
-			dynamicMicroOp = getDynamicMicroOp(staticLoadMicroOp);
+			dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
+			dynamicMicroOp.copy(staticLoadMicroOp);
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
 			dynamicInstructionHandler.handle(0, dynamicMicroOp, dynamicInstructionBuffer);
 			inputToPipeline.enqueue(dynamicMicroOp);
-			numMicroOpsAdded++;
 		}
 		
 		// store information
 		for(int i=dynamicInstructionBuffer.getMemWriteCount(); i<dynamicInstructionBuffer.getMemWriteSize(); i++)
 		{
-			dynamicMicroOp = getDynamicMicroOp(staticStoreMicroOp);
+			dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
+			dynamicMicroOp.copy(staticStoreMicroOp);
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
 			dynamicInstructionHandler.handle(0, dynamicMicroOp, dynamicInstructionBuffer);
 			inputToPipeline.enqueue(dynamicMicroOp);
-			numMicroOpsAdded++;
 		}
 			
 		// branch information. This must be performed strictly after memory operations.
 		if(dynamicInstructionBuffer.isBranchInformationReadNeeded())
 		{
-			dynamicMicroOp = getDynamicMicroOp(staticBranchMicroOp);
+			dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
+			dynamicMicroOp.copy(staticBranchMicroOp);
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
 			dynamicInstructionHandler.handle(0, dynamicMicroOp, dynamicInstructionBuffer);
 			inputToPipeline.enqueue(dynamicMicroOp);
-			numMicroOpsAdded++;
-		}
-		
-		if(numMicroOpsAdded>0) {
-			return 1;
-		} else {
-			return 0;
 		}
 	}
 
