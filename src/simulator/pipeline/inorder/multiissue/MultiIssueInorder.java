@@ -29,11 +29,7 @@ public class MultiIssueInorder implements PipelineInterface {
 					pipelines[i] = new InorderPipeline(core, eventQ, i);
 	}
 	@Override
-	/*
-	 * Only those pipelines are run in the following one cycle operation whose id is less than the 
-	 * stall id currently being set. i.e. all the pipelines after the stalled pipeline are stalled to maintain the 
-	 * "inorder" characteristic.
-	 * */
+	/* Run all inorder pipelines */
 	public void oneCycleOperation() {
 		long currentTime = GlobalClock.getCurrentTime();
 		if(currentTime % getCoreStepSize()==0 && !containingExecutionEngine.getExecutionComplete()){
@@ -59,13 +55,7 @@ public class MultiIssueInorder implements PipelineInterface {
 			else
 				for(int i=0;i<numPipelines;i++)
 					pipelines[i].fetch();				
-		}
-/*
-		for(int i=0;i<numPipelines;i++)
-			pipelines[i].oneCycleOperation();
-		if(this.core.getExecutionEngineIn().getStallFetch()>0)
-			this.core.getExecutionEngineIn().decrementStallFetch(1);
-*/		
+		}		
 	}
 
 	private void drainEventQueue(){

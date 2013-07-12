@@ -7,7 +7,6 @@ import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 
 public class InorderCoreMemorySystem extends CoreMemorySystem {
@@ -47,7 +46,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 																	 address,
 																	 core.getCore_number());
 		
-		// Check mshr isfull and do something
+		// Check if mshr is full
 		if(L1MissStatusHoldingRegister.isFull())
 		{
 			return false;

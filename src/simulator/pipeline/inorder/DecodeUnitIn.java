@@ -1,18 +1,11 @@
 package pipeline.inorder;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
-
-import pipeline.outoforder.MispredictionPenaltyCompleteEvent;
-import power.Counters;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.GlobalClock;
 import generic.Instruction;
-import generic.OMREntry;
 import generic.Operand;
-import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -27,7 +20,8 @@ public class DecodeUnitIn extends SimulationElement{
 		/*
 		 * numPorts and occupancy = -1 => infinite ports 
 		 * Latency = 1 . 
-		 * TODO - take it from core.*/
+		 * 
+		*/
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
 		containingExecutionEngine = execEngine;
@@ -38,7 +32,6 @@ public class DecodeUnitIn extends SimulationElement{
 		Instruction ins;
 		StageLatch ifIdLatch = inorderPipeline.getIfIdLatch();
 		StageLatch idExLatch = inorderPipeline.getIdExLatch(); 
-		StageLatch exMemLatch = inorderPipeline.getExMemLatch();
 		ins = ifIdLatch.getInstruction();
 		
 		if(ifIdLatch.getStallCount()>0)
@@ -50,7 +43,7 @@ public class DecodeUnitIn extends SimulationElement{
 		{
 			if(ins!=null)
 			{
-				if(checkDataHazard(ins))
+				if(checkDataHazard(ins))	//Data Hazard Detected,Stall Pipeline
 				{
 					containingExecutionEngine.setStallFetch(1);
 					containingExecutionEngine.setStallPipelinesDecode(inorderPipeline.getId(),1);
@@ -63,7 +56,7 @@ public class DecodeUnitIn extends SimulationElement{
    				
 				if(opType==OperationType.load || opType==OperationType.store)
 				{
-					this.core.powerCounters.incrementLsqWakeupAccess(1);	//FIXME lsq stats for inorder ?!
+					this.core.powerCounters.incrementLsqWakeupAccess(1);
 					this.core.powerCounters.incrementLsqAccess(1);
 					this.core.powerCounters.incrementLsqStoreDataAccess(1);
 					this.core.powerCounters.incrementLsqPregAccess(1);
@@ -110,13 +103,12 @@ public class DecodeUnitIn extends SimulationElement{
 					{
 						//Branch mis predicted
 						//stall pipelines for appropriate cycles
-						//TODO correct the following:
-//										core.getExecutionEngineIn().getFetchUnitIn().incrementStall(core.getBranchMispredictionPenalty());
 						this.core.powerCounters.incrementBpredMisses();
 						containingExecutionEngine.setStallPipelinesDecode(inorderPipeline.getId(), core.getBranchMispredictionPenalty());
 						containingExecutionEngine.setStallFetch(core.getBranchMispredictionPenalty());
 					}
 	
+					//Train appropriate Branch Predictor
 					core.getBranchPredictor().Train(
 							ins.getRISCProgramCounter(),
 							ins.isBranchTaken(),

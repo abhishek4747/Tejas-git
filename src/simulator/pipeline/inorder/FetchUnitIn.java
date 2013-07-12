@@ -1,20 +1,14 @@
 package pipeline.inorder;
 
-
-import java.util.Hashtable;
-
-import main.Main;
 import memorysystem.AddressCarryingEvent;
 import config.SimulationConfig;
 import generic.Barrier;
 import generic.BarrierTable;
 import generic.Core;
-import generic.CoreBcastBus;
 import generic.Event;
 import generic.EventQueue;
 import generic.GenericCircularQueue;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
@@ -36,7 +30,6 @@ public class FetchUnitIn extends SimulationElement
 	long numRequestsSent;
 	int numRequestsAcknowledged;
 	private boolean fetchBufferStatus[];	
-//	public CoreBcastBus coreBcastBus;
 
 	public FetchUnitIn(Core core, EventQueue eventQueue, InorderExecutionEngine execEngine)
 	{
@@ -53,8 +46,7 @@ public class FetchUnitIn extends SimulationElement
 		this.syncCount=0;
 		this.numRequestsSent=0;
 		this.numRequestsAcknowledged=0;
-		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];
-//		this.coreBcastBus = coreBcastBus;
+		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];  // To check whether request to ICache is complete or not
 		for(int i=0;i<this.fetchBufferCapacity;i++)
 		{
 			this.fetchBufferStatus[i]=false;
@@ -71,22 +63,18 @@ public class FetchUnitIn extends SimulationElement
 				;i = (i+1)%this.fetchBufferCapacity){
 			
 			if( containingExecutionEngine.inorderCoreMemorySystem.getiMSHR().isFull() ){
-				//System.err.println("Exiting due to size exceed");
 				break;
 			}
 			
-			newInstruction = inputToPipeline.pollFirst();//inputToPipeline.peekInstructionAt(0);
+			newInstruction = inputToPipeline.pollFirst();
 			
 			if(newInstruction == null)
 				return;
 			numRequestsSent++;
-			if(newInstruction.getOperationType() == OperationType.inValid){
-				this.fetchBuffer[i] = newInstruction;//inputToPipeline.pollFirst();
-						this.fetchBufferStatus[i]=true;
-						this.fetchFillCount++;
-//						this.numRequestsAcknowledged++;
-						
-//System.out.println("Size = "+inputToPipeline.getListSize()+" "+(this.fetchBufferIndex+this.fetchFillCount));
+			if(newInstruction.getOperationType() == OperationType.inValid) {
+				this.fetchBuffer[i] = newInstruction;
+				this.fetchBufferStatus[i]=true;
+				this.fetchFillCount++;
 			}
 			
 			else
@@ -152,7 +140,6 @@ public class FetchUnitIn extends SimulationElement
 								for(int i=0; i<bar.getNumThreads(); i++ ){
 									this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
 								}
-							//	BarrierTable.barrierReset(barrierAddress);
 								this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 										this.core.eventQueue,
 										 2,
@@ -231,7 +218,6 @@ public class FetchUnitIn extends SimulationElement
 					this.fetchBuffer[i].getRISCProgramCounter() == requestedAddress && 
 					this.fetchBufferStatus[i]==false){
 				this.fetchBufferStatus[i]=true;
-//				break;
 			}
 		}
 	}

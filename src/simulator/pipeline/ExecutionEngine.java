@@ -2,7 +2,6 @@ package pipeline;
 
 import generic.GenericCircularQueue;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import memorysystem.CoreMemorySystem;
 
 public abstract class ExecutionEngine {

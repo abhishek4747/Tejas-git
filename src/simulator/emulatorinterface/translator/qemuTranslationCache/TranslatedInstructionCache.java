@@ -1,16 +1,11 @@
 package emulatorinterface.translator.qemuTranslationCache;
-//import 
-
-//import java.util.LinkedHashMap;
-//import java.util.Map;
-import java.io.FileWriter;
 
 import main.CustomObjectPool;
 
 import generic.Instruction;
 import generic.InstructionList;
-import generic.OperationType;
 
+//Translation Cache for caching translations of qemu assembly instructions to micro-ops
 public class TranslatedInstructionCache {
 	private static final int cacheSize = 100000;
 	private static long cacheHit =0;
@@ -21,7 +16,7 @@ public class TranslatedInstructionCache {
 		translatedInstructionTable = new LRUCache(cacheSize);
 	}
 	
-	public static void add(String asmText, InstructionList instructionList){//, FileWriter hitFile){
+	public static void add(String asmText, InstructionList instructionList){
 		if(translatedInstructionTable == null) {
 			createTranslatedInstructionTable();
 		}
@@ -34,12 +29,6 @@ public class TranslatedInstructionCache {
 		}
 		
 		translatedInstructionTable.put(asmText, instList);
-		
-//		try {
-//			hitFile.write("asmText = " + asmText +/* " IP = " + p.ip + */" No_micro-ops: " + instList.length()+"\n");	
-//		} catch (Exception e) {
-//			misc.Error.showErrorAndExit("Unable to write in translation-cache-hit-details-file");
-//		}
 	}
 	
 	public static InstructionList getInstructionList(String instText) {
@@ -55,22 +44,7 @@ public class TranslatedInstructionCache {
 				Instruction newInstruction = new Instruction();
 				newInstruction.copy(instructionList.get(i));
 				instructionListToReturn.appendInstruction(newInstruction);
-//				instructionListToReturn.appendInstruction(instructionList.get(i));
-//				if(instructionListToReturn.get(i).getOperand1()!=null) {
-//					instructionListToReturn.get(i).getOperand1().incrementNumReferences();
-//				}
-//
-//				if(instructionListToReturn.get(i).getOperand2()!=null) {
-//					instructionListToReturn.get(i).getOperand2().incrementNumReferences();
-//				}
-//
-//				if(instructionListToReturn.get(i).getDestinationOperand()!=null) {
-//					instructionListToReturn.get(i).getDestinationOperand().incrementNumReferences();
-//				}
 			}
-//			if(instructionListToReturn.length() == 0) {
-//				System.out.println("asmText = " + instText + " No_micro-ops = " + instructionListToReturn.length());
-//			}
 			return instructionListToReturn;
 		}
 	}

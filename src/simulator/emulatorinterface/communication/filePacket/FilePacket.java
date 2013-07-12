@@ -5,19 +5,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import main.CustomObjectPool;
 
 import config.EmulatorConfig;
 import config.SimulationConfig;
-import config.SystemConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
-import emulatorinterface.communication.Packet;
 import generic.CircularPacketQueue;
 
+//This communication type reads from a file containing instructions in the format "ip value tgt"
+//where value is the type of the instruction and tgt is either assembly string(for assembly instruction) 
+//or a value for other instructions 
 public class FilePacket extends IpcBase implements Encoding {
 
 	BufferedReader inputBufferedReader[];
@@ -67,7 +67,7 @@ public class FilePacket extends IpcBase implements Encoding {
 			try {
 				//Subset Simulation
 				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= (SimulationConfig.subsetSimSize + SimulationConfig.NumInsToIgnore)) {
-					fromEmulator.enqueue(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -1, -1);
+					fromEmulator.enqueue(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -2, -1);
 					return (i+1);
 				}
 				
@@ -116,11 +116,7 @@ public class FilePacket extends IpcBase implements Encoding {
 							i=0;						
 						}	
 					}
-					
-					fromEmulator.enqueue(ip, value, tgt);
-					
-//					System.out.println("sending packet : " + fromEmulator.get(i));
-					
+					fromEmulator.enqueue(ip, value, tgt);					
 				} else {
 					return (i);
 				}
@@ -143,7 +139,6 @@ public class FilePacket extends IpcBase implements Encoding {
 					inputBufferedReader[i].close();	
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

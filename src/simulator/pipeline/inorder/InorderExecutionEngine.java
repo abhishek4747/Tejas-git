@@ -1,8 +1,6 @@
 package pipeline.inorder;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import pipeline.outoforder.FunctionalUnitSet;
@@ -10,7 +8,6 @@ import generic.Core;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.Operand;
 import generic.OperationType;
 import generic.Statistics;
@@ -22,7 +19,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	private int numCycles;
 	private FetchUnitIn fetchUnitIn;
 	private DecodeUnitIn decodeUnitIn;
-	private RegFileIn regFileIn;
 	private ExecUnitIn execUnitIn;
 	private MemUnitIn memUnitIn;
 	private WriteBackUnitIn writeBackUnitIn;
@@ -42,13 +38,9 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	public long l2hits;
 	public long l2accesses;
 	private int numPipelines;
-	private boolean isAvailable;
 	
 	ArrayList<Operand> destRegisters = new ArrayList<Operand>();
 	private int stallFetch;
-	private int stallPipelinesDecode;	// these specify which all pipelines to stall. i.e. all pipelines with iDs from
-	private int stallPipelinesExecute;	// stallPipelines to N (max Num of pipelines) will be stalled
-
 	private FunctionalUnitSet functionalUnitSet;
 	StageLatch[] ifIdLatch,idExLatch,exMemLatch,memWbLatch,wbDoneLatch;
 	
@@ -63,7 +55,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 
 		this.setFetchUnitIn(new FetchUnitIn(core,core.getEventQueue(),this));
 		this.setDecodeUnitIn(new DecodeUnitIn(core,this));
-		this.setRegFileIn(new RegFileIn(core));
 		this.setExecUnitIn(new ExecUnitIn(core,this));
 		this.setMemUnitIn(new MemUnitIn(core,this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn(core,this));
@@ -79,8 +70,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		l2memoutstanding=0;
 		l2hits=0;
 		l2accesses=0;
-		stallPipelinesDecode=-1;	//-1 implies no pipeline should be stalled
-		stallPipelinesExecute=-1;
 		ifIdLatch = new StageLatch[numPipelines];
 		idExLatch = new StageLatch[numPipelines];
 		exMemLatch = new StageLatch[numPipelines];
@@ -118,9 +107,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	public DecodeUnitIn getDecodeUnitIn(){
 		return this.decodeUnitIn;
 	}
-	public RegFileIn getRegFileIn(){
-		return this.regFileIn;
-	}
 	public ExecUnitIn getExecUnitIn(){
 		return this.execUnitIn;
 	}
@@ -136,9 +122,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	public void setDecodeUnitIn(DecodeUnitIn _decodeUnitIn){
 		this.decodeUnitIn = _decodeUnitIn;
 	}
-	public void setRegFileIn(RegFileIn _regFileIn){
-		this.regFileIn = _regFileIn;
-	}
 	public void setExecUnitIn(ExecUnitIn _execUnitIn){
 		this.execUnitIn = _execUnitIn;
 	}
@@ -148,9 +131,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 	public void setWriteBackUnitIn(WriteBackUnitIn _wbUnitIn){
 		this.writeBackUnitIn = _wbUnitIn;
 	}
-//	public void setCoreMemorySystem(CoreMemorySystem coreMemSys){
-//		this.coreMemorySystem=coreMemSys;
-//	}
 	public void setExecutionComplete(boolean execComplete){
 		this.executionComplete=execComplete;
 		System.out.println("Core "+core.getCore_number()+" numCycles="+this.numCycles);
@@ -160,10 +140,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 			core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());
 		}
 	}
-	
-//	public CoreMemorySystem getCoreMemorySystem(){
-//		return this.coreMemorySystem;
-//	}
 	public boolean getExecutionComplete(){
 		return this.executionComplete;
 	}
@@ -280,19 +256,11 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		this.stallFetch -= stallFetch;
 	}
 
-	public int getStallPipelinesDecode() {
-		return stallPipelinesDecode;
-	}
-
-	public int getStallPipelinesExecute() {
-		return stallPipelinesExecute;
-	}
 
 	public void setStallPipelinesDecode(int stallPipelines, int stall) {
 		for(int i=stallPipelines+1;i<this.numPipelines;i++){
 			ifIdLatch[i].setStallCount(stall);
 		}
-//		this.stallPipelinesDecode = stallPipelines;
 	}
 
 	public void setStallPipelinesExecute(int stallPipelines, int stall) {
@@ -302,8 +270,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		for(int i=0;i<stallPipelines;i++){
 			ifIdLatch[i].setStallCount(stall);
 		}
-		
-//		this.stallPipelinesExecute = stallPipelines;
 	}
 	public void setStallPipelinesMem(int stallPipelines, int stall) {
 		for(int i=stallPipelines+1;i<this.numPipelines;i++){
@@ -312,8 +278,6 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		for(int i=0;i<stallPipelines;i++){
 			idExLatch[i].setStallCount(stall);
 		}
-		
-//		this.stallPipelinesExecute = stallPipelines;
 	}
 	public StageLatch getIfIdLatch(int i){
 		return this.ifIdLatch[i];
@@ -335,10 +299,8 @@ public class InorderExecutionEngine extends ExecutionEngine{
 		for(int i=0;i<this.numPipelines;i++){
 			if(exMemLatch[i].getOperationType()==OperationType.load && exMemLatch[i].getInstruction().getSourceOperand1MemValue()==address){
 				exMemLatch[i].setMemDone(b);
-//				idExLatch[i].setStallCount(0);
 			}
 			else if(exMemLatch[i].getOperationType()==OperationType.store && exMemLatch[i].getInstruction().getSourceOperand1().getValue()==address){
-//				idExLatch[i].setStallCount(0);
 			}
 		}
 	}
