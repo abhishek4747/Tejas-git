@@ -67,7 +67,7 @@ public class FilePacket extends IpcBase implements Encoding {
 			try {
 				//Subset Simulation
 				if(SimulationConfig.subsetSimulation && totalFetchedAssemblyPackets >= (SimulationConfig.subsetSimSize + SimulationConfig.NumInsToIgnore)) {
-					fromEmulator.enqueue(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -1, -1);
+					fromEmulator.enqueue(totalFetchedAssemblyPackets-SimulationConfig.NumInsToIgnore, -2, -1);
 					return (i+1);
 				}
 				

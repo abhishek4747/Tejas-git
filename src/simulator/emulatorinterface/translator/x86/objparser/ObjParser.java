@@ -98,7 +98,7 @@ public class ObjParser
 		// Store from MSR(load_reg) to immediate memory location 
 		Operand storeLocation = Operand.getMemoryOperand(Operand.getImmediateOperand(), null);
 		Operand storeRegister = Operand.getMachineSpecificRegister(Registers.encodeRegister("store_reg"));
-		staticStoreMicroOp = Instruction.getLoadInstruction(storeLocation, storeRegister);
+		staticStoreMicroOp = Instruction.getStoreInstruction(storeLocation, storeRegister);
 		
 		// Branch address
 		Operand branchAddress = Operand.getImmediateOperand();
