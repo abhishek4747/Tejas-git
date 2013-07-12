@@ -767,7 +767,7 @@ public class ObjParser
 		int numMicroOpsAdded = 0;
 		
 		// load information
-		for(int i=0; i<dynamicInstructionBuffer.getMemReadSize(); i++)
+		for(int i=dynamicInstructionBuffer.getMemReadCount(); i<dynamicInstructionBuffer.getMemReadSize(); i++)
 		{
 			dynamicMicroOp = getDynamicMicroOp(staticLoadMicroOp);
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
@@ -777,7 +777,7 @@ public class ObjParser
 		}
 		
 		// store information
-		for(int i=0; i<dynamicInstructionBuffer.getMemWriteSize(); i++)
+		for(int i=dynamicInstructionBuffer.getMemWriteCount(); i<dynamicInstructionBuffer.getMemWriteSize(); i++)
 		{
 			dynamicMicroOp = getDynamicMicroOp(staticStoreMicroOp);
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
@@ -787,7 +787,7 @@ public class ObjParser
 		}
 			
 		// branch information. This must be performed strictly after memory operations.
-		if(dynamicInstructionBuffer.getBranchAddress(instructionPointer)!=-1)
+		if(dynamicInstructionBuffer.isBranchInformationReadNeeded())
 		{
 			dynamicMicroOp = getDynamicMicroOp(staticBranchMicroOp);
 			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());

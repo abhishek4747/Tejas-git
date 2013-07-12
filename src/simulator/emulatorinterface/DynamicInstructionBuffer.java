@@ -181,7 +181,11 @@ public class DynamicInstructionBuffer implements Encoding
 	}
 
 	public boolean missedInformation() {
+		return (memReadCount<memReadSize || memWriteCount<memWriteSize || isBranchInformationReadNeeded());
+	}
+
+	public boolean isBranchInformationReadNeeded() {
 		boolean readAuthenticBranch = branchInformationRead==false && branchAddress!=-1;
-		return (memReadCount<memReadSize || memWriteCount<memWriteSize || readAuthenticBranch==false);
+		return readAuthenticBranch;
 	}
 }
