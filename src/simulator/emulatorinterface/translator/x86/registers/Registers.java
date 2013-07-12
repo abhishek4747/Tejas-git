@@ -72,6 +72,10 @@ public class Registers
 		//FIXME: Not sure if this goes here
 		machineSpecificRegistersHashTable.put("FP_CWORD", new Long(7));
 		
+		// Load register and store register
+		machineSpecificRegistersHashTable.put("load_reg", new Long(8));
+		machineSpecificRegistersHashTable.put("store_reg", new Long(9));
+		
 		//-------------------------Integer register-----------------------------------------------
 		//Registers available to the programmer
 		integerRegistersHashTable.put("rax", new Long(0));

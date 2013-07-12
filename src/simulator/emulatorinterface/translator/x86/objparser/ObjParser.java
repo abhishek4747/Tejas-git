@@ -33,12 +33,14 @@ import emulatorinterface.translator.x86.instruction.InstructionClass;
 import emulatorinterface.translator.x86.instruction.InstructionClassTable;
 import emulatorinterface.translator.x86.instruction.X86StaticInstructionHandler;
 import emulatorinterface.translator.x86.operand.OperandTranslator;
+import emulatorinterface.translator.x86.registers.Registers;
 import emulatorinterface.translator.x86.registers.TempRegisterNum;
 import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.InstructionList;
 import generic.InstructionTable;
 import generic.Operand;
+import generic.OperationType;
 import generic.PartialDecodedInstruction;
 import generic.Statistics;
 import java.io.BufferedReader;
@@ -47,6 +49,7 @@ import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 import config.EmulatorConfig;
 import main.CustomObjectPool;
+import main.Main;
 import misc.Error;
 import misc.Numbers;
 
@@ -83,6 +86,23 @@ public class ObjParser
 		for(int i=0; i<maxApplicationThreads; i++) {
 			staticDynamicInstructionBuffers[i] = new DynamicInstructionBuffer();
 		}
+	}
+	
+	private static Instruction staticLoadMicroOp, staticStoreMicroOp, staticBranchMicroOp;
+	public static void initializeControlMicroOps() {
+		// Load from immediate memory location to a MSR(load_reg)
+		Operand loadLocation = Operand.getMemoryOperand(Operand.getImmediateOperand(), null);
+		Operand loadRegister = Operand.getMachineSpecificRegister(Registers.encodeRegister("load_reg"));
+		staticLoadMicroOp = Instruction.getLoadInstruction(loadLocation, loadRegister);
+		
+		// Store from MSR(load_reg) to immediate memory location 
+		Operand storeLocation = Operand.getMemoryOperand(Operand.getImmediateOperand(), null);
+		Operand storeRegister = Operand.getMachineSpecificRegister(Registers.encodeRegister("store_reg"));
+		staticStoreMicroOp = Instruction.getLoadInstruction(storeLocation, storeRegister);
+		
+		// Branch address
+		Operand branchAddress = Operand.getImmediateOperand();
+		staticBranchMicroOp = Instruction.getBranchInstruction(branchAddress);
 	}
 	
 	/**
@@ -630,7 +650,7 @@ public class ObjParser
 			
 			//This is a bug(at least in case of caching): assemblyPacketList = threadMicroOpsList[tidApp]; 
 			Packet p = arrayListPacket.get(0);
-				
+			
 			if(p.value==Encoding.ASSEMBLY) {
 				byte asmBytes[] = CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
 				String assemblyTokens[] = tokenizeQemuAssemblyCode(asmBytes);
@@ -674,9 +694,13 @@ public class ObjParser
 			if((microOpIndex==-1) || 
 			  (assemblyPacketList.get(microOpIndex).getCISCProgramCounter()!=startInstructionPointer)) 
 			{
+				// Don't worry. even if the micro-op index is incorrect, it will be caught in the main 
+				// translate loop
+				microOpIndex = 0;
+				
 				// dynamicInstructionBuffer.clearBuffer();
 				//System.out.println("static -- " + microOpIndex);
-				return 0;
+				//return 0;
 			}
 		}
 		
@@ -709,15 +733,74 @@ public class ObjParser
 				inputToPipeline.enqueue(dynamicMicroOp); //append microOp
 			}
 		}
+		
 		if((removedFromTail == true )&& inputToPipeline.size()!=prevLengthOfInputToPipeLine) {
 			System.err.println("\ncurrentSize = " + inputToPipeline.size());
 			System.err.println("previousSize = " + prevLengthOfInputToPipeLine);
 			misc.Error.showErrorAndExit("");
 		}
+		
+		// If we have failed to read any information from dynamicInstructionBuffer before, then read it now.
+		if(dynamicInstructionBuffer.missedInformation()) {
+			//This instruction could not be translated. However, if there are some 
+			//load/store/branch operations in this instruction, they must be pushed 
+			//to pipeline.
+			return flushDynamicInformationPackets(startInstructionPointer, dynamicInstructionBuffer, inputToPipeline);
+		}
+		
 		/* clear the dynamicInstructionBuffer */		
 		// dynamicInstructionBuffer.clearBuffer();
 		//System.out.println(inputToPipeline);
 		return numCISC;
+	}
+	
+	//Some instructions are not translated by the translator. However, if there are some 
+	//load/store/branch operations in this instruction, they must be pushed 
+	//to pipeline.
+	private static int flushDynamicInformationPackets(
+			long instructionPointer,
+			DynamicInstructionBuffer dynamicInstructionBuffer,
+			GenericCircularQueue<Instruction> inputToPipeline) 
+	{
+		Instruction dynamicMicroOp;
+		DynamicInstructionHandler dynamicInstructionHandler;
+		int numMicroOpsAdded = 0;
+		
+		// load information
+		for(int i=0; i<dynamicInstructionBuffer.getMemReadSize(); i++)
+		{
+			dynamicMicroOp = getDynamicMicroOp(staticLoadMicroOp);
+			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
+			dynamicInstructionHandler.handle(0, dynamicMicroOp, dynamicInstructionBuffer);
+			inputToPipeline.enqueue(dynamicMicroOp);
+			numMicroOpsAdded++;
+		}
+		
+		// store information
+		for(int i=0; i<dynamicInstructionBuffer.getMemWriteSize(); i++)
+		{
+			dynamicMicroOp = getDynamicMicroOp(staticStoreMicroOp);
+			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
+			dynamicInstructionHandler.handle(0, dynamicMicroOp, dynamicInstructionBuffer);
+			inputToPipeline.enqueue(dynamicMicroOp);
+			numMicroOpsAdded++;
+		}
+			
+		// branch information. This must be performed strictly after memory operations.
+		if(dynamicInstructionBuffer.getBranchAddress(instructionPointer)!=-1)
+		{
+			dynamicMicroOp = getDynamicMicroOp(staticBranchMicroOp);
+			dynamicInstructionHandler = VisaHandlerSelector.selectHandler(dynamicMicroOp.getOperationType());
+			dynamicInstructionHandler.handle(0, dynamicMicroOp, dynamicInstructionBuffer);
+			inputToPipeline.enqueue(dynamicMicroOp);
+			numMicroOpsAdded++;
+		}
+		
+		if(numMicroOpsAdded>0) {
+			return 1;
+		} else {
+			return 0;
+		}
 	}
 
 	private static Instruction getDynamicMicroOp(Instruction staticMicroOp) {

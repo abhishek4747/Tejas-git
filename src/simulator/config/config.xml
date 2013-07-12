@@ -22,10 +22,10 @@
 	<Emulator>
 		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
 		<CommunicationType>1</CommunicationType>  <!--0-fileMicroOps, 1-shmem, 2-socket, 3-filePacket -->
-		<PinTool>/mnt/srishtistr0/home/mayur/Installed_Softwares/PIN</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/home/prathmesh/Data/Softwares/Pintool/pin-11</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/mnt/srishtistr0/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
-		<ShmLibDirectory>/mnt/srishtistr0/home/mayur/workspace/Tejas-Base-2-NUCA_UPDATED/src/emulator/pin/obj-comm</ShmLibDirectory>
+		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
 	</Emulator>
 	
 	<!--Simulation Parameters-->

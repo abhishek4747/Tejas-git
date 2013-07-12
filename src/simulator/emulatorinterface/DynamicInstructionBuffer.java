@@ -35,7 +35,8 @@ public class DynamicInstructionBuffer implements Encoding
 	
 	private long memWrite[];
 	int memWriteSize, memWriteCount;
-	
+
+	private boolean branchInformationRead;
 	private boolean branchTaken;
 	private long branchAddress;
 	
@@ -50,6 +51,7 @@ public class DynamicInstructionBuffer implements Encoding
 	// read the packets from the arrayList and place them in suitable queues
 	public void configurePackets(EmulatorPacketList arrayListPacket) 
 	{
+		branchInformationRead = false;
 		memReadCount = 0;  memReadSize = 0;
 		memWriteCount = 0; memWriteSize = 0;
 		
@@ -114,11 +116,13 @@ public class DynamicInstructionBuffer implements Encoding
 	
 	public boolean getBranchTaken(long instructionPointer)
 	{
+		branchInformationRead = true;
 		return branchTaken;
 	}
 	
 	public long getBranchAddress(long instructionPointer)
 	{
+		branchInformationRead = true;
 		return branchAddress;
 	}
 	
@@ -156,5 +160,27 @@ public class DynamicInstructionBuffer implements Encoding
 	public void printBuffer()
 	{
 		//TODO
+	}
+	
+	public int getMemReadCount()
+	{
+		return memReadCount;
+	}
+	
+	public int getMemWriteCount()
+	{
+		return memWriteCount;
+	}
+
+	public int getMemReadSize() {
+		return memReadSize;
+	}
+	
+	public int getMemWriteSize() {
+		return memWriteSize;
+	}
+
+	public boolean missedInformation() {
+		return (memReadCount<memReadSize || memWriteCount<memWriteSize || branchInformationRead==false);
 	}
 }

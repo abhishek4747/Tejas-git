@@ -57,6 +57,7 @@ public class Main {
 		}
 		
 		ObjParser.initializeDynamicInstructionBuffer(IpcBase.EmuThreadsPerJavaThread*IpcBase.getEmuThreadsPerJavaThread());
+		ObjParser.initializeControlMicroOps();
 		
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
