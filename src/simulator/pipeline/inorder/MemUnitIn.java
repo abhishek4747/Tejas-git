@@ -1,20 +1,13 @@
 package pipeline.inorder;
 
-import java.util.Hashtable;
-
-
-import main.Main;
 import memorysystem.AddressCarryingEvent;
-
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
-import generic.OMREntry;
 
 public class MemUnitIn extends SimulationElement{
 	
@@ -43,7 +36,7 @@ public class MemUnitIn extends SimulationElement{
 			return;
 		}
 		
-		if(!exMemLatch.getMemDone())
+		if(!exMemLatch.getMemDone()) //Memory Request not yet complete,Add another stall cycle
 		{
 			this.containingExecutionEngine.incrementMemStall(1);
 			containingExecutionEngine.setStallFetch(1);
@@ -81,6 +74,5 @@ public class MemUnitIn extends SimulationElement{
 	{
 		containingExecutionEngine.setMemDone(requestedAddress,true);
 		containingExecutionEngine.noOfOutstandingLoads--;
-		//System.out.println("response received at time "+GlobalClock.getCurrentTime() + " for address "+requestedAddress);
 	}
 }

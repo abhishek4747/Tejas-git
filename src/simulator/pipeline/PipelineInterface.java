@@ -3,7 +3,6 @@ package pipeline;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.Instruction;
-import generic.Statistics;
 
 public interface PipelineInterface {
 	

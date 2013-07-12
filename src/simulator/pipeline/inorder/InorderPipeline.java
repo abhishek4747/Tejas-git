@@ -1,14 +1,11 @@
 package pipeline.inorder;
 
-import memorysystem.CoreMemorySystem;
 import pipeline.PipelineInterface;
-import power.Counters;
 import generic.Core;
 import generic.EventQueue;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.Statistics;
 
 public class InorderPipeline implements PipelineInterface{
 	
@@ -25,7 +22,7 @@ public class InorderPipeline implements PipelineInterface{
 		this.core = _core;
 		containingExecutionEngine = (InorderExecutionEngine)core.getExecEngine();
 		this.eventQ = eventQ;
-		this.coreStepSize = core.getStepSize();	//Not correct. Global clock hasn't been initialized yet
+		this.coreStepSize = core.getStepSize();	//Not Necessary. Global clock hasn't been initialized yet
 												//So, step sizes of the cores hasn't been set.
 												//It will be set when the step sizes of the cores will be set.
 		this.ifId = containingExecutionEngine.getIfIdLatch(id);
@@ -33,19 +30,15 @@ public class InorderPipeline implements PipelineInterface{
 		this.exMem = containingExecutionEngine.getExMemLatch(id);
 		this.memWb = containingExecutionEngine.getMemWbLatch(id);
 		this.wbDone = containingExecutionEngine.getWbDoneLatch(id);
-//		core.getExecutionEngineIn().setExecutionComplete(true);
 		this.id = id;
 	}
 	
 	public void oneCycleOperation(){
 		long currentTime = GlobalClock.getCurrentTime();
-/*if(core.getCore_number()==1)
-	System.out.println(" exec complete "+containingExecutionEngine.getExecutionComplete());
-*/
 		if(currentTime % getCoreStepSize()==0 && !containingExecutionEngine.getExecutionComplete()){
 			writeback();
 		}
-		drainEventQueue();
+		drainEventQueue();		//Process Memory Requests
 		if(currentTime % getCoreStepSize()==0 && !containingExecutionEngine.getExecutionComplete()){
 			mem();
 			exec();
@@ -53,23 +46,10 @@ public class InorderPipeline implements PipelineInterface{
 			fetch();
 
 			this.core.powerCounters.perCycleAccessRecordUpdate();
-
-//			this.core.powerCounters.updatePowerStatsPerCycle();
-//			this.core.powerCounters.clearAccessStats();
-
-//			if(this.containingExecutionEngine.getFetchUnitIn().getStallLowerMSHRFull()>0)
-//				this.containingExecutionEngine.getFetchUnitIn().decrementStallLowerMSHRFull(1);
-//			else
 			if(this.containingExecutionEngine.getStallFetch()>0){
-//			System.out.println("Stalled for "+this.containingExecutionEngine.getStallFetch());
-				this.containingExecutionEngine.decrementStallFetch(1);
+				this.containingExecutionEngine.decrementStallFetch(1); 
 			}
-
-//			this.containingExecutionEngine.incrementNumCycles(1);	//FIXME redundant operation. We are not using this for final statistics.
-																		//Global clock cycle/core step size is used instead.
 		}
-
-		//System.out.println("Ins executed = "+ core.getNoOfInstructionsExecuted());
 	}
 
 	public int getId() {
@@ -92,12 +72,8 @@ public class InorderPipeline implements PipelineInterface{
 	public void exec(){
 		containingExecutionEngine.getExecUnitIn().execute(this);
 	}
-	public void regfile(){
-		containingExecutionEngine.getRegFileIn().fetchOperands(this);
-	}
 	public void decode(){
 		containingExecutionEngine.getDecodeUnitIn().performDecode(this);
-		regfile();
 	}
 	public void fetch(){
 		containingExecutionEngine.getFetchUnitIn().performFetch(this);
@@ -105,13 +81,11 @@ public class InorderPipeline implements PipelineInterface{
 
 	@Override
 	public boolean isExecutionComplete() {
-		// TODO Auto-generated method stub
 		return (containingExecutionEngine.getExecutionComplete());
 		}
 
 	@Override
 	public int getCoreStepSize() {
-//		return coreStepSize;
 		return this.core.getStepSize();
 	}
 
@@ -122,9 +96,7 @@ public class InorderPipeline implements PipelineInterface{
 
 	@Override
 	public void resumePipeline() {
-		containingExecutionEngine.getFetchUnitIn().resumePipeline();
-		// TODO Auto-generated method stub
-		
+		containingExecutionEngine.getFetchUnitIn().resumePipeline();		
 	}
 
 	@Override
@@ -136,46 +108,7 @@ public class InorderPipeline implements PipelineInterface{
 	public boolean isSleeping() {
 		return containingExecutionEngine.getFetchUnitIn().getSleep();
 	}
-	public void setTimingStatistics()
-	{
-		core.setCoreCyclesTaken(containingExecutionEngine.getNumCycles());
-		Statistics.setCoreCyclesTaken(containingExecutionEngine.getNumCycles(), core.getCore_number());
-		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
-		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
-		
-		System.out.println("Mem Stalls = "+this.containingExecutionEngine.getMemStall());
-		System.out.println("Data Hazard Stalls = "+this.containingExecutionEngine.getDataHazardStall());
-		System.out.println("Instruction Mem Stalls = "+this.containingExecutionEngine.getInstructionMemStall());
 
-		System.out.println("IcacheHits = "+this.containingExecutionEngine.icachehit);
-		System.out.println("Fresh l2 requests = "+this.containingExecutionEngine.freshl2req);
-		System.out.println("Old l2 requests = "+this.containingExecutionEngine.oldl2req);
-		System.out.println("L2 mem response = "+this.containingExecutionEngine.l2memres);
-		System.out.println("L2 mem outstanding = "+this.containingExecutionEngine.l2memoutstanding);
-		System.out.println("L2 accesses = "+this.containingExecutionEngine.l2accesses);
-		System.out.println("L2 hits = "+this.containingExecutionEngine.l2hits);
-
-	}
-	
-	public void setPerCoreMemorySystemStatistics()
-	{
-		CoreMemorySystem coreMemSys = containingExecutionEngine.inorderCoreMemorySystem;
-		Statistics.setNoOfMemRequests(coreMemSys.getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(coreMemSys.getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(coreMemSys.getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfL1Requests(coreMemSys.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(coreMemSys.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(coreMemSys.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(coreMemSys.getiCache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfIHits(coreMemSys.getiCache().hits, core.getCore_number());
-		Statistics.setNoOfIMisses(coreMemSys.getiCache().misses, core.getCore_number());
-	}
-	public void setPerCorePowerStatistics(){
-		core.powerCounters.clearAccessStats();
-		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
-		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
-	}
-	
 	public StageLatch getIfIdLatch(){
 		return this.ifId;
 	}
@@ -194,23 +127,18 @@ public class InorderPipeline implements PipelineInterface{
 
 	@Override
 	public void setExecutionComplete(boolean status) {
-		// TODO Auto-generated method stub
 		containingExecutionEngine.setExecutionComplete(status);		
 	}
 
 	@Override
 	public void adjustRunningThreads(int adjval) {
-		// TODO Auto-generated method stub
-//		this.getCore().currentThreads += adjval;
-		
+		// TODO Auto-generated method stub	
 	}
 
 	@Override
 	public void setInputToPipeline(
-			GenericCircularQueue<Instruction>[] inputToPipeline) {
-		
+			GenericCircularQueue<Instruction>[] inputToPipeline) {	
 		this.core.getExecEngine().setInputToPipeline(inputToPipeline);
-		
 	}
 
 	@Override
@@ -286,5 +214,23 @@ public class InorderPipeline implements PipelineInterface{
 	@Override
 	public long getNoOfIMisses() {
 		return ((InorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiCache().misses;
+	}
+
+	@Override
+	public void setTimingStatistics() {
+		// Not needed here, set by inorderexecutionengine
+		
+	}
+
+	@Override
+	public void setPerCoreMemorySystemStatistics() {
+		// Not needed here, set by inorderexecutionengine
+		
+	}
+
+	@Override
+	public void setPerCorePowerStatistics() {
+		// Not needed here, set by inorderexecutionengine
+		
 	}
 }

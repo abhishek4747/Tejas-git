@@ -1,7 +1,6 @@
 package pipeline.inorder;
 
 import config.SimulationConfig;
-import main.ArchitecturalComponent;
 import main.CustomObjectPool;
 import generic.Core;
 import generic.Event;
@@ -49,7 +48,6 @@ public class WriteBackUnitIn extends SimulationElement{
 				
 			if(memWbLatch.getInstruction().getOperationType()==OperationType.inValid)
 			{
-				//FIXME the following does not set the statistics. Check!
 				this.core.currentThreads--;
 				
 				if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
@@ -72,12 +70,9 @@ public class WriteBackUnitIn extends SimulationElement{
 			{
 				if(core.getNoOfInstructionsExecuted()%1000000==0)
 				{
-					System.out.println(this.j++ + " million done" + " by core "+core.getCore_number() + " global clock cycle " + GlobalClock.getCurrentTime());
-					
+					System.out.println(this.j++ + " million done" + " by core "+core.getCore_number() 
+							+ " global clock cycle " + GlobalClock.getCurrentTime());
 				}
-//				if (core.getNoOfInstructionsExecuted()!=memWbLatch.getInstruction().getSerialNo()) {
-//System.out.println("Wrong...!"+core.getNoOfInstructionsExecuted()+"  "+memWbLatch.getInstruction().getSerialNo());
-//				}
 				core.incrementNoOfInstructionsExecuted();
 				
 				try

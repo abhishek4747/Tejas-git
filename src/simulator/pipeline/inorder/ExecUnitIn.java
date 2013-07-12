@@ -2,9 +2,6 @@ package pipeline.inorder;
 
 import pipeline.outoforder.OpTypeToFUTypeMapping;
 import config.SimulationConfig;
-import memorysystem.CoreMemorySystem;
-import memorysystem.MemorySystem;
-import memorysystem.TLB;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -91,14 +88,10 @@ public class ExecUnitIn extends SimulationElement{
 				
 				boolean memReqIssued = true;	//if corememsys' mshr is full, issue not possible; pipeline's preceding stages must stall
 				if(ins.getOperationType()==OperationType.load)
-				{
-					//containingExecutionEngine.updateNoOfLd(1);
-					//containingExecutionEngine.updateNoOfMemRequests(1);
-									
+				{							
 					//Schedule a mem read event now so that it can be completed in the mem stage
 					if(!SimulationConfig.detachMemSys)
 					{		
-						//System.out.println(" load issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
 						memReqIssued = containingExecutionEngine.inorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Read,
 								ins.getSourceOperand1MemValue());
@@ -106,8 +99,6 @@ public class ExecUnitIn extends SimulationElement{
 				}
 				else if(ins.getOperationType()==OperationType.store)
 				{
-					//containingExecutionEngine.updateNoOfSt(1);
-					//containingExecutionEngine.updateNoOfMemRequests(1);
 					exMemLatch.setMemDone(true); //FIXME Pipeline doesn't wait for the store to complete! 
 					
 					//Schedule a mem read event now so that it can be completed in the mem stage
@@ -141,7 +132,6 @@ public class ExecUnitIn extends SimulationElement{
 					exMemLatch.setIn2(idExLatch.getIn2());
 					exMemLatch.setOut1(idExLatch.getOut1());
 					exMemLatch.setOperationType(idExLatch.getOperationType());
-					exMemLatch.setLoadFlag(idExLatch.getLoadFlag());
 					
 					if(ins.getOperationType() == OperationType.load)
 					{
