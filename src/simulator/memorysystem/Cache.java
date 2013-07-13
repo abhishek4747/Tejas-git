@@ -553,7 +553,7 @@ public class Cache extends SimulationElement
 																					   this,
 																					   this.nextLevel, 
 																					   RequestType.Cache_Write, 
-																					   evictedLine.getTag() << blockSizeBits,
+																					   evictedLine.getAddress(),
 																					   event.coreId);
 						propogateWrite(eventToForward);
 						
