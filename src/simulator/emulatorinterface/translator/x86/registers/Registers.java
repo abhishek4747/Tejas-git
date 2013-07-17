@@ -23,6 +23,8 @@ package emulatorinterface.translator.x86.registers;
 
 
 import java.util.Hashtable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import generic.Operand;
 
@@ -203,6 +205,64 @@ public class Registers
 	//	//Must be called only from the simplify location method only
 	//	noOfIntTempRegs--;
 	//}
+	
+	
+	private static Matcher rax,rbx,rcx,rdx,rsi,rdi,rbp,rsp,r8,r9,r10,r11,r12,r13,r14,r15,eiz;
+	private static void createMatchers()
+	{
+		Pattern p;
+		
+		p = Pattern.compile("rax|eax|ax|ah|al");
+		rax = p.matcher("");
+		
+		p = Pattern.compile("rbx|ebx|bx|bh|bl");
+		rbx = p.matcher("");
+		
+		p = Pattern.compile("rcx|ecx|cx|ch|cl");
+		rcx = p.matcher("");
+		
+		p = Pattern.compile("rdx|edx|dx|dh|dl");
+		rdx = p.matcher("");
+		
+		p = Pattern.compile("rsi|esi|sil|si");
+		rsi = p.matcher("");
+		
+		p = Pattern.compile("rdi|edi|dil|di");
+		rdi = p.matcher("");
+		
+		p = Pattern.compile("rbp|ebp|bpl|bp");
+		rbp = p.matcher("");
+		
+		p = Pattern.compile("rsp|esp|spl|sp");
+		rsp = p.matcher("");
+		
+		p = Pattern.compile("r8b|r8d|r8w|r8l");
+		r8 = p.matcher("");
+		
+		p = Pattern.compile("r9b|r9d|r9w|r9l");
+		r9 = p.matcher("");
+		
+		p = Pattern.compile("r10b|r10d|r10w|r10l");
+		r10 = p.matcher("");
+		
+		p = Pattern.compile("r11b|r11d|r11w|r11l");
+		r11 = p.matcher("");
+		
+		p = Pattern.compile("r12b|r12d|r12w|r12l");
+		r12 = p.matcher("");
+		
+		p = Pattern.compile("r13b|r13d|r13w|r13l");
+		r13 = p.matcher("");
+		
+		p = Pattern.compile("r14b|r14d|r14w|r14l");
+		r14 = p.matcher("");
+		
+		p = Pattern.compile("r15b|r15d|r15w|r15l");
+		r15 = p.matcher("");
+		
+		p = Pattern.compile("eiz");
+		eiz = p.matcher("");
+	}
 
 	/**
 	 * This method converts the smaller parts of register to the complete register
@@ -210,26 +270,31 @@ public class Registers
 	 */
  	public static String coarsifyRegisters(String operandStr)
 	{
-		operandStr = operandStr.replaceAll("rax|eax|ax|ah|al", "rax");
-		operandStr = operandStr.replaceAll("rbx|ebx|bx|bh|bl", "rbx");
-		operandStr = operandStr.replaceAll("rcx|ecx|cx|ch|cl", "rcx");
-		operandStr = operandStr.replaceAll("rdx|edx|dx|dh|dl", "rdx");
-		
-		operandStr = operandStr.replaceAll("rsi|esi|sil|si", "rsi");
-		operandStr = operandStr.replaceAll("rdi|edi|dil|di", "rdi");
-		operandStr = operandStr.replaceAll("rbp|ebp|bpl|bp", "rbp");
-		operandStr = operandStr.replaceAll("rsp|esp|spl|sp", "rsp");
-		
-		operandStr = operandStr.replaceAll("r8b|r8d|r8w|r8l", "r8");
-		operandStr = operandStr.replaceAll("r9b|r9d|r9w|r9l", "r9");
-		operandStr = operandStr.replaceAll("r10b|r10d|r10w|r10l", "r10");
-		operandStr = operandStr.replaceAll("r11b|r11d|r11w|r11l", "r11");
-		operandStr = operandStr.replaceAll("r12b|r12d|r12w|r10l", "r12");
-		operandStr = operandStr.replaceAll("r13b|r13d|r13w|r10l", "r13");
-		operandStr = operandStr.replaceAll("r14b|r14d|r14w|r10l", "r14");
-		operandStr = operandStr.replaceAll("r15b|r15d|r15w|r10l", "r15");
-
-		operandStr = operandStr.replaceAll("eiz", "eiz");
+ 		if(rax==null) {
+ 			createMatchers();
+ 		}
+ 		
+ 		operandStr = rax.reset(operandStr).replaceAll("rax");
+ 		operandStr = rbx.reset(operandStr).replaceAll("rbx");
+ 		operandStr = rcx.reset(operandStr).replaceAll("rcx");
+ 		operandStr = rdx.reset(operandStr).replaceAll("rdx");
+ 		
+ 		operandStr = rsi.reset(operandStr).replaceAll("rsi");
+ 		operandStr = rdi.reset(operandStr).replaceAll("rdi");
+ 		operandStr = rbp.reset(operandStr).replaceAll("rbp");
+ 		operandStr = rsp.reset(operandStr).replaceAll("rsp");
+ 		
+ 		operandStr = r8.reset(operandStr).replaceAll("r8");
+ 		operandStr = r9.reset(operandStr).replaceAll("r9");
+ 		operandStr = r10.reset(operandStr).replaceAll("r10");
+ 		operandStr = r11.reset(operandStr).replaceAll("r11");
+ 		operandStr = r12.reset(operandStr).replaceAll("r12");
+ 		operandStr = r13.reset(operandStr).replaceAll("r13");
+ 		operandStr = r14.reset(operandStr).replaceAll("r14");
+ 		operandStr = r15.reset(operandStr).replaceAll("r15");
+ 		 		
+ 		operandStr = eiz.reset(operandStr).replaceAll("eiz"); 		
+ 		
 		return operandStr;
 	}
 

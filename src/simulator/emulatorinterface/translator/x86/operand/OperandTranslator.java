@@ -29,18 +29,46 @@ import generic.InstructionList;
 import generic.Operand;
 import generic.OperandType;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 import main.CustomObjectPool;
 import misc.Numbers;
 
-
 public class OperandTranslator 
 {
+	private static Matcher keywordMatcher, memLocationMatcher, memAddressRefMatcher, indexScaleMatcher, wordPtrMatcher;
+	
+	private static void createMatchers() {
+		Pattern p;
+		
+		p = Pattern.compile("byte|dword|qword|word");
+		keywordMatcher = p.matcher("");
+		
+		p = Pattern.compile(".*\\[.*\\].*");
+		memLocationMatcher = p.matcher("");
+		
+		p = Pattern.compile("[0-9a-f]+ <.*>");
+		memAddressRefMatcher = p.matcher("");
+		
+		p = Pattern.compile("[a-zA-Z ]+:0x[0-9a-f]+");
+		wordPtrMatcher = p.matcher("");
+		
+		p = Pattern.compile("[a-zA-Z0-9]+\\*[0x123456789abcdef]+");
+		indexScaleMatcher = p.matcher("");
+		
+		
+	}
+	
 	public static Operand simplifyOperand(String operandStr,
 			InstructionList instructionList, TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
+		if(keywordMatcher==null) {
+			createMatchers();
+		}
+		
 		//If there is no operand, then just don't process it. 
 		if(operandStr == null) {
 			return null;
@@ -48,7 +76,7 @@ public class OperandTranslator
 		
 		// Some libraries like udis86 add keyword like byte, dword, qword to indicate the granularity of 
 		// the operand. This keyword must be removed before processing as we are not using them.
-		operandStr = operandStr.replaceAll("byte|dword|qword|word", "");
+		operandStr = keywordMatcher.reset(operandStr).replaceAll("");
 		
 		// Remove spaces from both ends. Helps in making patterns for coming code.
 		operandStr = operandStr.trim();
@@ -76,7 +104,7 @@ public class OperandTranslator
 			return Operand.getMachineSpecificRegister(Registers.encodeRegister(operandStr));
 		}
 		//Simplify memory locations specified by [...]
-		else if(operandStr.matches(".*\\[.*\\].*"))
+		else if(memLocationMatcher.reset(operandStr).matches())
 		{
 			//contains a memory location specified by the memory address
 			//Strip the string enclosed in square brackets
@@ -86,7 +114,7 @@ public class OperandTranslator
 			return simplifyMemoryLocation(memLocation, instructionList, tempRegisterNum);
 		}
 		
-		else if(operandStr.matches("[0-9a-f]+ <.*>"))
+		else if(memAddressRefMatcher.reset(operandStr).matches())
 		{
 			//Above pattern is numbers <random>
 			//This operand contains a memory address and a reference address enclosed in <>
@@ -95,7 +123,7 @@ public class OperandTranslator
 			return Operand.getImmediateOperand();
 		}
 		
-		else if(operandStr.matches("[a-zA-Z ]+:0x[0-9a-f]+"))
+		else if(wordPtrMatcher.reset(operandStr).matches())
 		{	
 			//This operand contains :. So it must be like DWORD PTR segment-register:memory Address
 			StringTokenizer memLocTokenizer = new StringTokenizer(operandStr, ":", false);
@@ -175,7 +203,7 @@ public class OperandTranslator
 			}
 			
 			//index*scale
-			else if(memoryAddressTokens[i].matches("[a-zA-Z0-9]+\\*[0x123456789abcdef]+"))
+			else if(indexScaleMatcher.reset(memoryAddressTokens[i]).matches())
 			{
 				indexStr = memoryAddressTokens[i].split("\\*")[0];
 				scaleStr = memoryAddressTokens[i].split("\\*")[1];

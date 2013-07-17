@@ -21,6 +21,9 @@
 
 package misc;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Numbers {
 
 	static public long hexToLong(String hexStr)
@@ -49,12 +52,23 @@ public class Numbers {
 		}
 	}
 	
+	private static Matcher validNumberMatcher;
+	public static void createValidNumberMatcher()
+	{
+		Pattern p = Pattern.compile("[0xX0-9a-fA-F]+");
+		validNumberMatcher = p.matcher("");
+	}
+	
 	static public boolean isValidNumber(String numStr)
 	{
+		if(validNumberMatcher==null) {
+			createValidNumberMatcher();
+		}
+		
 		if(numStr==null) {
 			return false;
 		} else {
-			if(numStr.matches("[0xX0-9a-fA-F]+")) {
+			if(validNumberMatcher.reset(numStr).matches()) {
 				return true;
 			} else {
 				return false;

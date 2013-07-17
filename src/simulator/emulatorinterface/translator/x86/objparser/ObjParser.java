@@ -47,6 +47,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import config.EmulatorConfig;
 import main.CustomObjectPool;
 import main.Main;
@@ -257,15 +260,23 @@ public class ObjParser
 		return (instructionList.length()-microOpsIndexBefore);
 	}
 	
+	private static Matcher instructionPrefixMatcher;
+	public static void createInstructionPrefixMatcher()
+	{
+		Pattern p = Pattern.compile("rep|repe|repne|repz|repnz|lock|o16");
+		instructionPrefixMatcher = p.matcher("");
+	}
+	
 	//return true if the string is a valid instruction prefix
 	private static boolean isInstructionPrefix(String string)
 	{
-		if(string.matches("rep|repe|repne|repz|repnz|lock|o16"))
-		{
-			return true;
+		if(instructionPrefixMatcher==null) {
+			createInstructionPrefixMatcher();
 		}
-		else
-		{
+		
+		if(instructionPrefixMatcher.reset(string).matches()) {
+			return true;
+		} else {
 			return false;
 		}
 	}
@@ -335,14 +346,25 @@ public class ObjParser
 		// we would never reach this statement
 		return null;
 	}
+	
+	private static Matcher objdumpAssemblyCodeMatcher;
+	public static void createObjdumpAssemblyCodeMatcher()
+	{
+		Pattern p = Pattern.compile("[0-9a-fA-F]+ <.*> [a-zA-Z]+.*");
+		objdumpAssemblyCodeMatcher = p.matcher("");
+	}
 
 	// checks if the passed line of objdump output matches the output for an
 	// assembly code.
 	private static boolean isContainingObjDumpAssemblyCode(String line) 
 	{
+		if(objdumpAssemblyCodeMatcher==null) {
+			createObjdumpAssemblyCodeMatcher();
+		}
+		
 		// A valid assembly code line has following pattern
 		// linear-address <referrence-address> opcode (operands)
-		return line.matches("[0-9a-fA-F]+ <.*> [a-zA-Z]+.*");
+		return objdumpAssemblyCodeMatcher.reset(line).matches();
 	}
 
 	// for a line of assembly code, this would return the
@@ -361,7 +383,7 @@ public class ObjParser
 		}
 		
 		// remove the part of string enclosed in <...>
-		line.replaceAll("<.*>", "");
+		//uselessCommentMatcher.reset(line).replaceAll(, "");
 
 		// Initialise all operands to null
 		operands = operand1 = operand2 = operand3 = null;
