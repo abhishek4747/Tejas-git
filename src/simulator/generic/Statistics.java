@@ -75,7 +75,7 @@ public class Statistics {
 	
 	static long dataRead[];
 	static long numHandledCISCInsn[][];
-	static long numPINCISCInsn[][];
+	static long numCISCInsn[][];
 	static long noOfMicroOps[][];
 	static double staticCoverage;
 	static double dynamicCoverage;
@@ -91,7 +91,7 @@ public class Statistics {
 				}
 //				totalNumMicroOps += numCoreInstructions[i];
 				totalHandledCISCInsn += numHandledCISCInsn[i][j];
-				totalPINCISCInsn += numPINCISCInsn[i][j];
+				totalPINCISCInsn += numCISCInsn[i][j];
 			}
 		}
 		
@@ -612,7 +612,7 @@ System.out.println("execution time = "+executionTime);
 	{		
 		dataRead = new long[IpcBase.MaxNumJavaThreads];
 		numHandledCISCInsn = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
-		numPINCISCInsn = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
+		numCISCInsn = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
 		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
@@ -789,8 +789,8 @@ System.out.println("execution time = "+executionTime);
 		}
 	}
 	
-	public static void setNumPINCISCInsn(long numInstructions, int javaThread, int emuThread) {
-		Statistics.numPINCISCInsn[javaThread][emuThread] = numInstructions;
+	public static void setNumCISCInsn(long numInstructions, int javaThread, int emuThread) {
+		Statistics.numCISCInsn[javaThread][emuThread] = numInstructions;
 	}
 
 	public static void setNoOfMicroOps(long noOfMicroOps[], int thread) {
@@ -1104,5 +1104,8 @@ System.out.println("execution time = "+executionTime);
 		}
 		
 		currentSlice++;
+	}
+	public static long getNumCISCInsn(int javaTid, int tidEmu) {
+		return numCISCInsn[javaTid][tidEmu];
 	}
 }

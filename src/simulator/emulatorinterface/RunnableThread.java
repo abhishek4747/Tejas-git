@@ -187,7 +187,7 @@ public class RunnableThread implements Encoding, Runnable {
 					if (v == Encoding.THREADCOMPLETE) {
 						System.out.println("runnableshm : last packetList received for application-thread " + 
 								tidApplication + " numCISC=" + pnew.ip);
-						Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmulator);
+						//Statistics.setNumPINCISCInsn(pnew.ip, 0, tidEmulator);
 						threadParam.isFirstPacket = true;  //preparing the thread for next packetList in same pipeline
 						signalFinish(tidApplication);
 					}
@@ -682,6 +682,9 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			ObjParser.fuseInstruction(tidApp, thread.packetList.get(0).ip, 
 				thread.packetList, thread.outstandingMicroOps);
+			
+			// Increment number of CISC instructions
+			Statistics.setNumCISCInsn(Statistics.getNumCISCInsn(javaTid, tidEmu) + 1, javaTid, tidEmu);
 			
 			int numMicroOpsAfter = thread.outstandingMicroOps.size();
 			if(numMicroOpsAfter>numMicroOpsBefore) {
