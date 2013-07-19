@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 //import main.Main;
 import main.CustomObjectPool;
@@ -239,6 +240,10 @@ public class RunnableThread implements Encoding, Runnable {
 		}
 
 		finishAllPipelines();
+		
+		if(printUnHandledInsn) {
+			System.out.println(unHandledCount);
+		}
 	}
 
 //	void errorCheck(int tidApp, int emuid, int queue_size,
@@ -693,6 +698,11 @@ public class RunnableThread implements Encoding, Runnable {
 				numHandledInsn = 0;
 			}
 			
+			//
+			if(numHandledInsn==0 && printUnHandledInsn) {
+				calculateCulpritCISCInsns(thread.packetList.get(0).ip);
+			}
+			
 			// Either add all outstanding micro-ops or none.
 			if(thread.outstandingMicroOps.size()<this.inputToPipeline[tidEmu].spaceLeft()) {
 				// add outstanding micro-operations to input to pipeline
@@ -751,6 +761,25 @@ public class RunnableThread implements Encoding, Runnable {
 		}
 		
 		return isSpaceInPipelineBuffer;
+	}
+
+	boolean printUnHandledInsn = false;
+	private HashMap<Long, Long> unHandledCount;
+	private void calculateCulpritCISCInsns(long ip) {
+		
+		if(printUnHandledInsn==false) {
+			misc.Error.showErrorAndExit("printUnHandledInsn function should not be called. Its flag is not set !!");
+		}
+		
+		if(unHandledCount==null) {
+			unHandledCount = new HashMap<Long,Long>();
+		}
+		
+		if(unHandledCount.get(ip)==null) {
+			unHandledCount.put(ip, 1l);
+	 	} else {
+			unHandledCount.put(ip,unHandledCount.get(ip)+1);
+		}
 	}
 
 	protected boolean poolExhausted(int tidEmulator) {

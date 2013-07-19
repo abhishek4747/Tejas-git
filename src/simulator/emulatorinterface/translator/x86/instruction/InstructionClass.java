@@ -71,6 +71,10 @@ public enum InstructionClass
 	FLOATING_POINT_LOAD_CONTROL_WORD,
 	FLOATING_POINT_STORE_CONTROL_WORD,
 	
+	//Convert operations
+	CONVERT_FLOAT_TO_INTEGER,
+	CONVERT_INTEGER_TO_FLOAT,
+	
 	//Not Handled
 	REPEAT,
 	LOCK,
@@ -82,5 +86,5 @@ public enum InstructionClass
 	SSE_DIVISION,
 	SSE_COMPARE_PACKED_DATA,
 	
-	INVALID,  
+	INVALID,   
 }

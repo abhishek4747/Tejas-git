@@ -150,6 +150,14 @@ public class InstructionClassTable {
 		instructionClassHandlerTable.put(
 				InstructionClass.FLOATING_POINT_COMPLEX_OPERATION,
 				new FloatingPointComplexOperation());
+		
+		instructionClassHandlerTable.put(
+				InstructionClass.CONVERT_FLOAT_TO_INTEGER,
+				new ConvertFloatToInteger());
+		
+		instructionClassHandlerTable.put(
+				InstructionClass.CONVERT_INTEGER_TO_FLOAT,
+				new ConvertIntegerToFloat());
 
 		instructionClassHandlerTable.put(
 				InstructionClass.STRING_MOVE,
@@ -329,18 +337,18 @@ public class InstructionClassTable {
 			instructionClassTable.put(floatingPointStore[i],
 					InstructionClass.FLOATING_POINT_STORE);
 
-		String floatingPointMultiplication[] = "fmul|fmulp|fimul|fimulp"
+		String floatingPointMultiplication[] = "fmul|fmulp|fimul|fimulp|mulsd"
 				.split("\\|");
 		for (int i = 0; i < floatingPointMultiplication.length; i++)
 			instructionClassTable.put(floatingPointMultiplication[i],
 					InstructionClass.FLOATING_POINT_MULTIPLICATION);
 
-		String floatingPointDivision[] = "fdiv|fdivp|fidiv|fidivp|fdivr|fdivrp".split("\\|");
+		String floatingPointDivision[] = "fdiv|fdivp|fidiv|fidivp|fdivr|fdivrp|divsd".split("\\|");
 		for (int i = 0; i < floatingPointDivision.length; i++)
 			instructionClassTable.put(floatingPointDivision[i],
 					InstructionClass.FLOATING_POINT_DIVISION);
 
-		String floatingPointALU[] = "fadd|faddp|fiadd|fiaddp|fsub|fsubp|fsubr|fsubrp|fisub|fisubr|fisubrp"
+		String floatingPointALU[] = "fadd|faddp|fiadd|fiaddp|fsub|fsubp|fsubr|fsubrp|fisub|fisubr|fisubrp|addsd|subsd"
 				.split("\\|");
 		for (int i = 0; i < floatingPointALU.length; i++)
 			instructionClassTable.put(floatingPointALU[i],
@@ -362,6 +370,16 @@ public class InstructionClassTable {
 		for (int i = 0; i < floatingPointExchange.length; i++)
 			instructionClassTable.put(floatingPointExchange[i],
 					InstructionClass.FLOATING_POINT_EXCHANGE);
+		
+		String convertFloatToInteger[] = "cvtpd2dq|cvtpd2pi|cvtps2dq|cvtsd2si|cvtss2si|cvttpd2dq|cvttpd2pi|cvttps2dq|cvttps2pi|cvttsd2si|cvttss2si".split("\\|");
+		for (int i = 0; i < convertFloatToInteger.length; i++)
+			instructionClassTable.put(convertFloatToInteger[i],
+					InstructionClass.CONVERT_FLOAT_TO_INTEGER);
+		
+		String convertIntegerToFloat[] = "cvtdq2pd|cvtdq2ps|cvtpi2pd|cvtpi2ps|cvtsi2sd|cvtsi2ss".split("\\|");
+		for (int i = 0; i < convertIntegerToFloat.length; i++)
+			instructionClassTable.put(convertIntegerToFloat[i],
+					InstructionClass.CONVERT_INTEGER_TO_FLOAT);
 
 		String stringMove[] = "movs|movsd".split("\\|");
 		for (int i = 0; i < stringMove.length; i++)
