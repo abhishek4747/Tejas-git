@@ -241,7 +241,7 @@ public class RunnableThread implements Encoding, Runnable {
 
 		finishAllPipelines();
 		
-		if(printUnHandledInsn) {
+		if(unHandledCount!=null) {
 			System.out.println(unHandledCount);
 		}
 	}
