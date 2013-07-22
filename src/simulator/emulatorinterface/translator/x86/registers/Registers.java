@@ -117,13 +117,28 @@ public class Registers
 		//Stack registers
 		floatRegistersHashTable.put("st",    new Long(0));
 		floatRegistersHashTable.put("st(0)", new Long(0));
+		floatRegistersHashTable.put("st0", new Long(0));
+		
 		floatRegistersHashTable.put("st(1)", new Long(1));
+		floatRegistersHashTable.put("st1", new Long(1));
+		
 		floatRegistersHashTable.put("st(2)", new Long(2));
+		floatRegistersHashTable.put("st2", new Long(2));
+		
 		floatRegistersHashTable.put("st(3)", new Long(3));
+		floatRegistersHashTable.put("st3", new Long(3));
+		
 		floatRegistersHashTable.put("st(4)", new Long(4));
+		floatRegistersHashTable.put("st4", new Long(4));
+		
 		floatRegistersHashTable.put("st(5)", new Long(5));
+		floatRegistersHashTable.put("st5", new Long(5));
+		
 		floatRegistersHashTable.put("st(6)", new Long(6));
+		floatRegistersHashTable.put("st6", new Long(6));
+		
 		floatRegistersHashTable.put("st(7)", new Long(7));
+		floatRegistersHashTable.put("st7", new Long(7));
 		
 		//FIXME : This register-set can be used to perform integer operations too.
 		//So its exact type - integer or floating point is ambiguous

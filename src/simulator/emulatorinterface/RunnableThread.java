@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 //import main.Main;
 import main.CustomObjectPool;
@@ -242,7 +243,8 @@ public class RunnableThread implements Encoding, Runnable {
 		finishAllPipelines();
 		
 		if(unHandledCount!=null) {
-			System.out.println(unHandledCount);
+			sorted_map.putAll(unHandledCount);
+			System.out.println(sorted_map);
 		}
 	}
 
@@ -765,6 +767,8 @@ public class RunnableThread implements Encoding, Runnable {
 
 	boolean printUnHandledInsn = false;
 	private HashMap<Long, Long> unHandledCount;
+	UnhandledInsnCountComparator bvc;
+	TreeMap <Long,Long> sorted_map;
 	private void calculateCulpritCISCInsns(long ip) {
 		
 		if(printUnHandledInsn==false) {
@@ -773,6 +777,8 @@ public class RunnableThread implements Encoding, Runnable {
 		
 		if(unHandledCount==null) {
 			unHandledCount = new HashMap<Long,Long>();
+			bvc =  new UnhandledInsnCountComparator(unHandledCount);
+	        sorted_map = new TreeMap<Long,Long>(bvc);
 		}
 		
 		if(unHandledCount.get(ip)==null) {
@@ -781,6 +787,7 @@ public class RunnableThread implements Encoding, Runnable {
 			unHandledCount.put(ip,unHandledCount.get(ip)+1);
 		}
 	}
+
 
 	protected boolean poolExhausted(int tidEmulator) {
 		return false; //we have a growable pool now
