@@ -80,6 +80,7 @@ public class CentralizedDirectoryCache extends Cache{
 		directoryMisses = 0;
 		cores = coresArray;
 		this.levelFromTop = CacheType.Directory;
+		this.numPresenceBits = numCores;
 		dirEntryHeap = new PriorityQueue<DirectoryEntry>(1, new DirectoryEntryComparator());
 	}
 	
