@@ -50,6 +50,13 @@ public class FloatingPointExchange implements X86StaticInstructionHandler
 			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction(st0, operand1));
 		}
 		
+		else if((operand1!=null && operand1.isFloatRegisterOperand()) && 
+				(operand2!=null && operand2.isFloatRegisterOperand()) && 
+				operand3==null)
+		{
+			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction(operand1, operand2));
+		}
+		
 		else
 		{
 			misc.Error.invalidOperation("Floating Point Exchange", operand1, operand2, operand3);
