@@ -699,6 +699,18 @@ public class RunnableThread implements Encoding, Runnable {
 			} else {
 				numHandledInsn = 0;
 			}
+
+			// For one CISC instruction, we generate x micro-operations. 
+			// We set the CISC ip of the first micro-op to the original CISC ip.
+			// IP of all the remaining micro-ops is set to -1(Invalid).
+			// This ensures that we do not artificially increase the hit-rate of instruction cache.
+			for(int i=numMicroOpsBefore; i<numMicroOpsAfter; i++) {
+				if(i==numMicroOpsBefore) {
+					thread.outstandingMicroOps.peek(i).setCISCProgramCounter(thread.packetList.get(0).ip);
+				} else {
+					thread.outstandingMicroOps.peek(i).setCISCProgramCounter(-1);
+				}
+			}
 			
 			//
 			if(numHandledInsn==0 && printUnHandledInsn) {
@@ -797,7 +809,7 @@ public class RunnableThread implements Encoding, Runnable {
 	private void resumeSleep(ResumeSleep update) {
 		for (int i=0; i<update.getNumSleepers(); i++) {
 			Instruction ins = Instruction.getSyncInstruction();
-			ins.setRISCProgramCounter(update.barrierAddress);
+			ins.setCISCProgramCounter(update.barrierAddress);
 			System.out.println( "Enqueued a barrier packet into  "+ update.sleep.get(i) + " with add " + update.barrierAddress);
 			this.inputToPipeline[update.sleep.get(i)].enqueue(ins);
 			setThreadState(update.sleep.get(i), true);

@@ -89,7 +89,7 @@ public class FetchLogic extends SimulationElement {
 			
 			//process sync operation
 			if(newInstruction.getOperationType() == OperationType.sync){
-				long barrierAddress = newInstruction.getRISCProgramCounter();
+				long barrierAddress = newInstruction.getCISCProgramCounter();
 				Barrier bar = BarrierTable.barrierList.get(barrierAddress);
 				bar.incrementThreads();
 				if(this.core.TreeBarrier == true){
@@ -156,7 +156,11 @@ public class FetchLogic extends SimulationElement {
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)
 				{
-						execEngine.getCoreMemorySystem().issueRequestToInstrCache(newInstruction.getRISCProgramCounter());
+						// The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
+					  	// micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.
+						if(newInstruction.getCISCProgramCounter()!=-1) {
+							execEngine.getCoreMemorySystem().issueRequestToInstrCache(newInstruction.getCISCProgramCounter());
+						}
 				}
 			}
 			else

@@ -199,6 +199,11 @@ public class Cache extends SimulationElement
 		
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
+			// Sanity check for iCache
+			if(this.levelFromTop==CacheType.iCache && event.getRequestType()==RequestType.Cache_Read && ((AddressCarryingEvent)event).getAddress()==-1) {
+				misc.Error.showErrorAndExit("iCache is getting request for invalid ip : -1");
+			}
+			
 			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
 			{
 				/*if(event.coreId != this.containingMemSys.coreID)

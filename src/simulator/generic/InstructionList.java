@@ -102,13 +102,7 @@ public class InstructionList
 		//instructionArrayList.get(index).setCISCProgramCounter(instructionPointer);
 		instructionQueue.peek(index).setCISCProgramCounter(instructionPointer);
 	}
-	
-	public void setRISCProgramCounter(int index, long instructionPointer) 
-	{
-		//instructionArrayList.get(index).setRISCProgramCounter(instructionPointer);
-		instructionQueue.peek(index).setRISCProgramCounter(instructionPointer);
-	}
-	
+		
 	public int getListSize()
 	{
 		//return instructionArrayList.size();

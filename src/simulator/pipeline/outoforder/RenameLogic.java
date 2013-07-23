@@ -78,10 +78,6 @@ public class RenameLogic extends SimulationElement {
 						if(SimulationConfig.debugMode)
 						{
 							System.out.println("renamed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
-							if(instruction.getRISCProgramCounter() == Integer.parseInt("808bf86", 16))
-							{
-								System.out.println("\n\n" + reorderBufferEntry + "\n\n");
-							}
 						}
 						
 						if(renameBuffer[i].getInstruction() == null)

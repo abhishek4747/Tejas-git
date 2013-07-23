@@ -82,7 +82,9 @@ public class FetchUnitIn extends SimulationElement
 				this.fetchBuffer[i]= newInstruction;
 				this.fetchFillCount++;
 
-				if(SimulationConfig.detachMemSys)
+				// The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
+				// micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.
+				if(SimulationConfig.detachMemSys || newInstruction.getCISCProgramCounter()==-1)
 				{
 					this.fetchBufferStatus[i]=true;
 				}
@@ -90,7 +92,7 @@ public class FetchUnitIn extends SimulationElement
 				{
 					this.fetchBufferStatus[i]=false;
 					containingExecutionEngine.inorderCoreMemorySystem.issueRequestToInstrCache(
-							newInstruction.getRISCProgramCounter());
+							newInstruction.getCISCProgramCounter());
 				}
 			}
 		}
@@ -117,7 +119,7 @@ public class FetchUnitIn extends SimulationElement
 					{
 						this.fetchFillCount--;
 						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
-						long barrierAddress = ins.getRISCProgramCounter();
+						long barrierAddress = ins.getCISCProgramCounter();
 						Barrier bar = BarrierTable.barrierList.get(barrierAddress);
 						bar.incrementThreads();
 						if(this.core.TreeBarrier == true){
@@ -215,7 +217,7 @@ public class FetchUnitIn extends SimulationElement
 	{
 		for(int i=0;i<this.fetchBufferCapacity;i++){
 			if(this.fetchBuffer[i] != null && 
-					this.fetchBuffer[i].getRISCProgramCounter() == requestedAddress && 
+					this.fetchBuffer[i].getCISCProgramCounter() == requestedAddress && 
 					this.fetchBufferStatus[i]==false){
 				this.fetchBufferStatus[i]=true;
 			}

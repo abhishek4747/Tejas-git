@@ -38,7 +38,9 @@ public class ICacheBuffer {
 		
 		buffer[tail] = newInstruction;
 		if(SimulationConfig.detachMemSys == true ||
-				newInstruction.getOperationType() == OperationType.inValid)
+				newInstruction.getOperationType() == OperationType.inValid ||
+				newInstruction.getCISCProgramCounter() == -1) // The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
+															  // micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.
 		{
 			fetchComplete[tail] = true;
 		}
@@ -86,7 +88,7 @@ public class ICacheBuffer {
 		
 		for(int i = head; ; i = (i + 1)%size)
 		{
-			if(buffer[i] != null && buffer[i].getRISCProgramCounter() == programCounter)
+			if(buffer[i] != null && buffer[i].getCISCProgramCounter() == programCounter)
 			{
 				fetchComplete[i] = true;
 			}
@@ -111,7 +113,7 @@ public class ICacheBuffer {
 		for(int i = head; ; i = (i + 1)%size)
 		{
 			if(buffer[i] != null)
-				System.out.println(buffer[i].getRISCProgramCounter() + " : " + fetchComplete[i]);
+				System.out.println(buffer[i].getCISCProgramCounter() + " : " + fetchComplete[i]);
 			
 			if(i == tail)
 				break;

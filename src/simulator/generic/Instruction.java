@@ -23,9 +23,6 @@ package generic;
 import java.io.Serializable;
 
 import main.CustomObjectPool;
-import main.Main;
-
-
 
 public class Instruction implements Serializable
 {
@@ -51,7 +48,6 @@ public class Instruction implements Serializable
 	private Operand sourceOperand2;
 	private Operand destinationOperand;
 	
-	private long riscProgramCounter;
 	private long ciscProgramCounter;
 	
 	private boolean branchTaken;
@@ -123,7 +119,6 @@ public class Instruction implements Serializable
 	{
 		this.type=sourceInstruction.type;
 
-		this.riscProgramCounter = sourceInstruction.riscProgramCounter;
 		this.ciscProgramCounter = sourceInstruction.ciscProgramCounter;
 		
 		this.branchTaken=sourceInstruction.branchTaken;
@@ -139,19 +134,9 @@ public class Instruction implements Serializable
 		return ciscProgramCounter;
 	}
 	
-	public long getRISCProgramCounter()
-	{
-		return this.riscProgramCounter;
-	}
-	
 	public void setCISCProgramCounter(long programCounter) 
 	{
 		this.ciscProgramCounter = programCounter;
-	}
-	
-	public void setRISCProgramCounter(long programCounter) 
-	{
-		this.riscProgramCounter = programCounter;
 	}
 	
 	public void setOperationType(OperationType operationType)
@@ -167,7 +152,7 @@ public class Instruction implements Serializable
 	{
 		return 
 		(
-			String.format("%-20s", "IP = " + Long.toHexString(riscProgramCounter)) +
+			String.format("%-20s", "IP = " + Long.toHexString(ciscProgramCounter)) +
 			String.format("%-20s", "Op = " + type) +
 			String.format("%-60s", "srcOp1 = " + sourceOperand1) +
 			String.format("%-60s", "srcOp2 = " + sourceOperand2) +

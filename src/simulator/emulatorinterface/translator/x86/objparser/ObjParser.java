@@ -240,7 +240,6 @@ public class ObjParser
 				for(int i=microOpsIndexBefore; i<instructionList.length(); i++)
 				{
 					instructionList.setCISCProgramCounter(i, instructionPointer);
-					instructionList.setRISCProgramCounter(i, i);
 				}
 			} else {
 				throw new InvalidInstructionException("", false);
@@ -684,7 +683,6 @@ public class ObjParser
 					
 					for(int j=0; j<assemblyPacketList.length(); j++) {
 						assemblyPacketList.setCISCProgramCounter(j, p.ip);
-						assemblyPacketList.setRISCProgramCounter(j, j);
 					}
 					
 				} else {
