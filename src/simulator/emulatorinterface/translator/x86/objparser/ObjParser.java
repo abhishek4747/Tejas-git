@@ -701,7 +701,8 @@ public class ObjParser
 					TranslatedInstructionCache.add(asmText, assemblyPacketList);
 				}
 			} else {
-				misc.Error.showErrorAndExit("First packet to fuse instruction must be assembly packet !!");
+				return;
+				//misc.Error.showErrorAndExit("First packet to fuse instruction must be assembly packet !!");
 			}
 			
 			microOpIndex = 0;
