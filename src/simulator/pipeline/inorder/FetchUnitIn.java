@@ -62,7 +62,9 @@ public class FetchUnitIn extends SimulationElement
 		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity
 				;i = (i+1)%this.fetchBufferCapacity){
 			
-			if( containingExecutionEngine.inorderCoreMemorySystem.getiMSHR().isFull() ){
+			if( containingExecutionEngine.inorderCoreMemorySystem.getiMSHR().isFull()
+					|| containingExecutionEngine.inorderCoreMemorySystem.getiMSHR().getCurrentSize() >= containingExecutionEngine.inorderCoreMemorySystem.getiMSHR().getMSHRStructSize()
+					|| containingExecutionEngine.inorderCoreMemorySystem.getiCache().getMissStatusHoldingRegister().getCurrentSize() >= containingExecutionEngine.inorderCoreMemorySystem.getiCache().getMissStatusHoldingRegister().getMSHRStructSize()){
 				break;
 			}
 			

@@ -151,7 +151,10 @@ public class FetchLogic extends SimulationElement {
 				}
 			}
 			
-			if(!iCacheBuffer.isFull() && !execEngine.getCoreMemorySystem().getiMSHR().isFull())
+			if(!iCacheBuffer.isFull()
+					&& !execEngine.getCoreMemorySystem().getiMSHR().isFull()
+					&& execEngine.getCoreMemorySystem().getiMSHR().getCurrentSize() < execEngine.getCoreMemorySystem().getiMSHR().getMSHRStructSize()
+					&& execEngine.getCoreMemorySystem().getiCache().getMissStatusHoldingRegister().getCurrentSize() < execEngine.getCoreMemorySystem().getiCache().getMissStatusHoldingRegister().getMSHRStructSize())
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)
