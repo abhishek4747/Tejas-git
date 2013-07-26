@@ -339,6 +339,72 @@ public class RenameLogic extends SimulationElement {
 		
 		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 		{
+			//renaming should succeed for both operands or none at all
+			boolean bothOpndsPossible = true;
+			int numMSRsRequired = 0;
+			int numIntRegsRequired = 0;
+			int numFloatRegsRequired = 0;
+			
+			if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
+			{
+				numMSRsRequired++;
+			}
+			else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.integerRegister)
+			{
+				numIntRegsRequired++;
+			}
+			else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.floatRegister)
+			{
+				numFloatRegsRequired++;
+			}
+			if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
+			{
+				numMSRsRequired++;
+			}
+			else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
+			{
+				numIntRegsRequired++;
+			}
+			else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.floatRegister)
+			{
+				numFloatRegsRequired++;
+			}
+			
+			if(numMSRsRequired > 0)
+			{
+				if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
+				{
+					if(execEngine.getMachineSpecificRegisterFile(threadID).getValueValid((int)reorderBufferEntry.getInstruction().getSourceOperand1().getValue()) == false
+							&& execEngine.getMachineSpecificRegisterFile(threadID).getProducerROBEntry((int)reorderBufferEntry.getInstruction().getSourceOperand1().getValue()) != reorderBufferEntry)
+					{
+						bothOpndsPossible = false;
+					}
+				}
+				if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
+				{
+					if(execEngine.getMachineSpecificRegisterFile(threadID).getValueValid((int)reorderBufferEntry.getInstruction().getSourceOperand2().getValue()) == false
+							&& execEngine.getMachineSpecificRegisterFile(threadID).getProducerROBEntry((int)reorderBufferEntry.getInstruction().getSourceOperand2().getValue()) != reorderBufferEntry)
+					{
+						bothOpndsPossible = false;
+					}
+				}
+			}
+			
+			if(execEngine.getIntegerRenameTable().getAvailableListSize() < numIntRegsRequired)
+			{
+				bothOpndsPossible = false;
+			}
+			
+			if(execEngine.getFloatingPointRenameTable().getAvailableListSize() < numFloatRegsRequired)
+			{
+				bothOpndsPossible = false;
+			}
+			
+			if(bothOpndsPossible == false)
+			{
+				return false;
+			}
+			
 			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
 			tempOpndType = tempOpnd.getOperandType();
 			
