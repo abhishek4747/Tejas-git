@@ -33,6 +33,15 @@ public class TLB extends SimulationElement
 	protected int tlbRequests = 0;
 	protected int tlbHits = 0;
 	protected int tlbMisses = 0;
+	private int memoryPenalty;
+		
+	public Core getCore() {
+		return containingMemSys.getCore();
+	}
+	
+	public int getMemoryPenalty() {
+		return memoryPenalty;
+	}
 	
 	//Outstanding Request Table : Stores pageID v/s LSQEntryIndex
 	protected Hashtable<Long, ArrayList<LSQEntry>> missStatusHoldingRegister
@@ -43,18 +52,9 @@ public class TLB extends SimulationElement
 	
 	//For telling how many requests are processed this cycle (for GENUINELY multi-ported option)
 	protected int requestsProcessedThisCycle = 0;
-	private int missPenalty;
 	
-	public int getMissPenalty() {
-		return missPenalty;
-	}
-
-	public void setMissPenalty(int missPenalty) {
-		this.missPenalty = missPenalty;
-	}
-
 	public TLB(PortType portType, int noOfPorts, long occupancy, long latency,
-			CoreMemorySystem containingMemSys, int tlbSize, int missPenalty) 
+			CoreMemorySystem containingMemSys, int tlbSize, int memoryPenalty) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
 		
@@ -62,7 +62,7 @@ public class TLB extends SimulationElement
 		this.timestamp = 0;
 		TLBuffer = new Hashtable<Long, TLBEntry>(TLBSize);
 		this.containingMemSys =containingMemSys;
-		this.missPenalty = missPenalty;
+		this.memoryPenalty = memoryPenalty;
 	}
 	
 	/**
@@ -89,7 +89,17 @@ public class TLB extends SimulationElement
 		{
 			tlbMisses++;
 			//Fetch the TLB entry from Main memory through the event TLBAddrSearchEvent
-			addTLBEntry(pageID);
+			AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
+					 memoryPenalty,
+					 this, 
+					 this,
+					 RequestType.Tlb_Miss_Response, 
+					 pageID,
+					 getCore().getCore_number());
+			
+			
+			this.getPort().put(addressEvent);
+									
 			//return pageID;
 			isEntryFoundInTLB = false;
 		}
@@ -192,6 +202,11 @@ public class TLB extends SimulationElement
 
 	public void handleEvent(EventQueue eventQ, Event event)
 	{
-		
+		if(event.getRequestType()==RequestType.Tlb_Miss_Response) {
+			long pageId = ((AddressCarryingEvent)event).getAddress();
+			addTLBEntry(pageId);
+		} else {
+			misc.Error.showErrorAndExit("Invalid event sent to TLB : " + event);
+		}
 	}
 }

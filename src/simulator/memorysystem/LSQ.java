@@ -335,7 +335,7 @@ public class LSQ extends SimulationElement
 			this.getPort().put(
 					event.update(
 							eventQ,
-							this.containingMemSys.TLBuffer.getMissPenalty(),
+							this.containingMemSys.TLBuffer.getMemoryPenalty(),
 							null,
 							this,
 							RequestType.Validate_LSQ_Addr));

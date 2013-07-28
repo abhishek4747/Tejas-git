@@ -85,7 +85,6 @@
 
 			<TLBSize>128</TLBSize>				<!--Maximum number of entries in the TLB-->
 			<TLBLatency>4</TLBLatency>			<!--In clock cycles-->
-			<TLBMissPenalty>10</TLBMissPenalty>			<!--In clock cycles-->
 			<TLBPortType>UL</TLBPortType>			<!--Type of access ports in the TLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->

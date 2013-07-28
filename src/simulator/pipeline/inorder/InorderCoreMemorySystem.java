@@ -132,7 +132,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		boolean TLBHit=TLBuffer.searchTLBForPhyAddr(address);
 		int missPenalty=0;
 		if(!TLBHit){
-			missPenalty =TLBuffer.getMissPenalty();
+			missPenalty =TLBuffer.getMemoryPenalty();
 			containingExecEngine.setStallFetch(missPenalty);
 			containingExecEngine.setStallPipelinesExecute(inorderPipeline.getId(),missPenalty);
 			inorderPipeline.getIfIdLatch().incrementStallCount(missPenalty);

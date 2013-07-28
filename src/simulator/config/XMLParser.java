@@ -337,7 +337,6 @@ public class XMLParser
 			
 			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
 			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
-			core.TLBMissPenalty = Integer.parseInt(getImmediateString("TLBMissPenalty", coreElmnt));
 			core.TLBPortType = setPortType(getImmediateString("TLBPortType", coreElmnt));
 			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));

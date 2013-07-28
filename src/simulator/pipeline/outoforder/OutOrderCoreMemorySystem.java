@@ -156,7 +156,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		boolean TLBHit=TLBuffer.searchTLBForPhyAddr(address);
 		int missPenalty=0;
 		if(!TLBHit){
-			missPenalty =TLBuffer.getMissPenalty();
+			missPenalty =TLBuffer.getMemoryPenalty();
 		}
 		return missPenalty;
 	}

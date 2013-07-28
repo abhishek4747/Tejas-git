@@ -90,9 +90,9 @@ public enum RequestType {
 	Send_Mem_Response_On_WriteHit,
 	PerformPulls, 
 	Send_Mem_Response_Invalidate,
-	Invalid_Event, Cache_Hit, Cache_Miss
+	Invalid_Event, Cache_Hit, Cache_Miss,
 	
-	
+	Tlb_Miss_Response
 	
 //	MEM_READ,
 //	MEM_WRI

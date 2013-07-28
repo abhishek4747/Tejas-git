@@ -93,13 +93,14 @@ public abstract class CoreMemorySystem extends SimulationElement
 						this.coreID));
 		
 		//Initialise the TLB
+		int numPageLevels = 2;
 		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,
 							SystemConfig.core[coreID].TLBAccessPorts, 
 							SystemConfig.core[coreID].TLBPortOccupancy, 
 							SystemConfig.core[coreID].TLBLatency,
 							this,
 							SystemConfig.core[coreID].TLBSize,
-							SystemConfig.core[coreID].TLBMissPenalty);
+							SystemConfig.mainMemoryLatency * numPageLevels);
 		
 		//Initialise the LSQ
 		lsqueue = new LSQ(SystemConfig.core[coreID].LSQPortType,
