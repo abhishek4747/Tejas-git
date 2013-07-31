@@ -106,9 +106,12 @@ public class CentralizedDirectoryCache extends Cache
 		//	Search for the directory entry 
 		//if not found, create one with invalid state 
 		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, address);
-		if(dirEntry ==null) 
+		if(dirEntry ==null)
 		{
-			DirectoryEntry evictedDirEntry =  (DirectoryEntry) fill(address, MESI.INVALID);
+			// Right now, we tell the cache to mark this new line as exclusive.
+			// Later on, we will mark it as invalid.
+			// This follows our semantics - if address was not tracked before, its directory entry must be marked invalid.
+			DirectoryEntry evictedDirEntry =  (DirectoryEntry) fill(address, MESI.EXCLUSIVE);
 			
 			if(evictedDirEntry != null) 
 			{
@@ -118,6 +121,9 @@ public class CentralizedDirectoryCache extends Cache
 			}
 			
 			dirEntry = (DirectoryEntry) access(address);
+			
+			// Explanation for Invalid state given above.
+			dirEntry.setState(MESI.INVALID);
 		}
 		/*DirectoryEntry dirEntry = directoryHashmap.get(address);
 		if(dirEntry==null){
