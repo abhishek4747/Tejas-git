@@ -1,43 +1,53 @@
 package memorysystem.directory;
 
+import java.util.Vector;
+
+import memorysystem.Cache;
 import memorysystem.CacheLine;
 import memorysystem.MESI;
 import memorysystem.Cache.CacheType;
 
 public class DirectoryEntry extends CacheLine {
 	MESI state;
-	boolean[] presenceBits;
+	//boolean[] presenceBits;
+	Vector<Cache> sharers = null;
 	
 //	private boolean valid;
 	private double timestamp;
 //	private boolean modified;
+	int noOfCores;
 
-	public DirectoryEntry(int noOfCores, long lineNum){
+	public DirectoryEntry(int noOfCores){
 		super(1);
-		presenceBits=new boolean[noOfCores];
-		
+		sharers = new Vector<Cache>(noOfCores);
+		this.noOfCores = noOfCores;
 		state = MESI.INVALID;
 		tag = 0;
-		for(int i=0;i<noOfCores;i++)
-			presenceBits[i]=false;
 	}
 	
 	public DirectoryEntry copy()
 	{
-		DirectoryEntry newLine = new DirectoryEntry(this.presenceBits.length,0);
+		DirectoryEntry newLine = new DirectoryEntry(noOfCores);
 		newLine.setTag(this.getTag());
 		newLine.setState(this.getState());
 		newLine.setTimestamp(this.getTimestamp());
 		return newLine;
 	}
 	
-	public int getOwner(){
-		//This should be called only when the state of the directory entry is "modified"
-		for(int i=0;i<this.presenceBits.length;i++){
-			if(presenceBits[i])
-				return i;
+	public Cache getOwner(){
+						
+		if(sharers.size()==0) {
+			return null;
+		} else if (sharers.size()==1) {
+			return sharers.elementAt(0); 
+		} else {
+			misc.Error.showErrorAndExit("This directory entry has multiple owners : " + this);
+			return null;
 		}
-		return -1;
+	}
+	
+	public boolean isSharer(Cache c) {
+		return (this.sharers.indexOf(c)!=-1);
 	}
 	
 	public MESI getState(){
@@ -48,12 +58,20 @@ public class DirectoryEntry extends CacheLine {
 		this.state=state;
 	}
 	
-	public boolean getPresenceBit(int i){
-		return this.presenceBits[i];
+	public int getNoOfSharers() {
+		return this.sharers.size();
 	}
 	
-	public void setPresenceBit(int i,boolean presenceBit){
-		this.presenceBits[i]=presenceBit;
+	public Cache getSharerAtIndex(int i){
+		return this.sharers.elementAt(i);
+	}
+	
+	public void addSharer(Cache c){
+		this.sharers.add(c);
+	}
+	
+	public void removeSharer(Cache c) {
+		this.sharers.remove(c);
 	}
 
 	protected boolean hasTagMatch(long tag)
@@ -80,24 +98,16 @@ public class DirectoryEntry extends CacheLine {
 		this.timestamp = timestamp;
 	}
 	
-	public void resetAllPresentBits()
-	{
-		for(int i=0;i< this.presenceBits.length ; i++)
-		{
-			presenceBits[i] = false;
-		}
+	public void clearAllSharers() {
+		this.sharers.clear();
 	}
 	
 	public String toString()
 	{
 		StringBuilder s = new StringBuilder();
-		s.append("line number = " + this.getTag() + " : "  + "state = " + this.getState() + " : " );
-		for(int i = 0; i< presenceBits.length;i++)
-		{
-			if(presenceBits[i])
-				s.append(1 + " ");
-			else 
-				s.append(0 + " ");
+		s.append("line number = " + this.getTag() + " : "  + "state = " + this.getState() + " cores : " );
+		for(int i=0; i<this.sharers.size(); i++) {
+			s.append(this.sharers.elementAt(i).containingMemSys.getCore().getCore_number() + " , ");
 		}
 		return s.toString();
 	}

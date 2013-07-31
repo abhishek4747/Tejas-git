@@ -5,5 +5,4 @@ public enum MESI {
 	EXCLUSIVE,
 	SHARED,
 	INVALID,
-	UNCACHED
 }
