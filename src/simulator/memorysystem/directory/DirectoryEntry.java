@@ -75,12 +75,15 @@ public class DirectoryEntry extends CacheLine {
 	
 	public void addSharer(Cache c){
 		
-		if(this.state==MESI.MODIFIED && this.sharers.size()>0) {
+		// You cannot add a new sharer for a modified entry.
+		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
+		// the same cache line which triggered the memResponse multiple times. For the time being, just ignore this hack.
+		if(this.state==MESI.MODIFIED && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
 			misc.Error.showErrorAndExit("You cannot have multiple owners for a modified state !!");
 		}
 		
 		if(this.isSharer(c)==true) {
-			misc.Error.showErrorAndExit("Trying to add an existing sharer again !!");
+			return;
 		}
 		
 		this.sharers.add(c);

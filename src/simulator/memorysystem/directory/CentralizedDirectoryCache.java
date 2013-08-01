@@ -306,7 +306,8 @@ public class CentralizedDirectoryCache extends Cache
 			incrementDirectoryHits(1);
 			incrementDirectoryMisses(1);
 			if(requestingCache==dirEntry.getOwner()) {
-				misc.Error.showErrorAndExit("directory error !!");
+				this.sendResponseToAPendingEventOfSameCacheLine(requestingCache, event);
+				return;
 			}
 			sendMemResponse(dirEntry, (AddressCarryingEvent)event, RequestType.Cache_Read_Writeback);
 			stateToSet = MESI.SHARED; //TODO check at owner whether the line is evicted or not Presently It is not checked
@@ -316,7 +317,8 @@ public class CentralizedDirectoryCache extends Cache
 		{
 			// A cache which says read miss for address x must not be shown as a sharer for it.
 			if(dirEntry.isSharer(requestingCache)) {
-				misc.Error.showErrorAndExit("Directory is showing that the requesting cache already has the data !!");
+				this.sendResponseToAPendingEventOfSameCacheLine(requestingCache, event);
+				return;
 			}
 			
 			incrementDirectoryHits(1);
@@ -374,7 +376,8 @@ public class CentralizedDirectoryCache extends Cache
 			incrementDirectoryHits(1);
 			Cache prevOwner = dirEntry.getOwner();
 			if(prevOwner == requestingCache) {
-				misc.Error.showErrorAndExit("Directory error !!");
+				this.sendResponseToAPendingEventOfSameCacheLine(requestingCache, event);
+				return;
 			} else {
 				incrementInvalidations(1);
 				sendMemResponse(dirEntry,(AddressCarryingEvent) event, RequestType.Send_Mem_Response_Invalidate);
@@ -396,7 +399,8 @@ public class CentralizedDirectoryCache extends Cache
 		{
 			incrementDirectoryHits(1);
 			if(requestingCache == dirEntry.getOwner()) {
-				misc.Error.showErrorAndExit("Directory error !!");
+				this.sendResponseToAPendingEventOfSameCacheLine(requestingCache, event);
+				return;
 			} else {
 				sendMemResponse(dirEntry, (AddressCarryingEvent)event,RequestType.Send_Mem_Response_Invalidate );
 				dirEntry.clearAllSharers();
@@ -598,5 +602,23 @@ public class CentralizedDirectoryCache extends Cache
 		s.append(this.levelFromTop + " : ");
 		
 		return s.toString();
+	}
+	
+	public void sendResponseToAPendingEventOfSameCacheLine(Cache requestingCache, Event event)
+	{
+		// Following sequence of events may have happened : 
+		// writeMiss for address x
+		// writeMiss for address (x+1) [x and x+1 map to same directory address]
+		// memResponse came for address x
+		// now, writeMiss for (x+1) sees that the cache line is occupied by itself
+		requestingCache.getPort().put(
+				new AddressCarryingEvent(
+					requestingCache.containingMemSys.getCore().getEventQueue(),
+					requestingCache.getLatencyDelay(),
+					event.getRequestingElement(),
+					requestingCache,
+					RequestType.Send_Mem_Response,
+					((AddressCarryingEvent)event).getAddress(),
+					(event).coreId));
 	}
 }
