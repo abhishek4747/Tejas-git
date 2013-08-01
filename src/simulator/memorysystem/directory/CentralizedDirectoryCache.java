@@ -175,9 +175,10 @@ public class CentralizedDirectoryCache extends Cache
 	private void memResponseDirectoryUpdate(EventQueue eventQ, Event event) 
 	{
 		long dirAddress = getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress);
+		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, dirAddress);
 		if(dirEntry == null)
 		{
+			// The directory entry associated with this cache line was evicted before the memResponse comes.
 			return;
 		}
 		Cache requestingCache = (Cache)event.getRequestingElement();
@@ -260,7 +261,10 @@ public class CentralizedDirectoryCache extends Cache
 		
 		else
 		{
-			misc.Error.showErrorAndExit("directory error !!");
+			// Hack :  writeMiss for address x came.
+			// Then, before the memResponse for address x comes, its directory entry was evicted.
+			// Now, when the cache wants to evict address x, it finds the entry as invalid.
+			return;
 		}
 	}
 

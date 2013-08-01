@@ -73,7 +73,11 @@ public class DirectoryEntry extends CacheLine {
 		return this.sharers.elementAt(i);
 	}
 	
-	public void addSharer(Cache c){
+	public void addSharer(Cache c) {
+		
+		if(this.state==MESI.INVALID) {
+			misc.Error.showErrorAndExit("Unholy mess !!");
+		}
 		
 		// You cannot add a new sharer for a modified entry.
 		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
