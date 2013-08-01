@@ -159,7 +159,7 @@
 		<Type0>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>32</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
+			<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
 			<Associativity>4</Associativity>
 			<Size>2</Size>					<!--In KBs-->
 			<Latency>1</Latency>				<!--In clock cycles-->
@@ -204,9 +204,9 @@
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>4</BlockSize>			<!--In bytes-->
+			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>1</Associativity>
-			<Size>1</Size>					<!--In KBs-->
+			<Size>32</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -238,7 +238,7 @@
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>256</BlockSize>			<!--In bytes-->
+			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
 			<Size>16384</Size>				<!--In KBs-->
 			<Latency>1</Latency>				<!--In clock cycles-->
