@@ -212,10 +212,10 @@ public class CentralizedDirectoryCache extends Cache
 	{
 		long dirAddress = getDirectoryAddress((AddressCarryingEvent)event);
 		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress);
-		if(dirEntry == null)
-		{
+		if(dirEntry == null) {
 			return;
 		}
+		
 		MESI state = dirEntry.getState();
 		Cache requestingCache = (Cache)event.getRequestingElement();
 				
@@ -287,6 +287,7 @@ public class CentralizedDirectoryCache extends Cache
 		dirEntryHeap.add(dirEntry);
 */
 		incrementNumReadMiss(1);
+		
 		if( state==MESI.INVALID )
 		{
 			incrementDirectoryMisses(1);
@@ -297,8 +298,8 @@ public class CentralizedDirectoryCache extends Cache
 			} else {
 				requestingCache.sendReadRequestToLowerCache((AddressCarryingEvent)event);
 			}
-			
 		}
+		
 		else if(state==MESI.MODIFIED )
 		{
 			incrementWritebacks(1);
@@ -310,18 +311,25 @@ public class CentralizedDirectoryCache extends Cache
 			sendMemResponse(dirEntry, (AddressCarryingEvent)event, RequestType.Cache_Read_Writeback);
 			stateToSet = MESI.SHARED; //TODO check at owner whether the line is evicted or not Presently It is not checked
 		}
-		else if(state==MESI.SHARED 
-				       ||  state == MESI.EXCLUSIVE )
+		
+		else if(state==MESI.SHARED ||  state == MESI.EXCLUSIVE )
 		{
+			// A cache which says read miss for address x must not be shown as a sharer for it.
+			if(dirEntry.isSharer(requestingCache)) {
+				misc.Error.showErrorAndExit("Directory is showing that the requesting cache already has the data !!");
+			}
+			
 			incrementDirectoryHits(1);
 			sendMemResponse(dirEntry, (AddressCarryingEvent)event, RequestType.Send_Mem_Response);
 			stateToSet = MESI.SHARED;
 		}
+		
 		else
 		{
 			misc.Error.showErrorAndExit("directory error !!");
 			stateToSet = MESI.INVALID;
 		}
+		
 		dirEntry.setState(stateToSet);
 		//updateDirectoryLRUQueue(dirAddress, (AddressCarryingEvent)event);
 	}

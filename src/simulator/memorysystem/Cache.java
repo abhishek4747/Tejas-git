@@ -527,9 +527,14 @@ public class Cache extends SimulationElement
 			noOfRequests += eventsToBeServed.size();
 			//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
 			CacheLine evictedLine = this.fill(addr, stateToSet);
-			if (evictedLine != null 
-			    && evictedLine.getState() == MESI.MODIFIED 
-			    && this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH) //This does not ensure inclusiveness
+			
+			//This does not ensure inclusiveness
+			if (
+				evictedLine != null && 
+				evictedLine.getState() != MESI.INVALID && 
+				// if the line is modified, the cache write policy must NOT be WRITE_THROUGH
+				((evictedLine.getState()!=MESI.MODIFIED) || (evictedLine.getState()==MESI.MODIFIED && this.writePolicy!=WritePolicy.WRITE_THROUGH))
+			)
 			{
 				//Update directory in case of eviction
 					if(this.coherence==CoherenceType.Directory)
@@ -557,6 +562,7 @@ public class Cache extends SimulationElement
 						//putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
 					}
 			}
+			
 			if(this.coherence == CoherenceType.Directory)
 			{
 				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
