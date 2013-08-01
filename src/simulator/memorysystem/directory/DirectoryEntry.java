@@ -8,7 +8,7 @@ import memorysystem.MESI;
 import memorysystem.Cache.CacheType;
 
 public class DirectoryEntry extends CacheLine {
-	MESI state;
+	// MESI state;
 	//boolean[] presenceBits;
 	Vector<Cache> sharers = null;
 	
@@ -28,10 +28,17 @@ public class DirectoryEntry extends CacheLine {
 	public DirectoryEntry copy()
 	{
 		DirectoryEntry newLine = new DirectoryEntry(noOfCores);
+		newLine.setAddress(this.address);
 		newLine.setTag(this.getTag());
 		newLine.setState(this.getState());
 		newLine.setTimestamp(this.getTimestamp());
+		newLine.sharers.addAll(this.sharers);
 		return newLine;
+	}
+	
+	public DirectoryEntry clone() 
+	{
+		return copy();
 	}
 	
 	public Cache getOwner(){
@@ -67,10 +74,24 @@ public class DirectoryEntry extends CacheLine {
 	}
 	
 	public void addSharer(Cache c){
+		
+		if(this.state==MESI.MODIFIED && this.sharers.size()>0) {
+			misc.Error.showErrorAndExit("You cannot have multiple owners for a modified state !!");
+		}
+		
+		if(this.isSharer(c)==true) {
+			misc.Error.showErrorAndExit("Trying to add an existing sharer again !!");
+		}
+		
 		this.sharers.add(c);
 	}
 	
 	public void removeSharer(Cache c) {
+		
+		if(this.isSharer(c)==false) {
+			misc.Error.showErrorAndExit("Trying to remove a sharer which is not a sharer !!");
+		}
+		
 		this.sharers.remove(c);
 	}
 

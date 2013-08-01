@@ -101,7 +101,7 @@ public class CentralizedDirectoryCache extends Cache
 	}
 	
 	
-	public DirectoryEntry lookup(AddressCarryingEvent event ,long address, boolean calledFromEviction) 
+	public DirectoryEntry lookup(AddressCarryingEvent event ,long address) 
 	{
 		//	Search for the directory entry 
 		//if not found, create one with invalid state 
@@ -116,11 +116,15 @@ public class CentralizedDirectoryCache extends Cache
 			if(evictedDirEntry != null) 
 			{
 				// Since the directory entry is being removed, all the caches holding this line must invalidate this line.
-				sendeventToSharers(evictedDirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate, null);
+				sendeventToSharers(evictedDirEntry, RequestType.MESI_Invalidate, null);
 				evictedDirEntry.clearAllSharers();
 			}
 			
 			dirEntry = (DirectoryEntry) access(address);
+			
+			// The fill function in directory has not removed the previous sharers of the fillLine in the cache.
+			// So, we must remove them here.
+			dirEntry.clearAllSharers();
 			
 			// Explanation for Invalid state given above.
 			dirEntry.setState(MESI.INVALID);
@@ -171,7 +175,7 @@ public class CentralizedDirectoryCache extends Cache
 	private void memResponseDirectoryUpdate(EventQueue eventQ, Event event) 
 	{
 		long dirAddress = getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress);
 		if(dirEntry == null)
 		{
 			return;
@@ -182,8 +186,8 @@ public class CentralizedDirectoryCache extends Cache
 	
 	private boolean checkAndScheduleEventForNextCycle(long dirAddress, Event event)
 	{
-		DirectoryEntry dirEntry  = lookup((AddressCarryingEvent)event,dirAddress,false);
-		if(dirEntry.getOwner() == null)
+		DirectoryEntry dirEntry  = lookup((AddressCarryingEvent)event,dirAddress);
+		if(dirEntry.getNoOfSharers()==0)
 		{
 			if(dirEntry.getState() == MESI.INVALID)
 			{
@@ -207,7 +211,7 @@ public class CentralizedDirectoryCache extends Cache
 	public void EvictionDirectoryUpdate(EventQueue eventQ,Event event) 
 	{
 		long dirAddress = getDirectoryAddress((AddressCarryingEvent)event);
-		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,true);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress);
 		if(dirEntry == null)
 		{
 			return;
@@ -264,7 +268,7 @@ public class CentralizedDirectoryCache extends Cache
 	public void readMissDirectoryUpdate(EventQueue eventQ,Event event) {
 
 		long dirAddress =getDirectoryAddress((AddressCarryingEvent)event);
-		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress);
 		MESI state = dirEntry.getState();
 		Cache requestingCache = (Cache)event.getRequestingElement();
 		
@@ -325,9 +329,8 @@ public class CentralizedDirectoryCache extends Cache
 	
 	public void writeMissDirectoryUpdate(EventQueue eventQ,Event event) {
 
-		long address = ((AddressCarryingEvent)event).getAddress();
 		long dirAddress =getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress);
 		MESI state = dirEntry.getState();
 		SimulationElement requestingElement = event.getRequestingElement();
 		Cache requestingCache = (Cache)requestingElement; 
@@ -377,7 +380,7 @@ public class CentralizedDirectoryCache extends Cache
 			sendMemResponse(dirEntry,(AddressCarryingEvent) event, RequestType.Send_Mem_Response_Invalidate);
 
 			//invalidate all except for the one from which the block has been requested
-			sendeventToSharers(dirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate, null);
+			sendeventToSharers(dirEntry, RequestType.MESI_Invalidate, null);
 			dirEntry.clearAllSharers();
 			dirEntry.setState( MESI.MODIFIED );
 		}
@@ -398,7 +401,7 @@ public class CentralizedDirectoryCache extends Cache
 	public void writeHitDirectoryUpdate(EventQueue eventQ,Event event) 
 	{
 		long dirAddress =getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress,false);
+		DirectoryEntry dirEntry = lookup((AddressCarryingEvent)event,dirAddress);
 		Cache requestingCache = (Cache)event.getRequestingElement(); 
 		
 		if(checkAndScheduleEventForNextCycle(dirAddress, event))
@@ -426,7 +429,7 @@ public class CentralizedDirectoryCache extends Cache
 		} else if (dirEntry.getState()==MESI.SHARED) {
 			
 			// Invalidate the entry of all other caches
-			sendeventToSharers(dirEntry,(AddressCarryingEvent) event, RequestType.MESI_Invalidate, requestingCache);	
+			sendeventToSharers(dirEntry, RequestType.MESI_Invalidate, requestingCache);	
 			dirEntry.clearAllSharers();
 			
 			// Mark the entry as modified
@@ -458,7 +461,7 @@ public class CentralizedDirectoryCache extends Cache
 						(event).coreId));
 	}
 	
-	private void sendeventToSharers(DirectoryEntry dirEntry,AddressCarryingEvent event, RequestType requestType, Cache excludeThisCache)
+	private void sendeventToSharers(DirectoryEntry dirEntry, RequestType requestType, Cache excludeThisCache)
 	{
 		for(int i=0; i<dirEntry.getNoOfSharers(); i++) {
 			
@@ -471,14 +474,13 @@ public class CentralizedDirectoryCache extends Cache
 			
 			c.getPort().put(
 				new AddressCarryingEvent(
-					event.getEventQ(),
+					c.containingMemSys.getCore().getEventQueue(),
 					c.getLatency() + getNetworkDelay(),
 					this, 
 					c,
 					requestType, 
-					event.getAddress(),
-					(event).coreId));
-				
+					getCacheAddress(c, dirEntry.getAddress()),
+					c.containingMemSys.getCore().getCore_number()));
 		}
 	}
 	
@@ -503,6 +505,12 @@ public class CentralizedDirectoryCache extends Cache
 		if(debug) System.out.println("address returned " + addressToStore);
 		
 		return addressToStore;
+	}
+	
+	public static long getCacheAddress(Cache c, long dirAddress)
+	{
+		long cacheAddress = dirAddress << c.blockSizeBits;
+		return cacheAddress;
 	}
 	
 	public long getInvalidations() {
