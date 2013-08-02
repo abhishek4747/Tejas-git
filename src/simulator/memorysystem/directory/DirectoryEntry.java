@@ -83,7 +83,10 @@ public class DirectoryEntry extends CacheLine {
 		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
 		// the same cache line which triggered the memResponse multiple times. For the time being, just ignore this hack.
 		if(this.state==MESI.MODIFIED && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
-			misc.Error.showErrorAndExit("You cannot have multiple owners for a modified state !!");
+			misc.Error.showErrorAndExit("You cannot have multiple owners for a modified state !!\n" +
+					"currentOwner : " + getOwner().containingMemSys.getCore().getCore_number() + 
+					" newOwner : " + c.containingMemSys.getCore().getCore_number() + 
+					" addr : " + this.getAddress());
 		}
 		
 		if(this.isSharer(c)==true) {

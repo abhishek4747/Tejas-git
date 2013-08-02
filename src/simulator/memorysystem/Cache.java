@@ -338,7 +338,7 @@ public class Cache extends SimulationElement
 			this.fillAndSatisfyRequests(eventQ, event, MESI.EXCLUSIVE);
 		}
 		
-		private void handleInvalidate(Event event)
+		public void handleInvalidate(Event event)
 		{
 			CacheLine cl = this.access(((AddressCarryingEvent)event).getAddress());
 			if (cl != null)

@@ -179,6 +179,20 @@ public class CentralizedDirectoryCache extends Cache
 		if(dirEntry == null)
 		{
 			// The directory entry associated with this cache line was evicted before the memResponse comes.
+			// So, instruct the cache to invalidate this line from it.
+			// This ensures that a valid cache line at cache is always present in the directory.
+			Cache requestingCache = (Cache)event.getRequestingElement();
+			
+			requestingCache.getPort().put(
+					new AddressCarryingEvent(
+						requestingCache.containingMemSys.getCore().getEventQueue(),
+						0, //requestingCache.getLatency() + getNetworkDelay(), FIXME: 
+						this, 
+						requestingCache,
+						RequestType.MESI_Invalidate, 
+						((AddressCarryingEvent)event).getAddress(),
+						requestingCache.containingMemSys.getCore().getCore_number()));
+			
 			return;
 		}
 		Cache requestingCache = (Cache)event.getRequestingElement();
@@ -464,7 +478,12 @@ public class CentralizedDirectoryCache extends Cache
 	private void sendMemResponse(DirectoryEntry dirEntry,AddressCarryingEvent event,RequestType requestType)
 	{
 		incrementDataForwards(1);
-		Cache ownerCache = dirEntry.getOwner();
+		
+		if(dirEntry.getNoOfSharers()==0) {
+			misc.Error.showErrorAndExit("This address has no owner cache !!");
+		}
+		
+		Cache ownerCache = dirEntry.getSharerAtIndex(0);
 		
 		ownerCache.getPort().put(
 				new AddressCarryingEvent(
