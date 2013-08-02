@@ -37,11 +37,7 @@ import memorysystem.nuca.NucaCacheBank;
 public class Router extends Switch{
 	
 	protected Vector<Integer> bankId = new Vector<Integer>(2); //bank id of router(vector <row,column>)
-//	protected int availBuff;                                   //available number of buffer in router
 	protected RoutingAlgo routingAlgo = new RoutingAlgo();
-	
-//	public NOC.TOPOLOGY topology;
-//	public RoutingAlgo.ALGO rAlgo;
 	protected int numberOfRows;
 	protected int numberOfColumns;
 	protected NocInterface reference;
@@ -96,7 +92,7 @@ public class Router extends Switch{
 	 *****************************************************/
 	public boolean CheckNeighbourBuffer(RoutingAlgo.DIRECTION nextId,boolean reqOrReply)  //request for neighbour buffer
 	{
-		return ((Router) this.neighbours.elementAt(nextId.ordinal())).AllocateBuffer(reqOrReply);
+		return ((Router) this.neighbours.elementAt(nextId.ordinal())).AllocateBuffer(nextId);
 	}
 	
 	/***************************************************************************************
@@ -183,7 +179,7 @@ public class Router extends Switch{
 		}
 		else if(event.getRequestingElement().getClass() != Router.class){ //If this event is just entering NOC,
 																			//then allocate buffer for it
-			if(this.AllocateBuffer(false))
+			if(this.AllocateBuffer())
 			{
 				this.getPort().put(
 						event.update(

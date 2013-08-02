@@ -25,6 +25,7 @@ import java.util.Vector;
 import memorysystem.AddressCarryingEvent;
 import net.NOC.TOPOLOGY;
 import net.RoutingAlgo.ALGO;
+import net.RoutingAlgo.DIRECTION;
 import net.RoutingAlgo.SELSCHEME;
 
 import config.NocConfig;
@@ -101,24 +102,50 @@ public class Switch extends SimulationElement{
      * Parameters   : none
      * Return       : true if allocated , false if no buffer available
      *************************************************************************/
-	public boolean AllocateBuffer(boolean reqOrReply)  // reqOrReplay = true=>incoming false=>outgoing 
+	public boolean AllocateBuffer()  // reqOrReplay = true=>incoming false=>outgoing 
 	{
-		if(reqOrReply){
-			if(this.availBuff>0)     //incoming request leave atleast one buff space
+		if(this.availBuff>2)     //incoming request leave atleast one buff space
 			{						 //for outgoing request to avoid deadlock
 				this.availBuff --;
 				return true;
 			}
+		return false;
+	}
+	/*******************************************************
+	 * Allocates buffer by checking the direction of the request
+	 * Giving priority to the outgoing request
+	 * To avoid deadlock
+	 * @param nextId
+	 * @return
+	 *******************************************************/
+	public boolean AllocateBuffer(DIRECTION nextId)  // reqOrReplay = true=>incoming false=>outgoing 
+	{
+		if(this.availBuff>2)     //incoming request leave atleast one buff space
+		{						 //for outgoing request to avoid deadlock
+			this.availBuff --;
+			return true;
 		}
 		else{
-			if(this.availBuff>1)
-			{
-				this.availBuff --;
-				return true;
+			if(nextId == DIRECTION.UP){
+				if(this.availBuff>1)     //incoming request leave atleast one buff space
+				{						 //for outgoing request to avoid deadlock
+					this.availBuff --;
+					return true;
+				}
+			}
+			else if(nextId == DIRECTION.LEFT){
+				if(this.availBuff>0)
+				{
+					this.availBuff --;
+					return true;
+				}
 			}
 		}
 		return false;
 	}
+	/*******************************************************
+	 * Increment available number of buffers
+	 *******************************************************/
 	public void FreeBuffer()
 	{
 		this.availBuff ++;
@@ -128,10 +155,6 @@ public class Switch extends SimulationElement{
 	{
 		return this.availBuff;
 	}
-/*	public boolean CheckNeighbourBuffer(int nextId)  //request for neighbour buffer
-	{
-		return ((Switch) this.connection[nextId]).AllocateBuffer();
-	}*/
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
