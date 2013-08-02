@@ -67,11 +67,19 @@ public class Router extends Switch{
 		this.neighbours= new Vector<Router>(4);
 		this.hopCounters = 0;
 	}
-
+	/***************************************************
+	 * Connects the banks
+	 * @param dir
+	 * @param networkElements
+	 ***************************************************/
 	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir,NocInterface networkElements)
 	{
 		this.neighbours.add(dir.ordinal(), networkElements.getRouter());
 	}
+	/***************************************************
+	 * Connects the banks
+	 * @param dir
+	 ***************************************************/
 	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir)
 	{
 		this.neighbours.add(dir.ordinal(), null);
@@ -80,7 +88,12 @@ public class Router extends Switch{
 	{
 		return this.neighbours;
 	}
-	
+	/*****************************************************
+	 * Check if the neighbour buffer has free entry
+	 * @param nextId
+	 * @param reqOrReply
+	 * @return
+	 *****************************************************/
 	public boolean CheckNeighbourBuffer(RoutingAlgo.DIRECTION nextId,boolean reqOrReply)  //request for neighbour buffer
 	{
 		return ((Router) this.neighbours.elementAt(nextId.ordinal())).AllocateBuffer(reqOrReply);
@@ -192,164 +205,6 @@ public class Router extends Switch{
 								requestType));
 			}
 		}
-		/*
-		else if(requestType == RequestType.Cache_Read)
-		{
-			requestType = RequestType.CacheBank_Read;
-
-			if(this.AllocateBuffer(false))
-			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
-			}
-			else
-			{
-				//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenBanks,
-								this, 
-								this,
-								requestType));
-				//System.out.println(event.getRequestingElement());
-			}
-		}
-		else if(requestType == RequestType.Cache_Write)
-		{
-			requestType = RequestType.CacheBank_Write;
-			if(this.AllocateBuffer(false))
-			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
-			}
-			else
-			{
-				//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenBanks,
-								this, 
-								this,
-								requestType));
-			}
-		}
-		else if(requestType == RequestType.Mem_Response)
-		{
-			requestType = RequestType.MemBank_Response;
-			if(this.AllocateBuffer(true))
-			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
-			}
-			else
-			{
-				//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenBanks,
-								this, 
-								this,
-								requestType));
-				//System.out.println(event.getRequestingElement());
-			}
-		}
-		else if(requestType == RequestType.Main_Mem_Read)
-		{
-			requestType = RequestType.Main_MemBank_Read;
-			if(this.AllocateBuffer(true))
-			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
-			}
-			else
-			{
-				//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenBanks,
-								this, 
-								this,
-								requestType));
-				//System.out.println(event.getRequestingElement());
-			}
-		}
-		else if(requestType == RequestType.Main_Mem_Write)
-		{
-			requestType = RequestType.Main_MemBank_Write;
-			if(this.AllocateBuffer(true))
-			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
-			}
-			else
-			{
-				//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenBanks,
-								this, 
-								this,
-								requestType));
-				//System.out.println(event.getRequestingElement());
-			}
-		}
-		else if(requestType == RequestType.Main_Mem_Response)
-		{
-			requestType = RequestType.Main_MemBank_Response;
-			if(this.AllocateBuffer(true))
-			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
-			}
-			else
-			{
-				//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenBanks,
-								this, 
-								this,
-								requestType));
-				//System.out.println(event.getRequestingElement());
-			}
-		}
-		*/
 		else
 		{
 			nextID = this.RouteComputation(currentId, destinationId);
