@@ -1,3 +1,23 @@
+/*****************************************************************************
+				Tejas Simulator
+------------------------------------------------------------------------------------------------------------
+
+   Copyright [2010] [Indian Institute of Technology, Delhi]
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+------------------------------------------------------------------------------------------------------------
+
+	Contributors:  Abhishek Sagar, Eldhose Peter
+*****************************************************************************/
 #include <iostream>
 #include <fstream>
 #include "pin.H"
@@ -91,13 +111,11 @@ bool isActive(int tid) {
 }
 void reActivate(int tid) {
 	pumpingStatus[tid] = true;
-	//printf("reAcivated %d\n",tid);
 	cout << "reAcivated " << tid << "\n";
 	curSynchVar[tid] = 0;
 }
 void deActivate(int tid, ADDRINT addr) {
 	curSynchVar[tid] = addr;
-	//printf("deAcivated %d\n",tid);
 	cout << "deAcivated " << tid << "\n";
 	pumpingStatus[tid] = false;
 }
@@ -110,7 +128,6 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	numThreads++;
 	livethreads++;
 	threadAlive[threadid] = true;
-	//printf("threads till now %d\n", numThreads);
 	cout << "threads till now " << numThreads << "\n";
 	fflush(stdout);
 	pumpingStatus[numThreads - 1] = true;
@@ -124,13 +141,9 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 	printf("thread %d finished exec\n",tid);
 	fflush(stdout);
 	PIN_MutexLock(&lock);
-	/*while (tst->onThread_finish(tid, (numCISC[tid] - numInsToIgnore)) == -1) {
-			PIN_Yield();
-	}*/
 	while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
 				PIN_Yield();
 		}
-	//printf("wrote -1 for tid %d\n", tid);
 	cout << "wrote -1 for tid " << tid << "\n";
 	livethreads--;
 	threadAlive[tid] = false;
@@ -140,15 +153,12 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 
 //Pass a memory read record
 VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
-//	static int num_mem=0;
 	if (!isActive(tid))
 		return;
 
 	if(ignoreActive)
 		return;
 
-//	printf("qqqPin %d %ld\n",++num_mem,(uint64_t)ip);
-//			fflush(stdout);
 	sendTimerPacket(tid,false);
 
 	PIN_MutexLock(&lock);
@@ -239,17 +249,11 @@ VOID CountIns()
 	numIns++;
 	if (numIns>numInsToIgnore) ignoreActive = false;	//activate Now
 }
-//VOID FunEntry(ADDRINT first_arg, const string * name, THREADID threadid)
+
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
-//	static int num_bar=0;
-
 	sendTimerPacket(tid,true);
 
-//	if(encode == BARRIERWAIT){
-//		printf("\npin num_bar = %d\t %d\n",++num_bar,tid);
-//		fflush(stdout);
-//		}
 	PIN_MutexLock(&lock);
 	checkSum +=encode;
 	PIN_MutexUnlock(&lock);
@@ -263,30 +267,9 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
 
-/*
-	if (!isActive(tid) && !hasEntered(tid,first_arg)) {
-		//		printf("tid %d could not register %d exit as not active\n", tid,
-		//				encode);
-		//		fflush(stdout);
-		return;
-	}
-
-	reActivate(tid);
-*/
 
 	sendTimerPacket(tid,false);
 
-/*
-	if (encode == LOCK+1) {
-		char* temp = findType(encode);
-		GetLock(&lock, tid + 1);
-		printf("%d %s with first arg %p   --%llu\n", tid, temp,
-				(void *) first_arg, time);
-		//TraceFile << threadid <<" exit "<< *name << " returns " << ret << endl;
-		PIN_MutexUnlock(&lock);
-	}
-*/
-	
 	PIN_MutexLock(&lock);
 	checkSum +=encode;
 	PIN_MutexUnlock(&lock);
@@ -297,7 +280,7 @@ VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	}
 
 }
-
+/*** Called on the initialization of a barrier  ***/
 VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
         PIN_MutexLock(&lock);
         checkSum +=encode;
@@ -309,9 +292,9 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
                 PIN_Yield();
         }
 }
-
+/*** This function is called on every instruction ***/
 VOID printip(THREADID tid, VOID *ip) {
-	//numCISC[tid]++;
+
 	PIN_MutexLock(&lock);
 
 	if(ignoreActive == false)
@@ -345,12 +328,10 @@ VOID printip(THREADID tid, VOID *ip) {
 				if(threadAlive[i] == true)
 				{
 					int tid_1 = i;
-					//printf("attempting to write -1\n");
 					cout << "attempting to write -1\n";
 					while (tst->onSubset_finish(tid_1, (numCISC[tid_1])) == -1) {
 									PIN_Yield();
 							}
-					//printf("wrote -1 for tid %d\n", tid);
 					cout << "wrote -1 for tid " << tid_1 << "\n";
 					livethreads--;
 					threadAlive[tid_1] = false;
@@ -360,12 +341,7 @@ VOID printip(THREADID tid, VOID *ip) {
 
 			if(livethreads == 0)
 			{
-				//printf("subset simulation complete\n");
 				cout << "subset simulation complete\n";
-				for(int i = 0; i < MaxThreads; i++)
-				{
-					//cout << "numCISC = " << numCISC[i] << "\n";
-				}
 				fflush(stdout);
 				tst->unload();
 				exit(0);
@@ -402,12 +378,10 @@ VOID printip(THREADID tid, VOID *ip) {
 				if(threadAlive[i] == true)
 				{
 					int tid_1 = i;
-					//printf("attempting to write -1\n");
 					cout << "attempting to write -1\n";
 					while (tst->onThread_finish(tid_1, (numCISC[tid_1])) == -1) {
 									PIN_Yield();
 							}
-					//printf("wrote -1 for tid %d\n", tid);
 					cout << "wrote -1 for tid " << tid_1 << "\n";
 					livethreads--;
 					threadAlive[tid_1] = false;
@@ -417,12 +391,7 @@ VOID printip(THREADID tid, VOID *ip) {
 
 			if(livethreads == 0)
 			{
-				//printf("subset simulation complete\n");
 				cout << "subset simulation complete\n";
-				for(int i = 0; i < MaxThreads; i++)
-				{
-					//cout << "numCISC = " << numCISC[i] << "\n";
-				}
 				fflush(stdout);
 				tst->unload();
 				exit(0);
@@ -455,21 +424,9 @@ VOID printip(THREADID tid, VOID *ip) {
 	}
 	PIN_MutexUnlock(&lock);
 
-	//
-//	// ---------------------------
-//	static FILE* ciscIPFile = NULL;
-//	if(ciscIPFile==NULL) {
-//		ciscIPFile = fopen("/mnt/srishtistr0/home/raj/workspace/Tejas-Base-2/pin.ciscIP", "w");
-//	}
-//
-//	fprintf(ciscIPFile, "%p\n", ip);
-//	fflush(ciscIPFile);
-//	// ---------------------------
 }
 
 VOID funcHandler(CHAR* name, int a, int b, int c) {
-	//printf("function encountered\n ");
-	//printf("numSim = %ld\n", totalNumCISC);
 	cout << "function encountered\n ";
 	cout << "numSim = " << totalNumCISC << "\n";
 }
@@ -530,7 +487,6 @@ VOID Instruction(INS ins, VOID *v) {
 // This is a routine level instrumentation
 VOID FlagRtn(RTN rtn, VOID* v) {
 	RTN_Open(rtn);
-//	static int num_bar=0;
 	const string* rtn_name = new string(RTN_Name(rtn));
 	INT32 encode;
 
@@ -546,20 +502,14 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 		encode = JOIN;
 	else if (cmp("pthread_cond_wait"))
 		encode = CONDWAIT;
-/*	else if (cmp("tejas_barrier_wait")){
-		encode = CONDWAIT;
-		//printf("FOUND THE TEJAS BARRIER\n");
-		cout << "FOUND THE TEJAS BARRIER\n";
-	}
-
-	else if (cmp("pthread_barrier_wait")){
+	/*** For barriers. Used for research purpose ***/
+/*	else if (cmp("pthread_barrier_wait")){
 		
 		encode = BARRIERWAIT;
 	}
 	else if (cmp("parsec_barrier_wait"))
 			encode = BARRIERWAIT;
 	else if (cmp("pthread_barrier_init")) {
-		//printf("barrier init encountered !!\n");
 		cout << "barrier init encountered !!\n";
 		encode = BARRIERINIT;
 	}*/
@@ -608,10 +558,10 @@ INT32 Usage() {
 // argc, argv are the entire command line, including pin -t <toolname> -- ...
 int main(int argc, char * argv[]) {
 
-	// Knobs get initialized only after initlializing PIN
+	// Knobs get initialized only after initializing PIN
 
 	//if (numInsToIgnore>0)
-		ignoreActive = true;
+	ignoreActive = true;
 	/*UINT64 mask = KnobMap;
 
 	if (sched_setaffinity(0, sizeof(mask), (cpu_set_t *)&mask) <0) {
@@ -627,9 +577,6 @@ int main(int argc, char * argv[]) {
 	numInsToSimulate = KnobSimulate;
 	pinpointsFilename = KnobPinPointsFile;
 	UINT64 id = KnobId;
-	//printf("numIgn = %lu\n", numInsToIgnore);
-	//printf("numSim = %ld\n", numInsToSimulate);
-	//printf("id received = %lu\n", id);
 	cout << "numIgn = " << numInsToIgnore << "\n";
 	cout << "numSim = " << numInsToSimulate << "\n";
 	cout << "id received = " << id << "\n";
