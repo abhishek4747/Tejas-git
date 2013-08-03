@@ -197,7 +197,9 @@ public class RunnableThread implements Encoding, Runnable {
 					if(v == Encoding.SUBSETSIMCOMPLETE)
 					{
 						System.out.println("within SUBSETSIMCOMPLETE ");
+						ipcBase.javaThreadTermination[javaTid] = true;
 						allover = true;
+						break;
 					}
 					
 					
