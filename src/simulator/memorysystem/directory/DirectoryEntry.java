@@ -85,8 +85,18 @@ public class DirectoryEntry extends CacheLine {
 		if(this.state==MESI.MODIFIED && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
 			misc.Error.showErrorAndExit("You cannot have multiple owners for a modified state !!\n" +
 					"currentOwner : " + getOwner().containingMemSys.getCore().getCore_number() + 
-					" newOwner : " + c.containingMemSys.getCore().getCore_number() + 
-					" addr : " + this.getAddress());
+					"\nnewOwner : " + c.containingMemSys.getCore().getCore_number() + 
+					"\naddr : " + this.getAddress());
+		}
+		
+		// You cannot add a new sharer for exclusive entry.
+		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
+		// the same cache line which triggered the memResponse multiple times. For the time being, just ignore this hack.
+		if(this.state==MESI.EXCLUSIVE && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
+			misc.Error.showErrorAndExit("You cannot have multiple owners for exclusive state !!\n" +
+					"currentOwner : " + getOwner().containingMemSys.getCore().getCore_number() + 
+					"\nnewOwner : " + c.containingMemSys.getCore().getCore_number() + 
+					"\naddr : " + this.getAddress());
 		}
 		
 		if(this.isSharer(c)==true) {
@@ -112,6 +122,7 @@ public class DirectoryEntry extends CacheLine {
 		else
 			return false;
 	}
+	
 	public long getTag() {
 		return tag;
 	}
@@ -120,7 +131,6 @@ public class DirectoryEntry extends CacheLine {
 		this.tag = tag;
 	}
 
-	
 	public double getTimestamp() {
 		return timestamp;
 	}
