@@ -216,26 +216,25 @@ public class Cache extends SimulationElement
 					misc.Error.showErrorAndExit("coreIDs mismatch!!");					
 				}*/
 			}
+			
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write)
 			{
 				this.handleAccess(eventQ, (AddressCarryingEvent) event);
 			}
+			
 			else if (event.getRequestType() == RequestType.Cache_Read_Writeback
 					|| event.getRequestType() == RequestType.Send_Mem_Response 
-					|| event.getRequestType() == RequestType.Send_Mem_Response_Invalidate 
-					||  event.getRequestType() == RequestType.Send_Mem_Response_On_WriteHit ){
+					|| event.getRequestType() == RequestType.Send_Mem_Response_Invalidate) 
+			{
 				this.handleAccessWithDirectoryUpdates(eventQ, (AddressCarryingEvent) event);
 			}
-			else if (event.getRequestType() == RequestType.Send_Mem_Response_On_WriteHit)
-			{
-				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-				memResponseUpdateDirectory(addrEvent.coreId, addrEvent.getAddress() >>> blockSizeBits, event, addrEvent.getAddress() );
-			}
+			
 			else if (event.getRequestType() == RequestType.Mem_Response)
 			{
 				this.handleMemResponse(eventQ, event);
 			}
+			
 			else if (event.getRequestType() == RequestType.MESI_Invalidate)
 			{
 				this.handleInvalidate((AddressCarryingEvent) event);
@@ -265,8 +264,7 @@ public class Cache extends SimulationElement
 			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 			{
 				
-				if(this.coherence == CoherenceType.Directory 
-						&& event.getRequestType() == RequestType.Cache_Write)
+				if(this.coherence == CoherenceType.Directory && event.getRequestType() == RequestType.Cache_Write && cl.getState()!=MESI.MODIFIED)
 				{
 					writeHitUpdateDirectory(event.coreId,( address>>> blockSizeBits ), event, address);
 				}
@@ -320,13 +318,7 @@ public class Cache extends SimulationElement
 					//propogateWrite(event);
 				}
 			}
-			if(RequestType.Send_Mem_Response_On_WriteHit == event.getRequestType())
-			{
-				handleInvalidate(event);
-				memResponseUpdateDirectory(event.coreId,event.getAddress() >>> blockSizeBits , event, event.getAddress());
-				return ;
-			}
-			else if(RequestType.Send_Mem_Response_Invalidate == event.getRequestType())
+			else if(event.getRequestType() == RequestType.Send_Mem_Response_Invalidate)
 			{
 				handleInvalidate(event);
 			}
@@ -346,7 +338,7 @@ public class Cache extends SimulationElement
 			this.fillAndSatisfyRequests(eventQ, event, MESI.EXCLUSIVE);
 		}
 		
-		private void handleInvalidate(Event event)
+		public void handleInvalidate(Event event)
 		{
 			CacheLine cl = this.access(((AddressCarryingEvent)event).getAddress());
 			if (cl != null)
@@ -535,9 +527,14 @@ public class Cache extends SimulationElement
 			noOfRequests += eventsToBeServed.size();
 			//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
 			CacheLine evictedLine = this.fill(addr, stateToSet);
-			if (evictedLine != null 
-			    && evictedLine.getState() == MESI.MODIFIED 
-			    && this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH) //This does not ensure inclusiveness
+			
+			//This does not ensure inclusiveness
+			if (
+				evictedLine != null && 
+				evictedLine.getState() != MESI.INVALID && 
+				// if the line is modified, the cache write policy must NOT be WRITE_THROUGH
+				((evictedLine.getState()!=MESI.MODIFIED) || (evictedLine.getState()==MESI.MODIFIED && this.writePolicy!=WritePolicy.WRITE_THROUGH))
+			)
 			{
 				//Update directory in case of eviction
 					if(this.coherence==CoherenceType.Directory)
@@ -565,6 +562,7 @@ public class Cache extends SimulationElement
 						//putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
 					}
 			}
+			
 			if(this.coherence == CoherenceType.Directory)
 			{
 				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
@@ -952,65 +950,7 @@ public class Cache extends SimulationElement
 		public MissStatusHoldingRegister getMissStatusHoldingRegister() {
 			return missStatusHoldingRegister;
 		}
-		public void warmUp(Instruction ins,int coreId)
-		{
-			RequestType requestType=null;
-			long address;
-			if(ins.getOperationType()==OperationType.load)
-			{
-				requestType = RequestType.Cache_Read;
-			}
-			else if(ins.getOperationType()==OperationType.store)
-			{
-				requestType = RequestType.Cache_Write;
-			}
-			address= ins.getSourceOperand1().getValue();
-
-			CacheLine cl = this.processRequest(requestType, address);
-			//System.out.println("Address Tag :" + computeTag(address));
-
-			//IF Miss
-			if (cl == null)
-			{
-				
-				
-				if(this.isLastLevel) //L2 cache
-				{
-					this.fill(address, MESI.EXCLUSIVE);
-				}
-				else //L1 cache
-				{
-					//System.out.println("Miss at address :" + address + "Tag "+(address >>> blockSizeBits));
-					this.nextLevel.warmUp(ins,coreId);
-					MESI state=MemorySystem.getDirectoryCache().updateDirectoryWarmUp(address >>> blockSizeBits,this.containingMemSys.coreID,requestType);
-					CacheLine evictedLine=this.fill(address, state);
-					if(evictedLine!=null)
-					{
-						//System.out.println("Evicted line :" + evictedLine.getAddress());
-						this.nextLevel.fill(evictedLine.getAddress(),MESI.EXCLUSIVE);
-					}
-				}
-			}
-			// If hit
-			else
-			{
-				if(!this.isLastLevel) {
-					//System.out.println("Hit for address :" + address + " TAG = 	" + (address >>> blockSizeBits));
-					cl.setState(MESI.MODIFIED);
-					MemorySystem.getDirectoryCache().updateDirectoryWarmUp(address,this.containingMemSys.coreID,requestType);
-				}
-			}
-		}
-		public static void warmUpDump(Core core)
-		{
-			System.out.println("Core " + core.getCore_number() + " warmUpDump");
-			Cache cache = core.getExecEngine().getCoreMemorySystem().getL1Cache();
-			for(int i=0;i<cache.numLines;i++)
-			{
-				if(cache.lines[i].getAddress()!=0)
-				System.out.println("Line " + i + " :" + cache.lines[i].getAddress());
-			}
-		}
+		
 		public String toString()
 		{
 			StringBuilder s = new StringBuilder();

@@ -53,7 +53,7 @@ public class Main {
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			ObjParser.buildStaticInstructionTable(getEmulatorFile());
 		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-			ObjParser.initializeThreadMicroOpsList(1);
+			ObjParser.initializeThreadMicroOpsList(64);
 		}
 		
 		ObjParser.initializeDynamicInstructionBuffer(IpcBase.EmuThreadsPerJavaThread*IpcBase.getEmuThreadsPerJavaThread());

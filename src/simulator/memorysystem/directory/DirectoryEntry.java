@@ -1,43 +1,60 @@
 package memorysystem.directory;
 
+import java.util.Vector;
+
+import memorysystem.Cache;
 import memorysystem.CacheLine;
 import memorysystem.MESI;
 import memorysystem.Cache.CacheType;
 
 public class DirectoryEntry extends CacheLine {
-	MESI state;
-	boolean[] presenceBits;
+	// MESI state;
+	//boolean[] presenceBits;
+	Vector<Cache> sharers = null;
 	
 //	private boolean valid;
 	private double timestamp;
 //	private boolean modified;
+	int noOfCores;
 
-	public DirectoryEntry(int noOfCores, long lineNum){
+	public DirectoryEntry(int noOfCores){
 		super(1);
-		presenceBits=new boolean[noOfCores];
-		
+		sharers = new Vector<Cache>(noOfCores);
+		this.noOfCores = noOfCores;
 		state = MESI.INVALID;
 		tag = 0;
-		for(int i=0;i<noOfCores;i++)
-			presenceBits[i]=false;
 	}
 	
 	public DirectoryEntry copy()
 	{
-		DirectoryEntry newLine = new DirectoryEntry(this.presenceBits.length,0);
+		DirectoryEntry newLine = new DirectoryEntry(noOfCores);
+		newLine.setAddress(this.address);
 		newLine.setTag(this.getTag());
 		newLine.setState(this.getState());
 		newLine.setTimestamp(this.getTimestamp());
+		newLine.sharers.addAll(this.sharers);
 		return newLine;
 	}
 	
-	public int getOwner(){
-		//This should be called only when the state of the directory entry is "modified"
-		for(int i=0;i<this.presenceBits.length;i++){
-			if(presenceBits[i])
-				return i;
+	public DirectoryEntry clone() 
+	{
+		return copy();
+	}
+	
+	public Cache getOwner(){
+						
+		if(sharers.size()==0) {
+			return null;
+		} else if (sharers.size()==1) {
+			return sharers.elementAt(0); 
+		} else {
+			misc.Error.showErrorAndExit("This directory entry has multiple owners : " + this);
+			return null;
 		}
-		return -1;
+	}
+	
+	public boolean isSharer(Cache c) {
+		return (this.sharers.indexOf(c)!=-1);
 	}
 	
 	public MESI getState(){
@@ -48,12 +65,54 @@ public class DirectoryEntry extends CacheLine {
 		this.state=state;
 	}
 	
-	public boolean getPresenceBit(int i){
-		return this.presenceBits[i];
+	public int getNoOfSharers() {
+		return this.sharers.size();
 	}
 	
-	public void setPresenceBit(int i,boolean presenceBit){
-		this.presenceBits[i]=presenceBit;
+	public Cache getSharerAtIndex(int i){
+		return this.sharers.elementAt(i);
+	}
+	
+	public void addSharer(Cache c) {
+		
+		if(this.state==MESI.INVALID) {
+			misc.Error.showErrorAndExit("Unholy mess !!");
+		}
+		
+		// You cannot add a new sharer for a modified entry.
+		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
+		// the same cache line which triggered the memResponse multiple times. For the time being, just ignore this hack.
+		if(this.state==MESI.MODIFIED && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
+			misc.Error.showErrorAndExit("You cannot have multiple owners for a modified state !!\n" +
+					"currentOwner : " + getOwner().containingMemSys.getCore().getCore_number() + 
+					"\nnewOwner : " + c.containingMemSys.getCore().getCore_number() + 
+					"\naddr : " + this.getAddress());
+		}
+		
+		// You cannot add a new sharer for exclusive entry.
+		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
+		// the same cache line which triggered the memResponse multiple times. For the time being, just ignore this hack.
+		if(this.state==MESI.EXCLUSIVE && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
+			misc.Error.showErrorAndExit("You cannot have multiple owners for exclusive state !!\n" +
+					"currentOwner : " + getOwner().containingMemSys.getCore().getCore_number() + 
+					"\nnewOwner : " + c.containingMemSys.getCore().getCore_number() + 
+					"\naddr : " + this.getAddress());
+		}
+		
+		if(this.isSharer(c)==true) {
+			return;
+		}
+		
+		this.sharers.add(c);
+	}
+	
+	public void removeSharer(Cache c) {
+		
+		if(this.isSharer(c)==false) {
+			misc.Error.showErrorAndExit("Trying to remove a sharer which is not a sharer !!");
+		}
+		
+		this.sharers.remove(c);
 	}
 
 	protected boolean hasTagMatch(long tag)
@@ -63,6 +122,7 @@ public class DirectoryEntry extends CacheLine {
 		else
 			return false;
 	}
+	
 	public long getTag() {
 		return tag;
 	}
@@ -71,7 +131,6 @@ public class DirectoryEntry extends CacheLine {
 		this.tag = tag;
 	}
 
-	
 	public double getTimestamp() {
 		return timestamp;
 	}
@@ -80,24 +139,16 @@ public class DirectoryEntry extends CacheLine {
 		this.timestamp = timestamp;
 	}
 	
-	public void resetAllPresentBits()
-	{
-		for(int i=0;i< this.presenceBits.length ; i++)
-		{
-			presenceBits[i] = false;
-		}
+	public void clearAllSharers() {
+		this.sharers.clear();
 	}
 	
 	public String toString()
 	{
 		StringBuilder s = new StringBuilder();
-		s.append("line number = " + this.getTag() + " : "  + "state = " + this.getState() + " : " );
-		for(int i = 0; i< presenceBits.length;i++)
-		{
-			if(presenceBits[i])
-				s.append(1 + " ");
-			else 
-				s.append(0 + " ");
+		s.append("line number = " + this.getTag() + " : "  + "state = " + this.getState() + " cores : " );
+		for(int i=0; i<this.sharers.size(); i++) {
+			s.append(this.sharers.elementAt(i).containingMemSys.getCore().getCore_number() + " , ");
 		}
 		return s.toString();
 	}
