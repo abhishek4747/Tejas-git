@@ -21,14 +21,9 @@
 
 package net.optical;
 
-import java.util.Vector;
-
-import memorysystem.AddressCarryingEvent;
 import memorysystem.SignalWavelengthEvent;
 import memorysystem.nuca.NucaCacheBank;
-
 import config.NocConfig;
-
 import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
@@ -39,8 +34,6 @@ public class DataBus extends SimulationElement {
 	public DataBus(NocConfig nocConfig, int numBanks, NucaCacheBank[][] cacheBank, int clusterId) {
 		super(nocConfig.portType, nocConfig.getAccessPorts(), nocConfig.getPortOccupancy(), 
 				nocConfig.getLatency(), nocConfig.operatingFreq);
-		// TODO Auto-generated constructor stub
-		
 		this.cacheBank = cacheBank;
 		this.totalBanks = numBanks;
 		this.clusterId = clusterId;
@@ -52,7 +45,6 @@ public class DataBus extends SimulationElement {
 	
 	public int clusterId;
 	public int totalBanks;
-	//public Event event;
 	public Integer[] wavelengths;
 	public TopDataBus topDataBus;
 	public NucaCacheBank[][] cacheBank;
@@ -62,11 +54,7 @@ public class DataBus extends SimulationElement {
 		
 		RequestType requestType = event.getRequestType();
 		if(event.getClass() == SignalWavelengthEvent.class && ((SignalWavelengthEvent) event).getWavelength() == -1){
-//		if(requestType == RequestType.Mem_Response||
-//				requestType == RequestType.Main_Mem_Read ||
-//				requestType == RequestType.Main_Mem_Write){
-			//System.out.println("Local data to top data" + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
-			this.topDataBus.getPort().put(event.update(
+		this.topDataBus.getPort().put(event.update(
 					eventQ,
 					1,
 					this, 
@@ -77,9 +65,6 @@ public class DataBus extends SimulationElement {
 		
 		
 		else if(clusterId == (int)(((SignalWavelengthEvent) event).getWavelength()/this.totalBanks)) 
-//				&& 
-//				!(requestType == RequestType.Main_Mem_Read ||
-//				requestType == RequestType.Main_Mem_Write))
 			this.cacheBank[(int)(((SignalWavelengthEvent) event).getWavelength()%this.totalBanks)][clusterId].getRouter().getPort().put(event.
 					update(
 						eventQ,

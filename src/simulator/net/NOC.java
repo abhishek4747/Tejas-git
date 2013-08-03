@@ -20,8 +20,6 @@
 *****************************************************************************/
 package net;
 
-import generic.SimulationElement;
-
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -29,7 +27,6 @@ import net.optical.TopLevelTokenBus;
 
 import config.NocConfig;
 import config.SystemConfig;
-import memorysystem.nuca.NucaCacheBank;
 
 public class NOC{
 	
@@ -55,7 +52,12 @@ public class NOC{
 		ELECTRICAL,
 		OPTICAL
 	}
-	
+	/************************************************************************
+     * Method Name  : ConnectBanks
+     * Purpose      : Connects cachebanks according to the topology
+     * Parameters   : matrix of cache banks, number of rows & number of columns, noc config
+     * Return       : void
+     *************************************************************************/
 	public void ConnectBanks(NocInterface networkElements[][],int numRows,int numColumns,NocConfig nocConfig, TopLevelTokenBus tokenBus)
 	{
 		switch (SystemConfig.nocConfig.topology) {
@@ -82,14 +84,6 @@ public class NOC{
 			break;
 		}
 	}
-/*	public void ConnectBanks(NucaCacheBank cacheBank[],int numOfBanks,TOPOLOGY topology){
-		switch (topology){
-		case BUS :
-			ConnectBanksRingBus(cacheBank, numOfBanks, 1);
-		case RING :
-			ConnectBanksRingBus(cacheBank, numOfBanks, 0);
-		}
-	}*/
 	/************************************************************************
      * Method Name  : ConnectBanksMesh
      * Purpose      : connect a marix of cachebank in mesh topology
