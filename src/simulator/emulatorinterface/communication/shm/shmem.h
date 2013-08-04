@@ -21,6 +21,9 @@ class Shm : public IPCBase
 protected:
 	int shmid;										/* shared memory segment id */
 
+	// Once subset sim complete boolean variable is set, we should not write to shared memory any further.
+	volatile bool isSubsetsimComplete;
+
 	// For keeping a record of various thread related variables
 #define PADSIZE 28 //64-36, assuming it is on 32bit machine(as addresses are 32bit)
 	struct THREAD_DATA
@@ -44,6 +47,8 @@ public:
 	Shm();
 	Shm(uint64_t);
 	Shm (uint32_t count,uint32_t localQueue);
+	bool isSubsetsimCompleted(void);
+	bool setSubsetsimComplete(bool val);
 
 	int analysisFn (int tid,uint64_t ip, uint64_t value, uint64_t tgt);
 	void onThread_start (int tid);

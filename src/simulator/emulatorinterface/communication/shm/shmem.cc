@@ -67,6 +67,8 @@ Shm::Shm ()
 		myData->avail = 1;
 //		myData->tid = 0;
 	}
+
+	isSubsetsimComplete = false;
 }
 
 Shm::Shm (uint64_t pid)
@@ -205,11 +207,12 @@ int Shm::onSubset_finish (int tid, long numCISC)
 
 		// last write to our shared memory. This time write a -2 in the 'value' field of the packet
 		int ret = Shm::shmwrite(actual_tid,2, numCISC);
-		printf("wrote -2 in shmem.cc\n");
+
 		if(ret != -1){
 			myData->avail = 1;
 			myData->tlqsize = 0;
 		}
+
 		return ret;
 }
 
@@ -223,6 +226,10 @@ int Shm::onSubset_finish (int tid, long numCISC)
 int
 Shm::shmwrite (int tid, int last, long numCISC)
 {
+	if(isSubsetsimComplete==true) {
+		return -1;
+	}
+
 	static int num_shmem=0;
 	//pthread_mutex_lock(&mul_lock);
 	tid = memMapping[tid];
@@ -317,6 +324,18 @@ Shm::~Shm ()
 		delete tldata[t].tlq;
 	}
 	shmdt (tldata[0].shm);
+}
+
+bool
+Shm::setSubsetsimComplete(bool val)
+{
+	isSubsetsimComplete = val;
+}
+
+bool
+Shm::isSubsetsimCompleted()
+{
+	return isSubsetsimComplete;
 }
 
 

@@ -84,7 +84,7 @@ uint32_t countPacket[MaxThreads];
 // 1970-01-01 epoch UTC time, 1 nanosecond resolution
 uint64_t ClockGetTime() {
 	timespec ts;
-	clock_gettime(CLOCK_REALTIME, &ts);
+	clock_gettime((clockid_t)CLOCK_REALTIME, (struct timespec *)&ts);
 	return (uint64_t) ts.tv_sec * 1000000000LL + (uint64_t) ts.tv_nsec;
 }
 
@@ -320,34 +320,16 @@ VOID printip(THREADID tid, VOID *ip) {
 				ignoreActive = true;
 			}
 
-		if(numInsToSimulate > 0 &&
-					totalNumCISC >= numInsToIgnore + numInsToSimulate)
+		if(numInsToSimulate > 0 && totalNumCISC >= (numInsToIgnore + numInsToSimulate))
 		{
-			for(int i = 0; i < MaxThreads; i++)
-			{
-				if(threadAlive[i] == true)
-				{
-					int tid_1 = i;
-					cout << "attempting to write -1\n";
-					while (tst->onSubset_finish(tid_1, (numCISC[tid_1])) == -1) {
-									PIN_Yield();
-							}
-					cout << "wrote -1 for tid " << tid_1 << "\n";
-					livethreads--;
-					threadAlive[tid_1] = false;
-					fflush(stdout);
-				}
+			// Now, we will write -2 packet in shared memory.
+			// This will ensure that complete emulator (PIN) gets stopped.
+			while (tst->onSubset_finish((int)tid, (numCISC[tid])) == -1) {
+				PIN_Yield();
 			}
 
-			if(livethreads == 0)
-			{
-				cout << "subset simulation complete\n";
-				fflush(stdout);
-				tst->unload();
-				exit(0);
-			}
-
-			ASSERT(livethreads != 0, "subset sim complete, but live threads not zero!!!\n");
+			cout<<"subset finish called by thread "<<tid<<endl;
+			tst->setSubsetsimComplete(true);
 		}
 	}
 	else
@@ -452,6 +434,10 @@ void Image(IMG img,VOID *v) {
 
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v) {
+
+	if(tst->isSubsetsimCompleted() == true) {
+		return;
+	}
 
 	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_THREAD_ID, IARG_INST_PTR, IARG_END);
 
