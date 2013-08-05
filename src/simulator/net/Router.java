@@ -86,6 +86,7 @@ public class Router extends Switch{
 	}
 	/*****************************************************
 	 * Check if the neighbour buffer has free entry
+	 * reqOrReply is kept for future use
 	 * @param nextId
 	 * @param reqOrReply
 	 * @return
