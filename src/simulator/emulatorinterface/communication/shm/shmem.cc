@@ -221,13 +221,30 @@ int Shm::onSubset_finish (int tid, long numCISC)
  * If last is 0 then normal write and if last is 1 then write -1 at the end
  * The numCISC's value is valid only if this is the last packet
  */
-//static FILE *pinTraceFile = NULL;
-//static int numShmWritePackets = 0;
+static bool printIPTrace = false;
+static FILE **pinTraceFile;
+static int *numShmWritePackets;
 int
 Shm::shmwrite (int tid, int last, long numCISC)
 {
 	if(isSubsetsimComplete==true) {
 		return -1;
+	}
+
+	if(printIPTrace==true && pinTraceFile==NULL) {
+		pinTraceFile = new FILE*[MaxThreads];
+		for(int i=0; i<MaxThreads; i++) {
+			char fileName[1000];
+			sprintf(fileName, "/mnt/srishtistr0/home/prathmesh/tmp/eldhoseDa%d", i);
+			pinTraceFile[i] = fopen(fileName, "w");
+		}
+	}
+
+	if(printIPTrace==true && numShmWritePackets==NULL) {
+		numShmWritePackets = new int[MaxThreads];
+		for(int i=0; i<MaxThreads; i++) {
+			numShmWritePackets[i] = 0;
+		}
 	}
 
 	static int num_shmem=0;
@@ -257,12 +274,10 @@ Shm::shmwrite (int tid, int last, long numCISC)
 
 		for (int i=0; i< numWrite; i++) {
 
-//			if(pinTraceFile == NULL) {
-//				pinTraceFile = fopen("/tmp/pinTrace.out", "w");
-//			}
-//
-//			fprintf(pinTraceFile, "pinTrace %d : %ld\n", (++numShmWritePackets),
-//					myData->tlq[(myData->out+i)%locQ].ip);
+			if(printIPTrace==true) {
+				fprintf(pinTraceFile[tid], "pinTrace[%d] %d : %ld\n", tid, (++numShmWritePackets[tid]),
+						myData->tlq[(myData->out+i)%locQ].ip);
+			}
 
 			// for checksum
 			myData->sum+=myData->tlq[(myData->out+i)%locQ].value;
@@ -285,6 +300,10 @@ Shm::shmwrite (int tid, int last, long numCISC)
 		shmem[myData->prod_ptr % COUNT].ip = numCISC;
 		release_lock(shmem);
 
+		if(printIPTrace==true) {
+			fprintf(pinTraceFile[tid], "pinTrace[%d] Thread Complete\n", tid);
+			fflush(pinTraceFile[tid]);
+		}
 	}
 	else if(last == 2){
 		numWrite = 1;
@@ -292,6 +311,11 @@ Shm::shmwrite (int tid, int last, long numCISC)
 		shmem[myData->prod_ptr % COUNT].value = SUBSETSIMCOMPLETE;
 		shmem[myData->prod_ptr % COUNT].ip = numCISC;
 		release_lock(shmem);
+
+		if(printIPTrace==true) {
+			fprintf(pinTraceFile[tid], "pinTrace[%d] Subset Complete\n", tid);
+			fflush(pinTraceFile[tid]);
+		}
 	}
 
 //	// some bookkeeping of the threads state.
