@@ -81,7 +81,7 @@ public class RunnableThread implements Encoding, Runnable {
 	
 	IpcBase ipcBase;
 	
-	static boolean printIPTrace = true;
+	static boolean printIPTrace = false;
 	static long numShmWrites[];
 
 	/*
