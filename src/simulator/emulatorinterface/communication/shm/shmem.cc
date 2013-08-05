@@ -221,7 +221,7 @@ int Shm::onSubset_finish (int tid, long numCISC)
  * If last is 0 then normal write and if last is 1 then write -1 at the end
  * The numCISC's value is valid only if this is the last packet
  */
-static bool printIPTrace = false;
+static bool printIPTrace = true;
 static FILE **pinTraceFile;
 static int *numShmWritePackets;
 int
