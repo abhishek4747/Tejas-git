@@ -476,7 +476,10 @@ public class CentralizedDirectoryCache extends Cache
 			if(requestingCache == dirEntry.getOwner( )) {
 				dirEntry.setState(MESI.MODIFIED);
 			} else {
-				misc.Error.showErrorAndExit("A cache which does not own an entry cannot have a write hit !!");
+				// The entry for this directory line was invalidated a short while ago.
+				// Before the invalidate request reaches the cache, it sent a writeHit
+				// So just return from here. The cache will invalidate the entry later.
+				return;
 			}
 			
 		} else if (dirEntry.getState()==MESI.SHARED) {
