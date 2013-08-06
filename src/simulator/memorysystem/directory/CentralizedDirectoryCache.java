@@ -105,7 +105,7 @@ public class CentralizedDirectoryCache extends Cache
 	{
 		//	Search for the directory entry 
 		//if not found, create one with invalid state 
-		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, address);
+		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, address, event);
 		if(dirEntry ==null)
 		{
 			// Right now, we tell the cache to mark this new line as exclusive.
@@ -175,7 +175,7 @@ public class CentralizedDirectoryCache extends Cache
 	private void memResponseDirectoryUpdate(EventQueue eventQ, Event event) 
 	{
 		long dirAddress = getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, dirAddress);
+		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, dirAddress, (AddressCarryingEvent)event);
 	
 		// There are two scenarios where we would like to invalidate the cache entry for this address.
 		

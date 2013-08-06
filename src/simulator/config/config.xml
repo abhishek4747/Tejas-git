@@ -50,7 +50,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>1000000</subsetSimSize>
+		<subsetSimSize>100000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
