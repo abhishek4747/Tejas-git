@@ -335,8 +335,33 @@ public class Cache extends SimulationElement
 		public void handleInvalidate(Event event)
 		{
 			CacheLine cl = this.access(((AddressCarryingEvent)event).getAddress());
-			if (cl != null)
+			if (cl != null) {
 				cl.setState(MESI.INVALID);
+			}
+			
+			invalidatePreviousLevelCaches((AddressCarryingEvent)event);
+		}
+		
+		private void invalidatePreviousLevelCaches(AddressCarryingEvent event)
+		{
+			// If I am invalidating a cache entry, I must inform all the previous level caches 
+			// about the same
+			if(prevLevel==null) {
+				return;
+			}
+			
+			for(int i=0; i<prevLevel.size(); i++) {
+				Cache c = prevLevel.get(i);
+				c.getPort().put(
+					new AddressCarryingEvent(
+						c.containingMemSys.getCore().getEventQueue(),
+						c.getLatency(),
+						this, 
+						c,
+						RequestType.MESI_Invalidate, 
+						((AddressCarryingEvent)event).getAddress(),
+						c.containingMemSys.getCore().getCore_number()));
+			}
 		}
 		
 		private void sendWriteRequest(AddressCarryingEvent receivedEvent)
@@ -816,6 +841,7 @@ public class Cache extends SimulationElement
 					(event).coreId);
 			centralizedDirectory.getPort().put(addrEvent);
 			
+			invalidatePreviousLevelCaches((AddressCarryingEvent)event);			
 		}
 		
 		public long computeTag(long addr) {
