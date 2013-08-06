@@ -999,7 +999,7 @@ public class Cache extends SimulationElement
 			if(requestType == RequestType.Cache_Read )  {
 				ll = this.read(addr);
 			} else if (requestType == RequestType.Cache_Write) {
-				ll = this.write(addr, event);
+				ll = this.write(addr, event.clone());
 			}
 			return ll;
 		}

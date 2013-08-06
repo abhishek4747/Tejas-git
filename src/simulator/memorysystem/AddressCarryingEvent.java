@@ -26,18 +26,6 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		destinationBankId = null;
 	}
 	
-	public Object clone()
-    {
-        try
-        {
-            // call clone in Object.
-            return super.clone();
-        } catch(CloneNotSupportedException e)
-        {
-            System.out.println("Cloning not allowed.");
-            return this;
-        }
-    }
 	public AddressCarryingEvent()
 	{
 		super(null, -1, null, null, RequestType.Cache_Read, -1);
