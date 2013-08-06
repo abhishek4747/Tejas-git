@@ -242,16 +242,18 @@ public class Cache extends SimulationElement
 		}
 		
 		public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
-		{noOfAccesses++;
-		if(event.getRequestType() == RequestType.Cache_Write)
 		{
-			noOfWritesReceived++;
-		}
+			noOfAccesses++;
+		
+			if(event.getRequestType() == RequestType.Cache_Write)
+			{
+				noOfWritesReceived++;
+			}
+			
 			//update counters
 			if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
-			}
-			else{
+			} else {
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
 			}
 			
@@ -298,15 +300,8 @@ public class Cache extends SimulationElement
 			}
 		}
 
-		private void handleAccessWithDirectoryUpdates(EventQueue eventQ,
-				AddressCarryingEvent event) {
-			//Writeback
-			if(this.levelFromTop != CacheType.L1)
-			{
-				System.err.println(" other than L1 handling AccessWith Directory "+ " coreID =  "+  event.coreId + "  " + this.levelFromTop  + " " + event.getRequestType());
-				System.exit(1);
-			}
-			
+		private void handleAccessWithDirectoryUpdates(EventQueue eventQ, AddressCarryingEvent event) 
+		{
 			if(event.getRequestType() == RequestType.Cache_Read_Writeback ) 
 			{
 				if (this.isLastLevel)
@@ -325,8 +320,11 @@ public class Cache extends SimulationElement
 
 			sendMemResponseDirectory(event);
 		}
+		
 		protected void handleMemResponse(EventQueue eventQ, Event event)
-		{noOfResponsesReceived++;
+		{
+			noOfResponsesReceived++;
+			
 			/*Response for a read/write miss. Thus incrementing counters here as well*/
 			if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
