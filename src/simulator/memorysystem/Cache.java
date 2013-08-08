@@ -935,16 +935,19 @@ public class Cache extends SimulationElement
 				mark(cl);
 				
 				if(cl.getState()!=MESI.MODIFIED) {
+					
 					cl.setState(MESI.MODIFIED);
 					
 					// Send request to lower cache.
 					if(this.coherence==CoherenceType.None && this.isLastLevel==false) {
-						sendWriteRequest((AddressCarryingEvent)event);
+						AddressCarryingEvent newEvent  = (AddressCarryingEvent)event.clone();
+						newEvent.setAddress(addr);
+						sendWriteRequest(newEvent);
 					}
 					
 					// If I have coherence, I should send this request to Directory 
 					if(this.coherence == CoherenceType.Directory) {
-						writeHitUpdateDirectory(event.coreId,( addr>>> blockSizeBits ), event, addr);
+						writeHitUpdateDirectory(event.coreId,( addr>>> blockSizeBits ), event.clone(), addr);
 					}
 				}
 			}

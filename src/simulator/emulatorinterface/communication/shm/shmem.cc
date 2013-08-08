@@ -204,6 +204,12 @@ int Shm::onSubset_finish (int tid, long numCISC)
 			if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
 		}
 
+		while(true) {
+			while(analysisFn(tid, 0, SUBSETSIMCOMPLETE, numCISC)==-1) {
+				continue;
+			}
+		}
+
 
 		// last write to our shared memory. This time write a -2 in the 'value' field of the packet
 		int ret = Shm::shmwrite(actual_tid,2, numCISC);
