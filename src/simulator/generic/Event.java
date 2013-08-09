@@ -10,7 +10,7 @@ import memorysystem.MemorySystem;
  * of the request too.This simplifies the code as we now don't have to create a 
  * separate pay-load class for each type of request. 
  */
-public abstract class Event 
+public abstract class Event implements Cloneable
 {
 	protected long eventTime;
 	protected EventQueue eventQ;
@@ -18,6 +18,15 @@ public abstract class Event
 	private long priority;
 	public int coreId;
 
+	public Event clone()
+	{
+		try {
+			return (Event) (super.clone());
+		} catch (CloneNotSupportedException e) {
+			misc.Error.showErrorAndExit("Error in cloning event object");
+			return null;
+		}
+	}
 	
 	//Element which processes the event.
 	protected SimulationElement requestingElement;

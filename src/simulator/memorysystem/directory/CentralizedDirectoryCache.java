@@ -105,7 +105,7 @@ public class CentralizedDirectoryCache extends Cache
 	{
 		//	Search for the directory entry 
 		//if not found, create one with invalid state 
-		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, address);
+		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, address, event);
 		if(dirEntry ==null)
 		{
 			// Right now, we tell the cache to mark this new line as exclusive.
@@ -175,7 +175,7 @@ public class CentralizedDirectoryCache extends Cache
 	private void memResponseDirectoryUpdate(EventQueue eventQ, Event event) 
 	{
 		long dirAddress = getDirectoryAddress((AddressCarryingEvent) event);
-		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, dirAddress);
+		DirectoryEntry dirEntry = (DirectoryEntry) processRequest(RequestType.Cache_Read, dirAddress, (AddressCarryingEvent)event);
 	
 		// There are two scenarios where we would like to invalidate the cache entry for this address.
 		
@@ -215,8 +215,8 @@ public class CentralizedDirectoryCache extends Cache
 		Cache requestingCache = (Cache)event.getRequestingElement();
 		
 		// If the state of directory entry is exclusive, set it to shared before adding a new sharer
-		if(dirEntry.getState()==MESI.EXCLUSIVE) {
-			dirEntry.setState(MESI.MODIFIED);
+		if(dirEntry.getState()==MESI.EXCLUSIVE && dirEntry.getNoOfSharers()>0) {
+			dirEntry.setState(MESI.SHARED);
 		}
 		
 		dirEntry.addSharer(requestingCache);
@@ -476,7 +476,10 @@ public class CentralizedDirectoryCache extends Cache
 			if(requestingCache == dirEntry.getOwner( )) {
 				dirEntry.setState(MESI.MODIFIED);
 			} else {
-				misc.Error.showErrorAndExit("A cache which does not own an entry cannot have a write hit !!");
+				// The entry for this directory line was invalidated a short while ago.
+				// Before the invalidate request reaches the cache, it sent a writeHit
+				// So just return from here. The cache will invalidate the entry later.
+				return;
 			}
 			
 		} else if (dirEntry.getState()==MESI.SHARED) {
@@ -493,7 +496,10 @@ public class CentralizedDirectoryCache extends Cache
 			dirEntry.addSharer(requestingCache);
 			
 		} else {
-			misc.Error.showErrorAndExit("Write hit received for invalid directory entry : " + dirEntry);
+			// The entry for this directory line was invalidated a short while ago.
+			// Before the invalidate request reaches the cache, it sent a writeHit
+			// So just return from here. The cache will invalidate the entry later.
+			return;
 		}
 		
 	}

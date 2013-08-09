@@ -80,6 +80,9 @@ public class RunnableThread implements Encoding, Runnable {
 	long[] prevCycles;
 	
 	IpcBase ipcBase;
+	
+	static boolean printIPTrace = false;
+	static long numShmWrites[];
 
 	/*
 	 * This keeps on reading from the appropriate index in the shared memory
@@ -95,6 +98,10 @@ public class RunnableThread implements Encoding, Runnable {
 		for(int i=0; i<EMUTHREADS; i++) {
 			CircularPacketQueue fromEmulator = new CircularPacketQueue(SharedMem.COUNT);
 			fromEmulatorAll.add(fromEmulator);
+		}
+		
+		if(printIPTrace==true) {
+			numShmWrites = new long[ipcBase.MaxNumJavaThreads*ipcBase.EmuThreadsPerJavaThread];
 		}
 		
 		Packet pnew = new Packet();
@@ -184,7 +191,12 @@ public class RunnableThread implements Encoding, Runnable {
 				while(fromEmulator.isEmpty() == false) {
 					pnew = fromEmulator.dequeue();
 					v = pnew.value;
-
+					
+					if(printIPTrace==true) {
+						System.out.println("pinTrace["+tidApplication+"] " + 
+								(++numShmWrites[tidApplication]) + " : " + pnew.ip);
+					}
+					
 					// if we read -1, this means this emulator thread finished.
 					if (v == Encoding.THREADCOMPLETE) {
 						System.out.println("runnableshm : last packetList received for application-thread " + 
@@ -197,7 +209,9 @@ public class RunnableThread implements Encoding, Runnable {
 					if(v == Encoding.SUBSETSIMCOMPLETE)
 					{
 						System.out.println("within SUBSETSIMCOMPLETE ");
+						ipcBase.javaThreadTermination[javaTid] = true;
 						allover = true;
+						break;
 					}
 					
 					
@@ -207,6 +221,10 @@ public class RunnableThread implements Encoding, Runnable {
 						// So don't process any more packets.
 						break;
 					}
+				}
+				
+				if(printIPTrace==true) {
+					System.out.flush();
 				}
 				
 				// perform error check.

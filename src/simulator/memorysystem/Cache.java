@@ -242,32 +242,30 @@ public class Cache extends SimulationElement
 		}
 		
 		public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
-		{noOfAccesses++;
-		if(event.getRequestType() == RequestType.Cache_Write)
 		{
-			noOfWritesReceived++;
-		}
+			noOfAccesses++;
+		
+			if(event.getRequestType() == RequestType.Cache_Write)
+			{
+				noOfWritesReceived++;
+			}
+			
 			//update counters
 			if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
-			}
-			else{
+			} else {
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
 			}
 			
 			RequestType requestType = event.getRequestType();
 			long address = event.getAddress();
 			
-			CacheLine cl = this.processRequest(requestType, address);
+			CacheLine cl = this.processRequest(requestType, address, event);
 			
 			//IF HIT
 			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 			{
 				
-				if(this.coherence == CoherenceType.Directory && event.getRequestType() == RequestType.Cache_Write && cl.getState()!=MESI.MODIFIED)
-				{
-					writeHitUpdateDirectory(event.coreId,( address>>> blockSizeBits ), event, address);
-				}
 				/*if(this.levelFromTop == CacheType.Lower){
 					System.out.println(event.getEventTime()+"  cache hit for address "+ event.getAddress() + "with tag = "+ computeTag(event.getAddress()));
 				}*/
@@ -298,15 +296,8 @@ public class Cache extends SimulationElement
 			}
 		}
 
-		private void handleAccessWithDirectoryUpdates(EventQueue eventQ,
-				AddressCarryingEvent event) {
-			//Writeback
-			if(this.levelFromTop != CacheType.L1)
-			{
-				System.err.println(" other than L1 handling AccessWith Directory "+ " coreID =  "+  event.coreId + "  " + this.levelFromTop  + " " + event.getRequestType());
-				System.exit(1);
-			}
-			
+		private void handleAccessWithDirectoryUpdates(EventQueue eventQ, AddressCarryingEvent event) 
+		{
 			if(event.getRequestType() == RequestType.Cache_Read_Writeback ) 
 			{
 				if (this.isLastLevel)
@@ -325,8 +316,11 @@ public class Cache extends SimulationElement
 
 			sendMemResponseDirectory(event);
 		}
+		
 		protected void handleMemResponse(EventQueue eventQ, Event event)
-		{noOfResponsesReceived++;
+		{
+			noOfResponsesReceived++;
+			
 			/*Response for a read/write miss. Thus incrementing counters here as well*/
 			if(this.isLastLevel){
 				Counters.incrementDcache2Access(1);
@@ -341,12 +335,47 @@ public class Cache extends SimulationElement
 		public void handleInvalidate(Event event)
 		{
 			CacheLine cl = this.access(((AddressCarryingEvent)event).getAddress());
-			if (cl != null)
+			if (cl != null) {
 				cl.setState(MESI.INVALID);
+			}
+			
+			invalidatePreviousLevelCaches((AddressCarryingEvent)event);
 		}
 		
+		private void invalidatePreviousLevelCaches(AddressCarryingEvent event)
+		{
+			// If I am invalidating a cache entry, I must inform all the previous level caches 
+			// about the same
+			if(prevLevel==null) {
+				return;
+			}
+			
+			for(int i=0; i<prevLevel.size(); i++) {
+				Cache c = prevLevel.get(i);
+				c.getPort().put(
+					new AddressCarryingEvent(
+						c.containingMemSys.getCore().getEventQueue(),
+						c.getLatency(),
+						this, 
+						c,
+						RequestType.MESI_Invalidate, 
+						((AddressCarryingEvent)event).getAddress(),
+						c.containingMemSys.getCore().getCore_number()));
+			}
+		}
 		
-		
+		private void sendWriteRequest(AddressCarryingEvent receivedEvent)
+		{
+			if(this.isLastLevel)
+			{
+				//System.out.println(receivedEvent.getEventTime()+"  cache miss for address "+ receivedEvent.getAddress() + "with tag = "+ computeTag(receivedEvent.getAddress()));
+				sendWriteRequestToMainMemory(receivedEvent);
+			} 
+			else
+			{
+				sendWriteRequestToLowerCache(receivedEvent);
+			}			
+		}		
 
 		private void sendReadRequest(AddressCarryingEvent receivedEvent)
 		{
@@ -359,6 +388,33 @@ public class Cache extends SimulationElement
 			{
 				sendReadRequestToLowerCache(receivedEvent);
 			}			
+		}
+		
+		/*
+		 * forward memory request to next level
+		 * handle related lower level mshr scenarios
+		 */
+		public void sendWriteRequestToLowerCache(AddressCarryingEvent receivedEvent)
+		{
+			/*AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(
+													receivedEvent.getEventQ(), 
+													this.nextLevel.getLatency(), 
+													this, 
+													this.nextLevel, 
+													RequestType.Cache_Read, 
+													receivedEvent.getAddress(),
+													receivedEvent.coreId);*/
+			receivedEvent.update(receivedEvent.getEventQ(),
+									this.nextLevel.getLatency(),
+									this,
+									this.nextLevel,
+									RequestType.Cache_Write);
+			
+			boolean isAddedinLowerMshr = this.nextLevel.addEvent(receivedEvent);
+			if(!isAddedinLowerMshr)
+			{
+				missStatusHoldingRegister.handleLowerMshrFull(receivedEvent);
+			}
 		}
 		
 		/*
@@ -386,6 +442,26 @@ public class Cache extends SimulationElement
 			{
 				missStatusHoldingRegister.handleLowerMshrFull(receivedEvent);
 			}
+		}
+		
+		private void sendWriteRequestToMainMemory(AddressCarryingEvent receivedEvent)
+		{
+			/*AddressCarryingEvent eventToForward = new AddressCarryingEvent(
+													receivedEvent.getEventQ(),
+												    MemorySystem.mainMemory.getLatency(), 
+												    this, 
+												    MemorySystem.mainMemory, 
+												    RequestType.Main_Mem_Read, 
+												    receivedEvent.getAddress(),
+												    receivedEvent.coreId);*/
+			
+			receivedEvent.update(receivedEvent.getEventQ(),
+					MemorySystem.mainMemory.getLatency(),
+					this,
+					MemorySystem.mainMemory,
+					RequestType.Main_Mem_Write);
+
+			MemorySystem.mainMemory.getPort().put(receivedEvent);
 		}
 		
 		private void sendReadRequestToMainMemory(AddressCarryingEvent receivedEvent)
@@ -608,7 +684,8 @@ public class Cache extends SimulationElement
 		}
 		
 		public void sendMemResponse(AddressCarryingEvent eventToRespondTo)
-		{noOfResponsesSent++;
+		{
+			noOfResponsesSent++;
 			eventToRespondTo.getRequestingElement().getPort().put(
 										eventToRespondTo.update(
 												eventToRespondTo.getEventQ(),
@@ -764,6 +841,7 @@ public class Cache extends SimulationElement
 					(event).coreId);
 			centralizedDirectory.getPort().put(addrEvent);
 			
+			invalidatePreviousLevelCaches((AddressCarryingEvent)event);			
 		}
 		
 		public long computeTag(long addr) {
@@ -850,12 +928,28 @@ public class Cache extends SimulationElement
 			return cl;
 		}
 		
-		protected CacheLine write(long addr)
+		protected CacheLine write(long addr, Event event)
 		{
 			CacheLine cl = access(addr);
 			if(cl != null) { 
 				mark(cl);
-				cl.setState(MESI.MODIFIED);
+				
+				if(cl.getState()!=MESI.MODIFIED) {
+					
+					cl.setState(MESI.MODIFIED);
+					
+					// Send request to lower cache.
+					if(this.coherence==CoherenceType.None && this.isLastLevel==false) {
+						AddressCarryingEvent newEvent  = (AddressCarryingEvent)event.clone();
+						newEvent.setAddress(addr);
+						sendWriteRequest(newEvent);
+					}
+					
+					// If I have coherence, I should send this request to Directory 
+					if(this.coherence == CoherenceType.Directory) {
+						writeHitUpdateDirectory(event.coreId,( addr>>> blockSizeBits ), event.clone(), addr);
+					}
+				}
 			}
 			return cl;
 		}
@@ -928,13 +1022,13 @@ public class Cache extends SimulationElement
 			return evictedLine;
 		}
 	
-		public CacheLine processRequest(RequestType requestType, long addr)
+		public CacheLine processRequest(RequestType requestType, long addr, Event event)
 		{
 			CacheLine ll = null;
 			if(requestType == RequestType.Cache_Read )  {
 				ll = this.read(addr);
 			} else if (requestType == RequestType.Cache_Write) {
-				ll = this.write(addr);
+				ll = this.write(addr, event);
 			}
 			return ll;
 		}

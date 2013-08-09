@@ -263,7 +263,7 @@ public class NucaCacheBank extends Cache implements NocInterface
 		long address = event.getAddress();
 		
 		//Process the access
-		CacheLine cl = this.processRequest(requestType, address);
+		CacheLine cl = this.processRequest(requestType, address, event);
 
 		//IF HIT
 		if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )

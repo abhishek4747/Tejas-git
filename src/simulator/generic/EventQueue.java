@@ -16,7 +16,10 @@ public class EventQueue
 	
 	public void addEvent(Event event)
 	{
-		priorityQueue.add(event);
+		if( priorityQueue.add(event) == false) {
+			Event newEvent = event.clone();
+			priorityQueue.add(newEvent);
+		}
 	}
 	
 	public void processEvents()
