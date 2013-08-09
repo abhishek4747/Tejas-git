@@ -464,6 +464,12 @@ public class XMLParser
 
 	private static void setNocProperties(Element NocType, NocConfig nocConfig)
 	{
+		NodeList NocLst = NocType.getElementsByTagName("L2");
+		Element NocElmnt = (Element) NocLst.item(0);
+		setL2NocProperties(NocElmnt, nocConfig);
+	}
+	private static void setL2NocProperties(Element NocType, NocConfig nocConfig)
+	{
 		nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", NocType));
 		nocConfig.portType = setPortType(getImmediateString("NocPortType", NocType));
 		nocConfig.accessPorts = Integer.parseInt(getImmediateString("NocAccessPorts", NocType));
@@ -536,7 +542,7 @@ public class XMLParser
 		if(tempStr.equalsIgnoreCase("ELECTRICAL"))
 			nocConfig.ConnType = CONNECTIONTYPE.ELECTRICAL;
 		else
-			nocConfig.ConnType = CONNECTIONTYPE.OPTICAL;
+			nocConfig.ConnType = CONNECTIONTYPE.OPTICAL;	
 	}
 	private static void setCacheProperties(Element CacheType, CacheConfig cache)
 	{

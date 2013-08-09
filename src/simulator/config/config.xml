@@ -138,22 +138,25 @@
 			<saturating_bits>1</saturating_bits>
 		</Predictor>
 		<NOC>
-			<NumberOfBankColumns>4</NumberOfBankColumns>	<!--NumberOfBanks-->
-			<NumberOfBankRows>4</NumberOfBankRows>
-			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
-			<NocSelScheme>STATIC</NocSelScheme>
-			<NocNumberOfBuffers>4</NocNumberOfBuffers>
-			<NocPortType>UL</NocPortType>
-			<NocAccessPorts>-1</NocAccessPorts>
-			<NocPortOccupancy>-1</NocPortOccupancy>
-			<NocLatency>1</NocLatency>
-			<NocOperatingFreq>2000</NocOperatingFreq>
-			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
-			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
-			<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
-			<NocRouterArbiter>RR</NocRouterArbiter>
-			<TechPoint>90</TechPoint>
-			<NocConnection>ELECTRICAL</NocConnection>
+			<!--If you want use NOC for any  other elements like core, L1 , add it here using a tag -->
+			<L2>
+				<NumberOfBankColumns>4</NumberOfBankColumns>	<!--NumberOfBanks-->
+				<NumberOfBankRows>4</NumberOfBankRows>
+				<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
+				<NocSelScheme>STATIC</NocSelScheme>
+				<NocNumberOfBuffers>4</NocNumberOfBuffers>
+				<NocPortType>UL</NocPortType>
+				<NocAccessPorts>-1</NocAccessPorts>
+				<NocPortOccupancy>-1</NocPortOccupancy>
+				<NocLatency>1</NocLatency>
+				<NocOperatingFreq>2000</NocOperatingFreq>
+				<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+				<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
+				<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+				<NocRouterArbiter>RR</NocRouterArbiter>
+				<TechPoint>90</TechPoint>
+				<NocConnection>ELECTRICAL</NocConnection>
+			</L2>
 		</NOC>
 		<Directory>
 		<Type0>
