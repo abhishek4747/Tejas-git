@@ -193,12 +193,12 @@ public class CentralizedDirectoryCache extends Cache
 		// L2 sends reply to Core 1 : We add Core 1 as the sharer for address x
 		// L2 sends reply to Core 3 : We add Core 3 as the sharer for address x 
 		// Since, we this violates the MESI protocol, we invalidate the entry for address x
+		Cache requestingCache = (Cache)event.getRequestingElement();
 		
-		boolean needToInvalidateCacheEntry = (dirEntry==null) || (dirEntry.getState()==MESI.MODIFIED && dirEntry.getNoOfSharers()>0);
+		boolean needToInvalidateCacheEntry = (dirEntry==null) || (dirEntry.getState()==MESI.MODIFIED && dirEntry.getNoOfSharers()>0 && dirEntry.getOwner()!=requestingCache);
 		if(needToInvalidateCacheEntry)
 		{
-			Cache requestingCache = (Cache)event.getRequestingElement();
-			
+						
 			requestingCache.getPort().put(
 					new AddressCarryingEvent(
 						requestingCache.containingMemSys.getCore().getEventQueue(),
@@ -212,7 +212,7 @@ public class CentralizedDirectoryCache extends Cache
 			return;
 		}
 		
-		Cache requestingCache = (Cache)event.getRequestingElement();
+		//Cache requestingCache = (Cache)event.getRequestingElement();
 		
 		// If the state of directory entry is exclusive, set it to shared before adding a new sharer
 		if(dirEntry.getState()==MESI.EXCLUSIVE && dirEntry.getNoOfSharers()>0) {
