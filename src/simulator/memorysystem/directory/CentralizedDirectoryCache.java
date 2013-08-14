@@ -215,7 +215,7 @@ public class CentralizedDirectoryCache extends Cache
 		//Cache requestingCache = (Cache)event.getRequestingElement();
 		
 		// If the state of directory entry is exclusive, set it to shared before adding a new sharer
-		if(dirEntry.getState()==MESI.EXCLUSIVE && dirEntry.getNoOfSharers()>0) {
+		if(dirEntry.getState()==MESI.EXCLUSIVE && dirEntry.getNoOfSharers()>0 && dirEntry.getOwner()!=requestingCache) {
 			dirEntry.setState(MESI.SHARED);
 		}
 		
