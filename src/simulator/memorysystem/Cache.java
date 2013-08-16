@@ -262,6 +262,11 @@ public class Cache extends SimulationElement
 			
 			CacheLine cl = this.processRequest(requestType, address, event);
 			
+//			if(this.levelFromTop==CacheType.L1) {
+//				System.out.println("numAccess = " + noOfAccesses + " addr = " + address + 
+//						" tag+set = " + (address>>>blockSizeBits));
+//			}
+			
 			//IF HIT
 			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 			{

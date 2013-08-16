@@ -60,7 +60,7 @@ public class CentralizedDirectoryCache extends Cache
 	private DirectoryEntry[] lines;
 	public boolean debug =false;
 	private long timestamp=0;
-	public static final long DIRECTORYSIZE = 32000;
+	
 	
 	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores) 
 	{
@@ -79,24 +79,8 @@ public class CentralizedDirectoryCache extends Cache
 		this.levelFromTop = CacheType.Directory;
 	}
 	
-	public long computeTag(long addr) {
-		long tag = addr >>> (numSetsBits);
-		return tag;
-	}
-	
-	public int getSetIdx(long addr)
-	{
-		int startIdx = getStartIdx(addr);
-		return startIdx/assoc;
-	}
-	
-	public int getStartIdx(long addr) {
-		long SetMask = ( 1 << (numSetsBits) )- 1;
-		int startIdx = (int) ((addr ) & (SetMask));
-		return startIdx;
-	}
-	
-	public CacheLine getCacheLine(int idx) {
+	// This function ensures that cache functions like access and fill return a directory entry and not a cache line.
+	public DirectoryEntry getCacheLine(int idx) {
 		return this.lines[idx];
 	}
 	
@@ -564,17 +548,28 @@ public class CentralizedDirectoryCache extends Cache
 	public long getDirectoryAddress(AddressCarryingEvent event)
 	{
 		long address = event.getAddress();
-		long addressToStore =  address >>>  ((Cache)event.getRequestingElement()).blockSizeBits;
+//		long addressToStore =  address >>>  ((Cache)event.getRequestingElement()).blockSizeBits;
+//		
+//		if(debug) System.out.println("address returned " + addressToStore);
+//		
+//		return addressToStore;
+		Cache requestingCache = (Cache)event.getRequestingElement(); 
+		if(this.blockSizeBits!=requestingCache.blockSizeBits) {
+			misc.Error.showErrorAndExit("requesting cache and directory must have same block size !!");
+		}
 		
-		if(debug) System.out.println("address returned " + addressToStore);
-		
-		return addressToStore;
+		return address;
 	}
 	
-	public static long getCacheAddress(Cache c, long dirAddress)
+	public long getCacheAddress(Cache c, long dirAddress)
 	{
-		long cacheAddress = dirAddress << c.blockSizeBits;
-		return cacheAddress;
+//		long cacheAddress = dirAddress << c.blockSizeBits;
+//		return cacheAddress;
+		if(this.blockSizeBits!=c.blockSizeBits) {
+			misc.Error.showErrorAndExit("requesting cache and directory must have same block size !!");
+		}
+		
+		return dirAddress;
 	}
 	
 	public long getInvalidations() {
