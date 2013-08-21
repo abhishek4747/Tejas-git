@@ -164,8 +164,8 @@
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
 			<Associativity>8</Associativity>
-			<Size>32</Size>					<!--In KBs-->
-			<Latency>1</Latency>				<!--In clock cycles-->
+			<Size>2048</Size>					<!--In KBs-->
+			<Latency>42</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>4</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->

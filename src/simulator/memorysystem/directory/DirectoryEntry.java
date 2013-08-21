@@ -146,7 +146,7 @@ public class DirectoryEntry extends CacheLine {
 	public String toString()
 	{
 		StringBuilder s = new StringBuilder();
-		s.append("line number = " + this.getTag() + " : "  + "state = " + this.getState() + " cores : " );
+		s.append("addr = " + this.getAddress() + " : "  + "state = " + this.getState() + " cores : " );
 		for(int i=0; i<this.sharers.size(); i++) {
 			s.append(this.sharers.elementAt(i).containingMemSys.getCore().getCore_number() + " , ");
 		}

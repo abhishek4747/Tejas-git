@@ -263,9 +263,9 @@ public class CentralizedDirectoryCache extends Cache
 				dirEntry.clearAllSharers();
 			}
 			else{
-				misc.Error.showErrorAndExit("directory error !  " + 
-						"\ndirEntry : " + dirEntry + 
-						"\nrequestingCache = " + requestingCache);
+				// An Invalidate request was sent some time back. It will reach the 
+				// cache in some time - We Hope !!
+				return;
 			}
 		}
 		
