@@ -24,15 +24,19 @@ package misc;
 import main.Emulator;
 import main.Main;
 import emulatorinterface.translator.InvalidInstructionException;
+import generic.GlobalClock;
 import generic.Operand;
 
 public class Error 
 {
 	public static void showErrorAndExit(String message)
 	{
-		new Exception().printStackTrace();
+		System.out.flush();
+		System.err.flush();
 		System.err.println(message);
+		System.err.println("Time : " + GlobalClock.getCurrentTime());
 		System.err.println("emulator command is : " + Emulator.getEmulatorCommand());
+		new Exception().printStackTrace();
 		shutDown("");
 		System.exit(1);
 	}

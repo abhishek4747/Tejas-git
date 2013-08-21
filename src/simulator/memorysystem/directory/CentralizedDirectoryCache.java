@@ -263,7 +263,9 @@ public class CentralizedDirectoryCache extends Cache
 				dirEntry.clearAllSharers();
 			}
 			else{
-				misc.Error.showErrorAndExit("directory error !!");
+				misc.Error.showErrorAndExit("directory error !  " + 
+						"\ndirEntry : " + dirEntry + 
+						"\nrequestingCache = " + requestingCache);
 			}
 		}
 		
@@ -658,10 +660,18 @@ public class CentralizedDirectoryCache extends Cache
 		// writeMiss for address (x+1) [x and x+1 map to same directory address]
 		// memResponse came for address x
 		// now, writeMiss for (x+1) sees that the cache line is occupied by itself
+		
+		long latency = -1;
+		if(requestingCache==event.getRequestingElement()) {
+			latency = 0;
+		} else {
+			misc.Error.showErrorAndExit("requestingCache and requestingElement are supposed to be same !!");
+		}
+		
 		requestingCache.getPort().put(
 				new AddressCarryingEvent(
 					requestingCache.containingMemSys.getCore().getEventQueue(),
-					requestingCache.getLatencyDelay(),
+					latency,
 					event.getRequestingElement(),
 					requestingCache,
 					RequestType.Send_Mem_Response,
