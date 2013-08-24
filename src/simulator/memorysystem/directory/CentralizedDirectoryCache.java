@@ -251,13 +251,14 @@ public class CentralizedDirectoryCache extends Cache
 		/*dirEntryHeap.remove(dirEntry);
 		dirEntryHeap.add(dirEntry);
 */
+		incrementDirectoryHits(1);
+
 		
 		if(state==MESI.MODIFIED) {
 			//Writeback the result
 			Cache prevOwner = dirEntry.getOwner();
 			if( prevOwner==requestingCache ){
 				this.writebacks++;
-				incrementDirectoryMisses(1);
 				requestingCache.propogateWrite((AddressCarryingEvent)event);
 				dirEntry.setState(MESI.INVALID );
 				dirEntry.clearAllSharers();
@@ -272,7 +273,13 @@ public class CentralizedDirectoryCache extends Cache
 		else if(state==MESI.SHARED || state == MESI.EXCLUSIVE )
 		{
 			if(dirEntry.isSharer(requestingCache)==false) {
-				misc.Error.showErrorAndExit("directory error !!");
+				// This cache line may be shared in the past.
+				// An invalidation request for the requestingCache will reach there in some time
+				// time t  --> SHARED between core 1 and core 2
+				// time t+1 --> WRITE_HIT for core 2; INVALIDATION sent to core 1
+				// time t+2 --> EVICTION by core 1 -- WE ARE HERE NOW.
+				// time t+3 --> INVALIDATION message reaches core 1 (FUTURE)
+				return;
 			}
 			
 			dirEntry.removeSharer(requestingCache);
@@ -331,7 +338,6 @@ public class CentralizedDirectoryCache extends Cache
 		{
 			incrementWritebacks(1);
 			incrementDirectoryHits(1);
-			incrementDirectoryMisses(1);
 			if(requestingCache==dirEntry.getOwner()) {
 				this.sendResponseToAPendingEventOfSameCacheLine(requestingCache, event);
 				return;
@@ -457,7 +463,7 @@ public class CentralizedDirectoryCache extends Cache
 	*/	
 		
 		if(dirEntry.getState()==MESI.EXCLUSIVE) {
-			
+			incrementDirectoryHits(1);
 			// Mark it as modified
 			if(requestingCache == dirEntry.getOwner( )) {
 				dirEntry.setState(MESI.MODIFIED);
@@ -469,7 +475,7 @@ public class CentralizedDirectoryCache extends Cache
 			}
 			
 		} else if (dirEntry.getState()==MESI.SHARED) {
-			
+			incrementDirectoryHits(1);
 			// Invalidate the entry of all other caches
 			sendeventToSharers(dirEntry, RequestType.MESI_Invalidate, requestingCache);	
 			dirEntry.clearAllSharers();
@@ -539,7 +545,7 @@ public class CentralizedDirectoryCache extends Cache
 		MemorySystem.mainMemory.getPort().put(
 				new AddressCarryingEvent(
 						event.getEventQ(),
-						MemorySystem.mainMemory.getLatencyDelay(),
+						MemorySystem.mainMemory.getLatencyDelay() + getNetworkDelay(),
 						event.getRequestingElement(), 
 						MemorySystem.mainMemory,
 						RequestType.Main_Mem_Read,
@@ -641,7 +647,7 @@ public class CentralizedDirectoryCache extends Cache
 		return numDirectoryEntries;
 	}
 	
-	public int getNetworkDelay() {
+	public static int getNetworkDelay() {
 		return 6;
 	}
 	
