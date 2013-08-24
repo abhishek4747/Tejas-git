@@ -196,12 +196,24 @@ public class Cache extends SimulationElement
 		}
 		
 		
-		
+		private boolean printCacheDebugMessages = false;
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
 			// Sanity check for iCache
 			if(this.levelFromTop==CacheType.iCache && event.getRequestType()==RequestType.Cache_Read && ((AddressCarryingEvent)event).getAddress()==-1) {
 				misc.Error.showErrorAndExit("iCache is getting request for invalid ip : -1");
+			}
+			
+			if(printCacheDebugMessages==true) {
+				if(event.getClass()==AddressCarryingEvent.class &&
+					((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l &&
+					this.levelFromTop==CacheType.L1)
+				{
+					System.out.println("CACHE : globalTime = " + GlobalClock.getCurrentTime() + 
+						"\teventTime = " + event.getEventTime() + "\t" + event.getRequestType() +
+						"\trequestingElelement = " + event.getRequestingElement() +
+						"\t" + this);
+				}
 			}
 			
 			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)

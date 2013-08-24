@@ -24,6 +24,7 @@ import generic.Core;
 import generic.Event;
 import generic.EventComparator;
 import generic.EventQueue;
+import generic.GlobalClock;
 import generic.RequestType;
 import generic.SimulationElement;
 
@@ -131,9 +132,20 @@ public class CentralizedDirectoryCache extends Cache
 	}
 	
 	
-	
+	boolean printDirectoryDebugMessages = false;
 	public void handleEvent( EventQueue eventQ, Event event )
 	{
+		if(printDirectoryDebugMessages==true) {
+			if(event.getClass()==AddressCarryingEvent.class &&
+				((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l)
+			{
+				System.out.println("DIRECTORY : globalTime = " + GlobalClock.getCurrentTime() + 
+						"\teventTime = " + event.getEventTime() + "\t" + event.getRequestType() + 
+						"\t" + event.getRequestingElement() + 
+						"\tdirEntry = " + access(((AddressCarryingEvent)event).getAddress()));
+			}
+		}
+		
 		if( event.getRequestType() == RequestType.WriteHitDirectoryUpdate )
 		{
 			writeHitDirectoryUpdate(eventQ,event);
