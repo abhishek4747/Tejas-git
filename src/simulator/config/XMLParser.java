@@ -310,6 +310,7 @@ public class XMLParser
 		SystemConfig.invalidationSendDelay = Integer.parseInt(getImmediateString("invalidationSendDelay", systemElmnt));
 		SystemConfig.invalidationAckCollectDelay = Integer.parseInt(getImmediateString("invalidationAckCollectDelay", systemElmnt));
 		SystemConfig.ownershipChangeDelay = Integer.parseInt(getImmediateString("ownershipChangeDelay", systemElmnt));
+		SystemConfig.dirNetworkDelay = Integer.parseInt(getImmediateString("dirNetworkDelay", systemElmnt));
 	
 		NodeList powerLst = doc.getElementsByTagName("Power");
 		Node powerNode = powerLst.item(0);

@@ -127,7 +127,8 @@ public class MemorySystem
 		mainMemory = new MainMemory(nucaType);
 		//Initialize centralized directory
 //		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
-		centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig, null, cores.length);
+		centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig, null, cores.length, 
+				SystemConfig.dirNetworkDelay);
 		//Link all the initialised caches to their next levels
 
 		

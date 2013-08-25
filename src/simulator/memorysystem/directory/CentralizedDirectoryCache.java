@@ -60,9 +60,10 @@ public class CentralizedDirectoryCache extends Cache
 	private DirectoryEntry[] lines;
 	public boolean debug =false;
 	private long timestamp=0;
+	public int networkDelay;
 	
-	
-	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores) 
+	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores, 
+			int networkDelay) 
 	{
 		super(cacheParameters, containingMemSys);
 		
@@ -77,6 +78,7 @@ public class CentralizedDirectoryCache extends Cache
 		directoryMisses = 0;
 
 		this.levelFromTop = CacheType.Directory;
+		this.networkDelay = networkDelay;
 	}
 	
 	// This function ensures that cache functions like access and fill return a directory entry and not a cache line.
@@ -640,7 +642,7 @@ public class CentralizedDirectoryCache extends Cache
 	}
 	
 	public int getNetworkDelay() {
-		return 6;
+		return networkDelay;
 	}
 	
 	public String toString()
