@@ -196,12 +196,24 @@ public class Cache extends SimulationElement
 		}
 		
 		
-		
+		private boolean printCacheDebugMessages = false;
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
 			// Sanity check for iCache
 			if(this.levelFromTop==CacheType.iCache && event.getRequestType()==RequestType.Cache_Read && ((AddressCarryingEvent)event).getAddress()==-1) {
 				misc.Error.showErrorAndExit("iCache is getting request for invalid ip : -1");
+			}
+			
+			if(printCacheDebugMessages==true) {
+				if(event.getClass()==AddressCarryingEvent.class &&
+					((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l &&
+					this.levelFromTop==CacheType.L1)
+				{
+					System.out.println("CACHE : globalTime = " + GlobalClock.getCurrentTime() + 
+						"\teventTime = " + event.getEventTime() + "\t" + event.getRequestType() +
+						"\trequestingElelement = " + event.getRequestingElement() +
+						"\t" + this);
+				}
 			}
 			
 			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
@@ -690,11 +702,33 @@ public class Cache extends SimulationElement
 		
 		public void sendMemResponse(AddressCarryingEvent eventToRespondTo)
 		{
+			long delay = eventToRespondTo.getRequestingElement().getLatency();
+			
+			// ------- Add the network delay when coherent caches are communicating with each other -----------
+			// L1 data cache
+			if(eventToRespondTo.getRequestingElement().getClass()==Cache.class &&
+				((Cache)eventToRespondTo.getRequestingElement()).coherence==CoherenceType.Directory)
+			{
+				delay += CentralizedDirectoryCache.getNetworkDelay(); 
+			}
+			
+			// Instruction cache connected directly to the lower cache
+			// Here, coherence is not there but network delay must be added
+			// We are checking for connection to lower cache because if tomorrow we have a private L2 cache, this
+			// network delay must not be added.
+			if(eventToRespondTo.getRequestingElement().getClass()==Cache.class &&
+				((Cache)eventToRespondTo.getRequestingElement()).levelFromTop==CacheType.iCache &&
+				((Cache)eventToRespondTo.getRequestingElement()).nextLevel.levelFromTop==CacheType.Lower)
+			{
+				delay += CentralizedDirectoryCache.getNetworkDelay(); 
+			}
+
+						
 			noOfResponsesSent++;
 			eventToRespondTo.getRequestingElement().getPort().put(
 										eventToRespondTo.update(
 												eventToRespondTo.getEventQ(),
-												0,
+												delay,
 												eventToRespondTo.getProcessingElement(),
 												eventToRespondTo.getRequestingElement(),
 												RequestType.Mem_Response));
@@ -753,10 +787,16 @@ public class Cache extends SimulationElement
 		 * */
 		private void writeHitUpdateDirectory(int requestingCore, long dirAddress, Event event, long address){
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			
+			long delay = 0;
+			if(this.coherence==CoherenceType.Directory) {
+				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
+			}
+			
 			centralizedDirectory.getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
-									centralizedDirectory.getLatencyDelay(),
+									delay,
 									this,
 									centralizedDirectory,
 									RequestType.WriteHitDirectoryUpdate,
@@ -778,11 +818,18 @@ public class Cache extends SimulationElement
 		 * */
 		
 		private void readMissUpdateDirectory(int requestingCore,long dirAddress, Event event, long address) {
+			
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			
+			long delay = 0;
+			if(this.coherence==CoherenceType.Directory) {
+				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
+			}
+			
 			centralizedDirectory.getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
-									centralizedDirectory.getLatencyDelay(),
+									delay,
 									this,
 									centralizedDirectory,
 									RequestType.ReadMissDirectoryUpdate,
@@ -802,10 +849,15 @@ public class Cache extends SimulationElement
 		 * */
 		private void writeMissUpdateDirectory(int requestingCore, long dirAddress, Event event, long address) {
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			long delay = 0;
+			if(this.coherence==CoherenceType.Directory) {
+				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
+			}
+			
 			centralizedDirectory.getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
-									centralizedDirectory.getLatencyDelay(),
+									delay,
 									this,
 									centralizedDirectory,
 									RequestType.WriteMissDirectoryUpdate,
@@ -817,10 +869,16 @@ public class Cache extends SimulationElement
 		private void memResponseUpdateDirectory( int requestingCore, long dirAddress,Event event, long address )
 		{
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			long delay = 0;			
+			if(this.coherence==CoherenceType.Directory) {
+				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatency();
+			}
+			
+			
 			centralizedDirectory.getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
-									centralizedDirectory.getLatencyDelay(),
+									delay,
 									this,
 									centralizedDirectory,
 									RequestType.MemResponseDirectoryUpdate,
@@ -836,9 +894,14 @@ public class Cache extends SimulationElement
 		private void evictionUpdateDirectory(int requestingCore, long dirAddress,Event event, long address) {
 			if(debug && this.levelFromTop == CacheType.L1)System.out.println("tag of line evicted " + (address >>>  this.blockSizeBits)+ " coreID  " + event.coreId );
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
+			long delay = 0;			
+			if(this.coherence==CoherenceType.Directory) {
+				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatency();
+			}
+			
 			AddressCarryingEvent addrEvent = new AddressCarryingEvent(
 					event.getEventQ(),
-					centralizedDirectory.getLatencyDelay(),
+					delay,
 					this,
 					centralizedDirectory,
 					RequestType.EvictionDirectoryUpdate,

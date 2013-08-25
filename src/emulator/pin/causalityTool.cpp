@@ -249,8 +249,12 @@ VOID CountIns()
 	numIns++;
 	if (numIns>numInsToIgnore) ignoreActive = false;	//activate Now
 }
-
+static int barrier = 0;
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
+	if(encode == 22){
+		cout<<"barrier in causality tool : "<<++barrier<<"\n";
+		fflush(stdout);
+	}
 	uint64_t time = ClockGetTime();
 	sendTimerPacket(tid,true);
 
@@ -489,8 +493,8 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 	else if (cmp("pthread_cond_wait"))
 		encode = CONDWAIT;
 	/*** For barriers. Used for research purpose ***/
-/*	else if (cmp("pthread_barrier_wait")){
-		
+	else if (cmp("pthread_barrier_wait")){
+
 		encode = BARRIERWAIT;
 	}
 	else if (cmp("parsec_barrier_wait"))
@@ -498,7 +502,8 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 	else if (cmp("pthread_barrier_init")) {
 		cout << "barrier init encountered !!\n";
 		encode = BARRIERINIT;
-	}*/
+	}
+	/*** For barriers. Used for research purpose ***/
 	else
 		encode = -1;
 
@@ -513,9 +518,9 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 
 	}
 	else if(encode != -1 && RTN_Valid(rtn)){
-//		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) BarrierInit,
-//				IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_UINT32, encode,
-//				IARG_THREAD_ID, IARG_END);
+		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) BarrierInit,
+				IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_UINT32, encode,
+				IARG_THREAD_ID, IARG_END);
 	}
 	RTN_Close(rtn);
 }

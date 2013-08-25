@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
-<project basedir="." default="build" name="Tejas-Base-2">
+<project basedir="." default="build" name="Tejas">
 	<!-- change these as required -->
 	    <property name="jar-dir" value="jars"/>    <!-- directory where the jars are generated -->
 	    <property name="jar-name" value="tejas"/>  <!-- name of the jar -->
@@ -11,7 +11,7 @@
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
-    <path id="Tejas-Base-2.classpath">
+    <path id="Tejas.classpath">
         <pathelement location="bin"/>
         <pathelement location="src/log4j-1.2.16.jar"/>
     </path>
@@ -50,15 +50,15 @@
             <src path="src"/>
             <exclude name="simulator/"/>
             <exclude name="emulator/pin/"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
+            <classpath refid="Tejas.classpath"/>
         </javac>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
             <src path="src/simulator"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
+            <classpath refid="Tejas.classpath"/>
         </javac>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
             <src path="src/emulator/pin"/>
-            <classpath refid="Tejas-Base-2.classpath"/>
+            <classpath refid="Tejas.classpath"/>
         </javac>
     </target>
     <target name="clean-pin">
