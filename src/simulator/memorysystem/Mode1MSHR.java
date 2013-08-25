@@ -19,6 +19,7 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 	
 	public Mode1MSHR(int mshrSize)
 	{
+		misc.Error.showErrorAndExit("Use Mode3MSHR instead of Mode1MSHR !!");
 		mshr = new PooledLinkedList(mshrSize+1);
 		curLength = 0;
 		maxLengthReached = 0;

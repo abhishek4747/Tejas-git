@@ -13,23 +13,23 @@ public class OMREntry {
 		this.eventToForward = eventToForward;
 	}
 	
-	public boolean containsWrite()
+	public boolean containsWriteToAddress(long addr)
 	{
-		boolean contains = false;
-		
-		if(eventToForward != null && eventToForward.getRequestType() != RequestType.Cache_Write)
+		if(eventToForward != null && eventToForward.getRequestType() == RequestType.Cache_Write &&
+				eventToForward.getAddress() == addr)
 		{
-			return false;
+			return true;
 		}
 		
 		for(int i = 0; i < outStandingEvents.size(); i++)
 		{
-			if(outStandingEvents.get(i).getRequestType() == RequestType.Cache_Write)
+			if(outStandingEvents.get(i).getRequestType() == RequestType.Cache_Write &&
+					outStandingEvents.get(i).getAddress() == addr)
 			{
-				contains = true;
+				return true;
 			}
 		}
 		
-		return contains;
+		return false;
 	}
 }

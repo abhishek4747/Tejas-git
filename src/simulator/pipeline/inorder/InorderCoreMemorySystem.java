@@ -26,6 +26,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	public boolean issueRequestToL1Cache(RequestType requestType, 
 											long address)
 	{
+		System.out.println("dataCache : " + address);
 		InorderPipeline inorderPipeline = null; 
 		if(SimulationConfig.isPipelineInorder)
 		{
@@ -90,6 +91,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 	//To issue the request to instruction cache
 	public void issueRequestToInstrCache(long address)
 	{
+		System.out.println("iCache : " + address);
 		InorderPipeline inorderPipeline = null; 
 		if(SimulationConfig.isPipelineInorder)
 		{

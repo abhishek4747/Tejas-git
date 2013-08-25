@@ -112,8 +112,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
 	//	L1MissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
 	//	iMissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
-		L1MissStatusHoldingRegister = new Mode1MSHR(SystemConfig.core[coreID].LSQSize);
-		iMissStatusHoldingRegister = new Mode1MSHR(SystemConfig.core[coreID].LSQSize);
+		L1MissStatusHoldingRegister = new Mode3MSHR(l1Cache.blockSizeBits, SystemConfig.core[coreID].LSQSize, null);
+		iMissStatusHoldingRegister = new Mode3MSHR(iCache.blockSizeBits, SystemConfig.core[coreID].LSQSize, null);
 	}
 	
 	public abstract void issueRequestToInstrCache(long address);

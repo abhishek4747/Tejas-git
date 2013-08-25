@@ -2,6 +2,7 @@ package memorysystem;
 
 import generic.Event;
 import generic.EventQueue;
+import generic.GlobalClock;
 import generic.OMREntry;
 import generic.PortType;
 import generic.RequestType;
@@ -67,8 +68,13 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	 * return value signifies whether new omrentry created or not
 	 * */
 	@Override
-	public boolean addOutstandingRequest(AddressCarryingEvent event)
+	public boolean addOutstandingRequest(AddressCarryingEvent eventAdded)
 	{
+		System.out.println("addRequestMSHR\ttime = " + GlobalClock.getCurrentTime() + 
+				"\tevent = " + eventAdded);
+		AddressCarryingEvent event = (AddressCarryingEvent)eventAdded.clone();
+		
+		//System.out.println("Adding outstanding request : " + event);
 		long addr = event.getAddress();
 		long blockAddr = addr >>> offset;
 		
@@ -101,7 +107,16 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		if(entry==null) {
 			misc.Error.showErrorAndExit("event not in MSHR : " + event);
 			return null;
-		} else {		
+		} else {
+			Event removedEvent = entry.outStandingEvents.get(0);
+			// This update event method is just a copy of Mode1MSHR's code
+			event.update(removedEvent.getEventQ(),
+					0,
+					removedEvent.getRequestingElement(),
+					removedEvent.getProcessingElement(),
+					removedEvent.getRequestType()
+					);
+			
 			return entry.outStandingEvents;
 		}
 	}
@@ -206,13 +221,16 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	@Override
 	public boolean containsWriteOfEvictedLine(long address)
 	{
+		if(true) {
+			return false;
+		}
 		//if the MSHR contains a write to given address
 		// AND if the eventToForward of the omrEntry is a Write
 		//  then
 		//    this either refers to a write to a block that is contained in the cache
 		//    OR this refers to an evicted block
 		OMREntry omrEntry = getMshrEntry(address >>> offset);
-		if(omrEntry != null && omrEntry.containsWrite())
+		if(omrEntry != null && omrEntry.containsWriteToAddress(address))
 		{
 			return true;
 		}
@@ -382,6 +400,14 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		if(entry==null) {
 			return null;
 		} else {		
+			Event removedEvent = entry.outStandingEvents.get(0);
+			// This update event method is just a copy of Mode1MSHR's code
+			event.update(removedEvent.getEventQ(),
+					0,
+					removedEvent.getRequestingElement(),
+					removedEvent.getProcessingElement(),
+					removedEvent.getRequestType()
+					);
 			return entry.outStandingEvents;
 		}
 	}

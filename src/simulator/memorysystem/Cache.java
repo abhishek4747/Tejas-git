@@ -191,12 +191,12 @@ public class Cache extends SimulationElement
 			
 			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
 			//if(this.level)
-			missStatusHoldingRegister = new Mode1MSHR(10000);
+			missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 10000, null);
 			
 		}
 		
 		
-		private boolean printCacheDebugMessages = false;
+		private boolean printCacheDebugMessages = true;
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
 			// Sanity check for iCache
@@ -205,13 +205,14 @@ public class Cache extends SimulationElement
 			}
 			
 			if(printCacheDebugMessages==true) {
-				if(event.getClass()==AddressCarryingEvent.class &&
-					((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l &&
-					this.levelFromTop==CacheType.L1)
+				if(event.getClass()==AddressCarryingEvent.class)// &&
+//					((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l &&
+//					this.levelFromTop==CacheType.L1)
 				{
 					System.out.println("CACHE : globalTime = " + GlobalClock.getCurrentTime() + 
 						"\teventTime = " + event.getEventTime() + "\t" + event.getRequestType() +
 						"\trequestingElelement = " + event.getRequestingElement() +
+						"\taddress = " + ((AddressCarryingEvent)event).getAddress() +
 						"\t" + this);
 				}
 			}
@@ -515,7 +516,7 @@ public class Cache extends SimulationElement
 		
 		
 		
-		private void sendResponseToWaitingEvent(ArrayList<AddressCarryingEvent> outstandingRequestList)
+		protected void sendResponseToWaitingEvent(ArrayList<AddressCarryingEvent> outstandingRequestList)
 		{
 			int numberOfWrites = 0;
 			AddressCarryingEvent sampleWriteEvent = null;
@@ -599,24 +600,24 @@ public class Cache extends SimulationElement
 			}
 			else
 			{
-				//if mode3mshr
-				
-				AddressCarryingEvent eventToForward = ((Mode3MSHR)missStatusHoldingRegister).getMshrEntry(addressEvent.getAddress()).eventToForward; 
-				/*
-				 * it is possible that an onrEntry corresponding to the line exists, and has a write as eventToForward
-				 * in this situation, we are not expecting any memResponse for the line from below
-				 * therefore, we have to schedule a handleAccess
-				 */
-				if(eventToForward != null &&
-						eventToForward.getRequestType() == RequestType.Cache_Write)
-				{
-					//handleAccess(addressEvent.getEventQ(), addressEvent);
-					/*
-					 * directly calling handle access does not include hit-time
-					 * instead, we schedule an event at time cur + hit-time
-					 */
-					this.getPort().put(addressEvent);
-				}
+//				//if mode3mshr
+//				
+//				AddressCarryingEvent eventToForward = ((Mode3MSHR)missStatusHoldingRegister).getMshrEntry(addressEvent.getAddress()).eventToForward; 
+//				/*
+//				 * it is possible that an onrEntry corresponding to the line exists, and has a write as eventToForward
+//				 * in this situation, we are not expecting any memResponse for the line from below
+//				 * therefore, we have to schedule a handleAccess
+//				 */
+//				if(eventToForward != null &&
+//						eventToForward.getRequestType() == RequestType.Cache_Write)
+//				{
+//					//handleAccess(addressEvent.getEventQ(), addressEvent);
+//					/*
+//					 * directly calling handle access does not include hit-time
+//					 * instead, we schedule an event at time cur + hit-time
+//					 */
+//					this.getPort().put(addressEvent);
+//				}
 			}
 			
 			return true;

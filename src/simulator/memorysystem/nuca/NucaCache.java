@@ -39,6 +39,7 @@ import memorysystem.MemorySystem;
 import memorysystem.MissStatusHoldingRegister;
 import memorysystem.Mode1MSHR;
 import memorysystem.Cache.CoherenceType;
+import memorysystem.Mode3MSHR;
 import misc.Util;
 import config.CacheConfig;
 import config.SimulationConfig;
@@ -95,7 +96,7 @@ public class NucaCache extends Cache
         	}
         }
         noc = new NOC();
-        missStatusHoldingRegister = new Mode1MSHR(40000);
+        missStatusHoldingRegister = new Mode3MSHR(this.blockSizeBits, 40000, null);
         makeCacheBanks(cacheParameters, containingMemSys, tokenbus);
         for(int i=0;i<2;i++)
 		{
@@ -255,12 +256,12 @@ public class NucaCache extends Cache
 	
 	protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
-		ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddressIfAvailable((AddressCarryingEvent)event);
+		ArrayList<AddressCarryingEvent> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddressIfAvailable((AddressCarryingEvent)event);
 		sendResponseToWaitingEvent(eventsToBeServed);
 	}
 	
 	
-	protected void sendResponseToWaitingEvent(ArrayList<Event> outstandingRequestList)
+	protected void sendResponseToWaitingEvent(ArrayList<AddressCarryingEvent> outstandingRequestList)
 	{
 		while (!outstandingRequestList.isEmpty())
 		{	

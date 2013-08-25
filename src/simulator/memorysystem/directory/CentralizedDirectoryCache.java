@@ -132,12 +132,12 @@ public class CentralizedDirectoryCache extends Cache
 	}
 	
 	
-	boolean printDirectoryDebugMessages = false;
+	boolean printDirectoryDebugMessages = true;
 	public void handleEvent( EventQueue eventQ, Event event )
 	{
 		if(printDirectoryDebugMessages==true) {
-			if(event.getClass()==AddressCarryingEvent.class &&
-				((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l)
+//			if(event.getClass()==AddressCarryingEvent.class &&
+//				((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l)
 			{
 				System.out.println("DIRECTORY : globalTime = " + GlobalClock.getCurrentTime() + 
 						"\teventTime = " + event.getEventTime() + "\t" + event.getRequestType() + 
