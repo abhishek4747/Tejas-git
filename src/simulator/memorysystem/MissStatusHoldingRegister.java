@@ -8,6 +8,7 @@ import java.util.Vector;
 import generic.Event;
 import generic.OMREntry;
 import generic.RequestType;
+import generic.SimulationElement;
 
 
 public interface MissStatusHoldingRegister {
@@ -21,19 +22,19 @@ public interface MissStatusHoldingRegister {
 	
 	public int getMSHRStructSize();
 	
-	public int numOutStandingRequests(Event event);
+	public int numOutStandingRequests(AddressCarryingEvent event);
 	/*
 	 * return value signifies whether new omrentry created or not
 	 * */
 	public boolean addOutstandingRequest(AddressCarryingEvent event);
 	
-	public ArrayList<Event> removeRequests(AddressCarryingEvent event);
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(AddressCarryingEvent event);
 	
-	public boolean removeEvent(AddressCarryingEvent addrevent);
+	public boolean removeRequestsByRequestTypeAndAddress(AddressCarryingEvent addrevent);
 	
-	public boolean removeEventIfAvailable(AddressCarryingEvent addrevent);
+	public boolean removeRequestsByRequestTypeAndAddressIfAvailable(AddressCarryingEvent addrevent);
 	
-	public ArrayList<Event> removeRequestsIfAvailable(AddressCarryingEvent event);
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddressIfAvailable(AddressCarryingEvent event);
 	
 	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent);
 	

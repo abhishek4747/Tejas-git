@@ -148,7 +148,7 @@ public class CBDNuca extends NucaCache {
 			this.noOfRequests++;
 			if(br.hit) {
 				this.hits++;
-		    	ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsIfAvailable((AddressCarryingEvent)event);
+		    	ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddressIfAvailable((AddressCarryingEvent)event);
 				sendResponseToWaitingEvent(eventsToBeServed);
 				if(debugPrint)System.out.println(event.event_id +  " removed entry for address  from cachebankreadwrite for address: "+ event.getAddress());
 				sendRequests.remove(event.event_id);
@@ -172,7 +172,7 @@ public class CBDNuca extends NucaCache {
 		} 
 
 		BroadCastRequestHandler br = sendRequests.get(event.event_id);
-    	ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsIfAvailable((AddressCarryingEvent)event);
+    	ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddressIfAvailable((AddressCarryingEvent)event);
 		sendResponseToWaitingEvent(eventsToBeServed);
 		//if(debugPrint)System.out.println(event.getAddress() +" 4removed entry for address  from maim mem response " +  br.num_unique_req);
 		sendRequests.remove(event.event_id);

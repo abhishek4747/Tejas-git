@@ -91,7 +91,8 @@ public enum RequestType {
 	PerformPulls, 
 	Send_Mem_Response_Invalidate,
 	Invalid_Event, Cache_Hit, Cache_Miss,
-	
+
+	MSHR_Full,
 	Tlb_Miss_Response
 	
 //	MEM_READ,

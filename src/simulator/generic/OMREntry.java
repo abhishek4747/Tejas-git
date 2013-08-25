@@ -4,14 +4,12 @@ import java.util.ArrayList;
 import memorysystem.AddressCarryingEvent;
 
 public class OMREntry {
-	public ArrayList<Event> outStandingEvents;
-	public boolean readyToProceed;
+	public ArrayList<AddressCarryingEvent> outStandingEvents;
 	public AddressCarryingEvent eventToForward;
 	
-	public OMREntry(ArrayList<Event> outStandingEvent,boolean readyToProceed,AddressCarryingEvent eventToForward)
+	public OMREntry(ArrayList<AddressCarryingEvent> outStandingEvent, AddressCarryingEvent eventToForward)
 	{
 		this.outStandingEvents = outStandingEvent;
-		this.readyToProceed = readyToProceed;
 		this.eventToForward = eventToForward;
 	}
 	

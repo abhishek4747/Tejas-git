@@ -151,7 +151,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		//if response comes from iCache, inform fetchunit
 		if(memResponse.getRequestingElement() == iCache)
 		{
-			iMissStatusHoldingRegister.removeRequests(memResponse);
+			iMissStatusHoldingRegister.removeRequestsByAddress(memResponse);
 			containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);
 		}
 		
@@ -159,7 +159,7 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
 			//TODO currently handling only reads
-			L1MissStatusHoldingRegister.removeRequests(memResponse);
+			L1MissStatusHoldingRegister.removeRequestsByAddress(memResponse);
 			containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
 		}
 		

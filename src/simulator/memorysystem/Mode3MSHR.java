@@ -19,32 +19,21 @@ import memorysystem.nuca.NucaCacheBank;
 public class Mode3MSHR extends SimulationElement implements MissStatusHoldingRegister{
 	
 	int offset;
-	final int mshrSize;
+	final int mshrStructSize;
 	Hashtable<Long, OMREntry> mshr;
-	int numberOfEntriesReadyToProceed;
-
-	public ArrayList<Mode3MSHR> connectedMSHR;
-	public int startIndexForPulling;
+	public int maxSizeReached = Integer.MIN_VALUE;
 	
 	public Mode3MSHR(int offset, int mshrSize, EventQueue eventQ) {
 		
-		super(PortType.Unlimited,
-				-1,
-				-1,
-				eventQ,
-				-1,
-				-1);
+		super(PortType.Unlimited, -1, -1, // Port parameter (type, numPorts, occupancy)
+				eventQ, -1, -1);          // Simulation element (event queue, latency, frequency)
 		
 		this.offset = offset;
-		this.mshrSize = mshrSize;
+		this.mshrStructSize = mshrSize;
 		mshr = new Hashtable<Long, OMREntry>(mshrSize);
-		numberOfEntriesReadyToProceed = 0;
-		
-		connectedMSHR = new ArrayList<Mode3MSHR>();
-		startIndexForPulling = 0;
 	}
 	
-	int getSize()
+	public int getCurrentSize()
 	{
 		int currentSize = 0;
 		Enumeration<OMREntry> omrIte = mshr.elements();
@@ -53,13 +42,18 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			OMREntry omrEntry = omrIte.nextElement();
 			currentSize += omrEntry.outStandingEvents.size();
 		}
+		
+		if(currentSize>maxSizeReached) {
+			maxSizeReached = currentSize;
+		}
+		
 		return currentSize;
 	}
 	
 	@Override
 	public boolean isFull()
 	{
-		if(getSize() < mshrSize)
+		if(getCurrentSize() < mshrStructSize)
 		{
 			return false;
 		}
@@ -83,7 +77,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			/*
 			 * the higher level cache must check if mshr is full before requesting
 			 */
-			OMREntry newOMREntry = new OMREntry(new ArrayList<Event>(), false, null);
+			OMREntry newOMREntry = new OMREntry(new ArrayList<AddressCarryingEvent>(), null);
 			newOMREntry.outStandingEvents.add(event);
 			mshr.put(blockAddr, newOMREntry);
 			return true;
@@ -91,40 +85,49 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		else
 		{			
 
-			ArrayList<Event> tempList = mshr.get(blockAddr).outStandingEvents;
+			ArrayList<AddressCarryingEvent> tempList = mshr.get(blockAddr).outStandingEvents;
 			tempList.add(event);
 			return false;
 		}
 	}
 	
 	@Override
-	public ArrayList<Event> removeRequests(AddressCarryingEvent event)
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(AddressCarryingEvent event)
 	{
 		long address = event.getAddress();
 		long blockAddr = address >>> offset;
-		ArrayList<Event> outstandingRequestList = this.mshr.remove(blockAddr).outStandingEvents;
-		return outstandingRequestList;
+		
+		OMREntry entry = this.mshr.remove(blockAddr);
+		if(entry==null) {
+			misc.Error.showErrorAndExit("event not in MSHR : " + event);
+			return null;
+		} else {		
+			return entry.outStandingEvents;
+		}
 	}
 	
 	@Override
-	public boolean removeEvent(AddressCarryingEvent addrevent)
+	public boolean removeRequestsByRequestTypeAndAddress(AddressCarryingEvent addrevent)
 	{
 		long addr = addrevent.getAddress();
 		long blockAddr = addr >>> offset;
+		RequestType requestType = addrevent.getRequestType();
+		
 		OMREntry omrEntry = mshr.get(blockAddr);
-		if(omrEntry.outStandingEvents.contains(addrevent))
-		{
-			omrEntry.outStandingEvents.remove(addrevent);
-			if(omrEntry.outStandingEvents.size() == 0)
+		
+		for(int i=0; i<omrEntry.outStandingEvents.size(); i++) {
+			if (omrEntry.outStandingEvents.get(i).getAddress()>>>offset==blockAddr &&
+					omrEntry.outStandingEvents.get(i).getRequestType()==requestType)
 			{
-				mshr.remove(blockAddr);
+				omrEntry.outStandingEvents.remove(i);
+				if(omrEntry.outStandingEvents.size()==0 && omrEntry.eventToForward==null) {
+					mshr.remove(blockAddr);
+				}
+				return true;
 			}
-			return true;
 		}
-		else
-		{
-			return false;
-		}
+		
+		return false;
 	}
 	
 	boolean contains(long address)
@@ -162,8 +165,12 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			return;
 		}
 		omrEntry.eventToForward = eventToBeSent;
-		omrEntry.readyToProceed = true;
-		incrementNumberOfEntriesReadyToProceed();
+		
+		// Try in the next cycle
+		eventToBeSent.actualRequestType = eventToBeSent.getRequestType();
+		eventToBeSent.setRequestType(RequestType.MSHR_Full);
+		eventToBeSent.setEventTime(eventToBeSent.getEventTime() +1);
+		eventToBeSent.getEventQ().addEvent(eventToBeSent);
 	}
 	
 	ArrayList<OMREntry> getElementsReadyToProceed()
@@ -173,7 +180,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		while(omrEntries.hasMoreElements())
 		{
 			OMREntry omrEntry = omrEntries.nextElement();
-			if(omrEntry.readyToProceed)
+			if(omrEntry.eventToForward!=null)
 			{
 				eventsReadyToProceed.add(omrEntry);
 			}
@@ -188,7 +195,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		while(omrEntries.hasMoreElements())
 		{
 			OMREntry omrEntry = omrEntries.nextElement();
-			if(omrEntry.readyToProceed && omrEntry.eventToForward.getDestinationBankId() != null && omrEntry.eventToForward.getDestinationBankId().equals(bankId))
+			if(omrEntry.eventToForward!=null && omrEntry.eventToForward.getDestinationBankId() != null && omrEntry.eventToForward.getDestinationBankId().equals(bankId))
 			{
 				eventsReadyToProceed.add(omrEntry);
 			}
@@ -215,78 +222,16 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		}
 	}
 	
-	/*
-	 * at the time of pulling, and eventToForward being pulled is of type WRITE
-	 * case 1 : if pulling from another cache
-	 * 		the omrEntry can only consist of writes. since these are being pulled,
-	 * 		omrEntry can be removed
-	 * case 2 : if pulling from pipeline
-	 * 		the omrEntry can consist of reads and writes, but it starts with a write
-	 * 		here, we remove all the contiguous writes that appear at the beginning
-	 * 		from the first read onwards, the events are allowed to remain
-	 * 		if the omrEntry is empty, delete it
-	 * 		else change eventToForward to READ
-	 */
-	public void removeStartingWrites(long address)
-	{
-		OMREntry omrEntry = getMshrEntry(address);
-		boolean readFound = false;
-		AddressCarryingEvent sampleReadEvent = null;
-		
-		int listSize = omrEntry.outStandingEvents.size();
-		for(int i = 0; i < listSize; i++)
-		{
-			if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Cache_Write)
-			{
-				omrEntry.outStandingEvents.remove(i);
-				i--;
-				listSize--;
-			}
-			else if(omrEntry.outStandingEvents.get(i).getRequestType() == RequestType.Cache_Read)
-			{
-				readFound = true;
-				sampleReadEvent = (AddressCarryingEvent) omrEntry.outStandingEvents.get(i);
-				break;
-			}
-		}
-		
-		if(readFound == false)
-		{
-			mshr.remove(address >>> offset);
-		}
-		else
-		{
-			omrEntry.eventToForward = (AddressCarryingEvent) sampleReadEvent.clone();
-			omrEntry.readyToProceed = true;
-			incrementNumberOfEntriesReadyToProceed();
-		}
-	}
-	
-	public void incrementNumberOfEntriesReadyToProceed()
-	{
-		numberOfEntriesReadyToProceed++;
-	}
-	
-	public void decrementNumberOfEntriesReadyToProceed()
-	{
-		numberOfEntriesReadyToProceed--;
-	}
-	
-	public int getNumberOfEntriesReadyToProceed()
-	{
-		return numberOfEntriesReadyToProceed;
-	}
-	
 	@Override
 	public void dump()
 	{
 		Enumeration<OMREntry> omrEntries = mshr.elements();
-		System.out.println("size = " + getSize());
+		System.out.println("size = " + getCurrentSize());
 		while(omrEntries.hasMoreElements())
 		{
 			OMREntry omrEntry = omrEntries.nextElement();
-			ArrayList<Event> events = omrEntry.outStandingEvents;
-			System.out.println("no of entries ready to proceed = " + numberOfEntriesReadyToProceed);
+			ArrayList<AddressCarryingEvent> events = omrEntry.outStandingEvents;
+			
 			/*if(events.size() == 0)
 			{
 				System.err.println(" outstanding event empty ");
@@ -296,7 +241,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			System.out.print("block address = " + (addrEvent.getAddress() >>> offset));
 			if(omrEntry.eventToForward != null)
 			{
-				System.out.print(" : " + omrEntry.eventToForward.getRequestType() + " : " + omrEntry.readyToProceed );
+				System.out.print(" : " + omrEntry.eventToForward.getRequestType() + " : " + (omrEntry.eventToForward!=null) );
 			}
 			System.out.println();
 			for(int i = 0; i < events.size(); i++)
@@ -385,13 +330,6 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		}
 	}
 	*/
-	public void populateConnectedMSHR(ArrayList<Cache> prevLevel)
-	{
-		for(int i = 0; i < prevLevel.size(); i++)
-		{
-			connectedMSHR.add(i, (Mode3MSHR)prevLevel.get(i).getMissStatusHoldingRegister());
-		}
-	}
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
@@ -407,39 +345,45 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	}
 
 	@Override
-	public int getCurrentSize() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public int getMSHRStructSize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return mshrStructSize;
 	}
 
 	@Override
 	public int getMaxSizeReached() {
-		// TODO Auto-generated method stub
-		return 0;
+		return maxSizeReached;
 	}
 
 	@Override
-	public int numOutStandingRequests(Event event) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int numOutStandingRequests(AddressCarryingEvent event) {
+		long addr = event.getAddress();
+		long dirAddr = addr>>>offset;
+		
+		OMREntry entry = mshr.get(dirAddr);
+		
+		if(entry==null) {
+			return 0;
+		} else {
+			return entry.outStandingEvents.size();
+		}
 	}
 
 	@Override
-	public boolean removeEventIfAvailable(AddressCarryingEvent addrevent) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean removeRequestsByRequestTypeAndAddressIfAvailable(AddressCarryingEvent addrevent) {
+		return removeRequestsByRequestTypeAndAddress(addrevent);
 	}
 
 	@Override
-	public ArrayList<Event> removeRequestsIfAvailable(AddressCarryingEvent event) {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddressIfAvailable(AddressCarryingEvent event) {
+		long address = event.getAddress();
+		long blockAddr = address >>> offset;
+		
+		OMREntry entry = this.mshr.remove(blockAddr);
+		if(entry==null) {
+			return null;
+		} else {		
+			return entry.outStandingEvents;
+		}
 	}
 
 }

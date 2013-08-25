@@ -15,6 +15,8 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	private Vector<Integer> destinationBankId;
 	public long event_id;
 	
+	public RequestType actualRequestType;
+	
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,

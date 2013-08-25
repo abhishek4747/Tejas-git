@@ -54,7 +54,7 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 	}
 
 	@Override
-	public ArrayList<Event> removeRequests(AddressCarryingEvent event) {
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(AddressCarryingEvent event) {
 		//check_exit(tollerablesize);		
 		AddressCarryingEvent removedEvent = mshr.removeByAddress(event);
 		if(removedEvent == null )
@@ -73,19 +73,19 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 						removedEvent.getRequestType()
 						);
 		mshr.clearNode(removedEvent);
-		ArrayList<Event> toBeReturned =  new ArrayList<Event>();
+		ArrayList<AddressCarryingEvent> toBeReturned =  new ArrayList<AddressCarryingEvent>();
 		toBeReturned.add(event);
 		return toBeReturned;
 	}
 
-	public ArrayList<Event> removeRequestsIfAvailable(AddressCarryingEvent event) {
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddressIfAvailable(AddressCarryingEvent event) {
 		//check_exit(tollerablesize);		
 		AddressCarryingEvent removedEvent = mshr.removeByAddress(event);
 		if(removedEvent == null )
 		{
 			System.out.println(" : " + event.getAddress() + " : " + event.getRequestType() + " : "+ event.getRequestingElement() + " : " + event.getProcessingElement());
 			//misc.Error.showErrorAndExit(" null returned from removed event ");
-			ArrayList<Event> toBeReturned = new ArrayList<Event>();
+			ArrayList<AddressCarryingEvent> toBeReturned = new ArrayList<AddressCarryingEvent>();
 			return toBeReturned;
 		}
 		curLength--;
@@ -97,14 +97,14 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 						removedEvent.getRequestType()
 						);
 		mshr.clearNode(removedEvent);
-		ArrayList<Event> toBeReturned =  new ArrayList<Event>();
+		ArrayList<AddressCarryingEvent> toBeReturned =  new ArrayList<AddressCarryingEvent>();
 		toBeReturned.add(event);
 		return toBeReturned;
 	}
 
 	
 	@Override
-	public boolean removeEvent(AddressCarryingEvent addrevent) {
+	public boolean removeRequestsByRequestTypeAndAddress(AddressCarryingEvent addrevent) {
 		mshr.removeByRequestType(addrevent);
 		curLength--;
 		//System.out.println("current line of  ="  + curLength + " of "+ this);
@@ -112,7 +112,7 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 	}
 	
 	@Override
-	public boolean removeEventIfAvailable(AddressCarryingEvent addrevent) {
+	public boolean removeRequestsByRequestTypeAndAddressIfAvailable(AddressCarryingEvent addrevent) {
 		if(mshr.removeByRequestType(addrevent) != null)
 		{
 			curLength--;
@@ -149,7 +149,7 @@ public class Mode1MSHR implements MissStatusHoldingRegister {
 	}
 
 	@Override
-	public int numOutStandingRequests(Event event) {
+	public int numOutStandingRequests(AddressCarryingEvent event) {
 		if (mshr.searchByAddress((AddressCarryingEvent)event) != null) {
 			return 1;
 		} else {

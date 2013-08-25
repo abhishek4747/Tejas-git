@@ -131,13 +131,13 @@ public class Cache extends SimulationElement
 			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
 			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
 			{
-				missStatusHoldingRegister = new Mode1MSHR(500);
+				missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 500, this.containingMemSys.core.eventQueue);
 			}
 			else
 			{
 				if(SimulationConfig.nucaType == NucaType.NONE) 
 				{
-					missStatusHoldingRegister = new Mode1MSHR(40000);
+					missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 40000, null);
 				}
 			}
 			this.nucaType = NucaType.NONE;
@@ -250,6 +250,18 @@ public class Cache extends SimulationElement
 			else if (event.getRequestType() == RequestType.MESI_Invalidate)
 			{
 				this.handleInvalidate((AddressCarryingEvent) event);
+			}
+			
+			else if (event.getRequestType() == RequestType.MSHR_Full)
+			{
+				// Reset the requestType to actualRequestType
+				event.setRequestType(((AddressCarryingEvent)event).actualRequestType);
+				((AddressCarryingEvent)event).actualRequestType = null;
+				Cache processingCache = (Cache)event.getProcessingElement();
+				if (processingCache.addEvent((AddressCarryingEvent)event) == false)
+				{
+					missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent)event);
+				}
 			}
 		}
 		
@@ -503,7 +515,7 @@ public class Cache extends SimulationElement
 		
 		
 		
-		private void sendResponseToWaitingEvent(ArrayList<Event> outstandingRequestList)
+		private void sendResponseToWaitingEvent(ArrayList<AddressCarryingEvent> outstandingRequestList)
 		{
 			int numberOfWrites = 0;
 			AddressCarryingEvent sampleWriteEvent = null;
@@ -519,7 +531,7 @@ public class Cache extends SimulationElement
 				{
 					if(this.levelFromTop == CacheType.L1)
 					{
-						ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeEventIfAvailable(eventPoppedOut);
+						ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequestsByRequestTypeAndAddressIfAvailable(eventPoppedOut);
 						/*ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequests(eventPoppedOut);*/
 					}
 					/*if(this.levelFromTop == CacheType.Lower)
@@ -614,7 +626,7 @@ public class Cache extends SimulationElement
 		{		
 			long addr = ((AddressCarryingEvent)(event)).getAddress();
 			
-			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests((AddressCarryingEvent)event);
+			ArrayList<AddressCarryingEvent> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddress((AddressCarryingEvent)event);
 			
 			misses += eventsToBeServed.size();			
 			noOfRequests += eventsToBeServed.size();
@@ -693,7 +705,7 @@ public class Cache extends SimulationElement
 		
 		private void processBlockAvailable(AddressCarryingEvent event)
 		{
-			ArrayList<Event> eventsToBeServed = missStatusHoldingRegister.removeRequests(event);
+			ArrayList<AddressCarryingEvent> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddress(event);
 			hits += eventsToBeServed.size();
 			noOfRequests += eventsToBeServed.size();
 			//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
