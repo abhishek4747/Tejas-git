@@ -150,7 +150,8 @@ public class RunnableThread implements Encoding, Runnable {
 
 				// get the number of packets to read. 'continue' and read from
 				// some other thread if there is nothing.
-				if ((numReads = ipcBase.fetchManyPackets(tidApplication, fromEmulator)) == 0) {
+				numReads = ipcBase.fetchManyPackets(tidApplication, fromEmulator);
+				if (fromEmulator.size() == 0) {
 					continue;
 				}
 				
