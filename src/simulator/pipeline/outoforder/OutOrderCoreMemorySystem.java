@@ -1,5 +1,7 @@
 package pipeline.outoforder;
 
+import java.util.ArrayList;
+
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -37,12 +39,13 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 				 address,
 				 core.getCore_number());
 
+		/*FIXME change 1
 		//add event to own mshr
 		boolean newOMREntryCreated = iMissStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
 		//if new OMREntry has been created, then request should be forwarded to lower cache
 		//else, then a request for the same address exists in the mshr, hence another request is unnecessary
-		if(newOMREntryCreated)
+		if(newOMREntryCreated)*/
 		{
 			//attempt issue to lower level cache
 			AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
@@ -111,12 +114,13 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 			return false;
 		}
 		
+		/*//FIXME change 2
 		//if not full add event to own mshr
-		boolean newOMREntryCreated = L1MissStatusHoldingRegister.addOutstandingRequest(addressEvent);
+		//boolean newOMREntryCreated = L1MissStatusHoldingRegister.addOutstandingRequest(addressEvent);
 		
 		//if new OMREntry has been created, then request should be forwarded to lower cache
 		//else, then a request for the same address exists in the mshr, hence another request is unnecessary
-		if(newOMREntryCreated)
+		//if(newOMREntryCreated)*/
 		{
 			//attempt issue to lower level cache
 			AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
@@ -172,14 +176,25 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		//if response comes from iCache, inform fetchunit
 		if(memResponse.getRequestingElement() == iCache)
 		{
-			iMissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			/*//FIXME change 3//ArrayList<AddressCarryingEvent> handledRequests = iMissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			for(int i = 0; i < handledRequests.size(); i++)
+			{
+				containingExecEngine.getFetcher().processCompletionOfMemRequest(handledRequests.get(i).getAddress());
+			}*/
+			
 			containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
 		}
 		
 		//if response comes from l1Cache, inform memunit
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
-			L1MissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			/*//FIXME change 4//ArrayList<AddressCarryingEvent> handledRequests = L1MissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			for(int i = 0; i < handledRequests.size(); i++)
+			{
+				System.out.println("mem response for " + handledRequests.get(i));
+				lsqueue.handleMemResponse(handledRequests.get(i).getAddress());
+			}*/
+			
 			lsqueue.handleMemResponse(address);
 		}
 		

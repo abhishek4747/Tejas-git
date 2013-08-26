@@ -532,7 +532,7 @@ public class Cache extends SimulationElement
 				{
 					if(this.levelFromTop == CacheType.L1)
 					{
-						ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequestsByRequestTypeAndAddressIfAvailable(eventPoppedOut);
+						//FIXME change 5//ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequestsByRequestTypeAndAddressIfAvailable(eventPoppedOut);
 						/*ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequests(eventPoppedOut);*/
 					}
 					/*if(this.levelFromTop == CacheType.Lower)
