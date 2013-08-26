@@ -122,9 +122,9 @@ public class ArchitecturalComponent {
 			System.out.println("CORE " + i);
 			System.out.println("coreMemSys");
 			System.out.println("i - mshr");
-			coreMemSys.getiMSHR().dump();
+			coreMemSys.getiCache().getMissStatusHoldingRegister().dump();
 			System.out.println("l1-mshr");
-			coreMemSys.getL1MSHR().dump();
+			coreMemSys.getL1Cache().getMissStatusHoldingRegister().dump();
 			System.out.println("iCache");
 			coreMemSys.getiCache().getMissStatusHoldingRegister().dump();
 			System.out.println("L1");

@@ -46,9 +46,7 @@ public abstract class CoreMemorySystem extends SimulationElement
 	protected Cache l1Cache;
 	protected TLB TLBuffer;
 	protected LSQ lsqueue;
-	protected MissStatusHoldingRegister L1MissStatusHoldingRegister;
-	protected MissStatusHoldingRegister iMissStatusHoldingRegister;
-	
+		
 	protected CoreMemorySystem(Core core)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
@@ -110,10 +108,6 @@ public abstract class CoreMemorySystem extends SimulationElement
 							this, 
 							SystemConfig.core[coreID].LSQSize);
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
-	//	L1MissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
-	//	iMissStatusHoldingRegister = new MissStatusHoldingRegister(0, cacheParameterObj.mshrSize);
-		L1MissStatusHoldingRegister = new Mode3MSHR(l1Cache.blockSizeBits, SystemConfig.core[coreID].LSQSize, null);
-		iMissStatusHoldingRegister = new Mode3MSHR(iCache.blockSizeBits, SystemConfig.core[coreID].LSQSize, null);
 	}
 	
 	public abstract void issueRequestToInstrCache(long address);
@@ -144,22 +138,6 @@ public abstract class CoreMemorySystem extends SimulationElement
 		return core;
 	}
 	
-	public MissStatusHoldingRegister getL1MSHR()
-	{
-		return L1MissStatusHoldingRegister;
-	}
-	
-	public MissStatusHoldingRegister getiMSHR()
-	{
-		return iMissStatusHoldingRegister;
-	}
-	
-	public boolean isMshrFull()
-	{
-		if(L1MissStatusHoldingRegister.isFull() && iMissStatusHoldingRegister.isFull())
-		{
-			return true;
-		}
-		return false;
-	}
+	public abstract void handleICacheCompletionEvent(long address);
+	public abstract void handleL1CacheCompletionEvent(long address);
 }
