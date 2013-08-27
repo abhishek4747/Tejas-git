@@ -137,7 +137,4 @@ public abstract class CoreMemorySystem extends SimulationElement
 	public Core getCore() {
 		return core;
 	}
-	
-	public abstract void handleICacheCompletionEvent(long address);
-	public abstract void handleL1CacheCompletionEvent(long address);
 }

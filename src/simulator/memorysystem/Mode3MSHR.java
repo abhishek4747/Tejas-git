@@ -70,8 +70,8 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	@Override
 	public boolean addOutstandingRequest(AddressCarryingEvent eventAdded)
 	{
-		System.out.println("addRequestMSHR\ttime = " + GlobalClock.getCurrentTime() + 
-				"\tevent = " + eventAdded);
+//		System.out.println("addRequestMSHR\ttime = " + GlobalClock.getCurrentTime() + 
+//				"\tevent = " + eventAdded);
 		AddressCarryingEvent event = (AddressCarryingEvent)eventAdded.clone();
 		
 		//System.out.println("Adding outstanding request : " + event);

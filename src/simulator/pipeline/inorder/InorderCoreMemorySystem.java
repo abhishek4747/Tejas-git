@@ -114,16 +114,31 @@ public class InorderCoreMemorySystem extends CoreMemorySystem {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		misc.Error.showErrorAndExit("mem response received by inordercoreMemSys from unkown object : " + event);
+		
+		//handle memory response
+		
+		AddressCarryingEvent memResponse = (AddressCarryingEvent) event;
+		long address = memResponse.getAddress();
+		
+		//if response comes from iCache, inform fetchunit
+		if(memResponse.getRequestingElement() == iCache)
+		{
+			// iMissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);
+		}
+		
+		//if response comes from l1Cache, inform memunit
+		else if(memResponse.getRequestingElement() == l1Cache)
+		{
+			//TODO currently handling only reads
+			// L1MissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
+		}
+		
+		else
+		{
+			System.out.println("mem response received by inordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
+		}
 	}
-	
-	public void handleICacheCompletionEvent(long address)
-	{
-		containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);
-	}
-	
-	public void handleL1CacheCompletionEvent(long address)
-	{
-		containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
-	}
+
 }

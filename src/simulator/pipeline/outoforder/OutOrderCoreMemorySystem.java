@@ -140,20 +140,43 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 	}
 
 	@Override
-	public void handleEvent(EventQueue eventQ, Event event) {
-		misc.Error.showErrorAndExit("mem response received by outordercoreMemSys from unkown object : " + event);
+public void handleEvent(EventQueue eventQ, Event event) {
+		
+		//handle memory response
+		
+		AddressCarryingEvent memResponse = (AddressCarryingEvent) event;
+		long address = memResponse.getAddress();
+		
+		//if response comes from iCache, inform fetchunit
+		if(memResponse.getRequestingElement() == iCache)
+		{
+			/*//FIXME change 3//ArrayList<AddressCarryingEvent> handledRequests = iMissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			for(int i = 0; i < handledRequests.size(); i++)
+			{
+				containingExecEngine.getFetcher().processCompletionOfMemRequest(handledRequests.get(i).getAddress());
+			}*/
+			
+			containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
+		}
+		
+		//if response comes from l1Cache, inform memunit
+		else if(memResponse.getRequestingElement() == l1Cache)
+		{
+			/*//FIXME change 4//ArrayList<AddressCarryingEvent> handledRequests = L1MissStatusHoldingRegister.removeRequestsByAddress(memResponse);
+			for(int i = 0; i < handledRequests.size(); i++)
+			{
+				System.out.println("mem response for " + handledRequests.get(i));
+				lsqueue.handleMemResponse(handledRequests.get(i).getAddress());
+			}*/
+			
+			lsqueue.handleMemResponse(address);
+		}
+		
+		else
+		{
+			System.out.println("mem response received by outordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
+		}
 	}
-	
-	public void handleICacheCompletionEvent(long address)
-	{
-		containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
-	}
-	
-	public void handleL1CacheCompletionEvent(long address)
-	{
-		lsqueue.handleMemResponse(address);
-	}
-
 	
 	public void sendExecComplete(ReorderBufferEntry robEntry)
 	{

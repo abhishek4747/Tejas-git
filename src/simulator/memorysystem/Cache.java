@@ -196,7 +196,7 @@ public class Cache extends SimulationElement
 		}
 		
 		
-		private boolean printCacheDebugMessages = true;
+		private boolean printCacheDebugMessages = false;
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
 			// Sanity check for iCache
