@@ -40,5 +40,8 @@ public class PowerConfig {
 	  public static double il1Port;
 	  public static double dl1Port;
 	  public static double dl2Port;
+	  public static double totalRouterEnergy;
+	  public static double bufferEnergy;
+	  public static double linkEnergy;
 	  	  
 }

@@ -36,21 +36,21 @@
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
-		<PipelineType>1</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
+		<PipelineType>3</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
 		<NumInorderPipelines>3</NumInorderPipelines>	<!--Only applicable if the pipeline type is multi issue inorder-->
 		<InstructionsFilename>/mnt/srishtistr0/home/nitingupta/workspace/TejasQemuTraces/linux_iozone_trace</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
-		<PrintPowerStats>false</PrintPowerStats>
+		<PrintPowerStats>true</PrintPowerStats>
 		<Broadcast>false</Broadcast>
-		<PowerTrace>0</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
+		<PowerTrace>1</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<pinpointsSim>false</pinpointsSim>
 		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
 		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>200000000</subsetSimSize>
+		<subsetSimSize>300000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -71,7 +71,7 @@
 		<invalidationSendDelay>3</invalidationSendDelay>
 		<invalidationAckCollectDelay>3</invalidationAckCollectDelay>
 		<ownershipChangeDelay>3</ownershipChangeDelay>
-		<dirNetworkDelay>2</dirNetworkDelay>
+		<dirNetworkDelay>1</dirNetworkDelay>
 
 		<!--Core Parameters-->
 		<Core>
@@ -86,6 +86,7 @@
 
 			<TLBSize>128</TLBSize>				<!--Maximum number of entries in the TLB-->
 			<TLBLatency>4</TLBLatency>			<!--In clock cycles-->
+			<TLBMissPenalty>10</TLBMissPenalty>			<!--In clock cycles-->
 			<TLBPortType>UL</TLBPortType>			<!--Type of access ports in the TLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
@@ -258,43 +259,46 @@
 		</Type3>
 	</Library>
 	<Power>
-		  <total_power>34.8078</total_power>
-		  <total_power_nodcache2>34.8078</total_power_nodcache2>
-		  <ialu_power>1.19732</ialu_power>
-		  <falu_power>1.83461</falu_power>
-		  <bpred_power>1.43751</bpred_power>
-		  <rename_power>0.459514</rename_power>
-		  <rat_power>0.451937</rat_power>
-		  <dcl_power>0.00369466</dcl_power>
-		  <window_power>4.59566</window_power>
-		  <lsq_power>0.426482</lsq_power>
-		  <wakeup_power>0.708035</wakeup_power>
-		  <lsq_wakeup_power>0.268247</lsq_wakeup_power>
-		  <rs_power>3.83099</rs_power>
-		  <rs_power_nobit>0.313712</rs_power_nobit>
-		  <lsq_rs_power>0.158235</lsq_rs_power>
-		  <lsq_rs_power_nobit>0.0107701</lsq_rs_power_nobit>
+		  <total_power>3.23781</total_power>
+		  <total_power_nodcache2>3.23781</total_power_nodcache2>
+		  <ialu_power>0.0424749</ialu_power>
+		  <falu_power>0.127425</falu_power>
+		  <bpred_power>0.0177226</bpred_power>
+		  <rename_power>0.142355</rename_power>
+		  <rat_power>0.013033</rat_power>
+		  <dcl_power>0</dcl_power>
+		  <window_power>0</window_power>
+		  <lsq_power>1.73946</lsq_power>
+		  <wakeup_power>0</wakeup_power>
+		  <lsq_wakeup_power>1.30459</lsq_wakeup_power>
+		  <rs_power>0.0108053</rs_power>
+		  <rs_power_nobit>0</rs_power_nobit>
+		  <lsq_rs_power>0.434865</lsq_rs_power>
+		  <lsq_rs_power_nobit>0</lsq_rs_power_nobit>
 		  <selection_power>0</selection_power>
-		  <regfile_power>3.68209</regfile_power>
-		  <regfile_power_nobit>0.300723</regfile_power_nobit>
+		  <regfile_power>0.00676658</regfile_power>
+		  <regfile_power_nobit>0</regfile_power_nobit>
 		  <result_power>0</result_power>
-		  <icache_power>1.57849</icache_power>
-		  <dcache_power>1.57849</dcache_power>
-		  <dcache2_power>14.7095</dcache2_power>
-		  <clock_power>3.55331</clock_power>
+		  <icache_power>0.395134</icache_power>
+		  <dcache_power>0.606047</dcache_power>
+		  <dcache2_power>0.0234976</dcache2_power>
+		  <clock_power>0</clock_power>
 		  <clockGatingStyle>1</clockGatingStyle>
-		  <itlb>0.0217474</itlb>
-		  <dtlb>0.0217474</dtlb>
-		  <resultbus>2.76628</resultbus>
-		  <selection>0.0566342</selection>
+		  <itlb>0.0105892</itlb>
+		  <dtlb>0.0105892</dtlb>
+		  <resultbus>0</resultbus>
+		  <selection>0</selection>
+		  <LinkEnergy>0.531616</LinkEnergy>
+		  <RouterEnergy>0.0502646</RouterEnergy>
+		  <BufferEnergy>0</BufferEnergy>
 		  
 		  <ruu_decode_width>4</ruu_decode_width>
 		  <ruu_issue_width>6</ruu_issue_width>
 		  <ruu_commit_width>4</ruu_commit_width>
 		  <res_memport>1</res_memport>
-		  <il1_port>4</il1_port>
+		  <il1_port>2</il1_port>
 		  <dl1_port>2</dl1_port>
-		  <dl2_port>1</dl2_port>
+		  <dl2_port>64</dl2_port>
 		  <res_ialu>4</res_ialu>
 		  <res_fpalu>2</res_fpalu>
 	  </Power>

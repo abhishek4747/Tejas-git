@@ -134,6 +134,9 @@ public class XMLParser
 		  PowerConfig.dcache2Power=Double.parseDouble(getImmediateString("dcache2_power", powerElmnt));
 		  PowerConfig.clockPower=Double.parseDouble(getImmediateString("clock_power", powerElmnt));
 
+		  PowerConfig.totalRouterEnergy = Double.parseDouble(getImmediateString("RouterEnergy", powerElmnt));
+		  PowerConfig.bufferEnergy = Double.parseDouble(getImmediateString("BufferEnergy", powerElmnt));
+		  PowerConfig.linkEnergy = Double.parseDouble(getImmediateString("LinkEnergy", powerElmnt));
 		  
 		  PowerConfig.itlb=Double.parseDouble(getImmediateString("itlb", powerElmnt));
 		  PowerConfig.dtlb=Double.parseDouble(getImmediateString("dtlb", powerElmnt));
@@ -338,6 +341,7 @@ public class XMLParser
 			
 			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
 			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
+			core.TLBMissPenalty = Integer.parseInt(getImmediateString("TLBMissPenalty", coreElmnt));
 			core.TLBPortType = setPortType(getImmediateString("TLBPortType", coreElmnt));
 			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
