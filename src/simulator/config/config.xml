@@ -36,7 +36,7 @@
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
-		<PipelineType>3</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
+		<PipelineType>1</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
 		<NumInorderPipelines>3</NumInorderPipelines>	<!--Only applicable if the pipeline type is multi issue inorder-->
 		<InstructionsFilename>/mnt/srishtistr0/home/nitingupta/workspace/TejasQemuTraces/linux_iozone_trace</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
@@ -127,6 +127,8 @@
 			<AddressFULatency>1</AddressFULatency>
 			<AcceleratedFULatency>1</AcceleratedFULatency>
 			<TreeBarrier>false</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
+			<BarrierLatency>2</BarrierLatency>
+			<BarrierUnit>Distributed</BarrierUnit>			<!--Central and distributed-->
 			<!--Specify only the iCache and L1 (immediately next to the core) cache of the core here-->
 			<iCache nextLevel="L2" type="Type0"/>
 			<L1Cache nextLevel="L2" type="Type1"/>
@@ -228,7 +230,7 @@
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>2048</Size>				<!--In KBs-->
+			<Size>16384</Size>				<!--In KBs-->
 			<Latency>22</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -245,7 +247,7 @@
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>16384</Size>				<!--In KBs-->
+			<Size>65536</Size>				<!--In KBs-->
 			<Latency>1</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->

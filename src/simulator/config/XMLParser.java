@@ -384,6 +384,17 @@ public class XMLParser
 				core.TreeBarrier = true;
 			else
 				core.TreeBarrier = false;
+			core.barrierLatency = Integer.parseInt(getImmediateString("BarrierLatency", coreElmnt));
+			
+			String tempStr = getImmediateString("BarrierUnit", coreElmnt);
+			if (tempStr.equalsIgnoreCase("Central"))
+				core.barrierUnit = 0;
+			else if (tempStr.equalsIgnoreCase("Distributed"))
+				core.barrierUnit = 1;
+			else{
+				System.err.println("Only Central and Distributed allowed as barrier unit");
+				System.exit(0);
+			}
 			//Code for instruction cache configurations for each core
 			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
 			Element iCacheElmnt = (Element) iCacheList.item(0);

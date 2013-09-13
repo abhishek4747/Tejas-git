@@ -28,6 +28,7 @@ public class Barrier {
 	long address;
 	int numThreads;
 	int numThreadsArrived;
+	public long time;
 	Vector<Integer> blockedThreads;
 	Vector<Integer> TreeInfo;
 	public Barrier(long address, int numThreads)
@@ -36,6 +37,7 @@ public class Barrier {
 		this.address = address;
 		this.numThreads = numThreads;
 		this.numThreadsArrived = 0;
+		this.time = 0;
 		this.blockedThreads = new Vector<Integer>();
 		this.TreeInfo = new Vector<Integer>();
 		for(i=0;i<numThreads + 1; i++)
@@ -58,6 +60,8 @@ public class Barrier {
 	}
 	public void incrementThreads()
 	{
+		if(this.numThreadsArrived == 0)
+			this.time = GlobalClock.getCurrentTime();
 		this.numThreadsArrived ++;
 //		this.blockedThreads.add(tid);
 	}

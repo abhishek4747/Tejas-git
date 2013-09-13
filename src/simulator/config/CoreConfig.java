@@ -82,4 +82,7 @@ public class CoreConfig
 	public int numInorderPipelines;
 	public boolean TreeBarrier;
 
+	public int barrierLatency;
+	public int barrierUnit;
+
 }
