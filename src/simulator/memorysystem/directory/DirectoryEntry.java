@@ -15,19 +15,17 @@ public class DirectoryEntry extends CacheLine {
 //	private boolean valid;
 	private double timestamp;
 //	private boolean modified;
-	int noOfCores;
 
-	public DirectoryEntry(int noOfCores){
+	public DirectoryEntry(){
 		super(1);
-		sharers = new Vector<Cache>(noOfCores);
-		this.noOfCores = noOfCores;
+		sharers = new Vector<Cache>(0);
 		state = MESI.INVALID;
 		tag = 0;
 	}
 	
 	public DirectoryEntry copy()
 	{
-		DirectoryEntry newLine = new DirectoryEntry(noOfCores);
+		DirectoryEntry newLine = new DirectoryEntry();
 		newLine.setAddress(this.address);
 		newLine.setTag(this.getTag());
 		newLine.setState(this.getState());

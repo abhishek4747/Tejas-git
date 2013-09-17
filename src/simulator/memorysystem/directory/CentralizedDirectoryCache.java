@@ -70,7 +70,7 @@ public class CentralizedDirectoryCache extends Cache
 		
 		lines = new DirectoryEntry[cacheParameters.getSize()*1024];
 		for(int i=0;i<lines.length;i++) {
-			lines[i] = new DirectoryEntry(numCores);
+			lines[i] = new DirectoryEntry();
 		}
 		invalidations =0;
 		writebacks =0;
