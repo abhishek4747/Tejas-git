@@ -73,7 +73,7 @@ public class Core {
 	private int no_of_input_pipes;
 	private int no_of_threads;
 	private long coreCyclesTaken;
-
+	
 	private int[] threadIDs;
 	
 	private BranchPredictor branchPredictor;
@@ -85,8 +85,9 @@ public class Core {
 	public Counters powerCounters;
 	private int numInorderPipelines;
 	public CoreBcastBus coreBcastBus;
-
+	public int barrier_latency;
 	public boolean TreeBarrier;
+	public int barrierUnit; //0=>central 1=>distributed
 
 //	private InorderPipeline inorderPipeline;
 
@@ -180,6 +181,8 @@ public class Core {
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setNumInorderPipelines(SimulationConfig.numInorderPipelines);
 		setTreeBarrier(coreConfig.TreeBarrier);
+		setBarrierLatency(coreConfig.barrierLatency);
+		setBarrierUnit(coreConfig.barrierUnit);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
@@ -229,6 +232,13 @@ public class Core {
 		this.clock++;
 	}*/
 	
+	private void setBarrierLatency(int barrierLatency) {
+		this.barrier_latency = barrierLatency;
+		
+	}
+	private void setBarrierUnit(int barrierUnit){
+		this.barrierUnit = barrierUnit;
+	}
 	public void activatePipeline(){
 		this.pipelineInterface.resumePipeline();
 	}

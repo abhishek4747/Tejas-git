@@ -61,9 +61,10 @@ public class CentralizedDirectoryCache extends Cache
 	private DirectoryEntry[] lines;
 	public boolean debug =false;
 	private long timestamp=0;
+	public static int networkDelay;
 	
-	
-	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores) 
+	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores, 
+			int networkDelay) 
 	{
 		super(cacheParameters, containingMemSys);
 		
@@ -78,6 +79,7 @@ public class CentralizedDirectoryCache extends Cache
 		directoryMisses = 0;
 
 		this.levelFromTop = CacheType.Directory;
+		CentralizedDirectoryCache.networkDelay = networkDelay;
 	}
 	
 	// This function ensures that cache functions like access and fill return a directory entry and not a cache line.
@@ -136,8 +138,8 @@ public class CentralizedDirectoryCache extends Cache
 	public void handleEvent( EventQueue eventQ, Event event )
 	{
 		if(printDirectoryDebugMessages==true) {
-//			if(event.getClass()==AddressCarryingEvent.class &&
-//				((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l)
+			if(event.getClass()==AddressCarryingEvent.class &&
+				((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l)
 			{
 				System.out.println("DIRECTORY : globalTime = " + GlobalClock.getCurrentTime() + 
 						"\teventTime = " + event.getEventTime() + "\t" + event.getRequestType() + 
@@ -660,7 +662,7 @@ public class CentralizedDirectoryCache extends Cache
 	}
 	
 	public static int getNetworkDelay() {
-		return 6;
+		return networkDelay;
 	}
 	
 	public String toString()

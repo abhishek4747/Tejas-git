@@ -8,6 +8,7 @@ import generic.Core;
 import generic.Event;
 import generic.EventQueue;
 import generic.GenericCircularQueue;
+import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.PortType;
@@ -127,7 +128,7 @@ public class FetchUnitIn extends SimulationElement
 							int coreId = this.core.getCore_number();
 							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
 									this.core.eventQueue,
-									 1,
+									 this.core.barrier_latency,
 									 this.core.coreBcastBus, 
 									 this.core.coreBcastBus, 
 									 RequestType.TREE_BARRIER, 
@@ -139,12 +140,30 @@ public class FetchUnitIn extends SimulationElement
 							{
 								ifIdLatch.setInstruction(null);
 								sleepThePipeline();
+								int bar_lat;
+								
+								if(this.core.barrierUnit == 0){
+									if(GlobalClock.getCurrentTime() < bar.time + 35)
+									{
+										bar_lat = (int)(this.core.barrier_latency + GlobalClock.getCurrentTime() - bar.time);
+									}
+									else
+										bar_lat = this.core.barrier_latency;
+								}
+								else{
+									if(GlobalClock.getCurrentTime() < bar.time + 4)
+									{
+										bar_lat = (int)(this.core.barrier_latency + GlobalClock.getCurrentTime() - bar.time);
+									}
+									else
+										bar_lat = this.core.barrier_latency;
+								}
 								for(int i=0; i<bar.getNumThreads(); i++ ){
 									this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
 								}
 								this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
-										this.core.eventQueue,
-										 2,
+										 this.core.eventQueue,
+										 bar_lat,
 										 this.core.coreBcastBus, 
 										 this.core.coreBcastBus, 
 										 RequestType.PIPELINE_RESUME, 

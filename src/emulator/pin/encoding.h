@@ -22,6 +22,7 @@
 #define BARRIERINIT 26
 #define ASSEMBLY 27
 #define INSTRUCTION 28
+#define FUNC_START 29
 #define INTERRUPT 30
 #define PROCESS_SWITCH 31
 #define DOM_SWITCH 32

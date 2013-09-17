@@ -36,6 +36,7 @@ public class CoreConfig
 	
 	public int TLBSize;
 	public int TLBLatency;
+	public int TLBMissPenalty;
 	public PortType TLBPortType;
 	public int TLBAccessPorts;
 	public int TLBPortOccupancy;
@@ -80,5 +81,8 @@ public class CoreConfig
 
 	public int numInorderPipelines;
 	public boolean TreeBarrier;
+
+	public int barrierLatency;
+	public int barrierUnit;
 
 }

@@ -215,7 +215,7 @@ public class Counters {
 
 	double turnoffFactor = 0.1;
 
-	private double totaRegfilePower;
+	//private double totaRegfilePower;
 
 	
 	public Counters(){
@@ -476,6 +476,7 @@ public class Counters {
 			totalIntegerRenameAccessCycle += IntegerRenameAccessCycle;
 			totalFloatRenameAccessCycle += FloatRenameAccessCycle;
 			totalIcacheAccessCycle += icacheAccessCycle;
+			
 			totalDcacheAccessCycle += dcacheAccessCycle;
 			totalDcache2AccessCycle += dcache2AccessCycle;
 			totalAluAccessCycle += aluAccessCycle;
@@ -794,12 +795,12 @@ public class Counters {
 		    		PowerConfig.lsqPower + PowerConfig.regfilePower + PowerConfig.icachePower + PowerConfig.dcachePower +
 		    		PowerConfig.ialuPower + PowerConfig.faluPower +PowerConfig.resultbus);
 
-		    totalCyclePower = renamePower + bpredPower + 
+		    double totalCyclePowerAccesses = renamePower + bpredPower + 
 		      windowPower + lsqPower + regfilePower + 
 		      icachePower + dcachePower + aluPower + 
 		      resultbusPower;
 
-		    clockPower=PowerConfig.clockPower*(totalCyclePower/totalCyclePower);
+		    clockPower=PowerConfig.clockPower*(totalCyclePowerAccesses/totalCyclePower);
 	
 //		    System.out.println("Total Cycle power = "+totalCyclePower + "Config power = "+PowerConfig.clockPower);
 		}
@@ -832,7 +833,7 @@ public class Counters {
 				totalRegfilePower+=((double)totalIntegerRegfileAccessCycle)*PowerConfig.regfilePower;
 				temp = max(0,totalIntegerRegfileAccess - totalIntegerRegfileAccessCycle*3*PowerConfig.ruuCommitWidth);
 				totalRegfilePower+=((double)temp/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
-				totalIcachePower+=(totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+				totalIcachePower+=((double)totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
 				totalDcachePower+=((double)totalDcacheAccessCycle)*(PowerConfig.dcachePower+PowerConfig.dtlb);
 				  temp = max(0,totalDcacheAccess - totalDcacheAccessCycle*PowerConfig.dl1Port);
 				  totalDcachePower+=((double)temp/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
@@ -855,7 +856,7 @@ public class Counters {
 			totalLsqPower+=((double)totalLsqWakeupAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqWakeupPower;
 			totalLsqPower+=((double)totalLsqPregAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqRsPower;
 			totalRegfilePower+=((double)totalIntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
-			totalIcachePower+=(totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+			totalIcachePower+=((double)totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
 			totalDcachePower+=((double)totalDcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
 			totalDcache2Power+=((double)totalDcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
 			totalAluPower+=((double)totalIaluAccess/(double)PowerConfig.resIalu)*PowerConfig.ialuPower +
@@ -885,7 +886,7 @@ public class Counters {
 			totalLsqPower+=turnoffFactor*PowerConfig.lsqRsPower*(totalCycles-totalLsqPregAccessCycle);
 			totalRegfilePower+=((double)totalIntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
 			totalRegfilePower+=turnoffFactor*PowerConfig.regfilePower*(totalCycles-totalIntegerRenameAccessCycle);
-			totalIcachePower+=(totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+			totalIcachePower+=((double)totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
 			totalIcachePower+=(totalCycles - totalIcacheAccessCycle)*turnoffFactor*(PowerConfig.icachePower+PowerConfig.itlb);
 
 			  totalDcachePower+=((double)totalDcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
@@ -909,12 +910,12 @@ public class Counters {
 				    		PowerConfig.lsqPower + PowerConfig.regfilePower + PowerConfig.icachePower + PowerConfig.dcachePower +
 				    		PowerConfig.ialuPower + PowerConfig.faluPower +PowerConfig.resultbus);
 
-				    totalCyclePower = totalRenamePower + totalBpredPower + 
+				    double totalCyclePowerAccesses = totalRenamePower + totalBpredPower + 
 				      totalWindowPower + totalLsqPower + totalRegfilePower + 
 				      totalIcachePower + totalDcachePower + totalAluPower + 
 				      totalResultbusPower;
 				  
-				    totalClockPower=PowerConfig.clockPower*(totalCyclePower/totalCyclePower);
+				    totalClockPower=PowerConfig.clockPower*(totalCyclePowerAccesses/totalCyclePower);
 			
 				}
 			
@@ -1849,11 +1850,11 @@ public class Counters {
 	}
 
 	public double getTotalRegfilePower() {
-		return totaRegfilePower;
+		return totalRegfilePower;
 	}
 
 	public void setTotalRegfilePower(double totaRegfilePower) {
-		this.totaRegfilePower = totaRegfilePower;
+		this.totalRegfilePower = totaRegfilePower;
 	}
 
 	public double getTotalIcachePower() {

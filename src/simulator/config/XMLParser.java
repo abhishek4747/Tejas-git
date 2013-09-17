@@ -134,6 +134,9 @@ public class XMLParser
 		  PowerConfig.dcache2Power=Double.parseDouble(getImmediateString("dcache2_power", powerElmnt));
 		  PowerConfig.clockPower=Double.parseDouble(getImmediateString("clock_power", powerElmnt));
 
+		  PowerConfig.totalRouterEnergy = Double.parseDouble(getImmediateString("RouterEnergy", powerElmnt));
+		  PowerConfig.bufferEnergy = Double.parseDouble(getImmediateString("BufferEnergy", powerElmnt));
+		  PowerConfig.linkEnergy = Double.parseDouble(getImmediateString("LinkEnergy", powerElmnt));
 		  
 		  PowerConfig.itlb=Double.parseDouble(getImmediateString("itlb", powerElmnt));
 		  PowerConfig.dtlb=Double.parseDouble(getImmediateString("dtlb", powerElmnt));
@@ -310,6 +313,7 @@ public class XMLParser
 		SystemConfig.invalidationSendDelay = Integer.parseInt(getImmediateString("invalidationSendDelay", systemElmnt));
 		SystemConfig.invalidationAckCollectDelay = Integer.parseInt(getImmediateString("invalidationAckCollectDelay", systemElmnt));
 		SystemConfig.ownershipChangeDelay = Integer.parseInt(getImmediateString("ownershipChangeDelay", systemElmnt));
+		SystemConfig.dirNetworkDelay = Integer.parseInt(getImmediateString("dirNetworkDelay", systemElmnt));
 	
 		NodeList powerLst = doc.getElementsByTagName("Power");
 		Node powerNode = powerLst.item(0);
@@ -337,6 +341,7 @@ public class XMLParser
 			
 			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
 			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
+			core.TLBMissPenalty = Integer.parseInt(getImmediateString("TLBMissPenalty", coreElmnt));
 			core.TLBPortType = setPortType(getImmediateString("TLBPortType", coreElmnt));
 			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
 			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
@@ -379,6 +384,17 @@ public class XMLParser
 				core.TreeBarrier = true;
 			else
 				core.TreeBarrier = false;
+			core.barrierLatency = Integer.parseInt(getImmediateString("BarrierLatency", coreElmnt));
+			
+			String tempStr = getImmediateString("BarrierUnit", coreElmnt);
+			if (tempStr.equalsIgnoreCase("Central"))
+				core.barrierUnit = 0;
+			else if (tempStr.equalsIgnoreCase("Distributed"))
+				core.barrierUnit = 1;
+			else{
+				System.err.println("Only Central and Distributed allowed as barrier unit");
+				System.exit(0);
+			}
 			//Code for instruction cache configurations for each core
 			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
 			Element iCacheElmnt = (Element) iCacheList.item(0);
