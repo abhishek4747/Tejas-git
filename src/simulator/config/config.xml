@@ -20,8 +20,8 @@
 *****************************************************************************/-->
 <Configuration>
 	<Emulator>
-		<EmulatorType>1</EmulatorType> <!-- 0-pin,1-qemu-->
-		<CommunicationType>3</CommunicationType>  <!--0-fileMicroOps, 1-shmem, 2-socket, 3-filePacket -->
+		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
+		<CommunicationType>1</CommunicationType>  <!--0-fileMicroOps, 1-shmem, 2-socket, 3-filePacket -->
 		<PinTool>/mnt/srishtistr0/home/prathmesh/Data/Softwares/Pintool/pin-11</PinTool>
 		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/eldhose/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
@@ -215,7 +215,7 @@
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>D</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>

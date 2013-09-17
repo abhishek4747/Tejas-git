@@ -132,7 +132,7 @@ public class CentralizedDirectoryCache extends Cache
 	}
 	
 	
-	boolean printDirectoryDebugMessages = true;
+	boolean printDirectoryDebugMessages = false;
 	public void handleEvent( EventQueue eventQ, Event event )
 	{
 		if(printDirectoryDebugMessages==true) {
