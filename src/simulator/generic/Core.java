@@ -20,6 +20,8 @@ import pipeline.inorder.InorderExecutionEngine;
 
 import pipeline.inorder.InorderPipeline;
 import pipeline.inorder.multiissue.MultiIssueInorder;
+import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
+import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
 import power.Counters;
@@ -112,7 +114,7 @@ public class Core {
 		if(this.isPipelineInorder)
 			this.execEngine = new InorderExecutionEngine(this,1);
 		else if(this.isPipelineMultiIssueInorder)
-			this.execEngine = new InorderExecutionEngine(this,this.numInorderPipelines);
+			this.execEngine = new MultiIssueInorderExecutionEngine(this, issueWidth);
 		else
 			this.execEngine = new OutOrderExecutionEngine(this);
 		
@@ -152,7 +154,7 @@ public class Core {
 		if(this.isPipelineInorder)
 			this.pipelineInterface = new InorderPipeline(this, eventQueue,0);
 		else if(this.isPipelineMultiIssueInorder)
-			this.pipelineInterface = new MultiIssueInorder(this, eventQueue);
+			this.pipelineInterface = new MultiIssueInorderPipeline(this, eventQueue);
 		else
 			this.pipelineInterface = new OutOfOrderPipeline(this, eventQueue);
 		this.powerCounters = new Counters();
@@ -179,7 +181,7 @@ public class Core {
 		setRegFileOccupancy(coreConfig.RegFileOccupancy);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
-		setNumInorderPipelines(SimulationConfig.numInorderPipelines);
+		setNumInorderPipelines(coreConfig.IssueWidth);
 		setTreeBarrier(coreConfig.TreeBarrier);
 		setBarrierLatency(coreConfig.barrierLatency);
 		setBarrierUnit(coreConfig.barrierUnit);

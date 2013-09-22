@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import pipeline.inorder.InorderCoreMemorySystem;
+import pipeline.multi_issue_inorder.InorderCoreMemorySystem_MII;
 import pipeline.outoforder.OutOrderCoreMemorySystem;
 
 import net.optical.TopLevelTokenBus;
@@ -148,7 +149,7 @@ public class MemorySystem
 			}
 			else if(cores[i].isPipelineMultiIssueInorder)
 			{
-				coreMemSys = new InorderCoreMemorySystem(cores[i]);
+				coreMemSys = new InorderCoreMemorySystem_MII(cores[i]);
 			}
 			else
 			{

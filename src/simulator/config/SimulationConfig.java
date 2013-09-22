@@ -36,7 +36,6 @@ public class SimulationConfig
 	public static boolean isPipelineInorder;
 	public static boolean isPipelineMultiIssueInorder;
 	public static boolean isPipelineOutOfOrder;
-	public static int numInorderPipelines;
 	public static boolean writeToFile;
 	public static int numInstructionsToBeWritten;
 	public static String InstructionsFilename;

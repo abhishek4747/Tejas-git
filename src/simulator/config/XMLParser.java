@@ -224,7 +224,6 @@ public class XMLParser
 		else{
 			System.err.println("Please specify any of the four pipeline types in the config file");
 		}
-		SimulationConfig.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", simulationElmnt));
 		
 		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
