@@ -36,12 +36,12 @@ public class OpTypeToFUTypeMapping {
 			case store		:	{
 									return FunctionalUnitType.memory;
 								}
-			case jump		:	{
-									return FunctionalUnitType.integerALU;
-								}
-			case branch		:	{
-									return FunctionalUnitType.integerALU;
-								}
+//			case jump		:	{
+//									return FunctionalUnitType.integerALU;
+//								}
+//			case branch		:	{
+//									return FunctionalUnitType.integerALU;
+//								}
 			default			:	{
 									return FunctionalUnitType.inValid;
 								}

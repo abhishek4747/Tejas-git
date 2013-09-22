@@ -39,9 +39,13 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 	public long l2hits;
 	public long l2accesses;
 	private int numPipelines;
+
 	
-	ArrayList<Operand> destRegisters = new ArrayList<Operand>();
-	private int stallFetch;
+	long valueReadyInteger[];
+	long valueReadyFloat[];
+	long valueReadyMSR[];
+	
+	private int stallFetch;	//to simulate pipeline flush during branch misprediction
 	private FunctionalUnitSet functionalUnitSet;
 	StageLatch_MII ifIdLatch,idExLatch,exMemLatch,memWbLatch,wbDoneLatch;
 	
@@ -79,6 +83,10 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		l2memoutstanding=0;
 		l2hits=0;
 		l2accesses=0;
+		
+		valueReadyInteger = new long[core.getNIntegerArchitecturalRegisters()];
+		valueReadyFloat = new long[core.getNFloatingPointArchitecturalRegisters()];
+		valueReadyMSR = new long[core.getNMachineSpecificRegisters()];
 	}
 
 	public int getNumPipelines() {
@@ -221,9 +229,17 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		this.memStall += i;
 		
 	}
-	
-	public ArrayList<Operand> getDestRegisters() {
-		return destRegisters;
+
+	public long[] getValueReadyInteger() {
+		return valueReadyInteger;
+	}
+
+	public long[] getValueReadyFloat() {
+		return valueReadyFloat;
+	}
+
+	public long[] getValueReadyMSR() {
+		return valueReadyMSR;
 	}
 
 	public int getStallFetch() {

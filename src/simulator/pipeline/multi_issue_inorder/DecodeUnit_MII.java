@@ -2,6 +2,8 @@ package pipeline.multi_issue_inorder;
 
 import java.util.ArrayList;
 
+import config.SimulationConfig;
+
 import pipeline.outoforder.OpTypeToFUTypeMapping;
 import generic.Core;
 import generic.Event;
@@ -123,16 +125,30 @@ public class DecodeUnit_MII extends SimulationElement{
 				//add destination register of ins to list of outstanding registers
 				if(ins.getDestinationOperand() != null)
 				{
-					containingExecutionEngine.getDestRegisters().add(ins.getDestinationOperand());
+					if(ins.getOperationType() == OperationType.load)
+					{
+						addToValueReadyArray(ins.getDestinationOperand(), Long.MAX_VALUE);
+					}
+					else if(ins.getOperationType() == OperationType.mov)
+					{
+						addToValueReadyArray(ins.getDestinationOperand(), GlobalClock.getCurrentTime() + 1);
+					}
+					else
+					{
+						addToValueReadyArray(ins.getDestinationOperand(),
+											GlobalClock.getCurrentTime()
+												+ containingExecutionEngine.getFunctionalUnitSet().getFULatency(
+														OpTypeToFUTypeMapping.getFUType(ins.getOperationType())));
+					}
 				}
 				
 				if(ins.getOperationType() == OperationType.xchg)
 				{
-					containingExecutionEngine.getDestRegisters().add(ins.getSourceOperand1());
+					addToValueReadyArray(ins.getSourceOperand1(), GlobalClock.getCurrentTime() + 1);
 					if(ins.getSourceOperand1().getValue() != ins.getSourceOperand2().getValue()
 							|| ins.getSourceOperand1().getOperandType() != ins.getSourceOperand2().getOperandType())
 					{
-						containingExecutionEngine.getDestRegisters().add(ins.getSourceOperand2());
+						addToValueReadyArray(ins.getSourceOperand2(), GlobalClock.getCurrentTime() + 1);
 					}
 				}
 				
@@ -169,6 +185,11 @@ public class DecodeUnit_MII extends SimulationElement{
 				idExLatch.add(ins, GlobalClock.getCurrentTime() + 1);
 				ifIdLatch.poll();
 				
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + "\n"  + ins + "\n");
+				}
+				
 				//if a branch/jump instruction is issued, no more instructions to be issued this cycle
 				if(opType == OperationType.branch
 						|| opType == OperationType.jump)
@@ -185,29 +206,94 @@ public class DecodeUnit_MII extends SimulationElement{
 
 	private boolean checkDataHazard(Instruction ins)
 	{
-		ArrayList<Operand> destRegisters = containingExecutionEngine.getDestRegisters();
-		for(Operand e: destRegisters)
+		Operand srcOpnd;
+		
+		//operand 1
+		srcOpnd = ins.getSourceOperand1();
+		if(srcOpnd != null)
 		{
-			if(ins.getSourceOperand1()!=null &&
-					e.getOperandType()==ins.getSourceOperand1().getOperandType() 
-					&& e.getValue() == ins.getSourceOperand1().getValue())
+			if(srcOpnd.isIntegerRegisterOperand())
 			{
-				return true;
+				if(containingExecutionEngine.getValueReadyInteger()[(int)(srcOpnd.getValue())]
+																			> GlobalClock.getCurrentTime())
+				{
+					return true;
+				}
 			}
-			if(ins.getSourceOperand2()!=null &&
-					e.getOperandType()==ins.getSourceOperand2().getOperandType() 
-					&& e.getValue() == ins.getSourceOperand2().getValue())
+
+			else if(srcOpnd.isFloatRegisterOperand())
 			{
-				return true;
+				if(containingExecutionEngine.getValueReadyFloat()[(int)(srcOpnd.getValue())]
+																			> GlobalClock.getCurrentTime())
+				{
+					return true;
+				}
 			}
-			if(ins.getDestinationOperand()!=null &&
-					e.getOperandType()==ins.getDestinationOperand().getOperandType() 
-					&& e.getValue() == ins.getDestinationOperand().getValue())
+
+			else if(srcOpnd.isMachineSpecificRegisterOperand())
 			{
-				return true;
+				if(containingExecutionEngine.getValueReadyMSR()[(int)(srcOpnd.getValue())]
+																			> GlobalClock.getCurrentTime())
+				{
+					return true;
+				}
 			}
 		}
+		
+		//operand 2
+		srcOpnd = ins.getSourceOperand2();
+		if(srcOpnd != null)
+		{
+			if(srcOpnd.isIntegerRegisterOperand())
+			{
+				if(containingExecutionEngine.getValueReadyInteger()[(int)(srcOpnd.getValue())]
+																			> GlobalClock.getCurrentTime())
+				{
+					return true;
+				}
+			}
+
+			else if(srcOpnd.isFloatRegisterOperand())
+			{
+				if(containingExecutionEngine.getValueReadyFloat()[(int)(srcOpnd.getValue())]
+																			> GlobalClock.getCurrentTime())
+				{
+					return true;
+				}
+			}
+
+			else if(srcOpnd.isMachineSpecificRegisterOperand())
+			{
+				if(containingExecutionEngine.getValueReadyMSR()[(int)(srcOpnd.getValue())]
+																			> GlobalClock.getCurrentTime())
+				{
+					return true;
+				}
+			}
+		}
+		
 		return false;
+	}
+	
+	private void addToValueReadyArray(Operand destOpnd, long timeWhenValueReady)
+	{
+		if(destOpnd.isIntegerRegisterOperand())
+		{
+			containingExecutionEngine.getValueReadyInteger()[(int)(destOpnd.getValue())]
+																		 = timeWhenValueReady;
+		}
+
+		else if(destOpnd.isFloatRegisterOperand())
+		{
+			containingExecutionEngine.getValueReadyFloat()[(int)(destOpnd.getValue())]
+																		 = timeWhenValueReady;
+		}
+
+		else if(destOpnd.isMachineSpecificRegisterOperand())
+		{
+			containingExecutionEngine.getValueReadyMSR()[(int)(destOpnd.getValue())]
+																		 = timeWhenValueReady;
+		}
 	}
 
 

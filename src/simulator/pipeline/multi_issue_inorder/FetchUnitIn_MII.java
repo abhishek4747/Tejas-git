@@ -1,7 +1,9 @@
 package pipeline.multi_issue_inorder;
 
 import memorysystem.AddressCarryingEvent;
+import config.CoreConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import generic.Barrier;
 import generic.BarrierTable;
 import generic.Core;
@@ -19,42 +21,50 @@ public class FetchUnitIn_MII extends SimulationElement
 {
 	Core core;
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
+	
+	public GenericCircularQueue<Instruction> inputToPipeline;
+	StageLatch_MII ifId_latch;
+	
 	Instruction fetchBuffer[];
 	public int fetchBufferCapacity;
 	private int fetchFillCount;	//Number of instructions in the fetch buffer
 	private int fetchBufferIndex;	//Index to first instruction to be popped out of fetch buffer
+	private boolean fetchBufferStatus[];  // To check whether request to ICache is complete or not
+	
 	private int stall;
 	private boolean sleep;		//The boolean to stall the pipeline when a sync request is received
-	public GenericCircularQueue<Instruction> inputToPipeline;
-	EventQueue eventQueue;
 	int syncCount;
 	long numRequestsSent;
 	int numRequestsAcknowledged;
-	private boolean fetchBufferStatus[];
-	StageLatch_MII ifId_latch;
+	
 	long instCtr; //for debug
 
+	
 	public FetchUnitIn_MII(Core core, EventQueue eventQueue, MultiIssueInorderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, -1, -1);
+		
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
+		
 		this.ifId_latch = execEngine.getIfIdLatch();
-		this.fetchBufferCapacity=1;
+		
+		this.fetchBufferCapacity = (int)(core.getIssueWidth()
+								* (SystemConfig.core[core.getCore_number()].iCache.latency + 1));
 		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;
-		this.stall = 0;
-		this.eventQueue = eventQueue;
-		this.sleep=false;
-		this.syncCount=0;
-		this.numRequestsSent=0;
-		this.numRequestsAcknowledged=0;
-		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];  // To check whether request to ICache is complete or not
+		this.fetchBufferStatus = new boolean[this.fetchBufferCapacity];
 		for(int i=0;i<this.fetchBufferCapacity;i++)
 		{
 			this.fetchBufferStatus[i]=false;
 		}
+		
+		this.stall = 0;
+		this.sleep=false;
+		this.syncCount=0;
+		this.numRequestsSent=0;
+		this.numRequestsAcknowledged=0;
 		instCtr = 0;
 	}
 	
@@ -119,8 +129,7 @@ public class FetchUnitIn_MII extends SimulationElement
 		if(!this.fetchBufferStatus[this.fetchBufferIndex])
 			containingExecutionEngine.incrementInstructionMemStall(1); 
 
-		while(!this.sleep && this.fetchFillCount > 0 && 
-				this.stall==0
+		while(!this.sleep && this.fetchFillCount > 0
 				&& this.fetchBufferStatus[this.fetchBufferIndex]
 				&& this.ifId_latch.isFull() == false)
 	        	{
@@ -192,26 +201,15 @@ public class FetchUnitIn_MII extends SimulationElement
 						this.fetchBuffer[this.fetchBufferIndex] = null;
 						this.fetchBufferStatus[this.fetchBufferIndex] = false;
 						this.fetchBufferIndex = (this.fetchBufferIndex+1)%this.fetchBufferCapacity;
+						
+						if(SimulationConfig.debugMode)
+						{
+							System.out.println("fetched : " + GlobalClock.getCurrentTime()/core.getStepSize() + "\n"  + ins + "\n");
+						}
 					}
-			}
-		
-			if(this.stall>0){
-				this.stall--;
 			}
 	}
 	
-//	public int getStall(){
-//		return this.stall;
-//	}
-//	public void incrementStall(int _stall){
-//		this.stall = this.stall+_stall;
-//	}
-//	public void decrementStall(int _stall){
-//		this.stall = this.stall-_stall;
-//	}
-//	public void setStall(int _stall){
-//		this.stall = _stall;
-//	}
 	public void setSleep(boolean _sleep){
 		this.sleep=_sleep;
 	}

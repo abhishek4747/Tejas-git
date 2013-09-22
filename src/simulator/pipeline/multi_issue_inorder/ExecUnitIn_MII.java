@@ -75,6 +75,11 @@ public class ExecUnitIn_MII extends SimulationElement{
 				//move ins to next stage
 				exMemLatch.add(ins, idExLatch.getInstructionCompletesAt(ins) + lat);
 				idExLatch.poll();
+				
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("executed : " + GlobalClock.getCurrentTime()/core.getStepSize() + "\n"  + ins + "\n");
+				}
 			}
 			else
 			{

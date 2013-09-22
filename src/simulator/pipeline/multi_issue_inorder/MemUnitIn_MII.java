@@ -7,6 +7,7 @@ import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Instruction;
+import generic.Operand;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
@@ -63,24 +64,6 @@ public class MemUnitIn_MII extends SimulationElement{
 					//set instruction's MEM stage completion time to Long.MAX_VALUE
 					lat = Long.MAX_VALUE - GlobalClock.getCurrentTime();
 				}
-				else
-				{
-					//remove from list of outstanding registers
-					if(ins.getDestinationOperand() != null)
-					{
-						this.containingExecutionEngine.getDestRegisters().remove(ins.getDestinationOperand());
-					}
-					
-					if(ins.getOperationType() == OperationType.xchg)
-					{
-						this.containingExecutionEngine.getDestRegisters().remove(ins.getSourceOperand1());
-						if(ins.getSourceOperand1().getOperandType() != ins.getSourceOperand2().getOperandType()
-								|| ins.getSourceOperand1().getValue() != ins.getSourceOperand2().getValue())
-						{
-							this.containingExecutionEngine.getDestRegisters().remove(ins.getSourceOperand2());
-						}
-					}
-				}
 				
 				if(ins.getSerialNo() != instCtr && ins.getOperationType() != OperationType.inValid)
 				{
@@ -91,6 +74,11 @@ public class MemUnitIn_MII extends SimulationElement{
 				//move ins to next stage
 				memWbLatch.add(ins, GlobalClock.getCurrentTime() + lat);
 				exMemLatch.poll();
+				
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("MEM : " + GlobalClock.getCurrentTime()/core.getStepSize() + "\n"  + ins + "\n");
+				}
 			}
 			else
 			{
@@ -124,6 +112,23 @@ public class MemUnitIn_MII extends SimulationElement{
 					&& instructionCompletesAt[i] > GlobalClock.getCurrentTime())
 			{
 				instructionCompletesAt[i] = GlobalClock.getCurrentTime();
+				
+				Operand destOpnd = instructions[i].getDestinationOperand();
+				if(destOpnd.isIntegerRegisterOperand())
+				{
+					containingExecutionEngine.getValueReadyInteger()[(int)destOpnd.getValue()]
+							 												= GlobalClock.getCurrentTime();
+				}
+				else if(destOpnd.isFloatRegisterOperand())
+				{
+					containingExecutionEngine.getValueReadyFloat()[(int)destOpnd.getValue()]
+							 												= GlobalClock.getCurrentTime();
+				}
+				else if(destOpnd.isMachineSpecificRegisterOperand())
+				{
+					containingExecutionEngine.getValueReadyMSR()[(int)destOpnd.getValue()]
+							 												= GlobalClock.getCurrentTime();
+				}
 			}
 		}
 	}

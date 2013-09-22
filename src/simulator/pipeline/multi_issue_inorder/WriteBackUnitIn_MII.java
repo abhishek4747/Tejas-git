@@ -78,12 +78,6 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 				}
 				else
 				{
-					//remove destination register of load instructions from list of outstanding registers
-					if(ins.getOperationType() == OperationType.load)
-					{
-						this.containingExecutionEngine.getDestRegisters().remove(ins.getDestinationOperand());
-					}
-					
 					//issue store
 					if(ins.getOperationType() == OperationType.store)
 					{
@@ -107,23 +101,28 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 								+ " global clock cycle " + GlobalClock.getCurrentTime());
 					}
 					core.incrementNoOfInstructionsExecuted();
-					
-					try
-					{
-						CustomObjectPool.getInstructionPool().returnObject(ins);
-						core.numReturns++;
-					}
-					catch (Exception e) {
-						e.printStackTrace();
-					}	
 				}
 				
 				if(ins.getSerialNo() != instCtr && ins.getOperationType() != OperationType.inValid)
 				{
 					misc.Error.showErrorAndExit("wb out of order!!");
 				}
-				instCtr++;
-				memWbLatch.poll();
+				instCtr++;	
+				
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("write back : " + GlobalClock.getCurrentTime()/core.getStepSize() + "\n"  + ins + "\n");
+				}
+				
+				memWbLatch.poll();				
+				try
+				{
+					CustomObjectPool.getInstructionPool().returnObject(ins);
+					core.numReturns++;
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 			else
 			{

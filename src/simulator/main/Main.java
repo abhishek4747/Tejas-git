@@ -127,7 +127,7 @@ public class Main {
 		System.exit(0);
 	}
 
-	private static void initializeObjectPools() {
+	public static void initializeObjectPools() {
 		
 		int numStaticInstructions = 0;
 		
@@ -207,7 +207,7 @@ public class Main {
 		return emulatorArguments;
 	}
 	
-	private static void initializeArchitecturalComponents() {
+	public static void initializeArchitecturalComponents() {
 		ArchitecturalComponent.setCoreBcastBus(ArchitecturalComponent.initCoreBcastBus());
 		ArchitecturalComponent.setCores(ArchitecturalComponent.initCores(ArchitecturalComponent.getCoreBcastBus()));
 		ArchitecturalComponent.setTokenBus(ArchitecturalComponent.initTokenBus());
