@@ -6,38 +6,35 @@ import generic.Instruction;
 
 public class ReorderBufferEntry {
 	
-	private Core core;
-	boolean isValid;
-	Instruction instruction;
-	int threadID;
-	int operand1PhyReg1;
-	int operand1PhyReg2;
-	int operand2PhyReg1;
-	int operand2PhyReg2;
-	boolean isOperand1Available;
-	boolean isOperand2Available;
-	boolean isOperand11Available;
-	boolean isOperand12Available;
-	boolean isOperand21Available;
-	boolean isOperand22Available;
-	int physicalDestinationRegister;
-	boolean isRenameDone;
-	boolean isIssued;
-	int FUInstance;								//which FU has been assigned
-	boolean isExecuted;
-	boolean isWriteBackDone1;
-	boolean isWriteBackDone2;
-	//private long readyAtTime;							//in terms of GlobalClock cycles
-	IWEntry associatedIWEntry;
-	LSQEntry lsqEntry = null; //entry in LSQ
+	private boolean isValid;
+	private Instruction instruction;
+	private int threadID;
+	private int operand1PhyReg1;
+	private int operand1PhyReg2;
+	private int operand2PhyReg1;
+	private int operand2PhyReg2;
+	private boolean isOperand1Available;
+	private boolean isOperand2Available;
+	private boolean isOperand11Available;
+	private boolean isOperand12Available;
+	private boolean isOperand21Available;
+	private boolean isOperand22Available;
+	private int physicalDestinationRegister;
+	private boolean isRenameDone;
+	private boolean isIssued;
+	private int FUInstance;								//which FU has been assigned
+	private boolean isExecuted;
+	private boolean isWriteBackDone1;
+	private boolean isWriteBackDone2;
+	private IWEntry associatedIWEntry;
+	private LSQEntry lsqEntry = null;
 	
 	int pos;
 	
 	OutOrderExecutionEngine execEngine;
 	
-	public ReorderBufferEntry(Core core, int pos, OutOrderExecutionEngine execEngine)
+	public ReorderBufferEntry(int pos, OutOrderExecutionEngine execEngine)
 	{
-		this.core = core;
 		this.pos = pos;
 		isValid = false;
 		

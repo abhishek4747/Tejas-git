@@ -3,6 +3,7 @@ package pipeline.outoforder;
 import config.SimulationConfig;
 import generic.Core;
 import generic.ExecCompleteEvent;
+import generic.FunctionalUnitType;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
@@ -14,44 +15,41 @@ import generic.RequestType;
 public class IWEntry {
 	
 	Core core;
-	Instruction instruction;
-	ReorderBufferEntry associatedROBEntry;
-	
 	OutOrderExecutionEngine execEngine;
 	InstructionWindow instructionWindow;
+	
+	Instruction instruction;
+	ReorderBufferEntry associatedROBEntry;
 	OperationType opType;
-	
 	boolean isValid;
-	
 	int pos;
 
 	public IWEntry(Core core, int pos,
 			OutOrderExecutionEngine execEngine, InstructionWindow instructionWindow)
 	{
-		this.core = core;
-		this.pos = pos;
-		isValid = false;
-		
+		this.core = core;		
 		this.execEngine = execEngine;
 		this.instructionWindow = instructionWindow;
+		
+		this.pos = pos;
+		isValid = false;
 	}
 	
 	
 	public boolean issueInstruction()
 	{
-		if(associatedROBEntry.isRenameDone == false ||
-				associatedROBEntry.isExecuted == true)
+		if(associatedROBEntry.isRenameDone() == false ||
+				associatedROBEntry.getExecuted() == true)
 		{
-			System.out.println("cannot issue this instruction");
+			misc.Error.showErrorAndExit("cannot issue this instruction");
 		}
 		
 		if(associatedROBEntry.getIssued() == true)
 		{
-			System.out.println("already issued!");
-			return false;
+			misc.Error.showErrorAndExit("already issued!");
 		}
 		
-		if(associatedROBEntry.isOperand1Available && associatedROBEntry.isOperand2Available)
+		if(associatedROBEntry.isOperand1Available() && associatedROBEntry.isOperand2Available())
 		{
 
 			//Increment the counters for power calculations
@@ -63,7 +61,6 @@ public class IWEntry {
 			if(opType == OperationType.mov ||
 					opType == OperationType.xchg)
 			{
-				//no FU required
 				issueMovXchg();
 				return true;
 			}
@@ -79,8 +76,7 @@ public class IWEntry {
 			{
 				return issueOthers();
 			}
-		}
-		
+		}		
 
 		return false;
 	}
@@ -94,6 +90,7 @@ public class IWEntry {
 		//remove IW entry
 		instructionWindow.removeFromWindow(this);
 		
+		//schedule completion of execution - 1 cycle operation
 		core.getEventQueue().addEvent(
 				new ExecCompleteEvent(
 						null,
@@ -104,34 +101,42 @@ public class IWEntry {
 						RequestType.EXEC_COMPLETE,
 						associatedROBEntry));
 		
+		//dependent instructions can begin in the next cycle
+		core.getEventQueue().addEvent(
+				new BroadCastEvent(
+						GlobalClock.getCurrentTime(),
+						null, 
+						execEngine.getExecuter(),
+						RequestType.BROADCAST,
+						associatedROBEntry));
+		
 
 		if(SimulationConfig.debugMode)
 		{
 			System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());
-		}
-		
-		
+		}		
 	}
 	
 	void issueLoadStore()
 	{
+		//assertions
+		if(associatedROBEntry.getLsqEntry().isValid() == true)
+		{
+			misc.Error.showErrorAndExit("attempting to issue a load/store.. address is already valid");
+		}		
+		if(associatedROBEntry.getLsqEntry().isForwarded() == true)
+		{
+			misc.Error.showErrorAndExit("attempting to issue a load/store.. value forwarded is already valid");
+		}
+		
 		associatedROBEntry.setIssued(true);
 		if(opType == OperationType.store)
 		{
+			//stores are issued at commit stage
+			
 			associatedROBEntry.setExecuted(true);
 			associatedROBEntry.setWriteBackDone1(true);
 			associatedROBEntry.setWriteBackDone2(true);
-			
-			this.core.powerCounters.incrementLsqAccess(1);
-			this.core.powerCounters.incrementLsqStoreDataAccess(1);
-			this.core.powerCounters.incrementLsqPregAccess(1);
-			
-		}
-		
-		if(opType == OperationType.load){
-			this.core.powerCounters.incrementLsqAccess(1);
-			this.core.powerCounters.incrementLsqWakeupAccess(1);
-
 		}
 		
 		associatedROBEntry.setFUInstance(0);
@@ -139,21 +144,24 @@ public class IWEntry {
 		//remove IW entry
 		instructionWindow.removeFromWindow(this);
 		
-		if(associatedROBEntry.lsqEntry.isValid() == true)
-		{
-			System.out.println("attempting to issue a load/store.. address is already valid");
-		}
-		
-		if(associatedROBEntry.lsqEntry.isForwarded() == true)
-		{
-			System.out.println("attempting to issue a load/store.. value forwarded is already valid");
-		}
-		
 		//tell LSQ that address is available
 		execEngine.getCoreMemorySystem().issueRequestToLSQ(
 				null, 
 				associatedROBEntry);
+
+		//update power counters
+		if(opType == OperationType.store)
+		{
+			this.core.powerCounters.incrementLsqAccess(1);
+			this.core.powerCounters.incrementLsqStoreDataAccess(1);
+			this.core.powerCounters.incrementLsqPregAccess(1);
 			
+		}		
+		else
+		{
+			this.core.powerCounters.incrementLsqAccess(1);
+			this.core.powerCounters.incrementLsqWakeupAccess(1);
+		}
 
 		if(SimulationConfig.debugMode)
 		{
@@ -163,8 +171,8 @@ public class IWEntry {
 	
 	boolean issueOthers()
 	{
-		
-		if(associatedROBEntry.instruction.getOperationType() == OperationType.interrupt)
+		FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(opType);
+		if(FUType == FunctionalUnitType.inValid)
 		{
 			associatedROBEntry.setIssued(true);
 			associatedROBEntry.setFUInstance(0);
@@ -177,24 +185,15 @@ public class IWEntry {
 		
 		long FURequest = 0;	//will be <= 0 if an FU was obtained
 		//will be > 0 otherwise, indicating how long before
-		//	an FU of the type will be available (not used in new arch)
+		//	an FU of the type will be available
 
 		FURequest = execEngine.getFunctionalUnitSet().requestFU(
-			OpTypeToFUTypeMapping.getFUType(opType),
-			GlobalClock.getCurrentTime(),
-			core.getStepSize() );
+																FUType,
+																GlobalClock.getCurrentTime(),
+																core.getStepSize() );
 		
 		if(FURequest <= 0)
 		{
-			//Increment the counters for power calculation
-			if(opType == OperationType.integerALU){
-				this.core.powerCounters.incrementAluAccess(1);
-				this.core.powerCounters.incrementIaluAccess(1);
-			}
-			else if(opType == OperationType.integerALU){
-				this.core.powerCounters.incrementAluAccess(1);
-				this.core.powerCounters.incrementFaluAccess(1);
-			}
 			associatedROBEntry.setIssued(true);
 			associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
 			
@@ -202,12 +201,12 @@ public class IWEntry {
 			instructionWindow.removeFromWindow(this);
 			
 			core.getEventQueue().addEvent(
-					new BroadCast1Event(
+					new BroadCastEvent(
 							GlobalClock.getCurrentTime() + (core.getLatency(
 									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) - 1) * core.getStepSize(),
 							null, 
 							execEngine.getExecuter(),
-							RequestType.BROADCAST_1,
+							RequestType.BROADCAST,
 							associatedROBEntry));
 			
 			core.getEventQueue().addEvent(
@@ -220,6 +219,16 @@ public class IWEntry {
 							RequestType.EXEC_COMPLETE,
 							associatedROBEntry));
 
+			//TODO Increment the counters for power calculation
+			if(opType == OperationType.integerALU){
+				this.core.powerCounters.incrementAluAccess(1);
+				this.core.powerCounters.incrementIaluAccess(1);
+			}
+			else if(opType == OperationType.floatALU){
+				this.core.powerCounters.incrementAluAccess(1);
+				this.core.powerCounters.incrementFaluAccess(1);
+			}
+			
 			if(SimulationConfig.debugMode)
 			{
 				System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());

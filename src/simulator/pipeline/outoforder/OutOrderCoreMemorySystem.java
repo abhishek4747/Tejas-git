@@ -1,7 +1,5 @@
 package pipeline.outoforder;
 
-import java.util.ArrayList;
-
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -65,14 +63,14 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 						robEntry.getAssociatedIWEntry() == null ||
 						robEntry.getIssued() == false)
 		{
-			System.out.println("attempting to validate the address of a load/store that hasn't been issued");
+			misc.Error.showErrorAndExit("attempting to validate the address of a load/store that hasn't been issued");
 		}
 		
 		lsqueue.getPort().put(
 				new LSQEntryContainingEvent(
 						getCore().getEventQueue(),
 						lsqueue.getLatencyDelay(), 
-						requestingElement, //Requesting Element
+						requestingElement,
 						lsqueue, 
 						RequestType.Tell_LSQ_Addr_Ready,
 						robEntry.getLsqEntry(),
@@ -150,31 +148,18 @@ public void handleEvent(EventQueue eventQ, Event event) {
 		//if response comes from iCache, inform fetchunit
 		if(memResponse.getRequestingElement() == iCache)
 		{
-			/*//FIXME change 3//ArrayList<AddressCarryingEvent> handledRequests = iMissStatusHoldingRegister.removeRequestsByAddress(memResponse);
-			for(int i = 0; i < handledRequests.size(); i++)
-			{
-				containingExecEngine.getFetcher().processCompletionOfMemRequest(handledRequests.get(i).getAddress());
-			}*/
-			
 			containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
 		}
 		
 		//if response comes from l1Cache, inform memunit
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
-			/*//FIXME change 4//ArrayList<AddressCarryingEvent> handledRequests = L1MissStatusHoldingRegister.removeRequestsByAddress(memResponse);
-			for(int i = 0; i < handledRequests.size(); i++)
-			{
-				System.out.println("mem response for " + handledRequests.get(i));
-				lsqueue.handleMemResponse(handledRequests.get(i).getAddress());
-			}*/
-			
 			lsqueue.handleMemResponse(address);
 		}
 		
 		else
 		{
-			System.out.println("mem response received by outordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
+			misc.Error.showErrorAndExit("mem response received by outordercoreMemSys from unkown object : " + memResponse.getRequestingElement());
 		}
 	}
 	

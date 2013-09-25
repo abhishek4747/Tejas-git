@@ -13,24 +13,20 @@ public class FunctionalUnitSet {
 	private int[] latencies;
 	
 	//usage : if timeWhenFUAvailable <= current_time, then FU available for use
-	//absolute time - in terms of GlobalClock
+	//absolute time -- in terms of GlobalClock
 	private long[][] timeWhenFUAvailable;
 	
 	
 	public FunctionalUnitSet(int[] _nUnits, int[] _latencies)
 	{
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
-		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
-					// +2 because memory unit has L1 latency, L2 latency, main memory latency
+		latencies = new int[FunctionalUnitType.no_of_types.ordinal()];
 		
 		for(int i = 0; i < FunctionalUnitType.no_of_types.ordinal(); i++)
 		{
 			nUnits[i] = _nUnits[i];
 			latencies[i] = _latencies[i];
 		}
-		
-		latencies[FunctionalUnitType.memory.ordinal()+1] = _latencies[FunctionalUnitType.memory.ordinal()+1];
-		latencies[FunctionalUnitType.memory.ordinal()+2] = _latencies[FunctionalUnitType.memory.ordinal()+2];
 		
 		timeWhenFUAvailable = new long[FunctionalUnitType.no_of_types.ordinal()][];
 		for(FunctionalUnitType f : FunctionalUnitType.values())

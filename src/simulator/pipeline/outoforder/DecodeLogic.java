@@ -5,6 +5,7 @@ import pipeline.outoforder.ReorderBufferEntry;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
@@ -15,8 +16,8 @@ public class DecodeLogic extends SimulationElement {
 	
 	Core core;
 	OutOrderExecutionEngine execEngine;
-	Instruction[] fetchBuffer;
-	ReorderBufferEntry[] decodeBuffer;
+	GenericCircularQueue<Instruction> fetchBuffer;
+	GenericCircularQueue<ReorderBufferEntry> decodeBuffer;
 	int decodeWidth;
 	
 	int invalidCount;
@@ -47,16 +48,22 @@ public class DecodeLogic extends SimulationElement {
 		{
 			for(int i = 0; i < decodeWidth; i++)
 			{
-				if(ROB.isFull())
+				if(decodeBuffer.isFull() == true)
 				{
-					execEngine.setToStall4(true);
 					break;
 				}
 				
-				if(fetchBuffer[i] != null)
+				Instruction headInstruction = fetchBuffer.peek(0);
+				if(headInstruction != null)
 				{
-					if(fetchBuffer[i].getOperationType() == OperationType.load ||
-							fetchBuffer[i].getOperationType() == OperationType.store)
+					if(ROB.isFull())
+					{
+						execEngine.setToStall4(true);
+						break;
+					}
+					
+					if(headInstruction.getOperationType() == OperationType.load ||
+							headInstruction.getOperationType() == OperationType.store)
 					{
 						if(execEngine.getCoreMemorySystem().getLsqueue().isFull())
 						{
@@ -65,13 +72,14 @@ public class DecodeLogic extends SimulationElement {
 						}
 					}
 					
-					newROBEntry = makeROBEntries(fetchBuffer[i]);
-					decodeBuffer[i] = newROBEntry;
-					fetchBuffer[i] = null;
+					newROBEntry = makeROBEntries(headInstruction);
+					
+					decodeBuffer.enqueue(newROBEntry);
+					fetchBuffer.dequeue();
 					
 					if(SimulationConfig.debugMode)
 					{
-						System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + fetchBuffer[i]);
+						System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + headInstruction);
 					}
 				}
 				
@@ -83,22 +91,16 @@ public class DecodeLogic extends SimulationElement {
 	
 	ReorderBufferEntry makeROBEntries(Instruction newInstruction)
 	{
-		OperationType tempOpType = null;
 		if(newInstruction != null)
 		{
-			tempOpType = newInstruction.getOperationType();
-		}
-		
-		if(newInstruction != null)
-		{			
 			ReorderBufferEntry newROBEntry = execEngine.getReorderBuffer()
-											.addInstructionToROB(newInstruction, 0);	//TODO
-																						//threadID to be attribute of Instruction
-																						//instead of 0, write newInstruction.getThreadID()
+											.addInstructionToROB(
+													newInstruction,
+													newInstruction.getThreadID());
 			
 			//if load or store, make entry in LSQ
-			if(tempOpType == OperationType.load ||
-					tempOpType == OperationType.store)
+			if(newInstruction.getOperationType() == OperationType.load ||
+					newInstruction.getOperationType() == OperationType.store)
 			{
 				boolean isLoad;
 				if (newInstruction.getOperationType() == OperationType.load)
@@ -106,7 +108,6 @@ public class DecodeLogic extends SimulationElement {
 				else
 					isLoad = false;
 					
-				//TODO
 				execEngine.getCoreMemorySystem().allocateLSQEntry(isLoad, 
 						newROBEntry.getInstruction().getSourceOperand1MemValue(),
 						newROBEntry);

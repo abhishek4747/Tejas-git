@@ -11,7 +11,7 @@ public class RegisterFile extends SimulationElement{
 	private Core core;
 	private int registerFileSize;
 	private Object[] value;
-	private boolean[] valueValid;					//28-6-11. currently used only for
+	private boolean[] valueValid;					//currently used only for
 	private ReorderBufferEntry[] producerROBEntry;	//machine specific registers
 	
 	public RegisterFile(Core core, int _registerFileSize)

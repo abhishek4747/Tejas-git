@@ -5,7 +5,6 @@ import generic.EventQueue;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.Statistics;
 
 public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 	
@@ -38,7 +37,7 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 		{
 			execEngine.getReorderBuffer().performCommits();
 			execEngine.getWriteBackLogic().performWriteBack();
-			execEngine.getSelector().performSelect2();
+			execEngine.getSelector().performSelect();
 		}
 		
 		//handle events
@@ -51,9 +50,6 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 			execEngine.getDecoder().performDecode();
 			execEngine.getFetcher().performFetch();
 			this.core.powerCounters.perCycleAccessRecordUpdate();
-//			this.core.powerCounters.updatePowerStatsPerCycle();
-//			this.core.powerCounters.clearAccessStats();
-
 		}
 		
 	}
@@ -74,11 +70,8 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 	}
 
 	@Override
-	public boolean isExecutionComplete() {
-		
-		return core.getExecEngine().isExecutionComplete();
-		
-		
+	public boolean isExecutionComplete() {		
+		return core.getExecEngine().isExecutionComplete();		
 	}
 	
 	public void setcoreStepSize(int stepSize)

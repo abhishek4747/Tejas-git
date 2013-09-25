@@ -20,7 +20,6 @@ public class RenameTable extends SimulationElement{
 	int[][] archToPhyMapping;
 	
 	RegisterFile associatedRegisterFile;
-	RenameTableCheckpoint checkpoint;
 	
 	int availableList[];
 	int availableListHead;
@@ -40,7 +39,6 @@ public class RenameTable extends SimulationElement{
 		mappingValid = new boolean[this.nPhyRegisters];
 		valueValid = new boolean[this.nPhyRegisters];
 		producerROBEntry = new ReorderBufferEntry[this.nPhyRegisters];
-		checkpoint = new RenameTableCheckpoint(this.noOfThreads, this.nArchRegisters);
 		
 		if(noOfThreads * this.nArchRegisters > this.nPhyRegisters)
 		{
@@ -172,14 +170,6 @@ public class RenameTable extends SimulationElement{
 
 	public void setAssociatedRegisterFile(RegisterFile associatedRegisterFile) {
 		this.associatedRegisterFile = associatedRegisterFile;
-	}
-
-	public RenameTableCheckpoint getCheckpoint() {
-		return checkpoint;
-	}
-
-	public void setCheckpoint(RenameTableCheckpoint checkpoint) {
-		this.checkpoint = checkpoint;
 	}
 	
 	public void addToAvailableList(int phyRegNum)

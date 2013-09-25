@@ -8,6 +8,11 @@ import generic.SimulationElement;
 
 public class InstructionWindow extends SimulationElement {
 	
+	/*
+	 * IW is implemented as an unordered buffer
+	 * the precedence required when issuing instructions, is achieved by the ordering of the ROB
+	 */
+	
 	Core core;
 	IWEntry[] IW;
 	int maxIWSize;
@@ -20,6 +25,7 @@ public class InstructionWindow extends SimulationElement {
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;
+		
 		maxIWSize = core.getIWSize();
 		IW = new IWEntry[maxIWSize];
 		availList = new int[maxIWSize];

@@ -19,7 +19,6 @@ public class OperandAvailabilityChecker {
 		}
 		
 		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
-		ReorderBuffer reorderBuffer = execEngine.getReorderBuffer();
 		OperandType tempOpndType = opnd.getOperandType();
 		int threadID = reorderBufferEntry.getThreadID();
 		
@@ -43,9 +42,9 @@ public class OperandAvailabilityChecker {
 			{
 				RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
 				if(tempRF.getValueValid(phyReg1) == true ||
-						tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry ||
+						tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry/* ||
 						reorderBuffer.indexOf(tempRF.getProducerROBEntry(phyReg1))
-						> reorderBuffer.indexOf(reorderBufferEntry))
+						> reorderBuffer.indexOf(reorderBufferEntry)*/)
 				{
 					return new boolean[]{true};
 				}
@@ -67,10 +66,7 @@ public class OperandAvailabilityChecker {
 				}
 				
 				if(tempRN.getValueValid(phyReg1) == true ||
-						tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry
-						//|| reorderBuffer.indexOf(tempRN.getProducerROBEntry(phyReg1))
-						//> reorderBuffer.indexOf(reorderBufferEntry)
-						)
+						tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry)
 				{
 					return new boolean[]{true};
 				}

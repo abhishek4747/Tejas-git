@@ -115,12 +115,6 @@ public class DecodeUnit_MII extends SimulationElement{
 				this.core.powerCounters.incrementWindowPregAccess(1);
 			  
 				this.core.powerCounters.incrementRegfileAccess(1);
-				
-				//update last valid IP seen
-				if(ins.getCISCProgramCounter() != -1)
-				{
-					lastValidIPSeen = ins.getCISCProgramCounter();
-				}
 			  
 				//add destination register of ins to list of outstanding registers
 				if(ins.getDestinationOperand() != null)
@@ -152,27 +146,37 @@ public class DecodeUnit_MII extends SimulationElement{
 					}
 				}
 				
+				//update last valid IP seen
+				if(ins.getCISCProgramCounter() != -1)
+				{
+					lastValidIPSeen = ins.getCISCProgramCounter();
+				}
+				
 				//perform branch prediction
 				if(ins.getOperationType()==OperationType.branch)
-				{ 
-					numBranches++;
-					this.core.powerCounters.incrementBpredAccess(1);
-
-					if(core.getBranchPredictor().predict(lastValidIPSeen, ins.isBranchTaken()) != ins.isBranchTaken())
+				{
+					boolean prediction = core.getBranchPredictor().predict(
+																		lastValidIPSeen,
+																		ins.isBranchTaken());
+					if(prediction != ins.isBranchTaken())
 					{
-						//Branch mis predicted
-						//stall pipelines for appropriate cycles
+						//Branch mispredicted
+						//stall pipeline for appropriate cycles
 						containingExecutionEngine.setStallFetch(core.getBranchMispredictionPenalty());
 						numMispredictedBranches++;
 						this.core.powerCounters.incrementBpredMisses();
 					}
+					this.core.powerCounters.incrementBpredAccess(1);
 	
-					//Train appropriate Branch Predictor
+					//Train Branch Predictor
 					core.getBranchPredictor().Train(
 							ins.getCISCProgramCounter(),
 							ins.isBranchTaken(),
-							core.getBranchPredictor().predict(ins.getCISCProgramCounter(), ins.isBranchTaken())
+							prediction
 							);
+					this.core.powerCounters.incrementBpredAccess(1);
+					
+					numBranches++;
 				}
 				
 				if(ins.getSerialNo() != instCtr && ins.getOperationType() != OperationType.inValid)

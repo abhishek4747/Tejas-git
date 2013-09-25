@@ -32,18 +32,6 @@ public class Instruction implements Serializable
 	private long sourceOperand1MemValue;
 	private long sourceOperand2MemValue;
 	private long destinationOperandMemValue;
-	
-	public void setSourceOperand1(Operand sourceOperand1) {
-		this.sourceOperand1 = sourceOperand1;
-	}
-
-	public void setSourceOperand2(Operand sourceOperand2) {
-		this.sourceOperand2 = sourceOperand2;
-	}
-
-	public void setDestinationOperand(Operand destinationOperand) {
-		this.destinationOperand = destinationOperand;
-	}
 
 	private Operand sourceOperand2;
 	private Operand destinationOperand;
@@ -53,7 +41,7 @@ public class Instruction implements Serializable
 	private boolean branchTaken;
 	private long branchTargetAddress;
 	private long serialNo;
-	private long threadID;
+	private int threadID;
 	
 	public Instruction()
 	{
@@ -129,78 +117,6 @@ public class Instruction implements Serializable
 		this.destinationOperand = sourceInstruction.destinationOperand;
 	}
 	
-	public long getCISCProgramCounter()
-	{
-		return ciscProgramCounter;
-	}
-	
-	public void setCISCProgramCounter(long programCounter) 
-	{
-		this.ciscProgramCounter = programCounter;
-	}
-	
-	public void setOperationType(OperationType operationType)
-	{
-		this.type = operationType;
-	}
-	
-	/**
-	 * strInstruction method returns the instruction information in a string.
-	 * @return String describing the instruction
-	 */
-	public String toString()
-	{
-		return 
-		(
-			String.format("%-20s", "IP = " + Long.toHexString(ciscProgramCounter)) +
-			String.format("%-20s", "Op = " + type) +
-			String.format("%-60s", "srcOp1 = " + sourceOperand1) +
-			String.format("%-60s", "srcOp2 = " + sourceOperand2) +
-			String.format("%-60s", "dstOp = " + destinationOperand) 
-		);
-	}
-	
-	public OperationType getOperationType()
-	{
-		return type;
-	}
-	
-	public boolean isBranchTaken() {
-		return branchTaken;
-	}
-
-	public void setBranchTaken(boolean branchTaken) {
-		this.branchTaken = branchTaken;
-	}
-
-
-	public long getBranchTargetAddress() {
-		return branchTargetAddress;
-	}
-
-
-	public void setBranchTargetAddress(long branchTargetAddress) {
-		this.branchTargetAddress = branchTargetAddress;
-	}
-
-
-	public Operand getSourceOperand1()
-	{
-		return sourceOperand1;
-	}
-	
-	
-	public Operand getSourceOperand2()
-	{
-		return sourceOperand2;
-	}
-	
-	
-	public Operand getDestinationOperand()
-	{
-		return destinationOperand;
-	}
-		
 	public static Instruction getIntALUInstruction(Operand sourceOperand1, Operand sourceOperand2, Operand destinationOperand)
 	{
 		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
@@ -222,7 +138,7 @@ public class Instruction implements Serializable
 		ins.set(OperationType.sync, null, null, null);
 		return ins;
 	}
-
+	
 	public static Instruction getMoveInstruction(Operand destinationOperand, Operand sourceOperand)
 	{
 		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
@@ -286,7 +202,7 @@ public class Instruction implements Serializable
 				destinationOperand);
 		return ins;
 	}
-
+	
 	public static Instruction getFloatingPointDivision(Operand sourceOperand1, 
 			Operand sourceOperand2, Operand destinationOperand)
 	{
@@ -303,7 +219,7 @@ public class Instruction implements Serializable
 		ins.set(OperationType.branch, newInstructionAddress, null, null);
 		return ins;
 	}
-
+	
 	public static Instruction getUnconditionalJumpInstruction(Operand newInstructionAddress)
 	{
 		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
@@ -317,7 +233,7 @@ public class Instruction implements Serializable
 		ins.set(OperationType.load, memoryLocation,	null, destinationRegister);
 		return ins;
 	}
-
+	
 	public static Instruction getStoreInstruction(Operand memoryLocation, Operand sourceOperand)
 	{
 		Instruction ins = CustomObjectPool.getInstructionPool().borrowObject();
@@ -325,14 +241,69 @@ public class Instruction implements Serializable
 		return ins;
 	}
 	
-	public Operand getOperand1()
+	public long getCISCProgramCounter()
+	{
+		return ciscProgramCounter;
+	}
+	
+	public void setCISCProgramCounter(long programCounter) 
+	{
+		this.ciscProgramCounter = programCounter;
+	}
+	
+	public OperationType getOperationType()
+	{
+		return type;
+	}
+	
+	public void setOperationType(OperationType operationType)
+	{
+		this.type = operationType;
+	}
+	
+	public boolean isBranchTaken() {
+		return branchTaken;
+	}
+
+	public void setBranchTaken(boolean branchTaken) {
+		this.branchTaken = branchTaken;
+	}
+
+
+	public long getBranchTargetAddress() {
+		return branchTargetAddress;
+	}
+
+
+	public void setBranchTargetAddress(long branchTargetAddress) {
+		this.branchTargetAddress = branchTargetAddress;
+	}
+
+	public Operand getSourceOperand1()
 	{
 		return sourceOperand1;
 	}
-
-	public Operand getOperand2()
+	
+	public void setSourceOperand1(Operand sourceOperand1) {
+		this.sourceOperand1 = sourceOperand1;
+	}	
+	
+	public Operand getSourceOperand2()
 	{
 		return sourceOperand2;
+	}
+
+	public void setSourceOperand2(Operand sourceOperand2) {
+		this.sourceOperand2 = sourceOperand2;
+	}
+	
+	public Operand getDestinationOperand()
+	{
+		return destinationOperand;
+	}
+
+	public void setDestinationOperand(Operand destinationOperand) {
+		this.destinationOperand = destinationOperand;
 	}
 
 	public long getSerialNo() {
@@ -343,7 +314,7 @@ public class Instruction implements Serializable
 		this.serialNo = serialNo;
 	}
 
-	public long getThreadID() {
+	public int getThreadID() {
 		return threadID;
 	}
 
@@ -369,6 +340,22 @@ public class Instruction implements Serializable
 
 	public void setDestinationOperandMemValue(long destinationOperandMemValue) {
 		this.destinationOperandMemValue = destinationOperandMemValue;
+	}
+	
+	/**
+	 * strInstruction method returns the instruction information in a string.
+	 * @return String describing the instruction
+	 */
+	public String toString()
+	{
+		return 
+		(
+			String.format("%-20s", "IP = " + Long.toHexString(ciscProgramCounter)) +
+			String.format("%-20s", "Op = " + type) +
+			String.format("%-60s", "srcOp1 = " + sourceOperand1) +
+			String.format("%-60s", "srcOp2 = " + sourceOperand2) +
+			String.format("%-60s", "dstOp = " + destinationOperand) 
+		);
 	}
 
 }

@@ -48,8 +48,6 @@ public class ICacheBuffer {
 		{
 			fetchComplete[tail] = false;
 		}
-		
-		//System.out.println("adding ; " + head + " " + tail + " " + newInstruction);
 	}
 	
 	public Instruction getNextInstruction()
@@ -77,7 +75,6 @@ public class ICacheBuffer {
 			}
 		}
 		
-		//System.out.println("removing ; " + head + " " + tail + " " + toBeReturned);
 		return toBeReturned;
 	}
 	

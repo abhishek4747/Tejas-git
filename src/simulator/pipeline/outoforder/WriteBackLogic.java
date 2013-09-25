@@ -45,32 +45,33 @@ public class WriteBackLogic extends SimulationElement {
 		}
 		
 		int i = ROB.head;
+		int noWritten = 0;
 		
 		ReorderBufferEntry[] buffer = ROB.getROB();
 		do
 		{
+			noWritten++;
+			
 			if(buffer[i].getExecuted() == true &&
 					buffer[i].isWriteBackDone() == false)
 			{
 				buffer[i].setWriteBackDone1(true);
 				buffer[i].setWriteBackDone2(true);
 				
-				this.core.powerCounters.incrementWindowAccess(1);
-				this.core.powerCounters.incrementWindowPregAccess(1);
-				this.core.powerCounters.incrementWindowWakeupAccess(1);
-				this.core.powerCounters.incrementResultbusAccess(1);
-				
-				
-				//TODO is a better solution possible?
-				if(buffer[i].instruction.getOperationType() == OperationType.load)
+				/*
+				 * aiding decoded instructions that are not yet in the IW.
+				 * (see WakeUpLogic.java for detailed explanation)
+				 * the below code is part of the solution, the remainder is at the wake-up stage
+				 */
+				if(buffer[i].getInstruction().getOperationType() == OperationType.load)
+				{
+					WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getDestinationOperand().getOperandType(), buffer[i].getPhysicalDestinationRegister(), buffer[i].getThreadID(), (buffer[i].pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(buffer[i]) + 1) % ROB.MaxROBSize);
+				}
+				/*if(buffer[i].getInstruction().getDestinationOperand() != null && buffer[i].getInstruction().getDestinationOperand().getOperandType() == OperandType.machineSpecificRegister)
 				{
 					WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getDestinationOperand().getOperandType(), buffer[i].physicalDestinationRegister, buffer[i].threadID, (buffer[i].pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(buffer[i]) + 1) % ROB.MaxROBSize);
 				}
-				if(buffer[i].instruction.getDestinationOperand() != null && buffer[i].instruction.getDestinationOperand().getOperandType() == OperandType.machineSpecificRegister)
-				{
-					WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getDestinationOperand().getOperandType(), buffer[i].physicalDestinationRegister, buffer[i].threadID, (buffer[i].pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(buffer[i]) + 1) % ROB.MaxROBSize);
-				}
-				if(buffer[i].instruction.getOperationType() == OperationType.xchg)
+				if(buffer[i].getInstruction().getOperationType() == OperationType.xchg)
 				{
 					if(buffer[i].getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
 					{
@@ -80,110 +81,85 @@ public class WriteBackLogic extends SimulationElement {
 					{
 						WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getSourceOperand2().getOperandType(), buffer[i].getOperand2PhyReg1(), buffer[i].threadID, (buffer[i].pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(buffer[i]) + 1) % ROB.MaxROBSize);
 					}
-				}
-
-				if(SimulationConfig.debugMode)
-				{
-					System.out.println("writeback : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + buffer[i].getInstruction());
-				}
+				}*/
 				
-				RenameTable tempRN = null;
 				
-				//add to available list
-				Operand tempDestOpnd = buffer[i].getInstruction().getDestinationOperand();
-				if(tempDestOpnd != null)
+				//set value valid in register file, and
+				//add destination register to list of available physical registers
+				if(buffer[i].getInstruction().getDestinationOperand() != null)
 				{
-					if(tempDestOpnd.isIntegerRegisterOperand())
-					{
-						tempRN = execEngine.getIntegerRenameTable();
-						if(tempRN.getMappingValid(buffer[i].getPhysicalDestinationRegister()) == false)
-						{
-							tempRN.addToAvailableList(buffer[i].getPhysicalDestinationRegister());
-						}
-						tempRN.setValueValid(true, buffer[i].getPhysicalDestinationRegister());
-						execEngine.getIntegerRegisterFile().setValueValid(true, buffer[i].getPhysicalDestinationRegister());
-						
-						//Update counters for power calculation. For now, only integer register file assumed.
-						this.core.powerCounters.incrementRegfileAccess(1);
-					}
-					else if(tempDestOpnd.isFloatRegisterOperand())
-					{
-						tempRN = execEngine.getFloatingPointRenameTable();
-						if(tempRN.getMappingValid(buffer[i].getPhysicalDestinationRegister()) == false)
-						{
-							tempRN.addToAvailableList(buffer[i].getPhysicalDestinationRegister());
-						}
-						tempRN.setValueValid(true, buffer[i].getPhysicalDestinationRegister());
-						execEngine.getFloatingPointRegisterFile().setValueValid(true, buffer[i].getPhysicalDestinationRegister());
-					}
-					else
-					{
-						execEngine.getMachineSpecificRegisterFile(buffer[i].getThreadID()).setValueValid(true, buffer[i].getPhysicalDestinationRegister());
-					}
+					writeToRFAndAddToAvailableList(buffer[i].getInstruction().getDestinationOperand(),
+													buffer[i].getPhysicalDestinationRegister(),
+													buffer[i].getThreadID());
 				}
 				else if(buffer[i].getInstruction().getOperationType() == OperationType.xchg)
 				{
-					tempDestOpnd = buffer[i].getInstruction().getSourceOperand1();
-					if(tempDestOpnd.isIntegerRegisterOperand())
-					{
-						tempRN = execEngine.getIntegerRenameTable();
-						if(tempRN.getMappingValid(buffer[i].operand1PhyReg1) == false)
-						{
-							tempRN.addToAvailableList(buffer[i].operand1PhyReg1);
-						}
-						tempRN.setValueValid(true, buffer[i].operand1PhyReg1);
-						execEngine.getIntegerRegisterFile().setValueValid(true, buffer[i].operand1PhyReg1);
-					}
-					else if(tempDestOpnd.isFloatRegisterOperand())
-					{
-						tempRN = execEngine.getFloatingPointRenameTable();
-						if(tempRN.getMappingValid(buffer[i].operand1PhyReg1) == false)
-						{
-							tempRN.addToAvailableList(buffer[i].operand1PhyReg1);
-						}
-						tempRN.setValueValid(true, buffer[i].operand1PhyReg1);
-						execEngine.getFloatingPointRegisterFile().setValueValid(true, buffer[i].operand1PhyReg1);
-					}
-					else
-					{
-						execEngine.getMachineSpecificRegisterFile(buffer[i].getThreadID()).setValueValid(true, buffer[i].operand1PhyReg1);
-					}
+					writeToRFAndAddToAvailableList(buffer[i].getInstruction().getSourceOperand1(),
+													buffer[i].getOperand1PhyReg1(),
+													buffer[i].getThreadID());
 					
 					if(buffer[i].getInstruction().getSourceOperand1().getOperandType() != buffer[i].getInstruction().getSourceOperand2().getOperandType() ||
-							buffer[i].operand1PhyReg1 != buffer[i].operand2PhyReg1)
+							buffer[i].getOperand1PhyReg1() != buffer[i].getOperand2PhyReg1())
 					{
-						tempDestOpnd = buffer[i].getInstruction().getSourceOperand2();
-						if(tempDestOpnd.isIntegerRegisterOperand())
-						{
-							tempRN = execEngine.getIntegerRenameTable();
-							if(tempRN.getMappingValid(buffer[i].operand2PhyReg1) == false)
-							{
-								tempRN.addToAvailableList(buffer[i].operand2PhyReg1);
-							}
-							tempRN.setValueValid(true, buffer[i].operand2PhyReg1);
-							execEngine.getIntegerRegisterFile().setValueValid(true, buffer[i].operand2PhyReg1);
-						}
-						else if(tempDestOpnd.isFloatRegisterOperand())
-						{
-							tempRN = execEngine.getFloatingPointRenameTable();
-							if(tempRN.getMappingValid(buffer[i].operand2PhyReg1) == false)
-							{
-								tempRN.addToAvailableList(buffer[i].operand2PhyReg1);
-							}
-							tempRN.setValueValid(true, buffer[i].operand2PhyReg1);
-							execEngine.getFloatingPointRegisterFile().setValueValid(true, buffer[i].operand2PhyReg1);
-						}
-						else
-						{
-							execEngine.getMachineSpecificRegisterFile(buffer[i].getThreadID()).setValueValid(true, buffer[i].operand2PhyReg1);
-						}
+						writeToRFAndAddToAvailableList(buffer[i].getInstruction().getSourceOperand2(),
+								buffer[i].getOperand2PhyReg1(),
+								buffer[i].getThreadID());
 					}
 				}
 			}
 			
+			this.core.powerCounters.incrementWindowAccess(1);
+			this.core.powerCounters.incrementWindowPregAccess(1);
+			this.core.powerCounters.incrementWindowWakeupAccess(1);
+			this.core.powerCounters.incrementResultbusAccess(1);
+
+			if(SimulationConfig.debugMode)
+			{
+				System.out.println("writeback : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + buffer[i].getInstruction());
+			}
+			
 			i = (i+1)%ROB.getMaxROBSize();
 			
-		}while(i != ROB.tail);
+		}while(i != ROB.tail && noWritten < core.getRetireWidth());
+	}
+	
+	//set value valid in register file, and
+	//add destination register to list of available physical registers
+	private void writeToRFAndAddToAvailableList(Operand destOpnd,
+												int physicalRegister,
+												int threadID)
+	{
+		RenameTable tempRN = null;
+		if(destOpnd != null)
+		{
+			if(destOpnd.isIntegerRegisterOperand())
+			{
+				tempRN = execEngine.getIntegerRenameTable();
+				if(tempRN.getMappingValid(physicalRegister) == false)
+				{
+					tempRN.addToAvailableList(physicalRegister);
+				}
+				tempRN.setValueValid(true, physicalRegister);
+				execEngine.getIntegerRegisterFile().setValueValid(true, physicalRegister);
+				
+				//Update counters for power calculation. For now, only integer register file assumed.
+				this.core.powerCounters.incrementRegfileAccess(1);
+			}
+			else if(destOpnd.isFloatRegisterOperand())
+			{
+				tempRN = execEngine.getFloatingPointRenameTable();
+				if(tempRN.getMappingValid(physicalRegister) == false)
+				{
+					tempRN.addToAvailableList(physicalRegister);
+				}
+				tempRN.setValueValid(true, physicalRegister);
+				execEngine.getFloatingPointRegisterFile().setValueValid(true, physicalRegister);
+			}
+			else
+			{
+				execEngine.getMachineSpecificRegisterFile(threadID).setValueValid(true, physicalRegister);
+			}
+		}
 	}
 
 }

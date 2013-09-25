@@ -4,6 +4,7 @@ import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
+import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
@@ -16,8 +17,8 @@ public class RenameLogic extends SimulationElement {
 	
 	Core core;
 	OutOrderExecutionEngine execEngine;
-	ReorderBufferEntry[] decodeBuffer;
-	ReorderBufferEntry[] renameBuffer;
+	GenericCircularQueue<ReorderBufferEntry> decodeBuffer;
+	GenericCircularQueue<ReorderBufferEntry> renameBuffer;
 	int decodeWidth;
 	
 	int threadID;
@@ -47,20 +48,24 @@ public class RenameLogic extends SimulationElement {
 		{
 			for(int i = 0; i < decodeWidth; i++)
 			{
-				if(decodeBuffer[i] != null)
+				if(renameBuffer.isFull() == true)
 				{
-					reorderBufferEntry = decodeBuffer[i];
-					threadID = 0;						//TODO threadID should be newROBEntry.getInstruction().getThreadID()
+					break;
+				}
+				
+				if(decodeBuffer.peek(0) != null)
+				{
+					reorderBufferEntry = decodeBuffer.peek(0);
+					instruction = reorderBufferEntry.getInstruction();
+					threadID = reorderBufferEntry.getThreadID();
+					
+					//check if the instruction can be assigned a destination register
 					if(processDestOperand(reorderBufferEntry))
 					{
+						//find out which physical registers correspond to the source operands
+						//and check for their availability
 						processOperand1(reorderBufferEntry);
 						processOperand2(reorderBufferEntry);
-						
-						instruction = reorderBufferEntry.getInstruction();
-						opType = instruction.getOperationType();
-						//TODO
-						//Everytime the operand becomes available - inside the methods checkOperand1Availability and checkOperand2Availability
-						//We are incrementing windowAccess and windowPregAccess. Verify the correctness - particularly for machineSpecificRegfile operands
 						
 						checkOperand1Availability();
 						if(reorderBufferEntry.isOperand2Available() == false)
@@ -68,21 +73,21 @@ public class RenameLogic extends SimulationElement {
 							checkOperand2Availability();
 						}
 						
-						renameBuffer[i] = decodeBuffer[i];
-						decodeBuffer[i] = null;
-						reorderBufferEntry.isRenameDone = true;
+						renameBuffer.enqueue(decodeBuffer.dequeue());
+						reorderBufferEntry.setRenameDone(true);
+						
+						execEngine.setToStall2(false);
+						
+						//TODO
+						//Everytime the operand becomes available - inside the methods checkOperand1Availability and checkOperand2Availability
+						//We are incrementing windowAccess and windowPregAccess. Verify the correctness - particularly for machineSpecificRegfile operands
+						
 						//FIXME For now, for every renaming, only one kind of rename accesses are incremented
 						this.core.powerCounters.incrementRenameAccess(1);
-						execEngine.setToStall2(false);
 						
 						if(SimulationConfig.debugMode)
 						{
 							System.out.println("renamed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
-						}
-						
-						if(renameBuffer[i].getInstruction() == null)
-						{
-							System.out.println("rename buffer - inst is null");
 						}
 					}
 					else
@@ -94,6 +99,9 @@ public class RenameLogic extends SimulationElement {
 		}
 	}
 
+	/*
+	 * find the physical register(s) corresponding to operand 1
+	 */
 	private void processOperand1(ReorderBufferEntry reorderBufferEntry)
 	{
 		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
@@ -212,6 +220,9 @@ public class RenameLogic extends SimulationElement {
 		}
 	}
 	
+	/*
+	 * find the physical register(s) corresponding to operand 2
+	 */
 	private void processOperand2(ReorderBufferEntry reorderBufferEntry)
 	{
 		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
@@ -332,6 +343,9 @@ public class RenameLogic extends SimulationElement {
 		}
 	}
 	
+	/*
+	 * perform renaming to obtain physical register(s) for the destination operand(s)
+	 */
 	private boolean processDestOperand(ReorderBufferEntry reorderBufferEntry)
 	{
 		Operand tempOpnd;
@@ -505,8 +519,7 @@ public class RenameLogic extends SimulationElement {
 		
 		
 		if(tempRF.getValueValid(destPhyReg) == true ||
-				tempRF.getProducerROBEntry(destPhyReg) == reorderBufferEntry/* ||
-				CheckerMain.isLeaderInstruction(reorderBufferEntry.getInstruction()) == false*/)
+				tempRF.getProducerROBEntry(destPhyReg) == reorderBufferEntry)
 		{
 			//destination MSR available
 			if(whichOperand == 1)
@@ -629,26 +642,16 @@ public class RenameLogic extends SimulationElement {
 		}
 		
 		Operand tempOpnd = instruction.getSourceOperand1();
-		if(tempOpnd == null ||
-				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
-				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
+		
+		if(tempOpnd == null
+				|| reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid
+				|| reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop
+				|| tempOpnd.getOperandType() == OperandType.immediate)
 		{
 			//Increment counters for power calculation
 			this.core.powerCounters.incrementWindowAccess(1);
 			this.core.powerCounters.incrementWindowPregAccess(1);
 
-			reorderBufferEntry.setOperand1Available(true);
-			return;
-		}
-		
-		OperandType tempOpndType = tempOpnd.getOperandType();
-		
-		if(tempOpndType == OperandType.immediate)
-		{
-			//Increment counters for power calculation
-			this.core.powerCounters.incrementWindowAccess(1);
-			this.core.powerCounters.incrementWindowPregAccess(1);
-			
 			reorderBufferEntry.setOperand1Available(true);
 			return;
 		}
@@ -657,81 +660,30 @@ public class RenameLogic extends SimulationElement {
 		int tempOpndPhyReg2 = reorderBufferEntry.getOperand1PhyReg2();
 		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(reorderBufferEntry, tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
 		
+		OperandType tempOpndType = tempOpnd.getOperandType();
 		if(tempOpndType == OperandType.integerRegister ||
 				tempOpndType == OperandType.floatRegister ||
 				tempOpndType == OperandType.machineSpecificRegister)
-		{
-		
-			if(tempOpndType == OperandType.machineSpecificRegister)
-			{
-				RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-				if(opndAvailable[0] == true)
-				{
-					//Increment counters for power calculation
-					this.core.powerCounters.incrementWindowAccess(1);
-					this.core.powerCounters.incrementWindowPregAccess(1);
-
-					reorderBufferEntry.setOperand1Available(true);
-				}
-			}
-			else if(tempOpndType == OperandType.integerRegister ||
-					tempOpndType == OperandType.floatRegister)
-			{
-				RenameTable tempRN;
-				if(tempOpndType	== OperandType.integerRegister)
-				{
-					tempRN = execEngine.getIntegerRenameTable();
-				}
-				else
-				{
-					tempRN = execEngine.getFloatingPointRenameTable();
-				}
-				
-				if(opndAvailable[0] == true)
-				{
-					//Increment counters for power calculation
-					this.core.powerCounters.incrementWindowAccess(1);
-					this.core.powerCounters.incrementWindowPregAccess(1);
-
-					reorderBufferEntry.setOperand1Available(true);
-				}
-			}
-		}
-		
-		else if(tempOpndType == OperandType.memory)
-		{
-			if(opndAvailable[0] == true && opndAvailable[1] == true)
+		{		
+			if(opndAvailable[0] == true)
 			{
 				//Increment counters for power calculation
 				this.core.powerCounters.incrementWindowAccess(1);
 				this.core.powerCounters.incrementWindowPregAccess(1);
 
-				reorderBufferEntry.setOperand11Available(true);
-				reorderBufferEntry.setOperand12Available(true);
 				reorderBufferEntry.setOperand1Available(true);
 			}
-			else
-			{
-				//reorderBufferEntry.setOperand1Available(false);
-				
-				if(opndAvailable[0] == true)
-				{
-					reorderBufferEntry.setOperand11Available(true);
-				}
-				else
-				{
-					//reorderBufferEntry.setOperand11Available(false);
-				}
-				
-				if(opndAvailable[1] == true)
-				{
-					reorderBufferEntry.setOperand12Available(true);
-				}
-				else
-				{
-					//reorderBufferEntry.setOperand12Available(false);
-				}
-			}
+		}
+		
+		else if(tempOpndType == OperandType.memory)
+		{
+			//Increment counters for power calculation
+			this.core.powerCounters.incrementWindowAccess(1);
+			this.core.powerCounters.incrementWindowPregAccess(1);
+
+			reorderBufferEntry.setOperand11Available(opndAvailable[0]);
+			reorderBufferEntry.setOperand12Available(opndAvailable[1]);
+			reorderBufferEntry.setOperand1Available(opndAvailable[0] && opndAvailable[1]);
 		}
 	}
 	
@@ -745,21 +697,11 @@ public class RenameLogic extends SimulationElement {
 		}
 		
 		Operand tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
-		if(tempOpnd == null ||
-				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
-				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
-		{
-			//Increment counters for power calculation
-			this.core.powerCounters.incrementWindowAccess(1);
-			this.core.powerCounters.incrementWindowPregAccess(1);
-
-			reorderBufferEntry.setOperand2Available(true);
-			return;
-		}
 		
-		OperandType tempOpndType = tempOpnd.getOperandType();
-		
-		if(tempOpndType == OperandType.immediate)
+		if(tempOpnd == null
+				|| reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid
+				|| reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop
+				|| tempOpnd.getOperandType() == OperandType.immediate)
 		{
 			//Increment counters for power calculation
 			this.core.powerCounters.incrementWindowAccess(1);
@@ -773,82 +715,30 @@ public class RenameLogic extends SimulationElement {
 		int tempOpndPhyReg2 = reorderBufferEntry.getOperand2PhyReg2();
 		boolean[] opndAvailable = OperandAvailabilityChecker.isAvailable(reorderBufferEntry, tempOpnd, tempOpndPhyReg1, tempOpndPhyReg2, core);
 		
+		OperandType tempOpndType = tempOpnd.getOperandType();
 		if(tempOpndType == OperandType.integerRegister ||
 				tempOpndType == OperandType.floatRegister ||
 				tempOpndType == OperandType.machineSpecificRegister)
 		{
-		
-			if(tempOpndType == OperandType.machineSpecificRegister)
+			if(opndAvailable[0] == true)
 			{
-				RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-				if(opndAvailable[0] == true)
-				{
-					//Increment counters for power calculation
-					this.core.powerCounters.incrementWindowAccess(1);
-					this.core.powerCounters.incrementWindowPregAccess(1);
-					
-					reorderBufferEntry.setOperand2Available(true);
-				}
-			}
-			else if(tempOpndType == OperandType.integerRegister ||
-					tempOpndType == OperandType.floatRegister)
-			{
-				RenameTable tempRN;
-				if(tempOpndType	== OperandType.integerRegister)
-				{
-					tempRN = execEngine.getIntegerRenameTable();
-				}
-				else
-				{
-					tempRN = execEngine.getFloatingPointRenameTable();
-				}
+				//Increment counters for power calculation
+				this.core.powerCounters.incrementWindowAccess(1);
+				this.core.powerCounters.incrementWindowPregAccess(1);
 				
-				if(opndAvailable[0] == true)
-				{
-
-					//Increment counters for power calculation
-					this.core.powerCounters.incrementWindowAccess(1);
-					this.core.powerCounters.incrementWindowPregAccess(1);
-
-					reorderBufferEntry.setOperand2Available(true);
-				}
+				reorderBufferEntry.setOperand2Available(true);
 			}
 		}
 		
 		else if(tempOpndType == OperandType.memory)
 		{
-			if(opndAvailable[0] == true && opndAvailable[1] == true)
-			{
-				//Increment counters for power calculation
-				this.core.powerCounters.incrementWindowAccess(1);
-				this.core.powerCounters.incrementWindowPregAccess(1);
+			//Increment counters for power calculation
+			this.core.powerCounters.incrementWindowAccess(1);
+			this.core.powerCounters.incrementWindowPregAccess(1);
 
-				reorderBufferEntry.setOperand21Available(true);
-				reorderBufferEntry.setOperand22Available(true);
-				reorderBufferEntry.setOperand2Available(true);
-			}
-			else
-			{
-				//reorderBufferEntry.setOperand2Available(false);
-				
-				if(opndAvailable[0] == true)
-				{
-					reorderBufferEntry.setOperand21Available(true);
-				}
-				else
-				{
-					//reorderBufferEntry.setOperand21Available(false);
-				}
-				
-				if(opndAvailable[1] == false)
-				{
-					reorderBufferEntry.setOperand22Available(true);
-				}
-				else
-				{
-					//reorderBufferEntry.setOperand22Available(false);
-				}
-			}
+			reorderBufferEntry.setOperand21Available(opndAvailable[0]);
+			reorderBufferEntry.setOperand22Available(opndAvailable[1]);
+			reorderBufferEntry.setOperand2Available(opndAvailable[0] && opndAvailable[1]);
 		}
 	}
 

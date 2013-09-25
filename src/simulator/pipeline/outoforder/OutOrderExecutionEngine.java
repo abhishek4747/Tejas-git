@@ -5,7 +5,6 @@ import pipeline.ExecutionEngine;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 
 /**
  * execution engine comprises of : decode logic, ROB, instruction window, register files,
@@ -19,11 +18,11 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	//components of the execution engine
 	private ICacheBuffer iCacheBuffer;
 	private FetchLogic fetcher;
-	private Instruction[] fetchBuffer;
+	private GenericCircularQueue<Instruction> fetchBuffer;
 	private DecodeLogic decoder;
-	private ReorderBufferEntry[] decodeBuffer;
+	private GenericCircularQueue<ReorderBufferEntry> decodeBuffer;
 	private RenameLogic renamer;
-	private ReorderBufferEntry[] renameBuffer;
+	private GenericCircularQueue<ReorderBufferEntry> renameBuffer;
 	private IWPushLogic IWPusher;
 	private SelectLogic selector;
 	private ExecutionLogic executer;
@@ -91,11 +90,11 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 													core.getAllLatencies());
 		
 		
-		fetchBuffer = new Instruction[core.getDecodeWidth()];
+		fetchBuffer = new GenericCircularQueue<>(Instruction.class, core.getDecodeWidth());
 		fetcher = new FetchLogic(core, this);
-		decodeBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
+		decodeBuffer = new GenericCircularQueue<>(ReorderBufferEntry.class, core.getDecodeWidth());
 		decoder = new DecodeLogic(core, this);
-		renameBuffer = new ReorderBufferEntry[core.getDecodeWidth()];
+		renameBuffer = new GenericCircularQueue<>(ReorderBufferEntry.class, core.getDecodeWidth());
 		renamer = new RenameLogic(core, this);
 		IWPusher = new IWPushLogic(core, this);
 		selector = new SelectLogic(core, this);
@@ -212,15 +211,15 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		this.toStall6[0] = toStall5;
 	}
 	
-	public Instruction[] getFetchBuffer() {
+	public GenericCircularQueue<Instruction> getFetchBuffer() {
 		return fetchBuffer;
 	}
 
-	public ReorderBufferEntry[] getDecodeBuffer() {
+	public GenericCircularQueue<ReorderBufferEntry> getDecodeBuffer() {
 		return decodeBuffer;
 	}
 
-	public ReorderBufferEntry[] getRenameBuffer() {
+	public GenericCircularQueue<ReorderBufferEntry> getRenameBuffer() {
 		return renameBuffer;
 	}
 	

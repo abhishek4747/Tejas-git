@@ -4,11 +4,11 @@ import generic.Event;
 import generic.RequestType;
 import generic.SimulationElement;
 
-public class BroadCast1Event extends Event {
+public class BroadCastEvent extends Event {
 	
 	ReorderBufferEntry ROBEntry;
 
-	public BroadCast1Event(long eventTime,
+	public BroadCastEvent(long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType,

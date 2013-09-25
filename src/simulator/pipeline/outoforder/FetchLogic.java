@@ -6,12 +6,10 @@ import memorysystem.AddressCarryingEvent;
 import generic.Barrier;
 import generic.BarrierTable;
 import generic.Core;
-import generic.CustomInstructionPool;
 import generic.Event;
 import generic.EventQueue;
 import generic.GenericCircularQueue;
 import generic.Instruction;
-import generic.InstructionLinkedList;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
@@ -21,15 +19,14 @@ public class FetchLogic extends SimulationElement {
 	
 	Core core;
 	OutOrderExecutionEngine execEngine;
-	ICacheBuffer iCacheBuffer;
-	Instruction[] fetchBuffer;
-	int fetchWidth;
-	int inputPipeToReadNext;
+
 	GenericCircularQueue<Instruction>[] inputToPipeline;
-	boolean sleep;
-	
+	int inputPipeToReadNext;
+	ICacheBuffer iCacheBuffer;
+	GenericCircularQueue<Instruction> fetchBuffer;	
+	int fetchWidth;
 	OperationType[] instructionsToBeDropped;
-	int invalidCount;
+	boolean sleep;
 
 	public FetchLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
@@ -46,12 +43,11 @@ public class FetchLogic extends SimulationElement {
 															OperationType.interrupt,
 															OperationType.sync
 													};
-		
-		invalidCount = 0;
 	}
 	
 	public void performFetch()
 	{
+		//to detach pipeline
 		boolean checkTranslatorSpeed = false;
 		
 		if(checkTranslatorSpeed)
@@ -75,6 +71,35 @@ public class FetchLogic extends SimulationElement {
 		}
 		
 		Instruction newInstruction;
+		
+		if(!execEngine.isToStall1() &&
+				!execEngine.isToStall2() &&
+				!execEngine.isToStall3() &&
+				!execEngine.isToStall4() &&
+				!execEngine.isToStall5() &&
+				!execEngine.isToStall6())
+		{
+			//add instructions, for whom "fetch" from iCache has completed, to fetch buffer
+			//decode stage reads from this buffer
+			for(int i = 0; i < fetchWidth; i++)
+			{
+				if(fetchBuffer.isFull() == true)
+				{
+					break;
+				}
+				
+				newInstruction = iCacheBuffer.getNextInstruction();
+				if(newInstruction != null)
+				{
+					fetchBuffer.enqueue(newInstruction);
+				}
+				else
+				{
+					this.core.getExecEngine().incrementInstructionMemStall(1); 
+					break;
+				}
+			}
+		}
 		
 		//this loop reads from inputToPipeline and places the instruction in iCacheBuffer
 		//fetch of the instruction is also issued to the iCache
@@ -151,6 +176,7 @@ public class FetchLogic extends SimulationElement {
 				}
 			}
 			
+			//add to iCache buffer, and issue request to iCache
 			if(!iCacheBuffer.isFull()
 					&& execEngine.getCoreMemorySystem().getiCache().getMissStatusHoldingRegister().getCurrentSize() < execEngine.getCoreMemorySystem().getiCache().getMissStatusHoldingRegister().getMSHRStructSize())
 			{
@@ -159,7 +185,8 @@ public class FetchLogic extends SimulationElement {
 				{
 						// The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
 					  	// micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.
-						if(newInstruction.getCISCProgramCounter()!=-1) {
+						if(newInstruction.getCISCProgramCounter()!=-1)
+						{
 							execEngine.getCoreMemorySystem().issueRequestToInstrCache(newInstruction.getCISCProgramCounter());
 						}
 				}
@@ -170,48 +197,18 @@ public class FetchLogic extends SimulationElement {
 			}
 		}
 		
-		if(!execEngine.isToStall1() &&
-				!execEngine.isToStall2() &&
-				!execEngine.isToStall3() &&
-				!execEngine.isToStall4() &&
-				!execEngine.isToStall5() &&
-				!execEngine.isToStall6())
+		int noOfIterations = 0;
+		do
 		{
-			int fetchBufferIndex = 0;
-			
-			//add instructions, for whom "fetch" from iCache has completed, to fetch buffer
-			//decode stage reads from this buffer
-			for(int i = 0; i < fetchWidth; i++)
-			{
-				newInstruction = iCacheBuffer.getNextInstruction();
-				if(newInstruction != null)
-				{
-					fetchBuffer[fetchBufferIndex++] = newInstruction;
-				}
-				else
-				{
-					this.core.getExecEngine().incrementInstructionMemStall(1); 
-					break;
-				}
-			}
-			
 			inputPipeToReadNext = (inputPipeToReadNext + 1)%core.getNo_of_input_pipes();
-		}
+			noOfIterations++;
+		}while(inputToPipeline[inputPipeToReadNext].isEmpty() == true
+				&& noOfIterations < fetchWidth);
 	}
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		
-		if(event.getRequestType() != RequestType.Mem_Response)
-		{
-			System.out.println("fetcher received some random event" + event);
-			System.exit(1);
-		}
-		
-		long fetchedPC = ((AddressCarryingEvent)event).getAddress();
-		
-		iCacheBuffer.updateFetchComplete(fetchedPC);
-		
+			
 	}
 	
 	boolean shouldInstructionBeDropped(Instruction instruction)

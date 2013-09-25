@@ -1,7 +1,6 @@
 package pipeline.outoforder;
 
 import main.CustomObjectPool;
-import main.Main;
 import memorysystem.MemorySystem;
 import config.SimulationConfig;
 import generic.Core;
@@ -9,8 +8,6 @@ import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.Operand;
-import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
@@ -19,17 +16,14 @@ import generic.Statistics;
 
 public class ReorderBuffer extends SimulationElement{
 	
-	private Core core;
-	
-	ReorderBufferEntry[] ROB;
-	int MaxROBSize;
-	
-	int head;
-	int tail;
-	
+	private Core core;	
+	OutOrderExecutionEngine execEngine;
 	int retireWidth;
 	
-	OutOrderExecutionEngine execEngine;
+	ReorderBufferEntry[] ROB;
+	int MaxROBSize;	
+	int head;
+	int tail;
 	
 	int stall1Count;
 	int stall2Count;
@@ -38,26 +32,24 @@ public class ReorderBuffer extends SimulationElement{
 	int stall5Count;
 	long branchCount;
 	long mispredCount;
-
-	private int j;
-	
-	int invalidCount;
+	long lastValidIPSeen;
 
 	public ReorderBuffer(Core _core, OutOrderExecutionEngine execEngine)
 	{
 		super(PortType.Unlimited, -1, -1, _core.getEventQueue(), -1, -1);
+		
 		core = _core;
-		MaxROBSize = core.getReorderBufferSize();
-		ROB = new ReorderBufferEntry[MaxROBSize];
-		
 		this.execEngine = execEngine;
+		retireWidth = core.getRetireWidth();
 		
-		for(int i = 0; i < MaxROBSize; i++)
-		{
-			ROB[i] = new ReorderBufferEntry(core, i, execEngine);
-		}
+		MaxROBSize = core.getReorderBufferSize();
 		head = -1;
 		tail = -1;
+		ROB = new ReorderBufferEntry[MaxROBSize];		
+		for(int i = 0; i < MaxROBSize; i++)
+		{
+			ROB[i] = new ReorderBufferEntry(i, execEngine);
+		}
 		
 		stall1Count = 0;
 		stall2Count = 0;
@@ -66,39 +58,7 @@ public class ReorderBuffer extends SimulationElement{
 		stall5Count = 0;
 		mispredCount = 0;
 		branchCount = 0;
-		
-		retireWidth = core.getRetireWidth();
-		j=0;
-		
-		invalidCount = 0;
-	}
-	
-	public boolean isFull()
-	{
-		if((tail - head) == MaxROBSize - 1)
-		{
-			return true;
-		}
-		if((tail - head) == -1)
-		{
-			return true;
-		}
-		return false;
-	}
-	
-	public ReorderBufferEntry[] getROB()
-	{
-		return ROB;
-	}
-	
-	public int getMaxROBSize()
-	{
-		return MaxROBSize;
-	}
-	
-	public void setMaxROBSize(int newMaxROBSize)
-	{
-		MaxROBSize = newMaxROBSize;
+		lastValidIPSeen = -1;		
 	}
 	
 	//creates a  new ROB entry, initialises it, and returns it
@@ -114,7 +74,7 @@ public class ReorderBuffer extends SimulationElement{
 			}
 			ReorderBufferEntry newReorderBufferEntry = ROB[tail];
 			
-			if(newReorderBufferEntry.isValid == true)
+			if(newReorderBufferEntry.isValid() == true)
 			{
 				System.out.println("new rob entry is alread valid");
 			}
@@ -148,10 +108,6 @@ public class ReorderBuffer extends SimulationElement{
 		return null;
 	}
 	
-	//  instruction at head of ROB can be purged
-	//	if it has completed
-	//	if it didn't raise an exception (in simulation, exceptions aren't possible)
-	//	and it isn't a mis-predicted branch
 	public void performCommits()
 	{	
 		if(execEngine.isToStall1())
@@ -175,37 +131,12 @@ public class ReorderBuffer extends SimulationElement{
 			stall5Count++;
 		}
 		
-		int tieBreaker = 0;
 		boolean anyMispredictedBranch = false;
-		
-		/*if(execEngine.isStallDecode2() == true)
-		{
-			return;
-		}*/
 		
 		if(execEngine.isToStall5() == false)
 		{
 			for(int no_insts = 0; no_insts < retireWidth; no_insts++)
 			{
-				/*if(head == -1)
-				{
-					if(execEngine.isAllPipesEmpty() == true)
-					{
-						//if ROB is empty, and decode pipe is empty, that means execution is complete
-						this.core.currentThreads--;
-						
-						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
-															  //assigned to this pipeline	
-							execEngine.setExecutionComplete(true);
-						}
-						
-						setTimingStatistics();			
-						setPerCoreMemorySystemStatistics();
-						setPerCorePowerStatistics();
-					}
-					break;
-				}*/
-				
 				if(head == -1)
 				{
 					//ROB empty .. does not mean execution has completed
@@ -214,25 +145,26 @@ public class ReorderBuffer extends SimulationElement{
 				
 				ReorderBufferEntry first = ROB[head];
 				Instruction firstInstruction = first.getInstruction();
-				OperationType firstOpType = firstInstruction.getOperationType();
-				Operand firstDestOpnd = firstInstruction.getDestinationOperand();								
+				OperationType firstOpType = firstInstruction.getOperationType();								
 				
 				if(first.isWriteBackDone() == true)
-				{					
+				{
+					//has a thread finished?
 					if(firstOpType==OperationType.inValid)
 					{
 						this.core.currentThreads--;
-						//System.out.println("num of invalids that reached head of ROB - core " + core.getCore_number() + " = " + ++invalidCount);
-						//System.out.println("head = " + head);					
 						
-						if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
+						if(this.core.currentThreads < 0)
+						{
+							this.core.currentThreads=0;
+							System.out.println("num threads < 0");
+						}
+						
+						if(this.core.currentThreads == 0)
+						{   //set exec complete only if there are no other thread already 
 															  //assigned to this pipeline	
 							execEngine.setExecutionComplete(true);
-							//System.out.println("DONE!! core : " + core.getCore_number() + "  - WB = " + first.isWriteBackDone());
-							
-							
 						}
-//						System.out.println( " core " + core.getCore_number() +  " finished execution  current threads " + this.core.currentThreads);
 						
 						if(SimulationConfig.pinpointsSimulation == false)
 						{
@@ -244,128 +176,80 @@ public class ReorderBuffer extends SimulationElement{
 						{
 							Statistics.processEndOfSlice();
 						}
-						//memWbLatch.clear();
-						
-						if(this.core.currentThreads < 0)
-						{
-							this.core.currentThreads=0;
-							System.out.println("num threads < 0");
-						}
 					}
 					
 					//if store, and if store not yet validated
-					if(firstOpType == OperationType.store && !first.lsqEntry.isValid())
+					if(firstOpType == OperationType.store && !first.getLsqEntry().isValid())
 					{
 						break;
 					}
 					
-					boolean branchPredictedCorrectly=false;
-					if(firstOpType == OperationType.branch){
+					//update last valid IP seen
+					if(firstInstruction.getCISCProgramCounter() != -1)
+					{
+						lastValidIPSeen = firstInstruction.getCISCProgramCounter();
+					}
+					
+					//branch prediction
+					if(firstOpType == OperationType.branch)
+					{
+						//perform prediction
+						boolean prediction = core.getBranchPredictor().predict(
+																			lastValidIPSeen,
+																			first.getInstruction().isBranchTaken());
+						if(prediction == first.getInstruction().isBranchTaken())
+						{	
+							anyMispredictedBranch = true;
+							mispredCount++;
+						}	
 						this.core.powerCounters.incrementBpredAccess(1);
-						if((core.getBranchPredictor().predict(
-									first.getInstruction().getCISCProgramCounter(), first.getInstruction().isBranchTaken())
-								== first.getInstruction().isBranchTaken()))
-							branchPredictedCorrectly=true;
-					}
-					if(firstOpType != OperationType.branch || branchPredictedCorrectly)		
-					{
-						//if branch, then if branch prediction correct
-					}
-					
-					else
-					{
-						anyMispredictedBranch = true;
-						mispredCount++;
-					}
-					
-					//add to available list
-					//update checkpoint
-					//note : if values are involved, a checkpoint of
-					//       the machine specific register file must also be implemented TODO
-					
-					//increment number of instructions executed
-					core.incrementNoOfInstructionsExecuted();
-					if(core.getNoOfInstructionsExecuted()%1000000==0){
-						System.out.println(this.j++ + " million done on " + core.getCore_number());
-					}
-					//System.out.println("number of commits = " + core.getNoOfInstructionsExecuted());
-					
-					if(firstDestOpnd != null)
-					{
-						OperandType firstDestOpndType = firstDestOpnd.getOperandType();
-						if(firstDestOpndType == OperandType.integerRegister)
-						{
-							updateIntegerRenameTable(first);
-						}
-						else if(firstDestOpndType == OperandType.floatRegister)
-						{
-							updateFloatRenameTable(first);
-						}
-					}
+						
+						//train predictor
+						core.getBranchPredictor().Train(
+								lastValidIPSeen,
+								firstInstruction.isBranchTaken(),
+								prediction
+								);
+						this.core.powerCounters.incrementBpredAccess(1);
 
-					if(SimulationConfig.debugMode)
-					{
-						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + first.getInstruction());
+						branchCount++;
 					}
 					
 					//Signal LSQ for committing the Instruction at the queue head
 					if(firstOpType == OperationType.load || firstOpType == OperationType.store)
 					{
-//						 execEngine.coreMemSys.getLsqueue().getPort().put(
-//								 new LSQEntryContainingEvent(
-//										core.getEventQueue(),
-//										execEngine.coreMemSys.getLsqueue().getLatencyDelay(),
-//										this,
-//										execEngine.coreMemSys.getLsqueue(), 
-//										RequestType.LSQ_Commit, 
-//										first.getLsqEntry()));
-						if (!first.lsqEntry.isValid())
-							System.out.println("The committed entry is not valid");
-						//System.out.println("commiting robentry : " + first.getLsqEntry().getIndexInQ());
-						execEngine.getCoreMemorySystem().issueLSQCommit(first);
-						//first.getLsqEntry().setRemoved(true);
-					}
-					
-					retireInstructionAtHead();
-					
-					if(firstOpType == OperationType.branch)
-					{
-						core.getBranchPredictor().Train(
-														firstInstruction.getCISCProgramCounter(),
-														firstInstruction.isBranchTaken(),
-														core.getBranchPredictor().predict(firstInstruction.getCISCProgramCounter(), firstInstruction.isBranchTaken())
-														);
-						
-						branchCount++;
-						this.core.powerCounters.incrementBpredAccess(1);
-					}
-					
-					if(firstInstruction.getOperationType() != OperationType.inValid)
-					{
-						returnInstructionToPool(firstInstruction);
-					}
-					
-					if(execEngine.isExecutionComplete() == true)
-					{
-						if(((OutOrderExecutionEngine)core.getExecEngine()).getFetcher().inputToPipeline[0].size() > 0)
+						if (!first.getLsqEntry().isValid())
 						{
-							System.out.println("input to pipeline not empty!!");
+							misc.Error.showErrorAndExit("The committed entry is not valid");
 						}
 						
-						/*for(int i = 0; i < 11; i++)
-						{
-							System.out.print(Newmain.cores[i].getExecEngine().isExecutionComplete() + " ");
-							System.out.print(Newmain.cores[i].currentThreads + " ");
-							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getReorderBuffer().head + " ");
-							System.out.print(((OutOrderExecutionEngine)Newmain.cores[i].getExecEngine()).getFetcher().inputToPipeline[0].size() + " ");
-						}*/
+						execEngine.getCoreMemorySystem().issueLSQCommit(first);
+					}
+					
+					//free ROB entry
+					retireInstructionAtHead();
+					
+					//return instruction to pool
+					returnInstructionToPool(firstInstruction);
+					
+					//increment number of instructions executed
+					core.incrementNoOfInstructionsExecuted();
+					if(core.getNoOfInstructionsExecuted()%1000000==0)
+					{
+						System.out.println(core.getNoOfInstructionsExecuted()/1000000 + " million done on " + core.getCore_number());
+					}
+
+					//debug print
+					if(SimulationConfig.debugMode)
+					{
+						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + first.getInstruction());
 					}
 				}
 				else
 				{
+					//commits must be in order
 					break;
 				}
-				tieBreaker++;
 			}
 		}
 		
@@ -375,46 +259,19 @@ public class ReorderBuffer extends SimulationElement{
 		}
 	}
 	
-	void updateIntegerRenameTable(ReorderBufferEntry first)
+	void retireInstructionAtHead()
 	{
-		RenameTable intRenameTable = execEngine.getIntegerRenameTable();
-		int threadID = first.getThreadID();
-		int destReg = (int) first.getInstruction().getDestinationOperand().getValue();
-		//adding current mapping to available list
-		/*int curPhyReg = intRenameTable.getCheckpoint().getMapping(
-						threadID,
-						destReg);
-		if(curPhyReg != first.getPhysicalDestinationRegister())
+		ROB[head].setValid(false);
+		ROB[head].setInstruction(null);
+		if(head == tail)
 		{
-			intRenameTable.addToAvailableList(curPhyReg);
-		}*/
-		
-		//updating checkpoint
-		intRenameTable.getCheckpoint().setMapping(
-				threadID,
-				first.getPhysicalDestinationRegister(),
-				destReg);
-	}
-	
-	void updateFloatRenameTable(ReorderBufferEntry first)
-	{
-		RenameTable floatRenameTable = execEngine.getFloatingPointRenameTable();
-		int threadID = first.getThreadID();
-		int destReg = (int) first.getInstruction().getDestinationOperand().getValue();
-		//adding current mapping to available list
-		/*int curPhyReg = floatRenameTable.getCheckpoint().getMapping(
-				threadID,
-				destReg);
-		if(curPhyReg != first.getPhysicalDestinationRegister())
+			head = -1;
+			tail = -1;
+		}
+		else
 		{
-			floatRenameTable.addToAvailableList(curPhyReg);
-		}*/
-		
-		//updating checkpoint
-		floatRenameTable.getCheckpoint().setMapping(
-				threadID,
-				first.getPhysicalDestinationRegister(),
-				destReg);
+			head = (head+1)%MaxROBSize;
+		}
 	}
 	
 	void handleBranchMisprediction()
@@ -427,7 +284,7 @@ public class ReorderBuffer extends SimulationElement{
 		//impose branch mis-prediction penalty
 		execEngine.setToStall5(true);
 		
-		//set event to set tostall5 to false
+		//set-up event that signals end of misprediction penalty period
 		core.getEventQueue().addEvent(
 				new MispredictionPenaltyCompleteEvent(
 						GlobalClock.getCurrentTime() + core.getBranchMispredictionPenalty() * core.getStepSize(),
@@ -437,69 +294,19 @@ public class ReorderBuffer extends SimulationElement{
 		
 	}
 	
-	//TODO checkpoint needs to incorporate threadIDs
-	//rollback currently not being used - since no need for rollback
-	public void rollBackRenameTables()
-	{
-		int phyReg;
-		RenameTable renameTable;
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
 		
-		//integer rename table
-		renameTable = execEngine.getIntegerRenameTable();
-		for(int i = 0; i < core.getIntegerRegisterFileSize(); i++)
+		if(event.getRequestType() == RequestType.MISPRED_PENALTY_COMPLETE)
 		{
-			renameTable.setMappingValid(false, i);
-			renameTable.setValueValid(false, i);
-			renameTable.setProducerROBEntry(null, i);
-		}
-		for(int j = 0; j < core.getNo_of_threads(); j++)
-		{
-			for(int i = 0; i < core.getNIntegerArchitecturalRegisters(); i++)
-			{
-				phyReg = renameTable.getCheckpoint().getMapping(j, i);
-				renameTable.setArchReg(j, i, phyReg);
-				renameTable.setMappingValid(true, phyReg);
-				renameTable.setValueValid(true, phyReg);
-			}
+			completeMispredictionPenalty();
 		}
 		
-		//floating point rename table
-		renameTable = execEngine.getFloatingPointRenameTable();
-		for(int i = 0; i < core.getFloatingPointRegisterFileSize(); i++)
-		{
-			renameTable.setMappingValid(false, i);
-			renameTable.setValueValid(false, i);
-			renameTable.setProducerROBEntry(null, i);
-		}
-		for(int j = 0; j < core.getNo_of_threads(); j++)
-		{
-			for(int i = 0; i < core.getNFloatingPointArchitecturalRegisters(); i++)
-			{
-				phyReg = renameTable.getCheckpoint().getMapping(j, i);
-				renameTable.setArchReg(j, i, phyReg);
-				renameTable.setMappingValid(true, phyReg);
-				renameTable.setValueValid(true, phyReg);
-			}
-		}
 	}
 	
-	void retireInstructionAtHead()
+	void completeMispredictionPenalty()
 	{
-		ROB[head].setValid(false);
-		if(ROB[head].instruction.getOperationType() == OperationType.inValid && core.getCore_number() == 2)
-		{
-			System.out.println("retiring invalid");
-		}
-		ROB[head].instruction = null;
-		if(head == tail)
-		{
-			head = -1;
-			tail = -1;
-		}
-		else
-		{
-			head = (head+1)%MaxROBSize;
-		}
+		execEngine.setToStall5(false);
 	}
 	
 	void returnInstructionToPool(Instruction instruction)
@@ -511,6 +318,7 @@ public class ReorderBuffer extends SimulationElement{
 		}
 	}
 	
+	//debug helper - print contents of ROB
 	public void dump()
 	{
 		ReorderBufferEntry e;
@@ -524,7 +332,6 @@ public class ReorderBuffer extends SimulationElement{
 			return;
 		}
 		
-		//for(int i = head; i <= tail; i = (i+1)%MaxROBSize)
 		int i = head;
 		while(true)
 		{
@@ -536,12 +343,8 @@ public class ReorderBuffer extends SimulationElement{
 					e.getFUInstance() + " ; " + e.getExecuted());
 			if(e.getAssociatedIWEntry() != null)
 			{
-				System.out.println(e.isOperand1Available
-						 + " ; " + e.isOperand2Available);
-			}
-			if(e.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
-			{
-				//System.out.println(core.getExecEngine().getIntegerRenameTable().getValueValid(e.getOperand2PhyReg()));
+				System.out.println(e.isOperand1Available()
+						 + " ; " + e.isOperand2Available());
 			}
 			System.out.println(e.getInstruction().toString());
 			
@@ -552,18 +355,6 @@ public class ReorderBuffer extends SimulationElement{
 			i = (i+1)%MaxROBSize;
 		}
 		System.out.println();
-	}
-	
-	public int indexOf(ReorderBufferEntry reorderBufferEntry)
-	{
-		if(reorderBufferEntry.pos - head >= 0)
-		{
-			return (reorderBufferEntry.pos - head);
-		}
-		else
-		{
-			return (reorderBufferEntry.pos - head + MaxROBSize);
-		}
 	}
 	
 	public void setTimingStatistics()
@@ -623,19 +414,40 @@ public class ReorderBuffer extends SimulationElement{
 		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
 		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
 	}
-	@Override
-	public void handleEvent(EventQueue eventQ, Event event) {
-		
-		if(event.getRequestType() == RequestType.MISPRED_PENALTY_COMPLETE)
+	
+	public boolean isFull()
+	{
+		if((tail - head) == MaxROBSize - 1)
 		{
-			completeMispredictionPenalty();
+			return true;
 		}
-		
+		if((tail - head) == -1)
+		{
+			return true;
+		}
+		return false;
 	}
 	
-	void completeMispredictionPenalty()
+	public ReorderBufferEntry[] getROB()
 	{
-		execEngine.setToStall5(false);
+		return ROB;
+	}
+	
+	public int indexOf(ReorderBufferEntry reorderBufferEntry)
+	{
+		if(reorderBufferEntry.pos - head >= 0)
+		{
+			return (reorderBufferEntry.pos - head);
+		}
+		else
+		{
+			return (reorderBufferEntry.pos - head + MaxROBSize);
+		}
+	}
+	
+	public int getMaxROBSize()
+	{
+		return MaxROBSize;
 	}
 
 	public int getStall1Count() {
