@@ -34,6 +34,11 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 	
 	public void performWriteBack(MultiIssueInorderPipeline inorderPipeline)
 	{
+		if(containingExecutionEngine.getMispredStall() > 0)
+		{
+			return;
+		}
+		
 		Instruction ins = null;
 		
 		while(memWbLatch.isEmpty() == false)

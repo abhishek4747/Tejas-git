@@ -43,8 +43,8 @@ public class OperandAvailabilityChecker {
 				RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
 				if(tempRF.getValueValid(phyReg1) == true ||
 						tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry/* ||
-						reorderBuffer.indexOf(tempRF.getProducerROBEntry(phyReg1))
-						> reorderBuffer.indexOf(reorderBufferEntry)*/)
+						execEngine.getReorderBuffer().indexOf(tempRF.getProducerROBEntry(phyReg1))
+						> execEngine.getReorderBuffer().indexOf(reorderBufferEntry)*/)
 				{
 					return new boolean[]{true};
 				}

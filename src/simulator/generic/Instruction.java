@@ -352,7 +352,7 @@ public class Instruction implements Serializable
 		(
 			String.format("%-20s", "IP = " + Long.toHexString(ciscProgramCounter)) +
 			String.format("%-20s", "Op = " + type) +
-			String.format("%-60s", "srcOp1 = " + sourceOperand1) +
+			String.format("%-60s", "srcOp1 = " + sourceOperand1 + "(" + sourceOperand1.memoryLocationFirstOperand + ")" + "(" + sourceOperand1.memoryLocationSecondOperand + ")") +
 			String.format("%-60s", "srcOp2 = " + sourceOperand2) +
 			String.format("%-60s", "dstOp = " + destinationOperand) 
 		);

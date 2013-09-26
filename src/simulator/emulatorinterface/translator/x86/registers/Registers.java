@@ -75,8 +75,8 @@ public class Registers
 		machineSpecificRegistersHashTable.put("FP_CWORD", new Long(7));
 		
 		// Load register and store register
-		machineSpecificRegistersHashTable.put("load_reg", new Long(8));
-		machineSpecificRegistersHashTable.put("store_reg", new Long(9));
+//		machineSpecificRegistersHashTable.put("load_reg", new Long(8));
+//		machineSpecificRegistersHashTable.put("store_reg", new Long(9));
 		
 		//-------------------------Integer register-----------------------------------------------
 		//Registers available to the programmer
@@ -102,15 +102,19 @@ public class Registers
 		//Weird Register
 		integerRegistersHashTable.put("riz", new Long(17));
 		
+		// Load register and store register
+		integerRegistersHashTable.put("load_reg", new Long(18));
+		integerRegistersHashTable.put("store_reg", new Long(19));
+		
 		//Temporary registers
-		integerRegistersHashTable.put("temp0", new Long(18));
-		integerRegistersHashTable.put("temp1", new Long(19));
-		integerRegistersHashTable.put("temp2", new Long(20));
-		integerRegistersHashTable.put("temp3", new Long(21));
-		integerRegistersHashTable.put("temp4", new Long(22));
-		integerRegistersHashTable.put("temp5", new Long(23));
-		integerRegistersHashTable.put("temp6", new Long(24));
-		integerRegistersHashTable.put("temp7", new Long(25));
+		integerRegistersHashTable.put("temp0", new Long(20));
+		integerRegistersHashTable.put("temp1", new Long(21));
+		integerRegistersHashTable.put("temp2", new Long(22));
+		integerRegistersHashTable.put("temp3", new Long(23));
+		integerRegistersHashTable.put("temp4", new Long(24));
+		integerRegistersHashTable.put("temp5", new Long(25));
+		integerRegistersHashTable.put("temp6", new Long(26));
+		integerRegistersHashTable.put("temp7", new Long(27));
 		
 		
 		//-------------------------Floating-point register-----------------------------------------

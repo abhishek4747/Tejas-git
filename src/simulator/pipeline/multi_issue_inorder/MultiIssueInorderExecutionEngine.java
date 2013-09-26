@@ -45,7 +45,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 	long valueReadyFloat[];
 	long valueReadyMSR[];
 	
-	private int stallFetch;	//to simulate pipeline flush during branch misprediction
+	private int mispredStall;	//to simulate pipeline flush during branch misprediction
 	private FunctionalUnitSet functionalUnitSet;
 	StageLatch_MII ifIdLatch,idExLatch,exMemLatch,memWbLatch,wbDoneLatch;
 	
@@ -174,7 +174,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		Statistics.setNoOfL1Requests(multiIssueInorderCoreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfL1Hits(multiIssueInorderCoreMemorySystem.getL1Cache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(multiIssueInorderCoreMemorySystem.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(fetchUnitIn.numRequestsSent, core.getCore_number());
+		Statistics.setNoOfIRequests(multiIssueInorderCoreMemorySystem.getiCache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfIHits(multiIssueInorderCoreMemorySystem.getiCache().hits, core.getCore_number());
 		Statistics.setNoOfIMisses(multiIssueInorderCoreMemorySystem.getiCache().misses, core.getCore_number());
 		Statistics.setBranchCount(decodeUnitIn.getNumBranches(), core.getCore_number());
@@ -242,23 +242,19 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		return valueReadyMSR;
 	}
 
-	public int getStallFetch() {
-		return stallFetch;
+	public int getMispredStall() {
+		return mispredStall;
 	}
 
-	public void setStallFetch(int stallFetch) {
-		if(this.stallFetch > stallFetch)
+	public void setMispredStall(int stallFetch) {
+		if(this.mispredStall > stallFetch)
 			return;
 		else
-			this.stallFetch = stallFetch;
+			this.mispredStall = stallFetch;
 	}
-//
-//	public void incrementStallFetch(int stallFetch) {
-//		this.stallFetch += stallFetch;
-//	}
 
-	public void decrementStallFetch(int stallFetch) {
-		this.stallFetch -= stallFetch;
+	public void decrementMispredStall(int stallFetch) {
+		this.mispredStall -= stallFetch;
 	}
 
 	public int getIssueWidth() {

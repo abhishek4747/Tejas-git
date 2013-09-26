@@ -12,7 +12,6 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
 import generic.PortType;
-import generic.RequestType;
 import generic.SimulationElement;
 
 public class ExecUnitIn_MII extends SimulationElement{
@@ -45,6 +44,11 @@ public class ExecUnitIn_MII extends SimulationElement{
 	
 	public void execute(MultiIssueInorderPipeline inorderPipeline)
 	{
+		if(containingExecutionEngine.getMispredStall() > 0)
+		{
+			return;
+		}
+		
 		Instruction ins = null;
 		
 		while(idExLatch.isEmpty() == false

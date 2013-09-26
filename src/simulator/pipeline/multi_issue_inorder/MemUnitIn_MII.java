@@ -36,6 +36,11 @@ public class MemUnitIn_MII extends SimulationElement{
 	
 	public void performMemEvent(MultiIssueInorderPipeline inorderPipeline)
 	{
+		if(containingExecutionEngine.getMispredStall() > 0)
+		{
+			return;
+		}
+		
 		Instruction ins = null;
 		
 		while(exMemLatch.isEmpty() == false

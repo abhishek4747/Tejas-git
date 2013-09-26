@@ -197,7 +197,7 @@ public class ReorderBuffer extends SimulationElement{
 						boolean prediction = core.getBranchPredictor().predict(
 																			lastValidIPSeen,
 																			first.getInstruction().isBranchTaken());
-						if(prediction == first.getInstruction().isBranchTaken())
+						if(prediction != first.getInstruction().isBranchTaken())
 						{	
 							anyMispredictedBranch = true;
 							mispredCount++;
@@ -229,9 +229,6 @@ public class ReorderBuffer extends SimulationElement{
 					//free ROB entry
 					retireInstructionAtHead();
 					
-					//return instruction to pool
-					returnInstructionToPool(firstInstruction);
-					
 					//increment number of instructions executed
 					core.incrementNoOfInstructionsExecuted();
 					if(core.getNoOfInstructionsExecuted()%1000000==0)
@@ -242,8 +239,11 @@ public class ReorderBuffer extends SimulationElement{
 					//debug print
 					if(SimulationConfig.debugMode)
 					{
-						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + first.getInstruction());
+						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + firstInstruction);
 					}
+					
+					//return instruction to pool
+					returnInstructionToPool(firstInstruction);
 				}
 				else
 				{

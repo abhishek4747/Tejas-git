@@ -1,9 +1,6 @@
 package pipeline.multi_issue_inorder;
 
-import java.util.ArrayList;
-
 import config.SimulationConfig;
-
 import pipeline.outoforder.OpTypeToFUTypeMapping;
 import generic.Core;
 import generic.Event;
@@ -51,6 +48,11 @@ public class DecodeUnit_MII extends SimulationElement{
 
 	
 	public void performDecode(MultiIssueInorderPipeline inorderPipeline){
+		
+		if(containingExecutionEngine.getMispredStall() > 0)
+		{
+			return;
+		}
 		
 		Instruction ins = null;
 				
@@ -162,7 +164,7 @@ public class DecodeUnit_MII extends SimulationElement{
 					{
 						//Branch mispredicted
 						//stall pipeline for appropriate cycles
-						containingExecutionEngine.setStallFetch(core.getBranchMispredictionPenalty());
+						containingExecutionEngine.setMispredStall(core.getBranchMispredictionPenalty());
 						numMispredictedBranches++;
 						this.core.powerCounters.incrementBpredMisses();
 					}

@@ -95,12 +95,12 @@ public class ObjParser
 	public static void initializeControlMicroOps() {
 		// Load from immediate memory location to a MSR(load_reg)
 		Operand loadLocation = Operand.getMemoryOperand(Operand.getImmediateOperand(), null);
-		Operand loadRegister = Operand.getMachineSpecificRegister(Registers.encodeRegister("load_reg"));
+		Operand loadRegister = Operand.getIntegerRegister(Registers.encodeRegister("load_reg"));
 		staticLoadMicroOp = Instruction.getLoadInstruction(loadLocation, loadRegister);
 		
 		// Store from MSR(load_reg) to immediate memory location 
 		Operand storeLocation = Operand.getMemoryOperand(Operand.getImmediateOperand(), null);
-		Operand storeRegister = Operand.getMachineSpecificRegister(Registers.encodeRegister("store_reg"));
+		Operand storeRegister = Operand.getIntegerRegister(Registers.encodeRegister("store_reg"));
 		staticStoreMicroOp = Instruction.getStoreInstruction(storeLocation, storeRegister);
 		
 		// Branch address

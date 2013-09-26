@@ -114,9 +114,9 @@ public class FetchUnitIn_MII extends SimulationElement
 	
 	public void performFetch(MultiIssueInorderPipeline inorderPipeline)
 	{
-		if(containingExecutionEngine.getStallFetch() > 0)
+		if(containingExecutionEngine.getMispredStall() > 0)
 		{
-			containingExecutionEngine.decrementStallFetch(1);
+			containingExecutionEngine.decrementMispredStall(1);
 			return;
 		}
 		
