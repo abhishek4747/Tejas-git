@@ -60,18 +60,22 @@ public class RenameLogic extends SimulationElement {
 					threadID = reorderBufferEntry.getThreadID();
 					
 					//check if the instruction can be assigned a destination register
-					if(processDestOperand(reorderBufferEntry))
+					if(canDestOperandBeProcessed(reorderBufferEntry))
 					{
-						//find out which physical registers correspond to the source operands
-						//and check for their availability
+						//find out which physical registers correspond
+						//to the source operands
 						processOperand1(reorderBufferEntry);
 						processOperand2(reorderBufferEntry);
 						
+						//check for availability of source operands
 						checkOperand1Availability();
 						if(reorderBufferEntry.isOperand2Available() == false)
 						{
 							checkOperand2Availability();
 						}
+						
+						//assign register for destination operand(s)
+						processDestOperand(reorderBufferEntry);
 						
 						renameBuffer.enqueue(decodeBuffer.dequeue());
 						reorderBufferEntry.setRenameDone(true);
@@ -344,12 +348,18 @@ public class RenameLogic extends SimulationElement {
 	}
 	
 	/*
-	 * perform renaming to obtain physical register(s) for the destination operand(s)
+	 * find if registers are available for the destination operand(s)
+	 * note : actual allocation isn't done at this point
 	 */
-	private boolean processDestOperand(ReorderBufferEntry reorderBufferEntry)
+	private boolean canDestOperandBeProcessed(ReorderBufferEntry reorderBufferEntry)
 	{
-		Operand tempOpnd;
-		OperandType tempOpndType;
+		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
+		if(tempOpnd == null ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
+				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
+		{
+			return true;
+		}
 		
 		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 		{
@@ -418,7 +428,62 @@ public class RenameLogic extends SimulationElement {
 			{
 				return false;
 			}
-			
+			else
+			{
+				return true;
+			}
+		}
+		
+		if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+		{
+			if(execEngine.getMachineSpecificRegisterFile(threadID).getValueValid((int)tempOpnd.getValue()) == true
+					/*|| execEngine.getMachineSpecificRegisterFile(threadID).getProducerROBEntry((int)tempOpnd.getValue()) == reorderBufferEntry*/)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		if(tempOpnd.getOperandType() == OperandType.integerRegister)
+		{
+			if(execEngine.getIntegerRenameTable().getAvailableListSize() >= 1)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		if(tempOpnd.getOperandType() == OperandType.floatRegister)
+		{
+			if(execEngine.getFloatingPointRenameTable().getAvailableListSize() >= 1)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		return true;		
+	}
+	
+	/*
+	 * perform renaming to obtain physical register(s) for the destination operand(s)
+	 */
+	private boolean processDestOperand(ReorderBufferEntry reorderBufferEntry)
+	{
+		Operand tempOpnd;
+		OperandType tempOpndType;
+		
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
+		{
 			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
 			tempOpndType = tempOpnd.getOperandType();
 			
@@ -461,6 +526,7 @@ public class RenameLogic extends SimulationElement {
 			}
 		}
 		
+		
 		tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
 		if(tempOpnd == null ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
@@ -468,9 +534,8 @@ public class RenameLogic extends SimulationElement {
 		{
 			return true;
 		}
-		
-		tempOpndType = tempOpnd.getOperandType(); 
-		
+
+		tempOpndType = tempOpnd.getOperandType();
 		if(tempOpndType != OperandType.integerRegister &&
 				tempOpndType != OperandType.floatRegister &&
 				tempOpndType != OperandType.machineSpecificRegister)
@@ -518,8 +583,8 @@ public class RenameLogic extends SimulationElement {
 		}
 		
 		
-		if(tempRF.getValueValid(destPhyReg) == true ||
-				tempRF.getProducerROBEntry(destPhyReg) == reorderBufferEntry)
+		if(tempRF.getValueValid(destPhyReg) == true
+				/*|| tempRF.getProducerROBEntry(destPhyReg) == reorderBufferEntry*/)
 		{
 			//destination MSR available
 			if(whichOperand == 1)

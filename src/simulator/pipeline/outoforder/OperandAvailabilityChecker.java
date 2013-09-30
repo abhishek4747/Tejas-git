@@ -41,8 +41,8 @@ public class OperandAvailabilityChecker {
 			if(tempOpndType == OperandType.machineSpecificRegister)
 			{
 				RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-				if(tempRF.getValueValid(phyReg1) == true ||
-						tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry/* ||
+				if(tempRF.getValueValid(phyReg1) == true
+						/*|| tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry*//* ||
 						execEngine.getReorderBuffer().indexOf(tempRF.getProducerROBEntry(phyReg1))
 						> execEngine.getReorderBuffer().indexOf(reorderBufferEntry)*/)
 				{
@@ -65,8 +65,8 @@ public class OperandAvailabilityChecker {
 					tempRN = execEngine.getFloatingPointRenameTable();
 				}
 				
-				if(tempRN.getValueValid(phyReg1) == true ||
-						tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry)
+				if(tempRN.getValueValid(phyReg1) == true
+						/*|| tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry*/)
 				{
 					return new boolean[]{true};
 				}
