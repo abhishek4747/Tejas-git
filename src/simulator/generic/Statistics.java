@@ -482,7 +482,6 @@ public class Statistics {
 				if(Statistics.coreCyclesTaken[i]==0)
 					continue;
 			executionTime = (Statistics.coreCyclesTaken[i]*1000/Statistics.coreFrequencies[i]); //In nano seconds
-System.out.println("execution time = "+executionTime);
 			outputFileWriter.write("\n\nCore: "+i+"\n\n");
 			
 			outputFileWriter.write("\n\nSimple conditional clocking \n\n");
@@ -982,14 +981,11 @@ System.out.println("execution time = "+executionTime);
 			
 			if (cache.nucaType != NucaType.NONE )
 			{
-				Statistics.nocTopology = ((NucaCache)cache).cacheBank[0][0].getRouter().topology.name();
-				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank[0][0].getRouter().rAlgo.name();
+				Statistics.nocTopology = ((NucaCache)cache).cacheBank.get(0).getRouter().topology.name();
+				Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank.get(0).getRouter().rAlgo.name();
 				for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
 				{
-					for(int j=0; j< ((NucaCache)cache).cacheColumns;j++)
-					{
-						Statistics.hopcount += ((NucaCache)cache).cacheBank[i][j].getRouter().hopCounters; 
-					}
+					Statistics.hopcount += ((NucaCache)cache).cacheBank.get(i).getRouter().hopCounters; 
 				}
 				if(Statistics.nocTopology.equals("FATTREE") ||
 						Statistics.nocTopology.equals("OMEGA") ||

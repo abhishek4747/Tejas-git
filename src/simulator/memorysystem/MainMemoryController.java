@@ -12,10 +12,12 @@ import generic.Core;
 import generic.Event;
 import generic.RequestType;
 
-public class MainMemory extends SimulationElement
+public class MainMemoryController extends SimulationElement
 {
 	NucaType nucaType;
-	public MainMemory(NucaType nucaType) {
+	public int numberOfMemoryControllers;
+	public int[] mainmemoryControllersLocations;
+	public MainMemoryController(NucaType nucaType) {
 		super(SystemConfig.mainMemPortType,
 				SystemConfig.mainMemoryAccessPorts,
 				SystemConfig.mainMemoryPortOccupancy,
@@ -25,13 +27,24 @@ public class MainMemory extends SimulationElement
 		this.nucaType = nucaType;
 		// TODO Auto-generated constructor stub
 	}
-	public MainMemory() {
+	public MainMemoryController() {
 		super(PortType.Unlimited,
 				-1, 
 				10,
 				250,
 				3600);
 		this.nucaType = NucaType.NONE;
+	}
+	public MainMemoryController(int[] memoryControllersLocations, NucaType nucaType) 
+	{
+		super(PortType.Unlimited,
+				-1, 
+				10,
+				250,
+				3600);
+		this.nucaType = nucaType;
+		this.numberOfMemoryControllers = memoryControllersLocations.length;
+		this.mainmemoryControllersLocations = memoryControllersLocations;
 	}
 	public void handleEvent(EventQueue eventQ, Event event)
 	{
@@ -65,13 +78,13 @@ public class MainMemory extends SimulationElement
 					Vector<Integer> sourceBankId = new Vector<Integer>(
 							   ((AddressCarryingEvent)
 							    (event)).
-							    getDestinationBankId());
+							    getDestinationId());
 					Vector<Integer> destinationBankId = new Vector<Integer>(
 									((AddressCarryingEvent)
 								     (event)).
-									 getSourceBankId());
-					((AddressCarryingEvent)event).setSourceBankId(sourceBankId);
-					((AddressCarryingEvent)event).setDestinationBankId(destinationBankId);
+									 getSourceId());
+					((AddressCarryingEvent)event).setSourceId(sourceBankId);
+					((AddressCarryingEvent)event).setDestinationId(destinationBankId);
 	//				System.out.println("From main memory" + ((AddressCarryingEvent) event).getSourceBankId() + " " + ((AddressCarryingEvent) event).getDestinationBankId());
 					requestingElement.getPort().put(
 							event.update(

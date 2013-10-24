@@ -48,7 +48,7 @@ public class TopDataBus extends SimulationElement {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
-		Vector<Integer> destinationBankId = ((AddressCarryingEvent) event).getDestinationBankId();
+		Vector<Integer> destinationBankId = ((AddressCarryingEvent) event).getDestinationId();
 		RequestType requestType = event.getRequestType();
 //		
 //		if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||

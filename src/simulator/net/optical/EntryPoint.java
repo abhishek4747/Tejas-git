@@ -93,7 +93,7 @@ public class EntryPoint extends SimulationElement{
 			else if(requestType == RequestType.Cache_Read ||
 					requestType == RequestType.Cache_Read_from_iCache ||
 					requestType == RequestType.Cache_Write ){
-				Vector<Integer> bankId = ((AddressCarryingEvent)event).getDestinationBankId();
+				Vector<Integer> bankId = ((AddressCarryingEvent)event).getDestinationId();
 //				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
 //						(eventQ, 
 //						0, 
@@ -120,10 +120,10 @@ public class EntryPoint extends SimulationElement{
 					 requestType == RequestType.Main_Mem_Write )
 			{
 				//System.out.println("Event to main memory from entry point   " + event.getRequestType());
-				MemorySystem.mainMemory.getPort().put(event.update(eventQ, 
-																   MemorySystem.mainMemory.getLatencyDelay(), 
+				MemorySystem.mainMemoryController.getPort().put(event.update(eventQ, 
+																   MemorySystem.mainMemoryController.getLatencyDelay(), 
 																   this, 
-																   MemorySystem.mainMemory, 
+																   MemorySystem.mainMemoryController, 
 																   requestType));	
 			}
 			else{

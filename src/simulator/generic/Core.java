@@ -1,5 +1,9 @@
 package generic;
 
+import java.util.Vector;
+
+import net.NocInterface;
+import net.Router;
 import pipeline.ExecutionEngine;
 import pipeline.branchpredictor.AlwaysNotTaken;
 import pipeline.branchpredictor.AlwaysTaken;
@@ -37,10 +41,11 @@ import config.SystemConfig;
  * all core parameters are defined here
  */
 
-public class Core {
+public class Core extends SimulationElement implements NocInterface{
 	
 	//long clock;
-	
+	Router router;
+	Vector<Integer> nocElementId;
 	Port port;
 	int stepSize;
 	long frequency;
@@ -100,7 +105,9 @@ public class Core {
 			InstructionLinkedList[] incomingInstructionLists,
 			int[] threadIDs)
 	{
-		//super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);			//TODO frequency from config file
+		super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);	
+		//TODO frequency from config file
+		this.router = new Router(SystemConfig.nocConfig, this);
 		this.port = new Port(PortType.Unlimited, -1, -1);
 		this.eventQueue = new EventQueue();
 		this.frequency = SystemConfig.core[core_number].frequency;
@@ -492,5 +499,34 @@ public class Core {
 	public int getStepSize()
 	{
 		return stepSize;
+	}
+	@Override
+	public Router getRouter() {
+		// TODO Auto-generated method stub
+		return router;
+	}
+	@Override
+	public Vector<Integer> getId() {
+		// TODO Auto-generated method stub
+		return nocElementId;
+	}
+	public void setId(Vector<Integer> id) {
+		// TODO Auto-generated method stub
+		nocElementId = id;
+	}
+	@Override
+	public Port getPort() {
+		// TODO Auto-generated method stub
+		return port;
+	}
+	@Override
+	public SimulationElement getSimulationElement() {
+		// TODO Auto-generated method stub
+		return this;
+	}
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub
+		
 	}	
 }

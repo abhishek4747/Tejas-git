@@ -19,10 +19,10 @@ public class AddressCarryingEventListInterface implements GenericPooledLinkedLis
 	public void copy(AddressCarryingEvent src, AddressCarryingEvent dest)
 	{
 		dest.setAddress(src.getAddress());
-		dest.setDestinationBankId(src.getDestinationBankId());
+		dest.setDestinationId(src.getDestinationId());
 		dest.setProcessingElement(src.getProcessingElement());
 		dest.setRequestType(src.getRequestType());
-		dest.setSourceBankId(src.getSourceBankId());
+		dest.setSourceId(src.getSourceId());
 		dest.setRequestingElement(src.getRequestingElement());
 	}
 

@@ -42,7 +42,7 @@ public class CacheTest extends SimulationElement{
 				writePolicy,
 				mshrSize);
 		
-		MemorySystem.mainMemory = new MainMemory();
+		MemorySystem.mainMemoryController = new MainMemoryController();
 		
 		eventQueue = new EventQueue();
 		GlobalClock.setStepSize(1);

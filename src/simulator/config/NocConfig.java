@@ -21,6 +21,7 @@
 
 package config;
 
+import net.NocElements;
 import generic.PortType;
 import memorysystem.nuca.NucaCache.Mapping;
 import net.RoutingAlgo;
@@ -47,6 +48,7 @@ public class NocConfig
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public Mapping mapping;
+	public NocElements nocElements;
 	
 	public int getLatency() {
 		return latency;

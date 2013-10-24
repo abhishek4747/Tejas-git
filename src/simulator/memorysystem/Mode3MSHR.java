@@ -210,7 +210,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		while(omrEntries.hasMoreElements())
 		{
 			OMREntry omrEntry = omrEntries.nextElement();
-			if(omrEntry.eventToForward!=null && omrEntry.eventToForward.getDestinationBankId() != null && omrEntry.eventToForward.getDestinationBankId().equals(bankId))
+			if(omrEntry.eventToForward!=null && omrEntry.eventToForward.getDestinationId() != null && omrEntry.eventToForward.getDestinationId().equals(bankId))
 			{
 				eventsReadyToProceed.add(omrEntry);
 			}

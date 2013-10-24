@@ -11,12 +11,13 @@ import generic.SimulationElement;
 public class AddressCarryingEvent extends Event implements Cloneable
 {
 	private long address;
-	private Vector<Integer> sourceBankId;
-	private Vector<Integer> destinationBankId;
+	private Vector<Integer> sourceId;
+	private Vector<Integer> destinationId;
 	public long event_id;
 	
 	public RequestType actualRequestType;
-	
+	public int hopLength;
+
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -24,30 +25,41 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType, -1);
 		this.address = address;
-		sourceBankId = null;
-		destinationBankId = null;
+		sourceId = null;
+		destinationId = null;
 	}
 	
 	public AddressCarryingEvent()
 	{
 		super(null, -1, null, null, RequestType.Cache_Read, -1);
 		this.address = -1;
-		sourceBankId = null;
-		destinationBankId = null;
+		sourceId = null;
+		destinationId = null;
 	}
 	
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId,
-			Vector<Integer> sourceBankId, Vector<Integer> destinationBankId) {
+			Vector<Integer> sourceId, Vector<Integer> destinationId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType, coreId);
 		this.address = address;
-		this.sourceBankId = (Vector<Integer>) sourceBankId.clone();
-		this.destinationBankId = (Vector<Integer>) destinationBankId.clone();
+		this.sourceId = (Vector<Integer>) sourceId.clone();
+		this.destinationId = (Vector<Integer>) destinationId.clone();
 	}
-	
+	public AddressCarryingEvent(long eventId, EventQueue eventQ, long eventTime,
+			SimulationElement requestingElement,
+			SimulationElement processingElement,
+			RequestType requestType, long address,int coreId,
+			Vector<Integer> sourceId, Vector<Integer> destinationId) {
+		super(eventQ, eventTime, requestingElement, processingElement,
+				requestType, coreId);
+		this.event_id = eventId;
+		this.address = address;
+		this.sourceId = (Vector<Integer>) sourceId.clone();
+		this.destinationId = (Vector<Integer>) destinationId.clone();
+	}
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
@@ -61,7 +73,7 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId,
-			Vector<Integer> sourceBankId, Vector<Integer> destinationBankId) {
+			Vector<Integer> sourceId, Vector<Integer> destinationId) {
 		this.address = address;
 		this.coreId = coreId;
 		return (AddressCarryingEvent)this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
@@ -81,10 +93,10 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, 
-			Vector<Integer> sourceBankId,
-			Vector<Integer> destinationBankId) {
-		this.sourceBankId = (Vector<Integer>) sourceBankId.clone();
-		this.destinationBankId = (Vector<Integer>) destinationBankId.clone();
+			Vector<Integer> sourceId,
+			Vector<Integer> destinationId) {
+		this.sourceId = (Vector<Integer>) sourceId.clone();
+		this.destinationId = (Vector<Integer>) destinationId.clone();
 		return (AddressCarryingEvent) this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
 	}
 	
@@ -96,20 +108,20 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		this.address = address;
 	}
 
-	public void setSourceBankId(Vector<Integer> sourceBankId) {
-		this.sourceBankId = (Vector<Integer>) sourceBankId.clone();
+	public void setSourceId(Vector<Integer> sourceId) {
+		this.sourceId = (Vector<Integer>) sourceId.clone();
 	}
 
-	public Vector<Integer> getSourceBankId() {
-		return sourceBankId;
+	public Vector<Integer> getSourceId() {
+		return sourceId;
 	}
 
-	public void setDestinationBankId(Vector<Integer> destinationBankId) {
-		this.destinationBankId = (Vector<Integer>) destinationBankId.clone();
+	public void setDestinationId(Vector<Integer> destinationId) {
+		this.destinationId = (Vector<Integer>) destinationId.clone();
 	}
 
-	public Vector<Integer> getDestinationBankId() {
-		return destinationBankId;
+	public Vector<Integer> getDestinationId() {
+		return destinationId;
 	}
 	
 	public void dump()

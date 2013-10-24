@@ -30,9 +30,10 @@ import pipeline.outoforder.OutOrderCoreMemorySystem;
 import net.optical.TopLevelTokenBus;
 
 import main.ArchitecturalComponent;
-import memorysystem.nuca.CBDNuca;
+import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCacheLine;
+import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
 
@@ -41,6 +42,7 @@ import memorysystem.directory.CentralizedDirectoryCache;
 
 import generic.*;
 import config.CacheConfig;
+import config.NocConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 
@@ -49,9 +51,8 @@ public class MemorySystem
 {
 	static Core[] cores;
 	static Hashtable<String, Cache> cacheList;
-	public static MainMemory mainMemory;
+	public static MainMemoryController mainMemoryController;
 	public static CentralizedDirectoryCache centralizedDirectory;
-	
 	public static boolean bypassLSQ = false;
 	
 	public static Hashtable<String, Cache> getCacheList() {
@@ -77,6 +78,7 @@ public class MemorySystem
 		/*First initialise the L2 and greater caches (to be linked with L1 caches and among themselves)*/
 		cacheList = new Hashtable<String, Cache>(); //Declare the hash table for level 2 or greater caches
 		boolean flag = false;
+		NucaCache nucaCache = null;
 		for (Enumeration<String> cacheNameSet = SystemConfig.declaredCaches.keys(); cacheNameSet.hasMoreElements(); )
 		{
 			String cacheName = cacheNameSet.nextElement();
@@ -93,21 +95,18 @@ public class MemorySystem
 				{	
 					nucaType = NucaType.S_NUCA;
 					flag = true;
-					newCache = new NucaCache(cacheParameterObj,null,tokenBus);
+					newCache = new SNuca(cacheParameterObj,null,tokenBus,nucaType);
+					nucaCache = (NucaCache) newCache;
 				}
 				else if (cacheParameterObj.getNucaType() == NucaType.D_NUCA)
 				{	
 					nucaType = NucaType.D_NUCA;
 					flag = true;
-					newCache = new NucaCache(cacheParameterObj,null,tokenBus);
+					newCache = new DNuca(cacheParameterObj,null,tokenBus,nucaType);
+					nucaCache = (NucaCache) newCache;
 				}
 				
-				else if (cacheParameterObj.getNucaType() == NucaType.CB_D_NUCA)
-				{	
-					nucaType = NucaType.CB_D_NUCA;
-					flag = true;
-					newCache = new CBDNuca(cacheParameterObj,null,tokenBus);
-				}
+				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
 				
@@ -125,7 +124,16 @@ public class MemorySystem
 				}
 			}
 		}
-		mainMemory = new MainMemory(nucaType);
+		
+		if(nucaType!=NucaType.NONE)
+		{
+			mainMemoryController = new MainMemoryController(SystemConfig.memoryControllersLocations,nucaType);
+			SystemConfig.nocConfig.nocElements.makeNocElements(tokenBus,nucaCache);
+		}
+		else
+		{
+			mainMemoryController = new MainMemoryController(nucaType);
+		}
 		//Initialize centralized directory
 //		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
 		centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig, null, cores.length, 

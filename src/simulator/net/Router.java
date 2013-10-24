@@ -51,14 +51,14 @@ public class Router extends Switch{
      * Return       : void
      *************************************************************************/
 	
-	public Router(NocConfig nocConfig, NucaCacheBank bankReference)
+	public Router(NocConfig nocConfig, NocInterface reference)
 	{
 		super(nocConfig);
 		this.topology = nocConfig.topology;
 		this.rAlgo = nocConfig.rAlgo;
 		this.numberOfRows = nocConfig.numberOfBankRows;
 		this.numberOfColumns = nocConfig.numberOfBankColumns;
-		this.reference = bankReference;
+		this.reference = reference;
 		this.latencyBetweenBanks = nocConfig.latencyBetweenBanks;
 		this.neighbours= new Vector<Router>(4);
 		this.hopCounters = 0;
@@ -153,7 +153,7 @@ public class Router extends Switch{
 		RoutingAlgo.DIRECTION nextID;
 		boolean reqOrReply;
 		Vector<Integer> currentId = this.reference.getId();
-		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationBankId();
+		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationId();
 		RequestType requestType = event.getRequestType();
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
 				&& !currentId.equals(destinationId))  //event passed to switch in omega/buttrfly/fat tree connection

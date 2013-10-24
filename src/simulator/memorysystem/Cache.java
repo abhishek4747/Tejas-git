@@ -332,7 +332,7 @@ public class Cache extends SimulationElement
 			{
 				if (this.isLastLevel)
 				{
-					putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, true, true);
+					putEventToPort(event, MemorySystem.mainMemoryController, RequestType.Main_Mem_Write, true, true);
 				}
 				else
 				{
@@ -486,12 +486,12 @@ public class Cache extends SimulationElement
 												    receivedEvent.coreId);*/
 			
 			receivedEvent.update(receivedEvent.getEventQ(),
-					MemorySystem.mainMemory.getLatency(),
+					MemorySystem.mainMemoryController.getLatency(),
 					this,
-					MemorySystem.mainMemory,
+					MemorySystem.mainMemoryController,
 					RequestType.Main_Mem_Write);
 
-			MemorySystem.mainMemory.getPort().put(receivedEvent);
+			MemorySystem.mainMemoryController.getPort().put(receivedEvent);
 		}
 		
 		private void sendReadRequestToMainMemory(AddressCarryingEvent receivedEvent)
@@ -506,12 +506,12 @@ public class Cache extends SimulationElement
 												    receivedEvent.coreId);*/
 			
 			receivedEvent.update(receivedEvent.getEventQ(),
-					MemorySystem.mainMemory.getLatency(),
+					MemorySystem.mainMemoryController.getLatency(),
 					this,
-					MemorySystem.mainMemory,
+					MemorySystem.mainMemoryController,
 					RequestType.Main_Mem_Read);
 
-			MemorySystem.mainMemory.getPort().put(receivedEvent);
+			MemorySystem.mainMemoryController.getPort().put(receivedEvent);
 		}
 		
 		
@@ -652,7 +652,7 @@ public class Cache extends SimulationElement
 					}
 					else if (this.isLastLevel)
 					{
-							putEventToPort(event, MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
+							putEventToPort(event, MemorySystem.mainMemoryController, RequestType.Main_Mem_Write, false,true);
 					}
 					else
 					{

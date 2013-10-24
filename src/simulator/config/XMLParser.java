@@ -23,10 +23,13 @@ package config;
 import emulatorinterface.communication.IpcBase;
 import generic.MultiPortingType;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.math.RoundingMode;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -485,14 +488,68 @@ public class XMLParser
 	}
 	private static void setL2NocProperties(Element NocType, NocConfig nocConfig)
 	{
+		if(SimulationConfig.nucaType!=NucaType.NONE)
+		{
+			String nocConfigFilename = getImmediateString("NocConfigFile", NocType);
+			try 
+			{
+				File outputFile = new File(nocConfigFilename);
+				if(!outputFile.exists()) 
+				{
+					System.err.println("XML Configuration error : NocConfigFile doesnot exist");
+					System.exit(1);
+				}
+				
+				BufferedReader readNocConfig = new BufferedReader(new FileReader(outputFile));
+				String str;
+				StringTokenizer st;
+				str=readNocConfig.readLine();
+				st = new StringTokenizer(str," ");
+			
+				nocConfig.nocElements = new NocElements(
+						Integer.parseInt((String)st.nextElement()),
+						Integer.parseInt((String)st.nextElement()));
+				 
+				nocConfig.numberOfBankColumns = nocConfig.nocElements.columns; 
+				nocConfig.numberOfBankRows = nocConfig.nocElements.rows;
+				
+				for(int i=0;i<nocConfig.nocElements.rows;i++)
+				{
+					str=readNocConfig.readLine();
+					st = new StringTokenizer(str," ");
+					nocConfig.nocElements.coresCacheLocations.add(new Vector<Integer>());
+					for(int j=0;j<nocConfig.nocElements.columns;j++)
+					{
+						nocConfig.nocElements.coresCacheLocations.get(i).add(Integer.parseInt((String)st.nextElement()));
+						if(nocConfig.nocElements.coresCacheLocations.get(i).get(j)==1)
+							nocConfig.nocElements.noOfCores++;
+						else if(nocConfig.nocElements.coresCacheLocations.get(i).get(j)==0)
+							nocConfig.nocElements.noOfCacheBanks++;
+					}
+				}
+				str=readNocConfig.readLine();
+				st = new StringTokenizer(str," ");
+				int numberOfmemoryControllers = Integer.parseInt((String)st.nextElement());
+				str=readNocConfig.readLine();
+				st = new StringTokenizer(str," ");
+				SystemConfig.memoryControllersLocations = new int[numberOfmemoryControllers];
+				for(int i=0;i<numberOfmemoryControllers;i++)
+				{
+					SystemConfig.memoryControllersLocations[i] = Integer.parseInt((String)st.nextElement());
+				}	
+			}
+			catch(Exception e)
+			{
+				System.err.println(e);
+				System.exit(0);
+			}
+		}
 		nocConfig.numberOfBuffers = Integer.parseInt(getImmediateString("NocNumberOfBuffers", NocType));
 		nocConfig.portType = setPortType(getImmediateString("NocPortType", NocType));
 		nocConfig.accessPorts = Integer.parseInt(getImmediateString("NocAccessPorts", NocType));
 		nocConfig.portOccupancy = Integer.parseInt(getImmediateString("NocPortOccupancy", NocType));
 		nocConfig.latency = Integer.parseInt(getImmediateString("NocLatency", NocType));
 		nocConfig.operatingFreq = Integer.parseInt(getImmediateString("NocOperatingFreq", NocType));
-		nocConfig.numberOfBankColumns = Integer.parseInt(getImmediateString("NumberOfBankColumns", NocType));
-		nocConfig.numberOfBankRows = Integer.parseInt(getImmediateString("NumberOfBankRows", NocType));
 		nocConfig.latencyBetweenBanks = Integer.parseInt(getImmediateString("NocLatencyBetweenBanks", NocType));
 		
 		String tempStr = getImmediateString("NucaMapping", NocType);
@@ -613,11 +670,6 @@ public class XMLParser
 		{
 			SimulationConfig.nucaType = NucaType.D_NUCA;
 			cache.nucaType = NucaType.D_NUCA;
-		}
-		else if (tempStr.equalsIgnoreCase("CBD"))
-		{
-			SimulationConfig.nucaType = NucaType.CB_D_NUCA;
-			cache.nucaType = NucaType.CB_D_NUCA;
 		}
 		else
 		{

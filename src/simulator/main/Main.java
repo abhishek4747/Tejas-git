@@ -2,6 +2,8 @@ package main;
 
 import java.io.File;
 import java.io.IOException;
+
+import memorysystem.nuca.DNucaBank;
 import misc.Error;
 import misc.ShutDownHook;
 import config.EmulatorConfig;
@@ -123,7 +125,6 @@ public class Main {
 		statFileWritten = true;
 		
 		System.out.println("\n\nSimulation completed !!");
-				
 		System.exit(0);
 	}
 

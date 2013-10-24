@@ -40,8 +40,8 @@ public class SignalWavelengthEvent  extends AddressCarryingEvent{
 		super(eventQ, eventTime, requestingElement, processingElement, requestType, address);
 		
 		this.wavelength = wavelength; 
-		this.setSourceBankId(sourceBankId);
-		this.setDestinationBankId(destinationBankId);
+		this.setSourceId(sourceBankId);
+		this.setDestinationId(destinationBankId);
 //		this.oldSourceBankId = oldSourceBankId;
 		this.coreId = coreId;
 /*		this.oldRequestingElement = oldReqElement;

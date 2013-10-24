@@ -138,7 +138,7 @@ public class OpticalRouter extends Router{
 			}
 
 			else if(((AddressCarryingEvent)event).getRequestingElement().equals(this.reference)){
-				if(((AddressCarryingEvent) event).getDestinationBankId().elementAt(1) 
+				if(((AddressCarryingEvent) event).getDestinationId().elementAt(1) 
 								   == this.reference.getId().elementAt(1))
 				{
 					readyToSendLocally =true;
@@ -179,7 +179,7 @@ public class OpticalRouter extends Router{
 					this.dataEvent.add(WaveEvent);*/
 				}
 			}
-			else if(this.reference.getId().equals(((AddressCarryingEvent)event).getDestinationBankId()))
+			else if(this.reference.getId().equals(((AddressCarryingEvent)event).getDestinationId()))
 			{
 				//System.out.println("Event to Bank " + "from" + ((AddressCarryingEvent)event).getSourceBankId() + "to" + ((AddressCarryingEvent)event).getDestinationBankId() + "with address" + ((AddressCarryingEvent)event).getAddress());
 				this.reference.getPort().put(event.

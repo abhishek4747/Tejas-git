@@ -29,7 +29,7 @@ import java.util.Vector;
  * NocInterface to make the router generic
  *
  *****************************************************/
-public interface NocInterface {
+public interface NocInterface{
 	
 	public Router getRouter();
 	public Vector<Integer> getId();

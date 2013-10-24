@@ -93,7 +93,7 @@ public enum RequestType {
 	Invalid_Event, Cache_Hit, Cache_Miss,
 
 	MSHR_Full,
-	Tlb_Miss_Response
+	Tlb_Miss_Response, CacheLine_Invalidate
 	
 //	MEM_READ,
 //	MEM_WRI
