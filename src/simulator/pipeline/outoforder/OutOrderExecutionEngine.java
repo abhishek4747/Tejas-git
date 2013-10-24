@@ -90,11 +90,11 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 													core.getAllLatencies());
 		
 		
-		fetchBuffer = new GenericCircularQueue<>(Instruction.class, core.getDecodeWidth());
+		fetchBuffer = new GenericCircularQueue(Instruction.class, core.getDecodeWidth());
 		fetcher = new FetchLogic(core, this);
-		decodeBuffer = new GenericCircularQueue<>(ReorderBufferEntry.class, core.getDecodeWidth());
+		decodeBuffer = new GenericCircularQueue(ReorderBufferEntry.class, core.getDecodeWidth());
 		decoder = new DecodeLogic(core, this);
-		renameBuffer = new GenericCircularQueue<>(ReorderBufferEntry.class, core.getDecodeWidth());
+		renameBuffer = new GenericCircularQueue(ReorderBufferEntry.class, core.getDecodeWidth());
 		renamer = new RenameLogic(core, this);
 		IWPusher = new IWPushLogic(core, this);
 		selector = new SelectLogic(core, this);

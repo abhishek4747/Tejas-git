@@ -1,9 +1,11 @@
 package pipeline.outoforder;
 
+import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
 import generic.GenericCircularQueue;
+import generic.GlobalClock;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -64,6 +66,11 @@ public class IWPushLogic extends SimulationElement {
 						if(headROBEntry.isRenameDone() == false)
 						{
 							misc.Error.showErrorAndExit("cannot push an instruction that hasn't been renamed");
+						}
+						
+						if(SimulationConfig.debugMode)
+						{
+							System.out.println("IW push : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + headROBEntry.getInstruction());
 						}
 						
 						//add to IW

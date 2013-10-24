@@ -106,17 +106,17 @@ public class WriteBackLogic extends SimulationElement {
 								buffer[i].getThreadID());
 					}
 				}
+
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("writeback : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + buffer[i].getInstruction());
+				}
 			}
 			
 			this.core.powerCounters.incrementWindowAccess(1);
 			this.core.powerCounters.incrementWindowPregAccess(1);
 			this.core.powerCounters.incrementWindowWakeupAccess(1);
 			this.core.powerCounters.incrementResultbusAccess(1);
-
-			if(SimulationConfig.debugMode)
-			{
-				System.out.println("writeback : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + buffer[i].getInstruction());
-			}
 			
 			i = (i+1)%ROB.getMaxROBSize();
 			

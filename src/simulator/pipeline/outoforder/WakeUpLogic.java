@@ -56,8 +56,11 @@ public class WakeUpLogic {
 			}
 			
 			if(ROBEntries[i].getIssued() == true
-					|| ROBEntries[i].getAssociatedIWEntry() == null)
+					/*|| ROBEntries[i].getAssociatedIWEntry() == null*/)
 			{
+				//all ROB entries that are renamed, and not issued are candidates
+				//this means all entries in the IW and the rename-logic/IW-push-logic
+				//	are candidates
 				i = (i + 1) % ROB.MaxROBSize;
 				continue;
 			}
@@ -155,7 +158,7 @@ public class WakeUpLogic {
 		/*
 		 * aiding decoded instructions that are not yet in the IW.
 		 * 
-		 * if this is not done, an instruction being renamed in this or the previous cycle
+		 * if this is not done, an instruction being renamed in this cycle
 		 * 	1) does not get it's source operands from the RF as write-back of the producer hasn't completed
 		 * 	2) misses the wake-up signal as it is not yet in the IW
 		 * 	thus, staying forever in the IW.
@@ -173,7 +176,7 @@ public class WakeUpLogic {
 		}
 		else if(opndType == OperandType.machineSpecificRegister)
 		{
-			for(int j = 0; j < core.getDecodeWidth(); j++)
+			/*for(int j = 0; j < core.getDecodeWidth(); j++)
 			{
 				ReorderBufferEntry jthEntry = execEngine.getRenameBuffer().peek(j);
 				if(jthEntry != null && jthEntry.getInstruction().getThreadID() == threadID)
@@ -329,7 +332,7 @@ public class WakeUpLogic {
 						}
 					}
 				}
-			}
+			}*/
 		}
 	}
 
