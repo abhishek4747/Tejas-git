@@ -6,8 +6,6 @@ import java.util.Vector;
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
-import memorysystem.nuca.NucaCache.Mapping;
-import memorysystem.nuca.NucaCache.NucaType;
 import net.NOC.CONNECTIONTYPE;
 import net.optical.TopLevelTokenBus;
 import config.CacheConfig;
@@ -19,6 +17,7 @@ public class DNuca extends NucaCache{
 	Vector<Integer> bankSetnum;
 	static long eventId;
 	HashMap<Integer,Vector<Vector<Integer>>> bankSetNumToBankIds;
+	
 	public DNuca(CacheConfig cacheParameters,
 			CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,
 			NucaType nucaType) 
@@ -86,12 +85,11 @@ public class DNuca extends NucaCache{
 		int bankSet = getBankSetId(address);
 		Vector<Integer> destinationId = getNearestBank(bankSet, sourceId);
 		AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
-											 0,ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter(), 
-											 SystemConfig.nocConfig.nocElements.nocElements[destinationId.get(0)][destinationId.get(1)].getSimulationElement(),
+											 0,ArchitecturalComponent.getCores()[addrEvent.coreId], 
+											 ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter(),
 											 addrEvent.getRequestType(),
 											 address,addrEvent.coreId,
 											 sourceId,destinationId);
-		//eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
 		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 		{
 			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().
@@ -100,28 +98,26 @@ public class DNuca extends NucaCache{
 	}
 	int getBankSetId(long addr)
 	{
+		int bankSetBits = getNumOfBankSets()-1;
 		if(mapping == Mapping.SET_ASSOCIATIVE) 
 		{
 			long tag = (addr>>>(numSetsBits+blockSizeBits));
-			//System.out.println("bankNumber long " + bankNumber + "bankNumberInt =" + (int)(bankNumber & (getNumOfBanks()-1)));
-			return (int)(tag & (getNumOfBankSets()-1));
+			return (int)(tag & bankSetBits);
 		}
 		else if(mapping == Mapping.ADDRESS)
 		{
 			long tag = (addr>>>(numLinesBits+blockSizeBits));
-			return (int)(tag & (getNumOfBankSets()-1));
+			return (int)(tag & bankSetBits);
 		}
 		else
 		{
 			long tag = (addr>>>(numLinesBits+blockSizeBits));
-			return (int)(tag & (getNumOfBankSets()-1));
+			return (int)(tag & bankSetBits);
 		}
 	}
 	Vector<Integer> getNearestBank(int bankSet,Vector<Integer> coreId)
 	{
-		//System.err.println(bankSetNumToBankIds);
 		Vector<Vector<Integer>> bankIds = bankSetNumToBankIds.get(bankSetnum.get(bankSet));
-		//System.err.println(bankIds);
 		Vector<Integer> nearestBankId=null;
 		int min=Integer.MAX_VALUE;
 		for(Vector<Integer> bankId:bankIds)

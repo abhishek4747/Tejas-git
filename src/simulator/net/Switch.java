@@ -45,6 +45,7 @@ public class Switch extends SimulationElement{
 	public ALGO rAlgo;
 	protected int availBuff;           //available number of buffers
 	public int hopCounters;
+	public static int totalBufferAccesses;
 	//0 - up ; 1 - right ; 2- down ; 3- left (clockwise) 
 	
 	public Switch(NocConfig nocConfig,int level){
@@ -107,6 +108,7 @@ public class Switch extends SimulationElement{
 		if(this.availBuff>2)     //incoming request leave atleast one buff space
 			{						 //for outgoing request to avoid deadlock
 				this.availBuff --;
+				totalBufferAccesses++;
 				return true;
 			}
 		return false;
@@ -123,6 +125,7 @@ public class Switch extends SimulationElement{
 		if(this.availBuff>2)     //incoming request leave atleast one buff space
 		{						 //for outgoing request to avoid deadlock
 			this.availBuff --;
+			totalBufferAccesses++;
 			return true;
 		}
 		else{
@@ -130,12 +133,14 @@ public class Switch extends SimulationElement{
 				if(this.availBuff>1)     //incoming request leave atleast one buff space
 				{						 //for outgoing request to avoid deadlock
 					this.availBuff --;
+					totalBufferAccesses++;
 					return true;
 				}
 			}
 			else if(nextId == DIRECTION.LEFT){
 				if(this.availBuff>0)
 				{
+					totalBufferAccesses++;
 					this.availBuff --;
 					return true;
 				}
@@ -171,6 +176,7 @@ public class Switch extends SimulationElement{
 		else                                               //if(topology == TOPOLOGY.FATTREE)
 			nextID = nextIdFatTree(elementNumber);
 		this.hopCounters++;
+		((AddressCarryingEvent)event).hopLength++;
 		this.connection[nextID].getPort().put(             //posting event to nextID
 				event.update(
 						eventQ,

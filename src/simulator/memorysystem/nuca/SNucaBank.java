@@ -21,7 +21,6 @@ import memorysystem.nuca.NucaCache.NucaType;
 
 public class SNucaBank extends NucaCacheBank implements NocInterface
 {
-	protected Vector<Integer> bankId = new Vector<Integer>(2); //bank id of router(vector <row,column>)
 
 	SNucaBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,SNuca nucaCache, NucaType nucaType)
     {
@@ -59,13 +58,15 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 		RequestType requestType = event.getRequestType();
 		long address = event.getAddress();
 		nucaCache.incrementTotalNucaBankAcesses(1);
+		nucaCache.updateMaxHopLength(event.hopLength,event);
+		nucaCache.updateMinHopLength(event.hopLength);
+		nucaCache.updateAverageHopLength(event.hopLength);
 		//Process the access
 		CacheLine cl = this.processRequest(requestType, address,event);
 		
 		//IF HIT
 		if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
 		{
-			//System.exit(0);
 			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(event);
 			nucaCache.hits+=numOfOutStandingRequests; //
 			nucaCache.noOfRequests += numOfOutStandingRequests;//
@@ -81,9 +82,16 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 			}
 		}
 	}
-    protected void handleMemoryReadWrite(EventQueue eventQ, Event event) {
+    protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
+    {
+    	
 		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+		
+		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
+		
 		Vector<Integer> sourceId = addrEvent.getSourceId();
 		Vector<Integer> destinationId = ((AddressCarryingEvent)event).getDestinationId();
 		
@@ -99,10 +107,16 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
     protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
 	{
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+		
+		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
+		
 		long addr = addrEvent.getAddress();
 		//System.err.println(addr);
 		Vector<Integer> sourceId;
 		Vector<Integer> destinationId;
+		
 		if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{
 			//System.err.println(event.getRequestingElement().getClass());

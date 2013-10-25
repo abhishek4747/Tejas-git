@@ -97,6 +97,7 @@ public class MemorySystem
 					flag = true;
 					newCache = new SNuca(cacheParameterObj,null,tokenBus,nucaType);
 					nucaCache = (NucaCache) newCache;
+					Core.nucaCache = nucaCache;
 				}
 				else if (cacheParameterObj.getNucaType() == NucaType.D_NUCA)
 				{	
@@ -104,6 +105,7 @@ public class MemorySystem
 					flag = true;
 					newCache = new DNuca(cacheParameterObj,null,tokenBus,nucaType);
 					nucaCache = (NucaCache) newCache;
+					Core.nucaCache = nucaCache;
 				}
 				
 				

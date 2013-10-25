@@ -42,12 +42,12 @@ public class SNuca extends NucaCache
 		Vector<Integer> sourceId = getCoreId(addrEvent.coreId);
 		Vector<Integer> destinationId = getBankId(address);
 		AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
-											 0,ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter(), 
-											 SystemConfig.nocConfig.nocElements.nocElements[destinationId.get(0)][destinationId.get(1)].getSimulationElement(),
+											 0,ArchitecturalComponent.getCores()[addrEvent.coreId], 
+											 ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter(),
 											 addrEvent.getRequestType(),
 											 address,addrEvent.coreId,
 											 sourceId,destinationId);
-		//eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
+		
 		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 		{
 			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().

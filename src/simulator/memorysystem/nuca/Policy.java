@@ -1,16 +1,8 @@
 package memorysystem.nuca;
-import generic.EventQueue;
-import generic.GlobalClock;
-import generic.RequestType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import generic.RequestType;
 import java.util.Vector;
-import config.SimulationConfig;
-import config.SystemConfig;
-import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.nuca.NucaCache.NucaType;
 
 public class Policy {
 	NucaCache nucaCache;
@@ -66,8 +58,8 @@ public class Policy {
 			{
 				Vector<Integer> destinationId = i;
 				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(DNuca.eventId,addrEvent.getEventQ(),
-						 0,SystemConfig.nocConfig.nocElements.nocElements[sourceId.get(0)][sourceId.get(1)].getSimulationElement(), 
-						 SystemConfig.nocConfig.nocElements.nocElements[destinationId.get(0)][destinationId.get(1)].getSimulationElement(),
+						 0,cacheBank, 
+						 cacheBank.getRouter(),
 						 addrEvent.getRequestType(),
 						 address,addrEvent.coreId,
 						 sourceId,destinationId);

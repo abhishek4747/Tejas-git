@@ -26,15 +26,12 @@ import generic.SimulationElement;
 import net.*;
 import net.NOC.CONNECTIONTYPE;
 import net.NOC.TOPOLOGY;
-import net.optical.OpticalRouter;
 import java.util.Vector;
 import config.CacheConfig;
 import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
-import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
-import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache.NucaType;
 
 public class NucaCacheBank extends Cache implements NocInterface
@@ -63,8 +60,6 @@ public class NucaCacheBank extends Cache implements NocInterface
     	this.cacheParameters = cacheParameters;
     	if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
     		this.router = new Router(SystemConfig.nocConfig,this);
-    	else
-    		this.router = new OpticalRouter(SystemConfig.nocConfig, this);
         isLastLevel = false;
         isFirstLevel = false;
         this.nucaType = nucaType;
@@ -118,68 +113,16 @@ public class NucaCacheBank extends Cache implements NocInterface
 	
 	protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
 	{
-		/*AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-		long addr = addrEvent.getAddress();
-		
-				
-		Vector<Integer> sourceId = this.getId();
-		Vector<Integer> destinationId = nucaCache.getBankId(addr);
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-																	0,this, this.getRouter(), 
-																	RequestType.Main_Mem_Response, 
-																	addr,((AddressCarryingEvent)event).coreId,
-																	sourceId,destinationId);
-		this.getRouter().getPort().put(addressEvent);
-		int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
-		nucaCache.misses += numOfOutStandingRequests;//change this value
-		nucaCache.noOfRequests += numOfOutStandingRequests;//change this value
-		policy.sendResponseToWaitingEvent((AddressCarryingEvent)event, this, false);*/
 	}
 	
 
 	
-	protected void handleMemoryReadWrite(EventQueue eventQ, Event event) {
-		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
-		/*AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-		Vector<Integer> sourceId = addrEvent.getSourceId();
-		Vector<Integer> destinationId = ((AddressCarryingEvent)event).getDestinationId();
-		
-		RequestType requestType = event.getRequestType();
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-		{
-			MemorySystem.mainMemoryController.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
-												MemorySystem.mainMemoryController.getLatencyDelay(), this, 
-												MemorySystem.mainMemoryController, requestType, sourceId,
-												destinationId));
-		}*/
+	protected void handleMemoryReadWrite(EventQueue eventQ, Event event)
+	{
 	}
 
 	public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
 	{
-		/*RequestType requestType = event.getRequestType();
-		long address = event.getAddress();
-		nucaCache.incrementTotalNucaBankAcesses(1);
-		//Process the access
-		CacheLine cl = this.processRequest(requestType, address,event);
-		
-		//IF HIT
-		if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
-		{
-			//System.exit(0);
-			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(event);
-			nucaCache.hits+=numOfOutStandingRequests; //
-			nucaCache.noOfRequests += numOfOutStandingRequests;//
-			policy.updateEventOnHit(event, this);
-		}
-		//IF MISS
-		else
-		{
-			AddressCarryingEvent tempEvent= policy.updateEventOnMiss( (AddressCarryingEvent)event,this);
-			if(tempEvent != null)
-			{
-				tempEvent.getProcessingElement().getPort().put(tempEvent);
-			}
-		}*/
 	}
 
 	@Override
@@ -190,14 +133,6 @@ public class NucaCacheBank extends Cache implements NocInterface
 
 	@Override
 	public SimulationElement getSimulationElement() {
-		// TODO Auto-generated method stub
 		return this;
-	}
-	
-	public int getStartIdx(long addr) {
-		long SetMask =( 1 << (numSetsBits) )- 1;
-		int bankNumBits = (int) (Math.log(nucaCache.cacheRows)/Math.log(2));
-		int startIdx = (int) ((addr >>> (blockSizeBits+bankNumBits)) & (SetMask));
-		return startIdx;
 	}
 }

@@ -2,8 +2,13 @@ package generic;
 
 import java.util.Vector;
 
+import memorysystem.AddressCarryingEvent;
+import memorysystem.MainMemoryController;
+import memorysystem.MemorySystem;
+import memorysystem.nuca.NucaCache;
 import net.NocInterface;
 import net.Router;
+import net.NOC.CONNECTIONTYPE;
 import pipeline.ExecutionEngine;
 import pipeline.branchpredictor.AlwaysNotTaken;
 import pipeline.branchpredictor.AlwaysTaken;
@@ -45,6 +50,7 @@ public class Core extends SimulationElement implements NocInterface{
 	
 	//long clock;
 	Router router;
+	public static NucaCache nucaCache;
 	Vector<Integer> nocElementId;
 	Port port;
 	int stepSize;
@@ -525,8 +531,67 @@ public class Core extends SimulationElement implements NocInterface{
 		return this;
 	}
 	@Override
-	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		
+	public void handleEvent(EventQueue eventQ, Event event) 
+	{
+		if (event.getRequestType() == RequestType.Main_Mem_Read ||
+				  event.getRequestType() == RequestType.Main_Mem_Write )
+		{
+			this.handleMemoryReadWrite(eventQ,event);
+		}
+		else if (event.getRequestType() == RequestType.Main_Mem_Response )
+		{
+			handleMainMemoryResponse(eventQ, event);
+		}
+		else 
+		{
+			System.err.println(event.getRequestType());
+			misc.Error.showErrorAndExit(" unexpected request came to cache bank");
+		}
 	}	
+	protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
+    {
+    	
+		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
+		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+		
+		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
+		
+		Vector<Integer> sourceId = addrEvent.getSourceId();
+		Vector<Integer> destinationId = ((AddressCarryingEvent)event).getDestinationId();
+		
+		RequestType requestType = event.getRequestType();
+		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+		{
+			MemorySystem.mainMemoryController.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
+												MemorySystem.mainMemoryController.getLatencyDelay(), this, 
+												MemorySystem.mainMemoryController, requestType, sourceId,
+												destinationId));
+		}
+	}
+	protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
+	{
+		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+		
+		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
+		
+		long addr = addrEvent.getAddress();
+		Vector<Integer> sourceId;
+		Vector<Integer> destinationId;
+		
+		if(event.getRequestingElement().getClass() == MainMemoryController.class)
+		{
+			sourceId = this.getId();
+			destinationId = nucaCache.getBankId(addr);
+			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
+																		0,this, this.getRouter(), 
+																		RequestType.Main_Mem_Response, 
+																		addr,((AddressCarryingEvent)event).coreId,
+																		sourceId,destinationId);
+			this.getRouter().getPort().put(addressEvent);
+		}
+	}
 }

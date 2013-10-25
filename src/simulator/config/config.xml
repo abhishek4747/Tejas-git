@@ -50,7 +50,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>10000000</subsetSimSize>
+		<subsetSimSize>5000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -155,7 +155,7 @@
 				<NocOperatingFreq>2000</NocOperatingFreq>
 				<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
 				<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
-				<NocLatencyBetweenBanks>8</NocLatencyBetweenBanks>
+				<NocLatencyBetweenBanks>2</NocLatencyBetweenBanks>
 				<NocRouterArbiter>RR</NocRouterArbiter>
 				<TechPoint>90</TechPoint>
 				<NocConnection>ELECTRICAL</NocConnection>
@@ -167,10 +167,10 @@
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
 			<Associativity>8</Associativity>
-			<Size>2048</Size>					<!--In KBs-->
+			<Size>64</Size>					<!--In KBs-->
 			<Latency>42</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>4</AccessPorts>			<!--Number of access ports in the Cache-->
+			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
@@ -198,7 +198,7 @@
 			<Size>32</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>4</AccessPorts>			<!--Number of access ports in the Cache-->
+			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
@@ -215,7 +215,7 @@
 			<Size>32</Size>					<!--In KBs-->
 			<Latency>2</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>2</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>D</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
@@ -229,8 +229,8 @@
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>16384</Size>				<!--In KBs-->
-			<Latency>22</Latency>				<!--In clock cycles-->
+			<Size>256</Size>				<!--In KBs-->
+			<Latency>8</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>4</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
@@ -239,7 +239,7 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>D</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->

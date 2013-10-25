@@ -2,10 +2,7 @@ package memorysystem.nuca;
 
 import generic.Event;
 import generic.EventQueue;
-import generic.GlobalClock;
 import generic.RequestType;
-import generic.SimulationElement;
-
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -26,11 +23,14 @@ import config.SystemConfig;
 public class DNucaBank extends NucaCacheBank implements NocInterface
 {
 	public HashMap<Long,Vector<RequestType>> eventIdToHitMissList;
+	public HashMap<Long,Vector<Integer>> eventIdToHitBankId;
+	static int sum;
 
 	DNucaBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,DNuca nucaCache, NucaType nucaType)
     {
         super(bankId,cacheParameters,containingMemSys,nucaCache, nucaType);
         eventIdToHitMissList = new HashMap<Long, Vector<RequestType>>();
+        eventIdToHitBankId = new HashMap<Long, Vector<Integer>>();
     }
     @Override
 	public void handleEvent(EventQueue eventQ, Event event)
@@ -58,13 +58,13 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 		{
 			handleCacheHitMiss(eventQ, event);
 		}
-		else if (event.getRequestType() == RequestType.COPY_BLOCK)
+		else if (event.getRequestType() == RequestType.Send_Migrate_Block)
+		{
+			handleSendCopyBlock(eventQ,event);
+		}
+		else if (event.getRequestType() == RequestType.Migrate_Block)
 		{
 			handleCopyBlock(eventQ,event);
-		}
-		else if (event.getRequestType() == RequestType.CacheLine_Invalidate)
-		{
-			handleCacheLineInvalidate(eventQ,event);
 		}
 		else 
 		{
@@ -72,36 +72,60 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 			misc.Error.showErrorAndExit(" unexpected request came to cache bank");
 		}
 	}
-    private void handleCacheLineInvalidate(EventQueue eventQ, Event event) 
+    private void handleSendCopyBlock(EventQueue eventQ, Event event) 
     {
     	AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-    	/*System.err.println("Bank Id : " + this.getBankId());
-    	System.err.println("Global cycle time :" + GlobalClock.getCurrentTime());
-    	System.err.println("Address : " + addrEvent.getAddress());*/
+    	
+    	nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
+    	sendCopyBlockRequest(addrEvent);
     	CacheLine cl = this.access(addrEvent.getAddress());
-    	cl.setState(MESI.INVALID);
+    	if(cl!=null)//if line is already invalid
+    		cl.setState(MESI.INVALID);
 	}
+    void sendCopyBlockRequest(AddressCarryingEvent event)
+    {
+    	Vector<Integer> destination=new Vector<Integer>();
+    	Vector<Integer> coreId = ArchitecturalComponent.getCores()[event.coreId].getId();
+    	
+    	int bankset = ((DNuca)nucaCache).getBankSetId(event.getAddress());
+    	
+    	int bankIndex = ((DNuca)nucaCache).bankSetNumToBankIds.get(((DNuca)nucaCache).bankSetnum.get(bankset)).indexOf(this.getBankId());
+    	if(coreId.get(1)-this.getBankId().get(1)>0)
+    	{
+    		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex+1);
+    	}
+    	else if(coreId.get(1)-this.getBankId().get(1)<0)
+    	{
+    		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex-1);
+    	}
+    	
+    	if(coreId.get(1)-this.getBankId().get(1)!=0)
+	    {
+			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+					 0,this, 
+					 this.getRouter(),
+					 RequestType.Migrate_Block,
+					 event.getAddress(),event.coreId,
+					 this.getId(),destination);
+			this.getRouter().getPort().put(eventToBeSent);
+    	}
+    }
 	private void handleCopyBlock(EventQueue eventQ, Event event) 
     {
     	AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+    	nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
     	long addr = addrEvent.getAddress();
+    	
     	CacheLine evictedLine = this.fill(addr,MESI.EXCLUSIVE);
-    	/*System.err.println("Core Id : " + event.coreId);
-    	System.err.println("Handle Copy Block");
-    	System.err.println("Source Id " + this.getBankId());
-    	System.err.println("dest Id " + addrEvent.getSourceId());*/
-    	AddressCarryingEvent eventToInvalidate = new AddressCarryingEvent(event.getEventQ(),
-				 0,this, this.getRouter(), 
-				 RequestType.CacheLine_Invalidate, 
-				 addr,((AddressCarryingEvent)event).coreId,
-				 this.getBankId(),addrEvent.getSourceId());
-    	this.getRouter().getPort().put(eventToInvalidate);
-		if (evictedLine != null && 
+    	if (evictedLine != null && 
 				this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 		{
 			Vector<Integer> sourceId = new Vector<Integer>(this.getId());
 			Vector<Integer> destinationId = (Vector<Integer>) nucaCache.getMemoryControllerId(nucaCache.getBankId(addr));
-			//System.out.println("cache Miss  sending request to Main Memory"+destinationBankId + " to event"+ event);
 			
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																		 0,this, this.getRouter(), 
@@ -114,7 +138,18 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 	public void handleCacheHitMiss(EventQueue eventQ, Event event) 
     {
     	AddressCarryingEvent addrEvent = (AddressCarryingEvent)event;
+    	nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
     	eventIdToHitMissList.get(addrEvent.event_id).add(addrEvent.getRequestType());
+    	if(addrEvent.getRequestType()==RequestType.Cache_Hit)
+    	{	
+    		int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
+			nucaCache.hits+=numOfOutStandingRequests;
+			nucaCache.noOfRequests += numOfOutStandingRequests;
+			policy.updateEventOnHit(addrEvent, this);
+			eventIdToHitBankId.put(addrEvent.event_id, addrEvent.getSourceId());
+    	}
     	int bankset = ((DNuca)nucaCache).getBankSetId(addrEvent.getAddress());
     	bankset = ((DNuca)nucaCache).bankSetnum.get(bankset);
     	if(eventIdToHitMissList.get(addrEvent.event_id).size() == 
@@ -122,11 +157,16 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
     	{
     		if(eventIdToHitMissList.get(addrEvent.event_id).contains(RequestType.Cache_Hit))
     		{
-    			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
-				nucaCache.hits+=numOfOutStandingRequests; //
-				nucaCache.noOfRequests += numOfOutStandingRequests;//
-				sendCopyBlockRequest(addrEvent);
-    			policy.updateEventOnHit(addrEvent, this);
+    			
+    			
+				@SuppressWarnings("unchecked")
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+						 0,this, 
+						 this.getRouter(),
+						 RequestType.Send_Migrate_Block,
+						 addrEvent.getAddress(),event.coreId,
+						 this.getId(),(Vector<Integer>)eventIdToHitBankId.get(addrEvent.event_id).clone());
+				this.getRouter().getPort().put(eventToBeSent);
     		}
     		else
     		{
@@ -136,50 +176,24 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 					tempEvent.getProcessingElement().getPort().put(tempEvent);
 				}
     		}
+			eventIdToHitBankId.remove(addrEvent.event_id);
+    		eventIdToHitMissList.remove(addrEvent.event_id);
     	}
 	}
-    void sendCopyBlockRequest(AddressCarryingEvent event)
-    {
-    	//System.err.println("Send Copy Block");
-    	Vector<Integer> destination=new Vector<Integer>();
-    	Vector<Integer> coreId = ArchitecturalComponent.getCores()[event.coreId].getId();
-    	//System.err.println("Core Id : " + coreId);
-    	int bankset = ((DNuca)nucaCache).getBankSetId(event.getAddress());
-    	
-    	int bankIndex = ((DNuca)nucaCache).bankSetNumToBankIds.get(((DNuca)nucaCache).bankSetnum.get(bankset)).indexOf(this.getBankId());
-    	/*System.err.println("Bank Index : " + bankIndex);
-    	System.err.println("Core ID : "+coreId);
-    	System.err.println("Bank ID : "+bankId);*/
-    	if(coreId.get(1)-this.getBankId().get(1)>0)
-    	{
-    		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex+1);
-    	}
-    	else if(coreId.get(1)-this.getBankId().get(1)<0)
-    	{
-    		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex-1);
-    	}
-    	if(coreId.get(1)-this.getBankId().get(1)!=0)
-	    {
-	    	/*System.err.println("Source : " + this.getId());
-	    	System.err.println("Dest : " + destination);*/
-			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
-					 0,this, 
-					 event.getRequestingElement(),
-					 RequestType.COPY_BLOCK,
-					 event.getAddress(),event.coreId,
-					 this.getId(),destination);
-			this.getRouter().getPort().put(eventToBeSent);
-    	}
-    }
+    
 	public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
 	{
 		RequestType requestType = event.getRequestType();
 		long address = event.getAddress();
+		
 		nucaCache.incrementTotalNucaBankAcesses(1);
+		nucaCache.updateMaxHopLength(event.hopLength,event);
+		nucaCache.updateMinHopLength(event.hopLength);
+		nucaCache.updateAverageHopLength(event.hopLength);
 		//Process the access
 		CacheLine cl = this.processRequest(requestType, address,event);
 		
-		if(event.event_id==0)
+		if(event.event_id==0) //Broadcast has not been done yet
 		{
 			//IF HIT
 			if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
@@ -192,18 +206,13 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 			//IF MISS
 			else
 			{
-				/*AddressCarryingEvent tempEvent= policy.updateEventOnMiss( (AddressCarryingEvent)event,this);
-				if(tempEvent != null)
-				{
-					tempEvent.getProcessingElement().getPort().put(tempEvent);
-				}*/
 				policy.broadcastToOtherBanks(event, address,this);
 			}
 		}
 		else
 		{
 			RequestType request;
-			if (cl != null  || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address))
+			if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address))
 			{
 				request=RequestType.Cache_Hit;
 			}
@@ -214,21 +223,27 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 			
 			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.event_id,event.getEventQ(),
 					 0,this, 
-					 event.getRequestingElement(),
+					 this.getRouter(),
 					 request,
 					 address,event.coreId,
-					 event.getDestinationId(),event.getSourceId());
+					 this.getBankId(),event.getSourceId());
 			this.getRouter().getPort().put(eventToBeSent);
 			
 		}
 	}
-    protected void handleMemoryReadWrite(EventQueue eventQ, Event event) {
-		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
+    protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
+    {
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+		
+		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
+		nucaCache.updateMinHopLength(addrEvent.hopLength);
+		nucaCache.updateAverageHopLength(addrEvent.hopLength);
+		
 		Vector<Integer> sourceId = addrEvent.getSourceId();
 		Vector<Integer> destinationId = ((AddressCarryingEvent)event).getDestinationId();
 		
 		RequestType requestType = event.getRequestType();
+		
 		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
 		{
 			MemorySystem.mainMemoryController.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
@@ -240,13 +255,16 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
     protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
 	{
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+
+    	nucaCache.updateMaxHopLength(addrEvent.hopLength,(AddressCarryingEvent)event);
+    	nucaCache.updateMinHopLength(addrEvent.hopLength);
+    	nucaCache.updateAverageHopLength(addrEvent.hopLength);
 		long addr = addrEvent.getAddress();
-		//System.err.println(addr);
+		
 		Vector<Integer> sourceId;
 		Vector<Integer> destinationId;
 		if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{
-			//System.err.println(event.getRequestingElement().getClass());
 			sourceId = this.getId();
 			destinationId = nucaCache.getBankId(addr);
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
@@ -256,10 +274,9 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 																		sourceId,destinationId);
 			this.getRouter().getPort().put(addressEvent);
 		}
-		//System.err.println(event.getRequestingElement().getClass());
+		
 		if(event.getRequestingElement().getClass() == Router.class)
 		{
-			//System.err.println(event.getRequestingElement().getClass());
 			CacheLine evictedLine = this.fill(addr,MESI.EXCLUSIVE);
 			if (evictedLine != null && 
 					this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
@@ -280,19 +297,6 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 			nucaCache.noOfRequests += numOfOutStandingRequests;//change this value
 			policy.sendResponseToWaitingEvent((AddressCarryingEvent)event, this);
 		}
-	}
-
-	@Override
-	public SimulationElement getSimulationElement() {
-		// TODO Auto-generated method stub
-		return this;
-	}
-	
-	public int getStartIdx(long addr) {
-		long SetMask =( 1 << (numSetsBits) )- 1;
-		int bankNumBits = (int) (Math.log(nucaCache.cacheRows)/Math.log(2));
-		int startIdx = (int) ((addr >>> (blockSizeBits+bankNumBits)) & (SetMask));
-		return startIdx;
 	}
 	public long getEvictions() {
 		return evictions;

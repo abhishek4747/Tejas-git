@@ -154,11 +154,14 @@ public class Router extends Switch{
 		boolean reqOrReply;
 		Vector<Integer> currentId = this.reference.getId();
 		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationId();
+		
 		RequestType requestType = event.getRequestType();
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
 				&& !currentId.equals(destinationId))  //event passed to switch in omega/buttrfly/fat tree connection
 		{
 			this.hopCounters++;
+			((AddressCarryingEvent)event).hopLength++;
+			
 			this.connection[0].getPort().put(
 					event.update(
 							eventQ,
@@ -211,6 +214,8 @@ public class Router extends Switch{
 			{
 				//post event to nextID
 				this.hopCounters++;
+				((AddressCarryingEvent)event).hopLength++;
+				//System.err.println(((AddressCarryingEvent)event).hopLength);
 				this.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
 								eventQ,

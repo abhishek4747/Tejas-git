@@ -276,9 +276,13 @@ public class Cache extends SimulationElement
 			}
 			
 			//update counters
-			if(this.isLastLevel){
+			if(this.levelFromTop==CacheType.Lower){
+				//System.err.println("CAcheType.Lower");
 				Counters.incrementDcache2Access(1);
-			} else {
+			}
+			else if(this.levelFromTop==CacheType.iCache)
+				this.containingMemSys.getCore().powerCounters.incrementIcacheAccess(1);
+			else{
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
 			}
 			
@@ -352,9 +356,12 @@ public class Cache extends SimulationElement
 			noOfResponsesReceived++;
 			
 			/*Response for a read/write miss. Thus incrementing counters here as well*/
-			if(this.isLastLevel){
+			if(this.levelFromTop==CacheType.Lower){
+				//System.err.println("CacheType.Lower");
 				Counters.incrementDcache2Access(1);
 			}
+			else if(this.levelFromTop==CacheType.iCache)
+				this.containingMemSys.getCore().powerCounters.incrementIcacheAccess(1);
 			else{
 				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
 			}
@@ -964,7 +971,6 @@ public class Cache extends SimulationElement
 				int index = getNextIdx(startIdx,idx);
 				// fetch the cache line
 				CacheLine ll = getCacheLine(index);
-	
 				// If the tag is matching, we have a hit
 				if(ll.hasTagMatch(tag) && (ll.getState() != MESI.INVALID)) {
 					return  ll;

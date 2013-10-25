@@ -24,29 +24,22 @@ package memorysystem.nuca;
 
 import generic.Event;
 import generic.EventQueue;
-import generic.Instruction;
-import generic.OperationType;
 import generic.RequestType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Vector;
 
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
-import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
-import memorysystem.MESI;
 import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
-import memorysystem.Mode1MSHR;
 import memorysystem.Mode3MSHR;
 import misc.Util;
 import config.CacheConfig;
 import config.SimulationConfig;
 import net.NOC;
-import net.NOC.CONNECTIONTYPE;
-import net.NocInterface;
-import net.optical.OpticalNOC;
 import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
 
@@ -77,7 +70,8 @@ public class NucaCache extends Cache
     private int minHopLength;
     private long numOfRequests;
     private int totalNucaBankAcesses;
-
+    public HashMap<NucaCacheBank,Vector<Long>> bankToAdresses;
+    Vector<Long> blockAddresses = new Vector<Long>();
     public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,NucaType nucaType)
     {
     	super(cacheParameters, containingMemSys);
@@ -92,6 +86,7 @@ public class NucaCache extends Cache
         noc = new NOC();
         this.nucaType = nucaType;
         missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 40000, null);
+        bankToAdresses = new HashMap<NucaCacheBank, Vector<Long>>();
     }
     protected void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus, NucaType nucaType, SNuca nucaCache)
    	{
@@ -118,10 +113,7 @@ public class NucaCache extends Cache
 			return false;
 		}
 		
-		//numOfRequests++;
-		//System.err.println(addrEvent.getAddress());
 		boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addrEvent);
-		//System.err.println("Count : " + count++ + " Address : " + addrEvent.getAddress() );
 		if(entryCreated)
 		{
 			putEventToRouter(addrEvent);
@@ -131,25 +123,11 @@ public class NucaCache extends Cache
     
     void putEventToRouter(AddressCarryingEvent addrEvent)
 	{
-		/*long address = addrEvent.getAddress();
-		Vector<Integer> sourceId = getCoreId(addrEvent.coreId);
-		Vector<Integer> destinationId = getBankId(address);
-		AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(addrEvent.getEventQ(),
-											 0,this, 
-											 ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter(), 
-											 addrEvent.getRequestType(),
-											 address,addrEvent.coreId,
-											 sourceId,destinationId);
-		//eventToBeSent.oldSourceBankId = new Vector<Integer>(sourceBankId);
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-		{
-			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().
-			getPort().put(eventToBeSent);
-		}*/
 	}
     
     @Override
-	public void handleEvent(EventQueue eventQ, Event event) {
+	public void handleEvent(EventQueue eventQ, Event event)
+    {
 	   if(event.getRequestType() == RequestType.Mem_Response)
 	    {
 	    	handleMemResponse(eventQ,event);
@@ -164,7 +142,6 @@ public class NucaCache extends Cache
 		updateMinHopLength(addrEvent.hopLength);
 		updateAverageHopLength(addrEvent.hopLength);
 		ArrayList<AddressCarryingEvent> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddressIfAvailable(addrEvent);
-		//System.err.println("sum : " + sum++ + " Address : " + addrEvent.getAddress() );
 		sendResponseToWaitingEvent(eventsToBeServed);
 	}
 	
@@ -180,19 +157,12 @@ public class NucaCache extends Cache
 			}
 			else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
 			{
-				/*if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 				{
-					Vector<Integer> sourceId = new Vector<Integer>(this.getId());
-					Vector<Integer> destinationId = (Vector<Integer>) this.getMemoryControllerId(this.getBankId(eventPoppedOut.getAddress()));
-					//System.out.println("cache Miss  sending request to Main Memory"+destinationBankId + " to event"+ event);
-					
-					AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-																				 0,this, this.getRouter(), 
-																				 RequestType.Main_Mem_Write, 
-																				 addr,((AddressCarryingEvent)event).coreId,
-																				 sourceId,destinationId);
-					this.getRouter().getPort().put(addressEvent);
-				}*/
+					MemorySystem.mainMemoryController.getPort().put(eventPoppedOut.updateEvent(eventPoppedOut.getEventQ(), 
+							MemorySystem.mainMemoryController.getLatencyDelay(), this, 
+							MemorySystem.mainMemoryController, RequestType.Main_Mem_Write,eventPoppedOut.getAddress(),eventPoppedOut.coreId));
+				}
 			}
 		}
 	}
@@ -224,7 +194,7 @@ public class NucaCache extends Cache
 		}
 	}
 
-	Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)
+	Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)//nearest Memory Controller
     {
     	double distance = Double.MAX_VALUE;
     	int memControllerId = 0;
@@ -283,25 +253,30 @@ public class NucaCache extends Cache
 		return destinationBankId;
 	}
 	
-	void updateMaxHopLength(int newHopLength,AddressCarryingEvent event) {
-		this.numOfRequests++;
+	public void updateMaxHopLength(int newHopLength,AddressCarryingEvent event) 
+	{
+		numOfRequests++;
+		
 		if(this.maxHopLength < newHopLength) 
 		{
 			this.maxHopLength = newHopLength;
-			System.out.println("source " + event.getSourceId() + "destination "+event.getDestinationId() + this.maxHopLength);
+			System.out.println("source " + event.getSourceId() + 
+								"destination "+ event.getDestinationId() + 
+								"Hop Length " + this.maxHopLength);
 		}
 	}
 	
-	void updateMinHopLength(int newHopLength) {
+	public void updateMinHopLength(int newHopLength) 
+	{
 		if(this.minHopLength > newHopLength) 
 		{
 			this.minHopLength = newHopLength;
 		}
 	}
 	
-	void updateAverageHopLength(int newHopLength) {
+	public void updateAverageHopLength(int newHopLength)
+	{
 		averageHopLength += newHopLength;
-		//System.out.println("average hop = "+ averageHopLength);
 	}
 	
 	public int getMaxHopLength() {
@@ -312,8 +287,8 @@ public class NucaCache extends Cache
 		return this.minHopLength;
 	}
 	
-	public int getAverageHoplength() {
-		return (int)(this.averageHopLength/(this.numOfRequests+1));
+	public float getAverageHoplength() {
+		return ((float)this.averageHopLength/(this.numOfRequests+1));
 	}
 	public int getTotalNucaBankAcesses() {
 		return totalNucaBankAcesses;

@@ -75,7 +75,7 @@ public enum RequestType {
 	LOCAL_TOKEN,
 	PIPELINE_RESUME,
 	PIPELINE_SLEEP,
-	COPY_BLOCK,
+	Migrate_Block,
 	TREE_BARRIER,
 	TREE_BARRIER_RELEASE,
 	ReadMissDirectoryUpdate,
@@ -93,7 +93,7 @@ public enum RequestType {
 	Invalid_Event, Cache_Hit, Cache_Miss,
 
 	MSHR_Full,
-	Tlb_Miss_Response, CacheLine_Invalidate
+	Tlb_Miss_Response, CacheLine_Invalidate, Send_Migrate_Block
 	
 //	MEM_READ,
 //	MEM_WRI
