@@ -19,7 +19,6 @@ import java.util.TreeMap;
 import main.CustomObjectPool;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
-import pipeline.inorder.InorderExecutionEngine;
 import config.EmulatorConfig;
 import config.SimulationConfig;
 import emulatorinterface.communication.Encoding;

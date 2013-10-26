@@ -4,7 +4,6 @@ import net.optical.TopLevelTokenBus;
 import emulatorinterface.communication.IpcBase;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
-import pipeline.inorder.InorderExecutionEngine;
 import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import generic.Core;

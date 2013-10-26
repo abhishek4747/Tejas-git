@@ -54,8 +54,6 @@ public class Statistics {
 			outputFileWriter.write("Pipeline: ");
 			if (SimulationConfig.isPipelineInorder)
 				outputFileWriter.write("Inorder Pipeline\n");
-			else if (SimulationConfig.isPipelineMultiIssueInorder)
-				outputFileWriter.write("MultiIssueInorder Pipeline\n");
 			else if (SimulationConfig.isPipelineStatistical)
 				outputFileWriter.write("Statistical Pipeline\n");
 			else outputFileWriter.write("OutOrder Pipeline\n");

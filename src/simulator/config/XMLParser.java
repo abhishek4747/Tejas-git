@@ -208,21 +208,14 @@ public class XMLParser
 		
 		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
 			SimulationConfig.isPipelineInorder = true;
-			SimulationConfig.isPipelineMultiIssueInorder = false;
 			SimulationConfig.isPipelineOutOfOrder = false;
 		}
 		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==2){
 			SimulationConfig.isPipelineInorder = false;
-			SimulationConfig.isPipelineMultiIssueInorder = true;
-			SimulationConfig.isPipelineOutOfOrder = false;
-		}
-		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==3){
-			SimulationConfig.isPipelineInorder = false;
-			SimulationConfig.isPipelineMultiIssueInorder = false;
 			SimulationConfig.isPipelineOutOfOrder = true;
 		}
 		else{
-			System.err.println("Please specify any of the four pipeline types in the config file");
+			System.err.println("Please specify any of the two pipeline types in the config file");
 		}
 		
 		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
@@ -348,8 +341,6 @@ public class XMLParser
 			core.DecodeWidth = Integer.parseInt(getImmediateString("DecodeWidth", coreElmnt));
 			core.IssueWidth = Integer.parseInt(getImmediateString("IssueWidth", coreElmnt));
 			core.RetireWidth = Integer.parseInt(getImmediateString("RetireWidth", coreElmnt));
-			core.DecodeTime = Integer.parseInt(getImmediateString("DecodeTime", coreElmnt));
-			core.RenamingTime = Integer.parseInt(getImmediateString("RenamingTime", coreElmnt));
 			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
 			core.IWSize = Integer.parseInt(getImmediateString("IWSize", coreElmnt));
 			core.IntRegFileSize = Integer.parseInt(getImmediateString("IntRegFileSize", coreElmnt));
@@ -368,7 +359,6 @@ public class XMLParser
 			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", coreElmnt));
 			core.FloatMulNum = Integer.parseInt(getImmediateString("FloatMulNum", coreElmnt));
 			core.FloatDivNum = Integer.parseInt(getImmediateString("FloatDivNum", coreElmnt));
-			core.AddressFUNum = Integer.parseInt(getImmediateString("AddressFUNum", coreElmnt));
 			
 			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", coreElmnt));
 			core.IntMulLatency = Integer.parseInt(getImmediateString("IntMulLatency", coreElmnt));
@@ -376,9 +366,7 @@ public class XMLParser
 			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", coreElmnt));
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
 			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
-			core.AddressFULatency = Integer.parseInt(getImmediateString("AddressFULatency", coreElmnt));
-			//core.numInorderPipelines = Integer.parseInt(getImmediateString("NumInorderPipelines", coreElmnt));
-		
+			
 			if(getImmediateString("TreeBarrier", coreElmnt).compareTo("true") == 0)
 				core.TreeBarrier = true;
 			else
