@@ -44,8 +44,6 @@ public class CoreConfig
 	public int DecodeWidth;
 	public int IssueWidth;
 	public int RetireWidth;
-	public int DecodeTime;
-	public int RenamingTime;
 	public int ROBSize;
 	public int IWSize;
 	public int IntRegFileSize;
@@ -64,7 +62,6 @@ public class CoreConfig
 	public int FloatALUNum;
 	public int FloatMulNum;
 	public int FloatDivNum;
-	public int AddressFUNum;
 	
 	public int IntALULatency;
 	public int IntMulLatency;
@@ -72,14 +69,12 @@ public class CoreConfig
 	public int FloatALULatency;
 	public int FloatMulLatency;
 	public int FloatDivLatency;
-	public int AddressFULatency;
 	
 	public CacheConfig iCache = new CacheConfig();
 	public CacheConfig l1Cache = new CacheConfig();
 	public CacheConfig l2Cache = new CacheConfig();
 	public CacheConfig l3Cache = new CacheConfig();
 
-	public int numInorderPipelines;
 	public boolean TreeBarrier;
 
 	public int barrierLatency;

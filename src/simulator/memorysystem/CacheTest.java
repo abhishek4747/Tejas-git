@@ -7,7 +7,6 @@ import generic.GlobalClock;
 import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
-import pipeline.inorder.InorderPipeline;
 import config.CacheConfig.WritePolicy;
 
 public class CacheTest extends SimulationElement{

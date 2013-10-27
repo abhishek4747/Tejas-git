@@ -20,19 +20,9 @@
 *****************************************************************************/
 package memorysystem;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-
-import pipeline.inorder.FetchUnitIn;
-import pipeline.inorder.MemUnitIn;
-import pipeline.outoforder.FetchLogic;
-import pipeline.outoforder.ReorderBufferEntry;
 import generic.CachePullEvent;
-import generic.Event;
-import generic.OMREntry;
 import generic.PortType;
 import generic.SimulationElement;
-import generic.EventQueue;
 import generic.Core;
 import generic.RequestType;
 import config.SystemConfig;

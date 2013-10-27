@@ -22,19 +22,11 @@ import pipeline.branchpredictor.PAgPredictor;
 import pipeline.branchpredictor.PApPredictor;
 import pipeline.branchpredictor.PerfectPredictor;
 import pipeline.branchpredictor.TournamentPredictor;
-//import pipeline.perfect.ExecutionEnginePerfect;
-//import pipeline.perfect.PerformDecodeEventPerfect;
-//import pipeline.perfect.PerformCommitsEventPerfect;
-import pipeline.inorder.InorderExecutionEngine;
-
-import pipeline.inorder.InorderPipeline;
-import pipeline.inorder.multiissue.MultiIssueInorder;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
 import power.Counters;
-import config.BranchPredictorConfig;
 import config.BranchPredictorConfig.BP;
 import config.CoreConfig;
 import config.SimulationConfig;
@@ -61,14 +53,11 @@ public class Core extends SimulationElement implements NocInterface{
 	
 	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
 	public boolean isPipelineInorder = SimulationConfig.isPipelineInorder;
-	public boolean isPipelineMultiIssueInorder = SimulationConfig.isPipelineMultiIssueInorder;
 
 	//core parameters
 	private int decodeWidth;
 	private int issueWidth;
 	private int retireWidth;
-	private int decodeTime;
-	private int renamingTime;
 	private int reorderBufferSize;
 	private int IWSize;
 	private int integerRegisterFileSize;
@@ -125,8 +114,6 @@ public class Core extends SimulationElement implements NocInterface{
 		this.threadIDs = threadIDs;
 		this.currentThreads =0;
 		if(this.isPipelineInorder)
-			this.execEngine = new InorderExecutionEngine(this,1);
-		else if(this.isPipelineMultiIssueInorder)
 			this.execEngine = new MultiIssueInorderExecutionEngine(this, issueWidth);
 		else
 			this.execEngine = new OutOrderExecutionEngine(this);
@@ -165,8 +152,6 @@ public class Core extends SimulationElement implements NocInterface{
 		this.noOfInstructionsExecuted = 0;
 		this.numReturns=0;
 		if(this.isPipelineInorder)
-			this.pipelineInterface = new InorderPipeline(this, eventQueue,0);
-		else if(this.isPipelineMultiIssueInorder)
 			this.pipelineInterface = new MultiIssueInorderPipeline(this, eventQueue);
 		else
 			this.pipelineInterface = new OutOfOrderPipeline(this, eventQueue);
@@ -181,8 +166,6 @@ public class Core extends SimulationElement implements NocInterface{
 		setDecodeWidth(coreConfig.DecodeWidth);
 		setIssueWidth(coreConfig.IssueWidth);
 		setRetireWidth(coreConfig.RetireWidth);
-		setDecodeTime(coreConfig.DecodeTime);
-		setRenamingTime(coreConfig.RenamingTime);
 		setReorderBufferSize(coreConfig.ROBSize);
 		setIWSize(coreConfig.IWSize);
 		setIntegerRegisterFileSize(coreConfig.IntRegFileSize);
@@ -209,7 +192,6 @@ public class Core extends SimulationElement implements NocInterface{
 		nUnits[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALUNum;
 		nUnits[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulNum;
 		nUnits[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivNum;
-		nUnits[FunctionalUnitType.memory.ordinal()] = coreConfig.AddressFUNum;
 		
 		latencies[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALULatency;
 		latencies[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulLatency;
@@ -217,7 +199,6 @@ public class Core extends SimulationElement implements NocInterface{
 		latencies[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALULatency;
 		latencies[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulLatency;
 		latencies[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivLatency;
-		latencies[FunctionalUnitType.memory.ordinal()] = coreConfig.AddressFULatency;
 	}
 	
 	/*public void boot()
@@ -259,7 +240,7 @@ public class Core extends SimulationElement implements NocInterface{
 	}
 	public void sleepPipeline(){
 		
-		((InorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.enqueue(Instruction.getSyncInstruction());
+		((MultiIssueInorderExecutionEngine)this.getExecEngine()).getFetchUnitIn().inputToPipeline.enqueue(Instruction.getSyncInstruction());
 	}
 
 	public void setTreeBarrier(boolean bar)
@@ -380,22 +361,6 @@ public class Core extends SimulationElement implements NocInterface{
 	public int getLatency(int FUType)
 	{
 		return latencies[FUType];
-	}
-
-	public int getDecodeTime() {
-		return decodeTime;
-	}
-
-	public void setDecodeTime(int decodeTime) {
-		this.decodeTime = decodeTime;
-	}
-
-	public int getRenamingTime() {
-		return renamingTime;
-	}
-
-	public void setRenamingTime(int renamingTime) {
-		this.renamingTime = renamingTime;
 	}
 
 	public int getIWSize() {

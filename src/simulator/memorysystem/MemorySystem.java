@@ -23,7 +23,6 @@ package memorysystem;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import pipeline.inorder.InorderCoreMemorySystem;
 import pipeline.multi_issue_inorder.InorderCoreMemorySystem_MII;
 import pipeline.outoforder.OutOrderCoreMemorySystem;
 
@@ -68,7 +67,7 @@ public class MemorySystem
 		//Set up the main memory properties
 		
 		
-		if (SimulationConfig.isPipelineInorder || SimulationConfig.isPipelineMultiIssueInorder)
+		if (SimulationConfig.isPipelineInorder)
 			bypassLSQ = true;
 		
 		/*-- Initialise the memory system --*/
@@ -150,15 +149,11 @@ public class MemorySystem
 			
 			if(cores[i].isPipelineInorder)
 			{
-				coreMemSys = new InorderCoreMemorySystem(cores[i]);
+				coreMemSys = new InorderCoreMemorySystem_MII(cores[i]);
 			}
 			else if (cores[i].isPipelineStatistical)
 			{
 				//cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
-			}
-			else if(cores[i].isPipelineMultiIssueInorder)
-			{
-				coreMemSys = new InorderCoreMemorySystem_MII(cores[i]);
 			}
 			else
 			{

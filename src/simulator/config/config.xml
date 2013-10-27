@@ -36,8 +36,7 @@
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
-		<PipelineType>3</PipelineType>	<!--1 => Inorder ; 2 => Multi Issue Inorder ; 3 => OutofOrder-->
-		<NumInorderPipelines>3</NumInorderPipelines>	<!--Only applicable if the pipeline type is multi issue inorder-->
+		<PipelineType>1</PipelineType>	<!--1 => Inorder (<IssueWidth> used to specify pipeline width) ; 2 => OutofOrder-->
 		<InstructionsFilename>/mnt/srishtistr0/home/nitingupta/workspace/TejasQemuTraces/linux_iozone_trace</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
@@ -78,7 +77,7 @@
 			<CoreFrequency>3600</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
 
 			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
-			<LSQLatency>1</LSQLatency>			<!--In clock cycles-->
+			<LSQLatency>0</LSQLatency>			<!--In clock cycles-->
 			<LSQPortType>UL</LSQPortType>			<!--Type of access ports in the LSQ (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
 			<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
@@ -91,12 +90,9 @@
 			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
 			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
 			
-			<FetchWidth>4</FetchWidth>			<!--Instruction fetch width-->
 			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
-			<IssueWidth>6</IssueWidth>			<!--Instruction issue width-->
+			<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
 			<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
-			<DecodeTime>1</DecodeTime>			<!--Instruction decode time-->
-			<RenamingTime>2</RenamingTime>			<!--Renaming Time-->
 			<ROBSize>168</ROBSize>				<!--Maximum number of entries in the ROB-->
 			<IWSize>54</IWSize>				<!--Maximum number of entries in the Instruction Window-->
 			<IntRegFileSize>160</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
@@ -104,6 +100,7 @@
 			<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
 			<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
 			<MSRegNum>64</MSRegNum>				<!--Number of machine specific registers-->
+			<!-- TODO register file ports not implemented --> 
 			<RegFilePortType>UL</RegFilePortType>		<!--Type of access ports in the Reg File (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<RegFilePorts>4</RegFilePorts>			<!--Number of ports in the register file-->
 			<RegFileOccupancy>1</RegFileOccupancy>		<!--Occupancy of the register file ports (in clock cycles)-->
@@ -115,8 +112,6 @@
 			<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
 			<FloatMulNum>1</FloatMulNum>			<!--Number of Floating Point Multipliers-->
 			<FloatDivNum>1</FloatDivNum>			<!--Number of Floating Point Dividers-->
-			<AddressFUNum>4</AddressFUNum>
-			<AcceleratedFUNum>4</AcceleratedFUNum>
 			
 			<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
 			<IntMulLatency>2</IntMulLatency>		<!--Latency of Integer Multipliers-->
@@ -124,8 +119,7 @@
 			<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
 			<FloatMulLatency>4</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
 			<FloatDivLatency>8</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
-			<AddressFULatency>1</AddressFULatency>
-			<AcceleratedFULatency>1</AcceleratedFULatency>
+			
 			<TreeBarrier>false</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
 			<BarrierLatency>2</BarrierLatency>
 			<BarrierUnit>Distributed</BarrierUnit>			<!--Central and distributed-->
@@ -289,7 +283,7 @@
 		  <buffer_energy>0</buffer_energy>
 		  
 		  <ruu_decode_width>4</ruu_decode_width> <!--same as decode width above-->
-		  <ruu_issue_width>6</ruu_issue_width> <!--same as issue width above-->
+		  <ruu_issue_width>4</ruu_issue_width> <!--same as issue width above-->
 		  <ruu_commit_width>4</ruu_commit_width> <!--same as retire width above-->
 		  <res_memport>1</res_memport>
 		  <il1_port>1</il1_port> <!--Number of iCache Ports-->
