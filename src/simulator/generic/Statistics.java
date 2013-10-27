@@ -980,11 +980,12 @@ public class Statistics {
 						}
 					}
 				}
+				Statistics.totalNucaBankAccesses = ((NucaCache)cache).getTotalNucaBankAcesses();
 			}
 			Statistics.setNoOfL2Requests(cache.noOfRequests);
 			Statistics.setNoOfL2Hits(cache.hits);
 			Statistics.setNoOfL2Misses(cache.misses);
-			Statistics.totalNucaBankAccesses = ((NucaCache)cache).getTotalNucaBankAcesses();
+			
 		}
 			
 		Statistics.setSimulationTime(endTime - startTime);

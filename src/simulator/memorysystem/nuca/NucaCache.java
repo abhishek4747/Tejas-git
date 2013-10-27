@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Mayur Harne
+				Contributor: Anuj Arora
 *****************************************************************************/
 
 
@@ -45,8 +45,6 @@ import config.SystemConfig;
 
 public class NucaCache extends Cache
 {
-	static int count=0;
-	static int sum=0;
 	public enum NucaType{
 		S_NUCA,
 		D_NUCA,
@@ -58,8 +56,9 @@ public class NucaCache extends Cache
 		ADDRESS,
 		BOTH
 	}
-    /*cache is assumed to in the form of a 2 dimensional array*/
+    
     public Vector<NucaCacheBank> cacheBank;
+    public HashMap<Vector<Integer>,NucaCacheBank> bankIdtoNucaCacheBank; 
     public int cacheRows;
     public int cacheColumns;
     public NOC noc;
@@ -70,8 +69,7 @@ public class NucaCache extends Cache
     private int minHopLength;
     private long numOfRequests;
     private int totalNucaBankAcesses;
-    public HashMap<NucaCacheBank,Vector<Long>> bankToAdresses;
-    Vector<Long> blockAddresses = new Vector<Long>();
+    static public HashMap<Vector<Integer>,Integer> accessedBankIds = new HashMap<Vector<Integer>, Integer>();
     public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,NucaType nucaType)
     {
     	super(cacheParameters, containingMemSys);
@@ -79,6 +77,7 @@ public class NucaCache extends Cache
     	this.cacheRows = SystemConfig.nocConfig.getNumberOfBankRows();
         this.cacheColumns = SystemConfig.nocConfig.getNumberOfBankColumns();
         this.cacheBank =new Vector<NucaCacheBank>();
+        this.bankIdtoNucaCacheBank = new HashMap<Vector<Integer>, NucaCacheBank>();
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
         this.mapping = SystemConfig.nocConfig.mapping;
         maxHopLength = Integer.MIN_VALUE;
@@ -86,7 +85,6 @@ public class NucaCache extends Cache
         noc = new NOC();
         this.nucaType = nucaType;
         missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 40000, null);
-        bankToAdresses = new HashMap<NucaCacheBank, Vector<Long>>();
     }
     protected void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus, NucaType nucaType, SNuca nucaCache)
    	{
@@ -173,24 +171,17 @@ public class NucaCache extends Cache
 		if(mapping == Mapping.SET_ASSOCIATIVE) 
 		{
 			long tag = (addr>>>(numSetsBits+blockSizeBits));
-			//System.out.println("bankNumber long " + bankNumber + "bankNumberInt =" + (int)(bankNumber & (getNumOfBanks()-1)));
 			return (int)(tag & (getNumOfBanks()-1));
 		}
 		else if(mapping == Mapping.ADDRESS)
 		{
-			long tag = (addr>>>(numSetsBits+blockSizeBits));
-			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
-			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
-			int bankId = (int)(tag >>> (tagSize-bankNumBits)) + getNumOfBanks();
-			return bankId;
+			long tag = (addr>>>(numLinesBits+blockSizeBits));
+			return (int)(tag & (getNumOfBanks()-1));
 		}
 		else
 		{
-			long tag = (addr>>>(numSetsBits+blockSizeBits));
-			int bankNumBits = (int)(Math.log10(getNumOfBanks())/Math.log10(2));
-			int tagSize = (int)(Math.log10(tag)/Math.log10(2));
-			int bankId = (int)(tag >>> (tagSize-bankNumBits)) + getNumOfBanks();
-			return bankId;
+			misc.Error.showErrorAndExit("Invalid Type of Mapping!!!");
+			return 0;
 		}
 	}
 
@@ -214,12 +205,6 @@ public class NucaCache extends Cache
     	}
     	return integerToBankId(memControllerId);
     }
-	int getSetIndex(long address)
-    {
-    	int bankNum = getBankNumber(address);
-    	return (bankNum%cacheRows);
-    }
-    
     public Vector<Integer> integerToBankId(int bankNumber)
 	{
 		Vector<Integer> id = new Vector<Integer>(2);

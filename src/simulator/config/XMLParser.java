@@ -108,43 +108,36 @@ public class XMLParser
 		}
 		return ret;
 	}
-		private static void setPowerParameters(){
-		NodeList nodeLst = doc.getElementsByTagName("Power");
-		Node powerNode = nodeLst.item(0);
-		Element powerElmnt = (Element) powerNode;
-		 PowerConfig.totalPower=Double.parseDouble(getImmediateString("total_power", powerElmnt));
-		  PowerConfig.totalPowerNodcache2=Double.parseDouble(getImmediateString("total_power_nodcache2", powerElmnt));
-		  PowerConfig.ialuPower=Double.parseDouble(getImmediateString("ialu_power", powerElmnt));
-		  PowerConfig.faluPower=Double.parseDouble(getImmediateString("falu_power", powerElmnt));
-		  PowerConfig.bpredPower=Double.parseDouble(getImmediateString("bpred_power", powerElmnt));
-		  PowerConfig.renamePower=Double.parseDouble(getImmediateString("rename_power", powerElmnt));
-		  PowerConfig.ratPower=Double.parseDouble(getImmediateString("rat_power", powerElmnt));
-		  PowerConfig.dclPower=Double.parseDouble(getImmediateString("dcl_power", powerElmnt));
-		  PowerConfig.windowPower=Double.parseDouble(getImmediateString("window_power", powerElmnt));
-		  PowerConfig.lsqPower=Double.parseDouble(getImmediateString("lsq_power", powerElmnt));
-		  PowerConfig.wakeupPower=Double.parseDouble(getImmediateString("wakeup_power", powerElmnt));
-		  PowerConfig.lsqWakeupPower=Double.parseDouble(getImmediateString("lsq_wakeup_power", powerElmnt));
-		  PowerConfig.rsPower=Double.parseDouble(getImmediateString("rs_power", powerElmnt));
-		  PowerConfig.rsPowerNobit=Double.parseDouble(getImmediateString("rs_power_nobit", powerElmnt));
-		  PowerConfig.lsqRsPower=Double.parseDouble(getImmediateString("lsq_rs_power", powerElmnt));
-		  PowerConfig.lsqRsPowerNobit=Double.parseDouble(getImmediateString("lsq_rs_power_nobit", powerElmnt));
-		  PowerConfig.selectionPower=Double.parseDouble(getImmediateString("selection_power", powerElmnt));
-		  PowerConfig.regfilePower=Double.parseDouble(getImmediateString("regfile_power", powerElmnt));
-		  PowerConfig.regfilePowerNobit=Double.parseDouble(getImmediateString("regfile_power_nobit", powerElmnt));
-		  PowerConfig.resultPower=Double.parseDouble(getImmediateString("result_power", powerElmnt));
-		  PowerConfig.icachePower=Double.parseDouble(getImmediateString("icache_power", powerElmnt));
-		  PowerConfig.dcachePower=Double.parseDouble(getImmediateString("dcache_power", powerElmnt));
-		  PowerConfig.dcache2Power=Double.parseDouble(getImmediateString("dcache2_power", powerElmnt));
-		  PowerConfig.clockPower=Double.parseDouble(getImmediateString("clock_power", powerElmnt));
-
-		  PowerConfig.totalRouterEnergy = Double.parseDouble(getImmediateString("RouterEnergy", powerElmnt));
-		  PowerConfig.bufferEnergy = Double.parseDouble(getImmediateString("BufferEnergy", powerElmnt));
-		  PowerConfig.linkEnergy = Double.parseDouble(getImmediateString("LinkEnergy", powerElmnt));
+		private static void setPowerParameters()
+		{
+		  NodeList nodeLst = doc.getElementsByTagName("Power");
+		  Node powerNode = nodeLst.item(0);
+		  Element powerElmnt = (Element) powerNode;
+		  PowerConfig.totalPower=Double.parseDouble(getImmediateString("total_energy", powerElmnt));
+		  PowerConfig.ialuPower=Double.parseDouble(getImmediateString("ialu_energy", powerElmnt));
+		  PowerConfig.faluPower=Double.parseDouble(getImmediateString("falu_energy", powerElmnt));
+		  PowerConfig.bpredPower=Double.parseDouble(getImmediateString("bpred_energy", powerElmnt));
+		  PowerConfig.renamePower=Double.parseDouble(getImmediateString("rename_energy", powerElmnt));
+		  PowerConfig.ratPower=Double.parseDouble(getImmediateString("rat_energy", powerElmnt));
+		  PowerConfig.dclPower=Double.parseDouble(getImmediateString("dcl_energy", powerElmnt));
+		  PowerConfig.windowPower=Double.parseDouble(getImmediateString("window_energy", powerElmnt));
+		  PowerConfig.lsqPower=Double.parseDouble(getImmediateString("lsq_energy", powerElmnt));
+		  PowerConfig.wakeupPower=Double.parseDouble(getImmediateString("wakeup_energy", powerElmnt));
+		  PowerConfig.lsqWakeupPower=Double.parseDouble(getImmediateString("lsq_wakeup_energy", powerElmnt));
+		  PowerConfig.rsPower=Double.parseDouble(getImmediateString("rs_energy", powerElmnt));
+		  PowerConfig.lsqRsPower=Double.parseDouble(getImmediateString("lsq_rs_energy", powerElmnt));
+		  PowerConfig.regfilePower=Double.parseDouble(getImmediateString("regfile_energy", powerElmnt));
+		  PowerConfig.icachePower=Double.parseDouble(getImmediateString("icache_energy", powerElmnt));
+		  PowerConfig.dcachePower=Double.parseDouble(getImmediateString("dcache_energy", powerElmnt));
+		  PowerConfig.dcache2Power=Double.parseDouble(getImmediateString("dcache2_energy", powerElmnt));
+		  PowerConfig.clockPower=Double.parseDouble(getImmediateString("clock_energy", powerElmnt));
+		
+		  PowerConfig.totalRouterEnergy = Double.parseDouble(getImmediateString("router_energy", powerElmnt));
+		  PowerConfig.bufferEnergy = Double.parseDouble(getImmediateString("buffer_energy", powerElmnt));
+		  PowerConfig.linkEnergy = Double.parseDouble(getImmediateString("link_energy", powerElmnt));
 		  
 		  PowerConfig.itlb=Double.parseDouble(getImmediateString("itlb", powerElmnt));
 		  PowerConfig.dtlb=Double.parseDouble(getImmediateString("dtlb", powerElmnt));
-		  PowerConfig.resultbus=Double.parseDouble(getImmediateString("resultbus", powerElmnt));
-		  PowerConfig.selection=Double.parseDouble(getImmediateString("selection", powerElmnt));
 		  
 		  PowerConfig.ruuDecodeWidth=Double.parseDouble(getImmediateString("ruu_decode_width", powerElmnt));
 		  PowerConfig.ruuIssueWidth=Double.parseDouble(getImmediateString("ruu_issue_width", powerElmnt));
@@ -155,7 +148,6 @@ public class XMLParser
 		  PowerConfig.il1Port=Double.parseDouble(getImmediateString("il1_port", powerElmnt));
 		  PowerConfig.dl1Port=Double.parseDouble(getImmediateString("dl1_port", powerElmnt));
 		  PowerConfig.dl2Port=Double.parseDouble(getImmediateString("dl2_port", powerElmnt));
-		  
 	}
 		
 	private static void setEmulatorParameters() {
@@ -320,7 +312,6 @@ public class XMLParser
 		NodeList powerLst = doc.getElementsByTagName("Power");
 		Node powerNode = powerLst.item(0);
 		Element powerElmnt = (Element) powerNode;
-		SystemConfig.clockGatingStyle = Integer.parseInt(getImmediateString("clockGatingStyle", powerElmnt));
 
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");
@@ -557,8 +548,6 @@ public class XMLParser
 			nocConfig.mapping = Mapping.SET_ASSOCIATIVE;
 		else if (tempStr.equalsIgnoreCase("A"))
 			nocConfig.mapping = Mapping.ADDRESS;
-		else if (tempStr.equalsIgnoreCase("B"))
-			nocConfig.mapping = Mapping.BOTH;
 		else
 		{
 			System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' or 'N')");

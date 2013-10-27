@@ -145,7 +145,7 @@
 			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->
 			<L2>
 				<NocConfigFile>/mnt/srishtistr0/home/anuj/Documents/Tejas/src/simulator/net/NocConfig.txt</NocConfigFile>
-				<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped,B: Both -->
+				<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped -->
 				<NocSelScheme>STATIC</NocSelScheme>
 				<NocNumberOfBuffers>4</NocNumberOfBuffers>
 				<NocPortType>UL</NocPortType>
@@ -239,7 +239,7 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>D</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -260,47 +260,42 @@
 		</Type3>
 	</Library>
 	<Power>
-		  <total_power>3.23781</total_power>
-		  <total_power_nodcache2>3.23781</total_power_nodcache2>
-		  <ialu_power>0.0424749</ialu_power>
-		  <falu_power>0.127425</falu_power>
-		  <bpred_power>0.0177226</bpred_power>
-		  <rename_power>0.142355</rename_power>
-		  <rat_power>0.013033</rat_power>
-		  <dcl_power>0</dcl_power>
-		  <window_power>0</window_power>
-		  <lsq_power>1.73946</lsq_power>
-		  <wakeup_power>0</wakeup_power>
-		  <lsq_wakeup_power>1.30459</lsq_wakeup_power>
-		  <rs_power>0.0108053</rs_power>
-		  <rs_power_nobit>0</rs_power_nobit>
-		  <lsq_rs_power>0.434865</lsq_rs_power>
-		  <lsq_rs_power_nobit>0</lsq_rs_power_nobit>
-		  <selection_power>0</selection_power>
-		  <regfile_power>0.00676658</regfile_power>
-		  <regfile_power_nobit>0</regfile_power_nobit>
-		  <result_power>0</result_power>
-		  <icache_power>0.395134</icache_power>
-		  <dcache_power>0.606047</dcache_power>
-		  <dcache2_power>0.0234976</dcache2_power>
-		  <clock_power>0</clock_power>
-		  <clockGatingStyle>1</clockGatingStyle>
+		  <!--These parameters are calculated from TejasPowerPack-->
+		  <!--All parameters are per access energy-->
+		  <total_energy>3.23781</total_energy>
+		  <ialu_energy>0.0424749</ialu_energy>
+		  <falu_energy>0.127425</falu_energy>
+		  <bpred_energy>0.0177226</bpred_energy>
+		  <rename_energy>0.142355</rename_energy>
+		  <rat_energy>0.013033</rat_energy>
+		  <dcl_energy>0</dcl_energy>
+		  <window_energy>0</window_energy>
+		  <lsq_energy>1.73946</lsq_energy>
+		  <wakeup_energy>0</wakeup_energy>
+		  <lsq_wakeup_energy>1.30459</lsq_wakeup_energy>
+		  <rs_energy>0.0108053</rs_energy>
+		  <lsq_rs_energy>0.434865</lsq_rs_energy>
+		  <regfile_energy>0.00676658</regfile_energy>
+		  <icache_energy>0.395134</icache_energy>
+		  <dcache_energy>0.606047</dcache_energy>
+		  <dcache2_energy>0.0234976</dcache2_energy>
+		  <clock_energy>0</clock_energy>
 		  <itlb>0.0105892</itlb>
 		  <dtlb>0.0105892</dtlb>
-		  <resultbus>0</resultbus>
-		  <selection>0</selection>
-		  <LinkEnergy>0.531616</LinkEnergy>
-		  <RouterEnergy>0.0502646</RouterEnergy>
-		  <BufferEnergy>0</BufferEnergy>
 		  
-		  <ruu_decode_width>4</ruu_decode_width>
-		  <ruu_issue_width>6</ruu_issue_width>
-		  <ruu_commit_width>4</ruu_commit_width>
+		  <!--These are NOC unit parameters-->
+		  <link_energy>0.531616</link_energy>
+		  <router_energy>0.0502646</router_energy>
+		  <buffer_energy>0</buffer_energy>
+		  
+		  <ruu_decode_width>4</ruu_decode_width> <!--same as decode width above-->
+		  <ruu_issue_width>6</ruu_issue_width> <!--same as issue width above-->
+		  <ruu_commit_width>4</ruu_commit_width> <!--same as retire width above-->
 		  <res_memport>1</res_memport>
-		  <il1_port>2</il1_port>
-		  <dl1_port>2</dl1_port>
-		  <dl2_port>64</dl2_port>
-		  <res_ialu>4</res_ialu>
+		  <il1_port>1</il1_port> <!--Number of iCache Ports-->
+		  <dl1_port>1</dl1_port> <!--Number of L1Cache Ports-->
+		  <dl2_port>1</dl2_port> <!--Number of L2Cache Ports-->
+		  <res_ialu>4</res_ialu> 
 		  <res_fpalu>2</res_fpalu>
 	  </Power>
 </Configuration>

@@ -48,7 +48,6 @@ public class SystemConfig
 	public static int invalidationAckCollectDelay;
 	public static int ownershipChangeDelay;
 	//Clock Gating Style
-	public static int clockGatingStyle;
 	public static int dirNetworkDelay;
 
 }

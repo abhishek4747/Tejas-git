@@ -8,7 +8,6 @@ import config.SystemConfig;
 import generic.EventQueue;
 import generic.PortType;
 import generic.SimulationElement;
-import generic.Core;
 import generic.Event;
 import generic.RequestType;
 
@@ -25,7 +24,6 @@ public class MainMemoryController extends SimulationElement
 				SystemConfig.mainMemoryFrequency
 				);
 		this.nucaType = nucaType;
-		// TODO Auto-generated constructor stub
 	}
 	public MainMemoryController() {
 		super(PortType.Unlimited,
@@ -98,11 +96,7 @@ public class MainMemoryController extends SimulationElement
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)
 		{
-			//TODO : If we have to simulate the write timings also, then the code will come here
 			//Just to tell the requesting things that the write is completed
-			
-//			Core.outstandingMemRequests--;
-//			Core.outstandingMemRequests--;
 		}
 	}
 }

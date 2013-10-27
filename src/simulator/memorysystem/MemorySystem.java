@@ -32,7 +32,6 @@ import net.optical.TopLevelTokenBus;
 import main.ArchitecturalComponent;
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
-import memorysystem.nuca.NucaCacheLine;
 import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;

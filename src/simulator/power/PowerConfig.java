@@ -2,7 +2,6 @@ package power;
 
 public class PowerConfig {
 	  public static double totalPower;
-	  public static double totalPowerNodcache2;
 	  public static double ialuPower;
 	  public static double faluPower;
 	  public static double bpredPower;
@@ -14,12 +13,9 @@ public class PowerConfig {
 	  public static double wakeupPower;
 	  public static double lsqWakeupPower;
 	  public static double rsPower;
-	  public static double rsPowerNobit;
 	  public static double lsqRsPower;
-	  public static double lsqRsPowerNobit;
 	  public static double selectionPower;
 	  public static double regfilePower;
-	  public static double regfilePowerNobit;
 	  public static double resultPower;
 	  public static double icachePower;
 	  public static double dcachePower;

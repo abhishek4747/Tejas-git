@@ -1,4 +1,23 @@
+/*****************************************************************************
+				BhartiSim Simulator
+------------------------------------------------------------------------------------------------------------
 
+   Copyright [2010] [Indian Institute of Technology, Delhi]
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+------------------------------------------------------------------------------------------------------------
+
+				Contributor: Anuj Arora
+*****************************************************************************/
 package memorysystem.nuca;
 import generic.Event;
 import generic.EventQueue;
@@ -6,9 +25,7 @@ import generic.RequestType;
 import generic.SimulationElement;
 import net.*;
 import net.NOC.CONNECTIONTYPE;
-
 import java.util.Vector;
-
 import config.CacheConfig;
 import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
@@ -34,10 +51,6 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
     	{
     		this.handleAccess(eventQ, (AddressCarryingEvent)event);
     	}
-		else if (event.getRequestType() == RequestType.Mem_Response)
-		{
-			this.handleMemResponse(eventQ, event);
-		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Read ||
 				  event.getRequestType() == RequestType.Main_Mem_Write )
 		{
@@ -84,8 +97,6 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 	}
     protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
     {
-    	
-		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
 		
 		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
@@ -113,13 +124,12 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 		nucaCache.updateAverageHopLength(addrEvent.hopLength);
 		
 		long addr = addrEvent.getAddress();
-		//System.err.println(addr);
+		
 		Vector<Integer> sourceId;
 		Vector<Integer> destinationId;
 		
 		if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{
-			//System.err.println(event.getRequestingElement().getClass());
 			sourceId = this.getId();
 			destinationId = nucaCache.getBankId(addr);
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
@@ -129,17 +139,16 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 																		sourceId,destinationId);
 			this.getRouter().getPort().put(addressEvent);
 		}
-		//System.err.println(event.getRequestingElement().getClass());
+		
 		if(event.getRequestingElement().getClass() == Router.class)
 		{
-			//System.err.println(event.getRequestingElement().getClass());
+			nucaCache.incrementTotalNucaBankAcesses(1);
 			CacheLine evictedLine = this.fill(addr,MESI.EXCLUSIVE);
 			if (evictedLine != null && 
 					this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 			{
 				sourceId = new Vector<Integer>(this.getId());
 				destinationId = (Vector<Integer>) nucaCache.getMemoryControllerId(nucaCache.getBankId(addr));
-				//System.out.println("cache Miss  sending request to Main Memory"+destinationBankId + " to event"+ event);
 				
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																			 0,this, this.getRouter(), 
@@ -157,16 +166,9 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 
 	@Override
 	public SimulationElement getSimulationElement() {
-		// TODO Auto-generated method stub
 		return this;
 	}
 	
-	public int getStartIdx(long addr) {
-		long SetMask =( 1 << (numSetsBits) )- 1;
-		int bankNumBits = (int) (Math.log(nucaCache.cacheRows)/Math.log(2));
-		int startIdx = (int) ((addr >>> (blockSizeBits+bankNumBits)) & (SetMask));
-		return startIdx;
-	}
 	public long getEvictions() {
 		return evictions;
 	}

@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Mayur Harne
+				Contributor: Anuj Arora
 *****************************************************************************/
 package memorysystem.nuca;
 import generic.Event;
@@ -45,11 +45,6 @@ public class NucaCacheBank extends Cache implements NocInterface
 	public Policy policy;
 	int cacheBankRows;
 	int cacheBankColumns;
-	int counter = 0;
-	int sendcounter =0;
-	public boolean cacheBank = false;
-	public int setNum;
-	public static int totalNucaBankAcesses;
 	protected Vector<Integer> bankId;
 	NucaCache nucaCache;
 
@@ -69,7 +64,6 @@ public class NucaCacheBank extends Cache implements NocInterface
         this.cacheBankColumns = SystemConfig.nocConfig.getNumberOfBankColumns();
         this.cacheBankRows = SystemConfig.nocConfig.getNumberOfBankRows();
         this.bankId  = bankId;
-        this.setNum = (size*1024)/(blockSize*assoc);
     }
     
     public Router getRouter()
