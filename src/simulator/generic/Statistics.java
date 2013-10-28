@@ -343,17 +343,7 @@ public class Statistics {
 			outputFileWriter.write("L2 Requests\t=\t" + noOfL2Requests + "\n");
 			outputFileWriter.write("L2 Hits\t\t=\t" + noOfL2Hits + "\n");
 			outputFileWriter.write("L2 Misses\t=\t" + noOfL2Misses + "\n");
-			outputFileWriter.write("Total Nuca Bank Accesses\t=\t" + totalNucaBankAccesses +"\n");
-			long maxCoreCycles = 0;
-			for (int i =0; i < SystemConfig.NoOfCores; i++)
-			{
-				if (maxCoreCycles < coreCyclesTaken[i])
-					maxCoreCycles = coreCyclesTaken[i];
-			}
-			double executionTime = ((double)maxCoreCycles/coreFrequencies[0])*1000;
-			System.out.println(executionTime);
-			double totalNucaBankPower = (totalNucaBankAccesses*PowerConfig.dcache2Power)/executionTime;
-			outputFileWriter.write("Total Nuca Bank Accesses Power\t=\t" + totalNucaBankPower + "\n");
+			
 
 			if (noOfL2Requests != 0)
 			{
@@ -366,25 +356,40 @@ public class Statistics {
 				outputFileWriter.write("L2 noc Topology\t=\t" + nocTopology + "\n");
 				outputFileWriter.write("L2 noc Routing Algorithm\t=\t" + nocRoutingAlgo + "\n");
 			}
-			double totalRouterPower = ((hopcount*(PowerConfig.linkEnergy+PowerConfig.totalRouterEnergy))/executionTime);
-			
-			
-			if (hopcount != 0)
+			if(SimulationConfig.nucaType!=NucaType.NONE)
 			{
-				outputFileWriter.write("Router Hops\t=\t" + hopcount + "\n");
-				outputFileWriter.write("Total Router Power\t=\t" + totalRouterPower + "\n");
+				outputFileWriter.write("Total Nuca Bank Accesses\t=\t" + totalNucaBankAccesses +"\n");
+				long maxCoreCycles = 0;
+				for (int i =0; i < SystemConfig.NoOfCores; i++)
+				{
+					if (maxCoreCycles < coreCyclesTaken[i])
+						maxCoreCycles = coreCyclesTaken[i];
+				}
+				double executionTime = ((double)maxCoreCycles/coreFrequencies[0])*1000;
+				
+				double totalNucaBankPower = (totalNucaBankAccesses*PowerConfig.dcache2Power)/executionTime;
+				outputFileWriter.write("Total Nuca Bank Accesses Power\t=\t" + totalNucaBankPower + "\n");
+				double totalRouterPower = ((hopcount*(PowerConfig.linkEnergy+PowerConfig.totalRouterEnergy))/executionTime);
+				
+				
+				if (hopcount != 0)
+				{
+					outputFileWriter.write("Router Hops\t=\t" + hopcount + "\n");
+					outputFileWriter.write("Total Router Power\t=\t" + totalRouterPower + "\n");
+				}
+				outputFileWriter.write("Minimum Hop Length\t=\t" + minHopLength + "\n");
+				outputFileWriter.write("Maximum Hop Length\t=\t" + maxHopLength + "\n");
+				outputFileWriter.write("Average Hop Length\t=\t" + averageHopLength + "\n");
+				
+				double totalBufferPower = (Switch.totalBufferAccesses*PowerConfig.bufferEnergy)/executionTime;
+				outputFileWriter.write("Total Buffer Accesses\t=\t" + Switch.totalBufferAccesses + "\n");
+				if(totalBufferPower!=0)
+					outputFileWriter.write("Total Buffer Power\t=\t" + totalBufferPower + "\n");
+				outputFileWriter.write("Total NUCA Dynamic Power\t=\t" 
+								+ (totalNucaBankPower
+								+  totalRouterPower
+								+ totalBufferPower) + "\n");
 			}
-			outputFileWriter.write("Minimum Hop Length\t=\t" + minHopLength + "\n");
-			outputFileWriter.write("Maximum Hop Length\t=\t" + maxHopLength + "\n");
-			outputFileWriter.write("Average Hop Length\t=\t" + averageHopLength + "\n");
-			
-			double totalBufferPower = (Switch.totalBufferAccesses*PowerConfig.bufferEnergy*1000000000)/executionTime;
-			outputFileWriter.write("Total Buffer Accesses : " + Switch.totalBufferAccesses + "\n");
-			outputFileWriter.write("Total Buffer Power: " + totalBufferPower + "\n");
-			outputFileWriter.write("Total Dynamic Power: " 
-							+ (totalNucaBankPower
-							+  totalRouterPower
-							+ totalBufferPower) + "\n");
 			outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + noOfDirReadMiss + "\n");
 			outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + noOfDirWriteMiss + "\n");
 			outputFileWriter.write("Directory Access due to Write-Hit\t=\t" + noOfDirWriteHits + "\n");
@@ -459,15 +464,7 @@ public class Statistics {
 			traceWriter.write(delimiter);
 			traceWriter.write("Simple"+delimiter);
 
-/*			traceWriter.write(String.valueOf(powerCounters[i].getIcachePower()/executionTime+powerCounters[i].getBpredPower()/executionTime));
-			traceWriter.write(delimiter);
-			traceWriter.write(String.valueOf(powerCounters[i].getRenamePower()/executionTime));
-			traceWriter.write(delimiter);
-			traceWriter.write(String.valueOf(powerCounters[i].getResultbusPower()/executionTime+powerCounters[i].getAluPower()/executionTime
-									+powerCounters[i].getDcachePower()/executionTime+powerCounters[i].getDcache2Power()/executionTime+powerCounters[i].getLsqPower()/executionTime
-									+powerCounters[i].getWindowPower()/executionTime));
-			traceWriter.write(delimiter);
-*/			traceWriter.write(String.valueOf(powerCounters[i].getRenamePower()/executionTime + powerCounters[i].getBpredPower()/executionTime
+			traceWriter.write(String.valueOf(powerCounters[i].getRenamePower()/executionTime + powerCounters[i].getBpredPower()/executionTime
 					+powerCounters[i].getRegfilePower()/executionTime+powerCounters[i].getIcachePower()/executionTime
 					+powerCounters[i].getResultbusPower()/executionTime+powerCounters[i].getAluPower()/executionTime
 					+powerCounters[i].getDcachePower()/executionTime+powerCounters[i].getDcache2Power()/executionTime
@@ -476,23 +473,6 @@ public class Statistics {
 			traceWriter.write(delimiter);
 			
 			traceWriter.write("AggressiveIdeal"+delimiter);
-/*			traceWriter.write(String.valueOf(powerCounters[i].getIcachePowerCC2()/executionTime+powerCounters[i].getBpredPowerCC2()/executionTime));
-			traceWriter.write(delimiter);
-			traceWriter.write(String.valueOf(powerCounters[i].getRenamePowerCC2()/executionTime));
-			traceWriter.write(delimiter);
-			traceWriter.write(String.valueOf(powerCounters[i].getResultbusPowerCC2()/executionTime+powerCounters[i].getAluPowerCC2()/executionTime
-									+powerCounters[i].getDcachePowerCC2()/executionTime+powerCounters[i].getDcache2PowerCC2()/executionTime+powerCounters[i].getLsqPowerCC2()/executionTime
-									+powerCounters[i].getWindowPowerCC2()/executionTime));
-			traceWriter.write(delimiter);
-*//*			traceWriter.write(String.valueOf(powerCounters[i].getIcachePowerCC3()/executionTime+powerCounters[i].getBpredPowerCC3()/executionTime));
-			traceWriter.write(delimiter);
-			traceWriter.write(String.valueOf(powerCounters[i].getRenamePowerCC3()/executionTime));
-			traceWriter.write(delimiter);
-			traceWriter.write(String.valueOf(powerCounters[i].getResultbusPowerCC3()/executionTime+powerCounters[i].getAluPowerCC3()/executionTime
-									+powerCounters[i].getDcachePowerCC3()/executionTime+powerCounters[i].getDcache2PowerCC3()/executionTime+powerCounters[i].getLsqPowerCC3()/executionTime
-									+powerCounters[i].getWindowPowerCC3()/executionTime));
-			traceWriter.write(delimiter);
-*/
 		}
 
 
@@ -520,7 +500,8 @@ public class Statistics {
 			outputFileWriter.write("Reg file Power\t=\t"+powerCounters[i].getTotalRegfilePower()/executionTime+"\n");
 			outputFileWriter.write("I L1 Cache Power\t=\t"+powerCounters[i].getTotalIcachePower()/executionTime+"\n");
 			outputFileWriter.write("D L1 Cache Power\t=\t"+powerCounters[i].getTotalDcachePower()/executionTime+"\n");
-			outputFileWriter.write("L2 Cache Power\t=\t"+powerCounters[i].getTotalDcache2Power()/executionTime+"\n");
+			if(SimulationConfig.nucaType==NucaType.NONE)
+				outputFileWriter.write("L2 Cache Power\t=\t"+powerCounters[i].getTotalDcache2Power()/executionTime+"\n");
 			outputFileWriter.write("ALU power\t=\t"+powerCounters[i].getTotalAluPower()/executionTime+"\n");
 			outputFileWriter.write("Clock Power\t=\t"+powerCounters[i].getTotalClockPower()/executionTime+"\n");
 			outputFileWriter.write("Rename Power\t=\t"+powerCounters[i].getTotalRenamePower()/executionTime+"\n");

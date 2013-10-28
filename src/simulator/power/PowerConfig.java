@@ -14,9 +14,7 @@ public class PowerConfig {
 	  public static double lsqWakeupPower;
 	  public static double rsPower;
 	  public static double lsqRsPower;
-	  public static double selectionPower;
 	  public static double regfilePower;
-	  public static double resultPower;
 	  public static double icachePower;
 	  public static double dcachePower;
 	  public static double dcache2Power;

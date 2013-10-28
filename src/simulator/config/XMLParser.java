@@ -138,6 +138,8 @@ public class XMLParser
 		  
 		  PowerConfig.itlb=Double.parseDouble(getImmediateString("itlb", powerElmnt));
 		  PowerConfig.dtlb=Double.parseDouble(getImmediateString("dtlb", powerElmnt));
+		  PowerConfig.resultbus=Double.parseDouble(getImmediateString("resultbus", powerElmnt));
+		  PowerConfig.selection=Double.parseDouble(getImmediateString("selection", powerElmnt));
 		  
 		  PowerConfig.ruuDecodeWidth=Double.parseDouble(getImmediateString("ruu_decode_width", powerElmnt));
 		  PowerConfig.ruuIssueWidth=Double.parseDouble(getImmediateString("ruu_issue_width", powerElmnt));

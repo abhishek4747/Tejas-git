@@ -61,7 +61,6 @@
 		<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
 		<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
-        <NearestBankToCores>0,4 0,4 12,4 12,4</NearestBankToCores>
 	
 	<!--Directory Access Latencies. Need to be removed when merged with NoC-->
 		<directoryAccessLatency>2</directoryAccessLatency>
@@ -273,9 +272,11 @@
 		  <icache_energy>0.395134</icache_energy>
 		  <dcache_energy>0.606047</dcache_energy>
 		  <dcache2_energy>0.0234976</dcache2_energy>
-		  <clock_energy>0</clock_energy>
+		  <clock_energy>1</clock_energy>
 		  <itlb>0.0105892</itlb>
 		  <dtlb>0.0105892</dtlb>
+		  <resultbus>0</resultbus>
+          <selection>0</selection>
 		  
 		  <!--These are NOC unit parameters-->
 		  <link_energy>0.531616</link_energy>

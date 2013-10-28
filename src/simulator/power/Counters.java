@@ -1,13 +1,12 @@
 package power;
 
-import config.SystemConfig;
+import config.CoreConfig;
+import config.SimulationConfig;
 
-public class Counters {
-
-	/* options for Wattch */
+public class Counters 
+{
 	long dataWidth;
 
-	/* counters added for Wattch */
 	long renameAccess=0;
 	long bpredAccess=0;
 	private long bpredMisses = 0;
@@ -213,11 +212,6 @@ public class Counters {
 
 	double maxCyclePower = 0.0;
 
-	double turnoffFactor = 0.1;
-
-	//private double totaRegfilePower;
-
-	
 	public Counters()
 	{
 		 dataWidth = 64;
@@ -416,7 +410,6 @@ public class Counters {
 		totalLsqWakeupAccess += lsqWakeupAccess;
 		totalLsqPregAccess += lsqWakeupAccess;
 		
-		/* counters added for Wattch */
 		 renameAccess=0;
 		 bpredAccess=0;
 		 windowAccess=0;
@@ -427,11 +420,7 @@ public class Counters {
 		FloatRegfileAccess=0;
 		IntegerRenameAccess=0;
 		FloatRenameAccess=0;
-//		 for(int i=0;i<SystemConfig.NoOfCores;i++){
-//			 icacheAccess[i]=0;
-//			 dcacheAccess[i]=0;
-//		 }
-//		 
+	 
 		 icacheAccess=0;
 		 dcacheAccess=0;
 		 dcache2Access=0;
@@ -587,6 +576,10 @@ public class Counters {
 			IntegerRegfileAccessCycle++;
 			prevIntegerRegfileAccess = IntegerRegfileAccess;
 		}
+		if(FloatRegfileAccess - prevFloatRegfileAccess > 0){
+			FloatRegfileAccessCycle++;
+			prevFloatRegfileAccess = FloatRegfileAccess;
+		}
 		if(icacheAccess - previcacheAccess > 0){
 			icacheAccessCycle++;
 			previcacheAccess = icacheAccess;
@@ -628,8 +621,11 @@ public class Counters {
 		windowPower+=((double)windowWakeupAccess/((double)PowerConfig.ruuIssueWidth))*PowerConfig.wakeupPower;
 		lsqPower+=((double)lsqWakeupAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqWakeupPower;
 	    lsqPower+=((double)lsqPregAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqRsPower;
-	    regfilePower+=((double)IntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
-	    icachePower+=(icacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+	    if(SimulationConfig.isPipelineOutOfOrder)
+	    	regfilePower+=((double)(IntegerRegfileAccess + FloatRegfileAccess)/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+	    else
+	    	regfilePower+=((double)(regfileAccess)/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+	    icachePower+=((double)icacheAccessCycle/(double)PowerConfig.il1Port)*(PowerConfig.icachePower+PowerConfig.itlb);
 	    dcachePower+=((double)dcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
 	    dcache2Power+=((double)dcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
 	    aluPower+=((double)ialuAccess/(double)PowerConfig.resIalu)*PowerConfig.ialuPower +
@@ -660,8 +656,11 @@ public class Counters {
 		totalWindowPower+=((double)totalWindowWakeupAccess/((double)PowerConfig.ruuIssueWidth))*PowerConfig.wakeupPower;
 		totalLsqPower+=((double)totalLsqWakeupAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqWakeupPower;
 		totalLsqPower+=((double)totalLsqPregAccess/((double)PowerConfig.resMemport))*PowerConfig.lsqRsPower;
-		totalRegfilePower+=((double)totalIntegerRegfileAccess/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
-		totalIcachePower+=((double)totalIcacheAccessCycle)*(PowerConfig.icachePower+PowerConfig.itlb);
+		if(SimulationConfig.isPipelineOutOfOrder)
+			totalRegfilePower+=((double)(totalIntegerRegfileAccess+totalFloatRegfileAccess)/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+		else
+			totalRegfilePower+=((double)(totalRegfileAccess)/(3.0*(double)PowerConfig.ruuCommitWidth))*PowerConfig.regfilePower;
+		totalIcachePower+=((double)totalIcacheAccessCycle/(double)PowerConfig.il1Port)*(PowerConfig.icachePower+PowerConfig.itlb);
 		totalDcachePower+=((double)totalDcacheAccess/(double)PowerConfig.dl1Port)*(PowerConfig.dcachePower +PowerConfig.dtlb);
 		totalDcache2Power+=((double)totalDcache2Access/(double)PowerConfig.dl2Port)*PowerConfig.dcache2Power;
 		totalAluPower+=((double)totalIaluAccess/(double)PowerConfig.resIalu)*PowerConfig.ialuPower +
@@ -1191,13 +1190,6 @@ public class Counters {
 		this.maxCyclePower = maxCyclePower;
 	}
 
-	public double getTurnoffFactor() {
-		return turnoffFactor;
-	}
-
-	public void setTurnoffFactor(double turnoffFactor) {
-		this.turnoffFactor = turnoffFactor;
-	}
 
 	public void incrementIntegerRenameAccess(int renameAccess) {
 		this.IntegerRenameAccess += renameAccess;
