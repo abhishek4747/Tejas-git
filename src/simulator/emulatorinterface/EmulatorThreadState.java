@@ -6,10 +6,10 @@ import generic.Instruction;
 public class EmulatorThreadState {
 	
 	boolean finished;
-	boolean started = false;
+	public boolean started = false;
 	boolean halted = false;
 	boolean isFirstPacket = true;
-	
+	boolean fetchStatus = false; //true when #{packets} fetched by T_java (for T_app) > threshold else false
 	//int readerLocation;
 	long totalRead;
 	

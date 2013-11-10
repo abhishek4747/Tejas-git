@@ -15,12 +15,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
 
+import com.sun.xml.internal.ws.streaming.TidyXMLStreamReader;
+
 //import main.Main;
 import main.CustomObjectPool;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import config.EmulatorConfig;
 import config.SimulationConfig;
+import emulatorinterface.ThreadBlockState.blockState;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
@@ -63,7 +66,7 @@ public class RunnableThread implements Encoding, Runnable {
 	int maxCoreAssign = 0;      //the maximum core id assigned 
 	
 	static EmulatorThreadState[] emulatorThreadState = new EmulatorThreadState[EMUTHREADS];
-
+	static ThreadBlockState[] threadBlockState=new ThreadBlockState[EMUTHREADS];
 	GenericCircularQueue<Instruction>[] inputToPipeline;
 	// static long ignoredInstructions = 0;
 
@@ -79,6 +82,8 @@ public class RunnableThread implements Encoding, Runnable {
 	long[] prevCycles;
 	
 	IpcBase ipcBase;
+
+	private static int liveJavaThreads;
 	
 	static boolean printIPTrace = false;
 	static long numShmWrites[];
@@ -170,6 +175,7 @@ public class RunnableThread implements Encoding, Runnable {
 					//emulatorStarted = true;
 					//Main.setStartTime(System.currentTimeMillis());
 					ipcBase.javaThreadStarted[javaTid] = true;
+					
 				}
 
 				threadParam.checkStarted();
@@ -180,12 +186,12 @@ public class RunnableThread implements Encoding, Runnable {
 //					runPipelines();
 //				}
 //				
-//				// if this thread has filled 95% of its input to pipeline, run other threads for a while
-//				// int maxAllowed = (int)((float)0.95*(float)INSTRUCTION_THRESHOLD);
-//				int maxAllowed = INSTRUCTION_THRESHOLD-(numReads*3);
-//				if(inputToPipeline[tidEmulator].size()>=maxAllowed) {
-//					continue;
-//				}
+				// if this thread has filled 95% of its input to pipeline, run other threads for a while
+//				 int maxAllowed = (int)((float)0.95*(float)INSTRUCTION_THRESHOLD);
+				//int maxAllowed = INSTRUCTION_THRESHOLD-(numReads*3);
+				
+					
+				
 				
 				// Process all the packets read from the communication channel
 				while(fromEmulator.isEmpty() == false) {
@@ -210,6 +216,7 @@ public class RunnableThread implements Encoding, Runnable {
 					{
 						System.out.println("within SUBSETSIMCOMPLETE ");
 						ipcBase.javaThreadTermination[javaTid] = true;
+						liveJavaThreads--;
 						allover = true;
 						break;
 					}
@@ -235,6 +242,23 @@ public class RunnableThread implements Encoding, Runnable {
 					allover = true;
 					break;
 				}
+				//System.out.println("here");
+				if(liveJavaThreads==1)
+				{//System.out.println("size :"+inputToPipeline[tidEmulator].size());
+					if(inputToPipeline[tidEmulator].size()<=0)
+					{
+						//System.out.println("******************************continued*******************");
+						continue;
+					}
+				}
+				else if(liveJavaThreads>1)
+				{//System.out.println("live threads :"+liveJavaThreads);
+					if(inputToPipeline[tidEmulator].size()<=0 || liveJavaThreads>1 && statusOfOtherThreads()) {
+						//System.out.println("******************************continued2*******************");
+						continue;
+					}
+				}
+				
 			}
 			
 			runPipelines();
@@ -289,6 +313,23 @@ public class RunnableThread implements Encoding, Runnable {
 //	}
 
 
+	private boolean statusOfOtherThreads() {
+		// returns true if any other live threads have empty inputtopipeline
+		for(int i=0;i<EMUTHREADS;i++)
+		{
+			if(emulatorThreadState[i].started && threadBlockState[i].getState()==blockState.LIVE)
+			{
+				//System.out.println("in loop, size "+i+":"+inputToPipeline[i].size());
+				if(inputToPipeline[i].size()<=0)
+				{
+					return true;
+				}
+			}
+				
+		}
+		return false;
+	}
+
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
 	public RunnableThread(String threadName, int javaTid, IpcBase ipcBase, 
@@ -324,6 +365,7 @@ public class RunnableThread implements Encoding, Runnable {
 			int id = javaTid*EMUTHREADS+i;
 			IpcBase.glTable.getStateTable().put(id, new ThreadState(id));
 			emulatorThreadState[i] = new EmulatorThreadState();
+			threadBlockState[i]=new ThreadBlockState();
 
 			//TODO pipelineinterfaces & inputToPipeline should also be in the IpcBase
 			pipelineInterfaces[i] = cores[i].getPipelineInterface();
@@ -655,6 +697,7 @@ public class RunnableThread implements Encoding, Runnable {
 		}
 		
 		int tidApp = javaTid * EMUTHREADS + tidEmu;
+		
 		sum += pnew.value;
 		
 		if (pnew.value == TIMER) {//leaving timer packetList now
@@ -666,6 +709,12 @@ public class RunnableThread implements Encoding, Runnable {
 			ResumeSleep ret = IpcBase.glTable.update(pnew.tgt, tidApp, pnew.ip, pnew.value);
 			if(ret!=null){
 				resumeSleep(ret);
+			}
+			checkForBlockingPacket(pnew.value,tidApp);
+			if(threadBlockState[tidApp].getState()==blockState.BLOCK)
+			{
+				checkForUnBlockingPacket(pnew.value,tidApp);
+				
 			}
 			return isSpaceInPipelineBuffer;
 		}
@@ -689,8 +738,11 @@ public class RunnableThread implements Encoding, Runnable {
 			
 			//thread.pold.set(pnew);
 			thread.packetList.add(pnew);
+			liveJavaThreads++;
+			threadBlockState[tidApp].gotLive();
 			thread.isFirstPacket=false;
 			return isSpaceInPipelineBuffer;
+			
 		}
 		
 		if (pnew.value!=INSTRUCTION && !(pnew.value>6 && pnew.value<26) && pnew.value!=Encoding.ASSEMBLY ) {
@@ -795,6 +847,31 @@ public class RunnableThread implements Encoding, Runnable {
 		return isSpaceInPipelineBuffer;
 	}
 
+	private void checkForBlockingPacket(long value,int TidApp) {
+		// TODO Auto-generated method stub
+		int val=(int)value;
+		switch(val)
+		{
+		case LOCK:
+		case JOIN:
+		case CONDWAIT:
+		case BARRIERWAIT:threadBlockState[TidApp].gotBlockingPacket(val);
+		
+		}
+	}
+	
+	private void checkForUnBlockingPacket(long value,int TidApp) {
+		// TODO Auto-generated method stub
+		int val=(int)value;
+		switch(val)
+		{
+		case LOCK+1:
+		case JOIN+1:
+		case CONDWAIT+1:
+		case BARRIERWAIT+1:threadBlockState[TidApp].gotUnBlockingPacket();
+		
+		}
+	}
 	boolean printUnHandledInsn = false;
 	private HashMap<Long, Long> unHandledCount;
 	UnhandledInsnCountComparator bvc;
