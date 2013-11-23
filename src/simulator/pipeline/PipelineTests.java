@@ -148,4 +148,31 @@ public class PipelineTests {
 		}
 	}
 
+	/*
+	 * simulates a sequence of floatDiv instructions, all operating on R0, and writing to R0
+	 */
+	@Test
+	public void renameTest() {
+		
+		//generate instruction sequence
+		Instruction newInst;
+		for(int i = 0; i < 100; i++)
+		{
+			newInst = Instruction.getFloatingPointDivision(
+										Operand.getIntegerRegister(0),
+										Operand.getIntegerRegister(0),
+										Operand.getIntegerRegister(0));
+			
+			inputToPipeline.enqueue(newInst);
+		}		
+		inputToPipeline.enqueue(Instruction.getInvalidInstruction());
+		
+		//simulate pipeline
+		while(ArchitecturalComponent.getCores()[0].getPipelineInterface().isExecutionComplete() == false)
+		{
+			ArchitecturalComponent.getCores()[0].getPipelineInterface().oneCycleOperation();
+			GlobalClock.incrementClock();
+		}
+	}
+
 }

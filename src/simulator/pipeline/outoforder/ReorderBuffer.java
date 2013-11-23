@@ -240,6 +240,9 @@ public class ReorderBuffer extends SimulationElement{
 					if(SimulationConfig.debugMode)
 					{
 						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + firstInstruction);
+//						System.out.println(first.getOperand1PhyReg1()
+//								+ " : " + first.getOperand2PhyReg1()
+//								+ " : " + first.getPhysicalDestinationRegister());
 					}
 					
 					//return instruction to pool
