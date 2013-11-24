@@ -18,6 +18,7 @@ import net.Switch;
 
 import main.ArchitecturalComponent;
 import memorysystem.Cache;
+import memorysystem.CoreMemorySystem;
 import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
@@ -74,7 +75,12 @@ public class Statistics {
 	}
 	
 	
-	
+	private static CoreMemorySystem coreMemSys[];
+	private static Core cores[];
+	public static void setCoreMemorySystem(CoreMemorySystem coreMemSys[])
+	{
+		Statistics.coreMemSys = coreMemSys;
+	}
 	
 	//Translator Statistics
 	
@@ -225,7 +231,26 @@ public class Statistics {
 		}
 	}
 	
-	
+	void printPowerStatistics() throws IOException
+	{
+		// Cores
+		double corePower = 0;
+		for(Core core : cores) {
+			corePower += core.calculateAndPrintPower(outputFileWriter, "core" + core.toString());
+		}
+		
+		// LLC
+		//MemorySystem.
+		
+		// Memory
+		
+		// Directory
+		
+		// NOC
+		
+		// Clock
+		
+	}
 	
 	
 	//Memory System Statistics
@@ -243,9 +268,7 @@ public class Statistics {
 	static long noOfL2Hits;
 	static long noOfL2Misses;
 	static long totalNucaBankAccesses;
-	static long noOfIRequests[];
-	static long noOfIHits[];
-	static long noOfIMisses[];
+	
 	public static String nocTopology;
 	public static String nocRoutingAlgo;
 	public static int hopcount=0;
@@ -308,31 +331,13 @@ public class Statistics {
 				outputFileWriter.write("Loads\t\t=\t" + noOfLoads[i] + "\n");
 				outputFileWriter.write("Stores\t\t=\t" + noOfStores[i] + "\n");
 				outputFileWriter.write("LSQ forwardings\t=\t" + noOfValueForwards[i] + "\n");
-				outputFileWriter.write("TLB Requests\t=\t" + noOfTLBRequests[i] + "\n");
-				outputFileWriter.write("TLB Hits\t=\t" + noOfTLBHits[i] + "\n");
-				outputFileWriter.write("TLB Misses\t=\t" + noOfTLBMisses[i] + "\n");
-				if (noOfTLBRequests[i] != 0)
-				{
-					outputFileWriter.write("TLB Hit-rate\t=\t" + (float)(noOfTLBHits[i])/noOfTLBRequests[i] + "\n");
-					outputFileWriter.write("TLB Miss-rate\t=\t" + (float)(noOfTLBMisses[i])/noOfTLBRequests[i] + "\n");
-				}
-				outputFileWriter.write("L1 Requests\t=\t" + noOfL1Requests[i]  + "\n");
-				outputFileWriter.write("L1 Hits\t\t=\t" + noOfL1Hits[i] + "\n");
-				outputFileWriter.write("L1 Misses\t=\t" + noOfL1Misses[i] + "\n");
-				outputFileWriter.write("I Requests\t=\t" + noOfIRequests[i] + "\n");
-				outputFileWriter.write("I Hits\t\t=\t" + noOfIHits[i] + "\n");
-				outputFileWriter.write("I Misses\t=\t" + noOfIMisses[i] + "\n");
-				if (noOfL1Requests[i] != 0)
-				{
-					outputFileWriter.write("L1 Hit-Rate\t=\t" + (float)(noOfL1Hits[i])/noOfL1Requests[i] + "\n");
-					outputFileWriter.write("L1 Miss-Rate\t=\t" + (float)(noOfL1Misses[i])/noOfL1Requests[i] + "\n");
-				}
-				if (noOfIRequests[i] != 0)
-				{
-					outputFileWriter.write("I Hit-Rate\t=\t" + (float)(noOfIHits[i])/noOfIRequests[i] + "\n");
-					outputFileWriter.write("I Miss-Rate\t=\t" + (float) (noOfIMisses[i])/noOfIRequests[i] + "\n");
 				
-				}
+				printCacheStatistics("iCache[" + i + "]", coreMemSys[i].getiCache().hits, coreMemSys[i].getiCache().misses);
+				printCacheStatistics("l1Cache[" + i + "]", coreMemSys[i].getL1Cache().hits, coreMemSys[i].getL1Cache().misses);
+				
+				printCacheStatistics("iTLB[" + i + "]", coreMemSys[i].getiTLB().getTlbHits(), coreMemSys[i].getiTLB().getTlbMisses());
+				printCacheStatistics("dTLB[" + i + "]", coreMemSys[i].getdTLB().getTlbHits(), coreMemSys[i].getdTLB().getTlbMisses());
+				
 				outputFileWriter.write("\n");
 			}
 			outputFileWriter.write("\n");
@@ -350,6 +355,9 @@ public class Statistics {
 				outputFileWriter.write("L2 Hit-Rate\t=\t" + (float)(noOfL2Hits)/noOfL2Requests + "\n");
 				outputFileWriter.write("L2 Miss-Rate\t=\t" + (float)(noOfL2Misses)/noOfL2Requests + "\n");
 			}
+			
+			printCacheStatistics(MemorySystem.getL2Cache(), hits, misses)
+			
 			outputFileWriter.write("NUCA Type\t=\t" + SimulationConfig.nucaType + "\n");
 			if (nocRoutingAlgo != null)
 			{
@@ -415,8 +423,14 @@ public class Statistics {
 		}
 	}
 	
-	
-	
+	static void printCacheStatistics(String cacheStr,
+			long hits, long misses) throws IOException
+	{
+		outputFileWriter.write("\n\n" + cacheStr + " Hits\t=\t" + hits);
+		outputFileWriter.write("\n" + cacheStr + " Misses\t=\t" + misses);
+		outputFileWriter.write("\n" + cacheStr + " Hit-Rate\t=\t" + (double)hits/(double)(hits+misses));
+		outputFileWriter.write("\n" + cacheStr + " Miss-Rate\t=\t" + (double)misses/(double)(hits+misses));
+	}
 	
 	//Simulation time
 	//static long time;
@@ -602,11 +616,11 @@ public class Statistics {
 		tempnoOfL1Hits = new long[SystemConfig.NoOfCores];
 		noOfL1Misses = new long[SystemConfig.NoOfCores];
 		tempnoOfL1Misses = new long[SystemConfig.NoOfCores];
-		noOfIRequests = new long[SystemConfig.NoOfCores];
+		
 		tempnoOfIRequests = new long[SystemConfig.NoOfCores];
-		noOfIHits = new long[SystemConfig.NoOfCores];
+		
 		tempnoOfIHits = new long[SystemConfig.NoOfCores];
-		noOfIMisses = new long[SystemConfig.NoOfCores];
+		
 		tempnoOfIMisses = new long[SystemConfig.NoOfCores];
 		
 		powerCounters = new Counters[SystemConfig.NoOfCores];
@@ -809,12 +823,6 @@ public class Statistics {
 	public static void setNoOfL1Misses(long noOfL1Misses, int core) {
 		Statistics.noOfL1Misses[core] = noOfL1Misses;
 	}
-	public static void setNoOfIHits(long noOfIHits, int core) {
-		Statistics.noOfIHits[core] = noOfIHits;
-	}
-	public static void setNoOfIMisses(long noOfIMisses, int core) {
-		Statistics.noOfIMisses[core] = noOfIMisses;
-	}
 
 	public static void setNoOfL2Hits(long noOfL2Hits) {
 		Statistics.noOfL2Hits = noOfL2Hits;
@@ -834,9 +842,6 @@ public class Statistics {
 	
 	public static void setNoOfL1Requests(long noOfL1Requests, int core) {
 		Statistics.noOfL1Requests[core] = noOfL1Requests;
-	}
-	public static void setNoOfIRequests(long noOfIRequests, int core) {
-		Statistics.noOfIRequests[core] = noOfIRequests;
 	}
 //	public static long getTime() {
 //		return Statistics.time;
@@ -1045,12 +1050,6 @@ public class Statistics {
 				tempnoOfL1Hits[i] = core.getPipelineInterface().getNoOfL1Hits();
 				noOfL1Misses[i] += (long) (core.getPipelineInterface().getNoOfL1Misses() - tempnoOfL1Misses[i]) * weightsArray[currentSlice];
 				tempnoOfL1Misses[i] = core.getPipelineInterface().getNoOfL1Misses();
-				noOfIRequests[i] += (long) (core.getPipelineInterface().getNoOfIRequests() - tempnoOfIRequests[i]) * weightsArray[currentSlice];
-				tempnoOfIRequests[i] = core.getPipelineInterface().getNoOfIRequests();
-				noOfIHits[i] += (long) (core.getPipelineInterface().getNoOfIHits() - tempnoOfIHits[i]) * weightsArray[currentSlice];
-				tempnoOfIHits[i] = core.getPipelineInterface().getNoOfIHits();
-				noOfIMisses[i] += (long) (core.getPipelineInterface().getNoOfIMisses() - tempnoOfIMisses[i]) * weightsArray[currentSlice];
-				tempnoOfIMisses[i] = core.getPipelineInterface().getNoOfIMisses();
 				
 				noOfDirHits = (long) ((MemorySystem.getDirectoryCache().hits - tempnoOfDirHits) * weightsArray[currentSlice]);
 				tempnoOfDirHits = MemorySystem.getDirectoryCache().hits;

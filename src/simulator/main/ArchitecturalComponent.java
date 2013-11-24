@@ -152,12 +152,18 @@ public class ArchitecturalComponent {
 	public static void setTokenBus(TopLevelTokenBus inTokenBus) {
 		tokenBus = inTokenBus;
 	}
+	
+	private static CoreMemorySystem coreMemSysArray[];
+	public static CoreMemorySystem[] getCoreMemSysArray()
+	{
+		return coreMemSysArray;
+	}
 
 	public static void initMemorySystem(Core[] cores2,
 			TopLevelTokenBus tokenBus2) {
 		
 		 //TODO mem sys need not know eventQ during initialisation
-		MemorySystem.initializeMemSys(ArchitecturalComponent.getCores(),
+		coreMemSysArray = MemorySystem.initializeMemSys(ArchitecturalComponent.getCores(),
 				ArchitecturalComponent.getTokenBus());		
 	}
 

@@ -23,6 +23,8 @@ package config;
 import generic.PortType;
 import generic.MultiPortingType;
 
+
+
 public class CoreConfig 
 {
 	public long frequency;
@@ -34,12 +36,21 @@ public class CoreConfig
 	public int LSQPortOccupancy;
 	public MultiPortingType LSQMultiportType;
 	
-	public int TLBSize;
-	public int TLBLatency;
-	public int TLBMissPenalty;
-	public PortType TLBPortType;
-	public int TLBAccessPorts;
-	public int TLBPortOccupancy;
+	public PipelineType pipelineType;
+		
+	public int ITLBSize;
+	public int ITLBLatency;
+	public int ITLBMissPenalty;
+	public PortType ITLBPortType;
+	public int ITLBAccessPorts;
+	public int ITLBPortOccupancy;
+	
+	public int DTLBSize;
+	public int DTLBLatency;
+	public int DTLBMissPenalty;
+	public PortType DTLBPortType;
+	public int DTLBAccessPorts;
+	public int DTLBPortOccupancy;
 
 	public int DecodeWidth;
 	public int IssueWidth;

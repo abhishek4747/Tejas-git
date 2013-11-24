@@ -203,18 +203,6 @@ public class XMLParser
 			SimulationConfig.detachMemSys = false;
 		}
 		
-		if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==1){
-			SimulationConfig.isPipelineInorder = true;
-			SimulationConfig.isPipelineOutOfOrder = false;
-		}
-		else if(Integer.parseInt(getImmediateString("PipelineType", simulationElmnt))==2){
-			SimulationConfig.isPipelineInorder = false;
-			SimulationConfig.isPipelineOutOfOrder = true;
-		}
-		else{
-			System.err.println("Please specify any of the two pipeline types in the config file");
-		}
-		
 		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
 		{
@@ -320,6 +308,8 @@ public class XMLParser
 			
 			core.frequency = Long.parseLong(getImmediateString("CoreFrequency", coreElmnt));
 			
+			core.pipelineType = PipelineType.valueOf(getImmediateString("PipelineType", coreElmnt));
+			
 			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", coreElmnt));
 			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", coreElmnt));
 			core.LSQPortType = setPortType(getImmediateString("LSQPortType", coreElmnt));
@@ -327,12 +317,19 @@ public class XMLParser
 			core.LSQPortOccupancy = Integer.parseInt(getImmediateString("LSQPortOccupancy", coreElmnt));
 			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", coreElmnt));
 			
-			core.TLBSize = Integer.parseInt(getImmediateString("TLBSize", coreElmnt));
-			core.TLBLatency = Integer.parseInt(getImmediateString("TLBLatency", coreElmnt));
-			core.TLBMissPenalty = Integer.parseInt(getImmediateString("TLBMissPenalty", coreElmnt));
-			core.TLBPortType = setPortType(getImmediateString("TLBPortType", coreElmnt));
-			core.TLBAccessPorts = Integer.parseInt(getImmediateString("TLBAccessPorts", coreElmnt));
-			core.TLBPortOccupancy = Integer.parseInt(getImmediateString("TLBPortOccupancy", coreElmnt));
+			core.ITLBSize = Integer.parseInt(getImmediateString("ITLBSize", coreElmnt));
+			core.ITLBLatency = Integer.parseInt(getImmediateString("ITLBLatency", coreElmnt));
+			core.ITLBMissPenalty = Integer.parseInt(getImmediateString("ITLBMissPenalty", coreElmnt));
+			core.ITLBPortType = setPortType(getImmediateString("ITLBPortType", coreElmnt));
+			core.ITLBAccessPorts = Integer.parseInt(getImmediateString("ITLBAccessPorts", coreElmnt));
+			core.ITLBPortOccupancy = Integer.parseInt(getImmediateString("ITLBPortOccupancy", coreElmnt));
+			
+			core.DTLBSize = Integer.parseInt(getImmediateString("DTLBSize", coreElmnt));
+			core.DTLBLatency = Integer.parseInt(getImmediateString("DTLBLatency", coreElmnt));
+			core.DTLBMissPenalty = Integer.parseInt(getImmediateString("DTLBMissPenalty", coreElmnt));
+			core.DTLBPortType = setPortType(getImmediateString("DTLBPortType", coreElmnt));
+			core.DTLBAccessPorts = Integer.parseInt(getImmediateString("DTLBAccessPorts", coreElmnt));
+			core.DTLBPortOccupancy = Integer.parseInt(getImmediateString("DTLBPortOccupancy", coreElmnt));
 
 			core.DecodeWidth = Integer.parseInt(getImmediateString("DecodeWidth", coreElmnt));
 			core.IssueWidth = Integer.parseInt(getImmediateString("IssueWidth", coreElmnt));

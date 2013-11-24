@@ -20,6 +20,8 @@
 *****************************************************************************/
 package memorysystem;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 import power.Counters;
@@ -1141,5 +1143,10 @@ public class Cache extends SimulationElement
 				s.append(this.containingMemSys.coreID);
 			}
 			return s.toString();
+		}
+		
+		public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+		{
+			return 0; 
 		}
 }

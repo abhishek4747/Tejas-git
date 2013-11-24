@@ -384,15 +384,19 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setNoOfLoads(execEngine.getCoreMemorySystem().getLsqueue().NoOfLd, core.getCore_number());
 		Statistics.setNoOfStores(execEngine.getCoreMemorySystem().getLsqueue().NoOfSt, core.getCore_number());
 		Statistics.setNoOfValueForwards(execEngine.getCoreMemorySystem().getLsqueue().NoOfForwards, core.getCore_number());
-		Statistics.setNoOfTLBRequests(execEngine.getCoreMemorySystem().getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(execEngine.getCoreMemorySystem().getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(execEngine.getCoreMemorySystem().getTLBuffer().getTlbMisses(), core.getCore_number());
+		
+//		Statistics.setNoOfTLBRequests(execEngine.getCoreMemorySystem().getTLBuffer().getTlbRequests(), core.getCore_number());
+//		Statistics.setNoOfTLBHits(execEngine.getCoreMemorySystem().getTLBuffer().getTlbHits(), core.getCore_number());
+//		Statistics.setNoOfTLBMisses(execEngine.getCoreMemorySystem().getTLBuffer().getTlbMisses(), core.getCore_number());
+		
 		Statistics.setNoOfL1Requests(execEngine.getCoreMemorySystem().getL1Cache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfL1Hits(execEngine.getCoreMemorySystem().getL1Cache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(execEngine.getCoreMemorySystem().getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(execEngine.getCoreMemorySystem().getiCache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfIHits(execEngine.getCoreMemorySystem().getiCache().hits, core.getCore_number());
-		Statistics.setNoOfIMisses(execEngine.getCoreMemorySystem().getiCache().misses, core.getCore_number());
+		
+//		Statistics.setNoOfIRequests(execEngine.getCoreMemorySystem().getiCache().noOfRequests, core.getCore_number());
+//		Statistics.setNoOfIHits(execEngine.getCoreMemorySystem().getiCache().hits, core.getCore_number());
+//		Statistics.setNoOfIMisses(execEngine.getCoreMemorySystem().getiCache().misses, core.getCore_number());
+		
 		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
 		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().misses);
 		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());

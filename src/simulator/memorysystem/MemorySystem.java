@@ -51,15 +51,17 @@ public class MemorySystem
 	static Hashtable<String, Cache> cacheList;
 	public static MainMemoryController mainMemoryController;
 	public static CentralizedDirectoryCache centralizedDirectory;
+	private static Cache l2Cache;
 	public static boolean bypassLSQ = false;
 	
 	public static Hashtable<String, Cache> getCacheList() {
 		return cacheList;
 	}
 
-	public static void initializeMemSys(Core[] cores, TopLevelTokenBus tokenBus)
+	public static CoreMemorySystem[] initializeMemSys(Core[] cores, TopLevelTokenBus tokenBus)
 	{
 		MemorySystem.cores = cores;
+		CoreMemorySystem coreMemSysArray[] = new CoreMemorySystem[cores.length];
 		
 		System.out.println("initializing memory system...");
 		// initialising the memory system
@@ -161,6 +163,8 @@ public class MemorySystem
 				coreMemSys = new OutOrderCoreMemorySystem(cores[i]);
 				//TODO set corememsys of cores[i] to the one jus created in outordercorememsys constructor
 			}
+			
+			coreMemSysArray[i] = coreMemSys;
 			
 			//			Bus.upperLevels.add(cores[i].getExecEngine().coreMemSys.l1Cache);
 			
@@ -266,6 +270,8 @@ public class MemorySystem
 			Cache cacheToSetConnectedMSHR = cacheList.get(cacheName);
 			cacheToSetConnectedMSHR.populateConnectedMSHR();
 		}
+		
+		return coreMemSysArray;
 /*		
 		//Initialising the BUS for cache coherence
 		if (!cacheList.containsKey(SystemConfig.coherenceEnforcingCache))

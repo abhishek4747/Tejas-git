@@ -28,6 +28,8 @@ import generic.GlobalClock;
 import generic.RequestType;
 import generic.SimulationElement;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -697,5 +699,10 @@ public class CentralizedDirectoryCache extends Cache
 					RequestType.Send_Mem_Response,
 					((AddressCarryingEvent)event).getAddress(),
 					(event).coreId));
+	}
+	
+	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		return 0; 
 	}
 }

@@ -32,9 +32,7 @@ public class SimulationConfig
 	public static String outputFileName;
 	public static boolean debugMode;
 	public static boolean detachMemSys;
-	public static boolean isPipelineStatistical;
-	public static boolean isPipelineInorder;
-	public static boolean isPipelineOutOfOrder;
+	
 	public static boolean writeToFile;
 	public static int numInstructionsToBeWritten;
 	public static String InstructionsFilename;

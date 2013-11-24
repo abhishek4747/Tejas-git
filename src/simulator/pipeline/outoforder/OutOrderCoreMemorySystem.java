@@ -27,7 +27,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 	//To issue the request to instruction cache
 	public void issueRequestToInstrCache(long address)
 	{
-		int tlbMissPenalty = performTLBLookup(address);
+		int tlbMissPenalty = performITLBLookup(address);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 				 iCache.getLatencyDelay() + tlbMissPenalty,
@@ -82,12 +82,12 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 											long address)
 	{
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-																	 l1Cache.getLatencyDelay(),
-																	 this, 
-																	 l1Cache,
-																	 requestType, 
-																	 address,
-																	 core.getCore_number());
+												 l1Cache.getLatencyDelay(),
+												 this, 
+												 l1Cache,
+												 requestType, 
+												 address,
+												 core.getCore_number());
 		
 		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {
 			return false;
@@ -127,18 +127,19 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 						this.coreID));
 	}
 	
-	private int performTLBLookup(long address)
+	private int performITLBLookup(long address)
 	{
-		boolean TLBHit=TLBuffer.searchTLBForPhyAddr(address);
-		int missPenalty=0;
-		if(!TLBHit){
-			missPenalty =TLBuffer.getMemoryPenalty();
+		boolean tLBHit = iTLB.searchTLBForPhyAddr(address);
+		int missPenalty = 0;
+		if(!tLBHit){
+			missPenalty = iTLB.getMemoryPenalty();
 		}
+		
 		return missPenalty;
 	}
 
 	@Override
-public void handleEvent(EventQueue eventQ, Event event) {
+	public void handleEvent(EventQueue eventQ, Event event) {
 		
 		//handle memory response
 		

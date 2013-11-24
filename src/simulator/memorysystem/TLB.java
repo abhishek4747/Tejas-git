@@ -20,6 +20,8 @@
 *****************************************************************************/
 package memorysystem;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 import generic.*;
@@ -208,5 +210,10 @@ public class TLB extends SimulationElement
 		} else {
 			misc.Error.showErrorAndExit("Invalid event sent to TLB : " + event);
 		}
+	}
+	
+	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		return 0; 
 	}
 }

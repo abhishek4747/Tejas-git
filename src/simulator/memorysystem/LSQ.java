@@ -20,6 +20,9 @@
 *****************************************************************************/
 package memorysystem;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import memorysystem.LSQEntry.LSQEntryType;
 import pipeline.outoforder.OutOrderCoreMemorySystem;
 import pipeline.outoforder.ReorderBufferEntry;
@@ -308,7 +311,7 @@ public class LSQ extends SimulationElement
 		LSQEntry lsqEntry = ((LSQEntryContainingEvent)(event)).getLsqEntry();
 		long virtualAddr = lsqEntry.getAddr();
 		
-		if (this.containingMemSys.TLBuffer.searchTLBForPhyAddr(virtualAddr))
+		if (this.containingMemSys.dTLB.searchTLBForPhyAddr(virtualAddr))
 		{
 			this.handleAddrValidate(eventQ, event);
 		}
@@ -320,7 +323,7 @@ public class LSQ extends SimulationElement
 			this.getPort().put(
 					event.update(
 							eventQ,
-							this.containingMemSys.TLBuffer.getMemoryPenalty(),
+							this.containingMemSys.dTLB.getMemoryPenalty(),
 							null,
 							this,
 							RequestType.Validate_LSQ_Addr));
@@ -489,5 +492,10 @@ public class LSQ extends SimulationElement
 				break;
 			}
 		}
+	}
+	
+	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		return 0; 
 	}
 }

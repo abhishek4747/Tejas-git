@@ -1,5 +1,7 @@
 package generic;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Vector;
 
 import memorysystem.AddressCarryingEvent;
@@ -24,11 +26,13 @@ import pipeline.branchpredictor.PerfectPredictor;
 import pipeline.branchpredictor.TournamentPredictor;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
+import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
 import power.Counters;
 import config.BranchPredictorConfig.BP;
 import config.CoreConfig;
+import config.PipelineType;
 import config.SimulationConfig;
 import config.SystemConfig;
 
@@ -51,8 +55,14 @@ public class Core extends SimulationElement implements NocInterface{
 	public EventQueue eventQueue;
 	public int currentThreads;
 	
-	public boolean isPipelineStatistical = SimulationConfig.isPipelineStatistical;
-	public boolean isPipelineInorder = SimulationConfig.isPipelineInorder;
+	public boolean isPipelineInOrder() {
+		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.inOrder);
+	}
+	
+	public boolean isPipelineOutOfOrder() {
+		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.outOfOrder);
+	}
+	
 
 	//core parameters
 	private int decodeWidth;
@@ -113,10 +123,14 @@ public class Core extends SimulationElement implements NocInterface{
 		this.no_of_threads = no_of_threads;
 		this.threadIDs = threadIDs;
 		this.currentThreads =0;
-		if(this.isPipelineInorder)
+		if(this.isPipelineInOrder()) {
 			this.execEngine = new MultiIssueInorderExecutionEngine(this, issueWidth);
-		else
+		} else if (isPipelineOutOfOrder()){
 			this.execEngine = new OutOrderExecutionEngine(this);
+		} else {
+			misc.Error.showErrorAndExit("pipeline type not identified : " + 
+				SystemConfig.core[core_number].pipelineType);
+		}
 		
 		if(SystemConfig.branchPredictor.predictorMode == BP.NoPredictor)
 			this.branchPredictor = new NoPredictor();
@@ -151,10 +165,16 @@ public class Core extends SimulationElement implements NocInterface{
 		
 		this.noOfInstructionsExecuted = 0;
 		this.numReturns=0;
-		if(this.isPipelineInorder)
+		
+		if(isPipelineInOrder()) {
 			this.pipelineInterface = new MultiIssueInorderPipeline(this, eventQueue);
-		else
+		} else if (isPipelineOutOfOrder()) {
 			this.pipelineInterface = new OutOfOrderPipeline(this, eventQueue);
+		} else {
+			misc.Error.showErrorAndExit("pipeline type not identified : " + 
+				SystemConfig.core[core_number].pipelineType);
+		}
+		
 		this.powerCounters = new Counters();
 	}
 	public void setCoreBcastBus(CoreBcastBus coreBcastBus){
@@ -558,5 +578,27 @@ public class Core extends SimulationElement implements NocInterface{
 																		sourceId,destinationId);
 			this.getRouter().getPort().put(addressEvent);
 		}
+	}
+	
+	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		// --------- Core Memory System -------------------------
+		double iCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		double iTLBPower =  this.execEngine.getCoreMemorySystem().getiTLB().calculateAndPrintPower(outputFileWriter, componentName + ".iTLB");
+		
+		double dCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".dCache");
+		double dTLBPower =  this.execEngine.getCoreMemorySystem().getdTLB().calculateAndPrintPower(outputFileWriter, componentName + ".dTLB");
+		
+		double lsqPower =  this.execEngine.getCoreMemorySystem().getLsqueue().calculateAndPrintPower(outputFileWriter, componentName + ".LSQ");
+		
+		// -------- Pipeline -----------------------------------
+		double  
+		
+		
+		double totalPower = iCachePower + iTLBPower + dCachePower + dTLBPower + lsqPower;
+		
+		outputFileWriter.write(componentName + " : " + totalPower);
+		
+		return totalPower;
 	}
 }

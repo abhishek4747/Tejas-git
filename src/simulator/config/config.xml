@@ -23,7 +23,7 @@
 		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
 		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
 		<PinTool>/mnt/srishtistr0/home/anuj/PIN</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
 		<ShmLibDirectory>/mnt/srishtistr0/home/anuj/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
 	</Emulator>
@@ -36,7 +36,6 @@
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
 		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
-		<PipelineType>1</PipelineType>	<!--1 => Inorder (<IssueWidth> used to specify pipeline width) ; 2 => OutofOrder-->
 		<InstructionsFilename>/mnt/srishtistr0/home/nitingupta/workspace/TejasQemuTraces/linux_iozone_trace</InstructionsFilename><!-- The file in which instructions are written -->
 		<numInstructionsToBeWritten>1000000</numInstructionsToBeWritten>
 		<writeToFile>false</writeToFile>
@@ -55,14 +54,26 @@
 	<!--System Parameters-->
 	<System>
 		<NoOfCores>4</NoOfCores>				<!--(!!!Not used!!!) Number of cores in the simulated system-->
-		<MainMemoryLatency>200</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
-		<MainMemoryFrequency>3600</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
-		<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-		<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
-		<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
+		
+		<MainMemory>
+			<MainMemoryLatency>200</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
+			<MainMemoryFrequency>3600</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
+			<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
+			<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
+			<LeakagePower>0.0067</LeakagePower>
+			<DynamicPower>0.2886</DynamicPower>
+		</MainMemory>
+		
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
-	
-	<!--Directory Access Latencies. Need to be removed when merged with NoC-->
+		
+		<GlobalClock>
+			<Frequency>3200</Frequency> <!---in MHz---->
+			<LeakagePower>0.0067</LeakagePower>
+			<DynamicPower>0.2886</DynamicPower>
+		</GlobalClock>
+			
+		<!--Directory Access Latencies. Need to be removed when merged with NoC-->
 		<directoryAccessLatency>2</directoryAccessLatency>
 		<memWBDelay>200</memWBDelay>
 		<dataTransferDelay>3</dataTransferDelay>
@@ -74,50 +85,138 @@
 		<!--Core Parameters-->
 		<Core>
 			<CoreFrequency>3600</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
-
-			<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
-			<LSQLatency>0</LSQLatency>			<!--In clock cycles-->
-			<LSQPortType>UL</LSQPortType>			<!--Type of access ports in the LSQ (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
-			<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
-			<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
-
-			<TLBSize>128</TLBSize>				<!--Maximum number of entries in the TLB-->
-			<TLBLatency>4</TLBLatency>			<!--In clock cycles-->
-			<TLBMissPenalty>10</TLBMissPenalty>			<!--In clock cycles-->
-			<TLBPortType>UL</TLBPortType>			<!--Type of access ports in the TLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<TLBAccessPorts>-1</TLBAccessPorts>		<!--Number of access ports in the TLB-->
-			<TLBPortOccupancy>-1</TLBPortOccupancy>		<!--The occupancy of the TLB ports (in clock cycles)-->
+			<PipelineType>inOrder</PipelineType>	<inOrder,outOfOrder(set issue width for multi-issue in-order)-->
 			
-			<DecodeWidth>4</DecodeWidth>			<!--Instruction decode width-->
-			<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
-			<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
-			<ROBSize>168</ROBSize>				<!--Maximum number of entries in the ROB-->
-			<IWSize>54</IWSize>				<!--Maximum number of entries in the Instruction Window-->
-			<IntRegFileSize>160</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
-			<FloatRegFileSize>144</FloatRegFileSize>		<!--Maximum number of entries in the Floating point register file-->
-			<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
-			<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
-			<MSRegNum>64</MSRegNum>				<!--Number of machine specific registers-->
+			<LSQ>
+				<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
+				<LSQLatency>0</LSQLatency>			<!--In clock cycles-->
+				<LSQPortType>UL</LSQPortType>			<!--Type of access ports in the LSQ (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+				<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
+				<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
+				<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
+				<LeakagePower>0.0067</LeakagePower>
+				<DynamicPower>0.2886</DynamicPower>
+			</LSQ>
+
+			<ITLB>
+				<Size>128</Size>				<!--Maximum number of entries in the ITLB-->
+				<Latency>4</Latency>			<!--In clock cycles-->
+				<MissPenalty>10</MissPenalty>			<!--In clock cycles-->
+				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
+				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
+				<LeakagePower>0.0067</LeakagePower>
+				<DynamicPower>0.2886</DynamicPower>
+			</ITLB>
+			
+			<DTLB>
+				<Size>128</Size>				<!--Maximum number of entries in the DTLB-->
+				<Latency>4</Latency>			<!--In clock cycles-->
+				<MissPenalty>10</MissPenalty>			<!--In clock cycles-->
+				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
+				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
+				<LeakagePower>0.0067</LeakagePower>
+				<DynamicPower>0.2886</DynamicPower>
+			</DTLB>
+			
+			<Decode>								<!--Instruction decode-->
+				<Width>4</Width>			
+				<LeakagePower>0.2032</LeakagePower>
+				<DynamicPower>0.4722</DynamicPower>
+			</Decode>
+			
+			<Rename>
+				<RAT>
+					<Integer>
+						<LeakagePower>0.0067</LeakagePower>
+						<DynamicPower>0.2886</DynamicPower>
+					</Integer>
+					<Float>
+						<LeakagePower>0.0026</LeakagePower>
+						<DynamicPower>0.1195</DynamicPower>
+					</Float>
+				</RAT>
+				<FreeList>
+					<Integer>
+						<LeakagePower>0.0027</LeakagePower>
+						<DynamicPower>0.0316</DynamicPower>
+					</Integer>
+					<Float>
+						<LeakagePower>0.0042</LeakagePower>
+						<DynamicPower>0.0243</DynamicPower>
+					</Float>
+				</FreeList>
+			</Rename>
+			
+			<InstructionWindow>
+				<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
+				<IWSize>54</IWSize>				<!--Maximum number of entries in the Instruction Window-->
+				<LeakagePower>0.0042</LeakagePower>
+				<DynamicPower>0.0243</DynamicPower>
+			<InstructionWindow>
+			
+			<ROB>
+				<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
+				<ROBSize>168</ROBSize>				<!--Maximum number of entries in the ROB-->
+				<LeakagePower>0.0042</LeakagePower>
+				<DynamicPower>0.0243</DynamicPower>
+			</ROB>
+
+			<RegisterFile>
+				<Integer>
+					<IntRegFileSize>160</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
+					<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
+					<LeakagePower>0.0042</LeakagePower>
+					<DynamicPower>0.0243</DynamicPower>
+				<Integer>
+				
+				<Float>
+					<FloatRegFileSize>144</FloatRegFileSize>		<!--Maximum number of entries in the Floating point register file-->
+					<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
+					<LeakagePower>0.0042</LeakagePower>
+					<DynamicPower>0.0243</DynamicPower>
+				</Float>
+				
+				<MSRegNum>64</MSRegNum>				<!--Number of machine specific registers-->
+			</RegisterFile>
+			
 			<!-- TODO register file ports not implemented --> 
 			<RegFilePortType>UL</RegFilePortType>		<!--Type of access ports in the Reg File (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<RegFilePorts>4</RegFilePorts>			<!--Number of ports in the register file-->
 			<RegFileOccupancy>1</RegFileOccupancy>		<!--Occupancy of the register file ports (in clock cycles)-->
-			<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->
-	
-			<IntALUNum>4</IntALUNum>			<!--Number of Integer ALUs-->
-			<IntMulNum>1</IntMulNum>			<!--Number of Integer Multipliers-->
-			<IntDivNum>1</IntDivNum>			<!--Number of Integer Dividers-->
-			<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
-			<FloatMulNum>1</FloatMulNum>			<!--Number of Floating Point Multipliers-->
-			<FloatDivNum>1</FloatDivNum>			<!--Number of Floating Point Dividers-->
+				
+			<IntALU>
+				<IntALUNum>4</IntALUNum>			<!--Number of Integer ALUs-->
+				<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
+				<LeakagePower>0.0042</LeakagePower>
+				<DynamicPower>0.0243</DynamicPower>			
+			<IntALU>
 			
-			<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
-			<IntMulLatency>2</IntMulLatency>		<!--Latency of Integer Multipliers-->
-			<IntDivLatency>4</IntDivLatency>		<!--Latency of Integer Dividers-->
-			<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
-			<FloatMulLatency>4</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
-			<FloatDivLatency>8</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
+			<FloatALU>
+				<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
+				<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
+				<LeakagePower>0.0042</LeakagePower>
+				<DynamicPower>0.0243</DynamicPower>			
+			</FloatALU>
+			
+			<ComplexALU>
+				<IntMulNum>1</IntMulNum>			<!--Number of Integer Multipliers-->
+				<IntDivNum>1</IntDivNum>			<!--Number of Integer Dividers-->
+				<FloatMulNum>1</FloatMulNum>			<!--Number of Floating Point Multipliers-->
+				<FloatDivNum>1</FloatDivNum>			<!--Number of Floating Point Dividers-->
+				<IntMulLatency>2</IntMulLatency>		<!--Latency of Integer Multipliers-->
+				<IntDivLatency>4</IntDivLatency>		<!--Latency of Integer Dividers-->
+				<FloatMulLatency>4</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
+				<FloatDivLatency>8</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
+				<LeakagePower>0.0042</LeakagePower>
+				<DynamicPower>0.0243</DynamicPower>
+			</ComplexALU>
+			
+			<ResultsBroadcastBus>
+				<LeakagePower>0.0042</LeakagePower>
+				<DynamicPower>0.0243</DynamicPower>
+			</ResultsBroadcastBus>
 			
 			<TreeBarrier>false</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
 			<BarrierLatency>2</BarrierLatency>
@@ -128,12 +227,17 @@
 			<!--L2Cache type = "Type2"/-->
 			<!--L3Cache type = "Type3"/-->
 		</Core>
-		<Predictor>
+		
+		<BranchPredictor>
 			<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
 			<PCBits>4</PCBits>
 			<BHRsize>4</BHRsize>
-			<saturating_bits>1</saturating_bits>
-		</Predictor>
+			<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->
+			<SaturatingBits>1</SaturatingBits>
+			<LeakagePower>0.0604</LeakagePower>
+			<DynamicPower>0.063</DynamicPower>
+		</BranchPredictor>
+		
 		<NOC>
 			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->
 			<L2>
@@ -153,7 +257,11 @@
 				<TechPoint>90</TechPoint>
 				<NocConnection>ELECTRICAL</NocConnection>
 			</L2>
+			
+			<LeakagePower>0.0042</LeakagePower>
+			<DynamicPower>0.0243</DynamicPower>
 		</NOC>
+		
 		<Directory>
 		<Type0>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -171,8 +279,9 @@
 			<MSHRSize>2</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<LeakagePower>0.0042</LeakagePower>
+			<DynamicPower>0.0243</DynamicPower>
 		</Type0>
-
 		</Directory>
 		
 		<!--Specify the caches other than the L1 caches after this-->
@@ -199,6 +308,9 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<LeakagePower>0.0067</LeakagePower>
+			<ReadDynamicPower>0.2886</ReadDynamicPower>
+			<WriteDynamicPower>0.2886</WriteDynamicPower>
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -216,6 +328,9 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<LeakagePower>0.0067</LeakagePower>
+			<ReadDynamicPower>0.2886</ReadDynamicPower>
+			<WriteDynamicPower>0.2886</WriteDynamicPower>
 		</Type1>
 		<Type2>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -232,7 +347,10 @@
 			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
-			<Nuca>D</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>D</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->			
+			<LeakagePower>0.0067</LeakagePower>
+			<ReadDynamicPower>0.2886</ReadDynamicPower>
+			<WriteDynamicPower>0.2886</WriteDynamicPower>
 		</Type2>
 		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -250,6 +368,9 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<LeakagePower>0.0067</LeakagePower>
+			<ReadDynamicPower>0.2886</ReadDynamicPower>
+			<WriteDynamicPower>0.2886</WriteDynamicPower>
 		</Type3>
 	</Library>
 	<Power>

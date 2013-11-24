@@ -28,7 +28,7 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 //		System.out.println("dataCache : " + address);
 		MultiIssueInorderPipeline inorderPipeline = (MultiIssueInorderPipeline)core.getPipelineInterface();
 
-		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
+		int tlbMissPenalty = performDTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 																	 l1Cache.getLatencyDelay() + tlbMissPenalty,
@@ -61,7 +61,7 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 //		System.out.println("iCache : " + address);
 		MultiIssueInorderPipeline inorderPipeline = (MultiIssueInorderPipeline)core.getPipelineInterface();
 		
-		int tlbMissPenalty = performTLBLookup(address, inorderPipeline);
+		int tlbMissPenalty = performITLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 				 iCache.getLatencyDelay() + tlbMissPenalty,
@@ -83,12 +83,22 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		}
 	}
 	
-	private int performTLBLookup(long address, MultiIssueInorderPipeline inorderPipeline)
+	private int performITLBLookup(long address, MultiIssueInorderPipeline inorderPipeline)
 	{
-		boolean TLBHit=TLBuffer.searchTLBForPhyAddr(address);
-		int missPenalty=0;
-		if(!TLBHit){
-			missPenalty =TLBuffer.getMemoryPenalty();
+		boolean tLBHit = iTLB.searchTLBForPhyAddr(address);
+		int missPenalty = 0;
+		if(!tLBHit){
+			missPenalty = iTLB.getMemoryPenalty();
+		}
+		return missPenalty;
+	}
+	
+	private int performDTLBLookup(long address, MultiIssueInorderPipeline inorderPipeline)
+	{
+		boolean tLBHit = dTLB.searchTLBForPhyAddr(address);
+		int missPenalty = 0;
+		if(!tLBHit){
+			missPenalty = dTLB.getMemoryPenalty();
 		}
 		return missPenalty;
 	}

@@ -1,5 +1,6 @@
 package generic;
 
+import java.io.FileWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -239,5 +240,9 @@ public class GlobalClock {
 	public static void setStepSize(int stepSize) {
 		GlobalClock.stepSize = stepSize;
 	}
-
+	
+	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName)
+	{
+		return 0; 
+	}
 }

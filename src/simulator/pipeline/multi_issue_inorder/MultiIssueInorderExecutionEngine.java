@@ -168,15 +168,19 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		Statistics.setNoOfMemRequests(getNoOfMemRequests(), core.getCore_number());
 		Statistics.setNoOfLoads(getNoOfLd(), core.getCore_number());
 		Statistics.setNoOfStores(getNoOfSt(), core.getCore_number());
-		Statistics.setNoOfTLBRequests(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
-		Statistics.setNoOfTLBHits(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
-		Statistics.setNoOfTLBMisses(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
+		
+//		Statistics.setNoOfTLBRequests(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
+//		Statistics.setNoOfTLBHits(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
+//		Statistics.setNoOfTLBMisses(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
+		
 		Statistics.setNoOfL1Requests(multiIssueInorderCoreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
 		Statistics.setNoOfL1Hits(multiIssueInorderCoreMemorySystem.getL1Cache().hits, core.getCore_number());
 		Statistics.setNoOfL1Misses(multiIssueInorderCoreMemorySystem.getL1Cache().misses, core.getCore_number());
-		Statistics.setNoOfIRequests(multiIssueInorderCoreMemorySystem.getiCache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfIHits(multiIssueInorderCoreMemorySystem.getiCache().hits, core.getCore_number());
-		Statistics.setNoOfIMisses(multiIssueInorderCoreMemorySystem.getiCache().misses, core.getCore_number());
+		
+//		Statistics.setNoOfIRequests(multiIssueInorderCoreMemorySystem.getiCache().noOfRequests, core.getCore_number());
+//		Statistics.setNoOfIHits(multiIssueInorderCoreMemorySystem.getiCache().hits, core.getCore_number());
+//		Statistics.setNoOfIMisses(multiIssueInorderCoreMemorySystem.getiCache().misses, core.getCore_number());
+		
 		Statistics.setBranchCount(decodeUnitIn.getNumBranches(), core.getCore_number());
 		Statistics.setMispredictedBranchCount(decodeUnitIn.getNumMispredictedBranches(), core.getCore_number());
 	}

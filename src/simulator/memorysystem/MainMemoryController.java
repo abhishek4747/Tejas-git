@@ -1,5 +1,6 @@
 package memorysystem;
 
+import java.io.FileWriter;
 import java.util.Vector;
 
 import memorysystem.nuca.NucaCacheBank;
@@ -16,6 +17,7 @@ public class MainMemoryController extends SimulationElement
 	NucaType nucaType;
 	public int numberOfMemoryControllers;
 	public int[] mainmemoryControllersLocations;
+	
 	public MainMemoryController(NucaType nucaType) {
 		super(SystemConfig.mainMemPortType,
 				SystemConfig.mainMemoryAccessPorts,
@@ -25,6 +27,7 @@ public class MainMemoryController extends SimulationElement
 				);
 		this.nucaType = nucaType;
 	}
+	
 	public MainMemoryController() {
 		super(PortType.Unlimited,
 				-1, 
@@ -33,6 +36,7 @@ public class MainMemoryController extends SimulationElement
 				3600);
 		this.nucaType = NucaType.NONE;
 	}
+	
 	public MainMemoryController(int[] memoryControllersLocations, NucaType nucaType) 
 	{
 		super(PortType.Unlimited,
@@ -44,6 +48,7 @@ public class MainMemoryController extends SimulationElement
 		this.numberOfMemoryControllers = memoryControllersLocations.length;
 		this.mainmemoryControllersLocations = memoryControllersLocations;
 	}
+	
 	public void handleEvent(EventQueue eventQ, Event event)
 	{
 		if (event.getRequestType() == RequestType.Main_Mem_Read)
@@ -98,5 +103,10 @@ public class MainMemoryController extends SimulationElement
 		{
 			//Just to tell the requesting things that the write is completed
 		}
+	}
+	
+	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName)
+	{
+		return 0; 
 	}
 }

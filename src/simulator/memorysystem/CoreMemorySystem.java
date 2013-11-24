@@ -34,7 +34,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 	protected Core core;
 	protected Cache iCache;
 	protected Cache l1Cache;
-	protected TLB TLBuffer;
+	protected TLB iTLB;
+	protected TLB dTLB;
 	protected LSQ lsqueue;
 		
 	protected CoreMemorySystem(Core core)
@@ -82,13 +83,21 @@ public abstract class CoreMemorySystem extends SimulationElement
 		
 		//Initialise the TLB
 		int numPageLevels = 2;
-		TLBuffer = new TLB(SystemConfig.core[coreID].TLBPortType,
-							SystemConfig.core[coreID].TLBAccessPorts, 
-							SystemConfig.core[coreID].TLBPortOccupancy, 
-							SystemConfig.core[coreID].TLBLatency,
+		iTLB = new TLB(SystemConfig.core[coreID].ITLBPortType,
+							SystemConfig.core[coreID].ITLBAccessPorts, 
+							SystemConfig.core[coreID].ITLBPortOccupancy, 
+							SystemConfig.core[coreID].ITLBLatency,
 							this,
-							SystemConfig.core[coreID].TLBSize,
+							SystemConfig.core[coreID].ITLBSize,
 							SystemConfig.mainMemoryLatency * numPageLevels);
+		
+		dTLB = new TLB(SystemConfig.core[coreID].DTLBPortType,
+				SystemConfig.core[coreID].DTLBAccessPorts, 
+				SystemConfig.core[coreID].DTLBPortOccupancy, 
+				SystemConfig.core[coreID].DTLBLatency,
+				this,
+				SystemConfig.core[coreID].DTLBSize,
+				SystemConfig.mainMemoryLatency * numPageLevels);
 		
 		//Initialise the LSQ
 		lsqueue = new LSQ(SystemConfig.core[coreID].LSQPortType,
@@ -112,8 +121,12 @@ public abstract class CoreMemorySystem extends SimulationElement
 		return l1Cache;
 	}
 
-	public TLB getTLBuffer() {
-		return TLBuffer;
+	public TLB getiTLB() {
+		return iTLB;
+	}
+	
+	public TLB getdTLB() {
+		return dTLB;
 	}
 
 	public Cache getiCache() {
