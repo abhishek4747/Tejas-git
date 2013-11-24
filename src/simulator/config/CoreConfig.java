@@ -90,5 +90,22 @@ public class CoreConfig
 
 	public int barrierLatency;
 	public int barrierUnit;
-
+	
+	public PowerConfigNew bPredPower = new PowerConfigNew();
+	public PowerConfigNew decodePower = new PowerConfigNew();
+	public PowerConfigNew intRATPower = new PowerConfigNew();
+	public PowerConfigNew fpRATPower = new PowerConfigNew();
+	public PowerConfigNew intFreeListPower = new PowerConfigNew();
+	public PowerConfigNew fpFreeListPower = new PowerConfigNew();
+	public PowerConfigNew lsqPower = new PowerConfigNew();
+	public PowerConfigNew intRegFilePower = new PowerConfigNew();
+	public PowerConfigNew fpRegFilePower = new PowerConfigNew();
+	public PowerConfigNew iwPower = new PowerConfigNew();
+	public PowerConfigNew robPower = new PowerConfigNew();
+	public PowerConfigNew intALUPower = new PowerConfigNew();
+	public PowerConfigNew floatALUPower = new PowerConfigNew();
+	public PowerConfigNew complexALUPower = new PowerConfigNew();
+	public PowerConfigNew resultsBroadcastBusPower = new PowerConfigNew();
+	public PowerConfigNew iTLBPower = new PowerConfigNew();
+	public PowerConfigNew dTLBPower = new PowerConfigNew();
 }

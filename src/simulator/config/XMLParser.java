@@ -41,6 +41,8 @@ import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
+import com.sun.org.apache.bcel.internal.generic.GETSTATIC;
+
 import config.BranchPredictorConfig.*;
 
 import power.PowerConfig;
@@ -263,6 +265,14 @@ public class XMLParser
 		SimulationConfig.numInsForTrace = Long.parseLong(getImmediateString("NumInsForTrace", simulationElmnt));
 		SimulationConfig.numCyclesForTrace = Long.parseLong(getImmediateString("NumCyclesForTrace", simulationElmnt));
 
+	}
+	
+	PowerConfigNew getPowerConfig(Element parent)
+	{
+		PowerConfigNew powerConfig = new PowerConfigNew();
+		powerConfig.leakagePower = Double.parseDouble(getImmediateString("Leakage", parent));
+		powerConfig.dynamicPower = Double.parseDouble(getImmediateString("Dynamic", parent));
+		return powerConfig;
 	}
 	
 	private static void setSystemParameters()

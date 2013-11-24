@@ -51,7 +51,8 @@ public class CacheConfig
 //	public int numberOfBankRows;
 	public int mshrSize;
 	public NucaType nucaType;
-
+	
+	public PowerConfigNew power = new PowerConfigNew();
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
