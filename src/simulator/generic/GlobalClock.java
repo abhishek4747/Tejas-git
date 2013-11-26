@@ -1,6 +1,7 @@
 package generic;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -8,6 +9,7 @@ import memorysystem.CoreMemorySystem;
 
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
+import config.PowerConfigNew;
 import config.SystemConfig;
 
 public class GlobalClock {
@@ -241,8 +243,15 @@ public class GlobalClock {
 		GlobalClock.stepSize = stepSize;
 	}
 	
-	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName)
+	public static PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		return 0; 
+		double leakagePower = SystemConfig.globalClockPower.leakagePower;
+		double dynamicPower = SystemConfig.globalClockPower.dynamicPower;
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower);
+		
+		power.printPowerStats(outputFileWriter, componentName);
+		
+		return power;
 	}
 }

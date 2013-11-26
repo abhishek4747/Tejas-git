@@ -68,7 +68,6 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 						{					
 							containingExecutionEngine.setTimingStatistics();			
 							containingExecutionEngine.setPerCoreMemorySystemStatistics();
-							containingExecutionEngine.setPerCorePowerStatistics();
 						}
 						else
 						{
@@ -169,9 +168,8 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 																floatDynamicPower * floatActivityFactor);
 		totalPower.add(totalPower, floatRegFilePower);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
-		outputFileWriter.write("\n int reg file :\n" + intRegFilePower + "\n");
-		outputFileWriter.write("\n float reg file :\n" + floatRegFilePower + "\n");
+		intRegFilePower.printPowerStats(outputFileWriter, componentName + ".int");
+		floatRegFilePower.printPowerStats(outputFileWriter, componentName + ".float");
 		
 		return totalPower;
 	}

@@ -269,9 +269,10 @@ public class XMLParser
 	
 	private static PowerConfigNew getPowerConfig(Element parent)
 	{
-		PowerConfigNew powerConfig = new PowerConfigNew();
-		powerConfig.leakagePower = Double.parseDouble(getImmediateString("LeakagePower", parent));
-		powerConfig.dynamicPower = Double.parseDouble(getImmediateString("DynamicPower", parent));
+		double leakagePower = Double.parseDouble(getImmediateString("LeakagePower", parent));
+		double dynamicPower = Double.parseDouble(getImmediateString("DynamicPower", parent));
+		
+		PowerConfigNew powerConfig = new PowerConfigNew(leakagePower, dynamicPower);
 		return powerConfig;
 	}
 	
@@ -300,6 +301,13 @@ public class XMLParser
 		SystemConfig.mainMemPortType = setPortType(getImmediateString("MainMemoryPortType", systemElmnt));
 		SystemConfig.mainMemoryAccessPorts = Integer.parseInt(getImmediateString("MainMemoryAccessPorts", systemElmnt));
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
+		
+		Element mainMemElmnt = (Element)(systemElmnt.getElementsByTagName("MainMemory")).item(0);
+		SystemConfig.mainMemoryControllerPower = getPowerConfig(mainMemElmnt);
+		
+		Element globalClockElmnt = (Element)(systemElmnt.getElementsByTagName("GlobalClock")).item(0);
+		SystemConfig.globalClockPower = getPowerConfig(globalClockElmnt);
+		
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 
 		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
@@ -485,6 +493,7 @@ public class XMLParser
 		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
 		Element dirElmnt = (Element) dirLst.item(0);
 		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
+		SystemConfig.directoryConfig.power = getCachePowerConfig(dirElmnt);
 		
 		//Code for remaining Cache configurations
 		NodeList cacheLst = systemElmnt.getElementsByTagName("Cache");
@@ -511,8 +520,10 @@ public class XMLParser
 		//set NOC Parameters
 		SystemConfig.nocConfig = new NocConfig();
 		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
-		Element NocElmnt = (Element) NocLst.item(0);
-		setNocProperties(NocElmnt, SystemConfig.nocConfig);
+		Element nocElmnt = (Element) NocLst.item(0);
+		SystemConfig.nocConfig.power = getPowerConfig(nocElmnt);
+		setNocProperties(nocElmnt, SystemConfig.nocConfig);
+		
 	}
 
 	private static void setNocProperties(Element NocType, NocConfig nocConfig)

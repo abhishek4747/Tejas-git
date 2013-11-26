@@ -1,5 +1,8 @@
 package config;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class PowerConfigNew {
 	public double leakagePower;
 	public double dynamicPower;
@@ -20,5 +23,16 @@ public class PowerConfigNew {
 	{
 		leakagePower = a.leakagePower + b.leakagePower;
 		dynamicPower = a.dynamicPower + b.dynamicPower;
+	}
+	
+	public void add(PowerConfigNew a)
+	{
+		leakagePower += a.leakagePower;
+		dynamicPower += a.dynamicPower;
+	}
+
+	public void printPowerStats(FileWriter outputFileWriter, String componentName) throws IOException {
+		outputFileWriter.write(componentName + "\tLeakage = " + leakagePower + "\tDynamic = " + dynamicPower 
+				+ "\tTotal = " + (leakagePower + dynamicPower) + "\n");
 	}
 }

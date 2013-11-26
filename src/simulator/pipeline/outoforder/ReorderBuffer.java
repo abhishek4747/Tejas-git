@@ -176,7 +176,6 @@ public class ReorderBuffer extends SimulationElement{
 						{
 							setTimingStatistics();
 							setPerCoreMemorySystemStatistics();
-							setPerCorePowerStatistics();
 						}
 						else
 						{
@@ -421,13 +420,6 @@ public class ReorderBuffer extends SimulationElement{
 		System.out.println("numWritesForwarded = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesForwarded );
 	}
 
-	public void setPerCorePowerStatistics(){
-		//Clear access stats so that all counts can be transferred to total counts  
-		core.powerCounters.clearAccessStats();
-		core.powerCounters.updatePowerAfterCompletion(core.getCoreCyclesTaken());
-		Statistics.setPerCorePowerStatistics(core.powerCounters, core.getCore_number());
-	}
-	
 	public boolean isFull()
 	{
 		if((tail - head) == MaxROBSize - 1)
@@ -508,7 +500,7 @@ public class ReorderBuffer extends SimulationElement{
 		
 		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		power.printPowerStats(outputFileWriter, componentName);
 		
 		return power;
 	}

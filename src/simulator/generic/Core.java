@@ -86,12 +86,12 @@ public class Core extends SimulationElement implements NocInterface{
 	private PowerConfigNew bPredPower;
 	private PowerConfigNew decodePower;
 	private PowerConfigNew intRATPower;
-	private PowerConfigNew fpRATPower;
+	private PowerConfigNew floatRATPower;
 	private PowerConfigNew intFreeListPower;
-	private PowerConfigNew fpFreeListPower;
+	private PowerConfigNew floatFreeListPower;
 	private PowerConfigNew lsqPower;
 	private PowerConfigNew intRegFilePower;
-	private PowerConfigNew fpRegFilePower;
+	private PowerConfigNew floatRegFilePower;
 	private PowerConfigNew iwPower;
 	private PowerConfigNew robPower;
 	private PowerConfigNew intALUPower;
@@ -161,7 +161,32 @@ public class Core extends SimulationElement implements NocInterface{
 			misc.Error.showErrorAndExit("pipeline type not identified : " + 
 				SystemConfig.core[core_number].pipelineType);
 		}
+		
+		setPowerConfigs();
 	}
+	
+	private void setPowerConfigs()
+	{
+		CoreConfig coreConfig = SystemConfig.core[getCore_number()];
+		bPredPower = coreConfig.bPredPower;
+		decodePower = coreConfig.decodePower;
+		intRATPower = coreConfig.intRATPower;
+		floatRATPower = coreConfig.floatRATPower;
+		intFreeListPower = coreConfig.intFreeListPower;
+		floatFreeListPower = coreConfig.floatFreeListPower;
+		lsqPower = coreConfig.lsqPower;
+		intRegFilePower = coreConfig.intRegFilePower;
+		floatRegFilePower = coreConfig.floatRegFilePower;
+		iwPower = coreConfig.iwPower;
+		robPower = coreConfig.robPower;
+		intALUPower = coreConfig.intALUPower;
+		floatALUPower = coreConfig.floatALUPower;
+		complexALUPower = coreConfig.complexALUPower;
+		resultsBroadcastBusPower = coreConfig.resultsBroadcastBusPower;
+		iTLBPower = coreConfig.iTLBPower;
+		dTLBPower = coreConfig.dTLBPower;
+	}
+	
 	public void setCoreBcastBus(CoreBcastBus coreBcastBus){
 		this.coreBcastBus = coreBcastBus;
 	}
@@ -584,11 +609,11 @@ public class Core extends SimulationElement implements NocInterface{
 	}
 
 	public PowerConfigNew getFpRATPower() {
-		return fpRATPower;
+		return floatRATPower;
 	}
 
 	public void setFpRATPower(PowerConfigNew fpRATPower) {
-		this.fpRATPower = fpRATPower;
+		this.floatRATPower = fpRATPower;
 	}
 
 	public PowerConfigNew getIntFreeListPower() {
@@ -600,11 +625,11 @@ public class Core extends SimulationElement implements NocInterface{
 	}
 
 	public PowerConfigNew getFpFreeListPower() {
-		return fpFreeListPower;
+		return floatFreeListPower;
 	}
 
 	public void setFpFreeListPower(PowerConfigNew fpFreeListPower) {
-		this.fpFreeListPower = fpFreeListPower;
+		this.floatFreeListPower = fpFreeListPower;
 	}
 
 	public PowerConfigNew getLsqPower() {
@@ -624,11 +649,11 @@ public class Core extends SimulationElement implements NocInterface{
 	}
 
 	public PowerConfigNew getFpRegFilePower() {
-		return fpRegFilePower;
+		return floatRegFilePower;
 	}
 
 	public void setFpRegFilePower(PowerConfigNew fpRegFilePower) {
-		this.fpRegFilePower = fpRegFilePower;
+		this.floatRegFilePower = fpRegFilePower;
 	}
 
 	public PowerConfigNew getIwPower() {
@@ -699,22 +724,28 @@ public class Core extends SimulationElement implements NocInterface{
 	{
 		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
 		
+		if(coreCyclesTaken == 0)
+		{
+			return totalPower;
+		}
+		
 		// --------- Core Memory System -------------------------
 		PowerConfigNew iCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
 		totalPower.add(totalPower, iCachePower);
 		PowerConfigNew iTLBPower =  this.execEngine.getCoreMemorySystem().getiTLB().calculateAndPrintPower(outputFileWriter, componentName + ".iTLB");
 		totalPower.add(totalPower, iTLBPower);
 		
-		PowerConfigNew dCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".dCache");
+		PowerConfigNew dCachePower =  this.execEngine.getCoreMemorySystem().getL1Cache().calculateAndPrintPower(outputFileWriter, componentName + ".dCache");
 		totalPower.add(totalPower, dCachePower);
+		
 		PowerConfigNew dTLBPower =  this.execEngine.getCoreMemorySystem().getdTLB().calculateAndPrintPower(outputFileWriter, componentName + ".dTLB");
 		totalPower.add(totalPower, dTLBPower);
 		
 		// -------- Pipeline -----------------------------------
-		PowerConfigNew pipelinePower =  this.execEngine.calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		PowerConfigNew pipelinePower =  this.execEngine.calculateAndPrintPower(outputFileWriter, componentName + ".pipeline");
 		totalPower.add(totalPower, pipelinePower);
 		
-		outputFileWriter.write(componentName + " : " + totalPower);
+		totalPower.printPowerStats(outputFileWriter, componentName);
 		
 		return totalPower;
 	}

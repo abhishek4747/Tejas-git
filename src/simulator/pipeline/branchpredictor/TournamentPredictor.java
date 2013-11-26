@@ -24,6 +24,7 @@
 package pipeline.branchpredictor;
 
 import pipeline.ExecutionEngine;
+import config.CoreConfig;
 import config.SystemConfig;
 
 /**
@@ -56,14 +57,16 @@ public class TournamentPredictor extends BranchPredictor{
         {
         	super(containingExecEngine);
         	
+        	CoreConfig coreConfig = SystemConfig.core[containingExecEngine.getContainingCore().getCore_number()];
+        	
                 pred1=new PAgPredictor(containingExecutionEngine,
-                						SystemConfig.branchPredictor.PCBits,
-                						SystemConfig.branchPredictor.BHRsize,
-                						SystemConfig.branchPredictor.saturating_bits);
+                						coreConfig.branchPredictor.PCBits,
+                						coreConfig.branchPredictor.BHRsize,
+                						coreConfig.branchPredictor.saturating_bits);
                 pred2=new PApPredictor(containingExecutionEngine,
-                						SystemConfig.branchPredictor.PCBits,
-										SystemConfig.branchPredictor.BHRsize,
-										SystemConfig.branchPredictor.saturating_bits);
+                						coreConfig.branchPredictor.PCBits,
+										coreConfig.branchPredictor.BHRsize,
+										coreConfig.branchPredictor.saturating_bits);
                 counter=0;
         }
         /**

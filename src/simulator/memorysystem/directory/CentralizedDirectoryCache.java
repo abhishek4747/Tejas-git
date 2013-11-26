@@ -39,6 +39,7 @@ import java.util.Queue;
 import java.util.Vector;
 
 import config.CacheConfig;
+import config.CachePowerConfig;
 import config.PowerConfigNew;
 import config.SystemConfig;
 import main.ArchitecturalComponent;
@@ -68,7 +69,7 @@ public class CentralizedDirectoryCache extends Cache
 	private long timestamp=0;
 	public static int networkDelay;
 	
-	PowerConfigNew power;
+	CachePowerConfig power;
 	
 	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores, 
 			int networkDelay) 
@@ -711,14 +712,14 @@ public class CentralizedDirectoryCache extends Cache
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
 		double leakagePower = power.leakagePower;
-		double dynamicPower = power.dynamicPower;
+		double dynamicPower = power.readDynamicPower;
 		
 		double activityFactor = (double)((directoryHits + directoryMisses) * latency * stepSize)
 									/(double)Statistics.maxCoreCycles;
 		
 		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		power.printPowerStats(outputFileWriter, componentName);
 		
 		return power;
 	}

@@ -61,26 +61,20 @@
 			<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
 			<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
-			<LeakagePower>0.0067</LeakagePower>
+			<LeakagePower>0.1234</LeakagePower>
 			<DynamicPower>0.2886</DynamicPower>
 		</MainMemory>
 		
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
 		
 		<GlobalClock>
-			<Frequency>3200</Frequency> <!--in MHz-->
-			<LeakagePower>0.0067</LeakagePower>
+			<LeakagePower>0.3456</LeakagePower>
 			<DynamicPower>0.2886</DynamicPower>
 		</GlobalClock>
 			
 		<!--Directory Access Latencies. Need to be removed when merged with NoC-->
-		<directoryAccessLatency>2</directoryAccessLatency>
-		<memWBDelay>200</memWBDelay>
-		<dataTransferDelay>3</dataTransferDelay>
-		<invalidationSendDelay>3</invalidationSendDelay>
-		<invalidationAckCollectDelay>3</invalidationAckCollectDelay>
-		<ownershipChangeDelay>3</ownershipChangeDelay>
-		<dirNetworkDelay>1</dirNetworkDelay>
+		<DirectoryNew>
+		</DirectoryNew>
 
 		<!--Core Parameters-->
 		<Core>
@@ -257,25 +251,34 @@
 		</NOC>
 		
 		<Directory>
-		<Type0>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
-			<Associativity>8</Associativity>
-			<Size>64</Size>					<!--In KBs-->
-			<Latency>42</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>2</MSHRSize>
-			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.0042</LeakagePower>
-			<DynamicPower>0.0243</DynamicPower>
-		</Type0>
+			<Type0>
+				<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+				<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+				<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
+				<Associativity>8</Associativity>
+				<Size>64</Size>					<!--In KBs-->
+				<Latency>42</Latency>				<!--In clock cycles-->
+				<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+				<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
+				<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+				<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+				<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+				<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+				<MSHRSize>2</MSHRSize>
+				<BusOccupancy>0</BusOccupancy>
+				<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+				<LeakagePower>0.0042</LeakagePower>
+				<ReadDynamicPower>0.2886</ReadDynamicPower>
+				<WriteDynamicPower>0.2886</WriteDynamicPower>
+			</Type0>
+			
+			<directoryAccessLatency>2</directoryAccessLatency>
+			<memWBDelay>200</memWBDelay>
+			<dataTransferDelay>3</dataTransferDelay>
+			<invalidationSendDelay>3</invalidationSendDelay>
+			<invalidationAckCollectDelay>3</invalidationAckCollectDelay>
+			<ownershipChangeDelay>3</ownershipChangeDelay>
+			<dirNetworkDelay>1</dirNetworkDelay>
 		</Directory>
 		
 		<!--Specify the caches other than the L1 caches after this-->

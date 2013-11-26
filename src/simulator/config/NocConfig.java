@@ -88,5 +88,5 @@ public class NocConfig
 		return this.numberOfBankColumns;
 	}
 
-	public PowerConfigNew  power = new PowerConfigNew();
+	public PowerConfigNew  power;
 }

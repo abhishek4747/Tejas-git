@@ -3,6 +3,7 @@ package pipeline.outoforder;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import config.CoreConfig;
 import config.PowerConfigNew;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
@@ -275,28 +276,37 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	{
 		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
 		
-		PowerConfigNew bPredPower =  getBranchPredictor().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		PowerConfigNew bPredPower =  getBranchPredictor().calculateAndPrintPower(outputFileWriter, componentName + ".bPred");
 		totalPower.add(totalPower, bPredPower);
-		PowerConfigNew decodePower =  getDecoder().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew decodePower =  getDecoder().calculateAndPrintPower(outputFileWriter, componentName + ".decode");
 		totalPower.add(totalPower, decodePower);
-		PowerConfigNew renamePower =  getRenamer().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew renamePower =  getRenamer().calculateAndPrintPower(outputFileWriter, componentName + ".rename");
 		totalPower.add(totalPower, renamePower);
-		PowerConfigNew lsqPower =  getCoreMemorySystem().getLsqueue().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew lsqPower =  getCoreMemorySystem().getLsqueue().calculateAndPrintPower(outputFileWriter, componentName + ".LSQ");
 		totalPower.add(totalPower, lsqPower);
-		PowerConfigNew intRegFilePower =  getIntegerRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew intRegFilePower =  getIntegerRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".intRegFile");
 		totalPower.add(totalPower, intRegFilePower);
-		PowerConfigNew floatRegFilePower =  getFloatingPointRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew floatRegFilePower =  getFloatingPointRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".floatRegFile");
 		totalPower.add(totalPower, floatRegFilePower);
-		PowerConfigNew iwPower =  getInstructionWindow().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew iwPower =  getInstructionWindow().calculateAndPrintPower(outputFileWriter, componentName + ".InstrWindow");
 		totalPower.add(totalPower, iwPower);
-		PowerConfigNew robPower =  getReorderBuffer().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew robPower =  getReorderBuffer().calculateAndPrintPower(outputFileWriter, componentName + ".ROB");
 		totalPower.add(totalPower, robPower);
-		PowerConfigNew fuPower =  getFunctionalUnitSet().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew fuPower =  getFunctionalUnitSet().calculateAndPrintPower(outputFileWriter, componentName + ".FuncUnit");
 		totalPower.add(totalPower, fuPower);
-		PowerConfigNew resultsBroadcastBusPower =  getExecuter().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		
+		PowerConfigNew resultsBroadcastBusPower =  getExecuter().calculateAndPrintPower(outputFileWriter, componentName + ".resultsBroadcastBus");
 		totalPower.add(totalPower, resultsBroadcastBusPower);
 		
-		outputFileWriter.write(componentName + " : " + totalPower);
+		totalPower.printPowerStats(outputFileWriter, componentName);
 		
 		return totalPower;
 	}

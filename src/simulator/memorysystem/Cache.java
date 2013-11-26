@@ -32,6 +32,7 @@ import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
+import config.CachePowerConfig;
 import config.PowerConfigNew;
 import config.SimulationConfig;
 import misc.Util;
@@ -92,7 +93,7 @@ public class Cache extends SimulationElement
 		public boolean debug =false;
 		public NucaType nucaType;
 		
-		PowerConfigNew power;
+		CachePowerConfig power;
 		
 		public Cache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
 		{
@@ -1131,7 +1132,7 @@ public class Cache extends SimulationElement
 		public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 		{
 			double leakagePower = power.leakagePower;
-			double dynamicPower = power.dynamicPower;
+			double dynamicPower = power.readDynamicPower;
 			
 			double executionCycles;
 			if(containingMemSys != null)
@@ -1148,7 +1149,7 @@ public class Cache extends SimulationElement
 			
 			PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
 			
-			outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+			power.printPowerStats(outputFileWriter, componentName);
 			
 			return power;
 		}

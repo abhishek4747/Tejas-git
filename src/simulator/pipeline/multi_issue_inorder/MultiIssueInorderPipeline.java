@@ -43,7 +43,6 @@ public class MultiIssueInorderPipeline implements PipelineInterface{
 			decode();
 			fetch();
 
-			this.core.powerCounters.perCycleAccessRecordUpdate();
 //			if(this.containingExecutionEngine.getStallFetch()>0){
 //				this.containingExecutionEngine.decrementStallFetch(1); 
 //			}

@@ -106,7 +106,7 @@ public class RegisterFile extends SimulationElement{
 		PowerConfigNew totalPower = new PowerConfigNew(leakagePower,
 														dynamicPower * activityFactor);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
+		totalPower.printPowerStats(outputFileWriter, componentName);
 		
 		return totalPower;
 	}

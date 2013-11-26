@@ -214,15 +214,6 @@ public class DecodeUnit_MII extends SimulationElement{
 					return true;
 				}
 			}
-
-			else if(srcOpnd.isMachineSpecificRegisterOperand())
-			{
-				if(containingExecutionEngine.getValueReadyMSR()[(int)(srcOpnd.getValue())]
-																			> GlobalClock.getCurrentTime())
-				{
-					return true;
-				}
-			}
 		}
 		
 		//operand 2
@@ -248,15 +239,6 @@ public class DecodeUnit_MII extends SimulationElement{
 					return true;
 				}
 			}
-
-			else if(srcOpnd.isMachineSpecificRegisterOperand())
-			{
-				if(containingExecutionEngine.getValueReadyMSR()[(int)(srcOpnd.getValue())]
-																			> GlobalClock.getCurrentTime())
-				{
-					return true;
-				}
-			}
 		}
 		
 		return false;
@@ -273,12 +255,6 @@ public class DecodeUnit_MII extends SimulationElement{
 		else if(destOpnd.isFloatRegisterOperand())
 		{
 			containingExecutionEngine.getValueReadyFloat()[(int)(destOpnd.getValue())]
-																		 = timeWhenValueReady;
-		}
-
-		else if(destOpnd.isMachineSpecificRegisterOperand())
-		{
-			containingExecutionEngine.getValueReadyMSR()[(int)(destOpnd.getValue())]
 																		 = timeWhenValueReady;
 		}
 	}
@@ -315,7 +291,7 @@ public class DecodeUnit_MII extends SimulationElement{
 		
 		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		power.printPowerStats(outputFileWriter, componentName);
 		
 		return power;
 	}

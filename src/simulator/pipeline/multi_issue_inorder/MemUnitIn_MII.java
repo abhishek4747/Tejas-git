@@ -129,11 +129,6 @@ public class MemUnitIn_MII extends SimulationElement{
 					containingExecutionEngine.getValueReadyFloat()[(int)destOpnd.getValue()]
 							 												= GlobalClock.getCurrentTime();
 				}
-				else if(destOpnd.isMachineSpecificRegisterOperand())
-				{
-					containingExecutionEngine.getValueReadyMSR()[(int)destOpnd.getValue()]
-							 												= GlobalClock.getCurrentTime();
-				}
 			}
 		}
 	}

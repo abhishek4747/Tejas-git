@@ -143,10 +143,9 @@ public class FunctionalUnitSet {
 		PowerConfigNew power = new PowerConfigNew(intALUleakagePower + floatALUleakagePower + complexALUleakagePower,
 													intALUdynamicPower + floatALUdynamicPower + complexALUdynamicPower);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
-		outputFileWriter.write("\n intALU :\n" + intALUpower + "\n");
-		outputFileWriter.write("\n floatALU :\n" + floatALUpower + "\n");
-		outputFileWriter.write("\n complexALU :\n" + complexALUpower + "\n");
+		intALUpower.printPowerStats(outputFileWriter, componentName + ".intALU");
+		floatALUpower.printPowerStats(outputFileWriter, componentName + ".floatALU");
+		complexALUpower.printPowerStats(outputFileWriter, componentName + ".complexALU");
 		
 		return power;
 	}

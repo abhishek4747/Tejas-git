@@ -126,7 +126,7 @@ public class MainMemoryController extends SimulationElement
 		
 		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		power.printPowerStats(outputFileWriter, componentName);
 		
 		return power;
 	}

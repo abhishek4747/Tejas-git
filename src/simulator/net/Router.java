@@ -36,6 +36,7 @@ import config.NocConfig;
 import config.PowerConfigNew;
 import config.SystemConfig;
 
+import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.nuca.NucaCacheBank;
 
@@ -69,6 +70,8 @@ public class Router extends Switch{
 		this.neighbours= new Vector<Router>(4);
 		this.hopCounters = 0;
 		power = nocConfig.power;
+		
+		ArchitecturalComponent.addNOCRouter(this);
 	}
 	/***************************************************
 	 * Connects the banks
@@ -256,7 +259,7 @@ public class Router extends Switch{
 		
 		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		power.printPowerStats(outputFileWriter, componentName);
 		
 		return power;
 	}

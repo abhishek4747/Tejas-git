@@ -3,6 +3,7 @@ package pipeline;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import config.CoreConfig;
 import config.PowerConfigNew;
 import config.SystemConfig;
 import config.BranchPredictorConfig.BP;
@@ -40,35 +41,37 @@ public abstract class ExecutionEngine {
 		coreMemorySystem = null;
 		instructionMemStall=0;
 		
-		if(SystemConfig.branchPredictor.predictorMode == BP.NoPredictor)
+		CoreConfig coreConfig = SystemConfig.core[containingCore.getCore_number()];
+		
+		if(coreConfig.branchPredictor.predictorMode == BP.NoPredictor)
 			this.branchPredictor = new NoPredictor(this);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PerfectPredictor)
+		else if(coreConfig.branchPredictor.predictorMode == BP.PerfectPredictor)
 			this.branchPredictor = new PerfectPredictor(this);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysTaken)
+		else if(coreConfig.branchPredictor.predictorMode == BP.AlwaysTaken)
 			this.branchPredictor = new AlwaysTaken(this);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysNotTaken)
+		else if(coreConfig.branchPredictor.predictorMode == BP.AlwaysNotTaken)
 			this.branchPredictor = new AlwaysNotTaken(this);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.Tournament)
+		else if(coreConfig.branchPredictor.predictorMode == BP.Tournament)
 			this.branchPredictor = new TournamentPredictor(this);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.Bimodal)
-			this.branchPredictor = new BimodalPredictor(this, SystemConfig.branchPredictor.PCBits,
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GShare)
-			this.branchPredictor = new GShare(this, SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GAg)
-			this.branchPredictor = new GAgpredictor(this, SystemConfig.branchPredictor.BHRsize);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GAp)
-			this.branchPredictor = new GApPredictor(this, SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.PCBits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PAg)
-			this.branchPredictor = new PAgPredictor(this, SystemConfig.branchPredictor.PCBits, 
-					SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PAp)
-			this.branchPredictor = new PApPredictor(this, SystemConfig.branchPredictor.PCBits, 
-					SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.Bimodal)
+			this.branchPredictor = new BimodalPredictor(this, coreConfig.branchPredictor.PCBits,
+					coreConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.GShare)
+			this.branchPredictor = new GShare(this, coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.GAg)
+			this.branchPredictor = new GAgpredictor(this, coreConfig.branchPredictor.BHRsize);
+		else if(coreConfig.branchPredictor.predictorMode == BP.GAp)
+			this.branchPredictor = new GApPredictor(this, coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.PCBits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.PAg)
+			this.branchPredictor = new PAgPredictor(this, coreConfig.branchPredictor.PCBits, 
+					coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.PAp)
+			this.branchPredictor = new PApPredictor(this, coreConfig.branchPredictor.PCBits, 
+					coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.saturating_bits);
 	}
 	
 	public abstract void setInputToPipeline(GenericCircularQueue<Instruction>[] inpList);

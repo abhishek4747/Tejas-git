@@ -293,9 +293,9 @@ public class RenameTable extends SimulationElement{
 		PowerConfigNew totalPower = new PowerConfigNew(RATleakagePower + freeListleakagePower,
 														RATdynamicPower * RATactivityFactor + freeListdynamicPower * freeListActivityFactor);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
-		outputFileWriter.write("RAT :\n" + RATPower + "\n");
-		outputFileWriter.write("Free List :\n" + freeListPower + "\n");
+		RATPower.printPowerStats(outputFileWriter, componentName + ".RAT");
+		freeListPower.printPowerStats(outputFileWriter, componentName + ".FreeList");
+		totalPower.printPowerStats(outputFileWriter, componentName);
 		
 		return totalPower;
 	}

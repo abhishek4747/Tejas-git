@@ -14,19 +14,24 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import net.Router;
 import net.Switch;
 
 import main.ArchitecturalComponent;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
+import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
+import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
 
 import power.Counters;
 import power.PowerConfig;
 import config.BranchPredictorConfig;
+import config.CoreConfig;
 import config.EmulatorConfig;
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import config.SystemConfig;
 import config.BranchPredictorConfig.BP;
@@ -59,13 +64,6 @@ public class Statistics {
 			
 			
 			outputFileWriter.write("Benchmark: "+benchmark+"\n");
-			outputFileWriter.write("Pipeline: ");
-			if (SimulationConfig.isPipelineInorder)
-				outputFileWriter.write("Inorder Pipeline\n");
-			else if (SimulationConfig.isPipelineStatistical)
-				outputFileWriter.write("Statistical Pipeline\n");
-			else outputFileWriter.write("OutOrder Pipeline\n");
-			
 			outputFileWriter.write("Schedule: " + (new Date()).toString() + "\n");
 		}
 		catch (IOException e)
@@ -193,6 +191,11 @@ public class Statistics {
 					continue;
 				}
 				outputFileWriter.write("core\t\t=\t" + i + "\n");
+				
+				CoreConfig coreConfig = SystemConfig.core[i];
+				
+				outputFileWriter.write("Pipeline: " + coreConfig.pipelineType);
+								
 				outputFileWriter.write("instructions executed\t=\t" + numCoreInstructions[i] + "\n");
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
 				//FIXME will work only if java thread is 1
@@ -216,10 +219,10 @@ public class Statistics {
 				outputFileWriter.write("branch predictor accuracy\t=\t" + (double)((double)(branchCount[i]-mispredictedBranchCount[i])*100/branchCount[i]) + " %\n");
 				outputFileWriter.write("\n");
 				
-				outputFileWriter.write("predictor type = " + SystemConfig.branchPredictor.predictorMode + "\n");
-				outputFileWriter.write("PC bits = " + SystemConfig.branchPredictor.PCBits + "\n");
-				outputFileWriter.write("BHR size = " + SystemConfig.branchPredictor.BHRsize + "\n");
-				outputFileWriter.write("Saturating bits = " + SystemConfig.branchPredictor.saturating_bits + "\n");
+				outputFileWriter.write("predictor type = " + coreConfig.branchPredictor.predictorMode + "\n");
+				outputFileWriter.write("PC bits = " + coreConfig.branchPredictor.PCBits + "\n");
+				outputFileWriter.write("BHR size = " + coreConfig.branchPredictor.BHRsize + "\n");
+				outputFileWriter.write("Saturating bits = " + coreConfig.branchPredictor.saturating_bits + "\n");
 				outputFileWriter.write("\n");
 				
 			}
@@ -231,25 +234,57 @@ public class Statistics {
 		}
 	}
 	
-	void printPowerStatistics() throws IOException
+	static void printPowerStatistics()
 	{
-		// Cores
-		double corePower = 0;
-		for(Core core : cores) {
-			corePower += core.calculateAndPrintPower(outputFileWriter, "core" + core.toString());
+		try {
+			// Cores
+			int i = 0;
+
+			PowerConfigNew corePower = new PowerConfigNew(0, 0);
+			i = 0;
+			for(Core core : cores) {
+				corePower.add(core.calculateAndPrintPower(outputFileWriter, "core[" + (i++) + "]"));
+			}
+			
+			// LLC
+			PowerConfigNew cachePower = new PowerConfigNew(0, 0);
+			for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); )
+			{
+				String cacheName = cacheNameSet.nextElement();
+				Cache cache = MemorySystem.getCacheList().get(cacheName);
+				cachePower.add(cache.calculateAndPrintPower(outputFileWriter, cache.toString()));
+			}
+			
+			// Main Memory
+			PowerConfigNew mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintPower(outputFileWriter, "MainMemoryController");
+			
+			// Directory
+			PowerConfigNew directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintPower(outputFileWriter, "Directory");
+			
+			// NOC
+			PowerConfigNew nocRouterPower = new PowerConfigNew(0, 0);
+			i = 0;
+			for(Router router : ArchitecturalComponent.getNOCRouterList()) {
+				nocRouterPower.add(router.calculateAndPrintPower(outputFileWriter, "NOCRouter[" + (i++) + "]"));
+			}
+						
+			// Clock
+			PowerConfigNew clockPower = GlobalClock.calculateAndPrintPower(outputFileWriter, "GlobalClock");
+			
+			PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+			totalPower.add(corePower);
+			totalPower.add(cachePower);
+			totalPower.add(mainMemoryPower);
+			totalPower.add(directoryPower);
+			totalPower.add(nocRouterPower);
+			totalPower.add(clockPower);
+			
+			totalPower.printPowerStats(outputFileWriter, "TotalPower");
+			
+		} catch (Exception e) {
+			System.err.println("error in printing stats + \nexception = " + e);
+			e.printStackTrace();
 		}
-		
-		// LLC
-		//MemorySystem.
-		
-		// Memory
-		
-		// Directory
-		
-		// NOC
-		
-		// Clock
-		
 	}
 	
 	
@@ -356,7 +391,7 @@ public class Statistics {
 				outputFileWriter.write("L2 Miss-Rate\t=\t" + (float)(noOfL2Misses)/noOfL2Requests + "\n");
 			}
 			
-			printCacheStatistics(MemorySystem.getL2Cache(), hits, misses)
+			
 			
 			outputFileWriter.write("NUCA Type\t=\t" + SimulationConfig.nucaType + "\n");
 			if (nocRoutingAlgo != null)
@@ -928,7 +963,8 @@ public class Statistics {
 		//set up statistics module
 		//Statistics.initStatistics();
 		// Statistics.initStatistics();
-		
+		cores = ArchitecturalComponent.getCores();
+
 		Statistics.setExecutable(benchmarkName);
 		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().getDirectoryHits());
 		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().getDirectoryMisses());
@@ -981,9 +1017,7 @@ public class Statistics {
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
 		Statistics.printSimulationTime();
-		
-		if(SimulationConfig.powerStats)
-			Statistics.printPowerStats();
+		Statistics.printPowerStatistics();
 		
 		// Qemu translation cache stats
 		if(TranslatedInstructionCache.getHitRate()!=-1) {

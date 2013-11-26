@@ -1,5 +1,8 @@
 package main;
 
+import java.util.ArrayList;
+
+import net.Router;
 import net.optical.TopLevelTokenBus;
 import emulatorinterface.communication.IpcBase;
 import memorysystem.CoreMemorySystem;
@@ -177,5 +180,15 @@ public class ArchitecturalComponent {
 
 	public static void setCoreBcastBus(CoreBcastBus coreBcastBus) {
 		ArchitecturalComponent.coreBcastBus = coreBcastBus;
+	}
+
+	private static ArrayList<Router> nocRouterList = new ArrayList<Router>();
+	
+	public static void addNOCRouter(Router router) {
+		nocRouterList.add(router);		
+	}
+	
+	public static ArrayList<Router> getNOCRouterList() {
+		return nocRouterList;
 	}
 }
