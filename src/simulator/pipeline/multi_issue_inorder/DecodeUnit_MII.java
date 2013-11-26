@@ -1,5 +1,9 @@
 package pipeline.multi_issue_inorder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import pipeline.outoforder.OpTypeToFUTypeMapping;
 import generic.Core;
@@ -23,6 +27,8 @@ public class DecodeUnit_MII extends SimulationElement{
 	long numBranches;
 	long numMispredictedBranches;
 	long lastValidIPSeen;
+	
+	long numDecodes;
 	
 	long instCtr; //for debug
 	
@@ -88,36 +94,8 @@ public class DecodeUnit_MII extends SimulationElement{
 					}
 				}
 				
-				//increment power counters
-   				this.core.powerCounters.incrementWindowSelectionAccess(1);
+				incrementNumDecodes(1);
    				
-				if(opType==OperationType.load || opType==OperationType.store)
-				{
-					this.core.powerCounters.incrementLsqWakeupAccess(1);
-					this.core.powerCounters.incrementLsqAccess(1);
-					this.core.powerCounters.incrementLsqStoreDataAccess(1);
-					this.core.powerCounters.incrementLsqPregAccess(1);
-				}
-				else if(opType==OperationType.floatALU ||
-						opType==OperationType.floatDiv ||
-						opType==OperationType.floatMul)
-				{
-					this.core.powerCounters.incrementAluAccess(1);
-					this.core.powerCounters.incrementFaluAccess(1);
-				}
-				else if(opType==OperationType.integerALU ||
-						opType==OperationType.integerDiv ||
-						opType==OperationType.integerMul)
-				{
-					this.core.powerCounters.incrementAluAccess(1);
-					this.core.powerCounters.incrementIaluAccess(1);
-				}
-				
-				this.core.powerCounters.incrementWindowAccess(1);
-				this.core.powerCounters.incrementWindowPregAccess(1);
-			  
-				this.core.powerCounters.incrementRegfileAccess(1);
-			  
 				//add destination register of ins to list of outstanding registers
 				if(ins.getDestinationOperand() != null)
 				{
@@ -157,7 +135,7 @@ public class DecodeUnit_MII extends SimulationElement{
 				//perform branch prediction
 				if(ins.getOperationType()==OperationType.branch)
 				{
-					boolean prediction = core.getBranchPredictor().predict(
+					boolean prediction = containingExecutionEngine.getBranchPredictor().predict(
 																		lastValidIPSeen,
 																		ins.isBranchTaken());
 					if(prediction != ins.isBranchTaken())
@@ -166,17 +144,16 @@ public class DecodeUnit_MII extends SimulationElement{
 						//stall pipeline for appropriate cycles
 						containingExecutionEngine.setMispredStall(core.getBranchMispredictionPenalty());
 						numMispredictedBranches++;
-						this.core.powerCounters.incrementBpredMisses();
 					}
-					this.core.powerCounters.incrementBpredAccess(1);
+					this.containingExecutionEngine.getBranchPredictor().incrementNumAccesses(1);
 	
 					//Train Branch Predictor
-					core.getBranchPredictor().Train(
+					containingExecutionEngine.getBranchPredictor().Train(
 							ins.getCISCProgramCounter(),
 							ins.isBranchTaken(),
 							prediction
 							);
-					this.core.powerCounters.incrementBpredAccess(1);
+					this.containingExecutionEngine.getBranchPredictor().incrementNumAccesses(1);
 					
 					numBranches++;
 				}
@@ -220,6 +197,7 @@ public class DecodeUnit_MII extends SimulationElement{
 		{
 			if(srcOpnd.isIntegerRegisterOperand())
 			{
+				containingExecutionEngine.getWriteBackUnitIn().incrementIntNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyInteger()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{
@@ -229,6 +207,7 @@ public class DecodeUnit_MII extends SimulationElement{
 
 			else if(srcOpnd.isFloatRegisterOperand())
 			{
+				containingExecutionEngine.getWriteBackUnitIn().incrementFloatNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyFloat()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{
@@ -252,6 +231,7 @@ public class DecodeUnit_MII extends SimulationElement{
 		{
 			if(srcOpnd.isIntegerRegisterOperand())
 			{
+				containingExecutionEngine.getWriteBackUnitIn().incrementIntNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyInteger()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{
@@ -261,6 +241,7 @@ public class DecodeUnit_MII extends SimulationElement{
 
 			else if(srcOpnd.isFloatRegisterOperand())
 			{
+				containingExecutionEngine.getWriteBackUnitIn().incrementFloatNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyFloat()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{
@@ -314,5 +295,28 @@ public class DecodeUnit_MII extends SimulationElement{
 
 	public long getNumMispredictedBranches() {
 		return numMispredictedBranches;
+	}
+	
+	void incrementNumDecodes(int incrementBy)
+	{
+		numDecodes += incrementBy * core.getStepSize();
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = core.getDecodePower().leakagePower;
+		double dynamicPower = core.getDecodePower().dynamicPower;
+		
+		double activityFactor = (double)numDecodes
+									/(double)core.getCoreCyclesTaken()
+									/containingExecutionEngine.getIssueWidth();
+											// potentially issueWidth number of instructions can
+											// be decoded per cycle
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 }

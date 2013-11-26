@@ -1,7 +1,12 @@
 package pipeline.multi_issue_inorder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import pipeline.outoforder.OutOrderExecutionEngine;
 import generic.Instruction;
 
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import main.CustomObjectPool;
 import generic.Core;
@@ -21,6 +26,9 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 	StageLatch_MII memWbLatch;
 	
 	long instCtr; //for debug
+	
+	long numIntRegFileAccesses;
+	long numFloatRegFileAccesses;
 	
 	public WriteBackUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine)
 	{
@@ -47,19 +55,6 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 			if(ins != null)
 			{
 				OperationType opType = ins.getOperationType(); 
-			
-				if(!(opType==OperationType.branch || opType==OperationType.jump)){
-					this.core.powerCounters.incrementWindowAccess(1);
-					this.core.powerCounters.incrementWindowPregAccess(1);
-					this.core.powerCounters.incrementWindowWakeupAccess(1);
-					this.core.powerCounters.incrementResultbusAccess(1);
-				}
-			
-				if(!(opType==OperationType.store || opType == OperationType.branch 
-						|| opType == OperationType.nop || opType == OperationType.jump))
-				{
-					this.core.powerCounters.incrementRegfileAccess(1);
-				}
 			
 				//check if simulation complete
 				if(ins.getOperationType()==OperationType.inValid)
@@ -139,5 +134,45 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 
+	}
+	
+	void incrementIntNumRegFileAccesses(int incrementBy)
+	{
+		numIntRegFileAccesses += incrementBy * core.getStepSize();
+	}
+	
+	void incrementFloatNumRegFileAccesses(int incrementBy)
+	{
+		numFloatRegFileAccesses += incrementBy * core.getStepSize();
+	}
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double intLeakagePower = core.getIntRegFilePower().leakagePower;
+		double intDynamicPower = core.getIntRegFilePower().dynamicPower;
+		double floatLeakagePower = core.getFpRegFilePower().leakagePower;
+		double floatDynamicPower = core.getFpRegFilePower().dynamicPower;
+		
+		double intActivityFactor = (double)numIntRegFileAccesses
+									/(double)core.getCoreCyclesTaken()
+									/(containingExecutionEngine.getIssueWidth() * 2);		
+		double floatActivityFactor = (double)numFloatRegFileAccesses
+									/(double)core.getCoreCyclesTaken()
+									/(containingExecutionEngine.getIssueWidth() * 2);
+										//register file accessed at rename and write-back
+		
+		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		PowerConfigNew intRegFilePower = new PowerConfigNew(intLeakagePower,
+																intDynamicPower * intActivityFactor);
+		totalPower.add(totalPower, intRegFilePower);
+		PowerConfigNew floatRegFilePower = new PowerConfigNew(floatLeakagePower,
+																floatDynamicPower * floatActivityFactor);
+		totalPower.add(totalPower, floatRegFilePower);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
+		outputFileWriter.write("\n int reg file :\n" + intRegFilePower + "\n");
+		outputFileWriter.write("\n float reg file :\n" + floatRegFilePower + "\n");
+		
+		return totalPower;
 	}
 }

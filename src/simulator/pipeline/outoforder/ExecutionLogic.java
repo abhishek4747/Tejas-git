@@ -1,5 +1,9 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -16,6 +20,8 @@ public class ExecutionLogic extends SimulationElement {
 	Core core;
 	OutOrderExecutionEngine execEngine;
 	ReorderBuffer ROB;
+	
+	long numResultsBroadCastBusAccess;
 	
 	public ExecutionLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
@@ -87,6 +93,7 @@ public class ExecutionLogic extends SimulationElement {
 				|| reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 		{
 			performBroadCast(reorderBufferEntry);
+			incrementResultsBroadcastBusAccesses(1);
 		}
 		else
 		{
@@ -97,6 +104,8 @@ public class ExecutionLogic extends SimulationElement {
 			reorderBufferEntry.setWriteBackDone1(true);
 			reorderBufferEntry.setWriteBackDone2(true);
 		}
+		
+		ROB.incrementNumAccesses(1);
 		
 		if(SimulationConfig.debugMode)
 		{
@@ -130,6 +139,28 @@ public class ExecutionLogic extends SimulationElement {
 									reorderBufferEntry.getThreadID(),
 									(reorderBufferEntry.pos + 1)%ROB.MaxROBSize);
 		}
+	}
+	
+	void incrementResultsBroadcastBusAccesses(int incrementBy)
+	{
+		numResultsBroadCastBusAccess += incrementBy * core.getStepSize();
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = core.getResultsBroadcastBusPower().leakagePower;
+		double dynamicPower = core.getResultsBroadcastBusPower().dynamicPower;
+		
+		double activityFactor = (double)numResultsBroadCastBusAccess
+									/(double)core.getCoreCyclesTaken()
+									/(core.getRetireWidth());
+										//result bus accessed at write-back
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 	
 }

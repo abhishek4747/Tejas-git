@@ -67,6 +67,7 @@ public class MemorySystem
 		
 		//Set up the main memory properties
 		
+		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
 		NucaType nucaType = NucaType.NONE;

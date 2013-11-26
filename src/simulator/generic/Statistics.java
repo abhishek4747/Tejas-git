@@ -158,6 +158,7 @@ public class Statistics {
 	static long totalHandledCISCInsn = 0;
 	static long totalPINCISCInsn = 0;
 	static Counters powerCounters[];
+	public static long maxCoreCycles = 0;
 	
 	//for pinpoints
 	static long tempcoreCyclesTaken[];
@@ -167,7 +168,6 @@ public class Statistics {
 	
 	public static void printTimingStatistics()
 	{
-		long maxCoreCycles = 0;
 		for (int i =0; i < SystemConfig.NoOfCores; i++)
 		{
 			if (maxCoreCycles < coreCyclesTaken[i])

@@ -32,6 +32,7 @@ import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import misc.Util;
 import generic.*;
@@ -91,6 +92,8 @@ public class Cache extends SimulationElement
 		public boolean debug =false;
 		public NucaType nucaType;
 		
+		PowerConfigNew power;
+		
 		public Cache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
 		{
 			super(cacheParameters.portType,
@@ -143,6 +146,8 @@ public class Cache extends SimulationElement
 				}
 			}
 			this.nucaType = NucaType.NONE;
+			
+			power = cacheParameters.power;
 		}
 		
 		public Cache(
@@ -277,17 +282,6 @@ public class Cache extends SimulationElement
 				noOfWritesReceived++;
 			}
 			
-			//update counters
-			if(this.levelFromTop==CacheType.Lower){
-				//System.err.println("CAcheType.Lower");
-				Counters.incrementDcache2Access(1);
-			}
-			else if(this.levelFromTop==CacheType.iCache)
-				this.containingMemSys.getCore().powerCounters.incrementIcacheAccess(1);
-			else{
-				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
-			}
-			
 			RequestType requestType = event.getRequestType();
 			long address = event.getAddress();
 			
@@ -356,17 +350,6 @@ public class Cache extends SimulationElement
 		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{
 			noOfResponsesReceived++;
-			
-			/*Response for a read/write miss. Thus incrementing counters here as well*/
-			if(this.levelFromTop==CacheType.Lower){
-				//System.err.println("CacheType.Lower");
-				Counters.incrementDcache2Access(1);
-			}
-			else if(this.levelFromTop==CacheType.iCache)
-				this.containingMemSys.getCore().powerCounters.incrementIcacheAccess(1);
-			else{
-				this.containingMemSys.getCore().powerCounters.incrementDcacheAccess(1);
-			}
 			
 			this.fillAndSatisfyRequests(eventQ, event, MESI.EXCLUSIVE);
 		}
@@ -1133,7 +1116,7 @@ public class Cache extends SimulationElement
 		public MissStatusHoldingRegister getMissStatusHoldingRegister() {
 			return missStatusHoldingRegister;
 		}
-		
+
 		public String toString()
 		{
 			StringBuilder s = new StringBuilder();
@@ -1145,8 +1128,28 @@ public class Cache extends SimulationElement
 			return s.toString();
 		}
 		
-		public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+		public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 		{
-			return 0; 
+			double leakagePower = power.leakagePower;
+			double dynamicPower = power.dynamicPower;
+			
+			double executionCycles;
+			if(containingMemSys != null)
+			{
+				executionCycles = (double)containingMemSys.core.getCoreCyclesTaken();
+			}
+			else
+			{
+				executionCycles = (double)Statistics.maxCoreCycles;
+			}
+			
+			double activityFactor = (double)(noOfAccesses * latency * stepSize)
+										/(double)executionCycles;
+			
+			PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+			
+			outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+			
+			return power;
 		}
 }

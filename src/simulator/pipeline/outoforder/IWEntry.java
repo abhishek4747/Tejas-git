@@ -51,13 +51,6 @@ public class IWEntry {
 		
 		if(associatedROBEntry.isOperand1Available() && associatedROBEntry.isOperand2Available())
 		{
-
-			//Increment the counters for power calculations
-			this.core.powerCounters.incrementWindowAccess(1);
-			//Two access as two values are read from window and sent to FU
-			this.core.powerCounters.incrementWindowPregAccess(2);			
-
-			
 			if(opType == OperationType.mov ||
 					opType == OperationType.xchg)
 			{
@@ -149,20 +142,6 @@ public class IWEntry {
 				null, 
 				associatedROBEntry);
 
-		//update power counters
-		if(opType == OperationType.store)
-		{
-			this.core.powerCounters.incrementLsqAccess(1);
-			this.core.powerCounters.incrementLsqStoreDataAccess(1);
-			this.core.powerCounters.incrementLsqPregAccess(1);
-			
-		}		
-		else
-		{
-			this.core.powerCounters.incrementLsqAccess(1);
-			this.core.powerCounters.incrementLsqWakeupAccess(1);
-		}
-
 		if(SimulationConfig.debugMode)
 		{
 			System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());
@@ -219,16 +198,6 @@ public class IWEntry {
 							RequestType.EXEC_COMPLETE,
 							associatedROBEntry));
 
-			//TODO Increment the counters for power calculation
-			if(opType == OperationType.integerALU){
-				this.core.powerCounters.incrementAluAccess(1);
-				this.core.powerCounters.incrementIaluAccess(1);
-			}
-			else if(opType == OperationType.floatALU){
-				this.core.powerCounters.incrementAluAccess(1);
-				this.core.powerCounters.incrementFaluAccess(1);
-			}
-			
 			if(SimulationConfig.debugMode)
 			{
 				System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());

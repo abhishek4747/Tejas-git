@@ -1,6 +1,12 @@
 package pipeline.branchpredictor;
 
-public class PerfectPredictor implements BranchPredictor {
+import pipeline.ExecutionEngine;
+
+public class PerfectPredictor extends BranchPredictor {
+
+	public PerfectPredictor(ExecutionEngine containingExecutionEngine) {
+		super(containingExecutionEngine);
+	}
 
 	@Override
 	public void Train(long address, boolean outcome, boolean predict) {

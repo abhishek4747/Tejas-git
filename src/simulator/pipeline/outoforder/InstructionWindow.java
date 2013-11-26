@@ -1,5 +1,11 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import pipeline.ExecutionEngine;
+
+import config.PowerConfigNew;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -20,6 +26,8 @@ public class InstructionWindow extends SimulationElement {
 	int[] availList;
 	int availListHead;
 	int availListTail;
+	
+	long numAccesses;
 	
 	public InstructionWindow(Core core, OutOrderExecutionEngine executionEngine)
 	{
@@ -55,6 +63,9 @@ public class InstructionWindow extends SimulationElement {
 		newEntry.setValid(true);
 		
 		ROBEntry.setAssociatedIWEntry(newEntry);
+		
+		incrementNumAccesses(1);
+		
 		return newEntry;
 	}
 		
@@ -88,6 +99,8 @@ public class InstructionWindow extends SimulationElement {
 		{
 			availListHead = availListTail;
 		}
+		
+		incrementNumAccesses(1);
 	}
 	
 	public void flush()
@@ -118,6 +131,29 @@ public class InstructionWindow extends SimulationElement {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 				
+	}
+	
+	void incrementNumAccesses(int incrementBy)
+	{
+		numAccesses += incrementBy * core.getStepSize();
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		ExecutionEngine containingExecutionEngine = core.getExecEngine();
+		double leakagePower = containingExecutionEngine.getContainingCore().getIwPower().leakagePower;
+		double dynamicPower = containingExecutionEngine.getContainingCore().getIwPower().dynamicPower;
+		
+		double activityFactor = (double)numAccesses
+									/(double)containingExecutionEngine.getContainingCore().getCoreCyclesTaken()
+									/(core.getDecodeWidth() + core.getIssueWidth() + core.getRetireWidth());
+										//IW accessed at entry creation, removal, wake-up
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 
 }

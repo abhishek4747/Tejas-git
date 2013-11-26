@@ -1,5 +1,9 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import generic.Core;
@@ -69,7 +73,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	public OutOrderExecutionEngine(Core containingCore)
 	{
-		super();
+		super(containingCore);
 		
 		core = containingCore;
 		
@@ -77,16 +81,16 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		reorderBuffer = new ReorderBuffer(core, this);
 		instructionWindow = new InstructionWindow(core, this);
 		integerRegisterFile = new RegisterFile(core, core.getIntegerRegisterFileSize());
-		integerRenameTable = new RenameTable(core.getNIntegerArchitecturalRegisters(), core.getIntegerRegisterFileSize(), integerRegisterFile, core.getNo_of_input_pipes());
+		integerRenameTable = new RenameTable(this, core.getNIntegerArchitecturalRegisters(), core.getIntegerRegisterFileSize(), integerRegisterFile, core.getNo_of_input_pipes());
 		floatingPointRegisterFile = new RegisterFile(core, core.getFloatingPointRegisterFileSize());
-		floatingPointRenameTable = new RenameTable(core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile, core.getNo_of_input_pipes());
+		floatingPointRenameTable = new RenameTable(this, core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile, core.getNo_of_input_pipes());
 		machineSpecificRegisterFile = new RegisterFile[core.getNo_of_input_pipes()];
 		for(int i = 0; i < core.getNo_of_input_pipes(); i++)
 		{
 			machineSpecificRegisterFile[i] = new RegisterFile(core, core.getNMachineSpecificRegisters());
 		}
 		
-		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),
+		functionalUnitSet = new FunctionalUnitSet(core, core.getAllNUnits(),
 													core.getAllLatencies());
 		
 		
@@ -265,5 +269,35 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		this.iCacheBuffer = new ICacheBuffer((int)(core.getDecodeWidth() *
 											coreMemorySystem.getiCache().getLatency()));
 		this.fetcher.setICacheBuffer(iCacheBuffer);
+	}
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		
+		PowerConfigNew bPredPower =  getBranchPredictor().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, bPredPower);
+		PowerConfigNew decodePower =  getDecoder().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, decodePower);
+		PowerConfigNew renamePower =  getRenamer().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, renamePower);
+		PowerConfigNew lsqPower =  getCoreMemorySystem().getLsqueue().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, lsqPower);
+		PowerConfigNew intRegFilePower =  getIntegerRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, intRegFilePower);
+		PowerConfigNew floatRegFilePower =  getFloatingPointRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, floatRegFilePower);
+		PowerConfigNew iwPower =  getInstructionWindow().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, iwPower);
+		PowerConfigNew robPower =  getReorderBuffer().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, robPower);
+		PowerConfigNew fuPower =  getFunctionalUnitSet().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, fuPower);
+		PowerConfigNew resultsBroadcastBusPower =  getExecuter().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, resultsBroadcastBusPower);
+		
+		outputFileWriter.write(componentName + " : " + totalPower);
+		
+		return totalPower;
 	}
 }

@@ -23,6 +23,8 @@ package memorysystem;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import config.PowerConfigNew;
+
 import memorysystem.LSQEntry.LSQEntryType;
 import pipeline.outoforder.OutOrderCoreMemorySystem;
 import pipeline.outoforder.ReorderBufferEntry;
@@ -42,6 +44,8 @@ public class LSQ extends SimulationElement
 	public int NoOfLd = 0;
 	public int NoOfSt = 0;
 	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
+	
+	long numAccesses;
 	
 	public LSQ(PortType portType, int noOfPorts, long occupancy, long latency, CoreMemorySystem containingMemSys, int lsqSize) 
 	{
@@ -89,6 +93,9 @@ public class LSQ extends SimulationElement
 		entry.setRobEntry(robEntry);
 		entry.setAddr(address);
 		this.curSize++;
+		
+		incrementNumAccesses(1);
+		
 		return entry;
 	}
 
@@ -103,12 +110,6 @@ public class LSQ extends SimulationElement
 		if(couldForward) 
 		{
 			NoOfForwards++;
-			
-			//Increment the counters for power calculations
-			this.containingMemSys.getCore().powerCounters.incrementLsqAccess(1);
-			this.containingMemSys.getCore().powerCounters.incrementLsqPregAccess(1);
-			this.containingMemSys.getCore().powerCounters.incrementLsqLoadDataAccess(1);
-
 		}
 		//Otherwise the cache access is done through LSQValidateEvent
 		
@@ -328,6 +329,8 @@ public class LSQ extends SimulationElement
 							this,
 							RequestType.Validate_LSQ_Addr));
 		}
+		
+		incrementNumAccesses(1);
 	}
 	
 	public void handleAddrValidate(EventQueue eventQ, Event event)
@@ -406,6 +409,8 @@ public class LSQ extends SimulationElement
 			
 			index = (index+1)%lsqSize;
 		}	
+		
+		incrementNumAccesses(1);
 	}
 	
 	public void handleCommitsFromROB(EventQueue eventQ, Event event)
@@ -491,10 +496,38 @@ public class LSQ extends SimulationElement
 				break;
 			}
 		}
+		
+		incrementNumAccesses(1);
 	}
 	
-	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	void incrementNumAccesses(int incrementBy)
 	{
-		return 0; 
+		numAccesses += incrementBy * containingMemSys.core.getStepSize();
+	}
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = containingMemSys.core.getLsqPower().leakagePower;
+		double dynamicPower = containingMemSys.core.getLsqPower().dynamicPower;
+		int default_num_ports = 4;
+		int numPorts;
+		if(this.getPort().getPortType() != PortType.Unlimited)
+		{
+			numPorts = this.getPort().getNoOfPorts();
+		}
+		else
+		{
+			numPorts = default_num_ports;
+		}
+		
+		double activityFactor = (double)numAccesses
+									/(double)containingMemSys.core.getCoreCyclesTaken()
+									/numPorts;
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 }

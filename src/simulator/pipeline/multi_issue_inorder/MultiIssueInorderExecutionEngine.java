@@ -1,6 +1,10 @@
 package pipeline.multi_issue_inorder;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import config.PowerConfigNew;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import pipeline.outoforder.FunctionalUnitSet;
@@ -54,7 +58,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 
 	public MultiIssueInorderExecutionEngine(Core _core, int issueWidth){
 		
-		super();
+		super(_core);
 		
 		this.core = _core;
 
@@ -72,7 +76,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		this.setMemUnitIn(new MemUnitIn_MII(core,this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core,this));
 		this.executionComplete=false;
-		functionalUnitSet = new FunctionalUnitSet(core.getAllNUnits(),core.getAllLatencies());
+		functionalUnitSet = new FunctionalUnitSet(core, core.getAllNUnits(),core.getAllLatencies());
 		memStall=0;
 		dataHazardStall=0;
 		
@@ -308,4 +312,24 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 //		System.out.println("memWb stall = " + memWbLatch[0].getStallCount());
 //		System.out.println(memWbLatch[0].getInstruction());
 //	}	
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		
+		PowerConfigNew bPredPower =  getBranchPredictor().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, bPredPower);
+		PowerConfigNew decodePower =  getDecodeUnitIn().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, decodePower);
+		PowerConfigNew regFilePower =  getWriteBackUnitIn().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, regFilePower);
+		PowerConfigNew fuPower =  getFunctionalUnitSet().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, fuPower);
+		PowerConfigNew resultsBroadcastBusPower =  getExecUnitIn().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, resultsBroadcastBusPower);
+		
+		outputFileWriter.write(componentName + " : " + totalPower);
+		
+		return totalPower;
+	}
 }

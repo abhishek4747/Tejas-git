@@ -1,5 +1,9 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -13,6 +17,7 @@ public class RegisterFile extends SimulationElement{
 	private Object[] value;
 	private boolean[] valueValid;					//currently used only for
 	private ReorderBufferEntry[] producerROBEntry;	//machine specific registers
+	long numAccesses;
 	
 	public RegisterFile(Core core, int _registerFileSize)
 	{
@@ -43,11 +48,16 @@ public class RegisterFile extends SimulationElement{
 	}
 
 	public boolean getValueValid(int index) {
+		incrementNumAccesses(1);
 		return valueValid[index];
 	}
 
 	public void setValueValid(boolean valueValid, int index) {
 		this.valueValid[index] = valueValid;
+		if(valueValid == true)
+		{
+			incrementNumAccesses(1);
+		}
 	}
 
 	public ReorderBufferEntry getProducerROBEntry(int index) {
@@ -65,5 +75,39 @@ public class RegisterFile extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 				
+	}
+	
+	void incrementNumAccesses(int incrementBy)
+	{
+		numAccesses += incrementBy * core.getStepSize();
+	}
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower;
+		double dynamicPower;
+		
+		if(((OutOrderExecutionEngine)core.getExecEngine()).getIntegerRegisterFile() == this)
+		{
+			leakagePower = core.getIntRegFilePower().leakagePower;
+			dynamicPower = core.getIntRegFilePower().dynamicPower;
+		}
+		else
+		{
+			leakagePower = core.getFpRegFilePower().leakagePower;
+			dynamicPower = core.getFpRegFilePower().dynamicPower;
+		}
+		
+		double activityFactor = (double)numAccesses
+									/(double)core.getCoreCyclesTaken()
+									/(core.getDecodeWidth() + core.getRetireWidth());
+										//register file accessed at rename and write-back
+		
+		PowerConfigNew totalPower = new PowerConfigNew(leakagePower,
+														dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
+		
+		return totalPower;
 	}
 }

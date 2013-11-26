@@ -1,5 +1,10 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
+
 import generic.Event;
 import generic.EventQueue;
 import generic.PortType;
@@ -7,6 +12,7 @@ import generic.SimulationElement;
 
 public class RenameTable extends SimulationElement{
 	
+	OutOrderExecutionEngine execEngine;
 	int nArchRegisters;
 	int nPhyRegisters;
 	int noOfThreads;
@@ -25,10 +31,15 @@ public class RenameTable extends SimulationElement{
 	int availableListHead;
 	int availableListTail;
 	
-	public RenameTable(int nArchRegisters, int nPhyRegisters, RegisterFile associatedRegisterFile,
+	long numRATAccesses;
+	long numFreeListAccesses;
+	
+	public RenameTable(OutOrderExecutionEngine execEngine,
+						int nArchRegisters, int nPhyRegisters, RegisterFile associatedRegisterFile,
 						int noOfThreads)
 	{
 		super(PortType.Unlimited, -1, -1, null, -1, -1);
+		this.execEngine = execEngine;
 		this.nArchRegisters = nArchRegisters;
 		this.nPhyRegisters = nPhyRegisters;
 		this.noOfThreads = noOfThreads;
@@ -117,6 +128,8 @@ public class RenameTable extends SimulationElement{
 		
 		this.mappingValid[newPhyReg] = true;
 		
+		incrementRatAccesses(1);
+		
 		
 		return newPhyReg;
 	}
@@ -153,6 +166,7 @@ public class RenameTable extends SimulationElement{
 	
 	public int getPhysicalRegister(int threadID, int archReg)
 	{
+		incrementRatAccesses(1);
 		return archToPhyMapping[threadID][archReg];
 	}
 
@@ -186,6 +200,8 @@ public class RenameTable extends SimulationElement{
 		{
 			availableListHead = 0;
 		}
+		
+		incrementFreeListAccesses(1);
 	}
 	
 	public int removeFromAvailableList()
@@ -201,6 +217,8 @@ public class RenameTable extends SimulationElement{
 		{
 			availableListHead = (availableListHead + 1)%(this.nPhyRegisters - this.nArchRegisters * this.noOfThreads);
 		}
+		
+		incrementFreeListAccesses(1);
 		
 		return toBeReturned;
 	}
@@ -223,6 +241,63 @@ public class RenameTable extends SimulationElement{
 		}
 		
 		return (this.nPhyRegisters - this.nArchRegisters * this.noOfThreads - availableListHead + availableListTail + 1);
+	}
+	
+	public void incrementRatAccesses(int incrementBy)
+	{
+		numRATAccesses += incrementBy * execEngine.getContainingCore().getStepSize();
+	}
+	
+	public void incrementFreeListAccesses(int incrementBy)
+	{
+		numFreeListAccesses += incrementBy * execEngine.getContainingCore().getStepSize();
+	}
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double RATleakagePower;
+		double RATdynamicPower;
+		double freeListleakagePower;
+		double freeListdynamicPower;
+		
+		if(execEngine.getIntegerRenameTable() == this)
+		{
+			RATleakagePower = execEngine.getContainingCore().getIntRATPower().leakagePower;
+			RATdynamicPower = execEngine.getContainingCore().getIntRATPower().dynamicPower;
+			freeListleakagePower = execEngine.getContainingCore().getIntFreeListPower().leakagePower;
+			freeListdynamicPower = execEngine.getContainingCore().getIntFreeListPower().dynamicPower;
+		}
+		else
+		{
+			RATleakagePower = execEngine.getContainingCore().getFpRATPower().leakagePower;
+			RATdynamicPower = execEngine.getContainingCore().getFpRATPower().dynamicPower;
+			freeListleakagePower = execEngine.getContainingCore().getFpFreeListPower().leakagePower;
+			freeListdynamicPower = execEngine.getContainingCore().getFpFreeListPower().dynamicPower;
+		}
+		
+		double RATactivityFactor = (double)numRATAccesses
+									/(double)execEngine.getContainingCore().getCoreCyclesTaken()
+									/(3*execEngine.getContainingCore().getDecodeWidth());
+											//potentially decodeWidth number of instructions can
+											// be renamed per cycle (3*decodeWidth RAT accesses)
+		double freeListActivityFactor = (double)numFreeListAccesses
+									/(double)execEngine.getContainingCore().getCoreCyclesTaken()
+									/(2*execEngine.getContainingCore().getDecodeWidth());
+											//potentially decodeWidth number of instructions can
+											// be renamed/ per cycle (2*decodeWidth free-list accesses : add/remove to/from free-list)
+		
+		PowerConfigNew RATPower = new PowerConfigNew(RATleakagePower,
+														RATdynamicPower * RATactivityFactor);
+		PowerConfigNew freeListPower = new PowerConfigNew(freeListleakagePower,
+														freeListdynamicPower * freeListActivityFactor);
+		PowerConfigNew totalPower = new PowerConfigNew(RATleakagePower + freeListleakagePower,
+														RATdynamicPower * RATactivityFactor + freeListdynamicPower * freeListActivityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
+		outputFileWriter.write("RAT :\n" + RATPower + "\n");
+		outputFileWriter.write("Free List :\n" + freeListPower + "\n");
+		
+		return totalPower;
 	}
 
 }

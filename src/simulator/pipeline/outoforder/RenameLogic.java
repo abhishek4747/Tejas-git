@@ -1,5 +1,9 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -82,13 +86,6 @@ public class RenameLogic extends SimulationElement {
 						
 						execEngine.setToStall2(false);
 						
-						//TODO
-						//Everytime the operand becomes available - inside the methods checkOperand1Availability and checkOperand2Availability
-						//We are incrementing windowAccess and windowPregAccess. Verify the correctness - particularly for machineSpecificRegfile operands
-						
-						//FIXME For now, for every renaming, only one kind of rename accesses are incremented
-						this.core.powerCounters.incrementRenameAccess(1);
-						
 						if(SimulationConfig.debugMode)
 						{
 							System.out.println("renamed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
@@ -129,16 +126,12 @@ public class RenameLogic extends SimulationElement {
 		if(tempOpndType == OperandType.integerRegister)
 		{
 			archReg = (int) tempOpnd.getValue();
-			//Increment counters for power calculations  FIXME is this correct ? on every process operand, rename table is accessed!
-			this.core.powerCounters.incrementIntegerRenameAccess(1);
 			reorderBufferEntry.setOperand1PhyReg1(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
 		else if(tempOpndType == OperandType.floatRegister)
 		{
 			archReg = (int) tempOpnd.getValue();
-			//Increment counters for power calculations 
-			this.core.powerCounters.incrementFloatRenameAccess(1);
 			reorderBufferEntry.setOperand1PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
@@ -165,14 +158,10 @@ public class RenameLogic extends SimulationElement {
 				
 				if(tempOpndType == OperandType.integerRegister)
 				{
-					//Increment counters for power calculations 
-					this.core.powerCounters.incrementIntegerRenameAccess(1);
 					reorderBufferEntry.setOperand1PhyReg1(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.floatRegister)
 				{
-					//Increment counters for power calculations 
-					this.core.powerCounters.incrementFloatRenameAccess(1);
 					reorderBufferEntry.setOperand1PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.machineSpecificRegister)
@@ -197,14 +186,10 @@ public class RenameLogic extends SimulationElement {
 				
 				if(tempOpndType == OperandType.integerRegister)
 				{
-					//Increment counters for power calculations  FIXME is this correct ? on every process operand, rename table is accessed!
-					this.core.powerCounters.incrementIntegerRenameAccess(1);
 					reorderBufferEntry.setOperand1PhyReg2(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.floatRegister)
 				{
-					//Increment counters for power calculations 
-					this.core.powerCounters.incrementFloatRenameAccess(1);
 					reorderBufferEntry.setOperand1PhyReg2(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.machineSpecificRegister)
@@ -251,16 +236,12 @@ public class RenameLogic extends SimulationElement {
 		if(tempOpndType == OperandType.integerRegister)
 		{
 			archReg = (int) tempOpnd.getValue();
-			//Increment counters for power calculations  FIXME is this correct ? on every process operand, rename table is accessed!
-			this.core.powerCounters.incrementIntegerRenameAccess(1);
 			reorderBufferEntry.setOperand2PhyReg1(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
 		else if(tempOpndType == OperandType.floatRegister)
 		{
 			archReg = (int) tempOpnd.getValue();
-			//Increment counters for power calculations 
-			this.core.powerCounters.incrementFloatRenameAccess(1);
 			reorderBufferEntry.setOperand2PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
@@ -287,15 +268,10 @@ public class RenameLogic extends SimulationElement {
 				
 				if(tempOpndType == OperandType.integerRegister)
 				{
-					//Increment counters for power calculations  FIXME is this correct ? on every process operand, rename table is accessed!
-					this.core.powerCounters.incrementIntegerRenameAccess(1);
 					reorderBufferEntry.setOperand2PhyReg1(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.floatRegister)
 				{
-					//Increment counters for power calculations 
-					this.core.powerCounters.incrementFloatRenameAccess(1);
-					reorderBufferEntry.setOperand2PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 					reorderBufferEntry.setOperand2PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.machineSpecificRegister)
@@ -320,14 +296,10 @@ public class RenameLogic extends SimulationElement {
 				
 				if(tempOpndType == OperandType.integerRegister)
 				{
-					//Increment counters for power calculations 
-					this.core.powerCounters.incrementIntegerRenameAccess(1);
 					reorderBufferEntry.setOperand2PhyReg2(execEngine.getIntegerRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.floatRegister)
 				{
-					//Increment counters for power calculations 
-					this.core.powerCounters.incrementFloatRenameAccess(1);
 					reorderBufferEntry.setOperand2PhyReg2(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
 				else if(tempOpndType == OperandType.machineSpecificRegister)
@@ -650,14 +622,10 @@ public class RenameLogic extends SimulationElement {
 		if(tempOpndType == OperandType.integerRegister)
 		{
 			tempRN = execEngine.getIntegerRenameTable();
-			//Increment counters for Power calculations
-			this.core.powerCounters.incrementIntegerRenameAccess(1);
 		}
 		else
 		{
 			tempRN = execEngine.getFloatingPointRenameTable();
-			//Increment counters for power calculations 
-			this.core.powerCounters.incrementFloatRenameAccess(1);
 		}
 		
 		int r = tempRN.allocatePhysicalRegister(threadID, registerNumber);
@@ -713,10 +681,6 @@ public class RenameLogic extends SimulationElement {
 				|| reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop
 				|| tempOpnd.getOperandType() == OperandType.immediate)
 		{
-			//Increment counters for power calculation
-			this.core.powerCounters.incrementWindowAccess(1);
-			this.core.powerCounters.incrementWindowPregAccess(1);
-
 			reorderBufferEntry.setOperand1Available(true);
 			return;
 		}
@@ -732,20 +696,12 @@ public class RenameLogic extends SimulationElement {
 		{		
 			if(opndAvailable[0] == true)
 			{
-				//Increment counters for power calculation
-				this.core.powerCounters.incrementWindowAccess(1);
-				this.core.powerCounters.incrementWindowPregAccess(1);
-
 				reorderBufferEntry.setOperand1Available(true);
 			}
 		}
 		
 		else if(tempOpndType == OperandType.memory)
 		{
-			//Increment counters for power calculation
-			this.core.powerCounters.incrementWindowAccess(1);
-			this.core.powerCounters.incrementWindowPregAccess(1);
-
 			reorderBufferEntry.setOperand11Available(opndAvailable[0]);
 			reorderBufferEntry.setOperand12Available(opndAvailable[1]);
 			reorderBufferEntry.setOperand1Available(opndAvailable[0] && opndAvailable[1]);
@@ -768,10 +724,6 @@ public class RenameLogic extends SimulationElement {
 				|| reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop
 				|| tempOpnd.getOperandType() == OperandType.immediate)
 		{
-			//Increment counters for power calculation
-			this.core.powerCounters.incrementWindowAccess(1);
-			this.core.powerCounters.incrementWindowPregAccess(1);
-
 			reorderBufferEntry.setOperand2Available(true);
 			return;
 		}
@@ -787,20 +739,12 @@ public class RenameLogic extends SimulationElement {
 		{
 			if(opndAvailable[0] == true)
 			{
-				//Increment counters for power calculation
-				this.core.powerCounters.incrementWindowAccess(1);
-				this.core.powerCounters.incrementWindowPregAccess(1);
-				
 				reorderBufferEntry.setOperand2Available(true);
 			}
 		}
 		
 		else if(tempOpndType == OperandType.memory)
 		{
-			//Increment counters for power calculation
-			this.core.powerCounters.incrementWindowAccess(1);
-			this.core.powerCounters.incrementWindowPregAccess(1);
-
 			reorderBufferEntry.setOperand21Available(opndAvailable[0]);
 			reorderBufferEntry.setOperand22Available(opndAvailable[1]);
 			reorderBufferEntry.setOperand2Available(opndAvailable[0] && opndAvailable[1]);
@@ -810,6 +754,20 @@ public class RenameLogic extends SimulationElement {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
+	}
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		PowerConfigNew intRenamePower = execEngine.getIntegerRenameTable().calculateAndPrintPower(outputFileWriter, "Integer Rename");
+		PowerConfigNew floatRenamePower = execEngine.getIntegerRenameTable().calculateAndPrintPower(outputFileWriter, "Floating Point Rename");
+		
+		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		totalPower.add(totalPower,  intRenamePower);
+		totalPower.add(totalPower,  floatRenamePower);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
+		
+		return totalPower;
 	}
 	
 

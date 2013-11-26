@@ -1,5 +1,10 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import pipeline.ExecutionEngine;
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -113,11 +118,6 @@ public class WriteBackLogic extends SimulationElement {
 				}
 			}
 			
-			this.core.powerCounters.incrementWindowAccess(1);
-			this.core.powerCounters.incrementWindowPregAccess(1);
-			this.core.powerCounters.incrementWindowWakeupAccess(1);
-			this.core.powerCounters.incrementResultbusAccess(1);
-			
 			i = (i+1)%ROB.getMaxROBSize();
 			
 		}while(i != ROB.tail && noWritten < core.getRetireWidth());
@@ -141,9 +141,6 @@ public class WriteBackLogic extends SimulationElement {
 				}
 				tempRN.setValueValid(true, physicalRegister);
 				execEngine.getIntegerRegisterFile().setValueValid(true, physicalRegister);
-				
-				//Update counters for power calculation. For now, only integer register file assumed.
-				this.core.powerCounters.incrementRegfileAccess(1);
 			}
 			else if(destOpnd.isFloatRegisterOperand())
 			{

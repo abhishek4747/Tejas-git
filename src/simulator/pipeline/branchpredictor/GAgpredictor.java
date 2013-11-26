@@ -22,11 +22,13 @@
 
 package pipeline.branchpredictor;
 
+import pipeline.ExecutionEngine;
+
 /**
  *
  * @author Rikita
  */
-public class GAgpredictor implements BranchPredictor {
+public class GAgpredictor extends BranchPredictor {
         /*Predict History Table of size based on the input*/
         int[] PHT;
 
@@ -47,7 +49,9 @@ public class GAgpredictor implements BranchPredictor {
          * Takes the size of the window of the BHR Register
          */
 
-         public GAgpredictor(int BHRsize){
+         public GAgpredictor(ExecutionEngine containingExecEngine, int BHRsize){
+        	   super(containingExecEngine);
+        	   
                this.BHRsize=BHRsize;
                initialBHR=(int) (Math.pow(2, BHRsize));
                BHR=(initialBHR)-1;

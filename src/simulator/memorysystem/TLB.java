@@ -24,6 +24,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+import config.PowerConfigNew;
+
 import generic.*;
 
 public class TLB extends SimulationElement
@@ -36,6 +38,8 @@ public class TLB extends SimulationElement
 	protected int tlbHits = 0;
 	protected int tlbMisses = 0;
 	private int memoryPenalty;
+	
+	PowerConfigNew power;
 		
 	public Core getCore() {
 		return containingMemSys.getCore();
@@ -56,7 +60,8 @@ public class TLB extends SimulationElement
 	protected int requestsProcessedThisCycle = 0;
 	
 	public TLB(PortType portType, int noOfPorts, long occupancy, long latency,
-			CoreMemorySystem containingMemSys, int tlbSize, int memoryPenalty) 
+			CoreMemorySystem containingMemSys, int tlbSize, int memoryPenalty,
+			PowerConfigNew power) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
 		
@@ -64,7 +69,8 @@ public class TLB extends SimulationElement
 		this.timestamp = 0;
 		TLBuffer = new Hashtable<Long, TLBEntry>(TLBSize);
 		this.containingMemSys =containingMemSys;
-		this.memoryPenalty = memoryPenalty;
+		this.memoryPenalty = memoryPenalty;		
+		this.power = power;
 	}
 	
 	/**
@@ -212,8 +218,20 @@ public class TLB extends SimulationElement
 		}
 	}
 	
-	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		return 0; 
+		double leakagePower = power.leakagePower;
+		double dynamicPower = power.dynamicPower;
+		
+		double executionCycles = (double)containingMemSys.core.getCoreCyclesTaken();
+		
+		double activityFactor = (double)(tlbRequests * latency * containingMemSys.core.getStepSize())
+									/(double)executionCycles;
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 }

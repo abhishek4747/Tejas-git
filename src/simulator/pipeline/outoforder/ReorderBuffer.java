@@ -1,7 +1,11 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import main.CustomObjectPool;
 import memorysystem.MemorySystem;
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -33,6 +37,8 @@ public class ReorderBuffer extends SimulationElement{
 	long branchCount;
 	long mispredCount;
 	long lastValidIPSeen;
+	
+	long numAccesses;
 
 	public ReorderBuffer(Core _core, OutOrderExecutionEngine execEngine)
 	{
@@ -194,7 +200,7 @@ public class ReorderBuffer extends SimulationElement{
 					if(firstOpType == OperationType.branch)
 					{
 						//perform prediction
-						boolean prediction = core.getBranchPredictor().predict(
+						boolean prediction = execEngine.getBranchPredictor().predict(
 																			lastValidIPSeen,
 																			first.getInstruction().isBranchTaken());
 						if(prediction != first.getInstruction().isBranchTaken())
@@ -202,15 +208,15 @@ public class ReorderBuffer extends SimulationElement{
 							anyMispredictedBranch = true;
 							mispredCount++;
 						}	
-						this.core.powerCounters.incrementBpredAccess(1);
+						this.execEngine.getBranchPredictor().incrementNumAccesses(1);
 						
 						//train predictor
-						core.getBranchPredictor().Train(
+						execEngine.getBranchPredictor().Train(
 								lastValidIPSeen,
 								firstInstruction.isBranchTaken(),
 								prediction
-								);
-						this.core.powerCounters.incrementBpredAccess(1);
+								);	
+						this.execEngine.getBranchPredictor().incrementNumAccesses(1);
 
 						branchCount++;
 					}
@@ -483,6 +489,28 @@ public class ReorderBuffer extends SimulationElement{
 
 	public long getMispredCount() {
 		return mispredCount;
+	}
+	
+	void incrementNumAccesses(int incrementBy)
+	{
+		numAccesses += incrementBy * core.getStepSize();
+	}
+	
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = core.getRobPower().leakagePower;
+		double dynamicPower = core.getRobPower().dynamicPower;
+		
+		double activityFactor = (double)numAccesses
+									/(double)core.getCoreCyclesTaken()
+									/(core.getDecodeWidth() + core.getRetireWidth() + core.getRetireWidth());
+										//ROB accessed at entry creation, result entry, entry removal
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 
 }

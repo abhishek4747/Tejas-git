@@ -23,13 +23,18 @@ package net;
 import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
+import generic.Statistics;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 import net.NOC.TOPOLOGY;
 import net.RoutingAlgo.SELSCHEME;
 
 import config.NocConfig;
+import config.PowerConfigNew;
+import config.SystemConfig;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.nuca.NucaCacheBank;
@@ -43,6 +48,7 @@ public class Router extends Switch{
 	protected NocInterface reference;
 	protected int latencyBetweenBanks;
 	protected Vector<Router> neighbours;
+	PowerConfigNew power;
 	
 	/************************************************************************
      * Method Name  : Router
@@ -62,6 +68,7 @@ public class Router extends Switch{
 		this.latencyBetweenBanks = nocConfig.latencyBetweenBanks;
 		this.neighbours= new Vector<Router>(4);
 		this.hopCounters = 0;
+		power = nocConfig.power;
 	}
 	/***************************************************
 	 * Connects the banks
@@ -237,5 +244,20 @@ public class Router extends Switch{
 								requestType));
 			}
 		}
-	}	
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = SystemConfig.mainMemoryControllerPower.leakagePower;
+		double dynamicPower = SystemConfig.mainMemoryControllerPower.dynamicPower;
+		
+		double activityFactor = (double)(hopCounters * latency * stepSize)
+									/(double)Statistics.maxCoreCycles;
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
+	}
 }

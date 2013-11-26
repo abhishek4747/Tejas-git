@@ -27,6 +27,7 @@ import generic.EventQueue;
 import generic.GlobalClock;
 import generic.RequestType;
 import generic.SimulationElement;
+import generic.Statistics;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,6 +39,8 @@ import java.util.Queue;
 import java.util.Vector;
 
 import config.CacheConfig;
+import config.PowerConfigNew;
+import config.SystemConfig;
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
@@ -65,6 +68,8 @@ public class CentralizedDirectoryCache extends Cache
 	private long timestamp=0;
 	public static int networkDelay;
 	
+	PowerConfigNew power;
+	
 	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores, 
 			int networkDelay) 
 	{
@@ -82,6 +87,8 @@ public class CentralizedDirectoryCache extends Cache
 
 		this.levelFromTop = CacheType.Directory;
 		CentralizedDirectoryCache.networkDelay = networkDelay;
+		
+		power = cacheParameters.power;
 	}
 	
 	// This function ensures that cache functions like access and fill return a directory entry and not a cache line.
@@ -700,9 +707,19 @@ public class CentralizedDirectoryCache extends Cache
 					((AddressCarryingEvent)event).getAddress(),
 					(event).coreId));
 	}
-	
-	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		return 0; 
+		double leakagePower = power.leakagePower;
+		double dynamicPower = power.dynamicPower;
+		
+		double activityFactor = (double)((directoryHits + directoryMisses) * latency * stepSize)
+									/(double)Statistics.maxCoreCycles;
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 }
