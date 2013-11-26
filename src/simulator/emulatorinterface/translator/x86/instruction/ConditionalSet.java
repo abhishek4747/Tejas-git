@@ -14,7 +14,7 @@ public class ConditionalSet implements X86StaticInstructionHandler
 			TempRegisterNum tempRegisterNum)
 					throws InvalidInstructionException
 	{
-		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) && 
+		if((operand1.isIntegerRegisterOperand()) && 
 				operand2==null && operand3==null)
 		{
 			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1, 

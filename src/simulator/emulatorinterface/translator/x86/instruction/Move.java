@@ -38,8 +38,8 @@ public class Move implements X86StaticInstructionHandler
 					throws InvalidInstructionException
 	{
 		//if operand1 is a register and operand2 is a register/immediate, we will use normal move operation
-		if( (operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
-			(operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand() || operand2.isImmediateOperand()) &&
+		if( (operand1.isIntegerRegisterOperand()) &&
+			(operand2.isIntegerRegisterOperand() || operand2.isImmediateOperand()) &&
 		    (operand3==null))
 		{
 			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1, operand2));
@@ -47,7 +47,7 @@ public class Move implements X86StaticInstructionHandler
 		
 		
 		//if operand1 is register and operand2 is a memory-operand, we will use load operation
-		else if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
+		else if((operand1.isIntegerRegisterOperand()) &&
 				 operand2.isMemoryOperand() && 
 				 operand3==null)
 		{
@@ -58,7 +58,7 @@ public class Move implements X86StaticInstructionHandler
 		//if the operand1 is a memory location and operand2 is a register/immediate then
 		//it is a store operation
 		else if((operand1.isMemoryOperand()) &&
-				(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
+				(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand()) &&
 				(operand3==null))
 		{
 			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand1, operand2));

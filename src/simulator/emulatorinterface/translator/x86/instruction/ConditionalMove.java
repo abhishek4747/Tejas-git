@@ -38,15 +38,15 @@ public class ConditionalMove implements X86StaticInstructionHandler
 			throws InvalidInstructionException
 	{
 		//if operand1 = register and operand2 = register/immediate - move
-		if( (operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
-			(operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand() || operand2.isImmediateOperand()) &&
+		if( (operand1.isIntegerRegisterOperand()) &&
+			(operand2.isIntegerRegisterOperand() || operand2.isImmediateOperand()) &&
 		    (operand3==null))
 		{
 			instructionArrayList.appendInstruction(Instruction.getMoveInstruction(operand1, operand2));
 		}
 		
 		//if operand1 = register and operand2 = memory - load
-		else if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
+		else if((operand1.isIntegerRegisterOperand()) &&
 				 operand2.isMemoryOperand() && 
 				 operand3==null)
 		{
@@ -55,7 +55,7 @@ public class ConditionalMove implements X86StaticInstructionHandler
 		
 		//if operand1 = memory and operand2 = memory - store
 		else if((operand1.isMemoryOperand()) &&
-				(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
+				(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand()) &&
 				(operand3==null))
 		{
 			instructionArrayList.appendInstruction(Instruction.getStoreInstruction(operand2, operand1));

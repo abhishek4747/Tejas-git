@@ -43,7 +43,7 @@ public class Push implements X86StaticInstructionHandler
 		Operand stackPointerLocation = Operand.getMemoryOperand(stackPointer, null);
 		
 		
-		if((operand1.isMemoryOperand() || operand1.isImmediateOperand() ||	operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) && 
+		if((operand1.isMemoryOperand() || operand1.isImmediateOperand() ||	operand1.isIntegerRegisterOperand()) && 
 		   operand2==null &&  operand3==null)
 		{
 			Operand valueToPush;

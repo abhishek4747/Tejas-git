@@ -75,7 +75,7 @@ public class XMLParser
 		} 
 		catch (Exception e) 
 		{
-			e.printStackTrace();
+			misc.Error.showErrorAndExit("Error in reading config file : " + e);
 		}
  	}
 	
@@ -267,11 +267,20 @@ public class XMLParser
 
 	}
 	
-	PowerConfigNew getPowerConfig(Element parent)
+	private static PowerConfigNew getPowerConfig(Element parent)
 	{
 		PowerConfigNew powerConfig = new PowerConfigNew();
-		powerConfig.leakagePower = Double.parseDouble(getImmediateString("Leakage", parent));
-		powerConfig.dynamicPower = Double.parseDouble(getImmediateString("Dynamic", parent));
+		powerConfig.leakagePower = Double.parseDouble(getImmediateString("LeakagePower", parent));
+		powerConfig.dynamicPower = Double.parseDouble(getImmediateString("DynamicPower", parent));
+		return powerConfig;
+	}
+	
+	private static CachePowerConfig getCachePowerConfig(Element parent)
+	{
+		CachePowerConfig powerConfig = new CachePowerConfig();
+		powerConfig.leakagePower = Double.parseDouble(getImmediateString("LeakagePower", parent));
+		powerConfig.readDynamicPower = Double.parseDouble(getImmediateString("ReadDynamicPower", parent));
+		powerConfig.writeDynamicPower = Double.parseDouble(getImmediateString("WriteDynamicPower", parent));
 		return powerConfig;
 	}
 	
@@ -320,56 +329,101 @@ public class XMLParser
 			
 			core.pipelineType = PipelineType.valueOf(getImmediateString("PipelineType", coreElmnt));
 			
-			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", coreElmnt));
-			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", coreElmnt));
-			core.LSQPortType = setPortType(getImmediateString("LSQPortType", coreElmnt));
-			core.LSQAccessPorts = Integer.parseInt(getImmediateString("LSQAccessPorts", coreElmnt));
-			core.LSQPortOccupancy = Integer.parseInt(getImmediateString("LSQPortOccupancy", coreElmnt));
-			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", coreElmnt));
+			Element lsqElmnt = (Element)(coreElmnt.getElementsByTagName("LSQ")).item(0);
+			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", lsqElmnt));
+			core.LSQLatency = Integer.parseInt(getImmediateString("LSQLatency", lsqElmnt));
+			core.LSQPortType = setPortType(getImmediateString("LSQPortType", lsqElmnt));
+			core.LSQAccessPorts = Integer.parseInt(getImmediateString("LSQAccessPorts", lsqElmnt));
+			core.LSQPortOccupancy = Integer.parseInt(getImmediateString("LSQPortOccupancy", lsqElmnt));
+			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", lsqElmnt));
+			core.lsqPower = getPowerConfig(lsqElmnt);
 			
-			core.ITLBSize = Integer.parseInt(getImmediateString("ITLBSize", coreElmnt));
-			core.ITLBLatency = Integer.parseInt(getImmediateString("ITLBLatency", coreElmnt));
-			core.ITLBMissPenalty = Integer.parseInt(getImmediateString("ITLBMissPenalty", coreElmnt));
-			core.ITLBPortType = setPortType(getImmediateString("ITLBPortType", coreElmnt));
-			core.ITLBAccessPorts = Integer.parseInt(getImmediateString("ITLBAccessPorts", coreElmnt));
-			core.ITLBPortOccupancy = Integer.parseInt(getImmediateString("ITLBPortOccupancy", coreElmnt));
+			Element iTLBElmnt = (Element)(coreElmnt.getElementsByTagName("ITLB")).item(0);
+			core.ITLBSize = Integer.parseInt(getImmediateString("Size", iTLBElmnt));
+			core.ITLBLatency = Integer.parseInt(getImmediateString("Latency", iTLBElmnt));
+			core.ITLBMissPenalty = Integer.parseInt(getImmediateString("MissPenalty", iTLBElmnt));
+			core.ITLBPortType = setPortType(getImmediateString("PortType", iTLBElmnt));
+			core.ITLBAccessPorts = Integer.parseInt(getImmediateString("AccessPorts", iTLBElmnt));
+			core.ITLBPortOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", iTLBElmnt));
+			core.iTLBPower = getPowerConfig(iTLBElmnt);
 			
-			core.DTLBSize = Integer.parseInt(getImmediateString("DTLBSize", coreElmnt));
-			core.DTLBLatency = Integer.parseInt(getImmediateString("DTLBLatency", coreElmnt));
-			core.DTLBMissPenalty = Integer.parseInt(getImmediateString("DTLBMissPenalty", coreElmnt));
-			core.DTLBPortType = setPortType(getImmediateString("DTLBPortType", coreElmnt));
-			core.DTLBAccessPorts = Integer.parseInt(getImmediateString("DTLBAccessPorts", coreElmnt));
-			core.DTLBPortOccupancy = Integer.parseInt(getImmediateString("DTLBPortOccupancy", coreElmnt));
+			Element dTLBElmnt = (Element)(coreElmnt.getElementsByTagName("DTLB")).item(0);
+			core.DTLBSize = Integer.parseInt(getImmediateString("Size", dTLBElmnt));
+			core.DTLBLatency = Integer.parseInt(getImmediateString("Latency", dTLBElmnt));
+			core.DTLBMissPenalty = Integer.parseInt(getImmediateString("MissPenalty", dTLBElmnt));
+			core.DTLBPortType = setPortType(getImmediateString("PortType", dTLBElmnt));
+			core.DTLBAccessPorts = Integer.parseInt(getImmediateString("AccessPorts", dTLBElmnt));
+			core.DTLBPortOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", dTLBElmnt));
+			core.dTLBPower = getPowerConfig(dTLBElmnt);
 
-			core.DecodeWidth = Integer.parseInt(getImmediateString("DecodeWidth", coreElmnt));
-			core.IssueWidth = Integer.parseInt(getImmediateString("IssueWidth", coreElmnt));
+			Element decodeElmnt = (Element)(coreElmnt.getElementsByTagName("Decode")).item(0);
+			core.DecodeWidth = Integer.parseInt(getImmediateString("Width", decodeElmnt));
+			core.decodePower = getPowerConfig(decodeElmnt);
+			
+			Element instructionWindowElmnt = (Element)(coreElmnt.getElementsByTagName("InstructionWindow")).item(0);
+			core.IssueWidth = Integer.parseInt(getImmediateString("IssueWidth", instructionWindowElmnt));			
+			core.IWSize = Integer.parseInt(getImmediateString("IWSize", instructionWindowElmnt));
+			core.iwPower = getPowerConfig(instructionWindowElmnt);
+
+			Element robElmnt = (Element)(coreElmnt.getElementsByTagName("ROB")).item(0);
 			core.RetireWidth = Integer.parseInt(getImmediateString("RetireWidth", coreElmnt));
 			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
-			core.IWSize = Integer.parseInt(getImmediateString("IWSize", coreElmnt));
-			core.IntRegFileSize = Integer.parseInt(getImmediateString("IntRegFileSize", coreElmnt));
-			core.FloatRegFileSize = Integer.parseInt(getImmediateString("FloatRegFileSize", coreElmnt));
-			core.IntArchRegNum = Integer.parseInt(getImmediateString("IntArchRegNum", coreElmnt));
-			core.FloatArchRegNum = Integer.parseInt(getImmediateString("FloatArchRegNum", coreElmnt));
-			core.MSRegNum = Integer.parseInt(getImmediateString("MSRegNum", coreElmnt));
-			core.RegFilePortType = setPortType(getImmediateString("RegFilePortType", coreElmnt));
-			core.RegFilePorts = Integer.parseInt(getImmediateString("RegFilePorts", coreElmnt));
-			core.RegFileOccupancy = Integer.parseInt(getImmediateString("RegFileOccupancy", coreElmnt));
-			core.BranchMispredPenalty = Integer.parseInt(getImmediateString("BranchMispredPenalty", coreElmnt));
+			core.robPower = getPowerConfig(robElmnt);
 			
-			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", coreElmnt));
-			core.IntMulNum = Integer.parseInt(getImmediateString("IntMulNum", coreElmnt));
-			core.IntDivNum = Integer.parseInt(getImmediateString("IntDivNum", coreElmnt));
-			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", coreElmnt));
-			core.FloatMulNum = Integer.parseInt(getImmediateString("FloatMulNum", coreElmnt));
-			core.FloatDivNum = Integer.parseInt(getImmediateString("FloatDivNum", coreElmnt));
+			Element resultsBroadcastBusElmnt = (Element)(coreElmnt.getElementsByTagName("ResultsBroadcastBus")).item(0);
+			core.resultsBroadcastBusPower = getPowerConfig(resultsBroadcastBusElmnt);
 			
-			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", coreElmnt));
-			core.IntMulLatency = Integer.parseInt(getImmediateString("IntMulLatency", coreElmnt));
-			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", coreElmnt));
-			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", coreElmnt));
-			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", coreElmnt));
-			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", coreElmnt));
-		
+			Element renameElmnt = (Element)(coreElmnt.getElementsByTagName("Rename")).item(0);
+			
+			Element ratElmnt = (Element)(renameElmnt.getElementsByTagName("RAT")).item(0);
+			core.intRATPower = getPowerConfig((Element)ratElmnt.getElementsByTagName("Integer").item(0));
+			core.floatRATPower = getPowerConfig((Element)ratElmnt.getElementsByTagName("Float").item(0));
+			
+			Element freelistElmnt = (Element)(renameElmnt.getElementsByTagName("FreeList")).item(0);
+			core.intFreeListPower = getPowerConfig((Element)freelistElmnt.getElementsByTagName("Integer").item(0));
+			core.floatFreeListPower = getPowerConfig((Element)freelistElmnt.getElementsByTagName("Float").item(0));			
+			
+			Element registerFileElmnt = (Element)(coreElmnt.getElementsByTagName("RegisterFile")).item(0);
+			
+			Element integerRegisterFileElmnt = (Element)(registerFileElmnt.getElementsByTagName("Integer")).item(0);
+			core.IntRegFileSize = Integer.parseInt(getImmediateString("IntRegFileSize", integerRegisterFileElmnt));
+			core.IntArchRegNum = Integer.parseInt(getImmediateString("IntArchRegNum", integerRegisterFileElmnt));
+			core.intRegFilePower = getPowerConfig(integerRegisterFileElmnt);
+			
+			Element floatRegisterFileElmnt = (Element)(registerFileElmnt.getElementsByTagName("Float")).item(0);
+			core.FloatRegFileSize = Integer.parseInt(getImmediateString("FloatRegFileSize", floatRegisterFileElmnt));
+			core.FloatArchRegNum = Integer.parseInt(getImmediateString("FloatArchRegNum", floatRegisterFileElmnt));
+			core.floatRegFilePower = getPowerConfig(floatRegisterFileElmnt);
+			
+			Element intALUElmnt = (Element)(coreElmnt.getElementsByTagName("IntALU")).item(0);
+			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", intALUElmnt));
+			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", intALUElmnt));
+			core.intALUPower = getPowerConfig(intALUElmnt);
+
+			Element floatALUElmnt = (Element)(coreElmnt.getElementsByTagName("FloatALU")).item(0);
+			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", floatALUElmnt));
+			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", floatALUElmnt));
+			core.floatALUPower = getPowerConfig(floatALUElmnt);
+			
+			Element complexALUElmnt = (Element)(coreElmnt.getElementsByTagName("ComplexALU")).item(0);
+			core.IntMulNum = Integer.parseInt(getImmediateString("IntMulNum", complexALUElmnt));
+			core.IntDivNum = Integer.parseInt(getImmediateString("IntDivNum", complexALUElmnt));
+			core.FloatMulNum = Integer.parseInt(getImmediateString("FloatMulNum", complexALUElmnt));
+			core.FloatDivNum = Integer.parseInt(getImmediateString("FloatDivNum", complexALUElmnt));
+			core.IntMulLatency = Integer.parseInt(getImmediateString("IntMulLatency", complexALUElmnt));
+			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", complexALUElmnt));
+			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", complexALUElmnt));
+			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", complexALUElmnt));
+			core.complexALUPower = getPowerConfig(complexALUElmnt);
+						
+			//set Branch Predictor Parameters
+			core.branchPredictor = new BranchPredictorConfig();
+			Element predictorElmnt = (Element)(coreElmnt.getElementsByTagName("BranchPredictor").item(0));
+			Element BTBElmnt = (Element) predictorElmnt.getElementsByTagName("BTB").item(0);
+			setBranchPredictorProperties(predictorElmnt, BTBElmnt, core.branchPredictor);
+			core.BranchMispredPenalty = Integer.parseInt(getImmediateString("BranchMispredPenalty", predictorElmnt));
+			core.bPredPower = getPowerConfig(predictorElmnt);
+			
 			if(getImmediateString("TreeBarrier", coreElmnt).compareTo("true") == 0)
 				core.TreeBarrier = true;
 			else
@@ -395,6 +449,7 @@ public class XMLParser
 			setCacheProperties(typeElmnt, core.iCache);
 			core.iCache.nextLevel = iCacheElmnt.getAttribute("nextLevel");
 			core.iCache.operatingFreq = core.frequency;
+			core.iCache.power = getCachePowerConfig(typeElmnt);
 			
 			//Code for L1 Data cache configurations for each core
 			NodeList l1CacheList = coreElmnt.getElementsByTagName("L1Cache");
@@ -406,6 +461,7 @@ public class XMLParser
 			setCacheProperties(typeElmnt, core.l1Cache);
 			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
 			core.l1Cache.operatingFreq = core.frequency;
+			core.l1Cache.power = getCachePowerConfig(typeElmnt);
 			
 			//Code for L1 cache configurations for each core
 			//NodeList l2CacheList = coreElmnt.getElementsByTagName("L2Cache");
@@ -447,20 +503,11 @@ public class XMLParser
 				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);
 				newCacheConfigEntry.nextLevel = cacheElmnt.getAttribute("nextLevel");
 				newCacheConfigEntry.operatingFreq = Long.parseLong(cacheElmnt.getAttribute("frequency"));
+				newCacheConfigEntry.power = getCachePowerConfig(cacheTypeElmnt);
 				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
 			}
 		}
-		
-		
-		//set Predictor Parameters
-		SystemConfig.branchPredictor = new BranchPredictorConfig();
-		NodeList predictorLst = systemElmnt.getElementsByTagName("Predictor");
-		Element predictorElmnt = (Element) predictorLst.item(0);
-		
-		NodeList BTBLst = systemElmnt.getElementsByTagName("BTB");
-		Element BTBElmnt = (Element) BTBLst.item(0);
-		setBranchPredictorProperties(predictorElmnt, BTBElmnt, SystemConfig.branchPredictor);
-		
+				
 		//set NOC Parameters
 		SystemConfig.nocConfig = new NocConfig();
 		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
@@ -705,7 +752,7 @@ public class XMLParser
 		
 		branchPredictor.PCBits = Integer.parseInt(getImmediateString("PCBits", predictorElmnt));
 		branchPredictor.BHRsize = Integer.parseInt(getImmediateString("BHRsize", predictorElmnt));
-		branchPredictor.saturating_bits = Integer.parseInt(getImmediateString("saturating_bits", predictorElmnt));
+		branchPredictor.saturating_bits = Integer.parseInt(getImmediateString("SaturatingBits", predictorElmnt));
 	}
 	
 	private static boolean setDirectoryCoherent(String immediateString) {

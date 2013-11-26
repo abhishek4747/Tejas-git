@@ -50,7 +50,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
 	{
-		if (!MemorySystem.bypassLSQ)
+		//if (!MemorySystem.bypassLSQ) XXX:Seems redundant. If execution reaches here, bypassLSQ must be false
 			robEntry.setLsqEntry(lsqueue.addEntry(isLoad, address, robEntry));
 	}
 	

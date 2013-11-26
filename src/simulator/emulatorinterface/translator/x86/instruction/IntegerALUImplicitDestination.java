@@ -40,8 +40,8 @@ public class IntegerALUImplicitDestination implements X86StaticInstructionHandle
 					throws InvalidInstructionException
 	{
 		if(
-		(operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
-		(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand() || operand2.isMemoryOperand()) &&
+		(operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) &&
+		(operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMemoryOperand()) &&
 		(operand3==null))
 		{
 			Operand operand1ValueOperand;

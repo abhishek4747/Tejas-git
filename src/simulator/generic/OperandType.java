@@ -25,7 +25,6 @@ public enum OperandType
 {
 	integerRegister,
 	floatRegister,
-	machineSpecificRegister,
 	immediate,
 	inValid,
 	memory

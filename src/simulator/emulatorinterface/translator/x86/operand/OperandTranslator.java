@@ -99,10 +99,6 @@ public class OperandTranslator
 		{
 			return Operand.getFloatRegister(Registers.encodeRegister(operandStr));
 		}
-		else if(Registers.isMachineSpecificRegister(operandStr))
-		{
-			return Operand.getMachineSpecificRegister(Registers.encodeRegister(operandStr));
-		}
 		//Simplify memory locations specified by [...]
 		else if(memLocationMatcher.reset(operandStr).matches())
 		{
@@ -182,15 +178,6 @@ public class OperandTranslator
 				}
 			}
 			
-			else if(Registers.isMachineSpecificRegister(memoryAddressTokens[i]))
-			{
-				if(base==null) {
-					base = Operand.getMachineSpecificRegister(Registers.encodeRegister(memoryAddressTokens[i]));
-				} else {
-					index = Operand.getMachineSpecificRegister(Registers.encodeRegister(memoryAddressTokens[i]));
-				}
-			}
-						
 			//offset
 			else if(Numbers.isValidNumber(memoryAddressTokens[i]))
 			{
@@ -213,8 +200,6 @@ public class OperandTranslator
 					continue;
 				} else if(Registers.isIntegerRegister(indexStr)) {
 					index = Operand.getIntegerRegister(Registers.encodeRegister(indexStr));
-				} else if(Registers.isMachineSpecificRegister(indexStr)) {
-					index = Operand.getMachineSpecificRegister(Registers.encodeRegister(indexStr));
 				} else {
 					throw new InvalidInstructionException("illegal operand : operandStr = " + operandStr, true);
 				}

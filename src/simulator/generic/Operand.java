@@ -35,17 +35,11 @@ public class Operand implements Serializable
 	// pre-allocated operands
 	private static Operand floatRegisterOperands[];
 	private static Operand integerRegisterOperands[];
-	private static Operand machineSpecificRegisterOperands[];
 	
 	// different types of memory operands : integer-msr-immediate
 	private static Operand memoryIntegerOperands[];
 	private static Operand memoryIntegerIntegerOperands[][];
-	private static Operand memoryIntegerMSROperands[][];
 	private static Operand[] memoryIntegerImmediateOperands;
-	
-	private static Operand memoryMSROperands[];
-	private static Operand memoryMSRMSROperands[][];
-	private static Operand[] memoryMSRImmediateOperands;
 	
 	private static Operand memoryImmediateOperand;
 	private static Operand memoryImmediateImmediateOperand;
@@ -77,14 +71,6 @@ public class Operand implements Serializable
 			floatRegisterOperands[i].value = i;
 		}
 		
-		// Create machine specific registers
-		machineSpecificRegisterOperands = new Operand[Registers.getMaxMachineSpecificRegisters()];
-		for(int i=0; i<Registers.getMaxMachineSpecificRegisters(); i++) {
-			machineSpecificRegisterOperands[i] = new Operand();
-			machineSpecificRegisterOperands[i].type = OperandType.machineSpecificRegister; 
-			machineSpecificRegisterOperands[i].value = i;
-		}
-		
 		// Create memory operands
 		memoryIntegerOperands = new Operand[integerRegisterOperands.length];
 		for(int i=0; i<integerRegisterOperands.length; i++) {
@@ -104,49 +90,12 @@ public class Operand implements Serializable
 			}
 		}
 		
-		memoryIntegerMSROperands = new Operand[integerRegisterOperands.length][machineSpecificRegisterOperands.length];
-		for(int i=0; i<integerRegisterOperands.length; i++) {
-			for(int j=0;j<machineSpecificRegisterOperands.length; j++) {
-				memoryIntegerMSROperands[i][j] = new Operand();
-				memoryIntegerMSROperands[i][j].type = OperandType.memory;
-				memoryIntegerMSROperands[i][j].memoryLocationFirstOperand = integerRegisterOperands[i];
-				memoryIntegerMSROperands[i][j].memoryLocationSecondOperand = machineSpecificRegisterOperands[j];
-			}
-		}
-		
 		memoryIntegerImmediateOperands = new Operand[integerRegisterOperands.length];
 		for(int i=0; i<integerRegisterOperands.length; i++) {
 			memoryIntegerImmediateOperands[i] = new Operand();
 			memoryIntegerImmediateOperands[i].type = OperandType.memory;
 			memoryIntegerImmediateOperands[i].memoryLocationFirstOperand = integerRegisterOperands[i];
 			memoryIntegerImmediateOperands[i].memoryLocationSecondOperand = immediateOperand;
-		}
-		
-		// first msr operand
-		memoryMSROperands = new Operand[machineSpecificRegisterOperands.length];
-		for(int i=0; i<machineSpecificRegisterOperands.length; i++) {
-			memoryMSROperands[i] = new Operand();
-			memoryMSROperands[i].type = OperandType.memory;
-			memoryMSROperands[i].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
-			memoryMSROperands[i].memoryLocationSecondOperand = null;
-		}
-		
-		memoryMSRMSROperands = new Operand[machineSpecificRegisterOperands.length][machineSpecificRegisterOperands.length];
-		for(int i=0; i<machineSpecificRegisterOperands.length; i++) {
-			for(int j=0; j<machineSpecificRegisterOperands.length; j++) {
-				memoryMSRMSROperands[i][j] = new Operand();
-				memoryMSRMSROperands[i][j].type = OperandType.memory;
-				memoryMSRMSROperands[i][j].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
-				memoryMSRMSROperands[i][j].memoryLocationSecondOperand = machineSpecificRegisterOperands[j];
-			}
-		}
-		
-		memoryMSRImmediateOperands = new Operand[machineSpecificRegisterOperands.length];
-		for(int i=0; i<machineSpecificRegisterOperands.length; i++) {
-			memoryMSRImmediateOperands[i] = new Operand();
-			memoryMSRImmediateOperands[i].type = OperandType.memory;
-			memoryMSRImmediateOperands[i].memoryLocationFirstOperand = machineSpecificRegisterOperands[i];
-			memoryMSRImmediateOperands[i].memoryLocationSecondOperand = immediateOperand;
 		}
 		
 		memoryImmediateOperand = new Operand();
@@ -280,11 +229,6 @@ public class Operand implements Serializable
 		return (this.type == OperandType.integerRegister);
 	}
 	
-	public boolean isMachineSpecificRegisterOperand()
-	{
-		return (this.type == OperandType.machineSpecificRegister);
-	}
-	
 	public boolean isImmediateOperand()
 	{
 		return (this.type == OperandType.immediate);
@@ -329,11 +273,6 @@ public class Operand implements Serializable
 		return floatRegisterOperands[(int) value];
 	}
 	
-	public static Operand getMachineSpecificRegister(long value)
-	{
-		return machineSpecificRegisterOperands[(int)value];
-	}
-	
 	public static Operand getImmediateOperand()
 	{
 		return immediateOperand;
@@ -347,20 +286,8 @@ public class Operand implements Serializable
 					return memoryIntegerOperands[(int) op1.value];
 				} else if (op2.type==OperandType.integerRegister) {
 					return memoryIntegerIntegerOperands[(int) op1.value][(int) op2.value];
-				} else if (op2.type==OperandType.machineSpecificRegister) {
-					return memoryIntegerMSROperands[(int) op1.value][(int) op2.value];
 				} else if (op2.type==OperandType.immediate) {
 					return memoryIntegerImmediateOperands[(int) op1.value];
-				}
-				break;
-				
-			case machineSpecificRegister:
-				if(op2==null) {
-					return memoryMSROperands[(int) op1.value];
-				} else if(op2.type==OperandType.machineSpecificRegister) {
-					return memoryMSRMSROperands[(int) op1.value][(int) op2.value];
-				} else if(op2.type==OperandType.immediate) {
-					return memoryMSRImmediateOperands[(int) op1.value];
 				}
 				break;
 				

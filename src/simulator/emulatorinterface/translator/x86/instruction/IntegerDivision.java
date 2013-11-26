@@ -41,7 +41,7 @@ public class IntegerDivision implements X86StaticInstructionHandler
 		Operand accumulatorRegister = Registers.getAccumulatorRegister();
 
 		
-		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
+		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) &&
 		   operand2==null && operand3==null)
 		{
 			Operand dividend;

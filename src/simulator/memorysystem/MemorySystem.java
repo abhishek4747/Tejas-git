@@ -52,7 +52,6 @@ public class MemorySystem
 	public static MainMemoryController mainMemoryController;
 	public static CentralizedDirectoryCache centralizedDirectory;
 	private static Cache l2Cache;
-	public static boolean bypassLSQ = false;
 	
 	public static Hashtable<String, Cache> getCacheList() {
 		return cacheList;
@@ -67,10 +66,6 @@ public class MemorySystem
 		// initialising the memory system
 		
 		//Set up the main memory properties
-		
-		
-		if (SimulationConfig.isPipelineInorder)
-			bypassLSQ = true;
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
@@ -149,19 +144,12 @@ public class MemorySystem
 		{
 			CoreMemorySystem coreMemSys = null;
 			
-			if(cores[i].isPipelineInorder)
-			{
+			if(cores[i].isPipelineInOrder()) {
 				coreMemSys = new InorderCoreMemorySystem_MII(cores[i]);
-			}
-			else if (cores[i].isPipelineStatistical)
-			{
-				//cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
-			}
-			else
-			{
-				//TODO
+			} else if(cores[i].isPipelineOutOfOrder()) {
 				coreMemSys = new OutOrderCoreMemorySystem(cores[i]);
-				//TODO set corememsys of cores[i] to the one jus created in outordercorememsys constructor
+			} else {
+				misc.Error.showErrorAndExit("pipeline type not defined !!");
 			}
 			
 			coreMemSysArray[i] = coreMemSys;
@@ -336,10 +324,21 @@ public class MemorySystem
 		for (int i = 0; i < SystemConfig.NoOfCores; i++)
 		{
 			System.out.println(
-					"TLB[" + i + "] Hits : " 
-					+ cores[i].getExecEngine().getCoreMemorySystem().TLBuffer.tlbHits 
-					+ "\t ; TLB[" + i + "] misses : " 
-					+ cores[i].getExecEngine().getCoreMemorySystem().TLBuffer.tlbMisses);
+					"ITLB[" + i + "] Hits : " 
+					+ cores[i].getExecEngine().getCoreMemorySystem().getiTLB().tlbHits 
+					+ "\t ; ITLB[" + i + "] misses : " 
+					+ cores[i].getExecEngine().getCoreMemorySystem().getiTLB().tlbMisses);
+		}
+		
+		System.out.println(" ");
+		
+		for (int i = 0; i < SystemConfig.NoOfCores; i++)
+		{
+			System.out.println(
+					"DTLB[" + i + "] Hits : " 
+					+ cores[i].getExecEngine().getCoreMemorySystem().getdTLB().tlbHits 
+					+ "\t ; DTLB[" + i + "] misses : " 
+					+ cores[i].getExecEngine().getCoreMemorySystem().getdTLB().tlbMisses);
 		}
 		
 		System.out.println(" ");

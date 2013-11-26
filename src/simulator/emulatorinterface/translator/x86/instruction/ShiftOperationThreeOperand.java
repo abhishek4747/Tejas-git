@@ -37,9 +37,9 @@ public class ShiftOperationThreeOperand implements X86StaticInstructionHandler
 					throws InvalidInstructionException
 	{
 		if(
-		   (operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
-		   (operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
-		   (operand3.isIntegerRegisterOperand() || operand3.isMachineSpecificRegisterOperand() || operand3.isImmediateOperand()))
+		   (operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) &&
+		   (operand2.isIntegerRegisterOperand()) &&
+		   (operand3.isIntegerRegisterOperand() || operand3.isImmediateOperand()))
 		{
 			Operand destination;
 			if(operand1.isMemoryOperand())

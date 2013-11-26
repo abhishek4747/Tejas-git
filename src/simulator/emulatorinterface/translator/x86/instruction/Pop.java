@@ -41,7 +41,7 @@ public class Pop implements X86StaticInstructionHandler
 		Operand stackPointer = Registers.getStackPointer();
 		Operand stackPointerLocation = Operand.getMemoryOperand(stackPointer, null);
 		
-		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
+		if((operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) &&
 			operand2==null && operand3==null)
 		{
 			if(operand1.isMemoryOperand())

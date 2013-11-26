@@ -36,7 +36,7 @@ public class ConditionalJump implements X86StaticInstructionHandler
 	{
 		Operand jumpLocation = null;
 		
-		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() ||  operand1.isMachineSpecificRegisterOperand()) 
+		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand()) 
 		   &&  operand2==null  &&  operand3==null)
 		{
 			jumpLocation = operand1;

@@ -398,8 +398,7 @@ public class LSQ extends SimulationElement
 				lsqEntry.setForwarded(true);
 				
 				//inform pipeline that the load has completed
-				if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted()
-						&& !containingMemSys.core.isPipelineStatistical)
+				if (lsqEntry.getRobEntry() != null && !lsqEntry.getRobEntry().getExecuted())
 				{
 					((OutOrderCoreMemorySystem)containingMemSys).sendExecComplete(lsqEntry.getRobEntry());
 				}

@@ -37,7 +37,7 @@ public class LoadEffectiveAddress implements X86StaticInstructionHandler
 					throws InvalidInstructionException
 	{
 		//Effective address is of the form [a+b]
-		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() ) && 
+		if((operand1.isIntegerRegisterOperand()) && 
 				operand2.isMemoryOperand() && operand3==null)
 		{
 			if(operand2.getMemoryLocationSecondOperand()==null)

@@ -52,7 +52,7 @@ public class CacheConfig
 	public int mshrSize;
 	public NucaType nucaType;
 	
-	public PowerConfigNew power = new PowerConfigNew();
+	public CachePowerConfig power;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH

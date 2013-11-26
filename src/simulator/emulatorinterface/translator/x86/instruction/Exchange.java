@@ -37,16 +37,16 @@ public class Exchange implements X86StaticInstructionHandler
 					throws InvalidInstructionException
 	{
 		//operand1 is a register and operand2 is also a register
-		if((operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
-		   (operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand())&&
+		if((operand1.isIntegerRegisterOperand()) &&
+		   (operand2.isIntegerRegisterOperand())&&
 		   operand3==null)
 		{
 			instructionArrayList.appendInstruction(Instruction.getExchangeInstruction(operand1, operand2));
 		}
 
 		//operand1 is memory operand and operand2 is a register
-		else if((operand1.isMemoryOperand() || operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
-				(operand2.isMemoryOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()) &&
+		else if((operand1.isMemoryOperand() || operand1.isIntegerRegisterOperand()) &&
+				(operand2.isMemoryOperand() || operand2.isIntegerRegisterOperand()) &&
 				 operand3==null)
 		{
 			Operand memLocation = null, tempRegister = null, register = null;

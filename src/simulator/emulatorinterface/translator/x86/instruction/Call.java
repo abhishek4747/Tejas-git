@@ -46,7 +46,7 @@ public class Call implements X86StaticInstructionHandler
 		Operand nextInstruction = Operand.getImmediateOperand();
 		new Push().handle(instructionPointer, nextInstruction, null, null, instructionArrayList, tempRegisterNum);
 		
-		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() ||  operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) 
+		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) 
 		   &&  operand2==null  &&   operand3==null)
 		{
 			//Unconditional jump to a new location

@@ -68,7 +68,7 @@
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
 		
 		<GlobalClock>
-			<Frequency>3200</Frequency> <!---in MHz---->
+			<Frequency>3200</Frequency> <!--in MHz-->
 			<LeakagePower>0.0067</LeakagePower>
 			<DynamicPower>0.2886</DynamicPower>
 		</GlobalClock>
@@ -85,7 +85,17 @@
 		<!--Core Parameters-->
 		<Core>
 			<CoreFrequency>3600</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
-			<PipelineType>inOrder</PipelineType>	<inOrder,outOfOrder(set issue width for multi-issue in-order)-->
+			<PipelineType>inOrder</PipelineType>	<!--inOrder,outOfOrder(set issue width for multi-issue in-order)-->
+			
+			<BranchPredictor>
+				<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
+				<PCBits>4</PCBits>
+				<BHRsize>4</BHRsize>
+				<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->
+				<SaturatingBits>1</SaturatingBits>
+				<LeakagePower>0.0604</LeakagePower>
+				<DynamicPower>0.063</DynamicPower>
+			</BranchPredictor>			
 			
 			<LSQ>
 				<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
@@ -154,7 +164,7 @@
 				<IWSize>54</IWSize>				<!--Maximum number of entries in the Instruction Window-->
 				<LeakagePower>0.0042</LeakagePower>
 				<DynamicPower>0.0243</DynamicPower>
-			<InstructionWindow>
+			</InstructionWindow>
 			
 			<ROB>
 				<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
@@ -169,7 +179,7 @@
 					<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
 					<LeakagePower>0.0042</LeakagePower>
 					<DynamicPower>0.0243</DynamicPower>
-				<Integer>
+				</Integer>
 				
 				<Float>
 					<FloatRegFileSize>144</FloatRegFileSize>		<!--Maximum number of entries in the Floating point register file-->
@@ -178,20 +188,14 @@
 					<DynamicPower>0.0243</DynamicPower>
 				</Float>
 				
-				<MSRegNum>64</MSRegNum>				<!--Number of machine specific registers-->
 			</RegisterFile>
 			
-			<!-- TODO register file ports not implemented --> 
-			<RegFilePortType>UL</RegFilePortType>		<!--Type of access ports in the Reg File (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<RegFilePorts>4</RegFilePorts>			<!--Number of ports in the register file-->
-			<RegFileOccupancy>1</RegFileOccupancy>		<!--Occupancy of the register file ports (in clock cycles)-->
-				
 			<IntALU>
 				<IntALUNum>4</IntALUNum>			<!--Number of Integer ALUs-->
 				<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
 				<LeakagePower>0.0042</LeakagePower>
 				<DynamicPower>0.0243</DynamicPower>			
-			<IntALU>
+			</IntALU>
 			
 			<FloatALU>
 				<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
@@ -227,16 +231,6 @@
 			<!--L2Cache type = "Type2"/-->
 			<!--L3Cache type = "Type3"/-->
 		</Core>
-		
-		<BranchPredictor>
-			<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
-			<PCBits>4</PCBits>
-			<BHRsize>4</BHRsize>
-			<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->
-			<SaturatingBits>1</SaturatingBits>
-			<LeakagePower>0.0604</LeakagePower>
-			<DynamicPower>0.063</DynamicPower>
-		</BranchPredictor>
 		
 		<NOC>
 			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->

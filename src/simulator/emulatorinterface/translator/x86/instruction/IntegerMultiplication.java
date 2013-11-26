@@ -43,7 +43,7 @@ public class IntegerMultiplication implements X86StaticInstructionHandler
 		
 		//Single operand
 		//In this case, the accumulator is the implicit operand
-		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
+		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) &&
 			operand2==null && operand3==null)
 		{
 			//if operand1 is a memory operand, then we must first fetch the value at its location
@@ -64,8 +64,8 @@ public class IntegerMultiplication implements X86StaticInstructionHandler
 		}
 
 		else if(    
-			   (operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
-			   (operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand() || operand2.isMemoryOperand()) &&
+			   (operand1.isIntegerRegisterOperand()) &&
+			   (operand2.isImmediateOperand() || operand2.isIntegerRegisterOperand() || operand2.isMemoryOperand()) &&
 				operand3==null)
 		{
 			multiplicand = operand1;
@@ -91,8 +91,8 @@ public class IntegerMultiplication implements X86StaticInstructionHandler
 		//If all the three operands are valid, then the operand1 is a general register, 
 		//operand2 is a general register or memory-value and operand3 must be an immediate value
 		else if(    
-			(operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand()) &&
-			(operand2.isIntegerRegisterOperand() || operand2.isMachineSpecificRegisterOperand()  || operand2.isMemoryOperand()) &&
+			(operand1.isIntegerRegisterOperand()) &&
+			(operand2.isIntegerRegisterOperand() || operand2.isMemoryOperand()) &&
 			 operand3.isImmediateOperand())
 		{
 			multiplier = operand3;

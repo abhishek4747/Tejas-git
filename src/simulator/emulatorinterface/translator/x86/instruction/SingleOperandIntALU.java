@@ -38,7 +38,7 @@ public class SingleOperandIntALU implements X86StaticInstructionHandler
 					throws InvalidInstructionException
 	{
 		if(
-		(operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) &&
+		(operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) &&
 		 operand2==null && operand3==null)
 		{
 			Operand operand1ValueOperand;

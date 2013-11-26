@@ -132,35 +132,37 @@ public class Core extends SimulationElement implements NocInterface{
 				SystemConfig.core[core_number].pipelineType);
 		}
 		
-		if(SystemConfig.branchPredictor.predictorMode == BP.NoPredictor)
+		CoreConfig coreConfig = SystemConfig.core[core_number];
+		
+		if(coreConfig.branchPredictor.predictorMode == BP.NoPredictor)
 			this.branchPredictor = new NoPredictor();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PerfectPredictor)
+		else if(coreConfig.branchPredictor.predictorMode == BP.PerfectPredictor)
 			this.branchPredictor = new PerfectPredictor();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysTaken)
+		else if(coreConfig.branchPredictor.predictorMode == BP.AlwaysTaken)
 			this.branchPredictor = new AlwaysTaken();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysNotTaken)
+		else if(coreConfig.branchPredictor.predictorMode == BP.AlwaysNotTaken)
 			this.branchPredictor = new AlwaysNotTaken();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.Tournament)
+		else if(coreConfig.branchPredictor.predictorMode == BP.Tournament)
 			this.branchPredictor = new TournamentPredictor();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.Bimodal)
-			this.branchPredictor = new BimodalPredictor(SystemConfig.branchPredictor.PCBits,
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GShare)
-			this.branchPredictor = new GShare(SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GAg)
-			this.branchPredictor = new GAgpredictor(SystemConfig.branchPredictor.BHRsize);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GAp)
-			this.branchPredictor = new GApPredictor(SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.PCBits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PAg)
-			this.branchPredictor = new PAgPredictor(SystemConfig.branchPredictor.PCBits, 
-					SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PAp)
-			this.branchPredictor = new PApPredictor(SystemConfig.branchPredictor.PCBits, 
-					SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.Bimodal)
+			this.branchPredictor = new BimodalPredictor(coreConfig.branchPredictor.PCBits,
+					coreConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.GShare)
+			this.branchPredictor = new GShare(coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.GAg)
+			this.branchPredictor = new GAgpredictor(coreConfig.branchPredictor.BHRsize);
+		else if(coreConfig.branchPredictor.predictorMode == BP.GAp)
+			this.branchPredictor = new GApPredictor(coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.PCBits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.PAg)
+			this.branchPredictor = new PAgPredictor(coreConfig.branchPredictor.PCBits, 
+					coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.PAp)
+			this.branchPredictor = new PApPredictor(coreConfig.branchPredictor.PCBits, 
+					coreConfig.branchPredictor.BHRsize, 
+					coreConfig.branchPredictor.saturating_bits);
 		
 		
 		this.noOfInstructionsExecuted = 0;
@@ -192,9 +194,7 @@ public class Core extends SimulationElement implements NocInterface{
 		setFloatingPointRegisterFileSize(coreConfig.FloatRegFileSize);
 		setNIntegerArchitecturalRegisters(coreConfig.IntArchRegNum);
 		setNFloatingPointArchitecturalRegisters(coreConfig.FloatArchRegNum);
-		setNMachineSpecificRegisters(coreConfig.MSRegNum);
-		setNoOfRegFilePorts(coreConfig.RegFilePorts);
-		setRegFileOccupancy(coreConfig.RegFileOccupancy);
+		
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
 		setNumInorderPipelines(coreConfig.IssueWidth);
@@ -592,7 +592,7 @@ public class Core extends SimulationElement implements NocInterface{
 		double lsqPower =  this.execEngine.getCoreMemorySystem().getLsqueue().calculateAndPrintPower(outputFileWriter, componentName + ".LSQ");
 		
 		// -------- Pipeline -----------------------------------
-		double  
+		//double  
 		
 		
 		double totalPower = iCachePower + iTLBPower + dCachePower + dTLBPower + lsqPower;

@@ -31,7 +31,6 @@ import generic.Operand;
 
 public class Registers 
 {
-	private static Hashtable<String, Long> machineSpecificRegistersHashTable = null;
 	private static Hashtable<String, Long> integerRegistersHashTable = null;
 	private static Hashtable<String, Long> floatRegistersHashTable = null;
 
@@ -54,25 +53,12 @@ public class Registers
 	public static void createRegisterHashTable()
 	{
 		//Create required hash-tables
-		machineSpecificRegistersHashTable = new Hashtable<String, Long>();
 		integerRegistersHashTable = new Hashtable<String, Long>();
 		floatRegistersHashTable = new Hashtable<String, Long>();
 		
 		
 		//--------------------------Machine specific registers---------------------------------
 		//Segment Registers
-		machineSpecificRegistersHashTable.put("es", new Long(0));
-		machineSpecificRegistersHashTable.put("cs", new Long(1));
-		machineSpecificRegistersHashTable.put("ss", new Long(2));
-		machineSpecificRegistersHashTable.put("ds", new Long(3));
-		machineSpecificRegistersHashTable.put("fs", new Long(4));
-		machineSpecificRegistersHashTable.put("gs", new Long(5));
-		
-		machineSpecificRegistersHashTable.put("eflags", new Long(5));
-		machineSpecificRegistersHashTable.put("rip", new Long(6));
-		
-		//FIXME: Not sure if this goes here
-		machineSpecificRegistersHashTable.put("FP_CWORD", new Long(7));
 		
 		// Load register and store register
 //		machineSpecificRegistersHashTable.put("load_reg", new Long(8));
@@ -105,16 +91,30 @@ public class Registers
 		// Load register and store register
 		integerRegistersHashTable.put("load_reg", new Long(18));
 		integerRegistersHashTable.put("store_reg", new Long(19));
+
+		// Machine Specific Registers
+		integerRegistersHashTable.put("es", new Long(20));
+		integerRegistersHashTable.put("cs", new Long(21));
+		integerRegistersHashTable.put("ss", new Long(22));
+		integerRegistersHashTable.put("ds", new Long(23));
+		integerRegistersHashTable.put("fs", new Long(24));
+		integerRegistersHashTable.put("gs", new Long(25));
+		
+		integerRegistersHashTable.put("eflags", new Long(26));
+		integerRegistersHashTable.put("rip", new Long(27));
+		
+		//FIXME: Not sure if this goes here
+		integerRegistersHashTable.put("FP_CWORD", new Long(28));
 		
 		//Temporary registers
-		integerRegistersHashTable.put("temp0", new Long(20));
-		integerRegistersHashTable.put("temp1", new Long(21));
-		integerRegistersHashTable.put("temp2", new Long(22));
-		integerRegistersHashTable.put("temp3", new Long(23));
-		integerRegistersHashTable.put("temp4", new Long(24));
-		integerRegistersHashTable.put("temp5", new Long(25));
-		integerRegistersHashTable.put("temp6", new Long(26));
-		integerRegistersHashTable.put("temp7", new Long(27));
+		integerRegistersHashTable.put("temp0", new Long(29));
+		integerRegistersHashTable.put("temp1", new Long(30));
+		integerRegistersHashTable.put("temp2", new Long(31));
+		integerRegistersHashTable.put("temp3", new Long(32));
+		integerRegistersHashTable.put("temp4", new Long(33));
+		integerRegistersHashTable.put("temp5", new Long(34));
+		integerRegistersHashTable.put("temp6", new Long(35));
+		integerRegistersHashTable.put("temp7", new Long(36));
 		
 		
 		//-------------------------Floating-point register-----------------------------------------
@@ -178,11 +178,7 @@ public class Registers
 		
 		Long codeRegister = null;
 		
-		if((codeRegister = machineSpecificRegistersHashTable.get(regStr)) != null)
-		{
-			return codeRegister.longValue();
-		}
-		else if((codeRegister = integerRegistersHashTable.get(regStr)) != null)
+		if((codeRegister = integerRegistersHashTable.get(regStr)) != null)
 		{
 			return codeRegister.longValue();
 		}
@@ -195,14 +191,6 @@ public class Registers
 			misc.Error.showErrorAndExit("\n\tNot a valid register : " + regStr + " !!");
 			return -1;
 		}
-	}
-	
-
-	public static boolean isMachineSpecificRegister(String regStr)
-	{
-		checkAndCreateRegisterHashTable();
-		
-		return (machineSpecificRegistersHashTable.get(regStr)!=null);
 	}
 	
 	public static boolean isFloatRegister(String regStr)
@@ -340,7 +328,7 @@ public class Registers
  	
  	public static Operand getInstructionPointer()
  	{
- 		return Operand.getMachineSpecificRegister(encodeRegister("rip"));
+ 		return Operand.getIntegerRegister(encodeRegister("rip"));
  	}
  	
 
@@ -377,7 +365,7 @@ public class Registers
  	
  	private static void checkAndCreateRegisterHashTable()
  	{
- 		if(integerRegistersHashTable==null || machineSpecificRegistersHashTable==null || floatRegistersHashTable==null)
+ 		if(integerRegistersHashTable==null || floatRegistersHashTable==null)
  			createRegisterHashTable();
  	}
  	
@@ -388,22 +376,22 @@ public class Registers
 
  	public static Operand getSourceIndexRegister()
  	{
- 		return Operand.getMachineSpecificRegister(encodeRegister("rsi"));
+ 		return Operand.getIntegerRegister(encodeRegister("rsi"));
  	}
 
  	public static Operand getDestinationIndexRegister()
  	{
- 		return Operand.getMachineSpecificRegister(encodeRegister("rdi"));
+ 		return Operand.getIntegerRegister(encodeRegister("rdi"));
  	}
 
 	public static Operand getBasePointer() 
 	{
-		return Operand.getMachineSpecificRegister(encodeRegister("rbp"));
+		return Operand.getIntegerRegister(encodeRegister("rbp"));
 	}
 
 	public static Operand getFloatingPointControlWord() 
 	{
-		return Operand.getMachineSpecificRegister(encodeRegister("FP_CWORD"));
+		return Operand.getIntegerRegister(encodeRegister("FP_CWORD"));
 	}
 
 	public static int getMaxIntegerRegisters() {
@@ -414,10 +402,5 @@ public class Registers
 	public static int getMaxFloatRegisters() {
 		checkAndCreateRegisterHashTable();
 		return floatRegistersHashTable.size();
-	}
-
-	public static int getMaxMachineSpecificRegisters() {
-		checkAndCreateRegisterHashTable();
-		return machineSpecificRegistersHashTable.size();
 	}
  }

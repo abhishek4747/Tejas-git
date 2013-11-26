@@ -61,10 +61,7 @@ public class CoreConfig
 	public int FloatRegFileSize;
 	public int IntArchRegNum;
 	public int FloatArchRegNum;
-	public int MSRegNum;
-	public PortType RegFilePortType;
-	public int RegFilePorts;
-	public int RegFileOccupancy;
+	
 	public int BranchMispredPenalty;
 	
 	public int IntALUNum;
@@ -86,26 +83,28 @@ public class CoreConfig
 	public CacheConfig l2Cache = new CacheConfig();
 	public CacheConfig l3Cache = new CacheConfig();
 
+	public BranchPredictorConfig branchPredictor;
+	
 	public boolean TreeBarrier;
 
 	public int barrierLatency;
 	public int barrierUnit;
 	
-	public PowerConfigNew bPredPower = new PowerConfigNew();
-	public PowerConfigNew decodePower = new PowerConfigNew();
-	public PowerConfigNew intRATPower = new PowerConfigNew();
-	public PowerConfigNew fpRATPower = new PowerConfigNew();
-	public PowerConfigNew intFreeListPower = new PowerConfigNew();
-	public PowerConfigNew fpFreeListPower = new PowerConfigNew();
-	public PowerConfigNew lsqPower = new PowerConfigNew();
-	public PowerConfigNew intRegFilePower = new PowerConfigNew();
-	public PowerConfigNew fpRegFilePower = new PowerConfigNew();
-	public PowerConfigNew iwPower = new PowerConfigNew();
-	public PowerConfigNew robPower = new PowerConfigNew();
-	public PowerConfigNew intALUPower = new PowerConfigNew();
-	public PowerConfigNew floatALUPower = new PowerConfigNew();
-	public PowerConfigNew complexALUPower = new PowerConfigNew();
-	public PowerConfigNew resultsBroadcastBusPower = new PowerConfigNew();
-	public PowerConfigNew iTLBPower = new PowerConfigNew();
-	public PowerConfigNew dTLBPower = new PowerConfigNew();
+	public PowerConfigNew bPredPower;
+	public PowerConfigNew decodePower;
+	public PowerConfigNew intRATPower;
+	public PowerConfigNew floatRATPower;
+	public PowerConfigNew intFreeListPower;
+	public PowerConfigNew floatFreeListPower;
+	public PowerConfigNew lsqPower;
+	public PowerConfigNew intRegFilePower;
+	public PowerConfigNew floatRegFilePower;
+	public PowerConfigNew iwPower;
+	public PowerConfigNew robPower;
+	public PowerConfigNew intALUPower;
+	public PowerConfigNew floatALUPower;
+	public PowerConfigNew complexALUPower;
+	public PowerConfigNew resultsBroadcastBusPower;
+	public PowerConfigNew iTLBPower;
+	public PowerConfigNew dTLBPower;
 }

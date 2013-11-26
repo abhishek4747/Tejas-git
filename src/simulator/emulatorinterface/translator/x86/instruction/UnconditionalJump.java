@@ -36,7 +36,7 @@ public class UnconditionalJump implements X86StaticInstructionHandler
 			TempRegisterNum tempRegisterNum) 
 					throws InvalidInstructionException
 	{
-		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMachineSpecificRegisterOperand() || operand1.isMemoryOperand()) 
+		if((operand1.isImmediateOperand() || operand1.isIntegerRegisterOperand() || operand1.isMemoryOperand()) 
 		   &&  operand2==null && operand3==null)
 		{
 			Operand jumpLocation;
