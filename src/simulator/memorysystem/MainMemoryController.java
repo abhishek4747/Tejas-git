@@ -1,22 +1,26 @@
 package memorysystem;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Vector;
 
 import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
+import config.PowerConfigNew;
 import config.SystemConfig;
 import generic.EventQueue;
 import generic.PortType;
 import generic.SimulationElement;
 import generic.Event;
 import generic.RequestType;
+import generic.Statistics;
 
 public class MainMemoryController extends SimulationElement
 {
 	NucaType nucaType;
 	public int numberOfMemoryControllers;
 	public int[] mainmemoryControllersLocations;
+	long numAccesses;
 	
 	public MainMemoryController(NucaType nucaType) {
 		super(SystemConfig.mainMemPortType,
@@ -103,10 +107,27 @@ public class MainMemoryController extends SimulationElement
 		{
 			//Just to tell the requesting things that the write is completed
 		}
+		
+		incrementNumAccesses((int)latency);
 	}
 	
-	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName)
+	void incrementNumAccesses(int incrementBy)
 	{
-		return 0; 
+		numAccesses += incrementBy * stepSize;
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = SystemConfig.mainMemoryControllerPower.leakagePower;
+		double dynamicPower = SystemConfig.mainMemoryControllerPower.dynamicPower;
+		
+		double activityFactor = (double)numAccesses
+									/(double)Statistics.maxCoreCycles;
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 }

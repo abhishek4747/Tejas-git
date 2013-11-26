@@ -6,6 +6,7 @@ public abstract class SimulationElement implements Cloneable
 	//all the request for the port are ported through simulationElement
 	Port port;
 	protected long latency;
+	protected int stepSize;
 
    public Object clone()
     {

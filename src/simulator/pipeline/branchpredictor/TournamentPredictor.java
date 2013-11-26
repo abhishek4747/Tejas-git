@@ -23,13 +23,14 @@
 
 package pipeline.branchpredictor;
 
+import pipeline.ExecutionEngine;
 import config.SystemConfig;
 
 /**
  *
  * @author Rikita
  */
-public class TournamentPredictor implements BranchPredictor{
+public class TournamentPredictor extends BranchPredictor{
         /*
          * Tournament predictors: use 2 predictors, 1
          * based on global information and 1 based on
@@ -51,12 +52,16 @@ public class TournamentPredictor implements BranchPredictor{
         /**
          * Constructor <code>Tournament_predictor()</code> used to instantiate the member variables
          */
-        public TournamentPredictor()
+        public TournamentPredictor(ExecutionEngine containingExecEngine)
         {
-                pred1=new PAgPredictor(SystemConfig.branchPredictor.PCBits,
+        	super(containingExecEngine);
+        	
+                pred1=new PAgPredictor(containingExecutionEngine,
+                						SystemConfig.branchPredictor.PCBits,
                 						SystemConfig.branchPredictor.BHRsize,
                 						SystemConfig.branchPredictor.saturating_bits);
-                pred2=new PApPredictor(SystemConfig.branchPredictor.PCBits,
+                pred2=new PApPredictor(containingExecutionEngine,
+                						SystemConfig.branchPredictor.PCBits,
 										SystemConfig.branchPredictor.BHRsize,
 										SystemConfig.branchPredictor.saturating_bits);
                 counter=0;

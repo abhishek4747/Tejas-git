@@ -49,7 +49,6 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 			execEngine.getRenamer().performRename();
 			execEngine.getDecoder().performDecode();
 			execEngine.getFetcher().performFetch();
-			this.core.powerCounters.perCycleAccessRecordUpdate();
 		}
 		
 	}

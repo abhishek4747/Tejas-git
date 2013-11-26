@@ -89,7 +89,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 							SystemConfig.core[coreID].ITLBLatency,
 							this,
 							SystemConfig.core[coreID].ITLBSize,
-							SystemConfig.mainMemoryLatency * numPageLevels);
+							SystemConfig.mainMemoryLatency * numPageLevels,
+							SystemConfig.core[coreID].iTLBPower);
 		
 		dTLB = new TLB(SystemConfig.core[coreID].DTLBPortType,
 				SystemConfig.core[coreID].DTLBAccessPorts, 
@@ -97,7 +98,8 @@ public abstract class CoreMemorySystem extends SimulationElement
 				SystemConfig.core[coreID].DTLBLatency,
 				this,
 				SystemConfig.core[coreID].DTLBSize,
-				SystemConfig.mainMemoryLatency * numPageLevels);
+				SystemConfig.mainMemoryLatency * numPageLevels,
+				SystemConfig.core[coreID].dTLBPower);
 		
 		//Initialise the LSQ
 		lsqueue = new LSQ(SystemConfig.core[coreID].LSQPortType,

@@ -99,4 +99,12 @@ public class Port
 			event.getEventQ().addEvent(event);
 		}
 	}
+
+	public int getNoOfPorts() {
+		return noOfPorts;
+	}
+
+	public PortType getPortType() {
+		return portType;
+	}
 }

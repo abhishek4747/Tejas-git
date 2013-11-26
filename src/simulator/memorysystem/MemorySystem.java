@@ -52,7 +52,6 @@ public class MemorySystem
 	public static MainMemoryController mainMemoryController;
 	public static CentralizedDirectoryCache centralizedDirectory;
 	private static Cache l2Cache;
-	public static boolean bypassLSQ = false;
 	
 	public static Hashtable<String, Cache> getCacheList() {
 		return cacheList;
@@ -68,9 +67,6 @@ public class MemorySystem
 		
 		//Set up the main memory properties
 		
-		
-		if (SimulationConfig.isPipelineInorder)
-			bypassLSQ = true;
 		
 		/*-- Initialise the memory system --*/
 		CacheConfig cacheParameterObj;
@@ -149,19 +145,13 @@ public class MemorySystem
 		{
 			CoreMemorySystem coreMemSys = null;
 			
-			if(cores[i].isPipelineInorder)
+			if(cores[i].isPipelineInOrder())
 			{
 				coreMemSys = new InorderCoreMemorySystem_MII(cores[i]);
 			}
-			else if (cores[i].isPipelineStatistical)
-			{
-				//cores[i].getStatisticalPipeline().coreMemSys = coreMemSys;
-			}
 			else
 			{
-				//TODO
 				coreMemSys = new OutOrderCoreMemorySystem(cores[i]);
-				//TODO set corememsys of cores[i] to the one jus created in outordercorememsys constructor
 			}
 			
 			coreMemSysArray[i] = coreMemSys;

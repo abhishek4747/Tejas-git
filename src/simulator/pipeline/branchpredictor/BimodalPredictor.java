@@ -22,11 +22,13 @@
 
 package pipeline.branchpredictor;
 
+import pipeline.ExecutionEngine;
+
 /**
  *
  * @author Rikita
  */
-public class BimodalPredictor implements BranchPredictor {
+public class BimodalPredictor extends BranchPredictor {
 
          /*Predict History Table of size based on the input*/
         int[] PHT;
@@ -43,8 +45,10 @@ public class BimodalPredictor implements BranchPredictor {
          * Constructor Bimodal_Predictor() to take the value of PCBits and number of saturating_bits
          * Also it initialises values of all the member variable of the class
          */ 
-        public BimodalPredictor(int PCBits,int saturating_bits)
+        public BimodalPredictor(ExecutionEngine containingExecEngine,int PCBits,int saturating_bits)
         {
+        		super(containingExecEngine);
+        		
                 this.PCBits=PCBits;
                 this.saturating_states=(1<<saturating_bits)-1;
                 maskbits=(1<<PCBits)-1;

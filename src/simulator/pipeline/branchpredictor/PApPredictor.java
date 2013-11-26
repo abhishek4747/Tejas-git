@@ -23,11 +23,13 @@
 
 package pipeline.branchpredictor;
 
+import pipeline.ExecutionEngine;
+
 /**
  *
  * @author Rikita
  */
-public class PApPredictor implements BranchPredictor{
+public class PApPredictor extends BranchPredictor{
 
         /*
          * int <code>PBHT[]</code> is a table of Branch History Register which has 2^PCBits number of entries
@@ -64,9 +66,10 @@ public class PApPredictor implements BranchPredictor{
          * @param saturating_bits number of saturating bits for counter
          * and initializes each member variable of the class
          */
-        public PApPredictor(int PCBits,int BHRsize,int saturating_bits)
+        public PApPredictor(ExecutionEngine containingExecEngine, int PCBits,int BHRsize,int saturating_bits)
         {
-
+        		super(containingExecEngine);
+        		
                 maskbits=(1<<PCBits);
                 PBHT=new int[maskbits];
                 PHTsize=(1<<BHRsize);

@@ -1,5 +1,9 @@
 package pipeline.outoforder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import pipeline.outoforder.ReorderBufferEntry;
 import generic.Core;
@@ -15,10 +19,11 @@ import generic.SimulationElement;
 public class DecodeLogic extends SimulationElement {
 	
 	Core core;
-	OutOrderExecutionEngine execEngine;
+	OutOrderExecutionEngine containingExecutionEngine;
 	GenericCircularQueue<Instruction> fetchBuffer;
 	GenericCircularQueue<ReorderBufferEntry> decodeBuffer;
 	int decodeWidth;
+	long numAccesses;
 	
 	int invalidCount;
 	
@@ -26,7 +31,7 @@ public class DecodeLogic extends SimulationElement {
 	{
 		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
 		this.core = core;
-		this.execEngine = execEngine;
+		this.containingExecutionEngine = execEngine;
 		fetchBuffer = execEngine.getFetchBuffer();
 		decodeBuffer = execEngine.getDecodeBuffer();
 		decodeWidth = core.getDecodeWidth();
@@ -34,17 +39,17 @@ public class DecodeLogic extends SimulationElement {
 	
 	public void performDecode()
 	{
-		if(execEngine.isToStall5() == true || execEngine.isToStall6() == true)
+		if(containingExecutionEngine.isToStall5() == true || containingExecutionEngine.isToStall6() == true)
 		{
 			//pipeline stalled due to branch mis-prediction
 			return;
 		}
 		
-		ReorderBuffer ROB = execEngine.getReorderBuffer();
+		ReorderBuffer ROB = containingExecutionEngine.getReorderBuffer();
 		ReorderBufferEntry newROBEntry;
 		
-		if(!execEngine.isToStall1() &&
-				!execEngine.isToStall2())
+		if(!containingExecutionEngine.isToStall1() &&
+				!containingExecutionEngine.isToStall2())
 		{
 			for(int i = 0; i < decodeWidth; i++)
 			{
@@ -58,16 +63,16 @@ public class DecodeLogic extends SimulationElement {
 				{
 					if(ROB.isFull())
 					{
-						execEngine.setToStall4(true);
+						containingExecutionEngine.setToStall4(true);
 						break;
 					}
 					
 					if(headInstruction.getOperationType() == OperationType.load ||
 							headInstruction.getOperationType() == OperationType.store)
 					{
-						if(execEngine.getCoreMemorySystem().getLsqueue().isFull())
+						if(containingExecutionEngine.getCoreMemorySystem().getLsqueue().isFull())
 						{
-							execEngine.setToStall3(true);
+							containingExecutionEngine.setToStall3(true);
 							break;
 						}
 					}
@@ -77,14 +82,16 @@ public class DecodeLogic extends SimulationElement {
 					decodeBuffer.enqueue(newROBEntry);
 					fetchBuffer.dequeue();
 					
+					incrementNumAccesses(1);
+					
 					if(SimulationConfig.debugMode)
 					{
 						System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + headInstruction);
 					}
 				}
 				
-				execEngine.setToStall3(false);
-				execEngine.setToStall4(false);
+				containingExecutionEngine.setToStall3(false);
+				containingExecutionEngine.setToStall4(false);
 			}
 		}
 	}
@@ -93,7 +100,7 @@ public class DecodeLogic extends SimulationElement {
 	{
 		if(newInstruction != null)
 		{
-			ReorderBufferEntry newROBEntry = execEngine.getReorderBuffer()
+			ReorderBufferEntry newROBEntry = containingExecutionEngine.getReorderBuffer()
 											.addInstructionToROB(
 													newInstruction,
 													newInstruction.getThreadID());
@@ -108,7 +115,7 @@ public class DecodeLogic extends SimulationElement {
 				else
 					isLoad = false;
 					
-				execEngine.getCoreMemorySystem().allocateLSQEntry(isLoad, 
+				containingExecutionEngine.getCoreMemorySystem().allocateLSQEntry(isLoad, 
 						newROBEntry.getInstruction().getSourceOperand1MemValue(),
 						newROBEntry);
 			}
@@ -122,6 +129,28 @@ public class DecodeLogic extends SimulationElement {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
+	}
+	
+	void incrementNumAccesses(int incrementBy)
+	{
+		numAccesses += incrementBy * core.getStepSize();
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = core.getbPredPower().leakagePower;
+		double dynamicPower = core.getbPredPower().dynamicPower;
+		
+		double activityFactor = (double)numAccesses
+									/(double)core.getCoreCyclesTaken()
+									/decodeWidth;	// potentially decodeWidth number of instructions can
+													// be decoded per cycle
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 
 }

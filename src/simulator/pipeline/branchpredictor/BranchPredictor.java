@@ -28,6 +28,14 @@
 
 package pipeline.branchpredictor;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+import config.PowerConfigNew;
+
+import pipeline.ExecutionEngine;
+import generic.Core;
+
 /**
  *
  * @author Rikita
@@ -36,7 +44,15 @@ package pipeline.branchpredictor;
 /*Class Interface BranchPredictor
  * Has to be implemented by all types of BranchPRedictor
  */
-public interface BranchPredictor {
+public abstract class BranchPredictor {
+	
+	ExecutionEngine containingExecutionEngine;
+	long numAccesses;
+	
+	public BranchPredictor(ExecutionEngine containingExecutionEngine) {
+		this.containingExecutionEngine = containingExecutionEngine;
+	}
+	
   /**
    *
    * @param address takes in the values the PC address whose branch has to be trained
@@ -44,13 +60,33 @@ public interface BranchPredictor {
    * @param predict takes in the value which is predicted for the corresponding address
    * <code>true</code> when branch taken otherwise <code>false</code>
    */
-        public  void  Train(long address, boolean outcome,boolean predict);
+    public abstract void  Train(long address, boolean outcome,boolean predict);
  /**
   *
   * @param address takes in the values the PC address whose branch has to be trained
   * @return <code>true</code> when prediction is branch taken otherwise <code>false</code>
   * NOTE : the outcome field is useful only in the NoPredictor and PerfectPredictor cases
   */
-public  boolean predict(long address, boolean outcome);
+public abstract  boolean predict(long address, boolean outcome);
+
+public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+{
+	double leakagePower = containingExecutionEngine.getContainingCore().getbPredPower().leakagePower;
+	double dynamicPower = containingExecutionEngine.getContainingCore().getbPredPower().dynamicPower;
+	
+	double activityFactor = (double)numAccesses
+								/(double)containingExecutionEngine.getContainingCore().getCoreCyclesTaken();
+	
+	PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+	
+	outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+	
+	return power;
+}
+
+public void incrementNumAccesses(int incrementBy)
+{
+	numAccesses += incrementBy * containingExecutionEngine.getContainingCore().getStepSize();
+}
 
 }

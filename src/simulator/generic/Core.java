@@ -33,6 +33,7 @@ import power.Counters;
 import config.BranchPredictorConfig.BP;
 import config.CoreConfig;
 import config.PipelineType;
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import config.SystemConfig;
 
@@ -81,6 +82,25 @@ public class Core extends SimulationElement implements NocInterface{
 	private int[] nUnits;
 	private int[] latencies;
 	
+	//core power parameters
+	private PowerConfigNew bPredPower;
+	private PowerConfigNew decodePower;
+	private PowerConfigNew intRATPower;
+	private PowerConfigNew fpRATPower;
+	private PowerConfigNew intFreeListPower;
+	private PowerConfigNew fpFreeListPower;
+	private PowerConfigNew lsqPower;
+	private PowerConfigNew intRegFilePower;
+	private PowerConfigNew fpRegFilePower;
+	private PowerConfigNew iwPower;
+	private PowerConfigNew robPower;
+	private PowerConfigNew intALUPower;
+	private PowerConfigNew floatALUPower;
+	private PowerConfigNew complexALUPower;
+	private PowerConfigNew resultsBroadcastBusPower;
+	private PowerConfigNew iTLBPower;
+	private PowerConfigNew dTLBPower;
+	
 	private int core_number;
 	private int no_of_input_pipes;
 	private int no_of_threads;
@@ -88,13 +108,10 @@ public class Core extends SimulationElement implements NocInterface{
 	
 	private int[] threadIDs;
 	
-	private BranchPredictor branchPredictor;
-	
 	private int noOfInstructionsExecuted;
 	
 	private pipeline.PipelineInterface pipelineInterface;
 	public int numReturns;
-	public Counters powerCounters;
 	private int numInorderPipelines;
 	public CoreBcastBus coreBcastBus;
 	public int barrier_latency;
@@ -132,36 +149,6 @@ public class Core extends SimulationElement implements NocInterface{
 				SystemConfig.core[core_number].pipelineType);
 		}
 		
-		if(SystemConfig.branchPredictor.predictorMode == BP.NoPredictor)
-			this.branchPredictor = new NoPredictor();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PerfectPredictor)
-			this.branchPredictor = new PerfectPredictor();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysTaken)
-			this.branchPredictor = new AlwaysTaken();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.AlwaysNotTaken)
-			this.branchPredictor = new AlwaysNotTaken();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.Tournament)
-			this.branchPredictor = new TournamentPredictor();
-		else if(SystemConfig.branchPredictor.predictorMode == BP.Bimodal)
-			this.branchPredictor = new BimodalPredictor(SystemConfig.branchPredictor.PCBits,
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GShare)
-			this.branchPredictor = new GShare(SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GAg)
-			this.branchPredictor = new GAgpredictor(SystemConfig.branchPredictor.BHRsize);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.GAp)
-			this.branchPredictor = new GApPredictor(SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.PCBits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PAg)
-			this.branchPredictor = new PAgPredictor(SystemConfig.branchPredictor.PCBits, 
-					SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
-		else if(SystemConfig.branchPredictor.predictorMode == BP.PAp)
-			this.branchPredictor = new PApPredictor(SystemConfig.branchPredictor.PCBits, 
-					SystemConfig.branchPredictor.BHRsize, 
-					SystemConfig.branchPredictor.saturating_bits);
-		
 		
 		this.noOfInstructionsExecuted = 0;
 		this.numReturns=0;
@@ -174,8 +161,6 @@ public class Core extends SimulationElement implements NocInterface{
 			misc.Error.showErrorAndExit("pipeline type not identified : " + 
 				SystemConfig.core[core_number].pipelineType);
 		}
-		
-		this.powerCounters = new Counters();
 	}
 	public void setCoreBcastBus(CoreBcastBus coreBcastBus){
 		this.coreBcastBus = coreBcastBus;
@@ -407,10 +392,6 @@ public class Core extends SimulationElement implements NocInterface{
 		return core_number;
 	}
 
-	public BranchPredictor getBranchPredictor() {
-		return branchPredictor;
-	}
-
 	public int getNoOfRegFilePorts() {
 		return noOfRegFilePorts;
 	}
@@ -580,22 +561,160 @@ public class Core extends SimulationElement implements NocInterface{
 		}
 	}
 	
-	public double calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public PowerConfigNew getbPredPower() {
+		return bPredPower;
+	}
+
+	public void setbPredPower(PowerConfigNew bPredPower) {
+		this.bPredPower = bPredPower;
+	}
+
+	public PowerConfigNew getDecodePower() {
+		return decodePower;
+	}
+
+	public void setDecodePower(PowerConfigNew decodePower) {
+		this.decodePower = decodePower;
+	}
+
+	public PowerConfigNew getIntRATPower() {
+		return intRATPower;
+	}
+
+	public void setIntRATPower(PowerConfigNew intRATPower) {
+		this.intRATPower = intRATPower;
+	}
+
+	public PowerConfigNew getFpRATPower() {
+		return fpRATPower;
+	}
+
+	public void setFpRATPower(PowerConfigNew fpRATPower) {
+		this.fpRATPower = fpRATPower;
+	}
+
+	public PowerConfigNew getIntFreeListPower() {
+		return intFreeListPower;
+	}
+
+	public void setIntFreeListPower(PowerConfigNew intFreeListPower) {
+		this.intFreeListPower = intFreeListPower;
+	}
+
+	public PowerConfigNew getFpFreeListPower() {
+		return fpFreeListPower;
+	}
+
+	public void setFpFreeListPower(PowerConfigNew fpFreeListPower) {
+		this.fpFreeListPower = fpFreeListPower;
+	}
+
+	public PowerConfigNew getLsqPower() {
+		return lsqPower;
+	}
+
+	public void setLsqPower(PowerConfigNew lsqPower) {
+		this.lsqPower = lsqPower;
+	}
+
+	public PowerConfigNew getIntRegFilePower() {
+		return intRegFilePower;
+	}
+
+	public void setIntRegFilePower(PowerConfigNew intRegFilePower) {
+		this.intRegFilePower = intRegFilePower;
+	}
+
+	public PowerConfigNew getFpRegFilePower() {
+		return fpRegFilePower;
+	}
+
+	public void setFpRegFilePower(PowerConfigNew fpRegFilePower) {
+		this.fpRegFilePower = fpRegFilePower;
+	}
+
+	public PowerConfigNew getIwPower() {
+		return iwPower;
+	}
+
+	public void setIwPower(PowerConfigNew iwPower) {
+		this.iwPower = iwPower;
+	}
+
+	public PowerConfigNew getRobPower() {
+		return robPower;
+	}
+
+	public void setRobPower(PowerConfigNew robPower) {
+		this.robPower = robPower;
+	}
+
+	public PowerConfigNew getIntALUPower() {
+		return intALUPower;
+	}
+
+	public void setIntALUPower(PowerConfigNew intALUPower) {
+		this.intALUPower = intALUPower;
+	}
+
+	public PowerConfigNew getFloatALUPower() {
+		return floatALUPower;
+	}
+
+	public void setFloatALUPower(PowerConfigNew floatALUPower) {
+		this.floatALUPower = floatALUPower;
+	}
+
+	public PowerConfigNew getComplexALUPower() {
+		return complexALUPower;
+	}
+
+	public void setComplexALUPower(PowerConfigNew complexALUPower) {
+		this.complexALUPower = complexALUPower;
+	}
+
+	public PowerConfigNew getResultsBroadcastBusPower() {
+		return resultsBroadcastBusPower;
+	}
+
+	public void setResultsBroadcastBusPower(PowerConfigNew resultsBroadcastBusPower) {
+		this.resultsBroadcastBusPower = resultsBroadcastBusPower;
+	}
+
+	public PowerConfigNew getiTLBPower() {
+		return iTLBPower;
+	}
+
+	public void setiTLBPower(PowerConfigNew iTLBPower) {
+		this.iTLBPower = iTLBPower;
+	}
+
+	public PowerConfigNew getdTLBPower() {
+		return dTLBPower;
+	}
+
+	public void setdTLBPower(PowerConfigNew dTLBPower) {
+		this.dTLBPower = dTLBPower;
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
+		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		
 		// --------- Core Memory System -------------------------
-		double iCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
-		double iTLBPower =  this.execEngine.getCoreMemorySystem().getiTLB().calculateAndPrintPower(outputFileWriter, componentName + ".iTLB");
+		PowerConfigNew iCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, iCachePower);
+		PowerConfigNew iTLBPower =  this.execEngine.getCoreMemorySystem().getiTLB().calculateAndPrintPower(outputFileWriter, componentName + ".iTLB");
+		totalPower.add(totalPower, iTLBPower);
 		
-		double dCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".dCache");
-		double dTLBPower =  this.execEngine.getCoreMemorySystem().getdTLB().calculateAndPrintPower(outputFileWriter, componentName + ".dTLB");
-		
-		double lsqPower =  this.execEngine.getCoreMemorySystem().getLsqueue().calculateAndPrintPower(outputFileWriter, componentName + ".LSQ");
+		PowerConfigNew dCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".dCache");
+		totalPower.add(totalPower, dCachePower);
+		PowerConfigNew dTLBPower =  this.execEngine.getCoreMemorySystem().getdTLB().calculateAndPrintPower(outputFileWriter, componentName + ".dTLB");
+		totalPower.add(totalPower, dTLBPower);
 		
 		// -------- Pipeline -----------------------------------
-		double  
-		
-		
-		double totalPower = iCachePower + iTLBPower + dCachePower + dTLBPower + lsqPower;
+		PowerConfigNew pipelinePower =  this.execEngine.calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		totalPower.add(totalPower, pipelinePower);
 		
 		outputFileWriter.write(componentName + " : " + totalPower);
 		

@@ -1,6 +1,12 @@
 package pipeline.branchpredictor;
 
-public class NoPredictor implements BranchPredictor {
+import pipeline.ExecutionEngine;
+
+public class NoPredictor extends BranchPredictor {
+
+	public NoPredictor(ExecutionEngine containingExecutionEngine) {
+		super(containingExecutionEngine);
+	}
 
 	@Override
 	public void Train(long address, boolean outcome, boolean predict) {

@@ -1,8 +1,12 @@
 package pipeline.multi_issue_inorder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.StageLatch_MII;
 import pipeline.outoforder.OpTypeToFUTypeMapping;
+import config.PowerConfigNew;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -23,6 +27,8 @@ public class ExecUnitIn_MII extends SimulationElement{
 	long[] instructionCompletesAt;
 	
 	long instCtr; //for debug
+	
+	long numResultsBroadCastBusAccess;
 	
 	public ExecUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine)
 	{
@@ -80,6 +86,8 @@ public class ExecUnitIn_MII extends SimulationElement{
 				exMemLatch.add(ins, idExLatch.getInstructionCompletesAt(ins) + lat);
 				idExLatch.poll();
 				
+				incrementResultsBroadcastBusAccesses(1);
+				
 				if(SimulationConfig.debugMode)
 				{
 					System.out.println("executed : " + GlobalClock.getCurrentTime()/core.getStepSize() + "\n"  + ins + "\n");
@@ -96,5 +104,27 @@ public class ExecUnitIn_MII extends SimulationElement{
 	public void handleEvent(EventQueue eventQ, Event event) {
 
 		
+	}
+	
+	void incrementResultsBroadcastBusAccesses(int incrementBy)
+	{
+		numResultsBroadCastBusAccess += incrementBy * core.getStepSize();
+	}
+
+	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		double leakagePower = core.getResultsBroadcastBusPower().leakagePower;
+		double dynamicPower = core.getResultsBroadcastBusPower().dynamicPower;
+		
+		double activityFactor = (double)numResultsBroadCastBusAccess
+									/(double)core.getCoreCyclesTaken()
+									/(containingExecutionEngine.getIssueWidth());
+										//result bus accessed at write-back
+		
+		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
+		
+		outputFileWriter.write("\n" + componentName + " :\n" + power + "\n");
+		
+		return power;
 	}
 }

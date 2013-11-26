@@ -21,11 +21,13 @@
 
 package pipeline.branchpredictor;
 
+import pipeline.ExecutionEngine;
+
 /**
  *
  * @author Rikita
  */
-public class GShare implements BranchPredictor{
+public class GShare extends BranchPredictor{
 
          /*<code>PHT[]</code> Predict History Table of size based on the input*/
         int[] PHT;
@@ -55,8 +57,10 @@ public class GShare implements BranchPredictor{
          * Constructor <code> GShare() </code> to take the value of PCBits/BHRsize and number of saturating_bits
          * Also it initialises values of all the member variable of the class
          */
-        public GShare(int BHRsize,int saturating_bits)
+        public GShare(ExecutionEngine containingExecEngine, int BHRsize,int saturating_bits)
         {
+        		super(containingExecEngine);
+        		
                 this.BHRsize=BHRsize;
                 this.saturating_states=(1<<saturating_bits)-1;
                 BHR=1<<BHRsize;

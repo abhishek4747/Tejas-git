@@ -50,6 +50,8 @@ public class WakeUpLogic {
 			
 			ROBEntry = ROBEntries[i];
 			
+			boolean IWEntryUpdated = false;
+			
 			if(ROBEntries[i].isRenameDone() == false)
 			{
 				break;
@@ -83,6 +85,7 @@ public class WakeUpLogic {
 						&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
 				{
 					ROBEntry.setOperand1Available(true);
+					IWEntryUpdated = true;
 				}
 				if(opnd1Type == OperandType.memory)
 				{
@@ -91,12 +94,14 @@ public class WakeUpLogic {
 							&& ROBEntry.getOperand1PhyReg1() == physicalRegister)
 					{
 						ROBEntry.setOperand11Available(true);
+						IWEntryUpdated = true;
 					}
 					if(opnd1.getMemoryLocationSecondOperand() != null &&
 							opnd1.getMemoryLocationSecondOperand().getOperandType() == opndType
 							&& ROBEntry.getOperand1PhyReg2() == physicalRegister)
 					{
 						ROBEntry.setOperand12Available(true);
+						IWEntryUpdated = true;
 					}
 					if(ROBEntry.isOperand11Available() && ROBEntry.isOperand12Available())
 					{
@@ -111,6 +116,7 @@ public class WakeUpLogic {
 						&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
 				{
 					ROBEntry.setOperand2Available(true);
+					IWEntryUpdated = true;
 				}
 				if(opnd2Type == OperandType.memory)
 				{
@@ -119,18 +125,25 @@ public class WakeUpLogic {
 							&& ROBEntry.getOperand2PhyReg1() == physicalRegister)
 					{
 						ROBEntry.setOperand21Available(true);
+						IWEntryUpdated = true;
 					}
 					if(opnd2.getMemoryLocationSecondOperand() != null &&
 							opnd2.getMemoryLocationSecondOperand().getOperandType() == opndType
 							&& ROBEntry.getOperand2PhyReg2() == physicalRegister)
 					{
 						ROBEntry.setOperand22Available(true);
+						IWEntryUpdated = true;
 					}
 					if(ROBEntry.isOperand21Available() && ROBEntry.isOperand22Available())
 					{
 						ROBEntry.setOperand2Available(true);
 					}
 				}
+			}
+			
+			if(IWEntryUpdated == true)
+			{
+				execEngine.getInstructionWindow().incrementNumAccesses(1);
 			}
 			
 			if(ROBEntry.getPhysicalDestinationRegister() == physicalRegister &&

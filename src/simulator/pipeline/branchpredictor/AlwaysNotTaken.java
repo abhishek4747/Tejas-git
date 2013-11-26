@@ -1,6 +1,12 @@
 package pipeline.branchpredictor;
 
-public class AlwaysNotTaken implements BranchPredictor {
+import pipeline.ExecutionEngine;
+
+public class AlwaysNotTaken extends BranchPredictor {
+
+	public AlwaysNotTaken(ExecutionEngine containingExecutionEngine) {
+		super(containingExecutionEngine);
+	}
 
 	@Override
 	public void Train(long address, boolean outcome, boolean predict) {

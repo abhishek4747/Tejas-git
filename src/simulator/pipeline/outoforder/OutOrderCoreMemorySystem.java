@@ -50,8 +50,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
 	{
-		if (!MemorySystem.bypassLSQ)
-			robEntry.setLsqEntry(lsqueue.addEntry(isLoad, address, robEntry));
+		robEntry.setLsqEntry(lsqueue.addEntry(isLoad, address, robEntry));
 	}
 	
 	//To issue the request to LSQ
