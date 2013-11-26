@@ -26,8 +26,6 @@ import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
 
-import power.Counters;
-import power.PowerConfig;
 import config.BranchPredictorConfig;
 import config.CoreConfig;
 import config.EmulatorConfig;
@@ -155,7 +153,6 @@ public class Statistics {
 	static long totalNumMicroOps = 0;
 	static long totalHandledCISCInsn = 0;
 	static long totalPINCISCInsn = 0;
-	static Counters powerCounters[];
 	public static long maxCoreCycles = 0;
 	
 	//for pinpoints
@@ -410,6 +407,7 @@ public class Statistics {
 				}
 				double executionTime = ((double)maxCoreCycles/coreFrequencies[0])*1000;
 				
+				/* TODO anuj
 				double totalNucaBankPower = (totalNucaBankAccesses*PowerConfig.dcache2Power)/executionTime;
 				outputFileWriter.write("Total Nuca Bank Accesses Power\t=\t" + totalNucaBankPower + "\n");
 				double totalRouterPower = ((hopcount*(PowerConfig.linkEnergy+PowerConfig.totalRouterEnergy))/executionTime);
@@ -419,11 +417,12 @@ public class Statistics {
 				{
 					outputFileWriter.write("Router Hops\t=\t" + hopcount + "\n");
 					outputFileWriter.write("Total Router Power\t=\t" + totalRouterPower + "\n");
-				}
+				}*/
 				outputFileWriter.write("Minimum Hop Length\t=\t" + minHopLength + "\n");
 				outputFileWriter.write("Maximum Hop Length\t=\t" + maxHopLength + "\n");
 				outputFileWriter.write("Average Hop Length\t=\t" + averageHopLength + "\n");
 				
+				/* TODO anuj
 				double totalBufferPower = (Switch.totalBufferAccesses*PowerConfig.bufferEnergy)/executionTime;
 				outputFileWriter.write("Total Buffer Accesses\t=\t" + Switch.totalBufferAccesses + "\n");
 				if(totalBufferPower!=0)
@@ -432,6 +431,7 @@ public class Statistics {
 								+ (totalNucaBankPower
 								+  totalRouterPower
 								+ totalBufferPower) + "\n");
+				*/
 			}
 			outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + noOfDirReadMiss + "\n");
 			outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + noOfDirWriteMiss + "\n");
@@ -495,89 +495,6 @@ public class Statistics {
 
 
 		} catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		
-	}
-	public static void printPowerTrace(String delimiter, long[] cyclesTaken, int emuThreads){
-		long executionTime=0;
-		try {
-			traceWriter.write("\n");
-			for (int i =0; i < emuThreads; i++)
-			{
-				if(cyclesTaken[i]==0)
-					continue;
-			executionTime = (long)((double)cyclesTaken[i]*1000/Statistics.coreFrequencies[i]); //In nano seconds
-			traceWriter.write(i);
-			traceWriter.write(delimiter);
-			traceWriter.write("Simple"+delimiter);
-
-			traceWriter.write(String.valueOf(powerCounters[i].getRenamePower()/executionTime + powerCounters[i].getBpredPower()/executionTime
-					+powerCounters[i].getRegfilePower()/executionTime+powerCounters[i].getIcachePower()/executionTime
-					+powerCounters[i].getResultbusPower()/executionTime+powerCounters[i].getAluPower()/executionTime
-					+powerCounters[i].getDcachePower()/executionTime+powerCounters[i].getDcache2Power()/executionTime
-					+powerCounters[i].getLsqPower()/executionTime+powerCounters[i].getClockPower()/executionTime
-					+powerCounters[i].getWindowPower()/executionTime));
-			traceWriter.write(delimiter);
-			
-			traceWriter.write("AggressiveIdeal"+delimiter);
-		}
-
-
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		
-	}
-
-	public static void printPowerStats(){
-		long executionTime=0;
-		try {
-			for (int i =0; i < SystemConfig.NoOfCores; i++)
-			{
-				if(Statistics.coreCyclesTaken[i]==0)
-					continue;
-			executionTime = (Statistics.coreCyclesTaken[i]*1000/Statistics.coreFrequencies[i]); //In nano seconds
-			outputFileWriter.write("\n\nCore: "+i+"\n\n");
-			
-			outputFileWriter.write("\n\nSimple conditional clocking \n\n");
-			
-			outputFileWriter.write("Bpred Power\t=\t"+powerCounters[i].getTotalBpredPower()/executionTime+"\n");
-			outputFileWriter.write("Reg file Power\t=\t"+powerCounters[i].getTotalRegfilePower()/executionTime+"\n");
-			outputFileWriter.write("I L1 Cache Power\t=\t"+powerCounters[i].getTotalIcachePower()/executionTime+"\n");
-			outputFileWriter.write("D L1 Cache Power\t=\t"+powerCounters[i].getTotalDcachePower()/executionTime+"\n");
-			if(SimulationConfig.nucaType==NucaType.NONE)
-				outputFileWriter.write("L2 Cache Power\t=\t"+powerCounters[i].getTotalDcache2Power()/executionTime+"\n");
-			outputFileWriter.write("ALU power\t=\t"+powerCounters[i].getTotalAluPower()/executionTime+"\n");
-			outputFileWriter.write("Clock Power\t=\t"+powerCounters[i].getTotalClockPower()/executionTime+"\n");
-			outputFileWriter.write("Rename Power\t=\t"+powerCounters[i].getTotalRenamePower()/executionTime+"\n");
-			outputFileWriter.write("Window Power\t=\t"+powerCounters[i].getTotalWindowPower()/executionTime+"\n");
-			outputFileWriter.write("LSQ Power\t=\t"+powerCounters[i].getTotalLsqPower()/executionTime+"\n");
-			outputFileWriter.write("Result bus power\t=\t"+powerCounters[i].getTotalResultbusPower()/executionTime+"\n");
-
-
-			outputFileWriter.write("Fetch Stage Power\t=\t"+(powerCounters[i].getTotalIcachePower()/executionTime+powerCounters[i].getTotalBpredPower()/executionTime)+"\n");
-			//TODO only for out of order ?
-			outputFileWriter.write("Dispatch Stage Power\t=\t"+powerCounters[i].getTotalRenamePower()/executionTime+"\n");
-			//TODO only for out of order ?
-			outputFileWriter.write("Issue Stage Power\t=\t"+(powerCounters[i].getTotalResultbusPower()/executionTime+powerCounters[i].getTotalAluPower()/executionTime
-									+powerCounters[i].getTotalDcachePower()/executionTime+powerCounters[i].getTotalDcache2Power()/executionTime+powerCounters[i].getTotalLsqPower()/executionTime
-									+powerCounters[i].getTotalWindowPower()/executionTime)+"\n");
-
-			outputFileWriter.write("Total Power \t=\t"+(powerCounters[i].getTotalRenamePower()/executionTime + powerCounters[i].getTotalBpredPower()/executionTime
-					+powerCounters[i].getTotalRegfilePower()/executionTime+powerCounters[i].getTotalIcachePower()/executionTime
-					+powerCounters[i].getTotalResultbusPower()/executionTime+powerCounters[i].getTotalAluPower()/executionTime
-					+powerCounters[i].getTotalDcachePower()/executionTime+powerCounters[i].getTotalDcache2Power()/executionTime
-					+powerCounters[i].getTotalLsqPower()/executionTime+powerCounters[i].getTotalClockPower()/executionTime
-					+powerCounters[i].getTotalWindowPower()/executionTime)+"\n");
-			
-			}
-
-		}
-		catch (IOException e) 
 		{
 			e.printStackTrace();
 		}
@@ -657,11 +574,6 @@ public class Statistics {
 		tempnoOfIHits = new long[SystemConfig.NoOfCores];
 		
 		tempnoOfIMisses = new long[SystemConfig.NoOfCores];
-		
-		powerCounters = new Counters[SystemConfig.NoOfCores];
-		for(int i=0;i<SystemConfig.NoOfCores;i++){
-			powerCounters[i] = new Counters();
-		}
 		
 		if(SimulationConfig.pinpointsSimulation == true)
 		{		
@@ -901,11 +813,6 @@ public class Statistics {
 	public static void setExecutable(String executableFile) {
 		Statistics.benchmark = executableFile;
 	}
-	
-	public static void setPerCorePowerStatistics(Counters powerCount, int core) {
-//		System.out.println("Setting for coreid "+core + " "+SystemConfig.NoOfCores);
-		Statistics.powerCounters[core]=powerCount;
-	}
 	public static long getNoOfDirHits() {
 		return noOfDirHits;
 	}
@@ -1072,6 +979,7 @@ public class Statistics {
 				tempnoOfStores[i] = core.getPipelineInterface().getNoOfStores();
 				noOfValueForwards[i] += (long) (core.getPipelineInterface().getNoOfValueForwards() - tempnoOfValueForwards[i]) * weightsArray[currentSlice];
 				tempnoOfValueForwards[i] = core.getPipelineInterface().getNoOfValueForwards();
+				//TODO split into iTLB and dTLB
 				noOfTLBRequests[i] += (long) (core.getPipelineInterface().getNoOfTLBRequests() - tempnoOfTLBRequests[i]) * weightsArray[currentSlice];
 				tempnoOfTLBRequests[i] = core.getPipelineInterface().getNoOfTLBRequests();
 				noOfTLBHits[i] += (long) (core.getPipelineInterface().getNoOfTLBHits() - tempnoOfTLBHits[i]) * weightsArray[currentSlice];

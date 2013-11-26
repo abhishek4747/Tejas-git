@@ -26,7 +26,6 @@ import generic.MultiPortingType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.math.RoundingMode;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -41,11 +40,7 @@ import memorysystem.Cache.CoherenceType;
 
 import org.w3c.dom.*;
 
-import com.sun.org.apache.bcel.internal.generic.GETSTATIC;
-
 import config.BranchPredictorConfig.*;
-
-import power.PowerConfig;
 
 import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
@@ -69,7 +64,6 @@ public class XMLParser
 			
 			setEmulatorParameters();
 			setSimulationParameters();
-			setPowerParameters();
 			
 			setSystemParameters();
 		} 
@@ -110,49 +104,7 @@ public class XMLParser
 		}
 		return ret;
 	}
-		private static void setPowerParameters()
-		{
-		  NodeList nodeLst = doc.getElementsByTagName("Power");
-		  Node powerNode = nodeLst.item(0);
-		  Element powerElmnt = (Element) powerNode;
-		  PowerConfig.totalPower=Double.parseDouble(getImmediateString("total_energy", powerElmnt));
-		  PowerConfig.ialuPower=Double.parseDouble(getImmediateString("ialu_energy", powerElmnt));
-		  PowerConfig.faluPower=Double.parseDouble(getImmediateString("falu_energy", powerElmnt));
-		  PowerConfig.bpredPower=Double.parseDouble(getImmediateString("bpred_energy", powerElmnt));
-		  PowerConfig.renamePower=Double.parseDouble(getImmediateString("rename_energy", powerElmnt));
-		  PowerConfig.ratPower=Double.parseDouble(getImmediateString("rat_energy", powerElmnt));
-		  PowerConfig.dclPower=Double.parseDouble(getImmediateString("dcl_energy", powerElmnt));
-		  PowerConfig.windowPower=Double.parseDouble(getImmediateString("window_energy", powerElmnt));
-		  PowerConfig.lsqPower=Double.parseDouble(getImmediateString("lsq_energy", powerElmnt));
-		  PowerConfig.wakeupPower=Double.parseDouble(getImmediateString("wakeup_energy", powerElmnt));
-		  PowerConfig.lsqWakeupPower=Double.parseDouble(getImmediateString("lsq_wakeup_energy", powerElmnt));
-		  PowerConfig.rsPower=Double.parseDouble(getImmediateString("rs_energy", powerElmnt));
-		  PowerConfig.lsqRsPower=Double.parseDouble(getImmediateString("lsq_rs_energy", powerElmnt));
-		  PowerConfig.regfilePower=Double.parseDouble(getImmediateString("regfile_energy", powerElmnt));
-		  PowerConfig.icachePower=Double.parseDouble(getImmediateString("icache_energy", powerElmnt));
-		  PowerConfig.dcachePower=Double.parseDouble(getImmediateString("dcache_energy", powerElmnt));
-		  PowerConfig.dcache2Power=Double.parseDouble(getImmediateString("dcache2_energy", powerElmnt));
-		  PowerConfig.clockPower=Double.parseDouble(getImmediateString("clock_energy", powerElmnt));
 		
-		  PowerConfig.totalRouterEnergy = Double.parseDouble(getImmediateString("router_energy", powerElmnt));
-		  PowerConfig.bufferEnergy = Double.parseDouble(getImmediateString("buffer_energy", powerElmnt));
-		  PowerConfig.linkEnergy = Double.parseDouble(getImmediateString("link_energy", powerElmnt));
-		  
-		  PowerConfig.itlb=Double.parseDouble(getImmediateString("itlb", powerElmnt));
-		  PowerConfig.dtlb=Double.parseDouble(getImmediateString("dtlb", powerElmnt));
-		  PowerConfig.resultbus=Double.parseDouble(getImmediateString("resultbus", powerElmnt));
-		  PowerConfig.selection=Double.parseDouble(getImmediateString("selection", powerElmnt));
-		  
-		  PowerConfig.ruuDecodeWidth=Double.parseDouble(getImmediateString("ruu_decode_width", powerElmnt));
-		  PowerConfig.ruuIssueWidth=Double.parseDouble(getImmediateString("ruu_issue_width", powerElmnt));
-		  PowerConfig.ruuCommitWidth=Double.parseDouble(getImmediateString("ruu_commit_width", powerElmnt));
-		  PowerConfig.resMemport=Double.parseDouble(getImmediateString("res_memport", powerElmnt));
-		  PowerConfig.resIalu=Double.parseDouble(getImmediateString("res_ialu", powerElmnt));
-		  PowerConfig.resFpalu=Double.parseDouble(getImmediateString("res_fpalu", powerElmnt));
-		  PowerConfig.il1Port=Double.parseDouble(getImmediateString("il1_port", powerElmnt));
-		  PowerConfig.dl1Port=Double.parseDouble(getImmediateString("dl1_port", powerElmnt));
-		  PowerConfig.dl2Port=Double.parseDouble(getImmediateString("dl2_port", powerElmnt));
-	}
 		
 	private static void setEmulatorParameters() {
 		NodeList nodeLst = doc.getElementsByTagName("Emulator");

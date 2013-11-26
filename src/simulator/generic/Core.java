@@ -29,7 +29,6 @@ import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
 import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
-import power.Counters;
 import config.BranchPredictorConfig.BP;
 import config.CoreConfig;
 import config.PipelineType;

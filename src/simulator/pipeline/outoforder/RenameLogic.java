@@ -135,12 +135,6 @@ public class RenameLogic extends SimulationElement {
 			reorderBufferEntry.setOperand1PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand1PhyReg2(-1);
 		}
-		else if(tempOpndType == OperandType.machineSpecificRegister)
-		{
-			archReg = (int) tempOpnd.getValue();
-			reorderBufferEntry.setOperand1PhyReg1(archReg);
-			reorderBufferEntry.setOperand1PhyReg2(-1);
-		}
 		else if(tempOpndType == OperandType.memory)
 		{
 			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
@@ -163,10 +157,6 @@ public class RenameLogic extends SimulationElement {
 				else if(tempOpndType == OperandType.floatRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(tempOpndType == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg1(archReg);
 				}
 				else
 				{
@@ -191,10 +181,6 @@ public class RenameLogic extends SimulationElement {
 				else if(tempOpndType == OperandType.floatRegister)
 				{
 					reorderBufferEntry.setOperand1PhyReg2(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(tempOpndType == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand1PhyReg2(archReg);
 				}
 				else
 				{
@@ -245,12 +231,6 @@ public class RenameLogic extends SimulationElement {
 			reorderBufferEntry.setOperand2PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 			reorderBufferEntry.setOperand2PhyReg2(-1);
 		}
-		else if(tempOpndType == OperandType.machineSpecificRegister)
-		{
-			archReg = (int) tempOpnd.getValue();
-			reorderBufferEntry.setOperand2PhyReg1(archReg);
-			reorderBufferEntry.setOperand2PhyReg2(-1);
-		}
 		else if(tempOpndType == OperandType.memory)
 		{
 			Operand memLocOpnd1 = tempOpnd.getMemoryLocationFirstOperand();
@@ -273,10 +253,6 @@ public class RenameLogic extends SimulationElement {
 				else if(tempOpndType == OperandType.floatRegister)
 				{
 					reorderBufferEntry.setOperand2PhyReg1(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
-				}
-				else if(tempOpndType == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg1(archReg);
 				}
 				else
 				{
@@ -302,10 +278,6 @@ public class RenameLogic extends SimulationElement {
 				{
 					reorderBufferEntry.setOperand2PhyReg2(execEngine.getFloatingPointRenameTable().getPhysicalRegister(threadID, archReg));
 				}
-				else if(tempOpndType == OperandType.machineSpecificRegister)
-				{
-					reorderBufferEntry.setOperand2PhyReg2(archReg);
-				}
 				else
 				{
 					reorderBufferEntry.setOperand2PhyReg2(-1);
@@ -325,27 +297,18 @@ public class RenameLogic extends SimulationElement {
 	 */
 	private boolean canDestOperandBeProcessed(ReorderBufferEntry reorderBufferEntry)
 	{
-		Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
-		if(tempOpnd == null ||
-				reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
+		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.inValid ||
 				reorderBufferEntry.getInstruction().getOperationType() == OperationType.nop)
 		{
 			return true;
 		}
 		
+		int numIntRegsRequired = 0;
+		int numFloatRegsRequired = 0;
+		
 		if(reorderBufferEntry.getInstruction().getOperationType() == OperationType.xchg)
 		{
-			//renaming should succeed for both operands or none at all
-			boolean bothOpndsPossible = true;
-			int numMSRsRequired = 0;
-			int numIntRegsRequired = 0;
-			int numFloatRegsRequired = 0;
-			
-			if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
-			{
-				numMSRsRequired++;
-			}
-			else if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.integerRegister)
+			if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.integerRegister)
 			{
 				numIntRegsRequired++;
 			}
@@ -353,11 +316,7 @@ public class RenameLogic extends SimulationElement {
 			{
 				numFloatRegsRequired++;
 			}
-			if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
-			{
-				numMSRsRequired++;
-			}
-			else if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
+			if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.integerRegister)
 			{
 				numIntRegsRequired++;
 			}
@@ -365,85 +324,32 @@ public class RenameLogic extends SimulationElement {
 			{
 				numFloatRegsRequired++;
 			}
-			
-			if(numMSRsRequired > 0)
+		}
+		else
+		{
+			Operand tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
+			if(tempOpnd != null)
 			{
-				if(reorderBufferEntry.getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
+				if(tempOpnd.getOperandType() == OperandType.integerRegister)
 				{
-					if(execEngine.getMachineSpecificRegisterFile(threadID).getValueValid((int)reorderBufferEntry.getInstruction().getSourceOperand1().getValue()) == false
-							&& execEngine.getMachineSpecificRegisterFile(threadID).getProducerROBEntry((int)reorderBufferEntry.getInstruction().getSourceOperand1().getValue()) != reorderBufferEntry)
-					{
-						bothOpndsPossible = false;
-					}
+					numIntRegsRequired++;
 				}
-				if(reorderBufferEntry.getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
+				else if(tempOpnd.getOperandType() == OperandType.floatRegister)
 				{
-					if(execEngine.getMachineSpecificRegisterFile(threadID).getValueValid((int)reorderBufferEntry.getInstruction().getSourceOperand2().getValue()) == false
-							&& execEngine.getMachineSpecificRegisterFile(threadID).getProducerROBEntry((int)reorderBufferEntry.getInstruction().getSourceOperand2().getValue()) != reorderBufferEntry)
-					{
-						bothOpndsPossible = false;
-					}
+					numFloatRegsRequired++;
 				}
 			}
+		}
 			
-			if(execEngine.getIntegerRenameTable().getAvailableListSize() < numIntRegsRequired)
-			{
-				bothOpndsPossible = false;
-			}
-			
-			if(execEngine.getFloatingPointRenameTable().getAvailableListSize() < numFloatRegsRequired)
-			{
-				bothOpndsPossible = false;
-			}
-			
-			if(bothOpndsPossible == false)
-			{
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		
-		if(tempOpnd.getOperandType() == OperandType.machineSpecificRegister)
+		if(numIntRegsRequired <= execEngine.getIntegerRenameTable().getAvailableListSize()
+				&& numFloatRegsRequired <= execEngine.getFloatingPointRenameTable().getAvailableListSize())
 		{
-			if(execEngine.getMachineSpecificRegisterFile(threadID).getValueValid((int)tempOpnd.getValue()) == true
-					/*|| execEngine.getMachineSpecificRegisterFile(threadID).getProducerROBEntry((int)tempOpnd.getValue()) == reorderBufferEntry*/)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return true;
 		}
-		
-		if(tempOpnd.getOperandType() == OperandType.integerRegister)
+		else
 		{
-			if(execEngine.getIntegerRenameTable().getAvailableListSize() >= 1)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		if(tempOpnd.getOperandType() == OperandType.floatRegister)
-		{
-			if(execEngine.getFloatingPointRenameTable().getAvailableListSize() >= 1)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		return true;		
+			return false;
+		}		
 	}
 	
 	/*
@@ -459,16 +365,7 @@ public class RenameLogic extends SimulationElement {
 			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
 			tempOpndType = tempOpnd.getOperandType();
 			
-			boolean op1handled = false;
-			
-			if(tempOpndType == OperandType.machineSpecificRegister)
-			{
-				op1handled = handleMSR(reorderBufferEntry, 2);
-			}
-			else
-			{
-				op1handled = handleIntFloat(reorderBufferEntry, 2);
-			}
+			boolean op1handled = handleIntFloat(reorderBufferEntry, 2);
 			
 			if(op1handled == true)
 			{
@@ -483,14 +380,7 @@ public class RenameLogic extends SimulationElement {
 					return true;
 				}
 				
-				if(tempOpndType == OperandType.machineSpecificRegister)
-				{
-					return handleMSR(reorderBufferEntry, 3);
-				}
-				else
-				{
-					return handleIntFloat(reorderBufferEntry, 3);
-				}
+				return handleIntFloat(reorderBufferEntry, 3);
 			}
 			else
 			{
@@ -509,85 +399,13 @@ public class RenameLogic extends SimulationElement {
 
 		tempOpndType = tempOpnd.getOperandType();
 		if(tempOpndType != OperandType.integerRegister &&
-				tempOpndType != OperandType.floatRegister &&
-				tempOpndType != OperandType.machineSpecificRegister)
+				tempOpndType != OperandType.floatRegister)
 		{
 			return true;
 		}		
 		else
 		{
-			if(tempOpndType == OperandType.machineSpecificRegister)
-			{
-				return handleMSR(reorderBufferEntry, 1);				
-			}			
-			else
-			{
-				return handleIntFloat(reorderBufferEntry, 1);				
-			}
-		}
-	}
-	
-	boolean handleMSR(ReorderBufferEntry reorderBufferEntry, int whichOperand)		//whichOperand : 1 = dest; 2 = srcOp1; 3 = srcOp2
-	{
-		RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-		Operand tempOpnd;
-		int destPhyReg;
-		
-		if(whichOperand == 1)
-		{
-			tempOpnd = reorderBufferEntry.getInstruction().getDestinationOperand();
-			destPhyReg = (int) tempOpnd.getValue();
-		}
-		else if(whichOperand == 2)
-		{
-			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand1();
-			destPhyReg = (int) tempOpnd.getValue();
-		}
-		else if(whichOperand == 3)
-		{
-			tempOpnd = reorderBufferEntry.getInstruction().getSourceOperand2();
-			destPhyReg = (int) tempOpnd.getValue();			
-		}
-		else
-		{
-			System.err.println("invalid whichoperand!");
-			return true;
-		}
-		
-		
-		if(tempRF.getValueValid(destPhyReg) == true
-				/*|| tempRF.getProducerROBEntry(destPhyReg) == reorderBufferEntry*/)
-		{
-			//destination MSR available
-			if(whichOperand == 1)
-			{
-				reorderBufferEntry.setPhysicalDestinationRegister(destPhyReg);				
-			}
-			else if(whichOperand == 2)
-			{
-				reorderBufferEntry.setOperand1PhyReg1(destPhyReg);				
-			}
-			else if(whichOperand == 3)
-			{
-				reorderBufferEntry.setOperand2PhyReg1(destPhyReg);
-			}
-			else
-			{
-				System.err.println("invalid whichoperand!");
-				return true;
-			}
-			tempRF.setProducerROBEntry(reorderBufferEntry, destPhyReg);
-			tempRF.setValueValid(false, destPhyReg);
-			execEngine.setToStall6(false);
-			
-			return true;
-		}
-		
-		else
-		{
-			//stall decode because physical register for destination was not allocated
-			execEngine.setToStall6(true);
-			return false;
+			return handleIntFloat(reorderBufferEntry, 1);
 		}
 	}
 	
@@ -691,15 +509,13 @@ public class RenameLogic extends SimulationElement {
 		
 		OperandType tempOpndType = tempOpnd.getOperandType();
 		if(tempOpndType == OperandType.integerRegister ||
-				tempOpndType == OperandType.floatRegister ||
-				tempOpndType == OperandType.machineSpecificRegister)
+				tempOpndType == OperandType.floatRegister)
 		{		
 			if(opndAvailable[0] == true)
 			{
 				reorderBufferEntry.setOperand1Available(true);
 			}
-		}
-		
+		}		
 		else if(tempOpndType == OperandType.memory)
 		{
 			reorderBufferEntry.setOperand11Available(opndAvailable[0]);
@@ -734,15 +550,13 @@ public class RenameLogic extends SimulationElement {
 		
 		OperandType tempOpndType = tempOpnd.getOperandType();
 		if(tempOpndType == OperandType.integerRegister ||
-				tempOpndType == OperandType.floatRegister ||
-				tempOpndType == OperandType.machineSpecificRegister)
+				tempOpndType == OperandType.floatRegister)
 		{
 			if(opndAvailable[0] == true)
 			{
 				reorderBufferEntry.setOperand2Available(true);
 			}
-		}
-		
+		}		
 		else if(tempOpndType == OperandType.memory)
 		{
 			reorderBufferEntry.setOperand21Available(opndAvailable[0]);
