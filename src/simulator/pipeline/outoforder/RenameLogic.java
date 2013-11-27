@@ -572,14 +572,14 @@ public class RenameLogic extends SimulationElement {
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew intRenamePower = execEngine.getIntegerRenameTable().calculateAndPrintPower(outputFileWriter, "Integer Rename");
-		PowerConfigNew floatRenamePower = execEngine.getIntegerRenameTable().calculateAndPrintPower(outputFileWriter, "Floating Point Rename");
+		PowerConfigNew intRenamePower = execEngine.getIntegerRenameTable().calculateAndPrintPower(outputFileWriter, (componentName + ".Int"));
+		PowerConfigNew floatRenamePower = execEngine.getFloatingPointRenameTable().calculateAndPrintPower(outputFileWriter, (componentName + ".Float"));
 		
 		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
 		totalPower.add(totalPower,  intRenamePower);
 		totalPower.add(totalPower,  floatRenamePower);
 		
-		outputFileWriter.write("\n" + componentName + " :\n" + totalPower + "\n");
+		totalPower.printPowerStats(outputFileWriter, componentName);
 		
 		return totalPower;
 	}

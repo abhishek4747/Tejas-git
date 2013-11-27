@@ -138,8 +138,8 @@ public class DecodeLogic extends SimulationElement {
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = core.getbPredPower().leakagePower;
-		double dynamicPower = core.getbPredPower().dynamicPower;
+		double leakagePower = core.getDecodePower().leakagePower;
+		double dynamicPower = core.getDecodePower().dynamicPower;
 		
 		double activityFactor = (double)numAccesses
 									/(double)core.getCoreCyclesTaken()
