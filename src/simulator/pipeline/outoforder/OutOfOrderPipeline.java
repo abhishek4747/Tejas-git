@@ -108,12 +108,6 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 		execEngine.getReorderBuffer().setPerCoreMemorySystemStatistics();
 		
 	}
-	
-	@Override
-	public void setPerCorePowerStatistics(){
-		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
-		execEngine.getReorderBuffer().setPerCorePowerStatistics();
-	}
 
 
 	@Override
@@ -166,19 +160,23 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getLsqueue().NoOfForwards;
 	}
 
+	//TODO split into iTLB and dTLB
 	@Override
 	public long getNoOfTLBRequests() {
-		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbRequests();
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiTLB().getTlbRequests()
+				+ ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getdTLB().getTlbRequests();
 	}
 
 	@Override
 	public long getNoOfTLBHits() {
-		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbHits();
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiTLB().getTlbHits()
+				+ ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getdTLB().getTlbHits();
 	}
 
 	@Override
 	public long getNoOfTLBMisses() {
-		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbMisses();
+		return ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiTLB().getTlbMisses()
+				+ ((OutOrderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getdTLB().getTlbMisses();
 	}
 
 	@Override

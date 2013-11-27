@@ -20,7 +20,6 @@ public class OperandAvailabilityChecker {
 		
 		OutOrderExecutionEngine execEngine = (OutOrderExecutionEngine) core.getExecEngine();
 		OperandType tempOpndType = opnd.getOperandType();
-		int threadID = reorderBufferEntry.getThreadID();
 		
 		if(tempOpndType == OperandType.immediate ||
 				tempOpndType == OperandType.inValid)
@@ -29,45 +28,26 @@ public class OperandAvailabilityChecker {
 		}
 		
 		if(tempOpndType == OperandType.integerRegister ||
-				tempOpndType == OperandType.floatRegister ||
-				tempOpndType == OperandType.machineSpecificRegister)
+				tempOpndType == OperandType.floatRegister)
 		{
-			if(tempOpndType == OperandType.machineSpecificRegister)
+			RenameTable tempRN;
+			if(tempOpndType	== OperandType.integerRegister)
 			{
-				RegisterFile tempRF = execEngine.getMachineSpecificRegisterFile(threadID);
-				if(tempRF.getValueValid(phyReg1) == true
-						/*|| tempRF.getProducerROBEntry(phyReg1) == reorderBufferEntry*//* ||
-						execEngine.getReorderBuffer().indexOf(tempRF.getProducerROBEntry(phyReg1))
-						> execEngine.getReorderBuffer().indexOf(reorderBufferEntry)*/)
-				{
-					return new boolean[]{true};
-				}
-				else
-				{
-					return new boolean[]{false};
-				}
+				tempRN = execEngine.getIntegerRenameTable();
 			}
 			else
 			{
-				RenameTable tempRN;
-				if(tempOpndType	== OperandType.integerRegister)
-				{
-					tempRN = execEngine.getIntegerRenameTable();
-				}
-				else
-				{
-					tempRN = execEngine.getFloatingPointRenameTable();
-				}
-				
-				if(tempRN.getValueValid(phyReg1) == true
-						/*|| tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry*/)
-				{
-					return new boolean[]{true};
-				}
-				else
-				{
-					return new boolean[]{false};
-				}
+				tempRN = execEngine.getFloatingPointRenameTable();
+			}
+			
+			if(tempRN.getValueValid(phyReg1) == true
+					/*|| tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry*/)
+			{
+				return new boolean[]{true};
+			}
+			else
+			{
+				return new boolean[]{false};
 			}
 		}
 		

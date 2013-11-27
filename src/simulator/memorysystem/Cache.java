@@ -24,7 +24,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-import power.Counters;
 import main.ArchitecturalComponent;
 import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.directory.DirectoryEntry;

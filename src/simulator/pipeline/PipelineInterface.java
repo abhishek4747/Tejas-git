@@ -15,7 +15,6 @@ public interface PipelineInterface {
 	public boolean isSleeping();
 	public void setTimingStatistics();
 	public void setPerCoreMemorySystemStatistics();
-	public void setPerCorePowerStatistics();
 	public void setExecutionComplete(boolean status);
 	public void adjustRunningThreads(int adjval);
 	public void setInputToPipeline(GenericCircularQueue<Instruction>[] inputToPipeline);

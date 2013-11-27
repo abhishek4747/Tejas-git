@@ -132,12 +132,12 @@ public class MultiIssueInorderPipeline implements PipelineInterface{
 
 	@Override
 	public long getBranchCount() {
-		return core.powerCounters.getBpredAccess();
+		return containingExecutionEngine.getDecodeUnitIn().numBranches;
 	}
 
 	@Override
 	public long getMispredCount() {
-		return core.powerCounters.getBpredMisses();
+		return containingExecutionEngine.getDecodeUnitIn().numMispredictedBranches;
 	}
 
 	@Override
@@ -162,17 +162,20 @@ public class MultiIssueInorderPipeline implements PipelineInterface{
 
 	@Override
 	public long getNoOfTLBRequests() {
-		return ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbRequests();
+		return ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiTLB().getTlbRequests()
+				+ ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getdTLB().getTlbRequests();
 	}
 
 	@Override
 	public long getNoOfTLBHits() {
-		return ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbHits();
+		return ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiTLB().getTlbHits()
+				+ ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getdTLB().getTlbHits();
 	}
 
 	@Override
 	public long getNoOfTLBMisses() {
-		return ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getTLBuffer().getTlbMisses();
+		return ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getiTLB().getTlbMisses()
+				+ ((MultiIssueInorderExecutionEngine)core.getExecEngine()).getCoreMemorySystem().getdTLB().getTlbMisses();
 	}
 
 	@Override
@@ -213,12 +216,6 @@ public class MultiIssueInorderPipeline implements PipelineInterface{
 
 	@Override
 	public void setPerCoreMemorySystemStatistics() {
-		// Not needed here, set by inorderexecutionengine
-		
-	}
-
-	@Override
-	public void setPerCorePowerStatistics() {
 		// Not needed here, set by inorderexecutionengine
 		
 	}
