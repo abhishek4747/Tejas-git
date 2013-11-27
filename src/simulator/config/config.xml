@@ -48,7 +48,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>10000000</subsetSimSize>
+		<subsetSimSize>50000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -75,7 +75,7 @@
 		<!--Core Parameters-->
 		<Core>
 			<CoreFrequency>3600</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
-			<PipelineType>inOrder</PipelineType>	<!--inOrder,outOfOrder(set issue width for multi-issue in-order)-->
+			<PipelineType>outOfOrder</PipelineType>	<!--inOrder,outOfOrder(set issue width for multi-issue in-order)-->
 			
 			<BranchPredictor>
 				<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->

@@ -191,7 +191,7 @@ public class Statistics {
 				
 				CoreConfig coreConfig = SystemConfig.core[i];
 				
-				outputFileWriter.write("Pipeline: " + coreConfig.pipelineType);
+				outputFileWriter.write("Pipeline: " + coreConfig.pipelineType + "\n");
 								
 				outputFileWriter.write("instructions executed\t=\t" + numCoreInstructions[i] + "\n");
 				outputFileWriter.write("cycles taken\t=\t" + coreCyclesTaken[i] + " cycles\n");
@@ -243,7 +243,10 @@ public class Statistics {
 				corePower.add(core.calculateAndPrintPower(outputFileWriter, "core[" + (i++) + "]"));
 			}
 			
-			outputFileWriter.write("\n\n\n\n");
+			outputFileWriter.write("\n\n");
+			corePower.printPowerStats(outputFileWriter, "corePower.total");
+			
+			outputFileWriter.write("\n\n");
 			
 			// LLC
 			PowerConfigNew cachePower = new PowerConfigNew(0, 0);
@@ -254,17 +257,17 @@ public class Statistics {
 				cachePower.add(cache.calculateAndPrintPower(outputFileWriter, cache.toString()));
 			}
 			
-			outputFileWriter.write("\n\n\n\n");
+			outputFileWriter.write("\n\n");
 			
 			// Main Memory
 			PowerConfigNew mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintPower(outputFileWriter, "MainMemoryController");
 			
-			outputFileWriter.write("\n\n\n\n");
+			outputFileWriter.write("\n\n");
 			
 			// Directory
 			PowerConfigNew directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintPower(outputFileWriter, "Directory");
 			
-			outputFileWriter.write("\n\n\n\n");
+			outputFileWriter.write("\n\n");
 			
 			// NOC
 			PowerConfigNew nocRouterPower = new PowerConfigNew(0, 0);
@@ -276,12 +279,12 @@ public class Statistics {
 			outputFileWriter.write("\n\n");
 			nocRouterPower.printPowerStats(outputFileWriter, "nocRouter.total");
 			
-			outputFileWriter.write("\n\n\n\n");
+			outputFileWriter.write("\n\n");
 						
 			// Clock
 			PowerConfigNew clockPower = GlobalClock.calculateAndPrintPower(outputFileWriter, "GlobalClock");
 			
-			outputFileWriter.write("\n\n\n\n");
+			outputFileWriter.write("\n\n");
 			
 			PowerConfigNew totalPower = new PowerConfigNew(0, 0);
 			totalPower.add(corePower);
