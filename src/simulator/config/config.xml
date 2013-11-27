@@ -72,10 +72,6 @@
 			<DynamicPower>0.2886</DynamicPower>
 		</GlobalClock>
 			
-		<!--Directory Access Latencies. Need to be removed when merged with NoC-->
-		<DirectoryNew>
-		</DirectoryNew>
-
 		<!--Core Parameters-->
 		<Core>
 			<CoreFrequency>3600</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->

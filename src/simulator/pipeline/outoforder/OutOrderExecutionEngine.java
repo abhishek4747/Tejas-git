@@ -306,7 +306,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		PowerConfigNew resultsBroadcastBusPower =  getExecuter().calculateAndPrintPower(outputFileWriter, componentName + ".resultsBroadcastBus");
 		totalPower.add(totalPower, resultsBroadcastBusPower);
 		
-		totalPower.printPowerStats(outputFileWriter, componentName);
+		totalPower.printPowerStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
 	}

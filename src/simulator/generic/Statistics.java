@@ -246,6 +246,8 @@ public class Statistics {
 				corePower.add(core.calculateAndPrintPower(outputFileWriter, "core[" + (i++) + "]"));
 			}
 			
+			outputFileWriter.write("\n\n\n\n");
+			
 			// LLC
 			PowerConfigNew cachePower = new PowerConfigNew(0, 0);
 			for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); )
@@ -255,11 +257,17 @@ public class Statistics {
 				cachePower.add(cache.calculateAndPrintPower(outputFileWriter, cache.toString()));
 			}
 			
+			outputFileWriter.write("\n\n\n\n");
+			
 			// Main Memory
 			PowerConfigNew mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintPower(outputFileWriter, "MainMemoryController");
 			
+			outputFileWriter.write("\n\n\n\n");
+			
 			// Directory
 			PowerConfigNew directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintPower(outputFileWriter, "Directory");
+			
+			outputFileWriter.write("\n\n\n\n");
 			
 			// NOC
 			PowerConfigNew nocRouterPower = new PowerConfigNew(0, 0);
@@ -267,9 +275,16 @@ public class Statistics {
 			for(Router router : ArchitecturalComponent.getNOCRouterList()) {
 				nocRouterPower.add(router.calculateAndPrintPower(outputFileWriter, "NOCRouter[" + (i++) + "]"));
 			}
+			
+			outputFileWriter.write("\n\n");
+			nocRouterPower.printPowerStats(outputFileWriter, "nocRouter.total");
+			
+			outputFileWriter.write("\n\n\n\n");
 						
 			// Clock
 			PowerConfigNew clockPower = GlobalClock.calculateAndPrintPower(outputFileWriter, "GlobalClock");
+			
+			outputFileWriter.write("\n\n\n\n");
 			
 			PowerConfigNew totalPower = new PowerConfigNew(0, 0);
 			totalPower.add(corePower);

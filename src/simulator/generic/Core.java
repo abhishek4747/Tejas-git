@@ -729,6 +729,8 @@ public class Core extends SimulationElement implements NocInterface{
 			return totalPower;
 		}
 		
+		outputFileWriter.write("\n\n");
+		
 		// --------- Core Memory System -------------------------
 		PowerConfigNew iCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
 		totalPower.add(totalPower, iCachePower);
@@ -745,7 +747,7 @@ public class Core extends SimulationElement implements NocInterface{
 		PowerConfigNew pipelinePower =  this.execEngine.calculateAndPrintPower(outputFileWriter, componentName + ".pipeline");
 		totalPower.add(totalPower, pipelinePower);
 		
-		totalPower.printPowerStats(outputFileWriter, componentName);
+		totalPower.printPowerStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
 	}

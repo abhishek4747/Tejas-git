@@ -326,7 +326,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		PowerConfigNew resultsBroadcastBusPower =  getExecUnitIn().calculateAndPrintPower(outputFileWriter, componentName + ".resultsBroadcastBus");
 		totalPower.add(totalPower, resultsBroadcastBusPower);
 		
-		totalPower.printPowerStats(outputFileWriter, componentName);
+		totalPower.printPowerStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
 	}
