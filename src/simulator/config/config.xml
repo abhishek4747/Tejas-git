@@ -48,7 +48,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>5000000</subsetSimSize>
+		<subsetSimSize>10000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -79,7 +79,7 @@
 		<!--Core Parameters-->
 		<Core>
 			<CoreFrequency>3600</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
-			<PipelineType>outOfOrder</PipelineType>	<!--inOrder,outOfOrder(set issue width for multi-issue in-order)-->
+			<PipelineType>inOrder</PipelineType>	<!--inOrder,outOfOrder(set issue width for multi-issue in-order)-->
 			
 			<BranchPredictor>
 				<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
@@ -330,27 +330,6 @@
 			<WriteDynamicPower>0.5134</WriteDynamicPower>
 		</Type1>
 		<Type2>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
-			<Associativity>8</Associativity>
-			<Size>256</Size>				<!--In KBs-->
-			<Latency>8</Latency>				<!--In clock cycles-->
-			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>4</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>32</MSHRSize>
-			<BusOccupancy>10</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->			
-			<LeakagePower>0.0451</LeakagePower>
-			<ReadDynamicPower>0.5486</ReadDynamicPower>
-			<WriteDynamicPower>0.5486</WriteDynamicPower>
-			<!-- when private L2, leakage = 0.534; read = write dynamic = 2.957-->
-		</Type2>
-		<Type3>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
@@ -369,6 +348,26 @@
 			<LeakagePower>1.4062</LeakagePower>
 			<ReadDynamicPower>1.4667</ReadDynamicPower>
 			<WriteDynamicPower>1.4667</WriteDynamicPower>
+		</Type2>
+		<Type3>
+			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<Associativity>8</Associativity>
+			<Size>256</Size>				<!--In KBs-->
+			<Latency>8</Latency>				<!--In clock cycles-->
+			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>4</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
+			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<NumBuses>1</NumBuses>		<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<MSHRSize>32</MSHRSize>
+			<BusOccupancy>10</BusOccupancy>
+			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->			
+			<LeakagePower>0.0451</LeakagePower>
+			<ReadDynamicPower>0.5486</ReadDynamicPower>
+			<WriteDynamicPower>0.5486</WriteDynamicPower>
 		</Type3>
 	</Library>
 	
