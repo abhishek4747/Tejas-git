@@ -77,23 +77,6 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 				}
 				else
 				{
-					//issue store
-					if(ins.getOperationType() == OperationType.store)
-					{
-						if(!SimulationConfig.detachMemSys)
-						{
-							//System.out.println(" store issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
-							boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem.issueRequestToL1Cache(
-									RequestType.Cache_Write,
-									ins.getSourceOperand1MemValue());
-							
-							if(memReqIssued == false)
-							{
-								break;
-							}
-						}
-					}
-					
 					if(core.getNoOfInstructionsExecuted()%1000000==0)
 					{
 						System.out.println(core.getNoOfInstructionsExecuted()/1000000 + " million done" + " by core "+core.getCore_number() 

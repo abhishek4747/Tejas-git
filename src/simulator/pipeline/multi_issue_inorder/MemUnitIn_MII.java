@@ -69,6 +69,21 @@ public class MemUnitIn_MII extends SimulationElement{
 					//set instruction's MEM stage completion time to Long.MAX_VALUE
 					lat = Long.MAX_VALUE - GlobalClock.getCurrentTime();
 				}
+				if(ins.getOperationType() == OperationType.store)
+				{
+					if(!SimulationConfig.detachMemSys)
+					{
+						//System.out.println(" store issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
+						boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem.issueRequestToL1Cache(
+								RequestType.Cache_Write,
+								ins.getSourceOperand1MemValue());
+						
+						if(memReqIssued == false)
+						{
+							break;
+						}
+					}
+				}
 				
 				if(ins.getSerialNo() != instCtr && ins.getOperationType() != OperationType.inValid)
 				{
