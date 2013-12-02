@@ -245,12 +245,12 @@ public class RenameTable extends SimulationElement{
 	
 	public void incrementRatAccesses(int incrementBy)
 	{
-		numRATAccesses += incrementBy * execEngine.getContainingCore().getStepSize();
+		numRATAccesses += incrementBy;
 	}
 	
 	public void incrementFreeListAccesses(int incrementBy)
 	{
-		numFreeListAccesses += incrementBy * execEngine.getContainingCore().getStepSize();
+		numFreeListAccesses += incrementBy;
 	}
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

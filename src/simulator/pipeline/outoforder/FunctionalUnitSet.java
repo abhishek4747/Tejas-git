@@ -104,17 +104,17 @@ public class FunctionalUnitSet {
 	
 	void incrementIntALUAccesses(int incrementBy)
 	{
-		numIntALUAccesses += incrementBy * core.getStepSize();
+		numIntALUAccesses += incrementBy;
 	}
 	
 	void incrementFloatALUAccesses(int incrementBy)
 	{
-		numFloatALUAccesses += incrementBy * core.getStepSize();
+		numFloatALUAccesses += incrementBy;
 	}
 	
 	void incrementComplexALUAccesses(int incrementBy)
 	{
-		numComplexALUAccesses += incrementBy * core.getStepSize();
+		numComplexALUAccesses += incrementBy;
 	}
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

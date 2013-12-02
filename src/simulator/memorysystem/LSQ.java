@@ -502,7 +502,7 @@ public class LSQ extends SimulationElement
 	
 	void incrementNumAccesses(int incrementBy)
 	{
-		numAccesses += incrementBy * containingMemSys.core.getStepSize();
+		numAccesses += incrementBy;
 	}
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

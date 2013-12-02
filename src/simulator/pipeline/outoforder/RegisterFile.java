@@ -79,7 +79,7 @@ public class RegisterFile extends SimulationElement{
 	
 	void incrementNumAccesses(int incrementBy)
 	{
-		numAccesses += incrementBy * core.getStepSize();
+		numAccesses += incrementBy;
 	}
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

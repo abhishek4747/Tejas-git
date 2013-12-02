@@ -108,7 +108,7 @@ public class ExecUnitIn_MII extends SimulationElement{
 	
 	void incrementResultsBroadcastBusAccesses(int incrementBy)
 	{
-		numResultsBroadCastBusAccess += incrementBy * core.getStepSize();
+		numResultsBroadCastBusAccess += incrementBy;
 	}
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

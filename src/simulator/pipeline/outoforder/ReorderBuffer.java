@@ -108,6 +108,8 @@ public class ReorderBuffer extends SimulationElement{
 			
 			newReorderBufferEntry.setValid(true);
 			
+			incrementNumAccesses(1);
+			
 			return newReorderBufferEntry;
 		}
 		
@@ -280,6 +282,7 @@ public class ReorderBuffer extends SimulationElement{
 		{
 			head = (head+1)%MaxROBSize;
 		}
+		incrementNumAccesses(1);
 	}
 	
 	void handleBranchMisprediction()
@@ -485,7 +488,7 @@ public class ReorderBuffer extends SimulationElement{
 	
 	void incrementNumAccesses(int incrementBy)
 	{
-		numAccesses += incrementBy * core.getStepSize();
+		numAccesses += incrementBy;
 	}
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

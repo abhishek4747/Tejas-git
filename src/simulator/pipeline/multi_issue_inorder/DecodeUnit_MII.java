@@ -275,7 +275,7 @@ public class DecodeUnit_MII extends SimulationElement{
 	
 	void incrementNumDecodes(int incrementBy)
 	{
-		numDecodes += incrementBy * core.getStepSize();
+		numDecodes += incrementBy;
 	}
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

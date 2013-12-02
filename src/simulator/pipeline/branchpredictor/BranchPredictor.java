@@ -86,7 +86,7 @@ public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String
 
 public void incrementNumAccesses(int incrementBy)
 {
-	numAccesses += incrementBy * containingExecutionEngine.getContainingCore().getStepSize();
+	numAccesses += incrementBy;
 }
 
 }

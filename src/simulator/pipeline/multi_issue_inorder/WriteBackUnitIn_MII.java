@@ -120,12 +120,12 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 	
 	void incrementIntNumRegFileAccesses(int incrementBy)
 	{
-		numIntRegFileAccesses += incrementBy * core.getStepSize();
+		numIntRegFileAccesses += incrementBy;
 	}
 	
 	void incrementFloatNumRegFileAccesses(int incrementBy)
 	{
-		numFloatRegFileAccesses += incrementBy * core.getStepSize();
+		numFloatRegFileAccesses += incrementBy;
 	}
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

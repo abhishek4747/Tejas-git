@@ -261,7 +261,7 @@ public class Router extends Switch{
 		double leakagePower = SystemConfig.mainMemoryControllerPower.leakagePower;
 		double dynamicPower = SystemConfig.mainMemoryControllerPower.dynamicPower;
 		
-		double activityFactor = (double)(hopCounters * latency * stepSize)
+		double activityFactor = (double)(hopCounters)
 									/(double)Statistics.maxCoreCycles;
 		
 		power.leakagePower = leakagePower;
