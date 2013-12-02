@@ -61,8 +61,8 @@
 			<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
 			<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
-			<LeakagePower>0.0248</LeakagePower>
-			<DynamicPower>0.1848</DynamicPower>
+			<LeakagePower>0.0073</LeakagePower>
+			<DynamicPower>0.0544</DynamicPower>
 		</MainMemory>
 		
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
@@ -105,8 +105,8 @@
 				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
 				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
-				<LeakagePower>0.0003</LeakagePower>
-				<DynamicPower>0.1016</DynamicPower>
+				<LeakagePower>0.00546275</LeakagePower>
+				<DynamicPower>0.06792852941</DynamicPower>
 			</ITLB>
 			
 			<DTLB>
@@ -116,8 +116,8 @@
 				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
 				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
-				<LeakagePower>0.0004</LeakagePower>
-				<DynamicPower>0.1516</DynamicPower>
+				<LeakagePower>0.00546275</LeakagePower>
+				<DynamicPower>0.06792852941</DynamicPower>
 			</DTLB>
 			
 			<Decode>								<!--Instruction decode-->
@@ -263,9 +263,9 @@
 				<MSHRSize>2</MSHRSize>
 				<BusOccupancy>0</BusOccupancy>
 				<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-				<LeakagePower>0.3236</LeakagePower>
-				<ReadDynamicPower>1.0816</ReadDynamicPower>
-				<WriteDynamicPower>1.0816</WriteDynamicPower>
+				<LeakagePower>0.0296225</LeakagePower>
+				<ReadDynamicPower>0.34115808823</ReadDynamicPower>
+				<WriteDynamicPower>0.34115808823</WriteDynamicPower>
 			</Type0>
 			
 			<directoryAccessLatency>2</directoryAccessLatency>
@@ -301,9 +301,9 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.0127</LeakagePower>
-			<ReadDynamicPower>0.7599</ReadDynamicPower>
-			<WriteDynamicPower>0.7599</WriteDynamicPower>
+			<LeakagePower>0.02731375</LeakagePower>
+			<ReadDynamicPower>0.33964264705</ReadDynamicPower>
+			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
 		</Type0>
 		<Type1>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -321,9 +321,9 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.0127</LeakagePower>
-			<ReadDynamicPower>0.7599</ReadDynamicPower>
-			<WriteDynamicPower>0.7599</WriteDynamicPower>
+			<LeakagePower>0.02731375</LeakagePower>
+			<ReadDynamicPower>0.33964264705</ReadDynamicPower>
+			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
 		</Type1>
 		<Type2>
 			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -341,9 +341,9 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>1.4062</LeakagePower>
-			<ReadDynamicPower>1.4667</ReadDynamicPower>
-			<WriteDynamicPower>1.4667</WriteDynamicPower>
+			<LeakagePower>0.65904632352</LeakagePower>
+			<ReadDynamicPower>0.81449264705</ReadDynamicPower>
+			<WriteDynamicPower>0.81449264705</WriteDynamicPower>
 		</Type2>
 		<Type3>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
@@ -361,9 +361,9 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->			
-			<LeakagePower>0.0451</LeakagePower>
-			<ReadDynamicPower>0.5486</ReadDynamicPower>
-			<WriteDynamicPower>0.5486</WriteDynamicPower>
+			<LeakagePower>0.04382683823</LeakagePower>
+			<ReadDynamicPower>0.34905735294</ReadDynamicPower>
+			<WriteDynamicPower>0.34905735294</WriteDynamicPower>
 		</Type3>
 	</Library>
 	

@@ -237,6 +237,10 @@ public class Cache extends SimulationElement
 				}*/
 			}
 			
+			if(event.getRequestType()!=RequestType.MSHR_Full) {
+				noOfAccesses++;
+			}
+			
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write)
 			{
@@ -275,8 +279,6 @@ public class Cache extends SimulationElement
 		
 		public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
 		{
-			noOfAccesses++;
-		
 			if(event.getRequestType() == RequestType.Cache_Write)
 			{
 				noOfWritesReceived++;

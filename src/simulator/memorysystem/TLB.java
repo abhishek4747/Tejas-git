@@ -39,6 +39,8 @@ public class TLB extends SimulationElement
 	protected int tlbMisses = 0;
 	private int memoryPenalty;
 	
+	private long noOfAccesses = 0;
+	
 	PowerConfigNew power;
 		
 	public Core getCore() {
@@ -86,6 +88,8 @@ public class TLB extends SimulationElement
 	
 	public boolean searchTLBForPhyAddr(long virtualAddr) //Returns whether the address was already in the TLB or not
 	{
+		noOfAccesses++;
+		
 		tlbRequests++;
 		timestamp += 1.0; //Increment the timestamp to be set in this search
 		boolean isEntryFoundInTLB;
@@ -125,6 +129,8 @@ public class TLB extends SimulationElement
 	//The pageID is calculated within
 	private void addTLBEntry(long pageID)
 	{
+		noOfAccesses++;
+		
 		long addressForTLB = pageID << Global.PAGE_OFFSET_BITS;
 		
 		TLBEntry entry = new TLBEntry();
