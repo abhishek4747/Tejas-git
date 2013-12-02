@@ -148,18 +148,8 @@ public class ExecutionLogic extends SimulationElement {
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = core.getResultsBroadcastBusPower().leakagePower;
-		double dynamicPower = core.getResultsBroadcastBusPower().dynamicPower;
-		
-		double activityFactor = (double)numResultsBroadCastBusAccess
-									/(double)core.getCoreCyclesTaken()
-									/(core.getRetireWidth());
-										//result bus accessed at write-back
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew power = new PowerConfigNew(core.getResultsBroadcastBusPower(), numResultsBroadCastBusAccess);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 	

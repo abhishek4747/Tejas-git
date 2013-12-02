@@ -493,18 +493,8 @@ public class ReorderBuffer extends SimulationElement{
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = core.getRobPower().leakagePower;
-		double dynamicPower = core.getRobPower().dynamicPower;
-		
-		double activityFactor = (double)numAccesses
-									/(double)core.getCoreCyclesTaken()
-									/(core.getDecodeWidth() + core.getRetireWidth() + core.getRetireWidth());
-										//ROB accessed at entry creation, result entry, entry removal
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew power = new PowerConfigNew(core.getRobPower(), numAccesses);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 

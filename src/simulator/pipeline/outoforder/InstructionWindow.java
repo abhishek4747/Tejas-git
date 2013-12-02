@@ -140,19 +140,8 @@ public class InstructionWindow extends SimulationElement {
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		ExecutionEngine containingExecutionEngine = core.getExecEngine();
-		double leakagePower = containingExecutionEngine.getContainingCore().getIwPower().leakagePower;
-		double dynamicPower = containingExecutionEngine.getContainingCore().getIwPower().dynamicPower;
-		
-		double activityFactor = (double)numAccesses
-									/(double)containingExecutionEngine.getContainingCore().getCoreCyclesTaken()
-									/(core.getDecodeWidth() + core.getIssueWidth() + core.getRetireWidth());
-										//IW accessed at entry creation, removal, wake-up
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew power = new PowerConfigNew(core.getIwPower(), numAccesses);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 

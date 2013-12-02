@@ -711,16 +711,9 @@ public class CentralizedDirectoryCache extends Cache
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = power.leakagePower;
-		double dynamicPower = power.readDynamicPower;
-		
-		double activityFactor = (double)((directoryHits + directoryMisses) * latency * stepSize)
-									/(double)Statistics.maxCoreCycles;
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew newPower = new PowerConfigNew(power.leakagePower, power.readDynamicPower);
+		PowerConfigNew power = new PowerConfigNew(newPower, (directoryHits+directoryMisses));
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 }

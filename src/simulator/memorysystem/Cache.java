@@ -237,10 +237,6 @@ public class Cache extends SimulationElement
 				}*/
 			}
 			
-			if(event.getRequestType()!=RequestType.MSHR_Full) {
-				noOfAccesses++;
-			}
-			
 			if (event.getRequestType() == RequestType.Cache_Read
 					|| event.getRequestType() == RequestType.Cache_Write)
 			{
@@ -625,6 +621,8 @@ public class Cache extends SimulationElement
 			
 			misses += eventsToBeServed.size();			
 			noOfRequests += eventsToBeServed.size();
+			noOfAccesses+=eventsToBeServed.size() + 1;
+			
 			//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			
@@ -703,6 +701,7 @@ public class Cache extends SimulationElement
 			ArrayList<AddressCarryingEvent> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddress(event);
 			hits += eventsToBeServed.size();
 			noOfRequests += eventsToBeServed.size();
+			noOfAccesses+=eventsToBeServed.size();
 			//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
 			sendResponseToWaitingEvent(eventsToBeServed);
 		}
@@ -1132,26 +1131,9 @@ public class Cache extends SimulationElement
 		
 		public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 		{
-			double leakagePower = power.leakagePower;
-			double dynamicPower = power.readDynamicPower;
-			
-			double executionCycles;
-			if(containingMemSys != null)
-			{
-				executionCycles = (double)containingMemSys.core.getCoreCyclesTaken();
-			}
-			else
-			{
-				executionCycles = (double)Statistics.maxCoreCycles;
-			}
-			
-			double activityFactor = (double)(noOfAccesses * latency * stepSize)
-										/(double)executionCycles;
-			
-			PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-			
-			power.printPowerStats(outputFileWriter, componentName);
-			
-			return power;
+			PowerConfigNew newPower = new PowerConfigNew(power.leakagePower, power.readDynamicPower);
+			PowerConfigNew cachePower = new PowerConfigNew(newPower, noOfAccesses);
+			cachePower.printPowerStats(outputFileWriter, componentName);
+			return cachePower;
 		}
 }

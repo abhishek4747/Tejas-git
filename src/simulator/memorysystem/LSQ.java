@@ -330,7 +330,7 @@ public class LSQ extends SimulationElement
 							RequestType.Validate_LSQ_Addr));
 		}
 		
-		incrementNumAccesses(1);
+		//incrementNumAccesses(1);
 	}
 	
 	public void handleAddrValidate(EventQueue eventQ, Event event)
@@ -410,7 +410,7 @@ public class LSQ extends SimulationElement
 			index = (index+1)%lsqSize;
 		}	
 		
-		incrementNumAccesses(1);
+		//incrementNumAccesses(1);
 	}
 	
 	public void handleCommitsFromROB(EventQueue eventQ, Event event)
@@ -497,7 +497,7 @@ public class LSQ extends SimulationElement
 			}
 		}
 		
-		incrementNumAccesses(1);
+		//incrementNumAccesses(1);
 	}
 	
 	void incrementNumAccesses(int incrementBy)
@@ -507,27 +507,8 @@ public class LSQ extends SimulationElement
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = containingMemSys.core.getLsqPower().leakagePower;
-		double dynamicPower = containingMemSys.core.getLsqPower().dynamicPower;
-		int default_num_ports = 4;
-		int numPorts;
-		if(this.getPort().getPortType() != PortType.Unlimited)
-		{
-			numPorts = this.getPort().getNoOfPorts();
-		}
-		else
-		{
-			numPorts = default_num_ports;
-		}
-		
-		double activityFactor = (double)numAccesses
-									/(double)containingMemSys.core.getCoreCyclesTaken()
-									/numPorts;
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew power = new PowerConfigNew(containingMemSys.core.getLsqPower(), numAccesses);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 }

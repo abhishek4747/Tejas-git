@@ -108,26 +108,18 @@ public class MainMemoryController extends SimulationElement
 			//Just to tell the requesting things that the write is completed
 		}
 		
-		incrementNumAccesses((int)latency);
+		incrementNumAccesses();
 	}
 	
-	void incrementNumAccesses(int incrementBy)
+	void incrementNumAccesses()
 	{
-		numAccesses += incrementBy * stepSize;
+		numAccesses += 1;
 	}
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = SystemConfig.mainMemoryControllerPower.leakagePower;
-		double dynamicPower = SystemConfig.mainMemoryControllerPower.dynamicPower;
-		
-		double activityFactor = (double)numAccesses
-									/(double)Statistics.maxCoreCycles;
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew power = new PowerConfigNew(SystemConfig.mainMemoryControllerPower, numAccesses);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 }

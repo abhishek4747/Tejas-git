@@ -282,7 +282,7 @@ public class Statistics {
 			outputFileWriter.write("\n\n");
 						
 			// Clock
-			PowerConfigNew clockPower = GlobalClock.calculateAndPrintPower(outputFileWriter, "GlobalClock");
+			//PowerConfigNew clockPower = GlobalClock.calculateAndPrintPower(outputFileWriter, "GlobalClock");
 			
 			outputFileWriter.write("\n\n");
 			
@@ -292,7 +292,7 @@ public class Statistics {
 			totalPower.add(mainMemoryPower);
 			totalPower.add(directoryPower);
 			totalPower.add(nocRouterPower);
-			totalPower.add(clockPower);
+			//totalPower.add(clockPower);
 			
 			totalPower.printPowerStats(outputFileWriter, "TotalPower");
 			

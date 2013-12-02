@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 
 import config.PowerConfigNew;
+import config.SystemConfig;
 
 import generic.*;
 
@@ -226,18 +227,8 @@ public class TLB extends SimulationElement
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = power.leakagePower;
-		double dynamicPower = power.dynamicPower;
-		
-		double executionCycles = (double)containingMemSys.core.getCoreCyclesTaken();
-		
-		double activityFactor = (double)(tlbRequests * latency * containingMemSys.core.getStepSize())
-									/(double)executionCycles;
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
-		power.printPowerStats(outputFileWriter, componentName);
-		
-		return power;
+		PowerConfigNew tlbPower = new PowerConfigNew(power, noOfAccesses);
+		tlbPower.printPowerStats(outputFileWriter, componentName);
+		return tlbPower;
 	}
 }

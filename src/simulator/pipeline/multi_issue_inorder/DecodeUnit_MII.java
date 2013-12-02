@@ -28,7 +28,7 @@ public class DecodeUnit_MII extends SimulationElement{
 	long numMispredictedBranches;
 	long lastValidIPSeen;
 	
-	long numDecodes;
+	long numAccesses;
 	
 	long instCtr; //for debug
 	
@@ -275,24 +275,13 @@ public class DecodeUnit_MII extends SimulationElement{
 	
 	void incrementNumDecodes(int incrementBy)
 	{
-		numDecodes += incrementBy;
+		numAccesses += incrementBy;
 	}
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = core.getDecodePower().leakagePower;
-		double dynamicPower = core.getDecodePower().dynamicPower;
-		
-		double activityFactor = (double)numDecodes
-									/(double)core.getCoreCyclesTaken()
-									/containingExecutionEngine.getIssueWidth();
-											// potentially issueWidth number of instructions can
-											// be decoded per cycle
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew power = new PowerConfigNew(containingExecutionEngine.getContainingCore().getDecodePower(), numAccesses);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 }

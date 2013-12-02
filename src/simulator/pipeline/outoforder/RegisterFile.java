@@ -84,30 +84,18 @@ public class RegisterFile extends SimulationElement{
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower;
-		double dynamicPower;
+		PowerConfigNew totalPower = null;
 		
 		if(((OutOrderExecutionEngine)core.getExecEngine()).getIntegerRegisterFile() == this)
 		{
-			leakagePower = core.getIntRegFilePower().leakagePower;
-			dynamicPower = core.getIntRegFilePower().dynamicPower;
+			totalPower = new PowerConfigNew(core.getIntRegFilePower(), numAccesses);
 		}
 		else
 		{
-			leakagePower = core.getFpRegFilePower().leakagePower;
-			dynamicPower = core.getFpRegFilePower().dynamicPower;
+			totalPower = new PowerConfigNew(core.getFpRegFilePower(), numAccesses);
 		}
 		
-		double activityFactor = (double)numAccesses
-									/(double)core.getCoreCyclesTaken()
-									/(core.getDecodeWidth() + core.getRetireWidth());
-										//register file accessed at rename and write-back
-		
-		PowerConfigNew totalPower = new PowerConfigNew(leakagePower,
-														dynamicPower * activityFactor);
-		
-		totalPower.printPowerStats(outputFileWriter, componentName);
-		
+		totalPower.printPowerStats(outputFileWriter, componentName);		
 		return totalPower;
 	}
 }

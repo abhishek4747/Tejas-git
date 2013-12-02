@@ -138,18 +138,8 @@ public class DecodeLogic extends SimulationElement {
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = core.getDecodePower().leakagePower;
-		double dynamicPower = core.getDecodePower().dynamicPower;
-		
-		double activityFactor = (double)numAccesses
-									/(double)core.getCoreCyclesTaken()
-									/decodeWidth;	// potentially decodeWidth number of instructions can
-													// be decoded per cycle
-		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-		
+		PowerConfigNew power = new PowerConfigNew(containingExecutionEngine.getContainingCore().getDecodePower(), numAccesses);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 

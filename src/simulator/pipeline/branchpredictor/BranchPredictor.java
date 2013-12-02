@@ -71,16 +71,8 @@ public abstract  boolean predict(long address, boolean outcome);
 
 public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 {
-	double leakagePower = containingExecutionEngine.getContainingCore().getbPredPower().leakagePower;
-	double dynamicPower = containingExecutionEngine.getContainingCore().getbPredPower().dynamicPower;
-	
-	double activityFactor = (double)numAccesses
-								/(double)containingExecutionEngine.getContainingCore().getCoreCyclesTaken();
-	
-	PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower * activityFactor);
-	
+	PowerConfigNew power = new PowerConfigNew(containingExecutionEngine.getContainingCore().getbPredPower(), numAccesses);
 	power.printPowerStats(outputFileWriter, componentName);
-	
 	return power;
 }
 

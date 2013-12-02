@@ -119,37 +119,19 @@ public class FunctionalUnitSet {
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double intALUleakagePower = core.getIntALUPower().leakagePower;
-		double intALUdynamicPower = core.getIntALUPower().dynamicPower;
-		double floatALUleakagePower = core.getFloatALUPower().leakagePower;
-		double floatALUdynamicPower = core.getFloatALUPower().dynamicPower;
-		double complexALUleakagePower = core.getComplexALUPower().leakagePower;
-		double complexALUdynamicPower = core.getComplexALUPower().dynamicPower;
+		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		PowerConfigNew intALUPower = new PowerConfigNew(core.getIntALUPower(), numIntALUAccesses);
+		totalPower.add(totalPower, intALUPower);
+		PowerConfigNew floatALUPower = new PowerConfigNew(core.getFloatALUPower(), numFloatALUAccesses);
+		totalPower.add(totalPower, floatALUPower);
+		PowerConfigNew complexALUPower = new PowerConfigNew(core.getComplexALUPower(), numComplexALUAccesses);
+		totalPower.add(totalPower, complexALUPower);
 		
-		double intALUactivityFactor = (double)numIntALUAccesses
-										/(double)core.getCoreCyclesTaken();
-		double floatALUactivityFactor = (double)numFloatALUAccesses
-										/(double)core.getCoreCyclesTaken();
-		double complexALUactivityFactor = (double)numComplexALUAccesses
-										/(double)core.getCoreCyclesTaken();
+		intALUPower.printPowerStats(outputFileWriter, componentName + ".intALU");
+		floatALUPower.printPowerStats(outputFileWriter, componentName + ".floatALU");
+		complexALUPower.printPowerStats(outputFileWriter, componentName + ".complexALU");
 		
-		PowerConfigNew intALUpower = new PowerConfigNew(intALUleakagePower,
-															intALUdynamicPower * intALUactivityFactor);
-		PowerConfigNew floatALUpower = new PowerConfigNew(floatALUleakagePower,
-															floatALUdynamicPower * floatALUactivityFactor);
-		PowerConfigNew complexALUpower = new PowerConfigNew(complexALUleakagePower,
-															complexALUdynamicPower * complexALUactivityFactor);
-		
-		PowerConfigNew power = new PowerConfigNew(0,0);
-		power.add(intALUpower);
-		power.add(floatALUpower);
-		power.add(complexALUpower);
-		
-		intALUpower.printPowerStats(outputFileWriter, componentName + ".intALU");
-		floatALUpower.printPowerStats(outputFileWriter, componentName + ".floatALU");
-		complexALUpower.printPowerStats(outputFileWriter, componentName + ".complexALU");
-		
-		return power;
+		return totalPower;
 	}
 
 }

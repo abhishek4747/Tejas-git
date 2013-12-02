@@ -251,24 +251,12 @@ public class Router extends Switch{
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(0, 0);
-		
 		if(hopCounters == 0)
 		{
-			return power;
+			return new PowerConfigNew(0, 0);
 		}
-		
-		double leakagePower = SystemConfig.mainMemoryControllerPower.leakagePower;
-		double dynamicPower = SystemConfig.mainMemoryControllerPower.dynamicPower;
-		
-		double activityFactor = (double)(hopCounters)
-									/(double)Statistics.maxCoreCycles;
-		
-		power.leakagePower = leakagePower;
-		power.dynamicPower = dynamicPower * activityFactor;
-		
+		PowerConfigNew power = new PowerConfigNew(SystemConfig.nocConfig.power, hopCounters);
 		power.printPowerStats(outputFileWriter, componentName);
-		
 		return power;
 	}
 }

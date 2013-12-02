@@ -255,45 +255,25 @@ public class RenameTable extends SimulationElement{
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double RATleakagePower;
-		double RATdynamicPower;
-		double freeListleakagePower;
-		double freeListdynamicPower;
+		PowerConfigNew RATpower = null;
+		PowerConfigNew freeListPower = null;
 		
 		if(execEngine.getIntegerRenameTable() == this)
 		{
-			RATleakagePower = execEngine.getContainingCore().getIntRATPower().leakagePower;
-			RATdynamicPower = execEngine.getContainingCore().getIntRATPower().dynamicPower;
-			freeListleakagePower = execEngine.getContainingCore().getIntFreeListPower().leakagePower;
-			freeListdynamicPower = execEngine.getContainingCore().getIntFreeListPower().dynamicPower;
+			RATpower = new PowerConfigNew(execEngine.getContainingCore().getIntRATPower(), numRATAccesses);
+			freeListPower = new PowerConfigNew(execEngine.getContainingCore().getIntFreeListPower(), numFreeListAccesses);
 		}
 		else
 		{
-			RATleakagePower = execEngine.getContainingCore().getFpRATPower().leakagePower;
-			RATdynamicPower = execEngine.getContainingCore().getFpRATPower().dynamicPower;
-			freeListleakagePower = execEngine.getContainingCore().getFpFreeListPower().leakagePower;
-			freeListdynamicPower = execEngine.getContainingCore().getFpFreeListPower().dynamicPower;
+			RATpower = new PowerConfigNew(execEngine.getContainingCore().getFpRATPower(), numRATAccesses);
+			freeListPower = new PowerConfigNew(execEngine.getContainingCore().getFpFreeListPower(), numFreeListAccesses);
 		}
 		
-		double RATactivityFactor = (double)numRATAccesses
-									/(double)execEngine.getContainingCore().getCoreCyclesTaken()
-									/(3*execEngine.getContainingCore().getDecodeWidth());
-											//potentially decodeWidth number of instructions can
-											// be renamed per cycle (3*decodeWidth RAT accesses)
-		double freeListActivityFactor = (double)numFreeListAccesses
-									/(double)execEngine.getContainingCore().getCoreCyclesTaken()
-									/(2*execEngine.getContainingCore().getDecodeWidth());
-											//potentially decodeWidth number of instructions can
-											// be renamed/ per cycle (2*decodeWidth free-list accesses : add/remove to/from free-list)
+		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		totalPower.add(RATpower);
+		totalPower.add(freeListPower);
 		
-		PowerConfigNew RATPower = new PowerConfigNew(RATleakagePower,
-														RATdynamicPower * RATactivityFactor);
-		PowerConfigNew freeListPower = new PowerConfigNew(freeListleakagePower,
-														freeListdynamicPower * freeListActivityFactor);
-		PowerConfigNew totalPower = new PowerConfigNew(RATleakagePower + freeListleakagePower,
-														RATdynamicPower * RATactivityFactor + freeListdynamicPower * freeListActivityFactor);
-		
-		RATPower.printPowerStats(outputFileWriter, componentName + ".RAT");
+		RATpower.printPowerStats(outputFileWriter, componentName + ".RAT");
 		freeListPower.printPowerStats(outputFileWriter, componentName + ".FreeList");
 		totalPower.printPowerStats(outputFileWriter, componentName);
 		

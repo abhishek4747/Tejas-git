@@ -130,25 +130,10 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 	
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double intLeakagePower = core.getIntRegFilePower().leakagePower;
-		double intDynamicPower = core.getIntRegFilePower().dynamicPower;
-		double floatLeakagePower = core.getFpRegFilePower().leakagePower;
-		double floatDynamicPower = core.getFpRegFilePower().dynamicPower;
-		
-		double intActivityFactor = (double)numIntRegFileAccesses
-									/(double)core.getCoreCyclesTaken()
-									/(containingExecutionEngine.getIssueWidth() * 2);		
-		double floatActivityFactor = (double)numFloatRegFileAccesses
-									/(double)core.getCoreCyclesTaken()
-									/(containingExecutionEngine.getIssueWidth() * 2);
-										//register file accessed at rename and write-back
-		
 		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
-		PowerConfigNew intRegFilePower = new PowerConfigNew(intLeakagePower,
-																intDynamicPower * intActivityFactor);
+		PowerConfigNew intRegFilePower = new PowerConfigNew(core.getIntRegFilePower(), numIntRegFileAccesses);
 		totalPower.add(totalPower, intRegFilePower);
-		PowerConfigNew floatRegFilePower = new PowerConfigNew(floatLeakagePower,
-																floatDynamicPower * floatActivityFactor);
+		PowerConfigNew floatRegFilePower = new PowerConfigNew(core.getFpRegFilePower(), numFloatRegFileAccesses);
 		totalPower.add(totalPower, floatRegFilePower);
 		
 		intRegFilePower.printPowerStats(outputFileWriter, componentName + ".int");
