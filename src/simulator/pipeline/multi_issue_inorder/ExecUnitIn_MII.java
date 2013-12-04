@@ -86,7 +86,11 @@ public class ExecUnitIn_MII extends SimulationElement{
 				exMemLatch.add(ins, idExLatch.getInstructionCompletesAt(ins) + lat);
 				idExLatch.poll();
 				
-				incrementResultsBroadcastBusAccesses(1);
+				if(ins.getDestinationOperand() != null
+						|| ins.getOperationType() == OperationType.xchg)
+				{
+					incrementResultsBroadcastBusAccesses(1);
+				}
 				
 				if(SimulationConfig.debugMode)
 				{

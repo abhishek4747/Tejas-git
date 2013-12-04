@@ -13,6 +13,7 @@ import generic.Core;
 import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
+import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
@@ -84,34 +85,21 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 					core.incrementNoOfInstructionsExecuted();
 				}
 				
-				if(ins.getDestinationOperand() != null)
+				//increment register file accesses for power statistics
+				
+				//operand fetch
+				incrementNumRegFileAccesses(ins.getSourceOperand1(), 1);
+				incrementNumRegFileAccesses(ins.getSourceOperand2(), 1);
+				
+				//write-back
+				incrementNumRegFileAccesses(ins.getDestinationOperand(), 1);
+				if(ins.getOperationType() == OperationType.xchg)
 				{
-					if(ins.getDestinationOperand().getOperandType() == OperandType.integerRegister)
+					incrementNumRegFileAccesses(ins.getSourceOperand1(), 1);
+					if(ins.getSourceOperand1().getValue() != ins.getSourceOperand2().getValue()
+							|| ins.getSourceOperand1().getOperandType() != ins.getSourceOperand2().getOperandType())
 					{
-						incrementIntNumRegFileAccesses(1);
-					}
-					else if(ins.getDestinationOperand().getOperandType() == OperandType.floatRegister)
-					{
-						incrementFloatNumRegFileAccesses(1);
-					}
-				}
-				else if(ins.getOperationType() == OperationType.xchg)
-				{
-					if(ins.getSourceOperand1().getOperandType() == OperandType.integerRegister)
-					{
-						incrementIntNumRegFileAccesses(1);
-					}
-					else if(ins.getSourceOperand1().getOperandType() == OperandType.floatRegister)
-					{
-						incrementFloatNumRegFileAccesses(1);
-					}
-					if(ins.getSourceOperand2().getOperandType() == OperandType.integerRegister)
-					{
-						incrementIntNumRegFileAccesses(1);
-					}
-					else if(ins.getSourceOperand2().getOperandType() == OperandType.floatRegister)
-					{
-						incrementFloatNumRegFileAccesses(1);
+						incrementNumRegFileAccesses(ins.getSourceOperand2(), 1);
 					}
 				}
 				
@@ -148,12 +136,29 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 
 	}
 	
-	void incrementIntNumRegFileAccesses(int incrementBy)
+	void incrementNumRegFileAccesses(Operand operand, int incrementBy)
+	{
+		if(operand == null)
+		{
+			return;
+		}
+		
+		if(operand.isIntegerRegisterOperand())
+		{
+			incrementNumIntRegFileAccesses(incrementBy);
+		}
+		else if(operand.isFloatRegisterOperand())
+		{
+			incrementNumFloatRegFileAccesses(incrementBy);
+		}
+	}
+	
+	void incrementNumIntRegFileAccesses(int incrementBy)
 	{
 		numIntRegFileAccesses += incrementBy;
 	}
 	
-	void incrementFloatNumRegFileAccesses(int incrementBy)
+	void incrementNumFloatRegFileAccesses(int incrementBy)
 	{
 		numFloatRegFileAccesses += incrementBy;
 	}

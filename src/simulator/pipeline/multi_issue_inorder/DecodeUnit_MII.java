@@ -197,7 +197,6 @@ public class DecodeUnit_MII extends SimulationElement{
 		{
 			if(srcOpnd.isIntegerRegisterOperand())
 			{
-				containingExecutionEngine.getWriteBackUnitIn().incrementIntNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyInteger()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{
@@ -207,7 +206,6 @@ public class DecodeUnit_MII extends SimulationElement{
 
 			else if(srcOpnd.isFloatRegisterOperand())
 			{
-				containingExecutionEngine.getWriteBackUnitIn().incrementFloatNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyFloat()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{
@@ -222,7 +220,6 @@ public class DecodeUnit_MII extends SimulationElement{
 		{
 			if(srcOpnd.isIntegerRegisterOperand())
 			{
-				containingExecutionEngine.getWriteBackUnitIn().incrementIntNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyInteger()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{
@@ -232,7 +229,6 @@ public class DecodeUnit_MII extends SimulationElement{
 
 			else if(srcOpnd.isFloatRegisterOperand())
 			{
-				containingExecutionEngine.getWriteBackUnitIn().incrementFloatNumRegFileAccesses(1);
 				if(containingExecutionEngine.getValueReadyFloat()[(int)(srcOpnd.getValue())]
 																			> GlobalClock.getCurrentTime())
 				{

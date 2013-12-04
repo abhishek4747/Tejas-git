@@ -94,21 +94,18 @@ public class WriteBackLogic extends SimulationElement {
 				if(buffer[i].getInstruction().getDestinationOperand() != null)
 				{
 					writeToRFAndAddToAvailableList(buffer[i].getInstruction().getDestinationOperand(),
-													buffer[i].getPhysicalDestinationRegister(),
-													buffer[i].getThreadID());
+													buffer[i].getPhysicalDestinationRegister());
 				}
 				else if(buffer[i].getInstruction().getOperationType() == OperationType.xchg)
 				{
 					writeToRFAndAddToAvailableList(buffer[i].getInstruction().getSourceOperand1(),
-													buffer[i].getOperand1PhyReg1(),
-													buffer[i].getThreadID());
+													buffer[i].getOperand1PhyReg1());
 					
 					if(buffer[i].getInstruction().getSourceOperand1().getOperandType() != buffer[i].getInstruction().getSourceOperand2().getOperandType() ||
 							buffer[i].getOperand1PhyReg1() != buffer[i].getOperand2PhyReg1())
 					{
 						writeToRFAndAddToAvailableList(buffer[i].getInstruction().getSourceOperand2(),
-								buffer[i].getOperand2PhyReg1(),
-								buffer[i].getThreadID());
+													buffer[i].getOperand2PhyReg1());
 					}
 				}
 
@@ -126,8 +123,7 @@ public class WriteBackLogic extends SimulationElement {
 	//set value valid in register file, and
 	//add destination register to list of available physical registers
 	private void writeToRFAndAddToAvailableList(Operand destOpnd,
-												int physicalRegister,
-												int threadID)
+												int physicalRegister)
 	{
 		RenameTable tempRN = null;
 		if(destOpnd != null)
