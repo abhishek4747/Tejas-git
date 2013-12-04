@@ -40,7 +40,8 @@ public class OperandAvailabilityChecker {
 				tempRN = execEngine.getFloatingPointRenameTable();
 			}
 			
-			if(tempRN.getValueValid(phyReg1) == true
+			if(tempRN.getAssociatedRegisterFile().getValueValid(phyReg1) == true
+					|| tempRN.getValueValid(phyReg1) == true
 					/*|| tempRN.getProducerROBEntry(phyReg1) == reorderBufferEntry*/)
 			{
 				return new boolean[]{true};

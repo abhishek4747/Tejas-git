@@ -13,6 +13,7 @@ import generic.Core;
 import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
+import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
@@ -54,8 +55,6 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 			ins = memWbLatch.peek(0);
 			if(ins != null)
 			{
-				OperationType opType = ins.getOperationType(); 
-			
 				//check if simulation complete
 				if(ins.getOperationType()==OperationType.inValid)
 				{
@@ -83,6 +82,37 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 								+ " global clock cycle " + GlobalClock.getCurrentTime());
 					}
 					core.incrementNoOfInstructionsExecuted();
+				}
+				
+				if(ins.getDestinationOperand() != null)
+				{
+					if(ins.getDestinationOperand().getOperandType() == OperandType.integerRegister)
+					{
+						incrementIntNumRegFileAccesses(1);
+					}
+					else if(ins.getDestinationOperand().getOperandType() == OperandType.floatRegister)
+					{
+						incrementFloatNumRegFileAccesses(1);
+					}
+				}
+				else if(ins.getOperationType() == OperationType.xchg)
+				{
+					if(ins.getSourceOperand1().getOperandType() == OperandType.integerRegister)
+					{
+						incrementIntNumRegFileAccesses(1);
+					}
+					else if(ins.getSourceOperand1().getOperandType() == OperandType.floatRegister)
+					{
+						incrementFloatNumRegFileAccesses(1);
+					}
+					if(ins.getSourceOperand2().getOperandType() == OperandType.integerRegister)
+					{
+						incrementIntNumRegFileAccesses(1);
+					}
+					else if(ins.getSourceOperand2().getOperandType() == OperandType.floatRegister)
+					{
+						incrementFloatNumRegFileAccesses(1);
+					}
 				}
 				
 				if(ins.getSerialNo() != instCtr && ins.getOperationType() != OperationType.inValid)

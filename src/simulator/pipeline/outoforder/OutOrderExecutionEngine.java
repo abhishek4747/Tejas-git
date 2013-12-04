@@ -37,7 +37,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	private InstructionWindow instructionWindow;
 	private RegisterFile integerRegisterFile;
 	private RegisterFile floatingPointRegisterFile;
-	private RegisterFile machineSpecificRegisterFile[];
 	private RenameTable integerRenameTable;
 	private RenameTable floatingPointRenameTable;
 	private FunctionalUnitSet functionalUnitSet;
@@ -85,12 +84,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		integerRenameTable = new RenameTable(this, core.getNIntegerArchitecturalRegisters(), core.getIntegerRegisterFileSize(), integerRegisterFile, core.getNo_of_input_pipes());
 		floatingPointRegisterFile = new RegisterFile(core, core.getFloatingPointRegisterFileSize());
 		floatingPointRenameTable = new RenameTable(this, core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile, core.getNo_of_input_pipes());
-		machineSpecificRegisterFile = new RegisterFile[core.getNo_of_input_pipes()];
-		for(int i = 0; i < core.getNo_of_input_pipes(); i++)
-		{
-			machineSpecificRegisterFile[i] = new RegisterFile(core, core.getNMachineSpecificRegisters());
-		}
-		
+				
 		functionalUnitSet = new FunctionalUnitSet(core, core.getAllNUnits(),
 													core.getAllLatencies());
 		
@@ -150,10 +144,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	public RenameTable getIntegerRenameTable() {
 		return integerRenameTable;
-	}
-
-	public RegisterFile getMachineSpecificRegisterFile(int threadID) {
-		return machineSpecificRegisterFile[threadID];
 	}
 	
 	public ReorderBuffer getReorderBuffer() {

@@ -152,10 +152,6 @@ public class WriteBackLogic extends SimulationElement {
 				tempRN.setValueValid(true, physicalRegister);
 				execEngine.getFloatingPointRegisterFile().setValueValid(true, physicalRegister);
 			}
-			else
-			{
-				execEngine.getMachineSpecificRegisterFile(threadID).setValueValid(true, physicalRegister);
-			}
 		}
 	}
 
