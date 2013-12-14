@@ -94,8 +94,8 @@
 				<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
 				<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
 				<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
-				<LeakagePower>0.0218</LeakagePower>
-				<DynamicPower>0.1525</DynamicPower>
+				<LeakagePower>0.0318</LeakagePower>
+				<DynamicPower>0.1725</DynamicPower>
 			</LSQ>
 
 			<ITLB>
@@ -129,22 +129,22 @@
 			<Rename>
 				<RAT>
 					<Integer>
-						<LeakagePower>0.002</LeakagePower>
-						<DynamicPower>0.0071</DynamicPower>
+						<LeakagePower>0.0045</LeakagePower>
+						<DynamicPower>0.0150</DynamicPower>
 					</Integer>
 					<Float>
-						<LeakagePower>0.0008</LeakagePower>
-						<DynamicPower>0.0059</DynamicPower>
+						<LeakagePower>0.0017</LeakagePower>
+						<DynamicPower>0.0130</DynamicPower>
 					</Float>
 				</RAT>
 				<FreeList>
 					<Integer>
-						<LeakagePower>0.0008</LeakagePower>
-						<DynamicPower>0.0023</DynamicPower>
+						<LeakagePower>0.0016</LeakagePower>
+						<DynamicPower>0.0085</DynamicPower>
 					</Integer>
 					<Float>
-						<LeakagePower>0.0012</LeakagePower>
-						<DynamicPower>0.0018</DynamicPower>
+						<LeakagePower>0.0030</LeakagePower>
+						<DynamicPower>0.0045</DynamicPower>
 					</Float>
 				</FreeList>
 			</Rename>
@@ -159,8 +159,8 @@
 			<ROB>
 				<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
 				<ROBSize>168</ROBSize>				<!--Maximum number of entries in the ROB-->
-				<LeakagePower>0.0028</LeakagePower>
-				<DynamicPower>0.0104</DynamicPower>
+				<LeakagePower>0.0058</LeakagePower>
+				<DynamicPower>0.0304</DynamicPower>
 			</ROB>
 
 			<RegisterFile>
@@ -252,10 +252,10 @@
 				<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 				<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
 				<Associativity>8</Associativity>
-				<Size>64</Size>					<!--In KBs-->
-				<Latency>42</Latency>				<!--In clock cycles-->
-				<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-				<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
+				<Size>4096</Size>					<!--In KBs-->
+				<Latency>18</Latency>				<!--In clock cycles-->
+				<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+				<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 				<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 				<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 				<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
@@ -263,9 +263,9 @@
 				<MSHRSize>2</MSHRSize>
 				<BusOccupancy>0</BusOccupancy>
 				<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-				<LeakagePower>0.0296225</LeakagePower>
-				<ReadDynamicPower>0.34115808823</ReadDynamicPower>
-				<WriteDynamicPower>0.34115808823</WriteDynamicPower>
+				<LeakagePower>.1092</LeakagePower>
+				<ReadDynamicPower>.3396</ReadDynamicPower>
+				<WriteDynamicPower>.3396</WriteDynamicPower>
 			</Type0>
 			
 			<directoryAccessLatency>2</directoryAccessLatency>
@@ -301,7 +301,7 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.02731375</LeakagePower>
+			<LeakagePower>0.1092</LeakagePower>
 			<ReadDynamicPower>0.33964264705</ReadDynamicPower>
 			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
 		</Type0>
@@ -321,7 +321,7 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.02731375</LeakagePower>
+			<LeakagePower>0.1092</LeakagePower>
 			<ReadDynamicPower>0.33964264705</ReadDynamicPower>
 			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
 		</Type1>
@@ -361,7 +361,7 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>10</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->			
-			<LeakagePower>0.04382683823</LeakagePower>
+			<LeakagePower>0.1753</LeakagePower>
 			<ReadDynamicPower>0.34905735294</ReadDynamicPower>
 			<WriteDynamicPower>0.34905735294</WriteDynamicPower>
 		</Type3>
