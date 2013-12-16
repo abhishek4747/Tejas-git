@@ -14,7 +14,6 @@
     <property name="source" value="1.6"/>
     <path id="Tejas.classpath">
         <pathelement location="bin"/>
-        <pathelement location="src/log4j-1.2.16.jar"/>
         <pathelement location="${junit-path}"/>
     </path>
     <target name="init">

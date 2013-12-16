@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 
 
 import emulatorinterface.communication.Encoding;
