@@ -107,7 +107,7 @@ public class Core extends SimulationElement implements NocInterface{
 	
 	private int[] threadIDs;
 	
-	private int noOfInstructionsExecuted;
+	private long noOfInstructionsExecuted;
 	
 	private pipeline.PipelineInterface pipelineInterface;
 	public int numReturns;
@@ -430,11 +430,11 @@ public class Core extends SimulationElement implements NocInterface{
 		this.regFileOccupancy = regFileOccupancy;
 	}
 	
-	public int getNoOfInstructionsExecuted() {
+	public long getNoOfInstructionsExecuted() {
 		return noOfInstructionsExecuted;
 	}
 
-	public void setNoOfInstructionsExecuted(int noOfInstructionsExecuted) {
+	public void setNoOfInstructionsExecuted(long noOfInstructionsExecuted) {
 		this.noOfInstructionsExecuted = noOfInstructionsExecuted;
 	}
 	
