@@ -1,5 +1,7 @@
 package main;
 
+import java.io.File;
+
 import config.EmulatorConfig;
 import config.SimulationConfig;
 import emulatorinterface.communication.StreamGobbler;
@@ -18,7 +20,18 @@ public class Emulator {
 				SimulationConfig.subsetSimulation);
 
 		// Creating command for PIN tool.
-		StringBuilder cmd = new StringBuilder(pinTool + "/pin" + // " -injection child "+
+		StringBuilder pin = null;
+		
+		if(new File(pinTool + "/pin.sh").exists())
+		{
+			pin = new StringBuilder(pinTool + "/pin.sh");
+		}
+		else
+		{
+			pin = new StringBuilder(pinTool + "/pin");
+		}
+
+		StringBuilder cmd = new StringBuilder(pin + // " -injection child "+
 				" -t " + pinInstrumentor +
 				" -map " + SimulationConfig.MapEmuCores +
 				" -numIgn " + SimulationConfig.NumInsToIgnore +
