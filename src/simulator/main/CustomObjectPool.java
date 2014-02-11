@@ -18,7 +18,7 @@ public class CustomObjectPool {
 		
 		// best case -> single threaded application
 		int minInstructionPoolSize = staticTimePool + runTimePoolPerAppThread;
-		int maxInstructionPoolSize = staticTimePool + runTimePoolPerAppThread * maxApplicationThreads;
+		int maxInstructionPoolSize = staticTimePool + runTimePoolPerAppThread * maxApplicationThreads * 2;
 				
 		/* custom pool */
 		System.out.println("creating instruction pool..");
