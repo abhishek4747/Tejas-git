@@ -366,6 +366,14 @@ public class CentralizedDirectoryCache extends Cache
 				this.sendResponseToAPendingEventOfSameCacheLine(requestingCache, event);
 				return;
 			}
+			
+			//long addr = ((AddressCarryingEvent)event).getAddress();
+			//long set_addr = ((AddressCarryingEvent)event).getAddress()>>blockSizeBits ;
+			//System.out.println("DIRECTORY_CHECK : time = " + GlobalClock.getCurrentTime() + 
+			//		"\taddr = " +  addr + "\tset-addr = " + set_addr + 
+			//		"\nrequestingC = " + event.getRequestingElement() + 
+			//		"\tprocessingC = " + event.getProcessingElement());
+			
 			sendMemResponse(dirEntry, (AddressCarryingEvent)event, RequestType.Cache_Read_Writeback);
 			stateToSet = MESI.SHARED; //TODO check at owner whether the line is evicted or not Presently It is not checked
 		}

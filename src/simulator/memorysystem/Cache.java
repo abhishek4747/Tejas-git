@@ -334,6 +334,14 @@ public class Cache extends SimulationElement
 				}
 				else
 				{
+					long addr = event.getAddress();
+					long set_addr = addr>>blockSizeBits;
+					CacheLine cl = access(addr);
+					//System.out.println("DIRECTORY_CHECK : time = " + GlobalClock.getCurrentTime() +
+					//		"\taddr = " +  addr + "\tset-addr = " + set_addr + 
+					//		"\tstate-before = " + cl.getState());
+					
+					cl.setState(MESI.EXCLUSIVE);
 					//propogateWrite(event);
 				}
 			}
