@@ -341,7 +341,9 @@ public class Cache extends SimulationElement
 					//		"\taddr = " +  addr + "\tset-addr = " + set_addr + 
 					//		"\tstate-before = " + cl.getState());
 					
-					cl.setState(MESI.EXCLUSIVE);
+					if(cl!=null) {
+						cl.setState(MESI.EXCLUSIVE);
+					}
 					//propogateWrite(event);
 				}
 			}
