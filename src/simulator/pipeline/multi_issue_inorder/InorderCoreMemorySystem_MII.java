@@ -52,6 +52,16 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 					"\niCache = " + this.iCache);
 		}
 		
+		containingExecEngine.updateNoOfMemRequests(1);
+		if(requestType == RequestType.Cache_Read)
+		{
+			containingExecEngine.updateNoOfLd(1);
+		}
+		else if(requestType == RequestType.Cache_Write)
+		{
+			containingExecEngine.updateNoOfSt(1);
+		}
+		
 		return true;
 	}
 	
