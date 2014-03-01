@@ -410,6 +410,15 @@ public class ReorderBuffer extends SimulationElement{
 		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
 		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
 		Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
+		
+		if(SimulationConfig.collectInsnWorkingSetInfo==true) {
+			setInsWorkingSetStats();
+		}
+		
+		if(SimulationConfig.collectDataWorkingSetInfo==true) {
+			setDataWorkingSetStats();
+		}
+		
 
 		System.out.println("numAccesses = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfAccesses );
 		System.out.println("numWritesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesReceived );
@@ -421,6 +430,36 @@ public class ReorderBuffer extends SimulationElement{
 		System.out.println("numResponsesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesReceived );
 		System.out.println("numResponsesSent = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesSent );
 		System.out.println("numWritesForwarded = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesForwarded );
+	}
+	
+	private void setInsWorkingSetStats() {
+		Statistics.setMinInsWorkingSetSize(execEngine.getCoreMemorySystem().getiCache().minWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setMaxInsWorkingSetSize(execEngine.getCoreMemorySystem().getiCache().maxWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setTotalInsWorkingSetSize(execEngine.getCoreMemorySystem().getiCache().totalWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setNumInsWorkingSetNoted(execEngine.getCoreMemorySystem().getiCache().numFlushesInWorkingSet, 
+			core.getCore_number());
+		Statistics.setNumInsWorkingSetHits(execEngine.getCoreMemorySystem().getiCache().numWorkingSetHits, 
+			core.getCore_number());
+		Statistics.setNumInsWorkingSetMisses(execEngine.getCoreMemorySystem().getiCache().numWorkingSetMisses, 
+			core.getCore_number());
+	}
+	
+	private void setDataWorkingSetStats() {
+		Statistics.setMinDataWorkingSetSize(execEngine.getCoreMemorySystem().getL1Cache().minWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setMaxDataWorkingSetSize(execEngine.getCoreMemorySystem().getL1Cache().maxWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setTotalDataWorkingSetSize(execEngine.getCoreMemorySystem().getL1Cache().totalWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setNumDataWorkingSetNoted(execEngine.getCoreMemorySystem().getL1Cache().numFlushesInWorkingSet, 
+			core.getCore_number());
+		Statistics.setNumDataWorkingSetHits(execEngine.getCoreMemorySystem().getL1Cache().numWorkingSetHits, 
+			core.getCore_number());
+		Statistics.setNumDataWorkingSetMisses(execEngine.getCoreMemorySystem().getL1Cache().numWorkingSetMisses, 
+			core.getCore_number());
 	}
 
 	public boolean isFull()

@@ -46,4 +46,10 @@ public class SimulationConfig
 	public static NucaType nucaType;
 	public static boolean powerStats;
 	public static boolean broadcast;
+	
+	public static boolean collectInsnWorkingSetInfo;
+	public static long insnWorkingSetChunkSize;
+	
+	public static boolean collectDataWorkingSetInfo;
+	public static long dataWorkingSetChunkSize;
 }

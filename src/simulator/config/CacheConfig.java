@@ -52,6 +52,9 @@ public class CacheConfig
 	public int mshrSize;
 	public NucaType nucaType;
 	
+	public boolean collectWorkingSetData = false;
+	public long workingSetChunkSize = -1;
+	
 	public CachePowerConfig power;
 	
 	public static enum WritePolicy{

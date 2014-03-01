@@ -357,6 +357,21 @@ public class Statistics {
 	static int maxHopLength;
 	static int minHopLength;
 	
+	static long numInsWorkingSetHits[];
+	static long numInsWorkingSetMisses[];
+	static long maxInsWorkingSetSize[];
+	static long minInsWorkingSetSize[];
+	static long totalInsWorkingSetSize[];
+	static long numInsWorkingSetsNoted[];
+	
+	static long numDataWorkingSetHits[];
+	static long numDataWorkingSetMisses[];
+	static long maxDataWorkingSetSize[];
+	static long minDataWorkingSetSize[];
+	static long totalDataWorkingSetSize[];
+	static long numDataWorkingSetsNoted[];
+	
+	
 	public static void printMemorySystemStatistics()
 	{
 		//for each core, print memory system statistics
@@ -476,6 +491,113 @@ public class Statistics {
 		}
 	}
 	
+	static void printInsWorkingSetStats() throws IOException {
+		long insMaxWorkingSet = Long.MIN_VALUE; 
+		long insMinWorkingSet = Long.MAX_VALUE;
+		long insTotalWorkingSet = 0, insNumWorkingSetNoted = 0;
+		long insWorkingSetHits = 0, insWorkingSetMisses = 0;
+		
+		outputFileWriter.write("\n\nPer Core Ins Working Set Stats : \n");
+		for(int i=0; i<SystemConfig.NoOfCores; i++) {
+			if(numInsWorkingSetHits[i]==0 && numInsWorkingSetMisses[i]==0) {
+				continue;
+			} else {
+				// Min, Avg, Max working set of the core
+				// Hitrate for the working set
+				outputFileWriter.write("\nMinInsWorkingSet[" + i + "]\t=\t" + 
+						minInsWorkingSetSize[i]);
+				
+				if(minInsWorkingSetSize[i]<insMinWorkingSet) {
+					insMinWorkingSet = minInsWorkingSetSize[i];
+				}
+				
+				outputFileWriter.write("\nAvgInsWorkingSet[" + i + "]\t=\t" + 
+						(float)totalInsWorkingSetSize[i]/(float)numInsWorkingSetsNoted[i]);
+				
+				insTotalWorkingSet += totalInsWorkingSetSize[i];
+				insNumWorkingSetNoted += numInsWorkingSetsNoted[i];
+				
+				outputFileWriter.write("\nMaxInsWorkingSet[" + i + "]\t=\t" + 
+						maxInsWorkingSetSize[i]);
+				
+				if(maxInsWorkingSetSize[i]>insMaxWorkingSet) {
+					insMaxWorkingSet = maxInsWorkingSetSize[i];
+				}
+				
+				outputFileWriter.write("\nInsWorkingSetHitrate[" + i + "]\t=\t" + 
+						(float)numInsWorkingSetHits[i]/(float)(numInsWorkingSetHits[i] + numInsWorkingSetMisses[i]));
+				
+				insWorkingSetHits += numInsWorkingSetHits[i];
+				insWorkingSetMisses += numInsWorkingSetMisses[i];
+			}
+			outputFileWriter.write("\n");
+		}
+		
+		outputFileWriter.write("\n\nTotal Ins Working Set Stats : \n");
+		outputFileWriter.write("\nMinInsWorkingSet\t=\t" + insMinWorkingSet);
+		outputFileWriter.write("\nAvgInsWorkingSet\t=\t" + (float)insTotalWorkingSet/(float)insNumWorkingSetNoted);
+		outputFileWriter.write("\nMaxInsWorkingSet\t=\t" + insMaxWorkingSet);
+		
+		float hitrate = (float)insWorkingSetHits/(float)(insWorkingSetHits+insWorkingSetMisses);
+		outputFileWriter.write("\nInsWorkingSetHitrate\t=\t" + hitrate);
+		
+		outputFileWriter.write("\n\n");
+	}
+	
+	
+	static void printDataWorkingSetStats() throws IOException {
+		long dataMaxWorkingSet = Long.MIN_VALUE; 
+		long dataMinWorkingSet = Long.MAX_VALUE;
+		long dataTotalWorkingSet = 0, dataNumWorkingSetNoted = 0;
+		long dataWorkingSetHits = 0, dataWorkingSetMisses = 0;
+		
+		outputFileWriter.write("\n\nPer Core Data Working Set Stats : \n");
+		for(int i=0; i<SystemConfig.NoOfCores; i++) {
+			if(numDataWorkingSetHits[i]==0 && numDataWorkingSetMisses[i]==0) {
+				continue;
+			} else {
+				// Min, Avg, Max working set of the core
+				// Hitrate for the working set
+				outputFileWriter.write("\nMinDataWorkingSet[" + i + "]\t=\t" + 
+						minDataWorkingSetSize[i]);
+				
+				if(minDataWorkingSetSize[i]<dataMinWorkingSet) {
+					dataMinWorkingSet = minDataWorkingSetSize[i];
+				}
+				
+				outputFileWriter.write("\nAvgDataWorkingSet[" + i + "]\t=\t" + 
+						(float)totalDataWorkingSetSize[i]/(float)numDataWorkingSetsNoted[i]);
+				
+				dataTotalWorkingSet += totalDataWorkingSetSize[i];
+				dataNumWorkingSetNoted += numDataWorkingSetsNoted[i];
+				
+				outputFileWriter.write("\nMaxDataWorkingSet[" + i + "]\t=\t" + 
+						maxDataWorkingSetSize[i]);
+				
+				if(maxDataWorkingSetSize[i]>dataMaxWorkingSet) {
+					dataMaxWorkingSet = maxDataWorkingSetSize[i];
+				}
+				
+				outputFileWriter.write("\nDataWorkingSetHitrate[" + i + "]\t=\t" + 
+						(float)numDataWorkingSetHits[i]/(float)(numDataWorkingSetHits[i] + numDataWorkingSetMisses[i]));
+				
+				dataWorkingSetHits += numDataWorkingSetHits[i];
+				dataWorkingSetMisses += numDataWorkingSetMisses[i];
+			}
+			outputFileWriter.write("\n");
+		}
+		
+		outputFileWriter.write("\n\nTotal Data Working Set Stats : \n");
+		outputFileWriter.write("\nMinDataWorkingSet\t=\t" + dataMinWorkingSet);
+		outputFileWriter.write("\nAvgDataWorkingSet\t=\t" + (float)dataTotalWorkingSet/(float)dataNumWorkingSetNoted);
+		outputFileWriter.write("\nMaxDataWorkingSet\t=\t" + dataMaxWorkingSet);
+		
+		float hitrate = (float)dataWorkingSetHits/(float)(dataWorkingSetHits+dataWorkingSetMisses);
+		outputFileWriter.write("\nDataWorkingSetHitrate\t=\t" + hitrate);
+		
+		outputFileWriter.write("\n\n");
+	}
+	
 	static void printCacheStatistics(String cacheStr,
 			long hits, long misses) throws IOException
 	{
@@ -592,6 +714,24 @@ public class Statistics {
 		tempnoOfIHits = new long[SystemConfig.NoOfCores];
 		
 		tempnoOfIMisses = new long[SystemConfig.NoOfCores];
+		
+		if(SimulationConfig.collectInsnWorkingSetInfo==true) {
+			numInsWorkingSetHits = new long[SystemConfig.NoOfCores];
+			numInsWorkingSetMisses = new long[SystemConfig.NoOfCores];
+			maxInsWorkingSetSize = new long[SystemConfig.NoOfCores];
+			minInsWorkingSetSize = new long[SystemConfig.NoOfCores];
+			totalInsWorkingSetSize = new long[SystemConfig.NoOfCores];
+			numInsWorkingSetsNoted = new long[SystemConfig.NoOfCores];
+		}
+		
+		if(SimulationConfig.collectDataWorkingSetInfo==true) {
+			numDataWorkingSetHits = new long[SystemConfig.NoOfCores];
+			numDataWorkingSetMisses = new long[SystemConfig.NoOfCores];
+			maxDataWorkingSetSize = new long[SystemConfig.NoOfCores];
+			minDataWorkingSetSize = new long[SystemConfig.NoOfCores];
+			totalDataWorkingSetSize = new long[SystemConfig.NoOfCores];
+			numDataWorkingSetsNoted = new long[SystemConfig.NoOfCores];
+		}
 		
 		if(SimulationConfig.pinpointsSimulation == true)
 		{		
@@ -773,6 +913,60 @@ public class Statistics {
 		Statistics.noOfTLBRequests[core] = noOfTLBRequests;
 	}
 	
+	// Ins working set
+	public static void setMaxInsWorkingSetSize(long workingSetSize, int core) {
+		Statistics.maxInsWorkingSetSize[core] = workingSetSize;
+	}
+	
+	public static void setMinInsWorkingSetSize(long workingSetSize, int core) {
+		Statistics.minInsWorkingSetSize[core] = workingSetSize;
+	}
+	
+	public static void setTotalInsWorkingSetSize(long workingSetSize, int core) {
+		Statistics.totalInsWorkingSetSize[core] = workingSetSize;
+	}
+	
+	public static void setNumInsWorkingSetNoted(long workingSetNoted, int core) {
+		Statistics.numInsWorkingSetsNoted[core] = workingSetNoted;
+	}
+	
+	public static void setNumInsWorkingSetHits(long workingSetHits, int core) {
+		Statistics.numInsWorkingSetHits[core] = workingSetHits;
+	}
+	
+	public static void setNumInsWorkingSetMisses(long workingSetMisses, int core) {
+		Statistics.numInsWorkingSetMisses[core] = workingSetMisses;
+	}
+	
+	
+	// Data working set
+	public static void setMaxDataWorkingSetSize(long workingSetSize, int core) {
+		Statistics.maxDataWorkingSetSize[core] = workingSetSize;
+	}
+	
+	public static void setMinDataWorkingSetSize(long workingSetSize, int core) {
+		Statistics.minDataWorkingSetSize[core] = workingSetSize;
+	}
+	
+	public static void setTotalDataWorkingSetSize(long workingSetSize, int core) {
+		Statistics.totalDataWorkingSetSize[core] = workingSetSize;
+	}
+	
+	public static void setNumDataWorkingSetNoted(long workingSetNoted, int core) {
+		Statistics.numDataWorkingSetsNoted[core] = workingSetNoted;
+	}
+	
+	public static void setNumDataWorkingSetHits(long workingSetHits, int core) {
+		Statistics.numDataWorkingSetHits[core] = workingSetHits;
+	}
+	
+	public static void setNumDataWorkingSetMisses(long workingSetMisses, int core) {
+		Statistics.numDataWorkingSetMisses[core] = workingSetMisses;
+	}
+	
+	
+	
+	
 	public static void setNoOfTLBHits(long noOfTLBHits, int core) {
 		Statistics.noOfTLBHits[core] = noOfTLBHits;
 	}
@@ -941,6 +1135,19 @@ public class Statistics {
 		Statistics.printTranslatorStatistics();
 		Statistics.printTimingStatistics();
 		Statistics.printMemorySystemStatistics();
+		
+		try {
+			if(SimulationConfig.collectInsnWorkingSetInfo) {
+				Statistics.printInsWorkingSetStats();
+			}
+			
+			if(SimulationConfig.collectDataWorkingSetInfo) {
+				Statistics.printDataWorkingSetStats();
+			}
+		} catch (IOException e) {
+			
+		}
+		
 		Statistics.printSimulationTime();
 		Statistics.printPowerStatistics();
 		

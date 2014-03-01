@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import config.CoreConfig;
 import config.PowerConfigNew;
+import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import pipeline.outoforder.FunctionalUnitSet;
@@ -188,6 +189,45 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		
 		Statistics.setBranchCount(decodeUnitIn.getNumBranches(), core.getCore_number());
 		Statistics.setMispredictedBranchCount(decodeUnitIn.getNumMispredictedBranches(), core.getCore_number());
+		
+		
+		if(SimulationConfig.collectInsnWorkingSetInfo==true) {
+			setInsWorkingSetStats();
+		}
+		
+		if(SimulationConfig.collectDataWorkingSetInfo==true) {
+			setDataWorkingSetStats();
+		}
+	}
+	
+	private void setInsWorkingSetStats() {
+		Statistics.setMinInsWorkingSetSize(multiIssueInorderCoreMemorySystem.getiCache().minWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setMaxInsWorkingSetSize(multiIssueInorderCoreMemorySystem.getiCache().maxWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setTotalInsWorkingSetSize(multiIssueInorderCoreMemorySystem.getiCache().totalWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setNumInsWorkingSetNoted(multiIssueInorderCoreMemorySystem.getiCache().numFlushesInWorkingSet, 
+			core.getCore_number());
+		Statistics.setNumInsWorkingSetHits(multiIssueInorderCoreMemorySystem.getiCache().numWorkingSetHits, 
+			core.getCore_number());
+		Statistics.setNumInsWorkingSetMisses(multiIssueInorderCoreMemorySystem.getiCache().numWorkingSetMisses, 
+			core.getCore_number());
+	}
+	
+	private void setDataWorkingSetStats() {
+		Statistics.setMinDataWorkingSetSize(multiIssueInorderCoreMemorySystem.getL1Cache().minWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setMaxDataWorkingSetSize(multiIssueInorderCoreMemorySystem.getL1Cache().maxWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setTotalDataWorkingSetSize(multiIssueInorderCoreMemorySystem.getL1Cache().totalWorkingSetSize, 
+			core.getCore_number());
+		Statistics.setNumDataWorkingSetNoted(multiIssueInorderCoreMemorySystem.getL1Cache().numFlushesInWorkingSet, 
+			core.getCore_number());
+		Statistics.setNumDataWorkingSetHits(multiIssueInorderCoreMemorySystem.getL1Cache().numWorkingSetHits, 
+			core.getCore_number());
+		Statistics.setNumDataWorkingSetMisses(multiIssueInorderCoreMemorySystem.getL1Cache().numWorkingSetMisses, 
+			core.getCore_number());
 	}
 
 	public long getNoOfSt() {

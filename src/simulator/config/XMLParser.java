@@ -69,6 +69,14 @@ public class XMLParser
 		} 
 		catch (Exception e) 
 		{
+			// Cannot use shutdown handler here 
+			// the stats file is not setup yet
+			// so printing stats in the shutdown hook will halt the display of error message 
+			// so the exact error cannot be debugged
+			//System.err.println("Error in reading config file : " + e);
+			//System.err.flush();
+			//new Exception().printStackTrace();
+			//System.exit(0);
 			misc.Error.showErrorAndExit("Error in reading config file : " + e);
 		}
  	}
@@ -126,6 +134,18 @@ public class XMLParser
 		Element simulationElmnt = (Element) simulationNode;
 		SimulationConfig.NumTempIntReg = Integer.parseInt(getImmediateString("NumTempIntReg", simulationElmnt));
 		SimulationConfig.NumInsToIgnore = Long.parseLong(getImmediateString("NumInsToIgnore", simulationElmnt));
+		
+		SimulationConfig.collectInsnWorkingSetInfo = 
+				Boolean.parseBoolean(getImmediateString("CollectInsnWorkingSet", simulationElmnt));
+		
+		SimulationConfig.insnWorkingSetChunkSize = 
+				Long.parseLong(getImmediateString("InsnWorkingSetChunkSize", simulationElmnt));
+		
+		SimulationConfig.collectDataWorkingSetInfo = 
+				Boolean.parseBoolean(getImmediateString("CollectDataWorkingSet", simulationElmnt));
+		
+		SimulationConfig.dataWorkingSetChunkSize = 
+				Long.parseLong(getImmediateString("DataWorkingSetChunkSize", simulationElmnt));
 		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
@@ -411,6 +431,11 @@ public class XMLParser
 			core.iCache.operatingFreq = core.frequency;
 			core.iCache.power = getCachePowerConfig(typeElmnt);
 			
+			if(SimulationConfig.collectInsnWorkingSetInfo) {
+				core.iCache.collectWorkingSetData = true;
+				core.iCache.workingSetChunkSize = SimulationConfig.insnWorkingSetChunkSize; 
+			}
+			
 			//Code for L1 Data cache configurations for each core
 			NodeList l1CacheList = coreElmnt.getElementsByTagName("L1Cache");
 			Element l1Elmnt = (Element) l1CacheList.item(0);
@@ -422,6 +447,11 @@ public class XMLParser
 			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
 			core.l1Cache.operatingFreq = core.frequency;
 			core.l1Cache.power = getCachePowerConfig(typeElmnt);
+			
+			if(SimulationConfig.collectDataWorkingSetInfo) {
+				core.l1Cache.collectWorkingSetData = true;
+				core.l1Cache.workingSetChunkSize = SimulationConfig.dataWorkingSetChunkSize; 
+			}
 			
 			//Code for L1 cache configurations for each core
 			//NodeList l2CacheList = coreElmnt.getElementsByTagName("L2Cache");

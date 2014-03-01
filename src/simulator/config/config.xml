@@ -22,14 +22,20 @@
 	<Emulator>
 		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
 		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
-		<PinTool>/home/raj/Softwares/PIN</PinTool>
-		<PinInstrumentor>/home/raj/workspace2/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/home/prathmesh/Data/Softwares/Pintool/pin-11</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
-		<ShmLibDirectory>/home/raj/workspace2/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
+		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
 	</Emulator>
 	
 	<!--Simulation Parameters-->
 	<Simulation>
+		<CollectInsnWorkingSet>false</CollectInsnWorkingSet> 
+		<InsnWorkingSetChunkSize>3000000</InsnWorkingSetChunkSize> <!--Chunk size of instructions over which working set must be noted-->
+		
+		<CollectDataWorkingSet>false</CollectDataWorkingSet>
+		<DataWorkingSetChunkSize>3000000</DataWorkingSetChunkSize> <!--Chunk size of instructions over which working set must be noted-->
+		
 		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
 		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
@@ -44,11 +50,11 @@
 		<PowerTrace>1</PowerTrace>			<!--0 => no power trace; 1=> trace after 'n' instructions ;2=> trace after 'n' cycles-->
 		<pinpointsSim>false</pinpointsSim>
 		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
-		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
+		<NumInsToIgnore>0</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>10000000</subsetSimSize>
+		<subsetSimSize>20000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->

@@ -102,6 +102,11 @@ public class Cache extends SimulationElement
 					cacheParameters.getLatency(),
 					cacheParameters.operatingFreq);
 			
+			if(cacheParameters.collectWorkingSetData==true) {
+				workingSet = new TreeSet<Long>();
+				workingSetChunkSize = cacheParameters.workingSetChunkSize;
+			}
+			
 			this.containingMemSys = containingMemSys;
 			
 			// set the parameters
@@ -203,6 +208,61 @@ public class Cache extends SimulationElement
 		}
 		
 		
+		TreeSet<Long> workingSet = null;
+		long workingSetChunkSize = 0;
+		public long numWorkingSetHits = 0;
+		public long numWorkingSetMisses = 0;
+		public long numFlushesInWorkingSet = 0;
+		public long totalWorkingSetSize = 0;
+		public long maxWorkingSetSize = Long.MIN_VALUE;
+		public long minWorkingSetSize = Long.MAX_VALUE;
+		
+		
+		void addToWorkingSet(long addr) {
+			long lineAddr = addr >>> numLinesBits;
+			if(workingSet!=null) {
+				if(workingSet.contains(lineAddr)==true) {
+					numWorkingSetHits++;
+					return;
+				} else {
+					numWorkingSetMisses++;
+					workingSet.add(lineAddr);
+				}
+			}
+		}
+		
+		float getWorkingSetHitrate() {
+			if(numWorkingSetHits==0 && numWorkingSetMisses==0) {
+				return 0.0f;
+			} else {
+				return (float)numWorkingSetHits/(float)(numWorkingSetHits + numWorkingSetMisses);
+			}
+		}
+		
+		void clearWorkingSet() {
+			numFlushesInWorkingSet++;
+			totalWorkingSetSize += workingSet.size();
+			if(workingSet.size()>maxWorkingSetSize) {
+				maxWorkingSetSize = workingSet.size();
+			}
+			
+			if(workingSet.size()<minWorkingSetSize) {
+				minWorkingSetSize = workingSet.size();
+			}
+			
+			//System.out.println(this + " : For chunk " + (numFlushesInWorkingSet-1) + 
+			//	"\tworkSet = " + workingSet.size() +
+			//	"\tminSet = " + minWorkingSetSize + 
+			//	"\tavgSet = " + (float)totalWorkingSetSize/(float)numFlushesInWorkingSet + 
+			//	"\tmaxSet = " + maxWorkingSetSize + 
+			//	"\tworkSetHitrate = " + getWorkingSetHitrate());
+			
+			if(workingSet!=null) {
+				workingSet.clear();
+			}
+		}
+		
+		
 		private boolean printCacheDebugMessages = false;
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
@@ -241,6 +301,12 @@ public class Cache extends SimulationElement
 					|| event.getRequestType() == RequestType.Cache_Write)
 			{
 				this.handleAccess(eventQ, (AddressCarryingEvent) event);
+				
+				// Only for read/write we should send the request to the working set.
+				// All other events like mem_response, etc do not count as an access 
+				// for the working set
+				long address = ((AddressCarryingEvent) event).getAddress();
+				this.addToWorkingSet(address);
 			}
 			
 			else if (event.getRequestType() == RequestType.Cache_Read_Writeback
@@ -590,6 +656,27 @@ public class Cache extends SimulationElement
 			{
 				return false;
 			}
+			
+			// Clear the working set data after every x instructions
+			if(this.containingMemSys!=null && this.workingSet!=null) {
+				
+				if(levelFromTop==CacheType.iCache) {
+					long numInsn = containingMemSys.getiCache().hits + containingMemSys.getiCache().misses; 
+					long numWorkingSets = numInsn/workingSetChunkSize; 
+					if(numWorkingSets>containingMemSys.numInstructionSetChunksNoted) {
+						this.clearWorkingSet();
+						containingMemSys.numInstructionSetChunksNoted++;
+					}
+				} else if(levelFromTop==CacheType.L1) {
+					long numInsn = containingMemSys.getiCache().hits + containingMemSys.getiCache().misses;
+					long numWorkingSets = numInsn/workingSetChunkSize; 
+					if(numWorkingSets>containingMemSys.numDataSetChunksNoted) {
+						this.clearWorkingSet();
+						containingMemSys.numDataSetChunksNoted++;
+					}
+				}
+			}
+			
 			
 			long address = addressEvent.getAddress();
 			//System.out.println(address + " in l1 setNumber : " +this.getStartIdx(address));

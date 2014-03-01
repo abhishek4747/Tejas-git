@@ -37,7 +37,10 @@ public abstract class CoreMemorySystem extends SimulationElement
 	protected TLB iTLB;
 	protected TLB dTLB;
 	protected LSQ lsqueue;
-		
+	
+	protected long numInstructionSetChunksNoted = 0;
+	protected long numDataSetChunksNoted = 0;
+	
 	protected CoreMemorySystem(Core core)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
