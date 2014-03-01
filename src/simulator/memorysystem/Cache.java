@@ -219,7 +219,7 @@ public class Cache extends SimulationElement
 		
 		
 		void addToWorkingSet(long addr) {
-			long lineAddr = addr >>> numLinesBits;
+			long lineAddr = addr >>> blockSizeBits;
 			if(workingSet!=null) {
 				if(workingSet.contains(lineAddr)==true) {
 					numWorkingSetHits++;
