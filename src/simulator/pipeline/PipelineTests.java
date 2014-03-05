@@ -1,27 +1,13 @@
 package pipeline;
 
-import static org.junit.Assert.*;
-
 import java.lang.reflect.Array;
-
 import main.ArchitecturalComponent;
-import main.CustomObjectPool;
 import main.Main;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import config.EmulatorConfig;
-import config.SimulationConfig;
 import config.XMLParser;
-import emulatorinterface.communication.IpcBase;
-import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
-import generic.OperandType;
-import generic.OperationType;
 import generic.Statistics;
 
 public class PipelineTests {
@@ -30,8 +16,7 @@ public class PipelineTests {
 	static GenericCircularQueue<Instruction> inputToPipeline;
 	static final int INSTRUCTION_THRESHOLD = 2000;
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		
 		// Parse the command line arguments
 		XMLParser.parse("/home/raj/workspace2/Tejas/src/simulator/config/config.xml");
@@ -56,8 +41,9 @@ public class PipelineTests {
 	/*
 	 * simulates a sequence of intALU instructions that have no data dependencies
 	 */
-	@Test
-	public void minimumDataDependencies() {
+	public static void minimumDataDependencies() {
+		
+		setUpBeforeClass();
 		
 		//generate instruction sequence
 		Instruction newInst;
@@ -90,8 +76,9 @@ public class PipelineTests {
 	/*
 	 * simulates a sequence of intALU instructions, with (i+1)th instruction dependent on ith
 	 */
-	@Test
-	public void maximumDataDependencies() {
+	public static void maximumDataDependencies() {
+		
+		setUpBeforeClass();
 		
 		//generate instruction sequence
 		Instruction newInst;
@@ -117,8 +104,9 @@ public class PipelineTests {
 	/*
 	 * simulates a sequence of floatDiv instructions, with no data dependencies
 	 */
-	@Test
-	public void structuralHazards() {
+	public static void structuralHazards() {
+		
+		setUpBeforeClass();
 		
 		//generate instruction sequence
 		Instruction newInst;
@@ -151,8 +139,9 @@ public class PipelineTests {
 	/*
 	 * simulates a sequence of floatDiv instructions, all operating on R0, and writing to R0
 	 */
-	@Test
-	public void renameTest() {
+	public static void renameTest() {
+		
+		setUpBeforeClass();
 		
 		//generate instruction sequence
 		Instruction newInst;
@@ -172,6 +161,28 @@ public class PipelineTests {
 		{
 			ArchitecturalComponent.getCores()[0].getPipelineInterface().oneCycleOperation();
 			GlobalClock.incrementClock();
+		}
+	}
+	
+	public static void main(String[] arguments)
+	{
+		int testType = Integer.parseInt(arguments[0]);
+		
+		switch(testType)
+		{
+			case 0 :	minimumDataDependencies();
+						break;
+						
+			case 1 :	maximumDataDependencies();
+						break;
+						
+			case 2 :	structuralHazards();
+						break;
+						
+			case 3 :	renameTest();
+						break;
+			
+			default :	misc.Error.showErrorAndExit("unknown test type");
 		}
 	}
 
