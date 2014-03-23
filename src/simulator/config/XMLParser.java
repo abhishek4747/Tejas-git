@@ -213,6 +213,20 @@ public class XMLParser
 			SimulationConfig.pinpointsSimulation = false;
 			SimulationConfig.pinpointsFile = "";
 		}
+		
+		if(getImmediateString("markerFunctions", simulationElmnt).compareTo("true") == 0 ||
+				getImmediateString("markerFunctions", simulationElmnt).compareTo("True") == 0)
+		{
+			SimulationConfig.markerFunctionsSimulation = true;
+			SimulationConfig.startMarker = getImmediateString("startSimMarker", simulationElmnt);
+			SimulationConfig.endMarker = getImmediateString("endSimMarker", simulationElmnt);
+		}
+		else
+		{
+			SimulationConfig.markerFunctionsSimulation = false;
+			SimulationConfig.startMarker = "";
+			SimulationConfig.endMarker = "";
+		}
 
 		if(getImmediateString("PrintPowerStats", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)

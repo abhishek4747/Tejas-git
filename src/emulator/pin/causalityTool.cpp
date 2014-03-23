@@ -57,6 +57,10 @@ KNOB<UINT64>   KnobId(KNOB_MODE_WRITEONCE,       "pintool",
     "id", "1", "shm id to generate key");
 KNOB<std::string>   KnobPinPointsFile(KNOB_MODE_WRITEONCE,       "pintool",
     "pinpointsFile", "nofile", "pinpoints file (pass numIgn = 0, numSim = -1)");
+KNOB<std::string>   KnobStartMarker(KNOB_MODE_WRITEONCE,       "pintool",
+    "startMarker", "", "start marker function name");
+KNOB<std::string>   KnobEndMarker(KNOB_MODE_WRITEONCE,       "pintool",
+    "endMarker", "", "end marker function name");
 
 PIN_MUTEX lock;
 INT32 numThreads = 0;
@@ -68,6 +72,8 @@ ADDRINT curSynchVar[MaxThreads];
 static UINT64 numIns = 0;
 UINT64 numInsToIgnore = 0;
 INT64 numInsToSimulate = 0;
+std::string startMarker;
+std::string endMarker;
 BOOL ignoreActive = false;
 UINT64 numCISC[MaxThreads];
 UINT64 totalNumCISC;
@@ -248,6 +254,28 @@ VOID CountIns()
 	if (!ignoreActive) return;
 	numIns++;
 	if (numIns>numInsToIgnore) ignoreActive = false;	//activate Now
+}
+
+VOID FunStartInstrumentation() {
+	//if (cmp("XXX_startInstrumentation") && numThreads > 0)
+	{
+		ignoreActive = false;
+		numInsToIgnore = 0;
+		cout << "at function " << startMarker << " : beginning instrumentation" << endl;
+		cout << "ignoreActive = " << ignoreActive << " numInsToIgnore = " << numInsToIgnore << endl;
+		fflush(stdout);
+	}
+}
+
+VOID FunEndInstrumentation() {
+	//if (cmp("XXX_startInstrumentation") && numThreads > 0)
+	{
+		ignoreActive = true;
+		numInsToIgnore = 0xFFFFFFFFFFFFFFFF;
+		cout << "at function " << endMarker << " : stopping instrumentation" << endl;
+		cout << "ignoreActive = " << ignoreActive << " numInsToIgnore = " << numInsToIgnore << endl;
+		fflush(stdout);
+	}
 }
 static int barrier = 0;
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
@@ -505,7 +533,23 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 	}
 	/*** For barriers. Used for research purpose ***/
 	else
+	{
 		encode = -1;
+		if(startMarker.compare("") != 0)
+		{
+			if(cmp(startMarker)) {
+				RTN_InsertCall(rtn, IPOINT_AFTER, (AFUNPTR) FunStartInstrumentation,
+								IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_END);
+			}
+		}
+		if(endMarker.compare("") != 0)
+		{
+			if(cmp(endMarker)) {
+				RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) FunEndInstrumentation,
+								IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_END);
+			}
+		}
+	}
 
 	if (encode != -1 && RTN_Valid(rtn) && encode != BARRIERINIT) {
 		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR) FunEntry,
@@ -565,13 +609,27 @@ int main(int argc, char * argv[]) {
 		return Usage();
 
 	numInsToIgnore = KnobIgnore;
+	startMarker = KnobStartMarker;
+	endMarker = KnobEndMarker;
 	numInsToSimulate = KnobSimulate;
 	pinpointsFilename = KnobPinPointsFile;
 	UINT64 id = KnobId;
-	cout << "numIgn = " << numInsToIgnore << "\n";
-	cout << "numSim = " << numInsToSimulate << "\n";
-	cout << "id received = " << id << "\n";
-	std::cout << "pinpoints file received = " << pinpointsFilename << "\n";
+
+	if(startMarker.compare("") != 0)
+	{
+		numInsToIgnore = 0xFFFFFFFFFFFFFFFF;
+	}
+	if(endMarker.compare("") != 0)
+	{
+		numInsToSimulate = 0xFFFFFFFFFFFFFFFF;
+	}
+
+	cout << "numIgn = " << numInsToIgnore << endl;
+	cout << "numSim = " << numInsToSimulate << endl;
+	cout << "id received = " << id << endl;
+	cout << "pinpoints file received = " << pinpointsFilename << endl;
+	cout << "start marker = " << startMarker << endl;
+	cout <<"end marker = " << endMarker << endl;
 
 	if(pinpointsFilename.compare("nofile") != 0)
 	{

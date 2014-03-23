@@ -40,6 +40,9 @@ public class SimulationConfig
 	public static long subsetSimSize;
 	public static boolean pinpointsSimulation;
 	public static String pinpointsFile;
+	public static boolean markerFunctionsSimulation;
+	public static String startMarker;
+	public static String endMarker;
 	public static int powerTrace;
 	public static long numInsForTrace;
 	public static long numCyclesForTrace;

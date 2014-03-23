@@ -18,6 +18,10 @@ public class Emulator {
 		System.out.println("subset sim size = "  + 
 				SimulationConfig.subsetSimSize + "\t" + 
 				SimulationConfig.subsetSimulation);
+		
+		System.out.println("marker functions = "  + SimulationConfig.markerFunctionsSimulation 
+				+ "\t start marker = " + SimulationConfig.startMarker
+				+ "\t end marker = " + SimulationConfig.endMarker);
 
 		// Creating command for PIN tool.
 		StringBuilder pin = null;
@@ -41,6 +45,14 @@ public class Emulator {
 		if(SimulationConfig.pinpointsSimulation == true)
 		{
 			cmd.append(" -pinpointsFile " + SimulationConfig.pinpointsFile);
+		}
+		if(SimulationConfig.startMarker != "")
+		{
+			cmd.append(" -startMarker " + SimulationConfig.startMarker);
+		}
+		if(SimulationConfig.endMarker != "")
+		{
+			cmd.append(" -endMarker " + SimulationConfig.endMarker);
 		}
 		
 		cmd.append(" -- " + executableArguments);
