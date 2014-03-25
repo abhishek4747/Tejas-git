@@ -40,6 +40,7 @@ import memorysystem.directory.CentralizedDirectoryCache;
 
 import generic.*;
 import config.CacheConfig;
+import config.Interconnect;
 import config.NocConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
@@ -123,19 +124,19 @@ public class MemorySystem
 			}
 		}
 		
-		if(nucaType!=NucaType.NONE)
-		{
-			mainMemoryController = new MainMemoryController(SystemConfig.memoryControllersLocations,nucaType);
-			SystemConfig.nocConfig.nocElements.makeNocElements(tokenBus,nucaCache);
-		}
-		else
-		{
-			mainMemoryController = new MainMemoryController(nucaType);
-		}
 		//Initialize centralized directory
 //		int numCacheLines=262144;//FIXME 256KB in size. Needs to be fixed.
-		centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig, null, cores.length, 
+		if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			centralizedDirectory = new CentralizedDirectoryCache(SystemConfig.directoryConfig, null, cores.length, 
 				SystemConfig.dirNetworkDelay);
+			mainMemoryController = new MainMemoryController(nucaType);
+		}
+		else if(SystemConfig.interconnect == Interconnect.Noc)
+		{
+			//mainMemoryController = new MainMemoryController(SystemConfig.memoryControllersLocations,nucaType);
+			SystemConfig.nocConfig.nocElements.makeNocElements(tokenBus,nucaCache);
+		}
 		//Link all the initialised caches to their next levels
 
 		

@@ -24,16 +24,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+import net.NOC.CONNECTIONTYPE;
+
 import main.ArchitecturalComponent;
 import memorysystem.directory.CentralizedDirectoryCache;
 import memorysystem.directory.DirectoryEntry;
+import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
 import config.CachePowerConfig;
+import config.Interconnect;
 import config.PowerConfigNew;
 import config.SimulationConfig;
+import config.SystemConfig;
 import misc.Util;
 import generic.*;
 
@@ -341,13 +346,14 @@ public class Cache extends SimulationElement
 		
 		public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
 		{
+			long address = event.getAddress();
 			if(event.getRequestType() == RequestType.Cache_Write)
 			{
 				noOfWritesReceived++;
 			}
 			
 			RequestType requestType = event.getRequestType();
-			long address = event.getAddress();
+			
 			
 			CacheLine cl = this.processRequest(requestType, address, event);
 			
@@ -366,6 +372,7 @@ public class Cache extends SimulationElement
 			//	int setNumber = this.getStartIdx(event.getAddress());
 				//System.out.println(setNumber+" setNumber "+ this.getId() + " " + event.coreId+" " + event.getAddress());
 				//setAccessFreq[setNumber][event.coreId]++;
+				
 				processBlockAvailable(event);				
 			}
 			
@@ -415,6 +422,7 @@ public class Cache extends SimulationElement
 			}
 			else if(event.getRequestType() == RequestType.Send_Mem_Response_Invalidate)
 			{
+				
 				handleInvalidate(event);
 			}
 
@@ -424,7 +432,6 @@ public class Cache extends SimulationElement
 		protected void handleMemResponse(EventQueue eventQ, Event event)
 		{
 			noOfResponsesReceived++;
-			
 			this.fillAndSatisfyRequests(eventQ, event, MESI.EXCLUSIVE);
 		}
 		
@@ -446,17 +453,36 @@ public class Cache extends SimulationElement
 				return;
 			}
 			
-			for(int i=0; i<prevLevel.size(); i++) {
-				Cache c = prevLevel.get(i);
-				c.getPort().put(
-					new AddressCarryingEvent(
-						c.containingMemSys.getCore().getEventQueue(),
-						c.getLatency(),
-						this, 
-						c,
-						RequestType.MESI_Invalidate, 
-						((AddressCarryingEvent)event).getAddress(),
-						c.containingMemSys.getCore().getCore_number()));
+			for(int i=0; i<prevLevel.size(); i++) 
+			{
+				if(SystemConfig.interconnect == Interconnect.Bus)
+				{
+					Cache c = prevLevel.get(i);
+					c.getPort().put(
+						new AddressCarryingEvent(
+							c.containingMemSys.getCore().getEventQueue(),
+							c.getLatency(),
+							this, 
+							c,
+							RequestType.MESI_Invalidate, 
+							((AddressCarryingEvent)event).getAddress(),
+							c.containingMemSys.getCore().getCore_number()));
+				}
+				else if(SystemConfig.interconnect == Interconnect.Noc)
+				{
+					Cache c = prevLevel.get(i);
+					Vector<Integer> destinationId = c.containingMemSys.getCore().getId();
+					AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+							 0,this.containingMemSys.getCore(), 
+							 this.containingMemSys.getCore().getRouter(),
+							 RequestType.MESI_Invalidate,
+							 event.getAddress(),event.coreId,
+							 this.containingMemSys.getCore().getId(),destinationId);
+					if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+					{
+						this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
+					}
+				}
 			}
 		}
 		
@@ -550,14 +576,30 @@ public class Cache extends SimulationElement
 												    RequestType.Main_Mem_Read, 
 												    receivedEvent.getAddress(),
 												    receivedEvent.coreId);*/
-			
-			receivedEvent.update(receivedEvent.getEventQ(),
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				receivedEvent.update(receivedEvent.getEventQ(),
 					MemorySystem.mainMemoryController.getLatency(),
 					this,
 					MemorySystem.mainMemoryController,
 					RequestType.Main_Mem_Write);
-
-			MemorySystem.mainMemoryController.getPort().put(receivedEvent);
+				MemorySystem.mainMemoryController.getPort().put(receivedEvent);
+			}
+			
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(this.containingMemSys.getCore().getId());
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(receivedEvent.getEventQ(),
+						 0,this.containingMemSys.getCore(), 
+						 this.containingMemSys.getCore().getRouter(),
+						 RequestType.Main_Mem_Write,
+						 receivedEvent.getAddress(),receivedEvent.coreId,
+						 this.containingMemSys.getCore().getId(),destinationId);
+				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+				{
+					this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
+				}
+			}
 		}
 		
 		private void sendReadRequestToMainMemory(AddressCarryingEvent receivedEvent)
@@ -570,14 +612,30 @@ public class Cache extends SimulationElement
 												    RequestType.Main_Mem_Read, 
 												    receivedEvent.getAddress(),
 												    receivedEvent.coreId);*/
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				receivedEvent.update(receivedEvent.getEventQ(),
+						MemorySystem.mainMemoryController.getLatency(),
+						this,
+						MemorySystem.mainMemoryController,
+						RequestType.Main_Mem_Read);
+				MemorySystem.mainMemoryController.getPort().put(receivedEvent);
+			}
 			
-			receivedEvent.update(receivedEvent.getEventQ(),
-					MemorySystem.mainMemoryController.getLatency(),
-					this,
-					MemorySystem.mainMemoryController,
-					RequestType.Main_Mem_Read);
-
-			MemorySystem.mainMemoryController.getPort().put(receivedEvent);
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(this.containingMemSys.getCore().getId());
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(receivedEvent.getEventQ(),
+						 0,this.containingMemSys.getCore(), 
+						 this.containingMemSys.getCore().getRouter(),
+						 RequestType.Main_Mem_Read,
+						 receivedEvent.getAddress(),receivedEvent.coreId,
+						 this.containingMemSys.getCore().getId(),destinationId);
+				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+				{
+					this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
+				}
+			}
 		}
 		
 		
@@ -604,32 +662,32 @@ public class Cache extends SimulationElement
 					/*if(this.levelFromTop == CacheType.Lower)
 						System.out.println(eventPoppedOut.getEventTime()+" write removed from mshr "+ eventPoppedOut.getAddress() + "tag "+ computeTag(eventPoppedOut.getAddress()));	*/
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
-						{
-								if (this.isLastLevel)
-								{
-									putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);
-									//putEventToPort(eventPoppedOut,MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
-								}
-								else if (this.coherence == CoherenceType.None)
-								{
-										//putEventToPort(eventPoppedOut,this.nextLevel, RequestType.Cache_Write, true,true);
-									numberOfWrites++;
-									sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
-								}
-						}
-						else
-						{
-								CacheLine cl = this.access(eventPoppedOut.getAddress());
-								if (cl != null)
-								{
-										cl.setState(MESI.MODIFIED);
-								}
-								else
-								{
-									numberOfWrites++;
-									sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
-								}
-						}
+					{
+							if (this.isLastLevel)
+							{
+								putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);
+								//putEventToPort(eventPoppedOut,MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
+							}
+							else if (this.coherence == CoherenceType.None)
+							{
+									//putEventToPort(eventPoppedOut,this.nextLevel, RequestType.Cache_Write, true,true);
+								numberOfWrites++;
+								sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
+							}
+					}
+					else
+					{
+							CacheLine cl = this.access(eventPoppedOut.getAddress());
+							if (cl != null)
+							{
+									cl.setState(MESI.MODIFIED);
+							}
+							else
+							{
+								numberOfWrites++;
+								sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
+							}
+					}
 				}
 			}
 			
@@ -650,13 +708,11 @@ public class Cache extends SimulationElement
 		 *returned value signifies whether the event will be saved in mshr or not
 		 * */
 		public boolean addEvent(AddressCarryingEvent addressEvent)
-		{
-				
+		{	
 			if(missStatusHoldingRegister.isFull())
 			{
 				return false;
 			}
-			
 			// Clear the working set data after every x instructions
 			if(this.containingMemSys!=null && this.workingSet!=null) {
 				
@@ -679,6 +735,7 @@ public class Cache extends SimulationElement
 			
 			
 			long address = addressEvent.getAddress();
+			
 			//System.out.println(address + " in l1 setNumber : " +this.getStartIdx(address));
 			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
 			if(entryCreated)
@@ -713,7 +770,6 @@ public class Cache extends SimulationElement
 		protected void fillAndSatisfyRequests(EventQueue eventQ, Event event, MESI stateToSet)
 		{		
 			long addr = ((AddressCarryingEvent)(event)).getAddress();
-			
 			ArrayList<AddressCarryingEvent> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddress((AddressCarryingEvent)event);
 			
 			misses += eventsToBeServed.size();			
@@ -823,33 +879,51 @@ public class Cache extends SimulationElement
 				((Cache)eventToRespondTo.getRequestingElement()).levelFromTop==CacheType.iCache &&
 				((Cache)eventToRespondTo.getRequestingElement()).nextLevel.levelFromTop==CacheType.Lower)
 			{
-				delay += CentralizedDirectoryCache.getNetworkDelay(); 
+				if(SystemConfig.interconnect == Interconnect.Bus)
+				{
+					delay += CentralizedDirectoryCache.getNetworkDelay();
+				}
 			}
 
 						
-			noOfResponsesSent++;
+			noOfResponsesSent++;			
 			eventToRespondTo.getRequestingElement().getPort().put(
-										eventToRespondTo.update(
-												eventToRespondTo.getEventQ(),
-												delay,
-												eventToRespondTo.getProcessingElement(),
-												eventToRespondTo.getRequestingElement(),
-												RequestType.Mem_Response));
+							eventToRespondTo.update(
+									eventToRespondTo.getEventQ(),
+									delay,
+									eventToRespondTo.getProcessingElement(),
+									eventToRespondTo.getRequestingElement(),
+									RequestType.Mem_Response));
 		}
 		
 		public void sendMemResponseDirectory(AddressCarryingEvent eventToRespondTo)
 		{
-			eventToRespondTo.getRequestingElement().getPort().put(
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				eventToRespondTo.getRequestingElement().getPort().put(
 										eventToRespondTo.update(
 												eventToRespondTo.getEventQ(),
 												MemorySystem.getDirectoryCache().getNetworkDelay(),
 												eventToRespondTo.getProcessingElement(),
 												eventToRespondTo.getRequestingElement(),
 												RequestType.Mem_Response));
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = ArchitecturalComponent.getCores()[eventToRespondTo.coreId].getId();
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(eventToRespondTo.getEventQ(),
+						 0,((Cache)eventToRespondTo.getProcessingElement()).containingMemSys.getCore(), 
+						 ((Cache)eventToRespondTo.getProcessingElement()).containingMemSys.getCore().getRouter(),
+						 RequestType.Mem_Response,
+						 eventToRespondTo.getAddress(),eventToRespondTo.coreId,
+						 this.containingMemSys.getCore().getId(),destinationId);
+				this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
+			}
 		}
 		
 		private AddressCarryingEvent  putEventToPort(Event event, SimulationElement simElement, RequestType requestType, boolean flag, boolean time  )
 		{
+			//used when write_through policy or isLastLevel
 			long eventTime = 0;
 			if(time) {
 				eventTime = simElement.getLatency();
@@ -866,15 +940,13 @@ public class Cache extends SimulationElement
 								simElement,
 								requestType));
 				return null;
-			} else {
-				AddressCarryingEvent addressEvent = 	new AddressCarryingEvent( 	event.getEventQ(),
-																																									    eventTime,
-																																									   this,
-																																									   simElement,
-																																									  requestType,
-																																									  ((AddressCarryingEvent)event).getAddress(),
-																																									  ((AddressCarryingEvent)event).coreId); 
-				simElement.getPort().put(addressEvent);
+			} 
+			else 
+			{
+				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),		
+												    eventTime,this,simElement,
+												    requestType, ((AddressCarryingEvent)event).getAddress(),																													  ((AddressCarryingEvent)event).coreId); 
+													simElement.getPort().put(addressEvent);
 				return addressEvent;
 			}
 		}
@@ -893,10 +965,14 @@ public class Cache extends SimulationElement
 			
 			long delay = 0;
 			if(this.coherence==CoherenceType.Directory) {
-				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
+				if(SystemConfig.interconnect == Interconnect.Bus)
+				{
+					delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
+				}
 			}
-			
-			centralizedDirectory.getPort().put(
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				centralizedDirectory.getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
 									delay,
@@ -905,7 +981,21 @@ public class Cache extends SimulationElement
 									RequestType.WriteHitDirectoryUpdate,
 									address,
 									(event).coreId));
-
+			}
+			
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = getDirectoryId(address);
+				
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+						 0,ArchitecturalComponent.getCores()[event.coreId], 
+						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
+						 RequestType.WriteHitDirectoryUpdate,
+						 address,event.coreId,
+						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+				ArchitecturalComponent.getCores()[event.coreId].getRouter().
+				getPort().put(eventToBeSent);
+			}
 		}
 
 		/**
@@ -926,10 +1016,12 @@ public class Cache extends SimulationElement
 			
 			long delay = 0;
 			if(this.coherence==CoherenceType.Directory) {
-				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
+				if(SystemConfig.interconnect == Interconnect.Bus)
+					delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
 			}
-			
-			centralizedDirectory.getPort().put(
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				centralizedDirectory.getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
 									delay,
@@ -938,6 +1030,19 @@ public class Cache extends SimulationElement
 									RequestType.ReadMissDirectoryUpdate,
 									address,
 									(event).coreId));
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = getDirectoryId(address);
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+						 0,ArchitecturalComponent.getCores()[event.coreId], 
+						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
+						 RequestType.ReadMissDirectoryUpdate,
+						 address,event.coreId,
+						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+				ArchitecturalComponent.getCores()[event.coreId].getRouter().
+				getPort().put(eventToBeSent);
+			}
 		}
 
 		/**
@@ -954,19 +1059,34 @@ public class Cache extends SimulationElement
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
 			long delay = 0;
 			if(this.coherence==CoherenceType.Directory) {
-				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
+				if(SystemConfig.interconnect == Interconnect.Bus)
+					delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatencyDelay();
 			}
-			
-			centralizedDirectory.getPort().put(
-							new AddressCarryingEvent(
-									event.getEventQ(),
-									delay,
-									this,
-									centralizedDirectory,
-									RequestType.WriteMissDirectoryUpdate,
-									address,
-									(event).coreId));
-
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				centralizedDirectory.getPort().put(
+								new AddressCarryingEvent(
+										event.getEventQ(),
+										delay,
+										this,
+										centralizedDirectory,
+										RequestType.WriteMissDirectoryUpdate,
+										address,
+										(event).coreId));
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = getDirectoryId(address);
+				
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+						 0,ArchitecturalComponent.getCores()[event.coreId], 
+						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
+						 RequestType.WriteMissDirectoryUpdate,
+						 address,event.coreId,
+						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+				ArchitecturalComponent.getCores()[event.coreId].getRouter().
+				getPort().put(eventToBeSent);
+			}
 		}
 		
 		private void memResponseUpdateDirectory( int requestingCore, long dirAddress,Event event, long address )
@@ -974,11 +1094,15 @@ public class Cache extends SimulationElement
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
 			long delay = 0;			
 			if(this.coherence==CoherenceType.Directory) {
-				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatency();
+				if(SystemConfig.interconnect == Interconnect.Bus)
+				{
+					delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatency();
+				}
 			}
 			
-			
-			centralizedDirectory.getPort().put(
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				centralizedDirectory.getPort().put(
 							new AddressCarryingEvent(
 									event.getEventQ(),
 									delay,
@@ -987,6 +1111,20 @@ public class Cache extends SimulationElement
 									RequestType.MemResponseDirectoryUpdate,
 									address,
 									(event).coreId));
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = getDirectoryId(address);
+				
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+						 0,ArchitecturalComponent.getCores()[event.coreId], 
+						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
+						 RequestType.MemResponseDirectoryUpdate,
+						 address,event.coreId,
+						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+				ArchitecturalComponent.getCores()[event.coreId].getRouter().
+				getPort().put(eventToBeSent);
+			}
 			
 		}
 		/**
@@ -999,10 +1137,14 @@ public class Cache extends SimulationElement
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
 			long delay = 0;			
 			if(this.coherence==CoherenceType.Directory) {
-				delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatency();
+				if(SystemConfig.interconnect == Interconnect.Bus)
+				{
+					delay += CentralizedDirectoryCache.getNetworkDelay() + centralizedDirectory.getLatency();
+				}
 			}
-			
-			AddressCarryingEvent addrEvent = new AddressCarryingEvent(
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				AddressCarryingEvent addrEvent = new AddressCarryingEvent(
 					event.getEventQ(),
 					delay,
 					this,
@@ -1010,9 +1152,22 @@ public class Cache extends SimulationElement
 					RequestType.EvictionDirectoryUpdate,
 					address,
 					(event).coreId);
-			centralizedDirectory.getPort().put(addrEvent);
-			
-			invalidatePreviousLevelCaches((AddressCarryingEvent)event);			
+				centralizedDirectory.getPort().put(addrEvent);
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				Vector<Integer> destinationId = getDirectoryId(address);
+				
+				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+						 0,ArchitecturalComponent.getCores()[event.coreId], 
+						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
+						 RequestType.EvictionDirectoryUpdate,
+						 address,event.coreId,
+						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+				ArchitecturalComponent.getCores()[event.coreId].getRouter().
+				getPort().put(eventToBeSent);
+			}
+			invalidatePreviousLevelCaches((AddressCarryingEvent)event);		
 		}
 		
 		public long computeTag(long addr) {
@@ -1232,5 +1387,13 @@ public class Cache extends SimulationElement
 			PowerConfigNew cachePower = new PowerConfigNew(newPower, noOfAccesses);
 			cachePower.printPowerStats(outputFileWriter, componentName);
 			return cachePower;
+		}
+		
+		public Vector<Integer> getDirectoryId(long addr)
+		{
+			Vector<Integer> destinationBankId = new Vector<Integer>();
+			int bankNumber= SystemConfig.nocConfig.nocElements.l1Directories.get(0).getDirectoryNumber(addr);
+			destinationBankId = SystemConfig.nocConfig.nocElements.l1Directories.get(bankNumber).getId();
+			return destinationBankId;
 		}
 }

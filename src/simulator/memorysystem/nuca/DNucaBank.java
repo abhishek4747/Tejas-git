@@ -151,7 +151,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 				this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 		{
 			Vector<Integer> sourceId = new Vector<Integer>(this.getId());
-			Vector<Integer> destinationId = (Vector<Integer>) nucaCache.getMemoryControllerId(nucaCache.getBankId(addr));
+			Vector<Integer> destinationId = (Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
 			
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																		 0,this, this.getRouter(), 
@@ -178,7 +178,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
     		int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
 			nucaCache.hits+=numOfOutStandingRequests;
 			nucaCache.noOfRequests += numOfOutStandingRequests;
-			policy.updateEventOnHit(addrEvent, this);
+			policy.sendResponseToCore(addrEvent, this);
 			eventIdToHitBankId.put(addrEvent.event_id, addrEvent.getSourceId());
 			
 			if(NucaCache.accessedBankIds.get(addrEvent.getSourceId())==null)
@@ -235,7 +235,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 				int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(event);
 				nucaCache.hits+=numOfOutStandingRequests; //
 				nucaCache.noOfRequests += numOfOutStandingRequests;//
-				policy.updateEventOnHit(event, this);
+				policy.sendResponseToCore(event, this);
 			}
 			//IF MISS
 			else
@@ -326,7 +326,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 					this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 			{
 				sourceId = new Vector<Integer>(this.getId());
-				destinationId = (Vector<Integer>) nucaCache.getMemoryControllerId(nucaCache.getBankId(addr));
+				destinationId =(Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
 				
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																			 0,this, this.getRouter(), 
@@ -338,7 +338,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
 			nucaCache.misses += numOfOutStandingRequests;//change this value
 			nucaCache.noOfRequests += numOfOutStandingRequests;//change this value
-			policy.sendResponseToWaitingEvent((AddressCarryingEvent)event, this);
+			policy.sendResponseToCore((AddressCarryingEvent)event, this);
 		}
 	}
 	public long getEvictions() {

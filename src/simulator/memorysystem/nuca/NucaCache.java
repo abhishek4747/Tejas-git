@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Anuj Arora
+				Contributor: Anuj Arora, Mayur Harne
 *****************************************************************************/
 
 
@@ -94,7 +94,7 @@ public class NucaCache extends Cache
    		{
    			for(int j=0;j<cols;j++)
    			{
-   				if(SystemConfig.nocConfig.nocElements.coresCacheLocations.get(i).get(j)==0)
+   				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
    					Vector<Integer> bankId = new Vector<Integer>();
    					bankId.add(i);
@@ -133,7 +133,7 @@ public class NucaCache extends Cache
 	}
 	
 	
-	protected void handleMemResponse(EventQueue eventQ, Event event)
+	/*protected void handleMemResponse(EventQueue eventQ, Event event)
 	{
 		AddressCarryingEvent addrEvent = ((AddressCarryingEvent)event);
 		updateMaxHopLength(addrEvent.hopLength,(AddressCarryingEvent)event);
@@ -163,7 +163,7 @@ public class NucaCache extends Cache
 				}
 			}
 		}
-	}
+	}*/
     
     
 	public int getBankNumber(long addr)
@@ -185,26 +185,7 @@ public class NucaCache extends Cache
 		}
 	}
 
-	Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)//nearest Memory Controller
-    {
-    	double distance = Double.MAX_VALUE;
-    	int memControllerId = 0;
-    	int x1 = currBankId.get(0);//bankid/cacheColumns;
-    	int y1 = currBankId.get(1);//bankid%cacheColumns;
-    	MainMemoryController memController = MemorySystem.mainMemoryController;
-    	for(int i=0;i<memController.numberOfMemoryControllers;i++)
-    	{
-    		int x2 = memController.mainmemoryControllersLocations[i]/cacheRows;
-    		int y2 = memController.mainmemoryControllersLocations[i]%cacheColumns;
-    		double localdistance = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-    		if(localdistance < distance) 
-    		{
-    			distance = localdistance;
-    			memControllerId = memController.mainmemoryControllersLocations[i];
-    		}
-    	}
-    	return integerToBankId(memControllerId);
-    }
+	
     public Vector<Integer> integerToBankId(int bankNumber)
 	{
 		Vector<Integer> id = new Vector<Integer>(2);

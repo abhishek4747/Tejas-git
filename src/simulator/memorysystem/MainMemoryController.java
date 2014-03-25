@@ -4,8 +4,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.NocInterface;
+import net.Router;
+
 import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
+import config.Interconnect;
 import config.PowerConfigNew;
 import config.SystemConfig;
 import generic.EventQueue;
@@ -15,11 +19,11 @@ import generic.Event;
 import generic.RequestType;
 import generic.Statistics;
 
-public class MainMemoryController extends SimulationElement
+public class MainMemoryController extends SimulationElement implements NocInterface
 {
+	Router router;
+	Vector<Integer> nocElementId;
 	NucaType nucaType;
-	public int numberOfMemoryControllers;
-	public int[] mainmemoryControllersLocations;
 	long numAccesses;
 	
 	public MainMemoryController(NucaType nucaType) {
@@ -30,6 +34,7 @@ public class MainMemoryController extends SimulationElement
 				SystemConfig.mainMemoryFrequency
 				);
 		this.nucaType = nucaType;
+		this.router = new Router(SystemConfig.nocConfig, this);
 	}
 	
 	public MainMemoryController() {
@@ -41,23 +46,11 @@ public class MainMemoryController extends SimulationElement
 		this.nucaType = NucaType.NONE;
 	}
 	
-	public MainMemoryController(int[] memoryControllersLocations, NucaType nucaType) 
-	{
-		super(PortType.Unlimited,
-				-1, 
-				10,
-				250,
-				3600);
-		this.nucaType = nucaType;
-		this.numberOfMemoryControllers = memoryControllersLocations.length;
-		this.mainmemoryControllersLocations = memoryControllersLocations;
-	}
-	
 	public void handleEvent(EventQueue eventQ, Event event)
 	{
 		if (event.getRequestType() == RequestType.Main_Mem_Read)
 		{
-			if(nucaType == NucaType.NONE)
+			if(SystemConfig.interconnect==Interconnect.Bus)
 			{	
 				event.getRequestingElement().getPort().put(
 						event.update(
@@ -67,40 +60,18 @@ public class MainMemoryController extends SimulationElement
 								event.getRequestingElement(),
 								RequestType.Mem_Response));
 			}
-			else
+			else if(SystemConfig.interconnect==Interconnect.Noc)
 			{
-				
-				if(event.getRequestingElement().getClass() == NucaCacheBank.class){
-				NucaCacheBank requestingBank =  (NucaCacheBank) event.getRequestingElement();
-				requestingBank.getRouter().getPort().put(
-						event.update(
-								eventQ,
-								event.getRequestingElement().getLatencyDelay(),
-								this,
-								requestingBank.getRouter(),
-								RequestType.Main_Mem_Response));
-				}
-				else{
-					SimulationElement requestingElement = event.getRequestingElement();
-					Vector<Integer> sourceBankId = new Vector<Integer>(
-							   ((AddressCarryingEvent)
-							    (event)).
-							    getDestinationId());
-					Vector<Integer> destinationBankId = new Vector<Integer>(
-									((AddressCarryingEvent)
-								     (event)).
-									 getSourceId());
-					((AddressCarryingEvent)event).setSourceId(sourceBankId);
-					((AddressCarryingEvent)event).setDestinationId(destinationBankId);
-	//				System.out.println("From main memory" + ((AddressCarryingEvent) event).getSourceBankId() + " " + ((AddressCarryingEvent) event).getDestinationBankId());
-					requestingElement.getPort().put(
-							event.update(
+					//System.err.println("At Mem Controller " + ((AddressCarryingEvent)event).getAddress() + " " + ((AddressCarryingEvent)event).getSourceId());
+					this.getRouter().getPort().put(
+							new AddressCarryingEvent(
 									eventQ,
-									1,
+									0,
 									this,
-									requestingElement,
-									RequestType.Main_Mem_Response));
-				}
+									this.getRouter(),
+									RequestType.Main_Mem_Response,((AddressCarryingEvent)event).getAddress(),
+									event.coreId,
+									this.getId(),((AddressCarryingEvent)event).getSourceId()));
 			}
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)
@@ -114,6 +85,27 @@ public class MainMemoryController extends SimulationElement
 	void incrementNumAccesses()
 	{
 		numAccesses += 1;
+	}
+	
+	@Override
+	public Router getRouter() {
+		// TODO Auto-generated method stub
+		return router;
+	}
+
+	@Override
+	public Vector<Integer> getId() {
+		// TODO Auto-generated method stub
+		return nocElementId;
+	}
+	public void setId(Vector<Integer> id) {
+		// TODO Auto-generated method stub
+		nocElementId = id;
+	}
+	@Override
+	public SimulationElement getSimulationElement() {
+		// TODO Auto-generated method stub
+		return this;
 	}
 
 	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

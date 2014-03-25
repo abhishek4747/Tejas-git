@@ -89,6 +89,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 												 address,
 												 core.getCore_number());
 		
+		
 		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {
 			return false;
 		}

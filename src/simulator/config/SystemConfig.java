@@ -29,7 +29,6 @@ public class SystemConfig
 	public static int NoOfCores;
 	public static CoreConfig[] core; 
 	public static Hashtable<String, CacheConfig> declaredCaches;
-	public static int memoryControllersLocations[];
 	public static int mainMemoryLatency;
 	public static long mainMemoryFrequency;
 	public static PortType mainMemPortType;
@@ -49,7 +48,7 @@ public class SystemConfig
 	public static int ownershipChangeDelay;
 	//Clock Gating Style
 	public static int dirNetworkDelay;
-
+	public static Interconnect interconnect;
 	public static PowerConfigNew  mainMemoryControllerPower;
 	public static PowerConfigNew  globalClockPower;
 }

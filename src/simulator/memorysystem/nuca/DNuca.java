@@ -59,7 +59,7 @@ public class DNuca extends NucaCache{
    		{
    			for(int j=0;j<cols;j++)
    			{
-   				if(SystemConfig.nocConfig.nocElements.coresCacheLocations.get(i).get(j)==0)
+   				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
    					Vector<Integer> bankId = new Vector<Integer>();
    					bankId.add(i);
@@ -78,7 +78,7 @@ public class DNuca extends NucaCache{
    		{
    			for(int j=0;j<cols;j++)
    			{
-   				if(SystemConfig.nocConfig.nocElements.coresCacheLocations.get(i).get(j)==0)
+   				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
    					Vector<Integer> bankId = new Vector<Integer>();
    					bankId.add(i);

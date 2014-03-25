@@ -5,8 +5,11 @@ import java.io.IOException;
 
 import main.CustomObjectPool;
 import memorysystem.MemorySystem;
+import memorysystem.directory.CentralizedDirectoryCache;
+import config.Interconnect;
 import config.PowerConfigNew;
 import config.SimulationConfig;
+import config.SystemConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -405,12 +408,14 @@ public class ReorderBuffer extends SimulationElement{
 //		Statistics.setNoOfIHits(execEngine.getCoreMemorySystem().getiCache().hits, core.getCore_number());
 //		Statistics.setNoOfIMisses(execEngine.getCoreMemorySystem().getiCache().misses, core.getCore_number());
 		
-		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
-		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().misses);
-		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
-		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
-		Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
-		
+		if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
+			Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().misses);
+			Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
+			Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
+			Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
+		}	
 		if(SimulationConfig.collectInsnWorkingSetInfo==true) {
 			setInsWorkingSetStats();
 		}

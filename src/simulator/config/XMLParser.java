@@ -499,6 +499,18 @@ public class XMLParser
 			}
 		}
 				
+		
+		
+		String interconnect = getImmediateString("Interconnect",systemElmnt); 
+		if(interconnect.equalsIgnoreCase("Bus"))
+		{
+			SystemConfig.interconnect = Interconnect.Bus;
+		}
+		else if(interconnect.equalsIgnoreCase("Noc"))
+		{
+			SystemConfig.interconnect = Interconnect.Noc;
+		}
+		
 		//set NOC Parameters
 		SystemConfig.nocConfig = new NocConfig();
 		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
@@ -516,7 +528,7 @@ public class XMLParser
 	}
 	private static void setL2NocProperties(Element NocType, NocConfig nocConfig)
 	{
-		if(SimulationConfig.nucaType!=NucaType.NONE)
+		if(SystemConfig.interconnect==Interconnect.Noc)
 		{
 			String nocConfigFilename = getImmediateString("NocConfigFile", NocType);
 			try 
@@ -545,26 +557,20 @@ public class XMLParser
 				{
 					str=readNocConfig.readLine();
 					st = new StringTokenizer(str," ");
-					nocConfig.nocElements.coresCacheLocations.add(new Vector<Integer>());
+					nocConfig.nocElements.nocElementsLocations.add(new Vector<String>());
 					for(int j=0;j<nocConfig.nocElements.columns;j++)
 					{
-						nocConfig.nocElements.coresCacheLocations.get(i).add(Integer.parseInt((String)st.nextElement()));
-						if(nocConfig.nocElements.coresCacheLocations.get(i).get(j)==1)
+						nocConfig.nocElements.nocElementsLocations.get(i).add((String)st.nextElement());
+						if(nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("1"))
 							nocConfig.nocElements.noOfCores++;
-						else if(nocConfig.nocElements.coresCacheLocations.get(i).get(j)==0)
+						else if(nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
 							nocConfig.nocElements.noOfCacheBanks++;
+						else if(nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("D"))
+							nocConfig.nocElements.noOfL1Directories++;
+						else if(nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("M"))
+							nocConfig.nocElements.noOfMemoryControllers++;
 					}
 				}
-				str=readNocConfig.readLine();
-				st = new StringTokenizer(str," ");
-				int numberOfmemoryControllers = Integer.parseInt((String)st.nextElement());
-				str=readNocConfig.readLine();
-				st = new StringTokenizer(str," ");
-				SystemConfig.memoryControllersLocations = new int[numberOfmemoryControllers];
-				for(int i=0;i<numberOfmemoryControllers;i++)
-				{
-					SystemConfig.memoryControllersLocations[i] = Integer.parseInt((String)st.nextElement());
-				}	
 			}
 			catch(Exception e)
 			{

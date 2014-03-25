@@ -22,6 +22,8 @@ package memorysystem.nuca;
 
 import generic.RequestType;
 import java.util.Vector;
+
+import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
 
 public class Policy {
@@ -36,7 +38,7 @@ public class Policy {
 		{
 			misc.Error.showErrorAndExit(" source bank  id or destination bank id null ");
 		}
-		Vector<Integer> destinationId = (Vector<Integer>) nucaCache.getMemoryControllerId(cacheBank.getBankId());
+		Vector<Integer> destinationId = (Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(cacheBank.getBankId());
 		//System.err.println("In SNucaPolicy Address : "+ event.getAddress() +destinationBankId);
 		AddressCarryingEvent addressEvent = event.updateEvent(event.getEventQ(),
 											0,cacheBank, cacheBank.getRouter(), 
@@ -46,17 +48,16 @@ public class Policy {
 		return addressEvent;
 	}
 
-	void updateEventOnHit(AddressCarryingEvent event,
-										  NucaCacheBank cacheBank)
-	{
-		sendResponseToWaitingEvent(event,cacheBank);
-	}
-	
-	
-	protected void sendResponseToWaitingEvent(AddressCarryingEvent event, NucaCacheBank cacheBank)
+	protected void sendResponseToCore(AddressCarryingEvent addrEvent, NucaCacheBank cacheBank)
 	{ 
-		event.setRequestingElement(nucaCache);
-		cacheBank.sendMemResponse(event);//sending response to NucaCache controller
+		//System.err.println("sendResponseToCore");
+		Vector<Integer> destination = nucaCache.getCoreId(addrEvent.coreId);
+		AddressCarryingEvent addressEvent = new AddressCarryingEvent(addrEvent.getEventQ(),
+											 0,cacheBank, cacheBank.getRouter(), 
+											 RequestType.Mem_Response, 
+											 addrEvent.getAddress(),addrEvent.coreId,
+											 cacheBank.getBankId(),destination);
+		cacheBank.getRouter().getPort().put(addressEvent);
 	}
 	
 	void broadcastToOtherBanks(AddressCarryingEvent addrEvent, long address,NucaCacheBank cacheBank)

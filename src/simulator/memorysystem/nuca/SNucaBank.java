@@ -51,11 +51,11 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
     	{
     		this.handleAccess(eventQ, (AddressCarryingEvent)event);
     	}
-		else if (event.getRequestType() == RequestType.Main_Mem_Read ||
+		/*else if (event.getRequestType() == RequestType.Main_Mem_Read ||
 				  event.getRequestType() == RequestType.Main_Mem_Write )
 		{
 			this.handleMemoryReadWrite(eventQ,event);
-		}
+		}*/
 		else if (event.getRequestType() == RequestType.Main_Mem_Response )
 		{
 			handleMainMemoryResponse(eventQ, event);
@@ -83,7 +83,7 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(event);
 			nucaCache.hits+=numOfOutStandingRequests; //
 			nucaCache.noOfRequests += numOfOutStandingRequests;//
-			policy.updateEventOnHit(event, this);
+			policy.sendResponseToCore(event, this);
 		}
 		//IF MISS
 		else
@@ -95,7 +95,7 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 			}
 		}
 	}
-    protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
+   /* protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
     {
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
 		
@@ -114,9 +114,10 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 												MemorySystem.mainMemoryController, requestType, sourceId,
 												destinationId));
 		}
-	}
+	}*/
     protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
 	{
+    	//System.err.println("Main Memory Response");
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
 		
 		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
@@ -128,7 +129,7 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 		Vector<Integer> sourceId;
 		Vector<Integer> destinationId;
 		
-		if(event.getRequestingElement().getClass() == MainMemoryController.class)
+		/*if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{
 			sourceId = this.getId();
 			destinationId = nucaCache.getBankId(addr);
@@ -138,9 +139,9 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 																		addr,((AddressCarryingEvent)event).coreId,
 																		sourceId,destinationId);
 			this.getRouter().getPort().put(addressEvent);
-		}
+		}*/
 		
-		if(event.getRequestingElement().getClass() == Router.class)
+		//if(event.getRequestingElement().getClass() == Router.class)
 		{
 			nucaCache.incrementTotalNucaBankAcesses(1);
 			CacheLine evictedLine = this.fill(addr,MESI.EXCLUSIVE);
@@ -148,7 +149,7 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 					this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 			{
 				sourceId = new Vector<Integer>(this.getId());
-				destinationId = (Vector<Integer>) nucaCache.getMemoryControllerId(nucaCache.getBankId(addr));
+				destinationId = (Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
 				
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																			 0,this, this.getRouter(), 
@@ -160,7 +161,7 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
 			nucaCache.misses += numOfOutStandingRequests;//change this value
 			nucaCache.noOfRequests += numOfOutStandingRequests;//change this value
-			policy.sendResponseToWaitingEvent((AddressCarryingEvent)event, this);
+			policy.sendResponseToCore((AddressCarryingEvent)event, this);
 		}
 	}
 

@@ -16,6 +16,7 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	public long event_id;
 	
 	public RequestType actualRequestType;
+	public SimulationElement actualRequestingElement;
 	public int hopLength;
 
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
@@ -45,6 +46,19 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType, coreId);
 		this.address = address;
+		this.sourceId = (Vector<Integer>) sourceId.clone();
+		this.destinationId = (Vector<Integer>) destinationId.clone();
+	}
+	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
+			SimulationElement requestingElement,
+			SimulationElement processingElement,
+			SimulationElement originalRequestingElement,
+			RequestType requestType, long address,int coreId,
+			Vector<Integer> sourceId, Vector<Integer> destinationId) {
+		super(eventQ, eventTime, requestingElement, processingElement,
+				requestType, coreId);
+		this.address = address;
+		this.actualRequestingElement = originalRequestingElement;
 		this.sourceId = (Vector<Integer>) sourceId.clone();
 		this.destinationId = (Vector<Integer>) destinationId.clone();
 	}

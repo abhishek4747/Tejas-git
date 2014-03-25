@@ -2,39 +2,27 @@ package generic;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache;
+import memorysystem.nuca.NucaCacheBank;
 import net.NocInterface;
 import net.Router;
 import net.NOC.CONNECTIONTYPE;
 import pipeline.ExecutionEngine;
-import pipeline.branchpredictor.AlwaysNotTaken;
-import pipeline.branchpredictor.AlwaysTaken;
-import pipeline.branchpredictor.BimodalPredictor;
-import pipeline.branchpredictor.BranchPredictor;
-import pipeline.branchpredictor.GAgpredictor;
-import pipeline.branchpredictor.GApPredictor;
-import pipeline.branchpredictor.GShare;
-import pipeline.branchpredictor.NoPredictor;
-import pipeline.branchpredictor.PAgPredictor;
-import pipeline.branchpredictor.PApPredictor;
-import pipeline.branchpredictor.PerfectPredictor;
-import pipeline.branchpredictor.TournamentPredictor;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
-import pipeline.outoforder.ICacheBuffer;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
-import config.BranchPredictorConfig.BP;
 import config.CoreConfig;
 import config.PipelineType;
 import config.PowerConfigNew;
-import config.SimulationConfig;
 import config.SystemConfig;
+import config.CacheConfig;
 
 /**
  * represents a single core
@@ -521,14 +509,23 @@ public class Core extends SimulationElement implements NocInterface{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) 
 	{
-		if (event.getRequestType() == RequestType.Main_Mem_Read ||
-				  event.getRequestType() == RequestType.Main_Mem_Write )
-		{
-			this.handleMemoryReadWrite(eventQ,event);
-		}
-		else if (event.getRequestType() == RequestType.Main_Mem_Response )
+		if (event.getRequestType() == RequestType.Main_Mem_Response )
 		{
 			handleMainMemoryResponse(eventQ, event);
+		}
+		else if (event.getRequestType() == RequestType.Mem_Response)
+		{
+			handleMemResponse(eventQ, (AddressCarryingEvent)event);
+		}
+		else if (event.getRequestType() == RequestType.Cache_Read_Writeback || 
+				event.getRequestType() == RequestType.Send_Mem_Response ||
+				event.getRequestType() == RequestType.Send_Mem_Response_Invalidate)
+		{
+			handleAccessWithDirectoryUpdates(eventQ, (AddressCarryingEvent)event);
+		}
+		else if (event.getRequestType() == RequestType.MESI_Invalidate)
+		{
+			this.handleInvalidate((AddressCarryingEvent) event);
 		}
 		else 
 		{
@@ -536,28 +533,95 @@ public class Core extends SimulationElement implements NocInterface{
 			misc.Error.showErrorAndExit(" unexpected request came to cache bank");
 		}
 	}	
-	protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
-    {
-    	
-		//System.out.println(((AddressCarryingEvent)event).getDestinationBankId() + ""+ ((AddressCarryingEvent)event).getSourceBankId());
-		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
+	private void handleInvalidate(AddressCarryingEvent event)
+	{
+		this.getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
+				new AddressCarryingEvent(
+						event.getEventQ(),
+						this.getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
+						this, 
+						this.getExecEngine().getCoreMemorySystem().getL1Cache(),
+						event.getRequestType(), 
+						event.getAddress(),
+						(event).coreId));
+	}
+
+	private void handleAccessWithDirectoryUpdates(EventQueue eventQ, AddressCarryingEvent event) 
+	{
+		this.getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
+				new AddressCarryingEvent(
+						event.getEventQ(),
+						this.getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
+						this, 
+						this.getExecEngine().getCoreMemorySystem().getL1Cache(),
+						event.getRequestType(), 
+						event.getAddress(),
+						(event).coreId));
+	}
+
+	private void handleMemResponse(EventQueue eventQ, AddressCarryingEvent event) 
+	{
 		
-		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
-		nucaCache.updateMinHopLength(addrEvent.hopLength);
-		nucaCache.updateAverageHopLength(addrEvent.hopLength);
+		Vector<Integer> id = event.getSourceId();
+		Class nocElementClass = SystemConfig.nocConfig.nocElements.nocElements[id.get(0)][id.get(1)].getClass();
 		
-		Vector<Integer> sourceId = addrEvent.getSourceId();
-		Vector<Integer> destinationId = ((AddressCarryingEvent)event).getDestinationId();
-		
-		RequestType requestType = event.getRequestType();
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+		if(nocElementClass==Core.class)//memory response from another core's l1 cache
 		{
-			MemorySystem.mainMemoryController.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
-												MemorySystem.mainMemoryController.getLatencyDelay(), this, 
-												MemorySystem.mainMemoryController, requestType, sourceId,
-												destinationId));
+			this.getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
+					new AddressCarryingEvent(
+							event.getEventQ(),
+							this.getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
+							this, 
+							this.getExecEngine().getCoreMemorySystem().getL1Cache(),
+							event.getRequestType(), 
+							event.getAddress(),
+							event.coreId));
+		}
+		else //memory response coming from L2
+		{
+			//System.err.println("Mem Response");
+			AddressCarryingEvent addrEvent = ((AddressCarryingEvent)event);
+			if(SystemConfig.nocConfig.ConnType==CONNECTIONTYPE.ELECTRICAL)
+			{
+				nucaCache.updateMaxHopLength(addrEvent.hopLength,(AddressCarryingEvent)event);
+				nucaCache.updateMinHopLength(addrEvent.hopLength);
+				nucaCache.updateAverageHopLength(addrEvent.hopLength);
+			}
+			ArrayList<AddressCarryingEvent> eventsToBeServed = nucaCache.missStatusHoldingRegister.removeRequestsByAddressIfAvailable(addrEvent);
+			this.sendResponseToWaitingEvent(eventsToBeServed);
 		}
 	}
+	protected void sendResponseToWaitingEvent(ArrayList<AddressCarryingEvent> outstandingRequestList)
+	{
+		while (!outstandingRequestList.isEmpty())
+		{	
+			AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0);
+			if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
+			{
+				sendMemResponse(eventPoppedOut);
+			}
+			else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
+			{
+				if (nucaCache.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
+				{
+					MemorySystem.mainMemoryController.getPort().put(eventPoppedOut.updateEvent(eventPoppedOut.getEventQ(), 
+							MemorySystem.mainMemoryController.getLatencyDelay(), this, 
+							MemorySystem.mainMemoryController, RequestType.Main_Mem_Write,eventPoppedOut.getAddress(),eventPoppedOut.coreId));
+				}
+			}
+		}
+	}
+	public void sendMemResponse(AddressCarryingEvent eventToRespondTo)
+    {
+		nucaCache.noOfResponsesSent++;
+		eventToRespondTo.getRequestingElement().getPort().put(
+											eventToRespondTo.update(
+											eventToRespondTo.getEventQ(),
+											1,
+											eventToRespondTo.getProcessingElement(),
+											eventToRespondTo.getRequestingElement(),
+											RequestType.Mem_Response));
+    }
 	protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
 	{
 		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;

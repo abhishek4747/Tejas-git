@@ -29,6 +29,7 @@ import memorysystem.nuca.NucaCache.NucaType;
 import config.BranchPredictorConfig;
 import config.CoreConfig;
 import config.EmulatorConfig;
+import config.Interconnect;
 import config.PowerConfigNew;
 import config.SimulationConfig;
 import config.SystemConfig;
@@ -260,13 +261,44 @@ public class Statistics {
 			outputFileWriter.write("\n\n");
 			
 			// Main Memory
-			PowerConfigNew mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintPower(outputFileWriter, "MainMemoryController");
-			
+			PowerConfigNew mainMemoryPower=null;
+			PowerConfigNew[] mainMemoryPowers = null;
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintPower(outputFileWriter, "MainMemoryController");
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				int j=0;
+				mainMemoryPowers = new PowerConfigNew[SystemConfig.nocConfig.nocElements.noOfMemoryControllers];
+				for(MainMemoryController controller:SystemConfig.nocConfig.nocElements.memoryControllers)
+				{
+					mainMemoryPowers[j] = controller.calculateAndPrintPower(outputFileWriter, "MainMemoryController " + j);
+					outputFileWriter.write("\n");
+					j++;
+				}
+				outputFileWriter.write("Total Main Memory \n");
+			}
 			outputFileWriter.write("\n\n");
 			
 			// Directory
-			PowerConfigNew directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintPower(outputFileWriter, "Directory");
-			
+			PowerConfigNew directoryPower=null;
+			PowerConfigNew[] directoriesPower = null;
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintPower(outputFileWriter, "Directory");
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				int j=0;
+				directoriesPower = new PowerConfigNew[SystemConfig.nocConfig.nocElements.noOfL1Directories];
+				for(CentralizedDirectoryCache directory:SystemConfig.nocConfig.nocElements.l1Directories)
+				{
+					directoriesPower[j] = directory.calculateAndPrintPower(outputFileWriter, "Directory Bank " + j);
+					outputFileWriter.write("\n");
+					j++;
+				}
+			}
 			outputFileWriter.write("\n\n");
 			
 			// NOC
@@ -289,8 +321,24 @@ public class Statistics {
 			PowerConfigNew totalPower = new PowerConfigNew(0, 0);
 			totalPower.add(corePower);
 			totalPower.add(cachePower);
-			totalPower.add(mainMemoryPower);
-			totalPower.add(directoryPower);
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				totalPower.add(mainMemoryPower);
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				for(PowerConfigNew m:mainMemoryPowers)
+					totalPower.add(m);
+			}
+			if(SystemConfig.interconnect == Interconnect.Bus)
+			{
+				totalPower.add(directoryPower);
+			}
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				for(PowerConfigNew p:directoriesPower)
+					totalPower.add(p);
+			}
 			totalPower.add(nocRouterPower);
 			//totalPower.add(clockPower);
 			
@@ -466,24 +514,63 @@ public class Statistics {
 								+ totalBufferPower) + "\n");
 				*/
 			}
-			outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + noOfDirReadMiss + "\n");
-			outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + noOfDirWriteMiss + "\n");
-			outputFileWriter.write("Directory Access due to Write-Hit\t=\t" + noOfDirWriteHits + "\n");
-			outputFileWriter.write("Directory Hits\t=\t" + noOfDirHits + "\n");
-			outputFileWriter.write("Directory Misses\t=\t" + noOfDirMisses + "\n");
-			outputFileWriter.write("Directory Invalidations\t=\t" + noOfDirInvalidations + "\n");
-			outputFileWriter.write("Directory DataForwards\t=\t" + noOfDirDataForwards + "\n");
-			outputFileWriter.write("Directory Writebacks\t=\t" + noOfDirWritebacks + "\n");
-			outputFileWriter.write("Directory Entries\t=\t" + numOfDirEntries + "\n");
-			if (noOfDirHits+noOfDirMisses != 0)
+			if(SystemConfig.interconnect == Interconnect.Bus)
 			{
-				outputFileWriter.write("Directory Hit-Rate\t=\t" + (float)(noOfDirHits)/(noOfDirHits+noOfDirMisses) + "\n");
-				outputFileWriter.write("Directory Miss-Rate\t=\t" + (float)(noOfDirMisses)/(noOfDirHits+noOfDirMisses) + "\n");
-			
+				outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + noOfDirReadMiss + "\n");
+				outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + noOfDirWriteMiss + "\n");
+				outputFileWriter.write("Directory Access due to Write-Hit\t=\t" + noOfDirWriteHits + "\n");
+				outputFileWriter.write("Directory Hits\t=\t" + noOfDirHits + "\n");
+				outputFileWriter.write("Directory Misses\t=\t" + noOfDirMisses + "\n");
+				outputFileWriter.write("Directory Invalidations\t=\t" + noOfDirInvalidations + "\n");
+				outputFileWriter.write("Directory DataForwards\t=\t" + noOfDirDataForwards + "\n");
+				outputFileWriter.write("Directory Writebacks\t=\t" + noOfDirWritebacks + "\n");
+				outputFileWriter.write("Directory Entries\t=\t" + numOfDirEntries + "\n");
+				if (noOfDirHits+noOfDirMisses != 0)
+				{
+					outputFileWriter.write("Directory Hit-Rate\t=\t" + (float)(noOfDirHits)/(noOfDirHits+noOfDirMisses) + "\n");
+					outputFileWriter.write("Directory Miss-Rate\t=\t" + (float)(noOfDirMisses)/(noOfDirHits+noOfDirMisses) + "\n");
+				
+				}
 			}
-			outputFileWriter.write("\n");
-			
-			outputFileWriter.write("\n");
+			else if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				outputFileWriter.write("\n\n");
+				int j=0;
+				int totalDirHits=0;
+				int totalDirMisses=0;
+				for(CentralizedDirectoryCache directory : SystemConfig.nocConfig.nocElements.l1Directories)
+				{
+					outputFileWriter.write("Directory Bank " + j + "\n");
+					outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + directory.getNumReadMiss() + "\n");
+					outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + directory.getNumWriteMiss() + "\n");
+					outputFileWriter.write("Directory Access due to Write-Hit\t=\t" + directory.getNumWriteHit() + "\n");
+					outputFileWriter.write("Directory Hits\t=\t" + directory.getDirectoryHits() + "\n");
+					outputFileWriter.write("Directory Misses\t=\t" + directory.getDirectoryMisses() + "\n");
+					outputFileWriter.write("Directory Invalidations\t=\t" + directory.getInvalidations() + "\n");
+					outputFileWriter.write("Directory DataForwards\t=\t" + directory.getDataForwards() + "\n");
+					outputFileWriter.write("Directory Writebacks\t=\t" + directory.getWritebacks() + "\n");
+					outputFileWriter.write("Directory Entries\t=\t" + directory.getNumberOfDirectoryEntries() + "\n");
+					if (noOfDirHits+noOfDirMisses != 0)
+					{
+						outputFileWriter.write("Directory Hit-Rate\t=\t" + (float)(directory.getDirectoryHits())/(directory.getDirectoryHits()
+																+directory.getDirectoryMisses()) + "\n");
+						outputFileWriter.write("Directory Miss-Rate\t=\t" + (float)(directory.getDirectoryMisses())/(directory.getDirectoryHits()
+																+directory.getDirectoryMisses()) + "\n");
+					
+					}
+					totalDirHits += directory.getDirectoryHits();
+					totalDirMisses += directory.getDirectoryMisses();
+					j++;
+					outputFileWriter.write("\n\n");
+				}
+				outputFileWriter.write("Total Directory Hits\t=\t" + totalDirHits + "\n");
+				outputFileWriter.write("Total Directory Misses\t=\t" + totalDirMisses + "\n");
+				outputFileWriter.write("Total Directory Hit-Rate\t=\t" + (float)(totalDirHits)/(totalDirHits+totalDirMisses) + "\n");
+				outputFileWriter.write("Tota Directory Miss-Rate\t=\t" + (float)(totalDirMisses)/(totalDirHits+totalDirMisses) + "\n");
+
+			}
+				
+			outputFileWriter.write("\n\n");
 		}
 		catch(IOException e)
 		{
@@ -1085,14 +1172,17 @@ public class Statistics {
 		cores = ArchitecturalComponent.getCores();
 
 		Statistics.setExecutable(benchmarkName);
-		Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().getDirectoryHits());
-		Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().getDirectoryMisses());
-		Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
-		Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
-		Statistics.setNoOfDirReadMiss(MemorySystem.getDirectoryCache().getNumReadMiss());
-		Statistics.setNoOfDirWriteMiss(MemorySystem.getDirectoryCache().getNumWriteMiss());
-		Statistics.setNoOfDirWriteHits(MemorySystem.getDirectoryCache().getNumWriteHit());
-		Statistics.setNoOfDirEntries(MemorySystem.getDirectoryCache().getNumberOfDirectoryEntries());
+		if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().getDirectoryHits());
+			Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().getDirectoryMisses());
+			Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
+			Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
+			Statistics.setNoOfDirReadMiss(MemorySystem.getDirectoryCache().getNumReadMiss());
+			Statistics.setNoOfDirWriteMiss(MemorySystem.getDirectoryCache().getNumWriteMiss());
+			Statistics.setNoOfDirWriteHits(MemorySystem.getDirectoryCache().getNumWriteHit());
+			Statistics.setNoOfDirEntries(MemorySystem.getDirectoryCache().getNumberOfDirectoryEntries());
+		}
 		//set memory statistics for levels L2 and below
 		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
 		{
@@ -1218,16 +1308,19 @@ public class Statistics {
 				noOfL1Misses[i] += (long) (core.getPipelineInterface().getNoOfL1Misses() - tempnoOfL1Misses[i]) * weightsArray[currentSlice];
 				tempnoOfL1Misses[i] = core.getPipelineInterface().getNoOfL1Misses();
 				
-				noOfDirHits = (long) ((MemorySystem.getDirectoryCache().hits - tempnoOfDirHits) * weightsArray[currentSlice]);
-				tempnoOfDirHits = MemorySystem.getDirectoryCache().hits;
-				noOfDirMisses = (long) ((MemorySystem.getDirectoryCache().misses - tempnoOfDirMisses) * weightsArray[currentSlice]);
-				tempnoOfDirMisses = MemorySystem.getDirectoryCache().misses;
-				noOfDirInvalidations = (long) ((MemorySystem.getDirectoryCache().getInvalidations() - tempnoOfDirInvalidations) * weightsArray[currentSlice]);
-				tempnoOfDirInvalidations = MemorySystem.getDirectoryCache().getInvalidations();
-				noOfDirDataForwards = (long) ((MemorySystem.getDirectoryCache().getDataForwards() - tempnoOfDirDataForwards) * weightsArray[currentSlice]);
-				tempnoOfDirDataForwards = MemorySystem.getDirectoryCache().getDataForwards();
-				noOfDirWritebacks = (long) ((MemorySystem.getDirectoryCache().getWritebacks() - tempnoOfDirWritebacks) * weightsArray[currentSlice]);
-				tempnoOfDirWritebacks = MemorySystem.getDirectoryCache().getWritebacks();
+				if(SystemConfig.interconnect == Interconnect.Bus)
+				{
+					noOfDirHits = (long) ((MemorySystem.getDirectoryCache().hits - tempnoOfDirHits) * weightsArray[currentSlice]);
+					tempnoOfDirHits = MemorySystem.getDirectoryCache().hits;
+					noOfDirMisses = (long) ((MemorySystem.getDirectoryCache().misses - tempnoOfDirMisses) * weightsArray[currentSlice]);
+					tempnoOfDirMisses = MemorySystem.getDirectoryCache().misses;
+					noOfDirInvalidations = (long) ((MemorySystem.getDirectoryCache().getInvalidations() - tempnoOfDirInvalidations) * weightsArray[currentSlice]);
+					tempnoOfDirInvalidations = MemorySystem.getDirectoryCache().getInvalidations();
+					noOfDirDataForwards = (long) ((MemorySystem.getDirectoryCache().getDataForwards() - tempnoOfDirDataForwards) * weightsArray[currentSlice]);
+					tempnoOfDirDataForwards = MemorySystem.getDirectoryCache().getDataForwards();
+					noOfDirWritebacks = (long) ((MemorySystem.getDirectoryCache().getWritebacks() - tempnoOfDirWritebacks) * weightsArray[currentSlice]);
+					tempnoOfDirWritebacks = MemorySystem.getDirectoryCache().getWritebacks();
+				}
 			}
 		}
 		

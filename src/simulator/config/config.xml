@@ -22,10 +22,10 @@
 	<Emulator>
 		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
 		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
-		<PinTool>/mnt/srishtistr0/home/prathmesh/Data/Softwares/Pintool/pin-11</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/home/anuj/PIN</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
-		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
+		<ShmLibDirectory>/mnt/srishtistr0/home/anuj/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
 	</Emulator>
 	
 	<!--Simulation Parameters-->
@@ -227,11 +227,11 @@
 			<!--L2Cache type = "Type2"/-->
 			<!--L3Cache type = "Type3"/-->
 		</Core>
-		
+		<Interconnect>Noc</Interconnect>
 		<NOC>
 			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->
 			<L2>
-				<NocConfigFile>/mnt/srishtistr0/home/anuj/Documents/Tejas/src/simulator/net/NocConfig.txt</NocConfigFile>
+				<NocConfigFile>/mnt/srishtistr0/home/anuj/workspace/Tejas/src/simulator/net/NocConfig.txt</NocConfigFile>
 				<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped -->
 				<NocSelScheme>STATIC</NocSelScheme>
 				<NocNumberOfBuffers>4</NocNumberOfBuffers>
@@ -258,8 +258,8 @@
 				<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 				<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
 				<Associativity>8</Associativity>
-				<Size>4096</Size>					<!--In KBs-->
-				<Latency>18</Latency>				<!--In clock cycles-->
+				<Size>64</Size>					<!--In KBs-->
+				<Latency>4</Latency>				<!--In clock cycles-->
 				<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 				<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
@@ -332,7 +332,7 @@
 			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
 		</Type1>
 		<Type2>
-			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<LastLevel>Y</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>16</Associativity>
@@ -346,7 +346,7 @@
 			<NumBuses>1</NumBuses>				<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<LeakagePower>0.65904632352</LeakagePower>
 			<ReadDynamicPower>0.81449264705</ReadDynamicPower>
 			<WriteDynamicPower>0.81449264705</WriteDynamicPower>
