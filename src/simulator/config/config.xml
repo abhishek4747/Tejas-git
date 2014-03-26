@@ -234,7 +234,7 @@
 		<NOC>
 			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->
 			<L2>
-				<NocConfigFile>/mnt/srishtistr0/home/anuj/workspace/Tejas/src/simulator/net/NocConfig.txt</NocConfigFile>
+				<NocConfigFile>/mnt/srishtistr0/home/anuj/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
 				<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped -->
 				<NocSelScheme>STATIC</NocSelScheme>
 				<NocNumberOfBuffers>4</NocNumberOfBuffers>
