@@ -533,6 +533,7 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 	}
 	/*** For barriers. Used for research purpose ***/
 	else
+	{
 		encode = -1;
 		if(startMarker.compare("") != 0)
 		{
