@@ -114,4 +114,9 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 		power.printPowerStats(outputFileWriter, componentName);
 		return power;
 	}
+	public PowerConfigNew calculatePower(FileWriter outputFileWriter) throws IOException
+	{
+		PowerConfigNew power = new PowerConfigNew(SystemConfig.mainMemoryControllerPower, numAccesses);
+		return power;
+	}
 }

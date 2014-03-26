@@ -257,12 +257,13 @@ public class Statistics {
 				Cache cache = MemorySystem.getCacheList().get(cacheName);
 				cachePower.add(cache.calculateAndPrintPower(outputFileWriter, cache.toString()));
 			}
-			
-			outputFileWriter.write("\n\n");
-			
+						
 			// Main Memory
 			PowerConfigNew mainMemoryPower=null;
 			PowerConfigNew[] mainMemoryPowers = null;
+			double totalDynamicPower=0;
+			int totalAccesses=0;
+			outputFileWriter.write("\n\n");
 			if(SystemConfig.interconnect == Interconnect.Bus)
 			{
 				mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintPower(outputFileWriter, "MainMemoryController");
@@ -273,17 +274,21 @@ public class Statistics {
 				mainMemoryPowers = new PowerConfigNew[SystemConfig.nocConfig.nocElements.noOfMemoryControllers];
 				for(MainMemoryController controller:SystemConfig.nocConfig.nocElements.memoryControllers)
 				{
-					mainMemoryPowers[j] = controller.calculateAndPrintPower(outputFileWriter, "MainMemoryController " + j);
-					outputFileWriter.write("\n");
+					mainMemoryPowers[j] = controller.calculatePower(outputFileWriter);
+					totalDynamicPower += mainMemoryPowers[j].dynamicPower;
+					totalAccesses += mainMemoryPowers[j].numAccesses;
 					j++;
 				}
-				outputFileWriter.write("Total Main Memory \n");
+				outputFileWriter.write("MainMemoryController\t\t" + mainMemoryPowers[0].leakagePower + "\t" + totalDynamicPower 
+										+ "\t" + ( mainMemoryPowers[0].leakagePower + totalDynamicPower) + "\t" + totalAccesses);
 			}
 			outputFileWriter.write("\n\n");
 			
 			// Directory
 			PowerConfigNew directoryPower=null;
 			PowerConfigNew[] directoriesPower = null;
+			double totalDirectoryDynamicPower=0, totalDirectoryLeakagePower=0;
+			int totalDirectoryNumAccesses=0;
 			if(SystemConfig.interconnect == Interconnect.Bus)
 			{
 				directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintPower(outputFileWriter, "Directory");
@@ -295,12 +300,17 @@ public class Statistics {
 				for(CentralizedDirectoryCache directory:SystemConfig.nocConfig.nocElements.l1Directories)
 				{
 					directoriesPower[j] = directory.calculateAndPrintPower(outputFileWriter, "Directory Bank " + j);
+					totalDirectoryLeakagePower += directoriesPower[j].leakagePower;
+					totalDirectoryDynamicPower += directoriesPower[j].dynamicPower;
+					totalDirectoryNumAccesses += directoriesPower[j].numAccesses;
 					outputFileWriter.write("\n");
 					j++;
 				}
+				outputFileWriter.write("\n");
+				outputFileWriter.write("Total Directory Power \t\t" + totalDirectoryLeakagePower + "\t" + totalDirectoryDynamicPower 
+						+ "\t" + ( totalDirectoryLeakagePower + totalDirectoryDynamicPower) + "\t" + totalDirectoryNumAccesses);
 			}
 			outputFileWriter.write("\n\n");
-			
 			// NOC
 			PowerConfigNew nocRouterPower = new PowerConfigNew(0, 0);
 			i = 0;
@@ -566,7 +576,7 @@ public class Statistics {
 				outputFileWriter.write("Total Directory Hits\t=\t" + totalDirHits + "\n");
 				outputFileWriter.write("Total Directory Misses\t=\t" + totalDirMisses + "\n");
 				outputFileWriter.write("Total Directory Hit-Rate\t=\t" + (float)(totalDirHits)/(totalDirHits+totalDirMisses) + "\n");
-				outputFileWriter.write("Tota Directory Miss-Rate\t=\t" + (float)(totalDirMisses)/(totalDirHits+totalDirMisses) + "\n");
+				outputFileWriter.write("Total Directory Miss-Rate\t=\t" + (float)(totalDirMisses)/(totalDirHits+totalDirMisses) + "\n");
 
 			}
 				

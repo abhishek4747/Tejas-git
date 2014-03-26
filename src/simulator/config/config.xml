@@ -54,7 +54,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>20000000</subsetSimSize>
+		<subsetSimSize>1000000</subsetSimSize>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -227,7 +227,7 @@
 			<!--L2Cache type = "Type2"/-->
 			<!--L3Cache type = "Type3"/-->
 		</Core>
-		<Interconnect>Noc</Interconnect>
+		<Interconnect>NOC</Interconnect>
 		<NOC>
 			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->
 			<L2>
