@@ -709,32 +709,36 @@ public class XMLParser
 		
 		tempStr = getImmediateString("Nuca", CacheType);
 		
-		if(SystemConfig.interconnect == Interconnect.Noc)
+		if(cache.levelFromTop==memorysystem.Cache.CacheType.Lower)
 		{
-			if (tempStr.equalsIgnoreCase("N")) {
+			if(SystemConfig.interconnect == Interconnect.Noc)
+			{
+				if (tempStr.equalsIgnoreCase("S"))
+				{
+					SimulationConfig.nucaType = NucaType.S_NUCA;
+					cache.nucaType = NucaType.S_NUCA;
+				}
+				else if (tempStr.equalsIgnoreCase("D"))
+				{
+					SimulationConfig.nucaType = NucaType.D_NUCA;
+					cache.nucaType = NucaType.D_NUCA;
+				}
+				else
+				{
+					System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' for NOC interconnect " +
+							"or Choose Bus interconnect)");
+					System.exit(1);
+				}
+			}
+			
+			else if(SystemConfig.interconnect == Interconnect.Bus)
+			{
 				SimulationConfig.nucaType = NucaType.NONE;
 				cache.nucaType = NucaType.NONE;
 			}
-			else if (tempStr.equalsIgnoreCase("S"))
-			{
-				SimulationConfig.nucaType = NucaType.S_NUCA;
-				cache.nucaType = NucaType.S_NUCA;
-			}
-			else if (tempStr.equalsIgnoreCase("D"))
-			{
-				SimulationConfig.nucaType = NucaType.D_NUCA;
-				cache.nucaType = NucaType.D_NUCA;
-			}
-			else
-			{
-				System.err.println("XML Configuration error : Invalid value of 'Nuca' (please enter 'S', D' for NOC interconnect " +
-						"or Choose Bus interconnect)");
-				System.exit(1);
-			}
 		}
-		else if(SystemConfig.interconnect == Interconnect.Bus)
+		else
 		{
-			SimulationConfig.nucaType = NucaType.NONE;
 			cache.nucaType = NucaType.NONE;
 		}
 		

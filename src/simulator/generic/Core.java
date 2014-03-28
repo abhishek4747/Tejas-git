@@ -530,7 +530,7 @@ public class Core extends SimulationElement implements NocInterface{
 		else 
 		{
 			System.err.println(event.getRequestType());
-			misc.Error.showErrorAndExit(" unexpected request came to cache bank");
+			misc.Error.showErrorAndExit(" unexpected request came to Core");
 		}
 	}	
 	private void handleInvalidate(AddressCarryingEvent event)
