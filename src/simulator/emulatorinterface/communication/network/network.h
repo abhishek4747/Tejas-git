@@ -15,7 +15,7 @@ class network:public IPCBase
 protected:
 
 public:
-	network();
+	network(int maxNumApplicationThreads);
 	int analysisFn (int tid,uint64_t ip, int value, uint64_t tgt);
 	void onThread_start (int tid);
 	int onThread_finish (int tid);

@@ -5,7 +5,7 @@ namespace IPC
 {
 
 // bookkeeping variables.
-network::network ()
+network::network (int maxNumApplicationThreads) : IPCBase(maxNumApplicationThreads)
 {
 
 }

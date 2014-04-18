@@ -11,6 +11,7 @@ import misc.Error;
 import misc.ShutDownHook;
 import config.EmulatorConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import config.XMLParser;
 import emulatorinterface.RunnableFromFile;
 import emulatorinterface.RunnableThread;
@@ -28,7 +29,7 @@ public class Main {
 	private static Emulator emulator;
 	
 	// the reader threads. Each thread reads from EMUTHREADS
-	public static RunnableThread [] runners = new RunnableThread[IpcBase.MaxNumJavaThreads];
+	public static RunnableThread [] runners;
 	public static volatile boolean statFileWritten = false;
 	
 	private static  String emulatorFile = " ";
@@ -58,10 +59,10 @@ public class Main {
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			ObjParser.buildStaticInstructionTable(getEmulatorFile());
 		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-			ObjParser.initializeThreadMicroOpsList(64);
+			ObjParser.initializeThreadMicroOpsList(SystemConfig.numEmuThreadsPerJavaThread);
 		}
 		
-		ObjParser.initializeDynamicInstructionBuffer(IpcBase.EmuThreadsPerJavaThread*IpcBase.getEmuThreadsPerJavaThread());
+		ObjParser.initializeDynamicInstructionBuffer(SystemConfig.numEmuThreadsPerJavaThread*SystemConfig.numEmuThreadsPerJavaThread);
 		ObjParser.initializeControlMicroOps();
 		
 		// initialize cores, memory, tokenBus
@@ -77,6 +78,8 @@ public class Main {
 		// Start communication channel before starting emulator
 		// PS : communication channel must be started before starting the emulator
 		IpcBase ipcBase = startCommunicationChannel(pid);
+		
+		runners = new RunnableThread[SystemConfig.maxNumJavaThreads];
 		
 		String benchmarkArguments=" ";
 		// read the command line arguments for the benchmark (not emulator) here.
@@ -103,7 +106,7 @@ public class Main {
 		startTime = System.currentTimeMillis();
 		
 		String name;
-		for (int i=0; i<IpcBase.MaxNumJavaThreads; i++) {
+		for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
 			
 			name = "thread"+Integer.toString(i);
 			
@@ -145,7 +148,7 @@ public class Main {
 		}
 		
 		// Initialise pool of instructions
-		CustomObjectPool.initCustomPools(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread, numStaticInstructions);
+		CustomObjectPool.initCustomPools(SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread, numStaticInstructions);
 		
 		// Pre-allocate all the possible operands
 		Operand.preAllocateOperands();

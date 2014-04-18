@@ -7,10 +7,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef emulatorinterface_communication_shm_SharedMem_MaxNumJavaThreads
-#define emulatorinterface_communication_shm_SharedMem_MaxNumJavaThreads 1L
-#undef emulatorinterface_communication_shm_SharedMem_EmuThreadsPerJavaThread
-#define emulatorinterface_communication_shm_SharedMem_EmuThreadsPerJavaThread 64L
 #undef emulatorinterface_communication_shm_SharedMem_COUNT
 #define emulatorinterface_communication_shm_SharedMem_COUNT 1000L
 /*

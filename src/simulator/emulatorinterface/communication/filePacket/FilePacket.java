@@ -28,7 +28,7 @@ public class FilePacket extends IpcBase implements Encoding {
 	long totalFetchedAssemblyPackets = 0;
 	
 	public FilePacket() {
-		this.maxApplicationThreads = IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread;
+		this.maxApplicationThreads = SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread;
 		
 		inputBufferedReader = new BufferedReader[maxApplicationThreads];
 		

@@ -22,10 +22,10 @@
 	<Emulator>
 		<EmulatorType>0</EmulatorType> <!-- 0-pin,1-qemu-->
 		<CommunicationType>1</CommunicationType>  <!--0-file, 1-shmem, 2-socket -->
-		<PinTool>/mnt/srishtistr0/home/anuj/PIN</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/mayur/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/home/prathmesh/PIN</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
-		<ShmLibDirectory>/mnt/srishtistr0/home/anuj/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
+		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
 	</Emulator>
 	
 	<!--Simulation Parameters-->
@@ -54,7 +54,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>50000000</subsetSimSize>
+		<subsetSimSize>2000000</subsetSimSize>
 		<markerFunctions>false</markerFunctions>
 		<startSimMarker>XXX_startInstrumentation</startSimMarker>
 		<endSimMarker>XXX_endInstrumentation</endSimMarker>
@@ -62,7 +62,8 @@
 
 	<!--System Parameters-->
 	<System>
-		<NoOfCores>4</NoOfCores>				<!--(!!!Not used!!!) Number of cores in the simulated system-->
+		<MaxNumJavaThreads>1</MaxNumJavaThreads> <!--Not used in base Tejas-->
+		<NumEmuThreadsPerJavaThread>4</NumEmuThreadsPerJavaThread> <!--This defines the number of threads in base Tejas-->
 		
 		<MainMemory>
 			<MainMemoryLatency>200</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
@@ -230,7 +231,7 @@
 			<!--L2Cache type = "Type2"/-->
 			<!--L3Cache type = "Type3"/-->
 		</Core>
-		<Interconnect>Noc</Interconnect>
+		<Interconnect>Bus</Interconnect>
 		<NOC>
 			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->
 			<L2>
@@ -349,7 +350,7 @@
 			<NumBuses>1</NumBuses>				<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>S</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<LeakagePower>0.65904632352</LeakagePower>
 			<ReadDynamicPower>0.81449264705</ReadDynamicPower>
 			<WriteDynamicPower>0.81449264705</WriteDynamicPower>

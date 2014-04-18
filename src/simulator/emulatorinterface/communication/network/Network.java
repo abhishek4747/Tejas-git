@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import main.CustomObjectPool;
 import config.EmulatorConfig;
+import config.SystemConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.Packet;
@@ -30,7 +31,7 @@ public class Network extends IpcBase implements Encoding {
 		
 	public Network() {
 		
-		this.maxApplicationThreads = (IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
+		this.maxApplicationThreads = (SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread);
 		
 		inputBytes = new byte[maxApplicationThreads][bufferSize];
 		numOverflowBytes = new int[maxApplicationThreads];

@@ -90,7 +90,7 @@ public class Statistics {
 	
 	public static void printTranslatorStatistics()
 	{
-		for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
+		for(int i = 0; i < SystemConfig.maxNumJavaThreads; i++)
 		{
 			for (int j=0; j<IpcBase.getEmuThreadsPerJavaThread(); j++) {
 				if(SimulationConfig.pinpointsSimulation == false)
@@ -121,7 +121,7 @@ public class Statistics {
 			outputFileWriter.write("[Translator Statistics]\n");
 			outputFileWriter.write("\n");
 			
-			for(int i = 0; i < IpcBase.MaxNumJavaThreads; i++)
+			for(int i = 0; i < SystemConfig.maxNumJavaThreads; i++)
 			{
 				outputFileWriter.write("Java thread\t=\t" + i + "\n");
 				outputFileWriter.write("Data Read\t=\t" + dataRead[i] + " bytes\n");
@@ -770,10 +770,10 @@ public class Statistics {
 
 	public static void initStatistics()
 	{		
-		dataRead = new long[IpcBase.MaxNumJavaThreads];
-		numHandledCISCInsn = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
-		numCISCInsn = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
-		noOfMicroOps = new long[IpcBase.MaxNumJavaThreads][IpcBase.getEmuThreadsPerJavaThread()];
+		dataRead = new long[SystemConfig.maxNumJavaThreads];
+		numHandledCISCInsn = new long[SystemConfig.maxNumJavaThreads][SystemConfig.numEmuThreadsPerJavaThread];
+		numCISCInsn = new long[SystemConfig.maxNumJavaThreads][SystemConfig.numEmuThreadsPerJavaThread];
+		noOfMicroOps = new long[SystemConfig.maxNumJavaThreads][SystemConfig.numEmuThreadsPerJavaThread];
 		
 		coreCyclesTaken = new long[SystemConfig.NoOfCores];
 		coreFrequencies = new long[SystemConfig.NoOfCores];

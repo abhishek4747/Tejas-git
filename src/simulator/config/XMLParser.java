@@ -281,7 +281,12 @@ public class XMLParser
 		
 		//Read number of cores and define the array of core configurations
 		//Note that number of Cores specified in config.xml is deprecated and is instead done as follows
-		SystemConfig.NoOfCores = IpcBase.MaxNumJavaThreads*IpcBase.getEmuThreadsPerJavaThread();
+		//SystemConfig.maxNumJavaThreads = Integer.parseInt(getImmediateString("MaxNumJavaThreads", systemElmnt));
+		SystemConfig.maxNumJavaThreads = 1;
+		SystemConfig.numEmuThreadsPerJavaThread = Integer.parseInt(getImmediateString("NumEmuThreadsPerJavaThread", systemElmnt));
+		
+		SystemConfig.NoOfCores = SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread;
+						
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
 		SystemConfig.mainMemPortType = setPortType(getImmediateString("MainMemoryPortType", systemElmnt));

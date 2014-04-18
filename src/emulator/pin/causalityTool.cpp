@@ -53,6 +53,8 @@ KNOB<UINT64>   KnobIgnore(KNOB_MODE_WRITEONCE,       "pintool",
     "numIgn", "0", "Ignore these many profilable instructions");
 KNOB<INT64>   KnobSimulate(KNOB_MODE_WRITEONCE,       "pintool",
     "numSim", "0", "Simulate these many profilable instructions (-1 if no subset simulation is desired)");
+KNOB<INT64>   KnobMaxNumActiveThreads(KNOB_MODE_WRITEONCE,       "pintool",
+    "maxNumActiveThreads", "0", "Number of maximum application threads");
 KNOB<UINT64>   KnobId(KNOB_MODE_WRITEONCE,       "pintool",
     "id", "1", "shm id to generate key");
 KNOB<std::string>   KnobPinPointsFile(KNOB_MODE_WRITEONCE,       "pintool",
@@ -82,6 +84,8 @@ std::string pinpointsFilename;
 unsigned long * sliceArray;
 int numberOfSlices;
 int currentSlice;
+
+int MaxNumActiveThreads;
 
 #define PacketEpoch 50
 uint32_t countPacket[MaxThreads];
@@ -133,13 +137,20 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	PIN_MutexLock(&lock);
 	numThreads++;
 	livethreads++;
+
+	if(livethreads>MaxNumActiveThreads) {
+		cout<<"Number of live threads till now = "<<livethreads<<endl;
+		cout<<"Maximum number of active threads = "<<MaxNumActiveThreads<<" !!"<<endl;
+		cout<<"PIN Exiting ..."<<endl;
+		exit(1);
+	}
+
 	threadAlive[threadid] = true;
 	cout << "threads till now " << numThreads << "\n";
 	fflush(stdout);
 	pumpingStatus[numThreads - 1] = true;
 	tst->onThread_start(threadid);
 	PIN_MutexUnlock(&lock);
-	ASSERT(livethreads <= MaxNumThreads, "Maximum number of threads exceeded\n");
 }
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
@@ -608,6 +619,7 @@ int main(int argc, char * argv[]) {
 	if (PIN_Init(argc, argv))
 		return Usage();
 
+	MaxNumActiveThreads = KnobMaxNumActiveThreads;
 	numInsToIgnore = KnobIgnore;
 	startMarker = KnobStartMarker;
 	endMarker = KnobEndMarker;
@@ -618,6 +630,7 @@ int main(int argc, char * argv[]) {
 	cout << "numSim = " << numInsToSimulate << "\n";
 	cout << "id received = " << id << "\n";
 	std::cout << "pinpoints file received = " << pinpointsFilename << "\n";
+	cout << "maxNumActiveThreads = " << MaxNumActiveThreads << "\n";
 
 	if(startMarker.compare("") != 0)
 	{
@@ -670,7 +683,7 @@ int main(int argc, char * argv[]) {
 		pinpointsFile.close();
 	}
 
-	tst = new IPC::Shm (id);
+	tst = new IPC::Shm(id, MaxNumActiveThreads);
 
 	for(int i = 0; i < MaxThreads; i++)
 	{

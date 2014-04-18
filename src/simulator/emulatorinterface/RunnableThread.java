@@ -23,6 +23,7 @@ import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import config.EmulatorConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import emulatorinterface.ThreadBlockState.blockState;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
@@ -61,12 +62,13 @@ public class RunnableThread implements Encoding, Runnable {
 
 	int javaTid;
 	long sum = 0; // checksum
-	static int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
+	//static int EMUTHREADS = IpcBase.getEmuThreadsPerJavaThread();
+	int EMUTHREADS;
 	int currentEMUTHREADS = 0;  //total number of livethreads
 	int maxCoreAssign = 0;      //the maximum core id assigned 
 	
-	static EmulatorThreadState[] emulatorThreadState = new EmulatorThreadState[EMUTHREADS];
-	static ThreadBlockState[] threadBlockState=new ThreadBlockState[EMUTHREADS];
+	static EmulatorThreadState[] emulatorThreadState;// = new EmulatorThreadState[EMUTHREADS];
+	static ThreadBlockState[] threadBlockState;//=new ThreadBlockState[EMUTHREADS];
 	GenericCircularQueue<Instruction>[] inputToPipeline;
 	// static long ignoredInstructions = 0;
 
@@ -105,7 +107,8 @@ public class RunnableThread implements Encoding, Runnable {
 		}
 		
 		if(printIPTrace==true) {
-			numShmWrites = new long[ipcBase.MaxNumJavaThreads*ipcBase.EmuThreadsPerJavaThread];
+			numShmWrites = new long
+				[SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread];
 		}
 		
 		Packet pnew = new Packet();
@@ -155,6 +158,7 @@ public class RunnableThread implements Encoding, Runnable {
 				// get the number of packets to read. 'continue' and read from
 				// some other thread if there is nothing.
 				numReads = ipcBase.fetchManyPackets(tidApplication, fromEmulator);
+				//System.out.println("numReads = " + numReads);
 				if (fromEmulator.size() == 0) {
 					continue;
 				}
@@ -336,6 +340,10 @@ public class RunnableThread implements Encoding, Runnable {
 			Core[] cores, TopLevelTokenBus tokenBus) {
 
 		this.ipcBase = ipcBase;
+		
+		this.EMUTHREADS = SystemConfig.numEmuThreadsPerJavaThread;
+		emulatorThreadState = new EmulatorThreadState[EMUTHREADS];
+		threadBlockState = new ThreadBlockState[EMUTHREADS];
 		
 		if (writeToFile) {
 			try {

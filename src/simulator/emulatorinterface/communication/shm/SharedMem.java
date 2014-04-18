@@ -15,6 +15,7 @@ import java.util.concurrent.Semaphore;
 
 import config.EmulatorConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import emulatorinterface.communication.*;
 import emulatorinterface.*;
 import generic.CircularPacketQueue;
@@ -47,7 +48,7 @@ public class SharedMem extends  IpcBase
 		
 		do
 		{
-			shmid = shmget(COUNT,MaxNumJavaThreads,getEmuThreadsPerJavaThread(), SimulationConfig.MapJavaCores, idToShmGet);
+			shmid = shmget(COUNT,SystemConfig.maxNumJavaThreads, SystemConfig.numEmuThreadsPerJavaThread, SimulationConfig.MapJavaCores, idToShmGet);
 			if(shmid < 0)
 			{
 				idToShmGet = (idToShmGet + 1)%Integer.MAX_VALUE;
@@ -65,8 +66,8 @@ public class SharedMem extends  IpcBase
 		while(shmid < 0 || shmAddress < 0);
 		
 		// initialise the reader location of all application threads
-		readerLocation = new int[MaxNumJavaThreads * EmuThreadsPerJavaThread];
-		for(int tidApp = 0; tidApp<MaxNumJavaThreads * EmuThreadsPerJavaThread; tidApp++) {
+		readerLocation = new int[SystemConfig.maxNumJavaThreads * SystemConfig.numEmuThreadsPerJavaThread];
+		for(int tidApp = 0; tidApp<SystemConfig.maxNumJavaThreads * SystemConfig.numEmuThreadsPerJavaThread; tidApp++) {
 			readerLocation[tidApp] = 0;
 		}
 	}

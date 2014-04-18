@@ -31,8 +31,11 @@ Shm::release_lock(packet *map) {
 }
 
 
-Shm::Shm ()
+Shm::Shm(int maxNumActiveThreads) : IPCBase(maxNumActiveThreads)
 {
+	tldata = new THREAD_DATA[MaxNumActiveThreads];
+	memMapping = new uint32_t[MaxNumActiveThreads];
+
 	// get a unique key
 	key_t key=ftok(ftokpath,ftok_id);
 	if ( key == (key_t)-1 )
@@ -42,7 +45,7 @@ Shm::Shm ()
 	}
 
 	// get a segment for this key. This key is shared with the JNI through common.h
-	int size = (COUNT+5) * sizeof(packet)*MaxNumThreads;
+	int size = (COUNT+5) * sizeof(packet)*MaxNumActiveThreads;
 	if ((shmid = shmget(key, size, 0666)) < 0) {
 		perror("shmget in pin ");
 		exit(1);
@@ -56,7 +59,7 @@ Shm::Shm ()
 
 	// initialise book-keeping variables for each of the threads
 	THREAD_DATA *myData;
-	for (int t=0; t<MaxNumThreads; t++) {
+	for (int t=0; t<MaxNumActiveThreads; t++) {
 		myData = &tldata[t];
 		myData->tlqsize = 0;
 		myData->in = 0;
@@ -71,8 +74,11 @@ Shm::Shm ()
 	isSubsetsimComplete = false;
 }
 
-Shm::Shm (uint64_t pid)
+Shm::Shm (uint64_t pid, int maxNumActiveThreads) : IPCBase(maxNumActiveThreads)
 {
+	tldata = new THREAD_DATA[MaxNumActiveThreads];
+	memMapping = new uint32_t[MaxNumActiveThreads];
+
 	// get a unique key
 	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
@@ -82,7 +88,7 @@ Shm::Shm (uint64_t pid)
 	}
 
 	// get a segment for this key. This key is shared with the JNI through common.h
-	int size = (COUNT+5) * sizeof(packet)*MaxNumThreads;
+	int size = (COUNT+5) * sizeof(packet)*MaxNumActiveThreads;
 	if ((shmid = shmget(key, size, 0666)) < 0) {
 		perror("shmget in pin ");
 		exit(1);
@@ -96,7 +102,7 @@ Shm::Shm (uint64_t pid)
 
 	// initialise book-keeping variables for each of the threads
 	THREAD_DATA *myData;
-	for (int t=0; t<MaxNumThreads; t++) {
+	for (int t=0; t<MaxNumActiveThreads; t++) {
 		myData = &tldata[t];
 		myData->tlqsize = 0;
 		myData->in = 0;
@@ -107,6 +113,8 @@ Shm::Shm (uint64_t pid)
 		myData->avail = 1;
 //		myData->tid = 0;
 	}
+
+	isSubsetsimComplete=false;
 }
 
 
@@ -150,7 +158,7 @@ void
 Shm::onThread_start (int tid)
 {
 	int i;
-	for(i=0;i<MaxNumThreads;i++){
+	for(i=0;i<MaxNumActiveThreads;i++){
 		if(tldata[i].avail == 1)
 		{
 			tldata[i].avail=0;
@@ -238,8 +246,8 @@ Shm::shmwrite (int tid, int last, long numCISC)
 	}
 
 	if(printIPTrace==true && pinTraceFile==NULL) {
-		pinTraceFile = new FILE*[MaxThreads];
-		for(int i=0; i<MaxThreads; i++) {
+		pinTraceFile = new FILE*[MaxNumActiveThreads];
+		for(int i=0; i<MaxNumActiveThreads; i++) {
 			char fileName[1000];
 			sprintf(fileName, "/mnt/srishtistr0/home/prathmesh/tmp/eldhoseDa%d", i);
 			pinTraceFile[i] = fopen(fileName, "w");
@@ -247,8 +255,8 @@ Shm::shmwrite (int tid, int last, long numCISC)
 	}
 
 	if(printIPTrace==true && numShmWritePackets==NULL) {
-		numShmWritePackets = new int[MaxThreads];
-		for(int i=0; i<MaxThreads; i++) {
+		numShmWritePackets = new int[MaxNumActiveThreads];
+		for(int i=0; i<MaxNumActiveThreads; i++) {
 			numShmWritePackets[i] = 0;
 		}
 	}
@@ -350,7 +358,7 @@ Shm::unload() {
 
 Shm::~Shm ()
 {
-	for (int t=0; t<MaxNumThreads; t++) {
+	for (int t=0; t<MaxNumActiveThreads; t++) {
 		delete tldata[t].tlq;
 	}
 	shmdt (tldata[0].shm);

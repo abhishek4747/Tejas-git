@@ -10,6 +10,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 import config.SimulationConfig;
+import config.SystemConfig;
 
 import emulatorinterface.communication.*;
 import generic.CircularPacketQueue;
@@ -70,14 +71,14 @@ public class MemMap extends IpcBase
 			free.acquire();	
 	
 			// if any thread has started and not finished then wait.
-			for (int i=0; i<MaxNumJavaThreads; i++) {
+			for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
 				if (javaThreadStarted[i] && !javaThreadTermination[i]) {
 					free.acquire();
 				}
 			}
 	
 			//inform threads which have not started about finish
-			for (int i=0; i<MaxNumJavaThreads; i++) {
+			for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
 				if (javaThreadStarted[i]==false) javaThreadTermination[i]=true;
 				//totalInstructions += numInstructions[i];
 			}
@@ -124,7 +125,7 @@ public class MemMap extends IpcBase
 
 
 		String name;
-		for (int i=0; i<MaxNumJavaThreads; i++){
+		for (int i=0; i<SystemConfig.maxNumJavaThreads; i++){
 			name = "thread"+Integer.toString(i);
 			javaThreadTermination[i]=false;
 			javaThreadStarted[i]=false;

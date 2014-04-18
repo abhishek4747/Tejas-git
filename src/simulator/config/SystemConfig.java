@@ -27,6 +27,10 @@ import generic.PortType;
 public class SystemConfig 
 {
 	public static int NoOfCores;
+	
+	public static int maxNumJavaThreads;
+	public static int numEmuThreadsPerJavaThread;	
+	
 	public static CoreConfig[] core; 
 	public static Hashtable<String, CacheConfig> declaredCaches;
 	public static int mainMemoryLatency;

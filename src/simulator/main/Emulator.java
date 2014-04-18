@@ -4,11 +4,15 @@ import java.io.File;
 
 import config.EmulatorConfig;
 import config.SimulationConfig;
+import config.SystemConfig;
 import emulatorinterface.communication.StreamGobbler;
 
 public class Emulator {
 	
 	private Process emulatorProcess;
+	
+	private boolean isStreamGobblerNeeded = true;
+	
 	StreamGobbler s1;
 	StreamGobbler s2;
 	
@@ -37,6 +41,7 @@ public class Emulator {
 
 		StringBuilder cmd = new StringBuilder(pin + // " -injection child "+
 				" -t " + pinInstrumentor +
+				" -maxNumActiveThreads " + (SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread) +
 				" -map " + SimulationConfig.MapEmuCores +
 				" -numIgn " + SimulationConfig.NumInsToIgnore +
 				" -numSim " + SimulationConfig.subsetSimSize +
@@ -73,10 +78,12 @@ public class Emulator {
 		Runtime rt = Runtime.getRuntime();
 		try {
 			emulatorProcess = rt.exec(cmd);
-			s1 = new StreamGobbler ("stdin", emulatorProcess.getInputStream ());
-			s2 = new StreamGobbler ("stderr", emulatorProcess.getErrorStream ());
-			s1.start ();
-			s2.start ();
+			if(isStreamGobblerNeeded==true) {
+				s1 = new StreamGobbler ("stdin", emulatorProcess.getInputStream ());
+				s2 = new StreamGobbler ("stderr", emulatorProcess.getErrorStream ());
+				s1.start ();
+				s2.start ();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			misc.Error.showErrorAndExit("Error in starting the emulator.\n" +
@@ -89,8 +96,10 @@ public class Emulator {
 	public void waitForEmulator() {
 		try {
 			emulatorProcess.waitFor();
-			s1.join();
-			s2.join();
+			if(isStreamGobblerNeeded==true) {
+				s1.join();
+				s2.join();
+			}
 		} catch (Exception e) { }
 	}
 	

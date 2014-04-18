@@ -30,7 +30,7 @@ Mmap::release_lock(packet *map) {
 }
 
 
-Mmap::Mmap ()
+Mmap::Mmap (int maxNumActiveThreads) : IPCBase(maxNumActiveThreads)
 {
 	//FILEPATH is shared through common.h
 	 fd = open (FILEPATH, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);

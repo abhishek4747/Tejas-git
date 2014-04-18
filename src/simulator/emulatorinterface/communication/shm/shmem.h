@@ -42,10 +42,10 @@ protected:
 	};
 
 public:
-	THREAD_DATA tldata[MaxThreads];
-	uint32_t memMapping[MaxThreads];
-	Shm();
-	Shm(uint64_t);
+	THREAD_DATA *tldata;
+	uint32_t *memMapping;
+	Shm(int maxNumThreads);
+	Shm(uint64_t, int maxNumThreads);
 	Shm (uint32_t count,uint32_t localQueue);
 	bool isSubsetsimCompleted(void);
 	bool setSubsetsimComplete(bool val);

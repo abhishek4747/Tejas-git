@@ -12,7 +12,7 @@
 
 // This must be equal to the MAXNUMTHREADS*EMUTHREADS in IPCBase.java file. This is
 // important so that we attach to the same sized memory segment
-#define MaxNumThreads	(64)
+//#define MaxNumThreads	(64)
 #define MaxThreads (10000)
 
 namespace IPC
@@ -22,8 +22,10 @@ class IPCBase
 {
 public:
 
+	int MaxNumActiveThreads;
+
 	// Initialise buffers or other stuffs related to IPC mechanisms
-	IPCBase(){}
+	IPCBase(int maxNumActiveThreads){MaxNumActiveThreads = maxNumActiveThreads;}
 
 	// Fill the packet struct when doing analysis and send to Java process. This is the
 	// most important function

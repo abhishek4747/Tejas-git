@@ -14,6 +14,8 @@ package emulatorinterface.communication;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
+import config.SystemConfig;
+
 import emulatorinterface.GlobalTable;
 import emulatorinterface.RunnableThread;
 import generic.CircularPacketQueue;
@@ -23,13 +25,13 @@ public abstract class IpcBase {
 
 	// Must ensure that MAXNUMTHREADS*EMUTHREADS == MaxNumThreads on the PIN side
 	// Do not move it to config file unless you can satisfy the first constraint
-	public static final int MaxNumJavaThreads = 1;
-	public static final int EmuThreadsPerJavaThread = 64; 
+	//public static final int MaxNumJavaThreads = 1;
+	//public static final int EmuThreadsPerJavaThread = 64; 
 //	public static int memMapping[] = new int[EmuThreadsPerJavaThread];
 
 	// state management for reader threads
-	public boolean[] javaThreadTermination = new boolean[MaxNumJavaThreads];
-	public boolean[] javaThreadStarted = new boolean[MaxNumJavaThreads];
+	public boolean[] javaThreadTermination;
+	public boolean[] javaThreadStarted;
 
 	// number of instructions read by each of the threads
 	// public long[] numInstructions = new long[MaxNumJavaThreads];
@@ -43,7 +45,10 @@ public abstract class IpcBase {
 	// Initialise structures and objects
 	public IpcBase () {
 		
-		for (int i=0; i<MaxNumJavaThreads; i++) {
+		javaThreadTermination = new boolean[SystemConfig.maxNumJavaThreads];
+		javaThreadStarted = new boolean[SystemConfig.maxNumJavaThreads];
+		
+		for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
 			javaThreadTermination[i]=false;
 			javaThreadStarted[i]=false;
 			//TODO not all cores are assigned to each thread
@@ -91,7 +96,7 @@ public abstract class IpcBase {
 			
 			int j=0;
 			// if any thread has started and not finished then wait.
-			for (int i=0; i<MaxNumJavaThreads; i++) {
+			for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
 				if (javaThreadStarted[i] && !javaThreadTermination[i]) {
 					free.acquire();
 					j++;
@@ -99,13 +104,13 @@ public abstract class IpcBase {
 			}
 			
 			//inform threads which have not started about finish
-			for (int i=0; i<MaxNumJavaThreads; i++) {
+			for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
 				if (javaThreadStarted[i]==false) {
 					javaThreadTermination[i]=true;
 				}
 			}
 			
-			for (; j<MaxNumJavaThreads-1; j++) {
+			for (; j<SystemConfig.maxNumJavaThreads-1; j++) {
 				free.acquire();
 			}
 		} catch (InterruptedException ioe) {
@@ -119,6 +124,6 @@ public abstract class IpcBase {
 	}
 
 	public static int getEmuThreadsPerJavaThread() {
-		return IpcBase.EmuThreadsPerJavaThread;
+		return SystemConfig.numEmuThreadsPerJavaThread;
 	}
 }
