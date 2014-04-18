@@ -33,6 +33,9 @@ public class Main {
 	public static volatile boolean statFileWritten = false;
 	
 	private static  String emulatorFile = " ";
+	
+	public static int pid;
+	public static IpcBase ipcBase;
 
 	
 	public static void main(String[] arguments)
@@ -71,13 +74,13 @@ public class Main {
 		Statistics.setCoreMemorySystem(ArchitecturalComponent.getCoreMemSysArray());
 		
 		//find pid
-		int pid = getMyPID();
+		getMyPID();
 				
 		System.out.println("Newmain : pid = " + pid);
 
 		// Start communication channel before starting emulator
 		// PS : communication channel must be started before starting the emulator
-		IpcBase ipcBase = startCommunicationChannel(pid);
+		ipcBase = startCommunicationChannel(pid);
 		
 		runners = new RunnableThread[SystemConfig.maxNumJavaThreads];
 		
@@ -257,8 +260,8 @@ public class Main {
 		return emulator;
 	}
 	
-	private static int getMyPID() {
-		int pid = -1;
+	private static void getMyPID() {
+		pid = -1;
 		try {
 			pid = Integer.parseInt( ( new File("/proc/self")).getCanonicalFile().getName() );
 		} catch (NumberFormatException e) {
@@ -268,8 +271,6 @@ public class Main {
 			e.printStackTrace();
 			misc.Error.showErrorAndExit("Eror in obtaining pid of java process");
 		}
-		
-		return pid;
 	}
 
 	public static String getEmulatorFile() {

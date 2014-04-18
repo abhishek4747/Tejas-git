@@ -16,10 +16,10 @@ public class PipelineTests {
 	static GenericCircularQueue<Instruction> inputToPipeline;
 	static final int INSTRUCTION_THRESHOLD = 2000;
 
-	public static void setUpBeforeClass() {
+	public static void setUpBeforeClass(String configFile) {
 		
 		// Parse the command line arguments
-		XMLParser.parse("/home/raj/workspace2/Tejas/src/simulator/config/config.xml");
+		XMLParser.parse(configFile);
 		
 		//initialize object pools
 		Main.initializeObjectPools();
@@ -42,8 +42,6 @@ public class PipelineTests {
 	 * simulates a sequence of intALU instructions that have no data dependencies
 	 */
 	public static void minimumDataDependencies() {
-		
-		setUpBeforeClass();
 		
 		//generate instruction sequence
 		Instruction newInst;
@@ -78,8 +76,6 @@ public class PipelineTests {
 	 */
 	public static void maximumDataDependencies() {
 		
-		setUpBeforeClass();
-		
 		//generate instruction sequence
 		Instruction newInst;
 		for(int i = 0; i < 100; i++)
@@ -105,8 +101,6 @@ public class PipelineTests {
 	 * simulates a sequence of floatDiv instructions, with no data dependencies
 	 */
 	public static void structuralHazards() {
-		
-		setUpBeforeClass();
 		
 		//generate instruction sequence
 		Instruction newInst;
@@ -141,8 +135,6 @@ public class PipelineTests {
 	 */
 	public static void renameTest() {
 		
-		setUpBeforeClass();
-		
 		//generate instruction sequence
 		Instruction newInst;
 		for(int i = 0; i < 100; i++)
@@ -166,7 +158,10 @@ public class PipelineTests {
 	
 	public static void main(String[] arguments)
 	{
-		int testType = Integer.parseInt(arguments[0]);
+		String configFile = arguments[0]; 
+		int testType = Integer.parseInt(arguments[1]);
+		
+		setUpBeforeClass(configFile);
 		
 		switch(testType)
 		{

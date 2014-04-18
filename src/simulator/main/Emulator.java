@@ -106,19 +106,25 @@ public class Emulator {
 	public void forceKill() {
 		emulatorProcess.destroy();
 		
+		Main.ipcBase.finish();
+		
 		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
 			//System.err.println(errorMessage);
 			Process process;
-			String cmd[] = {"/bin/sh",
-				      "-c",
-				      "killall -9 " + Main.getEmulatorFile()
+			String cmd[] = {"/bin/bash",
+				      EmulatorConfig.KillEmulatorScript,
+				      String.valueOf(Main.pid)
 			};
 	
 			try 
 			{
 				process = Runtime.getRuntime().exec(cmd);
-				int ret = process.waitFor();
-				System.out.println("ret : " + ret);
+				StreamGobbler s1 = new StreamGobbler ("stdin", process.getInputStream ());
+				StreamGobbler s2 = new StreamGobbler ("stderr", process.getErrorStream ());
+				s1.start ();
+				s2.start ();
+				System.out.println("killing emulator process");
+				process.waitFor();
 			} 
 			catch (Exception e) 
 			{

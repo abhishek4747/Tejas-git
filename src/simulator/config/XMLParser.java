@@ -125,6 +125,7 @@ public class XMLParser
 		EmulatorConfig.PinInstrumentor = getImmediateString("PinInstrumentor", emulatorElmnt);
 		EmulatorConfig.QemuTool = getImmediateString("QemuTool", emulatorElmnt);
 		EmulatorConfig.ShmLibDirectory = getImmediateString("ShmLibDirectory", emulatorElmnt);
+		EmulatorConfig.KillEmulatorScript = getImmediateString("KillEmulatorScript", emulatorElmnt);
 	}
 	
 	private static void setSimulationParameters()
