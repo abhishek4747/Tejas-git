@@ -26,7 +26,7 @@
 		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
 		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
-		<KillEmulatorScript>/mnt/srishtistr0/home/aakriti/workspace_nuca/Tejas1/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
+		<KillEmulatorScript>/mnt/srishtistr0/home/raj/workspace/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
 	</Emulator>
 	
 	<!--Simulation Parameters-->
