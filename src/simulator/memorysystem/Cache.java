@@ -146,13 +146,13 @@ public class Cache extends SimulationElement
 			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
 			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
 			{
-				missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 500, this.containingMemSys.core.eventQueue);
+				missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, this.containingMemSys.core.eventQueue);
 			}
 			else
 			{
 				if(SimulationConfig.nucaType == NucaType.NONE) 
 				{
-					missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 40000, null);
+					missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, null);
 				}
 			}
 			this.nucaType = NucaType.NONE;
@@ -333,13 +333,28 @@ public class Cache extends SimulationElement
 			
 			else if (event.getRequestType() == RequestType.MSHR_Full)
 			{
+							
 				// Reset the requestType to actualRequestType
 				event.setRequestType(((AddressCarryingEvent)event).actualRequestType);
-				((AddressCarryingEvent)event).actualRequestType = null;
+     			((AddressCarryingEvent)event).actualRequestType = null;
+				((AddressCarryingEvent)event).setProcessingElement(((AddressCarryingEvent)event).actualProcessingElement);
+				((AddressCarryingEvent)event).actualProcessingElement = null;
 				Cache processingCache = (Cache)event.getProcessingElement();
-				if (processingCache.addEvent((AddressCarryingEvent)event) == false)
-				{
+				event.setEventTime(event.getEventTime()-GlobalClock.getCurrentTime());
+				
+				if (processingCache.addEvent((AddressCarryingEvent)event) == false) {
 					missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent)event);
+				} else {
+					/*System.out.println("*******MSHR_Full_Cleared******** : gloT = " + GlobalClock.getCurrentTime() + 
+							"\tevT = " + event.getEventTime() + "\t" + event.getRequestType() +
+							"\tmshr = " + this.missStatusHoldingRegister.getCurrentSize() +
+							//"\tID = " + event.privateSerializationID +
+							"\tset-addr = " + (((AddressCarryingEvent)event).getAddress()>>6) +
+							"\treqEle = " + event.getRequestingElement() +
+							"\taddr = " + ((AddressCarryingEvent)event).getAddress() + 
+							"\t" + this);
+					*/
+					missStatusHoldingRegister.removeMshrFullEvent((AddressCarryingEvent)event);
 				}
 			}
 		}

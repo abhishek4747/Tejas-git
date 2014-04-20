@@ -16,6 +16,8 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	public long event_id;
 	
 	public RequestType actualRequestType;
+	
+	public SimulationElement actualProcessingElement;
 	public int hopLength;
 
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,

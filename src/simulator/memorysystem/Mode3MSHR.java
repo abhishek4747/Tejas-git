@@ -121,6 +121,14 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		}
 	}
 	
+	public void removeMshrFullEvent( AddressCarryingEvent eventToBeSent)
+	{
+		OMREntry omrEntry =  getMshrEntry(eventToBeSent.getAddress());
+		if(omrEntry!=null) {
+			omrEntry.eventToForward = null;
+		}
+	}
+	
 	@Override
 	public boolean removeRequestsByRequestTypeAndAddress(AddressCarryingEvent addrevent)
 	{
@@ -174,17 +182,44 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	@Override
 	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent)
 	{
-		OMREntry omrEntry =  getMshrEntry(eventToBeSent.getAddress());
-		if(omrEntry.eventToForward != null)
-		{
-			return;
+		// System.out.println("Entered handle lower mshr");
+		/*
+		 * System.out.println("_______MSHR_Full________ : glolT = " +
+		 * GlobalClock.getCurrentTime() + "\tevT = " +
+		 * eventToBeSent.getEventTime() + "\t" + eventToBeSent.getRequestType()
+		 * + "\tset-addr = " +
+		 * (((AddressCarryingEvent)eventToBeSent).getAddress()>>6) + "\t" +
+		 * eventToBeSent.getRequestingElement());
+		 */
+		eventToBeSent.setEventTime(eventToBeSent.getEventTime()
+				+ GlobalClock.getCurrentTime());
+		// System.out.println("\t after adding time, evT " +
+		// eventToBeSent.getEventTime());
+		OMREntry omrEntry = getMshrEntry(eventToBeSent.getAddress());
+		// System.out.println("MSHR_Full_OMREntry : " + omrEntry);
+
+		if (omrEntry == null) {
+			addOutstandingRequest(eventToBeSent);
+			omrEntry = getMshrEntry(eventToBeSent.getAddress());
 		}
+
+		if (omrEntry.eventToForward != null) {
+			// System.out.println("MSHR_Full_EventToForwardAlreadyThere : " +
+			// omrEntry.eventToForward);
+			// return;
+		}
+
 		omrEntry.eventToForward = eventToBeSent;
-		
+
 		// Try in the next cycle
+		eventToBeSent.actualProcessingElement = eventToBeSent
+				.getProcessingElement();
+		eventToBeSent
+				.setProcessingElement(eventToBeSent.getRequestingElement());
+
 		eventToBeSent.actualRequestType = eventToBeSent.getRequestType();
 		eventToBeSent.setRequestType(RequestType.MSHR_Full);
-		eventToBeSent.setEventTime(eventToBeSent.getEventTime() +1);
+		eventToBeSent.setEventTime(eventToBeSent.getEventTime() + 1);
 		eventToBeSent.getEventQ().addEvent(eventToBeSent);
 	}
 	

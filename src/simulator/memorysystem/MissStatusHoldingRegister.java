@@ -41,4 +41,6 @@ public interface MissStatusHoldingRegister {
 	public boolean containsWriteOfEvictedLine(long address);
 	
 	public void dump();
+	
+	public void removeMshrFullEvent(AddressCarryingEvent event);
 }
