@@ -84,14 +84,6 @@ public class LSQEntry
 			System.out.println("entry already valid");
 		}
 		this.valid = valid;
-		
-//		if(valid == true &&
-//				(robEntry.isOperand1Available() == false ||
-//						robEntry.isOperand2Available() == false ||
-//						robEntry.getIssued() == false))
-//		{
-//			System.out.println("i'm setting valid to true, even before the core has issued the load/store");
-//		}
 	}
 
 	public boolean isIssued() {
@@ -114,14 +106,6 @@ public class LSQEntry
 		}
 		
 		this.forwarded = forwarded;
-		
-//		if(forwarded == true &&
-//				(robEntry.isOperand1Available() == false ||
-//						robEntry.isOperand2Available() == false ||
-//						robEntry.getIssued() == false))
-//		{
-//			System.out.println("i'm setting forwarded to true, even before the core has issued the load/store");
-//		}
 	}
 	
 	protected boolean isRemoved() {

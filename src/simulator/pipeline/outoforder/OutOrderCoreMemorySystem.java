@@ -50,8 +50,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
 	{
-		//if (!MemorySystem.bypassLSQ) XXX:Seems redundant. If execution reaches here, bypassLSQ must be false
-			robEntry.setLsqEntry(lsqueue.addEntry(isLoad, address, robEntry));
+		robEntry.setLsqEntry(lsqueue.addEntry(isLoad, address, robEntry));
 	}
 	
 	//To issue the request to LSQ
@@ -102,13 +101,6 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 			misc.Error.showErrorAndExit("Unable to add event to l1 cache's MSHR !!" + 
 					"\nevent = " + addressEvent + 
 					"\nl1Cache = " + this.l1Cache);
-		}
-		else
-		{
-			if(addressEvent.getRequestType() == RequestType.Cache_Write)
-			{
-				//L1MissStatusHoldingRegister.removeEvent(addressEvent);
-			}
 		}
 		
 		return true;

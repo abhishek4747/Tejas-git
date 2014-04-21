@@ -73,7 +73,6 @@ public class MemUnitIn_MII extends SimulationElement{
 				{
 					if(!SimulationConfig.detachMemSys)
 					{
-						//System.out.println(" store issue at time  "+ GlobalClock.getCurrentTime() +" for address " + ins.getSourceOperand1().getValue());
 						boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Write,
 								ins.getSourceOperand1MemValue());

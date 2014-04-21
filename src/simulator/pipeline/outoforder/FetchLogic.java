@@ -33,7 +33,6 @@ public class FetchLogic extends SimulationElement {
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
 		this.core = core;
 		this.execEngine = execEngine;
-		//iCacheBuffer = execEngine.getiCacheBuffer();
 		fetchBuffer = execEngine.getFetchBuffer();
 		fetchWidth = core.getDecodeWidth();
 		inputPipeToReadNext = 0;

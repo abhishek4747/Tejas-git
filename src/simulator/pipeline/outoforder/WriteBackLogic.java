@@ -72,21 +72,6 @@ public class WriteBackLogic extends SimulationElement {
 				{
 					WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getDestinationOperand().getOperandType(), buffer[i].getPhysicalDestinationRegister(), buffer[i].getThreadID(), (buffer[i].pos + 1)%ROB.MaxROBSize);
 				}
-				/*if(buffer[i].getInstruction().getDestinationOperand() != null && buffer[i].getInstruction().getDestinationOperand().getOperandType() == OperandType.machineSpecificRegister)
-				{
-					WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getDestinationOperand().getOperandType(), buffer[i].getPhysicalDestinationRegister(), buffer[i].getThreadID(), (buffer[i].pos + 1)%ROB.MaxROBSize);
-				}
-				if(buffer[i].getInstruction().getOperationType() == OperationType.xchg)
-				{
-					if(buffer[i].getInstruction().getSourceOperand1().getOperandType() == OperandType.machineSpecificRegister)
-					{
-						WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getSourceOperand1().getOperandType(), buffer[i].getOperand1PhyReg1(), buffer[i].getThreadID(), (buffer[i].pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(buffer[i]) + 1) % ROB.MaxROBSize);
-					}
-					if(buffer[i].getInstruction().getSourceOperand2().getOperandType() == OperandType.machineSpecificRegister)
-					{
-						WakeUpLogic.wakeUpLogic(core, buffer[i].getInstruction().getSourceOperand2().getOperandType(), buffer[i].getOperand2PhyReg1(), buffer[i].getThreadID(), (buffer[i].pos + 1)%ROB.MaxROBSize);//(ROB.indexOf(buffer[i]) + 1) % ROB.MaxROBSize);
-					}
-				}*/
 				
 				
 				//set value valid in register file, and

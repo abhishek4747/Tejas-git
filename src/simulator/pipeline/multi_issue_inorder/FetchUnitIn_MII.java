@@ -125,6 +125,8 @@ public class FetchUnitIn_MII extends SimulationElement
 		if(!this.fetchBufferStatus[this.fetchBufferIndex])
 			containingExecutionEngine.incrementInstructionMemStall(1); 
 
+		//move to the IF-ID latch those instructions that have completed
+		//fetch from the i-cache
 		while(!this.sleep && this.fetchFillCount > 0
 				&& this.fetchBufferStatus[this.fetchBufferIndex]
 				&& this.ifId_latch.isFull() == false)
@@ -205,6 +207,7 @@ public class FetchUnitIn_MII extends SimulationElement
 					}
 			}
 		
+		//remove micro-ops from inputToPipeline and issue request to the i-cache
 		fillFetchBuffer(inorderPipeline);
 	}
 	

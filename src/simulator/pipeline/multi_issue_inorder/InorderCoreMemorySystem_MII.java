@@ -25,7 +25,6 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 	public boolean issueRequestToL1Cache(RequestType requestType, 
 											long address)
 	{
-//		System.out.println("dataCache : " + address);
 		MultiIssueInorderPipeline inorderPipeline = (MultiIssueInorderPipeline)core.getPipelineInterface();
 
 		int tlbMissPenalty = performDTLBLookup(address, inorderPipeline);
@@ -68,7 +67,6 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 	//To issue the request to instruction cache
 	public void issueRequestToInstrCache(long address)
 	{
-//		System.out.println("iCache : " + address);
 		MultiIssueInorderPipeline inorderPipeline = (MultiIssueInorderPipeline)core.getPipelineInterface();
 		
 		int tlbMissPenalty = performITLBLookup(address, inorderPipeline);
@@ -131,7 +129,6 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		//if response comes from l1Cache, inform memunit
 		else if(memResponse.getRequestingElement() == l1Cache)
 		{
-			//TODO currently handling only reads
 			// L1MissStatusHoldingRegister.removeRequestsByAddress(memResponse);
 			containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
 		}
