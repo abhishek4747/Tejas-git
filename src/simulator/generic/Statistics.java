@@ -135,8 +135,8 @@ public class Statistics {
 			outputFileWriter.write("Number of handled CISC instructions\t=\t" + totalHandledCISCInsn + "\n");
 			outputFileWriter.write("Number of PIN CISC instructions\t=\t" + totalPINCISCInsn + "\n");
 			
-			outputFileWriter.write("Static coverage\t\t=\t" + staticCoverage + " %\n");
-			outputFileWriter.write("Dynamic Coverage\t=\t" + dynamicCoverage + " %\n");
+			outputFileWriter.write("Static coverage\t\t=\t" + formatDouble(staticCoverage) + " %\n");
+			outputFileWriter.write("Dynamic Coverage\t=\t" + formatDouble(dynamicCoverage) + " %\n");
 			outputFileWriter.write("\n");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -179,8 +179,8 @@ public class Statistics {
 			outputFileWriter.write("[Timing Statistics]\n");
 			outputFileWriter.write("\n");
 			outputFileWriter.write("Total Cycles taken\t\t=\t" + maxCoreCycles + "\n\n");
-			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalNumMicroOps/maxCoreCycles + "\t\tin terms of micro-ops\n");
-			outputFileWriter.write("Total IPC\t\t=\t" + (double)totalHandledCISCInsn/maxCoreCycles + "\t\tin terms of CISC instructions\n\n");
+			outputFileWriter.write("Total IPC\t\t=\t" + formatDouble((double)totalNumMicroOps/maxCoreCycles) + "\t\tin terms of micro-ops\n");
+			outputFileWriter.write("Total IPC\t\t=\t" + formatDouble((double)totalHandledCISCInsn/maxCoreCycles) + "\t\tin terms of CISC instructions\n\n");
 			
 			for(int i = 0; i < SystemConfig.NoOfCores; i++)
 			{
@@ -199,22 +199,22 @@ public class Statistics {
 				//FIXME will work only if java thread is 1
 				if(SimulationConfig.pinpointsSimulation == false)
 				{
-					outputFileWriter.write("IPC\t\t=\t" + (double)noOfMicroOps[0][i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
-					outputFileWriter.write("IPC\t\t=\t" + (double)numHandledCISCInsn[0][i]/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+					outputFileWriter.write("IPC\t\t=\t" + formatDouble((double)noOfMicroOps[0][i]/coreCyclesTaken[i]) + "\t\tin terms of micro-ops\n");
+					outputFileWriter.write("IPC\t\t=\t" + formatDouble((double)numHandledCISCInsn[0][i]/coreCyclesTaken[i]) + "\t\tin terms of CISC instructions\n");
 				}
 				else
 				{
-					outputFileWriter.write("IPC\t\t=\t" + (double)numCoreInstructions[i]/coreCyclesTaken[i] + "\t\tin terms of micro-ops\n");
-					outputFileWriter.write("IPC\t\t=\t" + (double)3000000/coreCyclesTaken[i] + "\t\tin terms of CISC instructions\n");
+					outputFileWriter.write("IPC\t\t=\t" + formatDouble((double)numCoreInstructions[i]/coreCyclesTaken[i]) + "\t\tin terms of micro-ops\n");
+					outputFileWriter.write("IPC\t\t=\t" + formatDouble((double)3000000/coreCyclesTaken[i]) + "\t\tin terms of CISC instructions\n");
 				}
 				
 				outputFileWriter.write("core frequency\t=\t" + coreFrequencies[i] + " MHz\n");
-				outputFileWriter.write("time taken\t=\t" + (double)coreCyclesTaken[i]/coreFrequencies[i] + " microseconds\n");
+				outputFileWriter.write("time taken\t=\t" + formatDouble((double)coreCyclesTaken[i]/coreFrequencies[i]) + " microseconds\n");
 				outputFileWriter.write("\n");
 				
 				outputFileWriter.write("number of branches\t=\t" + branchCount[i] + "\n");
 				outputFileWriter.write("number of mispredicted branches\t=\t" + mispredictedBranchCount[i] + "\n");
-				outputFileWriter.write("branch predictor accuracy\t=\t" + (double)((double)(branchCount[i]-mispredictedBranchCount[i])*100/branchCount[i]) + " %\n");
+				outputFileWriter.write("branch predictor accuracy\t=\t" + formatDouble((double)((double)(branchCount[i]-mispredictedBranchCount[i])*100/branchCount[i])) + " %\n");
 				outputFileWriter.write("\n");
 				
 				outputFileWriter.write("predictor type = " + coreConfig.branchPredictor.predictorMode + "\n");
@@ -475,8 +475,8 @@ public class Statistics {
 
 			if (noOfL2Requests != 0)
 			{
-				outputFileWriter.write("L2 Hit-Rate\t=\t" + (float)(noOfL2Hits)/noOfL2Requests + "\n");
-				outputFileWriter.write("L2 Miss-Rate\t=\t" + (float)(noOfL2Misses)/noOfL2Requests + "\n");
+				outputFileWriter.write("L2 Hit-Rate\t=\t" + formatDouble((float)(noOfL2Hits)/noOfL2Requests) + "\n");
+				outputFileWriter.write("L2 Miss-Rate\t=\t" + formatDouble((float)(noOfL2Misses)/noOfL2Requests) + "\n");
 			}
 			
 			
@@ -537,8 +537,8 @@ public class Statistics {
 				outputFileWriter.write("Directory Entries\t=\t" + numOfDirEntries + "\n");
 				if (noOfDirHits+noOfDirMisses != 0)
 				{
-					outputFileWriter.write("Directory Hit-Rate\t=\t" + (float)(noOfDirHits)/(noOfDirHits+noOfDirMisses) + "\n");
-					outputFileWriter.write("Directory Miss-Rate\t=\t" + (float)(noOfDirMisses)/(noOfDirHits+noOfDirMisses) + "\n");
+					outputFileWriter.write("Directory Hit-Rate\t=\t" + formatDouble((float)(noOfDirHits)/(noOfDirHits+noOfDirMisses)) + "\n");
+					outputFileWriter.write("Directory Miss-Rate\t=\t" + formatDouble((float)(noOfDirMisses)/(noOfDirHits+noOfDirMisses)) + "\n");
 				
 				}
 			}
@@ -575,8 +575,8 @@ public class Statistics {
 				}
 				outputFileWriter.write("Total Directory Hits\t=\t" + totalDirHits + "\n");
 				outputFileWriter.write("Total Directory Misses\t=\t" + totalDirMisses + "\n");
-				outputFileWriter.write("Total Directory Hit-Rate\t=\t" + (float)(totalDirHits)/(totalDirHits+totalDirMisses) + "\n");
-				outputFileWriter.write("Total Directory Miss-Rate\t=\t" + (float)(totalDirMisses)/(totalDirHits+totalDirMisses) + "\n");
+				outputFileWriter.write("Total Directory Hit-Rate\t=\t" + formatDouble((float)(totalDirHits)/(totalDirHits+totalDirMisses)) + "\n");
+				outputFileWriter.write("Total Directory Miss-Rate\t=\t" + formatDouble((float)(totalDirMisses)/(totalDirHits+totalDirMisses)) + "\n");
 
 			}
 				
@@ -700,8 +700,8 @@ public class Statistics {
 	{
 		outputFileWriter.write("\n\n" + cacheStr + " Hits\t=\t" + hits);
 		outputFileWriter.write("\n" + cacheStr + " Misses\t=\t" + misses);
-		outputFileWriter.write("\n" + cacheStr + " Hit-Rate\t=\t" + (double)hits/(double)(hits+misses));
-		outputFileWriter.write("\n" + cacheStr + " Miss-Rate\t=\t" + (double)misses/(double)(hits+misses));
+		outputFileWriter.write("\n" + cacheStr + " Hit-Rate\t=\t" + formatDouble((double)hits/(double)(hits+misses)));
+		outputFileWriter.write("\n" + cacheStr + " Miss-Rate\t=\t" + formatDouble((double)misses/(double)(hits+misses)));
 	}
 	
 	//Simulation time
@@ -753,9 +753,9 @@ public class Statistics {
 			outputFileWriter.write("Time Taken\t\t=\t" + minutes + " : " + seconds + " minutes\n");
 			
 			outputFileWriter.write("Instructions per Second\t=\t" + 
-					(double)totalNumMicroOps/simulationTime + " KIPS\t\tin terms of micro-ops\n");
+					formatDouble((double)totalNumMicroOps/simulationTime) + " KIPS\t\tin terms of micro-ops\n");
 			outputFileWriter.write("Instructions per Second\t=\t" + 
-					(double)totalHandledCISCInsn/simulationTime + " KIPS\t\tin terms of CISC instructions\n");
+					formatDouble((double)totalHandledCISCInsn/simulationTime) + " KIPS\t\tin terms of CISC instructions\n");
 			
 			outputFileWriter.write("\n");
 		}
@@ -1338,6 +1338,11 @@ public class Statistics {
 	}
 	public static long getNumCISCInsn(int javaTid, int tidEmu) {
 		return numCISCInsn[javaTid][tidEmu];
+	}
+	
+	public static String formatDouble(double d)
+	{
+		return String.format("%.4f", d);
 	}
 	
 }
