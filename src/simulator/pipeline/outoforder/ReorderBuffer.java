@@ -16,6 +16,7 @@ import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
+import generic.PinPointsProcessing;
 import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
@@ -184,7 +185,7 @@ public class ReorderBuffer extends SimulationElement{
 						}
 						else
 						{
-							Statistics.processEndOfSlice();
+							PinPointsProcessing.processEndOfSlice();
 						}
 					}
 					
@@ -374,11 +375,6 @@ public class ReorderBuffer extends SimulationElement{
 	public void setTimingStatistics()
 	{
 		core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());
-		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
-		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
-		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
-		Statistics.setBranchCount(branchCount, core.getCore_number());
-		Statistics.setMispredictedBranchCount(mispredCount, core.getCore_number());
 		
 		System.out.println(core.getCore_number());
 		System.out.println(core.getCore_number()+" IW full : " + stall1Count);
@@ -391,18 +387,9 @@ public class ReorderBuffer extends SimulationElement{
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(execEngine.getCoreMemorySystem().getLsqueue().noOfMemRequests, core.getCore_number());
-		Statistics.setNoOfLoads(execEngine.getCoreMemorySystem().getLsqueue().NoOfLd, core.getCore_number());
-		Statistics.setNoOfStores(execEngine.getCoreMemorySystem().getLsqueue().NoOfSt, core.getCore_number());
-		Statistics.setNoOfValueForwards(execEngine.getCoreMemorySystem().getLsqueue().NoOfForwards, core.getCore_number());
-		
-//		Statistics.setNoOfTLBRequests(execEngine.getCoreMemorySystem().getTLBuffer().getTlbRequests(), core.getCore_number());
+		//		Statistics.setNoOfTLBRequests(execEngine.getCoreMemorySystem().getTLBuffer().getTlbRequests(), core.getCore_number());
 //		Statistics.setNoOfTLBHits(execEngine.getCoreMemorySystem().getTLBuffer().getTlbHits(), core.getCore_number());
 //		Statistics.setNoOfTLBMisses(execEngine.getCoreMemorySystem().getTLBuffer().getTlbMisses(), core.getCore_number());
-		
-		Statistics.setNoOfL1Requests(execEngine.getCoreMemorySystem().getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(execEngine.getCoreMemorySystem().getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(execEngine.getCoreMemorySystem().getL1Cache().misses, core.getCore_number());
 		
 //		Statistics.setNoOfIRequests(execEngine.getCoreMemorySystem().getiCache().noOfRequests, core.getCore_number());
 //		Statistics.setNoOfIHits(execEngine.getCoreMemorySystem().getiCache().hits, core.getCore_number());

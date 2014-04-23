@@ -169,4 +169,24 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 						robEntry));
 	}
 
+	@Override
+	public long getNumberOfMemoryRequests() {
+		return getLsqueue().noOfMemRequests;
+	}
+
+	@Override
+	public long getNumberOfLoads() {
+		return getLsqueue().NoOfLd;
+	}
+
+	@Override
+	public long getNumberOfStores() {
+		return getLsqueue().NoOfSt;
+	}
+
+	@Override
+	public long getNumberOfValueForwardings() {
+		return getLsqueue().NoOfForwards;
+	}
+
 }

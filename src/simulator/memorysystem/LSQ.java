@@ -40,10 +40,10 @@ public class LSQ extends SimulationElement
 	public int lsqSize;
 	protected int curSize;
 		
-	public int noOfMemRequests = 0;
-	public int NoOfLd = 0;
-	public int NoOfSt = 0;
-	public int NoOfForwards = 0; // Total number of forwards made by the LSQ
+	public long noOfMemRequests = 0;
+	public long NoOfLd = 0;
+	public long NoOfSt = 0;
+	public long NoOfForwards = 0; // Total number of forwards made by the LSQ
 	
 	long numAccesses;
 	

@@ -145,4 +145,12 @@ public abstract class CoreMemorySystem extends SimulationElement
 	public Core getCore() {
 		return core;
 	}
+	
+	public abstract long getNumberOfMemoryRequests();
+	
+	public abstract long getNumberOfLoads();
+	
+	public abstract long getNumberOfStores();
+	
+	public abstract long getNumberOfValueForwardings();
 }

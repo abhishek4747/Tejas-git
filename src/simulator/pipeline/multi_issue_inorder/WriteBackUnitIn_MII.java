@@ -16,6 +16,7 @@ import generic.GlobalClock;
 import generic.Operand;
 import generic.OperandType;
 import generic.OperationType;
+import generic.PinPointsProcessing;
 import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
@@ -71,7 +72,7 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 						}
 						else
 						{
-							Statistics.processEndOfSlice();
+							PinPointsProcessing.processEndOfSlice();
 						}
 					}
 				}

@@ -300,4 +300,14 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		
 		return totalPower;
 	}
+
+	@Override
+	public long getNumberOfBranches() {
+		return reorderBuffer.branchCount;
+	}
+
+	@Override
+	public long getNumberOfMispredictedBranches() {
+		return reorderBuffer.mispredCount;
+	}
 }

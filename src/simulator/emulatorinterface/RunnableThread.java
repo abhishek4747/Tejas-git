@@ -470,8 +470,6 @@ public class RunnableThread implements Encoding, Runnable {
 					currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
 					cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
 					
-					Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
-					
 				}
 				for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
 					prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
@@ -491,8 +489,6 @@ public class RunnableThread implements Encoding, Runnable {
 						currentCore = pipelineInterfaces[tidEmu].getCore();
 						currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
 						cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
-						
-						Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
 						
 				}
 				for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
@@ -562,8 +558,6 @@ public class RunnableThread implements Encoding, Runnable {
 							currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
 							cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
 							
-							Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
-							
 						}
 						for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
 							prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
@@ -584,8 +578,6 @@ public class RunnableThread implements Encoding, Runnable {
 								currentCore = pipelineInterfaces[tidEmu].getCore();
 								currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
 								cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
-								
-								Statistics.setCoreFrequencies(currentCore.getFrequency(), currentCore.getCore_number());
 								
 						}
 						for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){

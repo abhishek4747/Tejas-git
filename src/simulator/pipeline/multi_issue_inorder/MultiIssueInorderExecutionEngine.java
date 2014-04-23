@@ -32,9 +32,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 	private boolean executionComplete;
 	private boolean fetchComplete;
 	public InorderCoreMemorySystem_MII multiIssueInorderCoreMemorySystem;
-	private long noOfMemRequests;
-	private long noOfLd;
-	private long noOfSt;
+	public long noOfMemRequests;
+	public long noOfLd;
+	public long noOfSt;
 	private long memStall;
 	private long dataHazardStall;
 	public long l2memres;
@@ -159,10 +159,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 	
 	public void setTimingStatistics()
 	{
-		Statistics.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize(), core.getCore_number());
-		Statistics.setCoreFrequencies(core.getFrequency(), core.getCore_number());
-		Statistics.setNumCoreInstructions(core.getNoOfInstructionsExecuted(), core.getCore_number());
-		
 		System.out.println("Mem Stalls = "+getMemStall());
 		System.out.println("Data Hazard Stalls = "+getDataHazardStall());
 		System.out.println("Instruction Mem Stalls = "+getInstructionMemStall());
@@ -171,25 +167,13 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		Statistics.setNoOfMemRequests(getNoOfMemRequests(), core.getCore_number());
-		Statistics.setNoOfLoads(getNoOfLd(), core.getCore_number());
-		Statistics.setNoOfStores(getNoOfSt(), core.getCore_number());
-		
 //		Statistics.setNoOfTLBRequests(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbRequests(), core.getCore_number());
 //		Statistics.setNoOfTLBHits(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbHits(), core.getCore_number());
 //		Statistics.setNoOfTLBMisses(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbMisses(), core.getCore_number());
 		
-		Statistics.setNoOfL1Requests(multiIssueInorderCoreMemorySystem.getL1Cache().noOfRequests, core.getCore_number());
-		Statistics.setNoOfL1Hits(multiIssueInorderCoreMemorySystem.getL1Cache().hits, core.getCore_number());
-		Statistics.setNoOfL1Misses(multiIssueInorderCoreMemorySystem.getL1Cache().misses, core.getCore_number());
-		
 //		Statistics.setNoOfIRequests(multiIssueInorderCoreMemorySystem.getiCache().noOfRequests, core.getCore_number());
 //		Statistics.setNoOfIHits(multiIssueInorderCoreMemorySystem.getiCache().hits, core.getCore_number());
 //		Statistics.setNoOfIMisses(multiIssueInorderCoreMemorySystem.getiCache().misses, core.getCore_number());
-		
-		Statistics.setBranchCount(decodeUnitIn.getNumBranches(), core.getCore_number());
-		Statistics.setMispredictedBranchCount(decodeUnitIn.getNumMispredictedBranches(), core.getCore_number());
-		
 		
 		if(SimulationConfig.collectInsnWorkingSetInfo==true) {
 			setInsWorkingSetStats();
@@ -228,18 +212,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 			core.getCore_number());
 		Statistics.setNumDataWorkingSetMisses(multiIssueInorderCoreMemorySystem.getL1Cache().numWorkingSetMisses, 
 			core.getCore_number());
-	}
-
-	public long getNoOfSt() {
-		return noOfSt;
-	}
-
-	public long getNoOfLd() {
-		return noOfLd;
-	}
-
-	public long getNoOfMemRequests() {
-		return noOfMemRequests;
 	}
 
 	public void updateNoOfLd(int i) {
@@ -369,5 +341,15 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		totalPower.printPowerStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
+	}
+
+	@Override
+	public long getNumberOfBranches() {
+		return decodeUnitIn.numBranches;
+	}
+
+	@Override
+	public long getNumberOfMispredictedBranches() {
+		return decodeUnitIn.numMispredictedBranches;
 	}
 }

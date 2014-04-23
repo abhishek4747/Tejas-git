@@ -109,6 +109,10 @@ public abstract class ExecutionEngine {
 		return branchPredictor;
 	}
 	
+	public abstract long getNumberOfBranches();
+	
+	public abstract long getNumberOfMispredictedBranches();
+	
 	public abstract PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException;
 	
 }

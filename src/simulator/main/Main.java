@@ -71,8 +71,6 @@ public class Main {
 		// initialize cores, memory, tokenBus
 		initializeArchitecturalComponents();
 		
-		Statistics.setCoreMemorySystem(ArchitecturalComponent.getCoreMemSysArray());
-		
 		//find pid
 		getMyPID();
 				
