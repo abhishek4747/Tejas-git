@@ -39,7 +39,7 @@ public class Emulator {
 			pin = new StringBuilder(pinTool + "/pin");
 		}
 
-		StringBuilder cmd = new StringBuilder(pin + // " -injection child "+
+		StringBuilder cmd = new StringBuilder(pin +  " -injection child "+
 				" -t " + pinInstrumentor +
 				" -maxNumActiveThreads " + (SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread) +
 				" -map " + SimulationConfig.MapEmuCores +

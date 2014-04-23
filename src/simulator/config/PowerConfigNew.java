@@ -1,6 +1,7 @@
 package config;
 
 import generic.GlobalClock;
+import generic.Statistics;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class PowerConfigNew {
 	}
 
 	public void printPowerStats(FileWriter outputFileWriter, String componentName) throws IOException {
-		outputFileWriter.write(componentName + "\t" + leakagePower + "\t" + dynamicPower 
-				+ "\t" + (leakagePower + dynamicPower) + "\t" + numAccesses + "\n");
+		outputFileWriter.write(componentName + "\t" + Statistics.formatDouble(leakagePower) + "\t" + Statistics.formatDouble(dynamicPower) 
+				+ "\t" + Statistics.formatDouble((leakagePower + dynamicPower)) + "\t" + numAccesses + "\n");
 	}
 }
