@@ -2,13 +2,34 @@ package generic;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.Enumeration;
 
 import main.ArchitecturalComponent;
+import memorysystem.Cache;
 import memorysystem.MemorySystem;
 
 import config.Interconnect;
 import config.SimulationConfig;
 import config.SystemConfig;
+
+/*
+ * the config file is used to specify if pinpoints simulation is to be used
+ * a sample pinpoints file is of the form :
+ * 2 0.17 0.166667
+ * 5 0.33 0.333333
+ * 12 0.5 0.5
+ * 
+ * this file is sent to PIN when the simulation begins. the first column refers
+ * to slice number, and the second and third columns give the weight in different
+ * precisions. note that the slice numbers must be in ascending order.
+ * 
+ * each slice is 3000000 CISC (x86) instructions long. so PIN would send to the java
+ * process the packets corresponding to instructions 6000001 - 9000000,
+ * 15000001 - 18000000 and 36000001 - 3900000.
+ * 
+ *  the java process will simulate these slices and apply the appropriate weights
+ *  to all statistics
+ */
 
 public class PinPointsProcessing {
 	
@@ -24,12 +45,15 @@ public class PinPointsProcessing {
 	static long noOfLoads[];
 	static long noOfStores[];
 	static long noOfValueForwards[];
-	static long noOfTLBRequests[];
-	static long noOfTLBHits[];
-	static long noOfTLBMisses[];
-	static long noOfL1Requests[];
-	static long noOfL1Hits[];
-	static long noOfL1Misses[];
+	static long noOfiTLBRequests[];
+	static long noOfiTLBHits[];
+	static long noOfiTLBMisses[];
+	static long noOfdTLBRequests[];
+	static long noOfdTLBHits[];
+	static long noOfdTLBMisses[];
+	static long noOfCacheRequests[];
+	static long noOfCacheHits[];
+	static long noOfCacheMisses[];
 	static long noOfL2Requests;
 	static long noOfL2Hits;
 	static long noOfL2Misses;
@@ -48,26 +72,31 @@ public class PinPointsProcessing {
 	static long tempnoOfLoads[];
 	static long tempnoOfStores[];
 	static long tempnoOfValueForwards[];
-	static long tempnoOfTLBRequests[];
-	static long tempnoOfTLBHits[];
-	static long tempnoOfTLBMisses[];
-	static long tempnoOfL1Requests[];
-	static long tempnoOfL1Hits[];
-	static long tempnoOfL1Misses[];
+	static long tempnoOfiTLBRequests[];
+	static long tempnoOfiTLBHits[];
+	static long tempnoOfiTLBMisses[];
+	static long tempnoOfdTLBRequests[];
+	static long tempnoOfdTLBHits[];
+	static long tempnoOfdTLBMisses[];
+	static long tempnoOfCacheRequests[];
+	static long tempnoOfCacheHits[];
+	static long tempnoOfCacheMisses[];
 	static long tempnoOfL2Requests;
 	static long tempnoOfL2Hits;
 	static long tempnoOfL2Misses;
-	static long tempnoOfIRequests[];
-	static long tempnoOfIHits[];
-	static long tempnoOfIMisses[];
 	static long tempnoOfDirHits;
 	static long tempnoOfDirMisses;
 	static long tempnoOfDirDataForwards;
 	static long tempnoOfDirInvalidations;
 	static long tempnoOfDirWritebacks;
 	
-	static void initialize()
+	public static void initialize()
 	{
+		if(SimulationConfig.pinpointsSimulation == false)
+		{
+			return;
+		}
+		
 		FileReader pinpointsFileReader = null;
 		BufferedReader pinpointsBufferedReader = null;
 		int numberOfSlices = 0;
@@ -113,12 +142,15 @@ public class PinPointsProcessing {
 		noOfLoads = new long[SystemConfig.NoOfCores];
 		noOfStores = new long[SystemConfig.NoOfCores];
 		noOfValueForwards = new long[SystemConfig.NoOfCores];
-		noOfTLBRequests = new long[SystemConfig.NoOfCores];
-		noOfTLBHits = new long[SystemConfig.NoOfCores];
-		noOfTLBMisses = new long[SystemConfig.NoOfCores];
-		noOfL1Requests = new long[SystemConfig.NoOfCores];
-		noOfL1Hits = new long[SystemConfig.NoOfCores];
-		noOfL1Misses = new long[SystemConfig.NoOfCores];
+		noOfiTLBRequests = new long[SystemConfig.NoOfCores];
+		noOfiTLBHits = new long[SystemConfig.NoOfCores];
+		noOfiTLBMisses = new long[SystemConfig.NoOfCores];
+		noOfdTLBRequests = new long[SystemConfig.NoOfCores];
+		noOfdTLBHits = new long[SystemConfig.NoOfCores];
+		noOfdTLBMisses = new long[SystemConfig.NoOfCores];
+		noOfCacheRequests = new long[SystemConfig.NoOfCores];
+		noOfCacheHits = new long[SystemConfig.NoOfCores];
+		noOfCacheMisses = new long[SystemConfig.NoOfCores];
 
 		tempcoreCyclesTaken = new long[SystemConfig.NoOfCores];
 		tempnumCoreInstructions = new long[SystemConfig.NoOfCores];
@@ -129,19 +161,24 @@ public class PinPointsProcessing {
 		tempnoOfLoads = new long[SystemConfig.NoOfCores];
 		tempnoOfStores = new long[SystemConfig.NoOfCores];
 		tempnoOfValueForwards = new long[SystemConfig.NoOfCores];
-		tempnoOfTLBRequests = new long[SystemConfig.NoOfCores];
-		tempnoOfTLBHits = new long[SystemConfig.NoOfCores];
-		tempnoOfTLBMisses = new long[SystemConfig.NoOfCores];
-		tempnoOfL1Requests = new long[SystemConfig.NoOfCores];
-		tempnoOfL1Hits = new long[SystemConfig.NoOfCores];
-		tempnoOfL1Misses = new long[SystemConfig.NoOfCores];
-		tempnoOfIRequests = new long[SystemConfig.NoOfCores];
-		tempnoOfIHits = new long[SystemConfig.NoOfCores];
-		tempnoOfIMisses = new long[SystemConfig.NoOfCores];
+		tempnoOfiTLBRequests = new long[SystemConfig.NoOfCores];
+		tempnoOfiTLBHits = new long[SystemConfig.NoOfCores];
+		tempnoOfiTLBMisses = new long[SystemConfig.NoOfCores];
+		tempnoOfdTLBRequests = new long[SystemConfig.NoOfCores];
+		tempnoOfdTLBHits = new long[SystemConfig.NoOfCores];
+		tempnoOfdTLBMisses = new long[SystemConfig.NoOfCores];
+		tempnoOfCacheRequests = new long[SystemConfig.NoOfCores];
+		tempnoOfCacheHits = new long[SystemConfig.NoOfCores];
+		tempnoOfCacheMisses = new long[SystemConfig.NoOfCores];
 	}
 	
 	public static void processEndOfSlice()
 	{
+		if(SimulationConfig.pinpointsSimulation == false)
+		{
+			return;
+		}
+		
 		Core core;
 		
 		if(currentSlice < weightsArray.length)
@@ -167,50 +204,101 @@ public class PinPointsProcessing {
 				coreFrequencies[i] = core.getFrequency();
 				numCoreInstructions[i] += (long) (core.getNoOfInstructionsExecuted() - tempnumCoreInstructions[i]) * weightsArray[currentSlice];
 				tempnumCoreInstructions[i] = core.getNoOfInstructionsExecuted();
-				branchCount[i] += (long) (core.getPipelineInterface().getBranchCount() - tempbranchCount[i]) * weightsArray[currentSlice];
-				tempbranchCount[i] = core.getPipelineInterface().getBranchCount();
-				mispredictedBranchCount[i] += (long) (core.getPipelineInterface().getMispredCount() - tempmispredictedBranchCount[i]) * weightsArray[currentSlice];
-				tempmispredictedBranchCount[i] = core.getPipelineInterface().getMispredCount();
+				branchCount[i] += (long) (core.getExecEngine().getNumberOfBranches() - tempbranchCount[i]) * weightsArray[currentSlice];
+				tempbranchCount[i] = core.getExecEngine().getNumberOfBranches();
+				mispredictedBranchCount[i] += (long) (core.getExecEngine().getNumberOfMispredictedBranches() - tempmispredictedBranchCount[i]) * weightsArray[currentSlice];
+				tempmispredictedBranchCount[i] = core.getExecEngine().getNumberOfMispredictedBranches();
 				
-				noOfMemRequests[i] += (long) (core.getPipelineInterface().getNoOfMemRequests() - tempnoOfMemRequests[i]) * weightsArray[currentSlice];
-				tempnoOfMemRequests[i] = core.getPipelineInterface().getNoOfMemRequests();
-				noOfLoads[i] += (long) (core.getPipelineInterface().getNoOfLoads() - tempnoOfLoads[i]) * weightsArray[currentSlice];
-				tempnoOfLoads[i] = core.getPipelineInterface().getNoOfLoads();
-				noOfStores[i] += (long) (core.getPipelineInterface().getNoOfStores() - tempnoOfStores[i]) * weightsArray[currentSlice];
-				tempnoOfStores[i] = core.getPipelineInterface().getNoOfStores();
-				noOfValueForwards[i] += (long) (core.getPipelineInterface().getNoOfValueForwards() - tempnoOfValueForwards[i]) * weightsArray[currentSlice];
-				tempnoOfValueForwards[i] = core.getPipelineInterface().getNoOfValueForwards();
-				//TODO split into iTLB and dTLB
-				noOfTLBRequests[i] += (long) (core.getPipelineInterface().getNoOfTLBRequests() - tempnoOfTLBRequests[i]) * weightsArray[currentSlice];
-				tempnoOfTLBRequests[i] = core.getPipelineInterface().getNoOfTLBRequests();
-				noOfTLBHits[i] += (long) (core.getPipelineInterface().getNoOfTLBHits() - tempnoOfTLBHits[i]) * weightsArray[currentSlice];
-				tempnoOfTLBHits[i] = core.getPipelineInterface().getNoOfTLBHits();
-				noOfTLBMisses[i] += (long) (core.getPipelineInterface().getNoOfTLBMisses() - tempnoOfTLBMisses[i]) * weightsArray[currentSlice];
-				tempnoOfTLBMisses[i] = core.getPipelineInterface().getNoOfTLBMisses();
-				noOfL1Requests[i] += (long) (core.getPipelineInterface().getNoOfL1Requests() - tempnoOfL1Requests[i]) * weightsArray[currentSlice];
-				tempnoOfL1Requests[i] = core.getPipelineInterface().getNoOfL1Requests();
-				noOfL1Hits[i] += (long) (core.getPipelineInterface().getNoOfL1Hits() - tempnoOfL1Hits[i]) * weightsArray[currentSlice];
-				tempnoOfL1Hits[i] = core.getPipelineInterface().getNoOfL1Hits();
-				noOfL1Misses[i] += (long) (core.getPipelineInterface().getNoOfL1Misses() - tempnoOfL1Misses[i]) * weightsArray[currentSlice];
-				tempnoOfL1Misses[i] = core.getPipelineInterface().getNoOfL1Misses();
+				noOfMemRequests[i] += (long) (core.getExecEngine().getCoreMemorySystem().getNumberOfMemoryRequests() - tempnoOfMemRequests[i]) * weightsArray[currentSlice];
+				tempnoOfMemRequests[i] = core.getExecEngine().getCoreMemorySystem().getNumberOfMemoryRequests();
+				noOfLoads[i] += (long) (core.getExecEngine().getCoreMemorySystem().getNumberOfLoads() - tempnoOfLoads[i]) * weightsArray[currentSlice];
+				tempnoOfLoads[i] = core.getExecEngine().getCoreMemorySystem().getNumberOfLoads();
+				noOfStores[i] += (long) (core.getExecEngine().getCoreMemorySystem().getNumberOfStores() - tempnoOfStores[i]) * weightsArray[currentSlice];
+				tempnoOfStores[i] = core.getExecEngine().getCoreMemorySystem().getNumberOfStores();
+				noOfValueForwards[i] += (long) (core.getExecEngine().getCoreMemorySystem().getNumberOfValueForwardings() - tempnoOfValueForwards[i]) * weightsArray[currentSlice];
+				tempnoOfValueForwards[i] = core.getExecEngine().getCoreMemorySystem().getNumberOfValueForwardings();
 				
-				if(SystemConfig.interconnect == Interconnect.Bus)
-				{
-					noOfDirHits = (long) ((MemorySystem.getDirectoryCache().hits - tempnoOfDirHits) * weightsArray[currentSlice]);
-					tempnoOfDirHits = MemorySystem.getDirectoryCache().hits;
-					noOfDirMisses = (long) ((MemorySystem.getDirectoryCache().misses - tempnoOfDirMisses) * weightsArray[currentSlice]);
-					tempnoOfDirMisses = MemorySystem.getDirectoryCache().misses;
-					noOfDirInvalidations = (long) ((MemorySystem.getDirectoryCache().getInvalidations() - tempnoOfDirInvalidations) * weightsArray[currentSlice]);
-					tempnoOfDirInvalidations = MemorySystem.getDirectoryCache().getInvalidations();
-					noOfDirDataForwards = (long) ((MemorySystem.getDirectoryCache().getDataForwards() - tempnoOfDirDataForwards) * weightsArray[currentSlice]);
-					tempnoOfDirDataForwards = MemorySystem.getDirectoryCache().getDataForwards();
-					noOfDirWritebacks = (long) ((MemorySystem.getDirectoryCache().getWritebacks() - tempnoOfDirWritebacks) * weightsArray[currentSlice]);
-					tempnoOfDirWritebacks = MemorySystem.getDirectoryCache().getWritebacks();
-				}
+				noOfiTLBRequests[i] += (long) (core.getExecEngine().getCoreMemorySystem().getiTLB().getTlbRequests() - tempnoOfiTLBRequests[i]) * weightsArray[currentSlice];
+				tempnoOfiTLBRequests[i] = core.getExecEngine().getCoreMemorySystem().getiTLB().getTlbRequests();
+				noOfiTLBHits[i] += (long) (core.getExecEngine().getCoreMemorySystem().getiTLB().getTlbHits() - tempnoOfiTLBHits[i]) * weightsArray[currentSlice];
+				tempnoOfiTLBHits[i] = core.getExecEngine().getCoreMemorySystem().getiTLB().getTlbHits();
+				noOfiTLBMisses[i] += (long) (core.getExecEngine().getCoreMemorySystem().getiTLB().getTlbMisses() - tempnoOfiTLBMisses[i]) * weightsArray[currentSlice];
+				tempnoOfiTLBMisses[i] = core.getExecEngine().getCoreMemorySystem().getiTLB().getTlbMisses();
+				noOfdTLBRequests[i] += (long) (core.getExecEngine().getCoreMemorySystem().getdTLB().getTlbRequests() - tempnoOfdTLBRequests[i]) * weightsArray[currentSlice];
+				tempnoOfdTLBRequests[i] = core.getExecEngine().getCoreMemorySystem().getdTLB().getTlbRequests();
+				noOfdTLBHits[i] += (long) (core.getExecEngine().getCoreMemorySystem().getdTLB().getTlbHits() - tempnoOfdTLBHits[i]) * weightsArray[currentSlice];
+				tempnoOfdTLBHits[i] = core.getExecEngine().getCoreMemorySystem().getdTLB().getTlbHits();
+				noOfdTLBMisses[i] += (long) (core.getExecEngine().getCoreMemorySystem().getdTLB().getTlbMisses() - tempnoOfdTLBMisses[i]) * weightsArray[currentSlice];
+				tempnoOfdTLBMisses[i] = core.getExecEngine().getCoreMemorySystem().getdTLB().getTlbMisses();
+			}
+			
+			int i = 0;
+			for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+			{
+				String cacheName = cacheNameSet.nextElement();
+				Cache cache = MemorySystem.getCacheList().get(cacheName);
+				
+				noOfCacheRequests[i] += (long) (cache.hits + cache.misses - tempnoOfCacheRequests[i]) * weightsArray[currentSlice];
+				tempnoOfCacheRequests[i] = cache.hits + cache.misses;
+				noOfCacheHits[i] += (long) (cache.hits - tempnoOfCacheHits[i]) * weightsArray[currentSlice];
+				tempnoOfCacheHits[i] = cache.hits;
+				noOfCacheMisses[i] += (long) (cache.misses - tempnoOfCacheMisses[i]) * weightsArray[currentSlice];
+				tempnoOfCacheMisses[i] = cache.misses;
+				
+				i++;
 			}
 		}
 		
 		currentSlice++;
+	}
+	
+	public static void windup()
+	{
+		if(SimulationConfig.pinpointsSimulation == false)
+		{
+			return;
+		}
+		
+		Core core;
+		
+		for(int i = 0; i < ArchitecturalComponent.getCores().length; i++)
+		{
+			core = ArchitecturalComponent.getCores()[i];
+			
+			if(core.getNoOfInstructionsExecuted() == 0)
+			{
+				continue;
+			}
+			
+			core.setCoreCyclesTaken(coreCyclesTaken[i]);
+			core.setNoOfInstructionsExecuted(numCoreInstructions[i]);
+			core.getExecEngine().setNumberOfBranches(branchCount[i]);
+			core.getExecEngine().setNumberOfMispredictedBranches(mispredictedBranchCount[i]);
+			
+			core.getExecEngine().getCoreMemorySystem().setNumberOfMemoryRequests(noOfMemRequests[i]);
+			core.getExecEngine().getCoreMemorySystem().setNumberOfLoads(noOfLoads[i]);
+			core.getExecEngine().getCoreMemorySystem().setNumberOfStores(noOfStores[i]);
+			core.getExecEngine().getCoreMemorySystem().setNumberOfValueForwardings(noOfValueForwards[i]);
+			
+			core.getExecEngine().getCoreMemorySystem().getiTLB().setTlbRequests(noOfiTLBRequests[i]);
+			core.getExecEngine().getCoreMemorySystem().getiTLB().setTlbHits(noOfiTLBHits[i]);
+			core.getExecEngine().getCoreMemorySystem().getiTLB().setTlbMisses(noOfiTLBMisses[i]);
+			core.getExecEngine().getCoreMemorySystem().getdTLB().setTlbRequests(noOfdTLBRequests[i]);
+			core.getExecEngine().getCoreMemorySystem().getdTLB().setTlbHits(noOfdTLBHits[i]);
+			core.getExecEngine().getCoreMemorySystem().getdTLB().setTlbMisses(noOfdTLBMisses[i]);
+		}
+		
+		int i = 0;
+		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		{
+			String cacheName = cacheNameSet.nextElement();
+			Cache cache = MemorySystem.getCacheList().get(cacheName);
+			
+			cache.hits = noOfCacheHits[i];
+			cache.misses = noOfCacheMisses[i];
+			
+			i++;
+		}
 	}
 	
 	public static void toProcessEndOfSlice(long numHandledCISCInsn) 

@@ -35,9 +35,9 @@ public class TLB extends SimulationElement
 	protected Hashtable<Long, TLBEntry> TLBuffer;
 	protected int TLBSize; //Number of entries
 	protected double timestamp;
-	protected int tlbRequests = 0;
-	protected int tlbHits = 0;
-	protected int tlbMisses = 0;
+	protected long tlbRequests = 0;
+	protected long tlbHits = 0;
+	protected long tlbMisses = 0;
 	private int memoryPenalty;
 	
 	private long noOfAccesses = 0;
@@ -203,16 +203,28 @@ public class TLB extends SimulationElement
 //		return entryAlreadyThere;
 //	}
 	
-	public int getTlbHits() {
+	public long getTlbHits() {
 		return tlbHits;
 	}
+	
+	public void setTlbHits(long hits) {
+		tlbHits = hits;
+	}
 
-	public int getTlbMisses() {
+	public long getTlbMisses() {
 		return tlbMisses;
 	}
+
+	public void setTlbMisses(long misses) {
+		tlbMisses = misses;
+	}
 	
-	public int getTlbRequests() {
+	public long getTlbRequests() {
 		return tlbRequests;
+	}
+	
+	public void setTlbRequests(long requests) {
+		tlbRequests = requests;
 	}
 
 	public void handleEvent(EventQueue eventQ, Event event)

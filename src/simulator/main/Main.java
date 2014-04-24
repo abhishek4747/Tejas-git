@@ -21,6 +21,7 @@ import emulatorinterface.communication.network.Network;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.Operand;
+import generic.PinPointsProcessing;
 import generic.Statistics;
 
 
@@ -55,6 +56,8 @@ public class Main {
 		
 		// Initialize the statistics
 		Statistics.initStatistics();
+		
+		PinPointsProcessing.initialize();
 		
 		initializeObjectPools();
 		
@@ -130,6 +133,9 @@ public class Main {
 		}
 
 		endTime = System.currentTimeMillis();
+		
+		PinPointsProcessing.windup();
+		
 		Statistics.printAllStatistics(getEmulatorFile(), startTime, endTime);
 		statFileWritten = true;
 		

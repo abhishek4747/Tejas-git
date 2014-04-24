@@ -1075,12 +1075,12 @@ public class Statistics {
 		return numCISCInsn[javaTid][tidEmu];
 	}
 	
-	static String formatFloat(float f)
+	public static String formatFloat(float f)
 	{
 		return String.format("%.4f", f);
 	}
 	
-	static String formatDouble(double d)
+	public static String formatDouble(double d)
 	{
 		return String.format("%.4f", d);
 	}

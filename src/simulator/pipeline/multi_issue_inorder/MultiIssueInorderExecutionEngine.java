@@ -2,9 +2,6 @@ package pipeline.multi_issue_inorder;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-
-import config.CoreConfig;
 import config.PowerConfigNew;
 import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
@@ -14,8 +11,6 @@ import generic.Core;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.Operand;
-import generic.OperationType;
 import generic.Statistics;
 
 public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
@@ -351,5 +346,15 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 	@Override
 	public long getNumberOfMispredictedBranches() {
 		return decodeUnitIn.numMispredictedBranches;
+	}
+
+	@Override
+	public void setNumberOfBranches(long numBranches) {
+		decodeUnitIn.numBranches = numBranches;
+	}
+
+	@Override
+	public void setNumberOfMispredictedBranches(long numMispredictedBranches) {
+		decodeUnitIn.numMispredictedBranches = numMispredictedBranches;
 	}
 }

@@ -2,8 +2,6 @@ package pipeline.outoforder;
 
 import java.io.FileWriter;
 import java.io.IOException;
-
-import config.CoreConfig;
 import config.PowerConfigNew;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
@@ -309,5 +307,15 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	@Override
 	public long getNumberOfMispredictedBranches() {
 		return reorderBuffer.mispredCount;
+	}
+
+	@Override
+	public void setNumberOfBranches(long numBranches) {
+		reorderBuffer.branchCount = numBranches;
+	}
+
+	@Override
+	public void setNumberOfMispredictedBranches(long numMispredictedBranches) {
+		reorderBuffer.mispredCount = numMispredictedBranches;
 	}
 }
