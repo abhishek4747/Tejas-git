@@ -196,4 +196,24 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		return getLsqueue().NoOfForwards;
 	}
 
+	@Override
+	public void setNumberOfMemoryRequests(long numMemoryRequests) {
+		getLsqueue().noOfMemRequests = numMemoryRequests;
+	}
+
+	@Override
+	public void setNumberOfLoads(long numLoads) {
+		getLsqueue().NoOfLd = numLoads;
+	}
+
+	@Override
+	public void setNumberOfStores(long numStores) {
+		getLsqueue().NoOfSt = numStores;
+	}
+
+	@Override
+	public void setNumberOfValueForwardings(long numValueForwardings) {
+		getLsqueue().NoOfForwards = numValueForwardings;
+	}
+
 }

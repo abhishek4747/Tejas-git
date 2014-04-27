@@ -166,4 +166,24 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		return 0;
 	}
 
+	@Override
+	public void setNumberOfMemoryRequests(long numMemoryRequests) {
+		containingExecEngine.noOfMemRequests = numMemoryRequests;
+	}
+
+	@Override
+	public void setNumberOfLoads(long numLoads) {
+		containingExecEngine.noOfLd = numLoads;
+	}
+
+	@Override
+	public void setNumberOfStores(long numStores) {
+		containingExecEngine.noOfSt = numStores;
+	}
+
+	@Override
+	public void setNumberOfValueForwardings(long numValueForwardings) {
+		
+	}
+
 }
