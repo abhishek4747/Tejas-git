@@ -3,7 +3,7 @@ package pipeline.outoforder;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 
 import generic.Event;
 import generic.EventQueue;
@@ -253,29 +253,29 @@ public class RenameTable extends SimulationElement{
 		numFreeListAccesses += incrementBy;
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew RATpower = null;
-		PowerConfigNew freeListPower = null;
+		EnergyConfig RATpower = null;
+		EnergyConfig freeListPower = null;
 		
 		if(execEngine.getIntegerRenameTable() == this)
 		{
-			RATpower = new PowerConfigNew(execEngine.getContainingCore().getIntRATPower(), numRATAccesses);
-			freeListPower = new PowerConfigNew(execEngine.getContainingCore().getIntFreeListPower(), numFreeListAccesses);
+			RATpower = new EnergyConfig(execEngine.getContainingCore().getIntRATPower(), numRATAccesses);
+			freeListPower = new EnergyConfig(execEngine.getContainingCore().getIntFreeListPower(), numFreeListAccesses);
 		}
 		else
 		{
-			RATpower = new PowerConfigNew(execEngine.getContainingCore().getFpRATPower(), numRATAccesses);
-			freeListPower = new PowerConfigNew(execEngine.getContainingCore().getFpFreeListPower(), numFreeListAccesses);
+			RATpower = new EnergyConfig(execEngine.getContainingCore().getFpRATPower(), numRATAccesses);
+			freeListPower = new EnergyConfig(execEngine.getContainingCore().getFpFreeListPower(), numFreeListAccesses);
 		}
 		
-		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		EnergyConfig totalPower = new EnergyConfig(0, 0);
 		totalPower.add(RATpower);
 		totalPower.add(freeListPower);
 		
-		RATpower.printPowerStats(outputFileWriter, componentName + ".RAT");
-		freeListPower.printPowerStats(outputFileWriter, componentName + ".FreeList");
-		totalPower.printPowerStats(outputFileWriter, componentName);
+		RATpower.printEnergyStats(outputFileWriter, componentName + ".RAT");
+		freeListPower.printEnergyStats(outputFileWriter, componentName + ".FreeList");
+		totalPower.printEnergyStats(outputFileWriter, componentName);
 		
 		return totalPower;
 	}

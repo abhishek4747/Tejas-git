@@ -31,7 +31,7 @@ package pipeline.branchpredictor;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 
 import pipeline.ExecutionEngine;
 import generic.Core;
@@ -69,10 +69,10 @@ public abstract class BranchPredictor {
   */
 public abstract  boolean predict(long address, boolean outcome);
 
-public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 {
-	PowerConfigNew power = new PowerConfigNew(containingExecutionEngine.getContainingCore().getbPredPower(), numAccesses);
-	power.printPowerStats(outputFileWriter, componentName);
+	EnergyConfig power = new EnergyConfig(containingExecutionEngine.getContainingCore().getbPredPower(), numAccesses);
+	power.printEnergyStats(outputFileWriter, componentName);
 	return power;
 }
 

@@ -44,9 +44,9 @@ import net.Router;
 import net.NOC.CONNECTIONTYPE;
 
 import config.CacheConfig;
-import config.CachePowerConfig;
+import config.CacheEnergyConfig;
 import config.Interconnect;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SystemConfig;
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
@@ -77,7 +77,7 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 	private long timestamp=0;
 	public static int networkDelay;
 	
-	CachePowerConfig power;
+	CacheEnergyConfig power;
 	
 	public CentralizedDirectoryCache(String cacheName, int id, CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores, 
 			int networkDelay) 
@@ -855,11 +855,11 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew newPower = new PowerConfigNew(power.leakagePower, power.readDynamicPower);
-		PowerConfigNew power = new PowerConfigNew(newPower, (directoryHits+directoryMisses));
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig newPower = new EnergyConfig(power.leakageEnergy, power.readDynamicEnergy);
+		EnergyConfig power = new EnergyConfig(newPower, (directoryHits+directoryMisses));
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 

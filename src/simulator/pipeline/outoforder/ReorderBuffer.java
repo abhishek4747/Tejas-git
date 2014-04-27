@@ -7,7 +7,7 @@ import main.CustomObjectPool;
 import memorysystem.MemorySystem;
 import memorysystem.directory.CentralizedDirectoryCache;
 import config.Interconnect;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 import generic.Core;
@@ -522,10 +522,10 @@ public class ReorderBuffer extends SimulationElement{
 		numAccesses += incrementBy;
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(core.getRobPower(), numAccesses);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(core.getRobPower(), numAccesses);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 

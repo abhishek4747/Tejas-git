@@ -23,7 +23,7 @@ package memorysystem;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 
 import memorysystem.LSQEntry.LSQEntryType;
 import pipeline.outoforder.OutOrderCoreMemorySystem;
@@ -505,10 +505,10 @@ public class LSQ extends SimulationElement
 		numAccesses += incrementBy;
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(containingMemSys.core.getLsqPower(), numAccesses);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(containingMemSys.core.getLsqPower(), numAccesses);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 }

@@ -54,6 +54,6 @@ public class SystemConfig
 	//Clock Gating Style
 	public static int dirNetworkDelay;
 	public static Interconnect interconnect;
-	public static PowerConfigNew  mainMemoryControllerPower;
-	public static PowerConfigNew  globalClockPower;
+	public static EnergyConfig  mainMemoryControllerPower;
+	public static EnergyConfig  globalClockPower;
 }

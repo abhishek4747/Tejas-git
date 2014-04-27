@@ -9,7 +9,7 @@ import memorysystem.CoreMemorySystem;
 
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SystemConfig;
 
 public class GlobalClock {
@@ -243,14 +243,14 @@ public class GlobalClock {
 		GlobalClock.stepSize = stepSize;
 	}
 	
-	public static PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public static EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		double leakagePower = SystemConfig.globalClockPower.leakagePower;
-		double dynamicPower = SystemConfig.globalClockPower.dynamicPower;
+		double leakagePower = SystemConfig.globalClockPower.leakageEnergy;
+		double dynamicPower = SystemConfig.globalClockPower.dynamicEnergy;
 		
-		PowerConfigNew power = new PowerConfigNew(leakagePower, dynamicPower);
+		EnergyConfig power = new EnergyConfig(leakagePower, dynamicPower);
 		
-		power.printPowerStats(outputFileWriter, componentName);
+		power.printEnergyStats(outputFileWriter, componentName);
 		
 		return power;
 	}

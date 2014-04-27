@@ -2,7 +2,7 @@ package pipeline.outoforder;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import generic.Core;
@@ -260,41 +260,41 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		this.fetcher.setICacheBuffer(iCacheBuffer);
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		EnergyConfig totalPower = new EnergyConfig(0, 0);
 		
-		PowerConfigNew bPredPower =  getBranchPredictor().calculateAndPrintPower(outputFileWriter, componentName + ".bPred");
+		EnergyConfig bPredPower =  getBranchPredictor().calculateAndPrintEnergy(outputFileWriter, componentName + ".bPred");
 		totalPower.add(totalPower, bPredPower);
 		
-		PowerConfigNew decodePower =  getDecoder().calculateAndPrintPower(outputFileWriter, componentName + ".decode");
+		EnergyConfig decodePower =  getDecoder().calculateAndPrintEnergy(outputFileWriter, componentName + ".decode");
 		totalPower.add(totalPower, decodePower);
 		
-		PowerConfigNew renamePower =  getRenamer().calculateAndPrintPower(outputFileWriter, componentName + ".rename");
+		EnergyConfig renamePower =  getRenamer().calculateAndPrintEnergy(outputFileWriter, componentName + ".rename");
 		totalPower.add(totalPower, renamePower);
 		
-		PowerConfigNew lsqPower =  getCoreMemorySystem().getLsqueue().calculateAndPrintPower(outputFileWriter, componentName + ".LSQ");
+		EnergyConfig lsqPower =  getCoreMemorySystem().getLsqueue().calculateAndPrintEnergy(outputFileWriter, componentName + ".LSQ");
 		totalPower.add(totalPower, lsqPower);
 		
-		PowerConfigNew intRegFilePower =  getIntegerRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".intRegFile");
+		EnergyConfig intRegFilePower =  getIntegerRegisterFile().calculateAndPrintEnergy(outputFileWriter, componentName + ".intRegFile");
 		totalPower.add(totalPower, intRegFilePower);
 		
-		PowerConfigNew floatRegFilePower =  getFloatingPointRegisterFile().calculateAndPrintPower(outputFileWriter, componentName + ".floatRegFile");
+		EnergyConfig floatRegFilePower =  getFloatingPointRegisterFile().calculateAndPrintEnergy(outputFileWriter, componentName + ".floatRegFile");
 		totalPower.add(totalPower, floatRegFilePower);
 		
-		PowerConfigNew iwPower =  getInstructionWindow().calculateAndPrintPower(outputFileWriter, componentName + ".InstrWindow");
+		EnergyConfig iwPower =  getInstructionWindow().calculateAndPrintEnergy(outputFileWriter, componentName + ".InstrWindow");
 		totalPower.add(totalPower, iwPower);
 		
-		PowerConfigNew robPower =  getReorderBuffer().calculateAndPrintPower(outputFileWriter, componentName + ".ROB");
+		EnergyConfig robPower =  getReorderBuffer().calculateAndPrintEnergy(outputFileWriter, componentName + ".ROB");
 		totalPower.add(totalPower, robPower);
 		
-		PowerConfigNew fuPower =  getFunctionalUnitSet().calculateAndPrintPower(outputFileWriter, componentName + ".FuncUnit");
+		EnergyConfig fuPower =  getFunctionalUnitSet().calculateAndPrintEnergy(outputFileWriter, componentName + ".FuncUnit");
 		totalPower.add(totalPower, fuPower);
 		
-		PowerConfigNew resultsBroadcastBusPower =  getExecuter().calculateAndPrintPower(outputFileWriter, componentName + ".resultsBroadcastBus");
+		EnergyConfig resultsBroadcastBusPower =  getExecuter().calculateAndPrintEnergy(outputFileWriter, componentName + ".resultsBroadcastBus");
 		totalPower.add(totalPower, resultsBroadcastBusPower);
 		
-		totalPower.printPowerStats(outputFileWriter, componentName + ".total");
+		totalPower.printEnergyStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
 	}

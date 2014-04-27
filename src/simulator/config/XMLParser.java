@@ -320,21 +320,21 @@ public class XMLParser
 
 	}
 	
-	private static PowerConfigNew getPowerConfig(Element parent)
+	private static EnergyConfig getEnergyConfig(Element parent)
 	{
-		double leakagePower = Double.parseDouble(getImmediateString("LeakagePower", parent));
-		double dynamicPower = Double.parseDouble(getImmediateString("DynamicPower", parent));
+		double leakageEnergy = Double.parseDouble(getImmediateString("LeakageEnergy", parent));
+		double dynamicEnergy = Double.parseDouble(getImmediateString("DynamicEnergy", parent));
 		
-		PowerConfigNew powerConfig = new PowerConfigNew(leakagePower, dynamicPower);
-		return powerConfig;
+		EnergyConfig energyConfig = new EnergyConfig(leakageEnergy, dynamicEnergy);
+		return energyConfig;
 	}
 	
-	private static CachePowerConfig getCachePowerConfig(Element parent)
+	private static CacheEnergyConfig getCacheEnergyConfig(Element parent)
 	{
-		CachePowerConfig powerConfig = new CachePowerConfig();
-		powerConfig.leakagePower = Double.parseDouble(getImmediateString("LeakagePower", parent));
-		powerConfig.readDynamicPower = Double.parseDouble(getImmediateString("ReadDynamicPower", parent));
-		powerConfig.writeDynamicPower = Double.parseDouble(getImmediateString("WriteDynamicPower", parent));
+		CacheEnergyConfig powerConfig = new CacheEnergyConfig();
+		powerConfig.leakageEnergy = Double.parseDouble(getImmediateString("LeakageEnergy", parent));
+		powerConfig.readDynamicEnergy = Double.parseDouble(getImmediateString("ReadDynamicEnergy", parent));
+		powerConfig.writeDynamicEnergy = Double.parseDouble(getImmediateString("WriteDynamicEnergy", parent));
 		return powerConfig;
 	}
 	
@@ -359,10 +359,10 @@ public class XMLParser
 		SystemConfig.mainMemoryPortOccupancy = Integer.parseInt(getImmediateString("MainMemoryPortOccupancy", systemElmnt));
 		
 		Element mainMemElmnt = (Element)(systemElmnt.getElementsByTagName("MainMemory")).item(0);
-		SystemConfig.mainMemoryControllerPower = getPowerConfig(mainMemElmnt);
+		SystemConfig.mainMemoryControllerPower = getEnergyConfig(mainMemElmnt);
 		
 		Element globalClockElmnt = (Element)(systemElmnt.getElementsByTagName("GlobalClock")).item(0);
-		SystemConfig.globalClockPower = getPowerConfig(globalClockElmnt);
+		SystemConfig.globalClockPower = getEnergyConfig(globalClockElmnt);
 		
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 
@@ -400,7 +400,7 @@ public class XMLParser
 			core.LSQAccessPorts = Integer.parseInt(getImmediateString("LSQAccessPorts", lsqElmnt));
 			core.LSQPortOccupancy = Integer.parseInt(getImmediateString("LSQPortOccupancy", lsqElmnt));
 			core.LSQMultiportType = setMultiPortingType(getImmediateString("LSQMultiPortingType", lsqElmnt));
-			core.lsqPower = getPowerConfig(lsqElmnt);
+			core.lsqPower = getEnergyConfig(lsqElmnt);
 			
 			Element iTLBElmnt = (Element)(coreElmnt.getElementsByTagName("ITLB")).item(0);
 			core.ITLBSize = Integer.parseInt(getImmediateString("Size", iTLBElmnt));
@@ -409,7 +409,7 @@ public class XMLParser
 			core.ITLBPortType = setPortType(getImmediateString("PortType", iTLBElmnt));
 			core.ITLBAccessPorts = Integer.parseInt(getImmediateString("AccessPorts", iTLBElmnt));
 			core.ITLBPortOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", iTLBElmnt));
-			core.iTLBPower = getPowerConfig(iTLBElmnt);
+			core.iTLBPower = getEnergyConfig(iTLBElmnt);
 			
 			Element dTLBElmnt = (Element)(coreElmnt.getElementsByTagName("DTLB")).item(0);
 			core.DTLBSize = Integer.parseInt(getImmediateString("Size", dTLBElmnt));
@@ -418,56 +418,56 @@ public class XMLParser
 			core.DTLBPortType = setPortType(getImmediateString("PortType", dTLBElmnt));
 			core.DTLBAccessPorts = Integer.parseInt(getImmediateString("AccessPorts", dTLBElmnt));
 			core.DTLBPortOccupancy = Integer.parseInt(getImmediateString("PortOccupancy", dTLBElmnt));
-			core.dTLBPower = getPowerConfig(dTLBElmnt);
+			core.dTLBPower = getEnergyConfig(dTLBElmnt);
 
 			Element decodeElmnt = (Element)(coreElmnt.getElementsByTagName("Decode")).item(0);
 			core.DecodeWidth = Integer.parseInt(getImmediateString("Width", decodeElmnt));
-			core.decodePower = getPowerConfig(decodeElmnt);
+			core.decodePower = getEnergyConfig(decodeElmnt);
 			
 			Element instructionWindowElmnt = (Element)(coreElmnt.getElementsByTagName("InstructionWindow")).item(0);
 			core.IssueWidth = Integer.parseInt(getImmediateString("IssueWidth", instructionWindowElmnt));			
 			core.IWSize = Integer.parseInt(getImmediateString("IWSize", instructionWindowElmnt));
-			core.iwPower = getPowerConfig(instructionWindowElmnt);
+			core.iwPower = getEnergyConfig(instructionWindowElmnt);
 
 			Element robElmnt = (Element)(coreElmnt.getElementsByTagName("ROB")).item(0);
 			core.RetireWidth = Integer.parseInt(getImmediateString("RetireWidth", coreElmnt));
 			core.ROBSize = Integer.parseInt(getImmediateString("ROBSize", coreElmnt));
-			core.robPower = getPowerConfig(robElmnt);
+			core.robPower = getEnergyConfig(robElmnt);
 			
 			Element resultsBroadcastBusElmnt = (Element)(coreElmnt.getElementsByTagName("ResultsBroadcastBus")).item(0);
-			core.resultsBroadcastBusPower = getPowerConfig(resultsBroadcastBusElmnt);
+			core.resultsBroadcastBusPower = getEnergyConfig(resultsBroadcastBusElmnt);
 			
 			Element renameElmnt = (Element)(coreElmnt.getElementsByTagName("Rename")).item(0);
 			
 			Element ratElmnt = (Element)(renameElmnt.getElementsByTagName("RAT")).item(0);
-			core.intRATPower = getPowerConfig((Element)ratElmnt.getElementsByTagName("Integer").item(0));
-			core.floatRATPower = getPowerConfig((Element)ratElmnt.getElementsByTagName("Float").item(0));
+			core.intRATPower = getEnergyConfig((Element)ratElmnt.getElementsByTagName("Integer").item(0));
+			core.floatRATPower = getEnergyConfig((Element)ratElmnt.getElementsByTagName("Float").item(0));
 			
 			Element freelistElmnt = (Element)(renameElmnt.getElementsByTagName("FreeList")).item(0);
-			core.intFreeListPower = getPowerConfig((Element)freelistElmnt.getElementsByTagName("Integer").item(0));
-			core.floatFreeListPower = getPowerConfig((Element)freelistElmnt.getElementsByTagName("Float").item(0));			
+			core.intFreeListPower = getEnergyConfig((Element)freelistElmnt.getElementsByTagName("Integer").item(0));
+			core.floatFreeListPower = getEnergyConfig((Element)freelistElmnt.getElementsByTagName("Float").item(0));			
 			
 			Element registerFileElmnt = (Element)(coreElmnt.getElementsByTagName("RegisterFile")).item(0);
 			
 			Element integerRegisterFileElmnt = (Element)(registerFileElmnt.getElementsByTagName("Integer")).item(0);
 			core.IntRegFileSize = Integer.parseInt(getImmediateString("IntRegFileSize", integerRegisterFileElmnt));
 			core.IntArchRegNum = Integer.parseInt(getImmediateString("IntArchRegNum", integerRegisterFileElmnt));
-			core.intRegFilePower = getPowerConfig(integerRegisterFileElmnt);
+			core.intRegFilePower = getEnergyConfig(integerRegisterFileElmnt);
 			
 			Element floatRegisterFileElmnt = (Element)(registerFileElmnt.getElementsByTagName("Float")).item(0);
 			core.FloatRegFileSize = Integer.parseInt(getImmediateString("FloatRegFileSize", floatRegisterFileElmnt));
 			core.FloatArchRegNum = Integer.parseInt(getImmediateString("FloatArchRegNum", floatRegisterFileElmnt));
-			core.floatRegFilePower = getPowerConfig(floatRegisterFileElmnt);
+			core.floatRegFilePower = getEnergyConfig(floatRegisterFileElmnt);
 			
 			Element intALUElmnt = (Element)(coreElmnt.getElementsByTagName("IntALU")).item(0);
 			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", intALUElmnt));
 			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", intALUElmnt));
-			core.intALUPower = getPowerConfig(intALUElmnt);
+			core.intALUPower = getEnergyConfig(intALUElmnt);
 
 			Element floatALUElmnt = (Element)(coreElmnt.getElementsByTagName("FloatALU")).item(0);
 			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", floatALUElmnt));
 			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", floatALUElmnt));
-			core.floatALUPower = getPowerConfig(floatALUElmnt);
+			core.floatALUPower = getEnergyConfig(floatALUElmnt);
 			
 			Element complexALUElmnt = (Element)(coreElmnt.getElementsByTagName("ComplexALU")).item(0);
 			core.IntMulNum = Integer.parseInt(getImmediateString("IntMulNum", complexALUElmnt));
@@ -478,7 +478,7 @@ public class XMLParser
 			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", complexALUElmnt));
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", complexALUElmnt));
 			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", complexALUElmnt));
-			core.complexALUPower = getPowerConfig(complexALUElmnt);
+			core.complexALUPower = getEnergyConfig(complexALUElmnt);
 						
 			//set Branch Predictor Parameters
 			core.branchPredictor = new BranchPredictorConfig();
@@ -486,7 +486,7 @@ public class XMLParser
 			Element BTBElmnt = (Element) predictorElmnt.getElementsByTagName("BTB").item(0);
 			setBranchPredictorProperties(predictorElmnt, BTBElmnt, core.branchPredictor);
 			core.BranchMispredPenalty = Integer.parseInt(getImmediateString("BranchMispredPenalty", predictorElmnt));
-			core.bPredPower = getPowerConfig(predictorElmnt);
+			core.bPredPower = getEnergyConfig(predictorElmnt);
 			
 			if(getImmediateString("TreeBarrier", coreElmnt).compareTo("true") == 0)
 				core.TreeBarrier = true;
@@ -554,7 +554,7 @@ public class XMLParser
 		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
 		Element dirElmnt = (Element) dirLst.item(0);
 		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
-		SystemConfig.directoryConfig.power = getCachePowerConfig(dirElmnt);
+		SystemConfig.directoryConfig.power = getCacheEnergyConfig(dirElmnt);
 		
 //		//Code for remaining Cache configurations
 //		NodeList cacheLst = systemElmnt.getElementsByTagName("Cache");
@@ -585,7 +585,7 @@ public class XMLParser
 		SystemConfig.nocConfig = new NocConfig();
 		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
 		Element nocElmnt = (Element) NocLst.item(0);
-		SystemConfig.nocConfig.power = getPowerConfig(nocElmnt);
+		SystemConfig.nocConfig.power = getEnergyConfig(nocElmnt);
 		setNocProperties(nocElmnt, SystemConfig.nocConfig);
 		
 	}
@@ -795,7 +795,7 @@ public class XMLParser
 		
 		cache.cacheDataType = CacheDataType.valueOf(getImmediateString("CacheType", CacheType));
 		
-		cache.power = getCachePowerConfig(CacheType);
+		cache.power = getCacheEnergyConfig(CacheType);
 	}
 	private static void setBranchPredictorProperties(Element predictorElmnt, Element BTBElmnt, BranchPredictorConfig branchPredictor){
 		

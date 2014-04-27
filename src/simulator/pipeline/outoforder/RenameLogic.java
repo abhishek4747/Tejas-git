@@ -3,7 +3,7 @@ package pipeline.outoforder;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -570,16 +570,16 @@ public class RenameLogic extends SimulationElement {
 		
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew intRenamePower = execEngine.getIntegerRenameTable().calculateAndPrintPower(outputFileWriter, (componentName + ".Int"));
-		PowerConfigNew floatRenamePower = execEngine.getFloatingPointRenameTable().calculateAndPrintPower(outputFileWriter, (componentName + ".Float"));
+		EnergyConfig intRenamePower = execEngine.getIntegerRenameTable().calculateAndPrintEnergy(outputFileWriter, (componentName + ".Int"));
+		EnergyConfig floatRenamePower = execEngine.getFloatingPointRenameTable().calculateAndPrintEnergy(outputFileWriter, (componentName + ".Float"));
 		
-		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		EnergyConfig totalPower = new EnergyConfig(0, 0);
 		totalPower.add(totalPower,  intRenamePower);
 		totalPower.add(totalPower,  floatRenamePower);
 		
-		totalPower.printPowerStats(outputFileWriter, componentName);
+		totalPower.printEnergyStats(outputFileWriter, componentName);
 		
 		return totalPower;
 	}

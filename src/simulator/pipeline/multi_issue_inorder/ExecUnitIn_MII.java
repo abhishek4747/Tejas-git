@@ -6,7 +6,7 @@ import java.io.IOException;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.StageLatch_MII;
 import pipeline.outoforder.OpTypeToFUTypeMapping;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -115,10 +115,10 @@ public class ExecUnitIn_MII extends SimulationElement{
 		numResultsBroadCastBusAccess += incrementBy;
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(core.getResultsBroadcastBusPower(), numResultsBroadCastBusAccess);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(core.getResultsBroadcastBusPower(), numResultsBroadCastBusAccess);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 }

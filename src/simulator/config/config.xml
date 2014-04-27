@@ -72,15 +72,15 @@
 			<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
 			<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
-			<LeakagePower>0.0073</LeakagePower>
-			<DynamicPower>0.0544</DynamicPower>
+			<LeakageEnergy>0.0073</LeakageEnergy>
+			<DynamicEnergy>0.0544</DynamicEnergy>
 		</MainMemory>
 		
 		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
 		
 		<GlobalClock>
-			<LeakagePower>0.3456</LeakagePower>
-			<DynamicPower>0.2886</DynamicPower>
+			<LeakageEnergy>0.3456</LeakageEnergy>
+			<DynamicEnergy>0.2886</DynamicEnergy>
 		</GlobalClock>
 			
 		<!--Core Parameters-->
@@ -94,8 +94,8 @@
 				<BHRsize>4</BHRsize>
 				<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->
 				<SaturatingBits>1</SaturatingBits>
-				<LeakagePower>0.0178</LeakagePower>
-				<DynamicPower>0.0962</DynamicPower>
+				<LeakageEnergy>0.0178</LeakageEnergy>
+				<DynamicEnergy>0.0962</DynamicEnergy>
 			</BranchPredictor>			
 			
 			<LSQ>
@@ -105,8 +105,8 @@
 				<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
 				<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
 				<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
-				<LeakagePower>0.0318</LeakagePower>
-				<DynamicPower>0.1725</DynamicPower>
+				<LeakageEnergy>0.0318</LeakageEnergy>
+				<DynamicEnergy>0.1725</DynamicEnergy>
 			</LSQ>
 
 			<ITLB>
@@ -116,8 +116,8 @@
 				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
 				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
-				<LeakagePower>0.00546275</LeakagePower>
-				<DynamicPower>0.06792852941</DynamicPower>
+				<LeakageEnergy>0.00546275</LeakageEnergy>
+				<DynamicEnergy>0.06792852941</DynamicEnergy>
 			</ITLB>
 			
 			<DTLB>
@@ -127,35 +127,35 @@
 				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
 				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
-				<LeakagePower>0.00546275</LeakagePower>
-				<DynamicPower>0.06792852941</DynamicPower>
+				<LeakageEnergy>0.00546275</LeakageEnergy>
+				<DynamicEnergy>0.06792852941</DynamicEnergy>
 			</DTLB>
 			
 			<Decode>								<!--Instruction decode-->
 				<Width>4</Width>			
-				<LeakagePower>0.0598</LeakagePower>
-				<DynamicPower>0.0347</DynamicPower>
+				<LeakageEnergy>0.0598</LeakageEnergy>
+				<DynamicEnergy>0.0347</DynamicEnergy>
 			</Decode>
 			
 			<Rename>
 				<RAT>
 					<Integer>
-						<LeakagePower>0.0045</LeakagePower>
-						<DynamicPower>0.0150</DynamicPower>
+						<LeakageEnergy>0.0045</LeakageEnergy>
+						<DynamicEnergy>0.0150</DynamicEnergy>
 					</Integer>
 					<Float>
-						<LeakagePower>0.0017</LeakagePower>
-						<DynamicPower>0.0130</DynamicPower>
+						<LeakageEnergy>0.0017</LeakageEnergy>
+						<DynamicEnergy>0.0130</DynamicEnergy>
 					</Float>
 				</RAT>
 				<FreeList>
 					<Integer>
-						<LeakagePower>0.0016</LeakagePower>
-						<DynamicPower>0.0085</DynamicPower>
+						<LeakageEnergy>0.0016</LeakageEnergy>
+						<DynamicEnergy>0.0085</DynamicEnergy>
 					</Integer>
 					<Float>
-						<LeakagePower>0.0030</LeakagePower>
-						<DynamicPower>0.0045</DynamicPower>
+						<LeakageEnergy>0.0030</LeakageEnergy>
+						<DynamicEnergy>0.0045</DynamicEnergy>
 					</Float>
 				</FreeList>
 			</Rename>
@@ -163,30 +163,30 @@
 			<InstructionWindow>
 				<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
 				<IWSize>54</IWSize>				<!--Maximum number of entries in the Instruction Window-->
-				<LeakagePower>0.0046</LeakagePower>
-				<DynamicPower>0.0142</DynamicPower>
+				<LeakageEnergy>0.0046</LeakageEnergy>
+				<DynamicEnergy>0.0142</DynamicEnergy>
 			</InstructionWindow>
 			
 			<ROB>
 				<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
 				<ROBSize>168</ROBSize>				<!--Maximum number of entries in the ROB-->
-				<LeakagePower>0.0058</LeakagePower>
-				<DynamicPower>0.0304</DynamicPower>
+				<LeakageEnergy>0.0058</LeakageEnergy>
+				<DynamicEnergy>0.0304</DynamicEnergy>
 			</ROB>
 
 			<RegisterFile>
 				<Integer>
 					<IntRegFileSize>160</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
 					<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
-					<LeakagePower>0.0108</LeakagePower>
-					<DynamicPower>0.0572</DynamicPower>
+					<LeakageEnergy>0.0108</LeakageEnergy>
+					<DynamicEnergy>0.0572</DynamicEnergy>
 				</Integer>
 				
 				<Float>
 					<FloatRegFileSize>144</FloatRegFileSize>		<!--Maximum number of entries in the Floating point register file-->
 					<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
-					<LeakagePower>0.0075</LeakagePower>
-					<DynamicPower>0.0207</DynamicPower>
+					<LeakageEnergy>0.0075</LeakageEnergy>
+					<DynamicEnergy>0.0207</DynamicEnergy>
 				</Float>
 				
 			</RegisterFile>
@@ -194,15 +194,15 @@
 			<IntALU>
 				<IntALUNum>4</IntALUNum>			<!--Number of Integer ALUs-->
 				<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
-				<LeakagePower>0.0542</LeakagePower>
-				<DynamicPower>0.3257</DynamicPower>			
+				<LeakageEnergy>0.0542</LeakageEnergy>
+				<DynamicEnergy>0.3257</DynamicEnergy>			
 			</IntALU>
 			
 			<FloatALU>
 				<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
 				<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
-				<LeakagePower>0.0654</LeakagePower>
-				<DynamicPower>0.5366</DynamicPower>			
+				<LeakageEnergy>0.0654</LeakageEnergy>
+				<DynamicEnergy>0.5366</DynamicEnergy>			
 			</FloatALU>
 			
 			<ComplexALU>
@@ -214,13 +214,13 @@
 				<IntDivLatency>4</IntDivLatency>		<!--Latency of Integer Dividers-->
 				<FloatMulLatency>4</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
 				<FloatDivLatency>8</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
-				<LeakagePower>0.0271</LeakagePower>
-				<DynamicPower>0.6514</DynamicPower>
+				<LeakageEnergy>0.0271</LeakageEnergy>
+				<DynamicEnergy>0.6514</DynamicEnergy>
 			</ComplexALU>
 			
 			<ResultsBroadcastBus>
-				<LeakagePower>0.0239</LeakagePower>
-				<DynamicPower>0.5948</DynamicPower>
+				<LeakageEnergy>0.0239</LeakageEnergy>
+				<DynamicEnergy>0.5948</DynamicEnergy>
 			</ResultsBroadcastBus>
 			
 			<TreeBarrier>false</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
@@ -276,8 +276,8 @@
 				<NocConnection>ELECTRICAL</NocConnection>
 			</L2>
 			
-			<LeakagePower>0.1877</LeakagePower>
-			<DynamicPower>2.1164</DynamicPower>
+			<LeakageEnergy>0.1877</LeakageEnergy>
+			<DynamicEnergy>2.1164</DynamicEnergy>
 		</NOC>
 		
 		<Directory>
@@ -298,9 +298,9 @@
 				<BusOccupancy>0</BusOccupancy>
 				<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 				<CacheType>Unified</CacheType>
-				<LeakagePower>.1092</LeakagePower>
-				<ReadDynamicPower>.3396</ReadDynamicPower>
-				<WriteDynamicPower>.3396</WriteDynamicPower>
+				<LeakageEnergy>.1092</LeakageEnergy>
+				<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
+				<WriteDynamicEnergy>.3396</WriteDynamicEnergy>
 			</Type0>
 			
 			<directoryAccessLatency>2</directoryAccessLatency>
@@ -331,9 +331,9 @@
 			<MSHRSize>1024</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.1092</LeakagePower>
-			<ReadDynamicPower>0.33964264705</ReadDynamicPower>
-			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
+			<LeakageEnergy>0.1092</LeakageEnergy>
+			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
+			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
 			<CacheType>Unified</CacheType>  <!--Instruction,Data,Unified-->
 		</UnifiedCache_32K_8>
 		
@@ -352,9 +352,9 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.1092</LeakagePower>
-			<ReadDynamicPower>0.33964264705</ReadDynamicPower>
-			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
+			<LeakageEnergy>0.1092</LeakageEnergy>
+			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
+			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
 			<CacheType>Instruction</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
 		</ICache_32K_8>
 		
@@ -373,9 +373,9 @@
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.1092</LeakagePower>
-			<ReadDynamicPower>0.33964264705</ReadDynamicPower>
-			<WriteDynamicPower>0.33964264705</WriteDynamicPower>
+			<LeakageEnergy>0.1092</LeakageEnergy>
+			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
+			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
 			<CacheType>Data</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
 		</L1Cache_32K_8>
 		
@@ -394,9 +394,9 @@
 			<MSHRSize>64</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.1592</LeakagePower>
-			<ReadDynamicPower>0.43964264705</ReadDynamicPower>
-			<WriteDynamicPower>0.43964264705</WriteDynamicPower>
+			<LeakageEnergy>0.1592</LeakageEnergy>
+			<ReadDynamicEnergy>0.43964264705</ReadDynamicEnergy>
+			<WriteDynamicEnergy>0.43964264705</WriteDynamicEnergy>
 			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
 		</L2Cache_1M_8>
 		
@@ -415,9 +415,9 @@
 			<MSHRSize>64</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
-			<LeakagePower>0.1892</LeakagePower>
-			<ReadDynamicPower>0.60964264705</ReadDynamicPower>
-			<WriteDynamicPower>0.60964264705</WriteDynamicPower>
+			<LeakageEnergy>0.1892</LeakageEnergy>
+			<ReadDynamicEnergy>0.60964264705</ReadDynamicEnergy>
+			<WriteDynamicEnergy>0.60964264705</WriteDynamicEnergy>
 			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
 		</L3Cache_4M_8>
 	</Library>

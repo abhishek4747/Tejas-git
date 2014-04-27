@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import pipeline.ExecutionEngine;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -138,10 +138,10 @@ public class InstructionWindow extends SimulationElement {
 		numAccesses += incrementBy;
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(core.getIwPower(), numAccesses);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(core.getIwPower(), numAccesses);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 

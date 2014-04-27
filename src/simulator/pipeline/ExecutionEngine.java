@@ -4,7 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import config.CoreConfig;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SystemConfig;
 import config.BranchPredictorConfig.BP;
 import pipeline.branchpredictor.AlwaysNotTaken;
@@ -114,6 +114,6 @@ public abstract class ExecutionEngine {
 	public abstract void setNumberOfBranches(long numBranches);	
 	public abstract void setNumberOfMispredictedBranches(long numMispredictedBranches);
 	
-	public abstract PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException;
+	public abstract EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException;
 	
 }

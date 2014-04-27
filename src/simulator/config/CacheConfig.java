@@ -55,7 +55,7 @@ public class CacheConfig
 	public boolean collectWorkingSetData = false;
 	public long workingSetChunkSize = -1;
 	
-	public CachePowerConfig power;
+	public CacheEnergyConfig power;
 	
 	public String cacheName;
 	public int numComponents;

@@ -33,7 +33,7 @@ import net.NOC.TOPOLOGY;
 import net.RoutingAlgo.SELSCHEME;
 
 import config.NocConfig;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SystemConfig;
 
 import main.ArchitecturalComponent;
@@ -49,7 +49,7 @@ public class Router extends Switch{
 	protected NocInterface reference;
 	protected int latencyBetweenBanks;
 	protected Vector<Router> neighbours;
-	PowerConfigNew power;
+	EnergyConfig power;
 	
 	/************************************************************************
      * Method Name  : Router
@@ -249,14 +249,14 @@ public class Router extends Switch{
 		}
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
 		if(hopCounters == 0)
 		{
-			return new PowerConfigNew(0, 0);
+			return new EnergyConfig(0, 0);
 		}
-		PowerConfigNew power = new PowerConfigNew(SystemConfig.nocConfig.power, hopCounters);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(SystemConfig.nocConfig.power, hopCounters);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 }

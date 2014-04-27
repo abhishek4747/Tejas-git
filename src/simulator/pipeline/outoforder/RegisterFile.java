@@ -3,7 +3,7 @@ package pipeline.outoforder;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -82,20 +82,20 @@ public class RegisterFile extends SimulationElement{
 		numAccesses += incrementBy;
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew totalPower = null;
+		EnergyConfig totalPower = null;
 		
 		if(((OutOrderExecutionEngine)core.getExecEngine()).getIntegerRegisterFile() == this)
 		{
-			totalPower = new PowerConfigNew(core.getIntRegFilePower(), numAccesses);
+			totalPower = new EnergyConfig(core.getIntRegFilePower(), numAccesses);
 		}
 		else
 		{
-			totalPower = new PowerConfigNew(core.getFpRegFilePower(), numAccesses);
+			totalPower = new EnergyConfig(core.getFpRegFilePower(), numAccesses);
 		}
 		
-		totalPower.printPowerStats(outputFileWriter, componentName);		
+		totalPower.printEnergyStats(outputFileWriter, componentName);		
 		return totalPower;
 	}
 }

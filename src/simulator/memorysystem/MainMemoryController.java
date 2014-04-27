@@ -10,7 +10,7 @@ import net.Router;
 import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
 import config.Interconnect;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SystemConfig;
 import generic.EventQueue;
 import generic.PortType;
@@ -108,15 +108,15 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 		return this;
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(SystemConfig.mainMemoryControllerPower, numAccesses);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(SystemConfig.mainMemoryControllerPower, numAccesses);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
-	public PowerConfigNew calculatePower(FileWriter outputFileWriter) throws IOException
+	public EnergyConfig calculatePower(FileWriter outputFileWriter) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(SystemConfig.mainMemoryControllerPower, numAccesses);
+		EnergyConfig power = new EnergyConfig(SystemConfig.mainMemoryControllerPower, numAccesses);
 		return power;
 	}
 }

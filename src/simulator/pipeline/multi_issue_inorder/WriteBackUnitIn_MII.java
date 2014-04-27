@@ -6,7 +6,7 @@ import java.io.IOException;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import generic.Instruction;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import main.CustomObjectPool;
 import generic.Core;
@@ -164,16 +164,16 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 		numFloatRegFileAccesses += incrementBy;
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
-		PowerConfigNew intRegFilePower = new PowerConfigNew(core.getIntRegFilePower(), numIntRegFileAccesses);
+		EnergyConfig totalPower = new EnergyConfig(0, 0);
+		EnergyConfig intRegFilePower = new EnergyConfig(core.getIntRegFilePower(), numIntRegFileAccesses);
 		totalPower.add(totalPower, intRegFilePower);
-		PowerConfigNew floatRegFilePower = new PowerConfigNew(core.getFpRegFilePower(), numFloatRegFileAccesses);
+		EnergyConfig floatRegFilePower = new EnergyConfig(core.getFpRegFilePower(), numFloatRegFileAccesses);
 		totalPower.add(totalPower, floatRegFilePower);
 		
-		intRegFilePower.printPowerStats(outputFileWriter, componentName + ".int");
-		floatRegFilePower.printPowerStats(outputFileWriter, componentName + ".float");
+		intRegFilePower.printEnergyStats(outputFileWriter, componentName + ".int");
+		floatRegFilePower.printEnergyStats(outputFileWriter, componentName + ".float");
 		
 		return totalPower;
 	}

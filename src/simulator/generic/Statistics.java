@@ -33,7 +33,7 @@ import config.BranchPredictorConfig;
 import config.CoreConfig;
 import config.EmulatorConfig;
 import config.Interconnect;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 import config.BranchPredictorConfig.BP;
@@ -224,71 +224,73 @@ public class Statistics {
 		try {
 			// Cores
 			int i = 0;
+			
+			outputFileWriter.write("\n\n[ComponentName LeakageEnergy DynamicEnergy TotalEnergy NumDynamicAccesses] : \n");
 
-			PowerConfigNew corePower = new PowerConfigNew(0, 0);
+			EnergyConfig corePower = new EnergyConfig(0, 0);
 			i = 0;
 			for(Core core : cores) {
-				corePower.add(core.calculateAndPrintPower(outputFileWriter, "core[" + (i++) + "]"));
+				corePower.add(core.calculateAndPrintEnergy(outputFileWriter, "core[" + (i++) + "]"));
 			}
 			
 			outputFileWriter.write("\n\n");
-			corePower.printPowerStats(outputFileWriter, "corePower.total");
+			corePower.printEnergyStats(outputFileWriter, "coreEnergy.total");
 			
 			outputFileWriter.write("\n\n");
 			
 			// LLC
-			PowerConfigNew cachePower = new PowerConfigNew(0, 0);
+			EnergyConfig cachePower = new EnergyConfig(0, 0);
 			for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); )
 			{
 				String cacheName = cacheNameSet.nextElement();
 				Cache cache = MemorySystem.getCacheList().get(cacheName);
-				cachePower.add(cache.calculateAndPrintPower(outputFileWriter, cache.toString()));
+				cachePower.add(cache.calculateAndPrintEnergy(outputFileWriter, cache.toString()));
 			}
 						
 			// Main Memory
-			PowerConfigNew mainMemoryPower=null;
-			PowerConfigNew[] mainMemoryPowers = null;
+			EnergyConfig mainMemoryPower=null;
+			EnergyConfig[] mainMemoryPowers = null;
 			double totalDynamicPower=0;
 			int totalAccesses=0;
 			outputFileWriter.write("\n\n");
 			if(SystemConfig.interconnect == Interconnect.Bus)
 			{
-				mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintPower(outputFileWriter, "MainMemoryController");
+				mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintEnergy(outputFileWriter, "MainMemoryController");
 			}
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
 				int j=0;
-				mainMemoryPowers = new PowerConfigNew[SystemConfig.nocConfig.nocElements.noOfMemoryControllers];
+				mainMemoryPowers = new EnergyConfig[SystemConfig.nocConfig.nocElements.noOfMemoryControllers];
 				for(MainMemoryController controller:SystemConfig.nocConfig.nocElements.memoryControllers)
 				{
 					mainMemoryPowers[j] = controller.calculatePower(outputFileWriter);
-					totalDynamicPower += mainMemoryPowers[j].dynamicPower;
+					totalDynamicPower += mainMemoryPowers[j].dynamicEnergy;
 					totalAccesses += mainMemoryPowers[j].numAccesses;
 					j++;
 				}
-				outputFileWriter.write("MainMemoryController\t\t" + mainMemoryPowers[0].leakagePower + "\t" + totalDynamicPower 
-										+ "\t" + ( mainMemoryPowers[0].leakagePower + totalDynamicPower) + "\t" + totalAccesses);
+				outputFileWriter.write("MainMemoryController\t\t" + mainMemoryPowers[0].leakageEnergy + "\t" + totalDynamicPower 
+										+ "\t" + ( mainMemoryPowers[0].leakageEnergy + totalDynamicPower) + "\t" + totalAccesses);
 			}
 			outputFileWriter.write("\n\n");
 			
 			// Directory
-			PowerConfigNew directoryPower=null;
-			PowerConfigNew[] directoriesPower = null;
+			EnergyConfig directoryPower=null;
+			EnergyConfig[] directoriesPower = null;
 			double totalDirectoryDynamicPower=0, totalDirectoryLeakagePower=0;
 			int totalDirectoryNumAccesses=0;
 			if(SystemConfig.interconnect == Interconnect.Bus)
 			{
-				directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintPower(outputFileWriter, "Directory");
+				directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintEnergy(outputFileWriter, "Directory");
 			}
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
 				int j=0;
-				directoriesPower = new PowerConfigNew[SystemConfig.nocConfig.nocElements.noOfL1Directories];
+				directoriesPower = new EnergyConfig[SystemConfig.nocConfig.nocElements.noOfL1Directories];
 				for(CentralizedDirectoryCache directory:SystemConfig.nocConfig.nocElements.l1Directories)
 				{
-					directoriesPower[j] = directory.calculateAndPrintPower(outputFileWriter, "Directory Bank " + j);
-					totalDirectoryLeakagePower += directoriesPower[j].leakagePower;
-					totalDirectoryDynamicPower += directoriesPower[j].dynamicPower;
+					directoriesPower[j] = directory.calculateAndPrintEnergy(outputFileWriter, "Directory Bank " + j);
+					totalDirectoryLeakagePower += directoriesPower[j].leakageEnergy;
+					totalDirectoryDynamicPower += directoriesPower[j].dynamicEnergy;
 					totalDirectoryNumAccesses += directoriesPower[j].numAccesses;
 					outputFileWriter.write("\n");
 					j++;
@@ -299,23 +301,23 @@ public class Statistics {
 			}
 			outputFileWriter.write("\n\n");
 			// NOC
-			PowerConfigNew nocRouterPower = new PowerConfigNew(0, 0);
+			EnergyConfig nocRouterPower = new EnergyConfig(0, 0);
 			i = 0;
 			for(Router router : ArchitecturalComponent.getNOCRouterList()) {
-				nocRouterPower.add(router.calculateAndPrintPower(outputFileWriter, "NOCRouter[" + (i++) + "]"));
+				nocRouterPower.add(router.calculateAndPrintEnergy(outputFileWriter, "NOCRouter[" + (i++) + "]"));
 			}
 			
 			outputFileWriter.write("\n\n");
-			nocRouterPower.printPowerStats(outputFileWriter, "nocRouter.total");
+			nocRouterPower.printEnergyStats(outputFileWriter, "nocRouter.total");
 			
 			outputFileWriter.write("\n\n");
 						
 			// Clock
-			//PowerConfigNew clockPower = GlobalClock.calculateAndPrintPower(outputFileWriter, "GlobalClock");
+			//PowerConfigNew clockPower = GlobalClock.calculateAndPrintEnergy(outputFileWriter, "GlobalClock");
 			
 			outputFileWriter.write("\n\n");
 			
-			PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+			EnergyConfig totalPower = new EnergyConfig(0, 0);
 			totalPower.add(corePower);
 			totalPower.add(cachePower);
 			if(SystemConfig.interconnect == Interconnect.Bus)
@@ -324,7 +326,7 @@ public class Statistics {
 			}
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
-				for(PowerConfigNew m:mainMemoryPowers)
+				for(EnergyConfig m:mainMemoryPowers)
 					totalPower.add(m);
 			}
 			if(SystemConfig.interconnect == Interconnect.Bus)
@@ -333,13 +335,13 @@ public class Statistics {
 			}
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
-				for(PowerConfigNew p:directoriesPower)
+				for(EnergyConfig p:directoriesPower)
 					totalPower.add(p);
 			}
 			totalPower.add(nocRouterPower);
 			//totalPower.add(clockPower);
 			
-			totalPower.printPowerStats(outputFileWriter, "TotalPower");
+			totalPower.printEnergyStats(outputFileWriter, "TotalPower");
 			
 		} catch (Exception e) {
 			System.err.println("error in printing stats + \nexception = " + e);

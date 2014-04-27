@@ -35,9 +35,9 @@ import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
 import config.CacheDataType;
-import config.CachePowerConfig;
+import config.CacheEnergyConfig;
 import config.Interconnect;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
 import misc.Util;
@@ -98,7 +98,7 @@ public class Cache extends SimulationElement
 		public boolean debug =false;
 		public NucaType nucaType;
 		
-		CachePowerConfig power;
+		CacheEnergyConfig energy;
 		
 		String cacheName;
 		
@@ -183,7 +183,7 @@ public class Cache extends SimulationElement
 			
 			this.nucaType = NucaType.NONE;
 			
-			power = cacheParameters.power;
+			energy = cacheParameters.power;
 		}
 		
 		public Cache(
@@ -1414,11 +1414,11 @@ public class Cache extends SimulationElement
 			return cacheName;
 		}
 		
-		public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+		public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 		{
-			PowerConfigNew newPower = new PowerConfigNew(power.leakagePower, power.readDynamicPower);
-			PowerConfigNew cachePower = new PowerConfigNew(newPower, noOfAccesses);
-			cachePower.printPowerStats(outputFileWriter, componentName);
+			EnergyConfig newPower = new EnergyConfig(energy.leakageEnergy, energy.readDynamicEnergy);
+			EnergyConfig cachePower = new EnergyConfig(newPower, noOfAccesses);
+			cachePower.printEnergyStats(outputFileWriter, componentName);
 			return cachePower;
 		}
 		

@@ -20,7 +20,7 @@ import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
 import config.CoreConfig;
 import config.PipelineType;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SystemConfig;
 import config.CacheConfig;
 
@@ -70,23 +70,23 @@ public class Core extends SimulationElement implements NocInterface{
 	private int[] latencies;
 	
 	//core power parameters
-	private PowerConfigNew bPredPower;
-	private PowerConfigNew decodePower;
-	private PowerConfigNew intRATPower;
-	private PowerConfigNew floatRATPower;
-	private PowerConfigNew intFreeListPower;
-	private PowerConfigNew floatFreeListPower;
-	private PowerConfigNew lsqPower;
-	private PowerConfigNew intRegFilePower;
-	private PowerConfigNew floatRegFilePower;
-	private PowerConfigNew iwPower;
-	private PowerConfigNew robPower;
-	private PowerConfigNew intALUPower;
-	private PowerConfigNew floatALUPower;
-	private PowerConfigNew complexALUPower;
-	private PowerConfigNew resultsBroadcastBusPower;
-	private PowerConfigNew iTLBPower;
-	private PowerConfigNew dTLBPower;
+	private EnergyConfig bPredPower;
+	private EnergyConfig decodePower;
+	private EnergyConfig intRATPower;
+	private EnergyConfig floatRATPower;
+	private EnergyConfig intFreeListPower;
+	private EnergyConfig floatFreeListPower;
+	private EnergyConfig lsqPower;
+	private EnergyConfig intRegFilePower;
+	private EnergyConfig floatRegFilePower;
+	private EnergyConfig iwPower;
+	private EnergyConfig robPower;
+	private EnergyConfig intALUPower;
+	private EnergyConfig floatALUPower;
+	private EnergyConfig complexALUPower;
+	private EnergyConfig resultsBroadcastBusPower;
+	private EnergyConfig iTLBPower;
+	private EnergyConfig dTLBPower;
 	
 	private int core_number;
 	private int no_of_input_pipes;
@@ -647,145 +647,145 @@ public class Core extends SimulationElement implements NocInterface{
 		}
 	}
 	
-	public PowerConfigNew getbPredPower() {
+	public EnergyConfig getbPredPower() {
 		return bPredPower;
 	}
 
-	public void setbPredPower(PowerConfigNew bPredPower) {
+	public void setbPredPower(EnergyConfig bPredPower) {
 		this.bPredPower = bPredPower;
 	}
 
-	public PowerConfigNew getDecodePower() {
+	public EnergyConfig getDecodePower() {
 		return decodePower;
 	}
 
-	public void setDecodePower(PowerConfigNew decodePower) {
+	public void setDecodePower(EnergyConfig decodePower) {
 		this.decodePower = decodePower;
 	}
 
-	public PowerConfigNew getIntRATPower() {
+	public EnergyConfig getIntRATPower() {
 		return intRATPower;
 	}
 
-	public void setIntRATPower(PowerConfigNew intRATPower) {
+	public void setIntRATPower(EnergyConfig intRATPower) {
 		this.intRATPower = intRATPower;
 	}
 
-	public PowerConfigNew getFpRATPower() {
+	public EnergyConfig getFpRATPower() {
 		return floatRATPower;
 	}
 
-	public void setFpRATPower(PowerConfigNew fpRATPower) {
+	public void setFpRATPower(EnergyConfig fpRATPower) {
 		this.floatRATPower = fpRATPower;
 	}
 
-	public PowerConfigNew getIntFreeListPower() {
+	public EnergyConfig getIntFreeListPower() {
 		return intFreeListPower;
 	}
 
-	public void setIntFreeListPower(PowerConfigNew intFreeListPower) {
+	public void setIntFreeListPower(EnergyConfig intFreeListPower) {
 		this.intFreeListPower = intFreeListPower;
 	}
 
-	public PowerConfigNew getFpFreeListPower() {
+	public EnergyConfig getFpFreeListPower() {
 		return floatFreeListPower;
 	}
 
-	public void setFpFreeListPower(PowerConfigNew fpFreeListPower) {
+	public void setFpFreeListPower(EnergyConfig fpFreeListPower) {
 		this.floatFreeListPower = fpFreeListPower;
 	}
 
-	public PowerConfigNew getLsqPower() {
+	public EnergyConfig getLsqPower() {
 		return lsqPower;
 	}
 
-	public void setLsqPower(PowerConfigNew lsqPower) {
+	public void setLsqPower(EnergyConfig lsqPower) {
 		this.lsqPower = lsqPower;
 	}
 
-	public PowerConfigNew getIntRegFilePower() {
+	public EnergyConfig getIntRegFilePower() {
 		return intRegFilePower;
 	}
 
-	public void setIntRegFilePower(PowerConfigNew intRegFilePower) {
+	public void setIntRegFilePower(EnergyConfig intRegFilePower) {
 		this.intRegFilePower = intRegFilePower;
 	}
 
-	public PowerConfigNew getFpRegFilePower() {
+	public EnergyConfig getFpRegFilePower() {
 		return floatRegFilePower;
 	}
 
-	public void setFpRegFilePower(PowerConfigNew fpRegFilePower) {
+	public void setFpRegFilePower(EnergyConfig fpRegFilePower) {
 		this.floatRegFilePower = fpRegFilePower;
 	}
 
-	public PowerConfigNew getIwPower() {
+	public EnergyConfig getIwPower() {
 		return iwPower;
 	}
 
-	public void setIwPower(PowerConfigNew iwPower) {
+	public void setIwPower(EnergyConfig iwPower) {
 		this.iwPower = iwPower;
 	}
 
-	public PowerConfigNew getRobPower() {
+	public EnergyConfig getRobPower() {
 		return robPower;
 	}
 
-	public void setRobPower(PowerConfigNew robPower) {
+	public void setRobPower(EnergyConfig robPower) {
 		this.robPower = robPower;
 	}
 
-	public PowerConfigNew getIntALUPower() {
+	public EnergyConfig getIntALUPower() {
 		return intALUPower;
 	}
 
-	public void setIntALUPower(PowerConfigNew intALUPower) {
+	public void setIntALUPower(EnergyConfig intALUPower) {
 		this.intALUPower = intALUPower;
 	}
 
-	public PowerConfigNew getFloatALUPower() {
+	public EnergyConfig getFloatALUPower() {
 		return floatALUPower;
 	}
 
-	public void setFloatALUPower(PowerConfigNew floatALUPower) {
+	public void setFloatALUPower(EnergyConfig floatALUPower) {
 		this.floatALUPower = floatALUPower;
 	}
 
-	public PowerConfigNew getComplexALUPower() {
+	public EnergyConfig getComplexALUPower() {
 		return complexALUPower;
 	}
 
-	public void setComplexALUPower(PowerConfigNew complexALUPower) {
+	public void setComplexALUPower(EnergyConfig complexALUPower) {
 		this.complexALUPower = complexALUPower;
 	}
 
-	public PowerConfigNew getResultsBroadcastBusPower() {
+	public EnergyConfig getResultsBroadcastBusPower() {
 		return resultsBroadcastBusPower;
 	}
 
-	public void setResultsBroadcastBusPower(PowerConfigNew resultsBroadcastBusPower) {
+	public void setResultsBroadcastBusPower(EnergyConfig resultsBroadcastBusPower) {
 		this.resultsBroadcastBusPower = resultsBroadcastBusPower;
 	}
 
-	public PowerConfigNew getiTLBPower() {
+	public EnergyConfig getiTLBPower() {
 		return iTLBPower;
 	}
 
-	public void setiTLBPower(PowerConfigNew iTLBPower) {
+	public void setiTLBPower(EnergyConfig iTLBPower) {
 		this.iTLBPower = iTLBPower;
 	}
 
-	public PowerConfigNew getdTLBPower() {
+	public EnergyConfig getdTLBPower() {
 		return dTLBPower;
 	}
 
-	public void setdTLBPower(PowerConfigNew dTLBPower) {
+	public void setdTLBPower(EnergyConfig dTLBPower) {
 		this.dTLBPower = dTLBPower;
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		EnergyConfig totalPower = new EnergyConfig(0, 0);
 		
 		if(coreCyclesTaken == 0)
 		{
@@ -795,22 +795,22 @@ public class Core extends SimulationElement implements NocInterface{
 		outputFileWriter.write("\n\n");
 		
 		// --------- Core Memory System -------------------------
-		PowerConfigNew iCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintPower(outputFileWriter, componentName + ".iCache");
+		EnergyConfig iCachePower =  this.execEngine.getCoreMemorySystem().getiCache().calculateAndPrintEnergy(outputFileWriter, componentName + ".iCache");
 		totalPower.add(totalPower, iCachePower);
-		PowerConfigNew iTLBPower =  this.execEngine.getCoreMemorySystem().getiTLB().calculateAndPrintPower(outputFileWriter, componentName + ".iTLB");
+		EnergyConfig iTLBPower =  this.execEngine.getCoreMemorySystem().getiTLB().calculateAndPrintEnergy(outputFileWriter, componentName + ".iTLB");
 		totalPower.add(totalPower, iTLBPower);
 		
-		PowerConfigNew dCachePower =  this.execEngine.getCoreMemorySystem().getL1Cache().calculateAndPrintPower(outputFileWriter, componentName + ".dCache");
+		EnergyConfig dCachePower =  this.execEngine.getCoreMemorySystem().getL1Cache().calculateAndPrintEnergy(outputFileWriter, componentName + ".dCache");
 		totalPower.add(totalPower, dCachePower);
 		
-		PowerConfigNew dTLBPower =  this.execEngine.getCoreMemorySystem().getdTLB().calculateAndPrintPower(outputFileWriter, componentName + ".dTLB");
+		EnergyConfig dTLBPower =  this.execEngine.getCoreMemorySystem().getdTLB().calculateAndPrintEnergy(outputFileWriter, componentName + ".dTLB");
 		totalPower.add(totalPower, dTLBPower);
 		
 		// -------- Pipeline -----------------------------------
-		PowerConfigNew pipelinePower =  this.execEngine.calculateAndPrintPower(outputFileWriter, componentName + ".pipeline");
+		EnergyConfig pipelinePower =  this.execEngine.calculateAndPrintEnergy(outputFileWriter, componentName + ".pipeline");
 		totalPower.add(totalPower, pipelinePower);
 		
-		totalPower.printPowerStats(outputFileWriter, componentName + ".total");
+		totalPower.printEnergyStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
 	}

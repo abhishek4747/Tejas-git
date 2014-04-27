@@ -89,23 +89,23 @@ public class CoreConfig
 	public int barrierLatency;
 	public int barrierUnit;
 	
-	public PowerConfigNew bPredPower;
-	public PowerConfigNew decodePower;
-	public PowerConfigNew intRATPower;
-	public PowerConfigNew floatRATPower;
-	public PowerConfigNew intFreeListPower;
-	public PowerConfigNew floatFreeListPower;
-	public PowerConfigNew lsqPower;
-	public PowerConfigNew intRegFilePower;
-	public PowerConfigNew floatRegFilePower;
-	public PowerConfigNew iwPower;
-	public PowerConfigNew robPower;
-	public PowerConfigNew intALUPower;
-	public PowerConfigNew floatALUPower;
-	public PowerConfigNew complexALUPower;
-	public PowerConfigNew resultsBroadcastBusPower;
-	public PowerConfigNew iTLBPower;
-	public PowerConfigNew dTLBPower;
+	public EnergyConfig bPredPower;
+	public EnergyConfig decodePower;
+	public EnergyConfig intRATPower;
+	public EnergyConfig floatRATPower;
+	public EnergyConfig intFreeListPower;
+	public EnergyConfig floatFreeListPower;
+	public EnergyConfig lsqPower;
+	public EnergyConfig intRegFilePower;
+	public EnergyConfig floatRegFilePower;
+	public EnergyConfig iwPower;
+	public EnergyConfig robPower;
+	public EnergyConfig intALUPower;
+	public EnergyConfig floatALUPower;
+	public EnergyConfig complexALUPower;
+	public EnergyConfig resultsBroadcastBusPower;
+	public EnergyConfig iTLBPower;
+	public EnergyConfig dTLBPower;
 	
 	public int getICacheLatency() {
 		int latency = 0;

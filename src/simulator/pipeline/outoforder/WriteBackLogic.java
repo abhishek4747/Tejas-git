@@ -4,7 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import pipeline.ExecutionEngine;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;

@@ -24,7 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SystemConfig;
 
 import generic.*;
@@ -42,7 +42,7 @@ public class TLB extends SimulationElement
 	
 	private long noOfAccesses = 0;
 	
-	PowerConfigNew power;
+	EnergyConfig power;
 		
 	public Core getCore() {
 		return containingMemSys.getCore();
@@ -64,7 +64,7 @@ public class TLB extends SimulationElement
 	
 	public TLB(PortType portType, int noOfPorts, long occupancy, long latency,
 			CoreMemorySystem containingMemSys, int tlbSize, int memoryPenalty,
-			PowerConfigNew power) 
+			EnergyConfig power) 
 	{
 		super(portType, noOfPorts, occupancy, latency, containingMemSys.getCore().getFrequency());
 		
@@ -237,10 +237,10 @@ public class TLB extends SimulationElement
 		}
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew tlbPower = new PowerConfigNew(power, noOfAccesses);
-		tlbPower.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig tlbPower = new EnergyConfig(power, noOfAccesses);
+		tlbPower.printEnergyStats(outputFileWriter, componentName);
 		return tlbPower;
 	}
 }

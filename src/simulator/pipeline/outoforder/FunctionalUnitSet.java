@@ -3,7 +3,7 @@ package pipeline.outoforder;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import generic.Core;
 import generic.FunctionalUnitType;
 
@@ -117,19 +117,19 @@ public class FunctionalUnitSet {
 		numComplexALUAccesses += incrementBy;
 	}
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
-		PowerConfigNew intALUPower = new PowerConfigNew(core.getIntALUPower(), numIntALUAccesses);
+		EnergyConfig totalPower = new EnergyConfig(0, 0);
+		EnergyConfig intALUPower = new EnergyConfig(core.getIntALUPower(), numIntALUAccesses);
 		totalPower.add(totalPower, intALUPower);
-		PowerConfigNew floatALUPower = new PowerConfigNew(core.getFloatALUPower(), numFloatALUAccesses);
+		EnergyConfig floatALUPower = new EnergyConfig(core.getFloatALUPower(), numFloatALUAccesses);
 		totalPower.add(totalPower, floatALUPower);
-		PowerConfigNew complexALUPower = new PowerConfigNew(core.getComplexALUPower(), numComplexALUAccesses);
+		EnergyConfig complexALUPower = new EnergyConfig(core.getComplexALUPower(), numComplexALUAccesses);
 		totalPower.add(totalPower, complexALUPower);
 		
-		intALUPower.printPowerStats(outputFileWriter, componentName + ".intALU");
-		floatALUPower.printPowerStats(outputFileWriter, componentName + ".floatALU");
-		complexALUPower.printPowerStats(outputFileWriter, componentName + ".complexALU");
+		intALUPower.printEnergyStats(outputFileWriter, componentName + ".intALU");
+		floatALUPower.printEnergyStats(outputFileWriter, componentName + ".floatALU");
+		complexALUPower.printEnergyStats(outputFileWriter, componentName + ".complexALU");
 		
 		return totalPower;
 	}

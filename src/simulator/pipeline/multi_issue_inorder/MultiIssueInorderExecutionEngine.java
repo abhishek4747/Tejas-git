@@ -2,7 +2,7 @@ package pipeline.multi_issue_inorder;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
@@ -314,26 +314,26 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 //		System.out.println(memWbLatch[0].getInstruction());
 //	}	
 	
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew totalPower = new PowerConfigNew(0, 0);
+		EnergyConfig totalPower = new EnergyConfig(0, 0);
 		
-		PowerConfigNew bPredPower =  getBranchPredictor().calculateAndPrintPower(outputFileWriter, componentName + ".bPred");
+		EnergyConfig bPredPower =  getBranchPredictor().calculateAndPrintEnergy(outputFileWriter, componentName + ".bPred");
 		totalPower.add(totalPower, bPredPower);
 		
-		PowerConfigNew decodePower =  getDecodeUnitIn().calculateAndPrintPower(outputFileWriter, componentName + ".decode");
+		EnergyConfig decodePower =  getDecodeUnitIn().calculateAndPrintEnergy(outputFileWriter, componentName + ".decode");
 		totalPower.add(totalPower, decodePower);
 		
-		PowerConfigNew regFilePower =  getWriteBackUnitIn().calculateAndPrintPower(outputFileWriter, componentName + ".regFile");
+		EnergyConfig regFilePower =  getWriteBackUnitIn().calculateAndPrintEnergy(outputFileWriter, componentName + ".regFile");
 		totalPower.add(totalPower, regFilePower);
 		
-		PowerConfigNew fuPower =  getFunctionalUnitSet().calculateAndPrintPower(outputFileWriter, componentName + ".FuncUnit");
+		EnergyConfig fuPower =  getFunctionalUnitSet().calculateAndPrintEnergy(outputFileWriter, componentName + ".FuncUnit");
 		totalPower.add(totalPower, fuPower);
 		
-		PowerConfigNew resultsBroadcastBusPower =  getExecUnitIn().calculateAndPrintPower(outputFileWriter, componentName + ".resultsBroadcastBus");
+		EnergyConfig resultsBroadcastBusPower =  getExecUnitIn().calculateAndPrintEnergy(outputFileWriter, componentName + ".resultsBroadcastBus");
 		totalPower.add(totalPower, resultsBroadcastBusPower);
 		
-		totalPower.printPowerStats(outputFileWriter, componentName + ".total");
+		totalPower.printEnergyStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
 	}

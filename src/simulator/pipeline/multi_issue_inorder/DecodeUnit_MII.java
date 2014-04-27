@@ -3,7 +3,7 @@ package pipeline.multi_issue_inorder;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import pipeline.outoforder.OpTypeToFUTypeMapping;
 import generic.Core;
@@ -274,10 +274,10 @@ public class DecodeUnit_MII extends SimulationElement{
 		numAccesses += incrementBy;
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(containingExecutionEngine.getContainingCore().getDecodePower(), numAccesses);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(containingExecutionEngine.getContainingCore().getDecodePower(), numAccesses);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 }

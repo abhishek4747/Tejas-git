@@ -3,7 +3,7 @@ package pipeline.outoforder;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import config.PowerConfigNew;
+import config.EnergyConfig;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
@@ -146,10 +146,10 @@ public class ExecutionLogic extends SimulationElement {
 		numResultsBroadCastBusAccess += incrementBy;
 	}
 
-	public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
-		PowerConfigNew power = new PowerConfigNew(core.getResultsBroadcastBusPower(), numResultsBroadCastBusAccess);
-		power.printPowerStats(outputFileWriter, componentName);
+		EnergyConfig power = new EnergyConfig(core.getResultsBroadcastBusPower(), numResultsBroadCastBusAccess);
+		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
 	
