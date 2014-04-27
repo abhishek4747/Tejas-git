@@ -47,6 +47,10 @@ import memorysystem.nuca.NucaCache.NucaType;
 
 import generic.PortType;
 
+//<Cache name="iCache" nextLevel="L2" nextLevelId="$i/4" firstLevel="true" type="ICache_32K_4"/>
+//<Cache name="l1Cache" nextLevel="L2" nextLevelId="$i/4" firstLevel="true" type="L1Cache_32K_4"/>
+//<Cache name="L2" numComponents="2" nextLevel="L3" type="L2Cache_1M_8"/>
+
 public class XMLParser 
 {
 	private static Document doc;
@@ -62,6 +66,7 @@ public class XMLParser
 			doc.getDocumentElement().normalize();
 			//System.out.println("Root element : " + doc.getDocumentElement().getNodeName());
 			
+			createSharedCacheConfigs();
 			setEmulatorParameters();
 			setSimulationParameters();
 			
@@ -80,6 +85,67 @@ public class XMLParser
 			misc.Error.showErrorAndExit("Error in reading config file : " + e);
 		}
  	}
+	
+	private static void createSharedCacheConfigs() throws Exception {
+		Element sharedCachesNode = (Element)doc.getElementsByTagName("SharedCaches").item(0);
+		
+		NodeList nodeLst = sharedCachesNode.getElementsByTagName("Cache");
+		if (nodeLst.item(0) == null) {
+			System.out.println("Shared caches not found !!");
+		}
+		
+		for(int i=0; i<nodeLst.getLength(); i++) {
+			Element cacheNode = (Element)nodeLst.item(i);			
+			CacheConfig config = createCacheConfig(cacheNode);
+			SystemConfig.declaredCacheConfigs.add(config);
+		}
+	}
+	
+	private static CacheConfig createCacheConfig(Element cacheNode) {
+		CacheConfig config = new CacheConfig();
+		
+		config.cacheName = cacheNode.getAttribute("name");
+		
+		if(isAttributePresent(cacheNode, "firstLevel")) {
+			config.firstLevel = 
+				Boolean.parseBoolean(cacheNode.getAttribute("firstLevel"));
+		} else {
+			config.firstLevel = false;
+		}
+		
+		if(isAttributePresent(cacheNode, "numComponents")) {
+			config.numComponents = 
+				Integer.parseInt(cacheNode.getAttribute("numComponents"));
+		} else {
+			config.numComponents = 1;
+		}
+		
+		config.nextLevel=cacheNode.getAttribute("nextLevel");
+		if(isAttributePresent(cacheNode, "nextLevelId")) {
+			config.nextLevelId = cacheNode.getAttribute("nextLevelId"); 
+		}
+	
+		String cacheType = cacheNode.getAttribute("type");
+		
+		Element cacheTypeElmnt = searchLibraryForItem(cacheType);
+		setCacheProperties(cacheTypeElmnt, config);
+		
+		return config;
+	}
+	
+	private static boolean isAttributePresent(Element element, String str) {
+		return (element.getAttribute(str)!="");
+	}
+	
+	private static boolean isElementPresent(String tagName, Element parent) // Get the immediate string value of a particular tag name under a particular parent tag
+	{
+		NodeList nodeLst = parent.getElementsByTagName(tagName);
+		if (nodeLst.item(0) == null) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 	
 	// For an ith core specified, mark the ith field of this long as 1. 
 	private static long parseMapper (String s) 
@@ -274,8 +340,6 @@ public class XMLParser
 	
 	private static void setSystemParameters()
 	{
-		SystemConfig.declaredCaches = new Hashtable<String, CacheConfig>(); //Declare the hash table for declared caches
-		
 		NodeList nodeLst = doc.getElementsByTagName("System");
 		Node systemNode = nodeLst.item(0);
 		Element systemElmnt = (Element) systemNode;
@@ -453,55 +517,36 @@ public class XMLParser
 				System.err.println("XML Configuration error : Invalid Interconnect Type");
 				System.exit(1);
 			}
-			//Code for instruction cache configurations for each core
-			NodeList iCacheList = coreElmnt.getElementsByTagName("iCache");
-			Element iCacheElmnt = (Element) iCacheList.item(0);
-			String cacheType = iCacheElmnt.getAttribute("type");
-			Element typeElmnt = searchLibraryForItem(cacheType);
-//			core.iCache.isFirstLevel = true;
-			core.iCache.levelFromTop = CacheType.iCache;
-			setCacheProperties(typeElmnt, core.iCache);
-			core.iCache.nextLevel = iCacheElmnt.getAttribute("nextLevel");
-			core.iCache.operatingFreq = core.frequency;
-			core.iCache.power = getCachePowerConfig(typeElmnt);
 			
-			if(SimulationConfig.collectInsnWorkingSetInfo) {
-				core.iCache.collectWorkingSetData = true;
-				core.iCache.workingSetChunkSize = SimulationConfig.insnWorkingSetChunkSize; 
+			
+			NodeList coreCacheList = coreElmnt.getElementsByTagName("Cache");
+			if (coreCacheList.item(0) == null) {
+				System.out.println("No core cache not found !!");
+			} else {
+				for(int coreCacheIndex=0; coreCacheIndex<coreCacheList.getLength(); coreCacheIndex++) {
+					Element cacheNode = (Element)coreCacheList.item(coreCacheIndex);
+					CacheConfig config = createCacheConfig(cacheNode);
+					core.coreCacheList.add(config);
+					
+					// icache config
+					if(SimulationConfig.collectInsnWorkingSetInfo &&
+						config.firstLevel==true && 
+						config.cacheDataType==CacheDataType.Instruction)
+					{
+						config.collectWorkingSetData = true;
+						config.workingSetChunkSize = SimulationConfig.insnWorkingSetChunkSize; 
+					}
+					
+					// l1cache config
+					if(SimulationConfig.collectInsnWorkingSetInfo &&
+						config.firstLevel==true && 
+						config.cacheDataType==CacheDataType.Data)
+					{
+						config.collectWorkingSetData = true;
+						config.workingSetChunkSize = SimulationConfig.dataWorkingSetChunkSize; 
+					}
+				}
 			}
-			
-			//Code for L1 Data cache configurations for each core
-			NodeList l1CacheList = coreElmnt.getElementsByTagName("L1Cache");
-			Element l1Elmnt = (Element) l1CacheList.item(0);
-			cacheType = l1Elmnt.getAttribute("type");
-			typeElmnt = searchLibraryForItem(cacheType);
-//			core.l1Cache.isFirstLevel = true;
-			core.l1Cache.levelFromTop = CacheType.L1;
-			setCacheProperties(typeElmnt, core.l1Cache);
-			core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
-			core.l1Cache.operatingFreq = core.frequency;
-			core.l1Cache.power = getCachePowerConfig(typeElmnt);
-			
-			if(SimulationConfig.collectDataWorkingSetInfo) {
-				core.l1Cache.collectWorkingSetData = true;
-				core.l1Cache.workingSetChunkSize = SimulationConfig.dataWorkingSetChunkSize; 
-			}
-			
-			//Code for L1 cache configurations for each core
-			//NodeList l2CacheList = coreElmnt.getElementsByTagName("L2Cache");
-			//Element l2Elmnt = (Element) l2CacheList.item(0);
-			//cacheType = l2Elmnt.getAttribute("type");
-			//typeElmnt = searchLibraryForItem(cacheType);
-			//setCacheProperties(typeElmnt, core.l2Cache);
-			//core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
-			
-			//Code for L1 cache configurations for each core
-			//NodeList l3CacheList = coreElmnt.getElementsByTagName("L3Cache");
-			//Element l3Elmnt = (Element) l3CacheList.item(0);
-			//cacheType = l3Elmnt.getAttribute("type");
-			//typeElmnt = searchLibraryForItem(cacheType);
-			//setCacheProperties(typeElmnt, core.l3Cache);
-			//core.l1Cache.nextLevel = l1Elmnt.getAttribute("nextLevel");
 		}
 		
 		//Set Directory Parameters
@@ -511,27 +556,27 @@ public class XMLParser
 		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
 		SystemConfig.directoryConfig.power = getCachePowerConfig(dirElmnt);
 		
-		//Code for remaining Cache configurations
-		NodeList cacheLst = systemElmnt.getElementsByTagName("Cache");
-		for (int i = 0; i < cacheLst.getLength(); i++)
-		{
-			Element cacheElmnt = (Element) cacheLst.item(i);
-			String cacheName = cacheElmnt.getAttribute("name");
-
-			if (!(SystemConfig.declaredCaches.containsKey(cacheName)))	//If the identically named cache is not already present
-			{
-				CacheConfig newCacheConfigEntry = new CacheConfig();
-//				newCacheConfigEntry.isFirstLevel = false;
-				newCacheConfigEntry.levelFromTop = Cache.CacheType.Lower;
-				String cacheType = cacheElmnt.getAttribute("type");
-				Element cacheTypeElmnt = searchLibraryForItem(cacheType);
-				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);
-				newCacheConfigEntry.nextLevel = cacheElmnt.getAttribute("nextLevel");
-				newCacheConfigEntry.operatingFreq = Long.parseLong(cacheElmnt.getAttribute("frequency"));
-				newCacheConfigEntry.power = getCachePowerConfig(cacheTypeElmnt);
-				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
-			}
-		}
+//		//Code for remaining Cache configurations
+//		NodeList cacheLst = systemElmnt.getElementsByTagName("Cache");
+//		for (int i = 0; i < cacheLst.getLength(); i++)
+//		{
+//			Element cacheElmnt = (Element) cacheLst.item(i);
+//			String cacheName = cacheElmnt.getAttribute("name");
+//
+//			if (!(SystemConfig.declaredCaches.containsKey(cacheName)))	//If the identically named cache is not already present
+//			{
+//				CacheConfig newCacheConfigEntry = new CacheConfig();
+////				newCacheConfigEntry.isFirstLevel = false;
+//				newCacheConfigEntry.levelFromTop = Cache.CacheType.Lower;
+//				String cacheType = cacheElmnt.getAttribute("type");
+//				Element cacheTypeElmnt = searchLibraryForItem(cacheType);
+//				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);
+//				newCacheConfigEntry.nextLevel = cacheElmnt.getAttribute("nextLevel");
+//				newCacheConfigEntry.operatingFreq = Long.parseLong(cacheElmnt.getAttribute("frequency"));
+//				newCacheConfigEntry.power = getCachePowerConfig(cacheTypeElmnt);
+//				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
+//			}
+//		}
 				
 		
 		
@@ -748,19 +793,9 @@ public class XMLParser
 			cache.nucaType = NucaType.NONE;
 		}
 		
+		cache.cacheDataType = CacheDataType.valueOf(getImmediateString("CacheType", CacheType));
 		
-		
-	tempStr = getImmediateString("LastLevel", CacheType);
-		if (tempStr.equalsIgnoreCase("Y"))
-			cache.isLastLevel = true;
-		else if (tempStr.equalsIgnoreCase("N"))
-			cache.isLastLevel = false;
-		else
-		{
-			System.err.println("XML Configuration error : Invalid value of 'isLastLevel' (please enter 'Y' for yes or 'N' for no)");
-			System.exit(1);
-		}
-		
+		cache.power = getCachePowerConfig(CacheType);
 	}
 	private static void setBranchPredictorProperties(Element predictorElmnt, Element BTBElmnt, BranchPredictorConfig branchPredictor){
 		

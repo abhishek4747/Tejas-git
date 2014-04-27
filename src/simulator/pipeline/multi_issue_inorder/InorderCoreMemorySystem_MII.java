@@ -119,8 +119,15 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		AddressCarryingEvent memResponse = (AddressCarryingEvent) event;
 		long address = memResponse.getAddress();
 		
+		// Unified cache scenario
+		if(iCache==l1Cache)
+		{
+			containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);
+			containingExecEngine.getMemUnitIn().processCompletionOfMemRequest(address);
+		}
+
 		//if response comes from iCache, inform fetchunit
-		if(memResponse.getRequestingElement() == iCache)
+		else if(memResponse.getRequestingElement() == iCache)
 		{
 			// iMissStatusHoldingRegister.removeRequestsByAddress(memResponse);
 			containingExecEngine.getFetchUnitIn().processCompletionOfMemRequest(address);

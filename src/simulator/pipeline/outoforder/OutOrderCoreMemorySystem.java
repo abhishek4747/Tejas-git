@@ -139,8 +139,15 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		AddressCarryingEvent memResponse = (AddressCarryingEvent) event;
 		long address = memResponse.getAddress();
 		
+		// Unified cache scenario
+		if(iCache==l1Cache)
+		{
+			containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
+			lsqueue.handleMemResponse(address);
+		}
+
 		//if response comes from iCache, inform fetchunit
-		if(memResponse.getRequestingElement() == iCache)
+		else if(memResponse.getRequestingElement() == iCache)
 		{
 			containingExecEngine.getFetcher().processCompletionOfMemRequest(address);
 		}

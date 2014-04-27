@@ -21,6 +21,7 @@
 package config;
 
 import java.util.Hashtable;
+import java.util.Vector;
 
 import generic.PortType;
 
@@ -32,7 +33,7 @@ public class SystemConfig
 	public static int numEmuThreadsPerJavaThread;	
 	
 	public static CoreConfig[] core; 
-	public static Hashtable<String, CacheConfig> declaredCaches;
+	public static Vector<CacheConfig> declaredCacheConfigs=new Vector<CacheConfig>();	
 	public static int mainMemoryLatency;
 	public static long mainMemoryFrequency;
 	public static PortType mainMemPortType;

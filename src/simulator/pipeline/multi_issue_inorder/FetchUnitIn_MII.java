@@ -1,6 +1,7 @@
 package pipeline.multi_issue_inorder;
 
 import memorysystem.AddressCarryingEvent;
+import memorysystem.MemorySystem;
 import config.CoreConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
@@ -49,7 +50,7 @@ public class FetchUnitIn_MII extends SimulationElement
 		this.ifId_latch = execEngine.getIfIdLatch();
 		
 		this.fetchBufferCapacity = (int)(core.getIssueWidth()
-								* (SystemConfig.core[core.getCore_number()].iCache.latency));
+				* (SystemConfig.core[core.getCore_number()].getICacheLatency()));
 		this.fetchBuffer = new Instruction[this.fetchBufferCapacity];
 		this.fetchFillCount=0;
 		this.fetchBufferIndex=0;

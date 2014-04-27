@@ -20,6 +20,8 @@
 *****************************************************************************/
 package config;
 
+import java.util.Vector;
+
 import generic.PortType;
 import generic.MultiPortingType;
 
@@ -78,10 +80,7 @@ public class CoreConfig
 	public int FloatMulLatency;
 	public int FloatDivLatency;
 	
-	public CacheConfig iCache = new CacheConfig();
-	public CacheConfig l1Cache = new CacheConfig();
-	public CacheConfig l2Cache = new CacheConfig();
-	public CacheConfig l3Cache = new CacheConfig();
+	public Vector<CacheConfig> coreCacheList = new Vector<CacheConfig>();
 
 	public BranchPredictorConfig branchPredictor;
 	
@@ -107,4 +106,20 @@ public class CoreConfig
 	public PowerConfigNew resultsBroadcastBusPower;
 	public PowerConfigNew iTLBPower;
 	public PowerConfigNew dTLBPower;
+	
+	public int getICacheLatency() {
+		int latency = 0;
+		
+		for(CacheConfig config : coreCacheList) {
+			if(config.firstLevel) {
+				if(config.cacheDataType==CacheDataType.Instruction ||
+					config.cacheDataType==CacheDataType.Unified) {
+					return config.latency;
+				}
+			}
+		}
+		
+		misc.Error.showErrorAndExit("Could not locate instruction cache config !!");
+		return latency;
+	}
 }

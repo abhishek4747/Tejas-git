@@ -33,7 +33,7 @@ public class CacheConfig
 	public WritePolicy writePolicy;
 //	public boolean isFirstLevel;
 	public Cache.CacheType levelFromTop;
-	public boolean isLastLevel;
+	
 	public String nextLevel;
 	public int blockSize;
 	public int assoc;
@@ -57,6 +57,12 @@ public class CacheConfig
 	
 	public CachePowerConfig power;
 	
+	public String cacheName;
+	public int numComponents;
+	public boolean firstLevel = false;
+	public CacheDataType cacheDataType = null;
+	public String nextLevelId;
+	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
 	}
@@ -65,10 +71,6 @@ public class CacheConfig
 	
 	public WritePolicy getWritePolicy() {
 		return writePolicy;
-	}
-
-	public boolean isLastLevel() {
-		return isLastLevel;
 	}
 
 	public String getNextLevel() {
@@ -105,10 +107,6 @@ public class CacheConfig
 	
 	protected void setWritePolicy(WritePolicy writePolicy) {
 		this.writePolicy = writePolicy;
-	}
-
-	protected void setLastLevel(boolean isLastLevel) {
-		this.isLastLevel = isLastLevel;
 	}
 
 	protected void setNextLevel(String nextLevel) {

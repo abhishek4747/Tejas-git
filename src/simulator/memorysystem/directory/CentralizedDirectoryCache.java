@@ -79,10 +79,10 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 	
 	CachePowerConfig power;
 	
-	public CentralizedDirectoryCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores, 
+	public CentralizedDirectoryCache(String cacheName, int id, CacheConfig cacheParameters, CoreMemorySystem containingMemSys, int numCores, 
 			int networkDelay) 
 	{
-		super(cacheParameters, containingMemSys);
+		super(cacheName, id, cacheParameters, containingMemSys);
 		
 		lines = new DirectoryEntry[cacheParameters.getSize()*1024];
 		for(int i=0;i<lines.length;i++) {
@@ -94,7 +94,7 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		directoryHits = 0;
 		directoryMisses = 0;
 
-		this.levelFromTop = CacheType.Directory;
+		//this.levelFromTop = CacheType.Directory;
 		CentralizedDirectoryCache.networkDelay = networkDelay;
 		this.router = new Router(SystemConfig.nocConfig, this);
 		power = cacheParameters.power;
@@ -809,13 +809,6 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		return networkDelay;
 	}
 	
-	public String toString()
-	{
-		StringBuilder s = new StringBuilder();
-		s.append(this.levelFromTop + " : ");
-		
-		return s.toString();
-	}
 	
 	public void sendResponseToAPendingEventOfSameCacheLine(Cache requestingCache, Event event)
 	{

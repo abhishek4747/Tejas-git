@@ -34,6 +34,7 @@ import memorysystem.nuca.NucaCache.NucaType;
 import memorysystem.nuca.NucaCacheBank;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
+import config.CacheDataType;
 import config.CachePowerConfig;
 import config.Interconnect;
 import config.PowerConfigNew;
@@ -75,7 +76,7 @@ public class Cache extends SimulationElement
 		public CoherenceType coherence = CoherenceType.None;
 		public int numberOfBuses = 1;
 		
-		public CacheType levelFromTop; 
+		//public CacheType levelFromTop; 
 		public boolean isLastLevel; //Tells whether there are any more levels of cache
 		public CacheConfig.WritePolicy writePolicy; //WRITE_BACK or WRITE_THROUGH
 		public String nextLevelName; //Name of the next level cache according to the configuration file
@@ -99,7 +100,19 @@ public class Cache extends SimulationElement
 		
 		CachePowerConfig power;
 		
-		public Cache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
+		String cacheName;
+		
+		public void createLinkToNextLevelCache(Cache nextLevelCache) {
+			this.nextLevel = nextLevelCache;			
+			this.nextLevel.prevLevel.add(this);
+		}
+		
+		public CacheConfig cacheConfig;
+		public int id;
+		
+			
+		public Cache(String cacheName, int id, 
+				CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
 		{
 			super(cacheParameters.portType,
 					cacheParameters.getAccessPorts(), 
@@ -117,7 +130,7 @@ public class Cache extends SimulationElement
 			// set the parameters
 			this.blockSize = cacheParameters.getBlockSize();
 			this.assoc = cacheParameters.getAssoc();
-			this.size = cacheParameters.getSize(); // in kilobytes
+			this.size = cacheParameters.getSize();
 			this.blockSizeBits = Util.logbase2(blockSize);
 			this.assocBits = Util.logbase2(assoc);
 			this.numLines = getNumLines();
@@ -125,8 +138,25 @@ public class Cache extends SimulationElement
 			this.numSetsBits = numLinesBits - assocBits;
 	
 			this.writePolicy = cacheParameters.getWritePolicy();
-			this.levelFromTop = cacheParameters.getLevelFromTop();
-			this.isLastLevel = cacheParameters.isLastLevel();
+			
+			//this.levelFromTop = cacheParameters.getLevelFromTop();
+			
+			this.cacheConfig = cacheParameters;
+			if(this.containingMemSys==null) {
+				// Use the core memory system of core 0 for all the shared caches.
+				this.isSharedCache = true;
+				this.containingMemSys = MemorySystem.getCoreMemorySystems()[0];
+			}
+			
+			if(cacheParameters.nextLevel=="") {
+				this.isLastLevel = true;
+			} else {
+				this.isLastLevel = false;
+			}
+			
+			this.cacheName = cacheName;
+			this.id = id;
+			
 			this.nextLevelName = cacheParameters.getNextLevel();
 //			this.enforcesCoherence = cacheParameters.isEnforcesCoherence();
 			this.coherence = cacheParameters.getCoherence();
@@ -143,24 +173,22 @@ public class Cache extends SimulationElement
 			// make the cache
 			makeCache();
 			
-			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
-			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
-			{
-				missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, this.containingMemSys.core.eventQueue);
+			if(this.containingMemSys!=null) {
+				missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, 
+					this.containingMemSys.core.eventQueue);
+			} else {
+				missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, 
+					null);
 			}
-			else
-			{
-				if(SimulationConfig.nucaType == NucaType.NONE) 
-				{
-					missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, null);
-				}
-			}
+			
 			this.nucaType = NucaType.NONE;
 			
 			power = cacheParameters.power;
 		}
 		
 		public Cache(
+				String cacheName,
+				CacheConfig cacheConfig,
 				int size,
 				int associativity,
 				int blockSize,
@@ -177,7 +205,7 @@ public class Cache extends SimulationElement
 			// set the parameters
 			this.blockSize = blockSize;
 			this.assoc = associativity;
-			this.size = size; // in kilobytes
+			this.size = size;
 			this.blockSizeBits = Util.logbase2(blockSize);
 			this.assocBits = Util.logbase2(assoc);
 			this.numLines = getNumLines();
@@ -185,8 +213,10 @@ public class Cache extends SimulationElement
 			this.numSetsBits = numLinesBits - assocBits;
 	
 			this.writePolicy = writePolicy;
-			this.levelFromTop = CacheType.L1;
+			
 			this.isLastLevel = true;
+			this.cacheName = cacheName;
+			this.cacheConfig = cacheConfig;
 			//this.nextLevelName = cacheParameters.getNextLevel();
 //			this.enforcesCoherence = cacheParameters.isEnforcesCoherence();
 			//this.coherence = cacheParameters.getCoherence();
@@ -271,11 +301,6 @@ public class Cache extends SimulationElement
 		private boolean printCacheDebugMessages = false;
 		public void handleEvent(EventQueue eventQ, Event event)
 		{
-			// Sanity check for iCache
-			if(this.levelFromTop==CacheType.iCache && event.getRequestType()==RequestType.Cache_Read && ((AddressCarryingEvent)event).getAddress()==-1) {
-				misc.Error.showErrorAndExit("iCache is getting request for invalid ip : -1");
-			}
-			
 			if(printCacheDebugMessages==true) {
 				if(event.getClass()==AddressCarryingEvent.class)// &&
 //					((AddressCarryingEvent)event).getAddress()>>blockSizeBits==48037994l &&
@@ -287,19 +312,6 @@ public class Cache extends SimulationElement
 						"\taddress = " + ((AddressCarryingEvent)event).getAddress() +
 						"\t" + this);
 				}
-			}
-			
-			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
-			{
-				/*if(event.coreId != this.containingMemSys.coreID)
-				{
-					System.out.println("this print is from : " + this.levelFromTop + " of " + this.containingMemSys.coreID);
-					event.dump();
-					ArchitecturalComponent.dumpOutStandingLoads();
-					ArchitecturalComponent.dumpAllEventQueues();
-					ArchitecturalComponent.dumpAllMSHRs();
-					misc.Error.showErrorAndExit("coreIDs mismatch!!");					
-				}*/
 			}
 			
 			if (event.getRequestType() == RequestType.Cache_Read
@@ -669,13 +681,6 @@ public class Cache extends SimulationElement
 				
 				else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
 				{
-					if(this.levelFromTop == CacheType.L1)
-					{
-						//FIXME change 5//ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequestsByRequestTypeAndAddressIfAvailable(eventPoppedOut);
-						/*ArchitecturalComponent.getCores()[eventPoppedOut.coreId].getExecEngine().getCoreMemorySystem().L1MissStatusHoldingRegister.removeRequests(eventPoppedOut);*/
-					}
-					/*if(this.levelFromTop == CacheType.Lower)
-						System.out.println(eventPoppedOut.getEventTime()+" write removed from mshr "+ eventPoppedOut.getAddress() + "tag "+ computeTag(eventPoppedOut.getAddress()));	*/
 					if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
 					{
 							if (this.isLastLevel)
@@ -714,9 +719,26 @@ public class Cache extends SimulationElement
 			}
 		}
 		
+		public boolean isIcache() {
+			return (this.cacheConfig.firstLevel==true && 
+				(this.cacheConfig.cacheDataType==CacheDataType.Instruction || 
+				this.cacheConfig.cacheDataType==CacheDataType.Unified) );
+		}
 		
+		public boolean isL1cache() {
+			return (this.cacheConfig.firstLevel==true && 
+				(this.cacheConfig.cacheDataType==CacheDataType.Data || 
+				this.cacheConfig.cacheDataType==CacheDataType.Unified) );
+		}
 		
+		private boolean isSharedCache = true;
+		public boolean isSharedCache() {
+			return isSharedCache; 
+		}
 		
+		public boolean isPrivateCache() {
+			return !isSharedCache();
+		}
 		
 		/*
 		 * called by higher level cache
@@ -731,14 +753,14 @@ public class Cache extends SimulationElement
 			// Clear the working set data after every x instructions
 			if(this.containingMemSys!=null && this.workingSet!=null) {
 				
-				if(levelFromTop==CacheType.iCache) {
+				if(isIcache()) {
 					long numInsn = containingMemSys.getiCache().hits + containingMemSys.getiCache().misses; 
 					long numWorkingSets = numInsn/workingSetChunkSize; 
 					if(numWorkingSets>containingMemSys.numInstructionSetChunksNoted) {
 						this.clearWorkingSet();
 						containingMemSys.numInstructionSetChunksNoted++;
 					}
-				} else if(levelFromTop==CacheType.L1) {
+				} else if(isL1cache()) {
 					long numInsn = containingMemSys.getiCache().hits + containingMemSys.getiCache().misses;
 					long numWorkingSets = numInsn/workingSetChunkSize; 
 					if(numWorkingSets>containingMemSys.numDataSetChunksNoted) {
@@ -890,12 +912,14 @@ public class Cache extends SimulationElement
 			// Here, coherence is not there but network delay must be added
 			// We are checking for connection to lower cache because if tomorrow we have a private L2 cache, this
 			// network delay must not be added.
-			if(eventToRespondTo.getRequestingElement().getClass()==Cache.class &&
-				((Cache)eventToRespondTo.getRequestingElement()).levelFromTop==CacheType.iCache &&
-				((Cache)eventToRespondTo.getRequestingElement()).nextLevel.levelFromTop==CacheType.Lower)
+			else if(eventToRespondTo.getRequestingElement().getClass()==Cache.class &&
+				((Cache)eventToRespondTo.getRequestingElement()).isPrivateCache() &&
+				((Cache)eventToRespondTo.getRequestingElement()).nextLevel.isSharedCache())
 			{
 				if(SystemConfig.interconnect == Interconnect.Bus)
 				{
+					// TODO : This delay should ideally be much lesser than the 
+					// network delay
 					delay += CentralizedDirectoryCache.getNetworkDelay();
 				}
 			}
@@ -1148,7 +1172,7 @@ public class Cache extends SimulationElement
 		 * If modified, writeback, else just update sharers
 		 * */
 		private void evictionUpdateDirectory(int requestingCore, long dirAddress,Event event, long address) {
-			if(debug && this.levelFromTop == CacheType.L1)System.out.println("tag of line evicted " + (address >>>  this.blockSizeBits)+ " coreID  " + event.coreId );
+			
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
 			long delay = 0;			
 			if(this.coherence==CoherenceType.Directory) {
@@ -1255,7 +1279,7 @@ public class Cache extends SimulationElement
 		
 		private int getNumLines()
 		{
-			long totSize = size * 1024;
+			long totSize = size;
 			return (int)(totSize / (long)(blockSize));
 		}
 
@@ -1387,13 +1411,7 @@ public class Cache extends SimulationElement
 
 		public String toString()
 		{
-			StringBuilder s = new StringBuilder();
-			s.append(this.levelFromTop + " : ");
-			if(this.levelFromTop == CacheType.L1 || this.levelFromTop == CacheType.iCache)
-			{
-				s.append(this.containingMemSys.coreID);
-			}
-			return s.toString();
+			return cacheName;
 		}
 		
 		public PowerConfigNew calculateAndPrintPower(FileWriter outputFileWriter, String componentName) throws IOException

@@ -12,8 +12,10 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import net.Router;
 import net.Switch;
@@ -406,42 +408,29 @@ public class Statistics {
 				outputFileWriter.write("Stores\t\t=\t" + coreMemSys[i].getNumberOfStores() + "\n");
 				outputFileWriter.write("LSQ forwardings\t=\t" + coreMemSys[i].getNumberOfValueForwardings() + "\n");
 				
-				/*printCacheStatistics("iCache[" + i + "]", coreMemSys[i].getiCache().hits, coreMemSys[i].getiCache().misses);
-				printCacheStatistics("l1Cache[" + i + "]", coreMemSys[i].getL1Cache().hits, coreMemSys[i].getL1Cache().misses);*/
-				
 				printCacheStatistics("iTLB[" + i + "]", coreMemSys[i].getiTLB().getTlbHits(), coreMemSys[i].getiTLB().getTlbMisses());
 				printCacheStatistics("dTLB[" + i + "]", coreMemSys[i].getdTLB().getTlbHits(), coreMemSys[i].getdTLB().getTlbMisses());
 				
+				for(Cache c : coreMemSys[i].getCoreCacheList()) {
+					printCacheStats(c);
+					addToConsolidatedCacheList(c);
+				}
+				
 				outputFileWriter.write("\n");
 			}
-			outputFileWriter.write("\n");
 			
-			outputFileWriter.write("\n\nCache Statistics\n\n");
-			
-			for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
-			{
-				String cacheName = cacheNameSet.nextElement();
-				Cache cache = MemorySystem.getCacheList().get(cacheName);
-				printCacheStatistics(cache);
+			outputFileWriter.write("\n\n[Shared Caches]\n\n");
+			for (Cache c : MemorySystem.getSharedCacheList()) {
+				printCacheStats(c);
+				addToConsolidatedCacheList(c);
 			}
 			
-			/*outputFileWriter.write("[Other cache statistics]\n");
-			outputFileWriter.write("\n");
+			outputFileWriter.write("\n\n[Consolidated Stats For Caches]\n\n");
+			for (Map.Entry<String, Vector<Cache>> entry : consolidatedCacheList.entrySet()) {
+				printConsolidatedCacheStats(entry.getKey(), entry.getValue());
+			}
 			
-			outputFileWriter.write("L2 Requests\t=\t" + noOfL2Requests + "\n");
-			outputFileWriter.write("L2 Hits\t\t=\t" + noOfL2Hits + "\n");
-			outputFileWriter.write("L2 Misses\t=\t" + noOfL2Misses + "\n");
-			
-
-			if (noOfL2Requests != 0)
-			{
-				outputFileWriter.write("L2 Hit-Rate\t=\t" + formatDouble((double)(noOfL2Hits)/noOfL2Requests) + "\n");
-				outputFileWriter.write("L2 Miss-Rate\t=\t" + formatDouble((double)(noOfL2Misses)/noOfL2Requests) + "\n");
-			}*/
-			
-			
-			
-			outputFileWriter.write("NUCA Type\t=\t" + SimulationConfig.nucaType + "\n");
+			outputFileWriter.write("\n\nNUCA Type\t=\t" + SimulationConfig.nucaType + "\n");
 			if (nocRoutingAlgo != null)
 			{
 				outputFileWriter.write("L2 noc Topology\t=\t" + nocTopology + "\n");
@@ -539,6 +528,60 @@ public class Statistics {
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	static Hashtable<String, Vector<Cache>> consolidatedCacheList = 
+			new Hashtable<String, Vector<Cache>>();
+	
+	private static void addToConsolidatedCacheList(Cache c) {
+		Vector<Cache> cacheList = consolidatedCacheList.get(c.cacheConfig.cacheName);
+		if(cacheList==null) {
+			cacheList = new Vector<Cache>();
+			cacheList.add(c);
+			consolidatedCacheList.put(c.cacheConfig.cacheName, cacheList);
+		}  else {
+			if(cacheList.contains(c)==true) {
+				misc.Error.showErrorAndExit("This cache has already been added to cache list");
+			} else {
+				cacheList.add(c);
+			}
+		}
+	}
+
+	static void printStatisticsForACache(String name, 
+		long hits, long misses, long evictions) throws IOException 
+	{
+		outputFileWriter.write("\n");
+		outputFileWriter.write("\n" + name + " Hits\t=\t" + hits);
+		outputFileWriter.write("\n" + name + " Misses\t=\t" + misses);
+		
+		float hitrate = (float)hits/(float)(hits+misses);
+		outputFileWriter.write("\n" + name + " Hit-Rate\t=\t" + hitrate);
+		
+		float missrate = (float)misses/(float)(hits+misses);
+		outputFileWriter.write("\n" + name + " Miss-Rate\t=\t" + missrate);
+		
+		//outputFileWriter.write("\n" + name + " Evictions\t=\t" + evictions);
+		outputFileWriter.write("\n");
+	}
+	
+	static void printCacheStats(Cache c) throws IOException
+	{
+		printStatisticsForACache(c.toString(), c.hits, c.misses, c.evictions);
+	}
+	
+	static void printConsolidatedCacheStats(String cacheName, 
+			Vector<Cache> cacheArray) throws IOException
+	{
+		long hits = 0, misses = 0, evictions = 0;
+		
+		for(Cache c : cacheArray) {
+			hits += c.hits;
+			misses += c.misses;
+			evictions += c.evictions;
+		}
+		
+		printStatisticsForACache(cacheName, hits, misses, evictions);
 	}
 	
 	static void printInsWorkingSetStats() throws IOException {
@@ -1075,12 +1118,12 @@ public class Statistics {
 		return numCISCInsn[javaTid][tidEmu];
 	}
 	
-	static String formatFloat(float f)
+	public static String formatFloat(float f)
 	{
 		return String.format("%.4f", f);
 	}
 	
-	static String formatDouble(double d)
+	public static String formatDouble(double d)
 	{
 		return String.format("%.4f", d);
 	}

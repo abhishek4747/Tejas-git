@@ -20,11 +20,14 @@
 *****************************************************************************/
 package memorysystem;
 
+import java.util.Hashtable;
+import java.util.Vector;
 import generic.CachePullEvent;
 import generic.PortType;
 import generic.SimulationElement;
 import generic.Core;
 import generic.RequestType;
+import config.CacheDataType;
 import config.SystemConfig;
 import config.CacheConfig;
 
@@ -41,6 +44,29 @@ public abstract class CoreMemorySystem extends SimulationElement
 	protected long numInstructionSetChunksNoted = 0;
 	protected long numDataSetChunksNoted = 0;
 	
+	// All the private caches of the core are maintained in a list
+	// coreCacheList contains a vector of caches
+	// cacheNameList contains a vector of cache names
+	// Elements in both the lists have a one to one mapping
+	private Hashtable<String,Cache> cacheList = new Hashtable<String,Cache>();
+	private Vector<Cache> coreCacheList = new Vector<Cache>();
+	
+	public Vector<Cache> getCoreCacheList() {
+		return coreCacheList;
+	}
+	
+	public Hashtable<String, Cache> getCacheList() {
+		return cacheList;
+	}
+	
+	private String tagNameWithCoreId(String name) {
+		return (name + "[" + this.coreID + "]");
+	}
+	
+	public Cache getCache(String cacheName) {
+		return cacheList.get(cacheName);
+	}
+	
 	protected CoreMemorySystem(Core core)
 	{
 		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
@@ -48,41 +74,9 @@ public abstract class CoreMemorySystem extends SimulationElement
 		this.setCore(core);
 		this.coreID = core.getCore_number();
 		
-		//Initialise the  L3 cache
-		//CacheConfig cacheParameterObj;// = SystemConfig.core[coreID].l3Cache;
-		//l3Cache = new Cache(cacheParameterObj, this); 
-		
-		//Initialise the  L2 cache
-		//cacheParameterObj = SystemConfig.core[coreID].l2Cache;
-		//l2Cache = new Cache(cacheParameterObj, this); 
-		//l2Cache.nextLevel = l3Cache;
-		
-		//Initialise the  instruction cache
-		CacheConfig cacheParameterObj;
-		cacheParameterObj = SystemConfig.core[coreID].iCache;
-		iCache = new Cache(cacheParameterObj, this);
-		//add initial cachepull event
-		this.core.getEventQueue().addEvent(
-									new CachePullEvent(
-											this.core.getEventQueue(),
-											0,
-											iCache,
-											iCache,
-											RequestType.PerformPulls,
-											this.coreID));
-		
-		//Initialise the  L1 cache
-		cacheParameterObj = SystemConfig.core[coreID].l1Cache;
-		l1Cache = new Cache(cacheParameterObj, this);
-		//add initial cachepull event
-		this.core.getEventQueue().addEvent(
-				new CachePullEvent(
-						this.core.getEventQueue(),
-						0,
-						l1Cache,
-						l1Cache,
-						RequestType.PerformPulls,
-						this.coreID));
+		createCoreCaches();
+		maintainDataAndInstructionCacheAsFirstLevelCache();
+		createLinksBetweenCoreCaches();
 		
 		//Initialise the TLB
 		int numPageLevels = 2;
@@ -114,6 +108,92 @@ public abstract class CoreMemorySystem extends SimulationElement
 	//	lsqueue.setMultiPortType(SystemConfig.core[coreID].LSQMultiportType);
 	}
 	
+	private void createLinksBetweenCoreCaches() {
+		for(int i=0; i<SystemConfig.core[coreID].coreCacheList.size(); i++) {
+			CacheConfig cacheConfig = SystemConfig.core[coreID].coreCacheList.elementAt(i);
+			String nextLevelName = tagNameWithCoreId(cacheConfig.nextLevel);
+			Cache nextLevelCache = this.getCache(nextLevelName); 
+			if(nextLevelCache!=null) {
+				this.coreCacheList.get(i).createLinkToNextLevelCache(nextLevelCache);
+			}
+		}
+	}
+
+	private void maintainDataAndInstructionCacheAsFirstLevelCache() {
+		if(iCache!=null && l1Cache==null) {
+			misc.Error.showErrorAndExit("Instruction cache set but data cache has not been set !!");
+		}
+		
+		if(iCache==null && l1Cache!=null) {
+			misc.Error.showErrorAndExit("Data cache set but instruction cache has not been set !!");
+		}
+		
+		// If both instruction and data cache are set to null, 
+		// then use a unified first level cache
+		if(iCache==null && l1Cache==null) {
+			for(int i=0; i<SystemConfig.core[coreID].coreCacheList.size(); i++) {
+				CacheConfig cacheConfig = SystemConfig.core[coreID].coreCacheList.elementAt(i);
+				
+				if(cacheConfig.firstLevel==true) {
+					if(iCache==null && l1Cache==null) {
+						iCache = coreCacheList.get(i);
+						l1Cache = coreCacheList.get(i);
+					} else {
+						misc.Error.showErrorAndExit("Core cannot have more than one first level " +
+							"unified cache !!");
+					}
+				}
+			}
+		}
+		
+		if(iCache==null && l1Cache==null) {
+			if(SystemConfig.core[coreID].coreCacheList.size()==0) {
+				misc.Error.showErrorAndExit("No private cache for this core !!");
+			} else {
+				misc.Error.showErrorAndExit("There are " + coreCacheList.size() + " private caches " +
+					"but none of them is a first level cache. " +
+					"Set the firstLevel attribute to true in the " +
+					"cache tag of the configuration file");
+			}
+		}		
+	}
+
+	private void createCoreCaches() {
+		for(int i=0; i<SystemConfig.core[coreID].coreCacheList.size(); i++) {
+			CacheConfig cacheConfig = SystemConfig.core[coreID].coreCacheList.elementAt(i);
+			Cache cache = new Cache(tagNameWithCoreId(cacheConfig.cacheName), 
+					core.getCore_number(), cacheConfig, this);
+			
+			cacheList.put(tagNameWithCoreId(cacheConfig.cacheName), cache);
+			coreCacheList.add(cache);
+			
+			if(cacheConfig.cacheDataType==CacheDataType.Instruction) {
+				if(iCache==null && cacheConfig.firstLevel==true) {
+					iCache = cache;
+				} else if (iCache!=null) {
+					misc.Error.showErrorAndExit("Core cannot have two instruction caches !!");
+				} else if(cacheConfig.firstLevel==false) {
+					misc.Error.showErrorAndExit("Instruction cache must be a first level cache\n" + 
+						"Set the firstLevel attribute field of the cache to true");
+				}
+			}
+			
+			if(cacheConfig.cacheDataType==CacheDataType.Data) {
+				if(l1Cache==null && cacheConfig.firstLevel==true) {
+					l1Cache = cache;
+				} else if (l1Cache!=null) {
+					misc.Error.showErrorAndExit("Core cannot have two data caches !!");
+				} else if(cacheConfig.firstLevel==false) {
+					misc.Error.showErrorAndExit("Data cache must be a first level cache\n" + 
+						"Set the firstLevel attribute field of the cache to true");
+				}
+			}
+			
+			this.core.getEventQueue().addEvent(new CachePullEvent(this.core.getEventQueue(),
+				0, cache, cache, RequestType.PerformPulls, this.coreID));
+		}		
+	}
+
 	public abstract void issueRequestToInstrCache(long address);
 	
 	public abstract boolean issueRequestToL1Cache(RequestType requestType, long address);
