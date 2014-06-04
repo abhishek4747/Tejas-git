@@ -38,6 +38,7 @@ public class CacheConfig
 	public int blockSize;
 	public int assoc;
 	public int size;
+	public int numEntries;
 	public int latency;
 	
 	public PortType portType;

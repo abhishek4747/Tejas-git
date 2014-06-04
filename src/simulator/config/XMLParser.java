@@ -735,7 +735,26 @@ public class XMLParser
 		
 		cache.blockSize = Integer.parseInt(getImmediateString("BlockSize", CacheType));
 		cache.assoc = Integer.parseInt(getImmediateString("Associativity", CacheType));
-		cache.size = Integer.parseInt(getImmediateString("Size", CacheType));
+		
+		if(isElementPresent("Size", CacheType)) {
+			cache.size = Integer.parseInt(getImmediateString("Size", CacheType));
+		} else {
+			cache.size = 0;
+		}
+		
+		if(isElementPresent("NumEntries", CacheType)) {
+			cache.numEntries = Integer.parseInt(getImmediateString("NumEntries", CacheType));
+			cache.size = cache.numEntries*cache.blockSize;
+			System.out.println("Number of entries in directory : " + cache.numEntries);
+			System.out.println("Directory size in terms of bytes (Considering one directory entry = one cache line ) : " + cache.size);
+		} else {
+			cache.numEntries = 0;
+		}
+		
+		if(cache.size==0 && cache.numEntries==0) {
+			misc.Error.showErrorAndExit("Invalid cache configuration : size=0 and numEntries=0 !!");
+		}
+		
 		cache.latency = Integer.parseInt(getImmediateString("Latency", CacheType));
 		cache.portType = setPortType(getImmediateString("PortType", CacheType));
 		cache.accessPorts = Integer.parseInt(getImmediateString("AccessPorts", CacheType));

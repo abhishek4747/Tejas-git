@@ -84,7 +84,7 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 	{
 		super(cacheName, id, cacheParameters, containingMemSys);
 		
-		lines = new DirectoryEntry[cacheParameters.getSize()*1024];
+		lines = new DirectoryEntry[cacheParameters.numEntries];
 		for(int i=0;i<lines.length;i++) {
 			lines[i] = new DirectoryEntry();
 		}
