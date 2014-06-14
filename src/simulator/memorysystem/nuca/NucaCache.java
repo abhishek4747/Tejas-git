@@ -72,7 +72,8 @@ public class NucaCache extends Cache
     static public HashMap<Vector<Integer>,Integer> accessedBankIds = new HashMap<Vector<Integer>, Integer>();
     public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,NucaType nucaType)
     {
-    	super(cacheParameters, containingMemSys);
+    	//TODO : cache id can be more intuitive
+    	super("NucaCache", 0, cacheParameters, containingMemSys);
     	this.nucaType = SimulationConfig.nucaType;
     	this.cacheRows = SystemConfig.nocConfig.getNumberOfBankRows();
         this.cacheColumns = SystemConfig.nocConfig.getNumberOfBankColumns();

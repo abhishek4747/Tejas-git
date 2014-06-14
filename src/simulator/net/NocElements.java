@@ -96,7 +96,8 @@ public class NocElements
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("D"))
 				{
-					CentralizedDirectoryCache directory = new CentralizedDirectoryCache(SystemConfig.directoryConfig, null, noOfCores, SystemConfig.dirNetworkDelay);
+					int dirId = i*columns+j;
+					CentralizedDirectoryCache directory = new CentralizedDirectoryCache("Directory", dirId, SystemConfig.directoryConfig, null, noOfCores, SystemConfig.dirNetworkDelay);
 					l1Directories.add(directory);
 					nocElements[i][j] = directory;
 					Vector<Integer> id = new Vector<Integer>();

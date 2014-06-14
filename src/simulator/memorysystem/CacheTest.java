@@ -7,6 +7,7 @@ import generic.GlobalClock;
 import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
+import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
 
 public class CacheTest extends SimulationElement{
@@ -34,7 +35,12 @@ public class CacheTest extends SimulationElement{
 		WritePolicy writePolicy = WritePolicy.WRITE_THROUGH;
 		int mshrSize = 1;
 		
+		//testConfig contains default parameters for cache configuration.
+		//enter correct values before running the cache tests
+		CacheConfig testConfig = new CacheConfig();
+		//TODO: modify test config
 		cache = new Cache(
+				"tempCache", testConfig,
 				size,
 				associativity,
 				blockSize,

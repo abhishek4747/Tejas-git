@@ -50,7 +50,8 @@ public class NucaCacheBank extends Cache implements NocInterface
 
 	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NucaCache nucaCache, NucaType nucaType)
     {
-        super(cacheParameters,containingMemSys);
+		//TODO : cache id can be more intuitive
+        super("NucaCacheBank", 0, cacheParameters,containingMemSys);
     	this.timestamp = 0;
     	this.cacheParameters = cacheParameters;
     	if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
