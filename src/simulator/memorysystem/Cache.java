@@ -719,6 +719,13 @@ public class Cache extends SimulationElement
 			}
 		}
 		
+		public boolean isL2cache() {
+			// I am not a first level cache.
+			// But a cache connected on top of me is a first level cache
+			return (this.cacheConfig.firstLevel==false && 
+				this.prevLevel.get(0).cacheConfig.firstLevel==true);
+		}
+		
 		public boolean isIcache() {
 			return (this.cacheConfig.firstLevel==true && 
 				(this.cacheConfig.cacheDataType==CacheDataType.Instruction || 
