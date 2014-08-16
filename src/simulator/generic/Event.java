@@ -17,9 +17,18 @@ public abstract class Event implements Cloneable
 	protected RequestType requestType;
 	private long priority;
 	public int coreId;
+	public long serializationID = 0;
+	public static long globalSerializationID = 0;
+	
+	public void incrementSerializationID() {
+		globalSerializationID++;
+		serializationID = globalSerializationID;
+	}
 
 	public Event clone()
 	{
+		incrementSerializationID();
+		
 		try {
 			return (Event) (super.clone());
 		} catch (CloneNotSupportedException e) {
@@ -35,6 +44,7 @@ public abstract class Event implements Cloneable
 	public Event(EventQueue eventQ, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType) 
 	{
+		incrementSerializationID();
 		eventTime = -1; // this should be set by the port
 		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;
@@ -48,6 +58,7 @@ public abstract class Event implements Cloneable
 	public Event(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType, int coreId) 
 	{
+		incrementSerializationID();
 		this.eventTime = eventTime; // this should be set by the port
 		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;
@@ -60,6 +71,7 @@ public abstract class Event implements Cloneable
 	public Event update(EventQueue eventQ, long eventTime, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType)
 	{
+		incrementSerializationID();
 		this.eventTime =  eventTime;
 		this.eventQ = eventQ;
 		this.requestingElement = requestingElement;

@@ -132,7 +132,7 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	}
 	
 	public String toString(){
-		String s = (coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime + " : " + address); 
+		String s = (coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime + " : " + address + " # " + serializationID); 
 		return s;
 	}
 }

@@ -469,10 +469,10 @@ public class Cache extends SimulationElement
 				cl.setState(MESI.INVALID);
 			}
 			
-			invalidatePreviousLevelCaches((AddressCarryingEvent)event);
+			invalidatePreviousLevelCaches(((AddressCarryingEvent)event).getAddress());
 		}
 		
-		private void invalidatePreviousLevelCaches(AddressCarryingEvent event)
+		private void invalidatePreviousLevelCaches(long addr)
 		{
 			// If I am invalidating a cache entry, I must inform all the previous level caches 
 			// about the same
@@ -485,25 +485,37 @@ public class Cache extends SimulationElement
 				if(SystemConfig.interconnect == Interconnect.Bus)
 				{
 					Cache c = prevLevel.get(i);
+					// Use event queue and core id as zero.
+					EventQueue eventQueue = ArchitecturalComponent.getCores()[0].eventQueue;
+					int coreNumber = 0;
+					
+					if(c.containingMemSys!=null) {
+						eventQueue = c.containingMemSys.getCore().getEventQueue();
+						coreNumber = c.containingMemSys.getCore().getCore_number();
+					}
+					
 					c.getPort().put(
 						new AddressCarryingEvent(
-							c.containingMemSys.getCore().getEventQueue(),
+							eventQueue,
 							c.getLatency(),
 							this, 
 							c,
 							RequestType.MESI_Invalidate, 
-							((AddressCarryingEvent)event).getAddress(),
-							c.containingMemSys.getCore().getCore_number()));
+							addr,
+							coreNumber));
 				}
 				else if(SystemConfig.interconnect == Interconnect.Noc)
 				{
 					Cache c = prevLevel.get(i);
+					EventQueue eventQueue = this.containingMemSys.getCore().getEventQueue();
+					
 					Vector<Integer> destinationId = c.containingMemSys.getCore().getId();
-					AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
+					AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(eventQueue,
 							 0,this.containingMemSys.getCore(), 
 							 this.containingMemSys.getCore().getRouter(),
 							 RequestType.MESI_Invalidate,
-							 event.getAddress(),event.coreId,
+							 addr,
+							 this.containingMemSys.coreID,
 							 this.containingMemSys.getCore().getId(),destinationId);
 					if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 					{
@@ -697,16 +709,16 @@ public class Cache extends SimulationElement
 					}
 					else
 					{
-							CacheLine cl = this.access(eventPoppedOut.getAddress());
-							if (cl != null)
-							{
-									cl.setState(MESI.MODIFIED);
-							}
-							else
-							{
-								numberOfWrites++;
-								sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
-							}
+						CacheLine cl = this.access(eventPoppedOut.getAddress());
+						if (cl != null && cl.getState()!=MESI.MODIFIED) {
+							cl.setState(MESI.MODIFIED);
+							numberOfWrites++;
+							sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut;
+							//manageAJustModifiedLine(eventPoppedOut);
+						} else {
+							numberOfWrites++;
+							sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut;
+						}
 					}
 				}
 			}
@@ -715,7 +727,7 @@ public class Cache extends SimulationElement
 			{
 				//for all writes to the same block at this level,
 				//one write is sent to the next level
-				propogateWrite(sampleWriteEvent);
+				manageAJustModifiedLine(sampleWriteEvent);
 			}
 		}
 		
@@ -824,14 +836,11 @@ public class Cache extends SimulationElement
 			CacheLine evictedLine = this.fill(addr, stateToSet);
 			
 			//This does not ensure inclusiveness
-			if (
-				evictedLine != null && 
-				evictedLine.getState() != MESI.INVALID && 
+			if (evictedLine != null && 	evictedLine.getState() != MESI.INVALID) {
 				// if the line is modified, the cache write policy must NOT be WRITE_THROUGH
-				((evictedLine.getState()!=MESI.MODIFIED) || (evictedLine.getState()==MESI.MODIFIED && this.writePolicy!=WritePolicy.WRITE_THROUGH))
-			)
-			{
-				//Update directory in case of eviction
+				if((evictedLine.getState()==MESI.MODIFIED && this.writePolicy!=WritePolicy.WRITE_THROUGH))
+				{
+					//Update directory in case of eviction
 					if(this.coherence==CoherenceType.Directory)
 						
 					{
@@ -856,6 +865,9 @@ public class Cache extends SimulationElement
 						
 						//putEventToPort(event,this.nextLevel, RequestType.Cache_Write, false,true);
 					}
+				}
+				
+				invalidatePreviousLevelCaches(evictedLine.getAddress());
 			}
 			
 			if(this.coherence == CoherenceType.Directory)
@@ -1213,7 +1225,7 @@ public class Cache extends SimulationElement
 				ArchitecturalComponent.getCores()[event.coreId].getRouter().
 				getPort().put(eventToBeSent);
 			}
-			invalidatePreviousLevelCaches((AddressCarryingEvent)event);		
+			invalidatePreviousLevelCaches(((AddressCarryingEvent)event).getAddress());		
 		}
 		
 		public long computeTag(long addr) {
@@ -1309,22 +1321,33 @@ public class Cache extends SimulationElement
 					
 					cl.setState(MESI.MODIFIED);
 					
-					// Send request to lower cache.
-					if(this.coherence==CoherenceType.None && this.isLastLevel==false) {
-						AddressCarryingEvent newEvent  = (AddressCarryingEvent)event.clone();
-						newEvent.setAddress(addr);
-						sendWriteRequest(newEvent);
-					}
-					
-					// If I have coherence, I should send this request to Directory 
-					if(this.coherence == CoherenceType.Directory) {
-						writeHitUpdateDirectory(event.coreId,( addr>>> blockSizeBits ), event.clone(), addr);
-					}
+					manageAJustModifiedLine((AddressCarryingEvent)event);
 				}
 			}
 			return cl;
 		}
 		
+		private void manageAJustModifiedLine(AddressCarryingEvent event) {
+			
+			long addr = event.getAddress(); 
+					
+			// Send request to lower cache.
+			if(this.coherence==CoherenceType.None && this.isLastLevel==false) {
+				AddressCarryingEvent newEvent  = (AddressCarryingEvent)event.clone();
+				newEvent.setAddress(addr);
+				sendWriteRequest(newEvent);
+			} else if (this.coherence==CoherenceType.None && this.isLastLevel==true) {
+				AddressCarryingEvent newEvent  = (AddressCarryingEvent)event.clone();
+				newEvent.setAddress(addr);
+				sendWriteRequestToMainMemory(newEvent);
+			} else if(this.coherence == CoherenceType.Directory) {
+				// If I have coherence, I should send this request to Directory
+				writeHitUpdateDirectory(event.coreId,( addr>>> blockSizeBits ), event.clone(), addr);
+			} else {
+				misc.Error.showErrorAndExit("Invalid cache setup !!");
+			}			
+		}
+
 		public CacheLine fill(long addr, MESI stateToSet) //Returns a copy of the evicted line
 		{
 			CacheLine evictedLine = null;

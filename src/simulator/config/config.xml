@@ -55,7 +55,7 @@
 		<NumInsForTrace>10</NumInsForTrace>		<!--Power trace will be populated after every "NumInsForTrace" instructions-->
 		<NumCyclesForTrace>1000000</NumCyclesForTrace>		<!--Power trace will be populated after every "NumCyclesForTrace" cycles-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>10000000</subsetSimSize>
+		<subsetSimSize>50000000</subsetSimSize>
 		<markerFunctions>false</markerFunctions>
 		<startSimMarker>XXX_startInstrumentation</startSimMarker>
 		<endSimMarker>XXX_endInstrumentation</endSimMarker>
@@ -64,7 +64,7 @@
 	<!--System Parameters-->
 	<System>
 		<MaxNumJavaThreads>1</MaxNumJavaThreads> <!--Not used in base Tejas-->
-		<NumEmuThreadsPerJavaThread>8</NumEmuThreadsPerJavaThread> <!--This defines the number of threads in base Tejas-->
+		<NumEmuThreadsPerJavaThread>1</NumEmuThreadsPerJavaThread> <!--This defines the number of threads in base Tejas-->
 		
 		<MainMemory>
 			<MainMemoryLatency>200</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
@@ -246,13 +246,13 @@
 			<!--Cache name="L2" numComponents="2" nextLevel="L3" type="L2Cache_256K_8"/-->
 			<!--Here core0,core1 will use L2[0] and core2,core3 will use L2[1]-->
 			
-			<Cache name="iCache" nextLevel="L2" firstLevel="true" type="ICache_32K_8"/>
-			<Cache name="l1Cache" nextLevel="L2" firstLevel="true" type="L1Cache_32K_8"/>
+			<Cache name="I1" nextLevel="L2" firstLevel="true" type="ICache_32K_8"/>
+			<Cache name="L1" nextLevel="L2" firstLevel="true" type="L1Cache_32K_8"/>
 		</Core>
 		
 		<SharedCaches>
-			<Cache name="L2" nextLevel="L3" type="L2Cache_1M_8"/>
-			<Cache name="L3" type="L3Cache_4M_8"/>
+			<Cache name="L2" nextLevel="L3" type="L2Cache_256K_8"/>
+			<Cache name="L3" type="L3Cache_1M_8"/>
 		</SharedCaches>
 		
 		<Interconnect>Bus</Interconnect>
@@ -286,7 +286,7 @@
 				<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 				<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
 				<Associativity>8</Associativity>
-				<NumEntries>4096</NumEntries>			<!--In KBs-->
+				<NumEntries>1024</NumEntries>			<!--In KBs-->
 				<Latency>4</Latency>				<!--In clock cycles-->
 				<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -349,7 +349,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>32</MSHRSize>
+			<MSHRSize>1024</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
@@ -370,7 +370,7 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>32</MSHRSize>
+			<MSHRSize>1024</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
@@ -379,11 +379,11 @@
 			<CacheType>Data</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
 		</L1Cache_32K_8>
 		
-		<L2Cache_1M_8>
+		<L2Cache_256K_8>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>32768</Size>					<!--In Bytes-->
+			<Size>262144</Size>					<!--In Bytes-->
 			<Latency>32</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -391,20 +391,20 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>64</MSHRSize>
+			<MSHRSize>1024</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<LeakageEnergy>0.1592</LeakageEnergy>
 			<ReadDynamicEnergy>0.43964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.43964264705</WriteDynamicEnergy>
 			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
-		</L2Cache_1M_8>
+		</L2Cache_256K_8>
 		
-		<L3Cache_4M_8>
+		<L3Cache_1M_8>
 			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
-			<Size>32768</Size>					<!--In Bytes-->
+			<Size>1048576</Size>					<!--In Bytes-->
 			<Latency>60</Latency>				<!--In clock cycles-->
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
@@ -412,14 +412,14 @@
 			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>64</MSHRSize>
+			<MSHRSize>1024</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
 			<LeakageEnergy>0.1892</LeakageEnergy>
 			<ReadDynamicEnergy>0.60964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.60964264705</WriteDynamicEnergy>
 			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
-		</L3Cache_4M_8>
+		</L3Cache_1M_8>
 	</Library>
 	
 </Configuration>

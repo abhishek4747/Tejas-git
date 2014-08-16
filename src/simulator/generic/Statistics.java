@@ -556,6 +556,7 @@ public class Statistics {
 		outputFileWriter.write("\n");
 		outputFileWriter.write("\n" + name + " Hits\t=\t" + hits);
 		outputFileWriter.write("\n" + name + " Misses\t=\t" + misses);
+		outputFileWriter.write("\n" + name + " Accesses\t=\t" + (hits+misses));
 		
 		float hitrate = (float)hits/(float)(hits+misses);
 		outputFileWriter.write("\n" + name + " Hit-Rate\t=\t" + hitrate);
@@ -698,6 +699,7 @@ public class Statistics {
 	{
 		outputFileWriter.write("\n\n" + cacheStr + " Hits\t=\t" + hits);
 		outputFileWriter.write("\n" + cacheStr + " Misses\t=\t" + misses);
+		outputFileWriter.write("\n" + cacheStr + " Accesses\t=\t" + (hits+misses));
 		outputFileWriter.write("\n" + cacheStr + " Hit-Rate\t=\t" + formatDouble((double)hits/(double)(hits+misses)));
 		outputFileWriter.write("\n" + cacheStr + " Miss-Rate\t=\t" + formatDouble((double)misses/(double)(hits+misses)));
 	}
