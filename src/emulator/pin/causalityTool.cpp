@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-	Contributors:  Abhishek Sagar, Eldhose Peter
+	Contributors:  Abhishek Sagar, Eldhose Peter, Prathmesh Kallurkar
 *****************************************************************************/
 #include <iostream>
 #include <fstream>
@@ -34,9 +34,10 @@
 #include <sys/resource.h>
 #include <time.h>
 #include <sys/timeb.h>
-
+#include <pthread.h>
 #include "IPCBase.h"
 #include "shmem.h"
+#include "filePacket.h"
 
 #include "encoding.h"
 
@@ -63,6 +64,14 @@ KNOB<std::string>   KnobStartMarker(KNOB_MODE_WRITEONCE,       "pintool",
     "startMarker", "", "start marker function name");
 KNOB<std::string>   KnobEndMarker(KNOB_MODE_WRITEONCE,       "pintool",
     "endMarker", "", "end marker function name");
+KNOB<std::string>   KnobTraceMethod(KNOB_MODE_WRITEONCE,       "pintool",
+    "traceMethod", "0", "Trace Method (sharedMemory,file). Compulsary argument");
+KNOB<std::string>   KnobTraceFileName(KNOB_MODE_WRITEONCE,       "pintool",
+    "traceFileName", "0", "Basename for compressed trace files (_x.gz will be appended to filename where x is core number). Compulsary for file trace method.");
+
+
+enum TraceMethod{SharedMemory, File};
+enum TraceMethod traceMethod;
 
 PIN_MUTEX lock;
 INT32 numThreads = 0;
@@ -89,6 +98,28 @@ int MaxNumActiveThreads;
 
 #define PacketEpoch 50
 uint32_t countPacket[MaxThreads];
+
+pthread_mutex_t *lockForWritingToCommunicationStream;
+
+void lockIAmWriting(int tid) {
+	pthread_mutex_lock(&lockForWritingToCommunicationStream[tid]);
+}
+
+void unlockIAmWriting(int tid) {
+	pthread_mutex_unlock(&lockForWritingToCommunicationStream[tid]);
+}
+
+void waitForThreadsAndTerminatePin() {
+	// Iterate over all the threads
+	// If each thread is in non-alive status, terminate PIN
+	for(int tid=0; tid<MaxNumActiveThreads; tid++) {
+		pthread_mutex_lock(&lockForWritingToCommunicationStream[tid]);
+	}
+
+	tst->unload();
+
+	exit(0);
+}
 
 // needs -lrt (real-time lib)
 // 1970-01-01 epoch UTC time, 1 nanosecond resolution
@@ -336,7 +367,7 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
         }
 }
 /*** This function is called on every instruction ***/
-VOID printip(THREADID tid, VOID *ip) {
+VOID printip(THREADID tid, VOID *ip, char *asmString) {
 
 	PIN_MutexLock(&lock);
 
@@ -372,7 +403,11 @@ VOID printip(THREADID tid, VOID *ip) {
 			}
 
 			cout<<"subset finish called by thread "<<tid<<endl;
+			fflush(stdout);
+
 			tst->setSubsetsimComplete(true);
+			// threadAlive[tid] = false;
+			waitForThreadsAndTerminatePin();
 		}
 	}
 	else
@@ -431,8 +466,15 @@ VOID printip(THREADID tid, VOID *ip) {
 		// For every instruction, I am sending one Instruction packet to Tejas.
 		// For rep instruction, this function is called for each iteration of rep.
 		uint64_t nip = MASK & (uint64_t) ip;
-		while (tst->analysisFn(tid, nip, INSTRUCTION, 1) == -1) {
-			PIN_Yield();
+
+		if(traceMethod==SharedMemory) {
+			while (tst->analysisFn(tid, nip, INSTRUCTION, 1) == -1) {
+				PIN_Yield();
+			}
+		} else if(traceMethod==File) {
+			while (tst->analysisFnAssembly(tid, nip, ASSEMBLY, asmString) == -1) {
+				PIN_Yield();
+			}
 		}
 	}
 
@@ -478,11 +520,16 @@ void Image(IMG img,VOID *v) {
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v) {
 
-	if(tst->isSubsetsimCompleted() == true) {
-		return;
+	//int tid = IARG_THREAD_ID;
+
+
+	std::string *asmString = (std::string*)&Instruction;
+	if(traceMethod==File) {
+		asmString = new string(INS_Disassemble(ins));
 	}
 
-	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_THREAD_ID, IARG_INST_PTR, IARG_END);
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_THREAD_ID, IARG_INST_PTR, IARG_PTR, asmString->c_str(), IARG_END);
+
 
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
 
@@ -584,7 +631,22 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 VOID Fini(INT32 code, VOID *v) {
 	cout <<"checkSum is "<<checkSum<<"\n";
 	fflush(stdout);
-	tst->unload();
+
+	tst->setSubsetsimComplete(true);
+
+	// Now, we will write -2 packet in shared memory.
+	// This will ensure that complete emulator (PIN) gets stopped.
+
+	// FIXME : We are trying to write in the communication stream for thread 0
+	// Hopefully this function is called for the master thread i.e. thread 0 
+	while (tst->onSubset_finish((int)0, (numCISC[0])) == -1) {
+		PIN_Yield();
+	}
+
+	cout<<"subset finish called by thread "<<0<<endl;
+	fflush(stdout);
+
+	waitForThreadsAndTerminatePin();
 }
 
 /* ===================================================================== */
@@ -619,6 +681,16 @@ int main(int argc, char * argv[]) {
 	if (PIN_Init(argc, argv))
 		return Usage();
 
+	std::string traceMethodStr = KnobTraceMethod;
+	if(strcmp(traceMethodStr.c_str(), "sharedMemory")==0) {
+		traceMethod = SharedMemory;
+	} else if(strcmp(traceMethodStr.c_str(), "file")==0) {
+		traceMethod = File;
+	} else {
+		printf("Invalid trace method : %s !!\n", traceMethodStr.c_str());
+		exit(1);
+	}
+
 	MaxNumActiveThreads = KnobMaxNumActiveThreads;
 	numInsToIgnore = KnobIgnore;
 	startMarker = KnobStartMarker;
@@ -647,6 +719,12 @@ int main(int argc, char * argv[]) {
 	cout << "pinpoints file received = " << pinpointsFilename << endl;
 	cout << "start marker = " << startMarker << endl;
 	cout <<"end marker = " << endMarker << endl;
+
+	lockForWritingToCommunicationStream = new pthread_mutex_t[MaxNumActiveThreads];
+	for(int i=0; i<MaxNumActiveThreads; i++) {
+		threadAlive[i]=false;
+		pthread_mutex_init(&lockForWritingToCommunicationStream[i], NULL);
+	}
 
 	if(pinpointsFilename.compare("nofile") != 0)
 	{
@@ -683,7 +761,19 @@ int main(int argc, char * argv[]) {
 		pinpointsFile.close();
 	}
 
-	tst = new IPC::Shm(id, MaxNumActiveThreads);
+	if(traceMethod==SharedMemory) {
+		tst = new IPC::Shm(id, MaxNumActiveThreads, &lockIAmWriting, &unlockIAmWriting);
+	} else if(traceMethod==File) {
+		std::string tmp = KnobTraceFileName;
+		if(tmp.empty()) {
+			printf("Must provide a base name for the trace file using -traceFileName option");
+			exit(1);
+		}
+		tst = new IPC::FilePacket(MaxNumActiveThreads, tmp.c_str(), &lockIAmWriting, &unlockIAmWriting);
+	} else {
+		printf("Invalid trace method : %s !!\n", traceMethodStr.c_str());
+		exit(1);
+	}
 
 	for(int i = 0; i < MaxThreads; i++)
 	{

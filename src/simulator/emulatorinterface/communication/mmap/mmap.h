@@ -38,7 +38,7 @@ protected:
 
 public:
 	THREAD_DATA tldata[MaxThreads];
-	Mmap(int maxNumActiveThreads);
+	Mmap(int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int));
 	int analysisFn (int tid,uint64_t ip, int value, uint64_t tgt);
 	void onThread_start (int tid);
 	int onThread_finish (int tid);

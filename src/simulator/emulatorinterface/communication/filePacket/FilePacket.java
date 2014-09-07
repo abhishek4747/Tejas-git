@@ -2,15 +2,19 @@ package emulatorinterface.communication.filePacket;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.util.zip.GZIPInputStream;
 
 import main.CustomObjectPool;
 
 import config.EmulatorConfig;
+import config.EmulatorType;
 import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.communication.Encoding;
@@ -27,23 +31,29 @@ public class FilePacket extends IpcBase implements Encoding {
 	int maxApplicationThreads = -1;
 	long totalFetchedAssemblyPackets = 0;
 	
-	public FilePacket() {
+	public FilePacket(String []basenameForBenchmarks) {
 		this.maxApplicationThreads = SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread;
 		
 		inputBufferedReader = new BufferedReader[maxApplicationThreads];
 		
-		for (int i=0; i<maxApplicationThreads; i++) {
-			String inputFileName = SimulationConfig.InstructionsFilename + "_" + i;
-			try {
-				inputBufferedReader[i] = new BufferedReader(
-					new FileReader(	new File(inputFileName)));
-			} catch (FileNotFoundException e) {
-				if(i==0) {
-					// not able to find first file is surely an error.
-					misc.Error.showErrorAndExit("Error in reading input packet file " + inputFileName);
-				} else {
-					System.out.println("FilePacket : no trace file found for tidApp = " + i);
-					continue;
+		int numTotalThreads = 0;
+		for (int benchmark=0; benchmark<basenameForBenchmarks.length; benchmark++) {
+			for (int tid=0; ;tid++) {
+				String inputFileName = basenameForBenchmarks[benchmark] + "_" + tid + ".gz";
+				try {
+					inputBufferedReader[numTotalThreads] = new BufferedReader(
+							new InputStreamReader(
+							new GZIPInputStream(
+							new FileInputStream(inputFileName))));
+					numTotalThreads++;
+				} catch (Exception e) {
+					if(tid==0) {
+						// not able to find first file is surely an error.
+						misc.Error.showErrorAndExit("Error in reading input packet file " + inputFileName);
+					} else {
+						System.out.println("Number of threads for benchmark " + basenameForBenchmarks[benchmark] + " : " + tid);
+						break;
+					}
 				}
 			}
 		}
@@ -84,47 +94,42 @@ public class FilePacket extends IpcBase implements Encoding {
 					ip = Long.parseLong(stringTokenizer.nextToken());
 					value = Long.parseLong(stringTokenizer.nextToken());
 					
-					if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-					
+					if(value!=ASSEMBLY) {
 						tgt = Long.parseLong(stringTokenizer.nextToken());
+					} else {
 						totalFetchedAssemblyPackets += 1;
-					
-					} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
 						
-						if(value!=ASSEMBLY) {
-							tgt = Long.parseLong(stringTokenizer.nextToken());
-						} else {
-							totalFetchedAssemblyPackets += 1;
-							tgt = -1;
-							CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, stringTokenizer.nextToken("\n").getBytes(), 1);
+						if(totalFetchedAssemblyPackets%100000==0) {
+							System.out.println("Number of assembly instructions till now : " + totalFetchedAssemblyPackets);
 						}
 						
-					} else {
-						misc.Error.showErrorAndExit("Invalid emulator type : " + 
-								EmulatorConfig.EmulatorType + "!!");
+						tgt = -1;
+						CustomObjectPool.getCustomAsmCharPool().enqueue(tidApp, stringTokenizer.nextToken("\n").getBytes(), 1);
 					}
-					
-					//TODO: implement NumInsToIgnore for PIN
-					//NumsToIgnore implemented only for QEMU
-					if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-						//ignore these many instructions: NumInsToIgnore 
-						if(totalFetchedAssemblyPackets < SimulationConfig.NumInsToIgnore) {
-							if(value == ASSEMBLY) {
-								CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
-							}
-							return 0;
-						// totalFetchedAssemblyPackets just became equal to NumInsToIgnore, so 
-						// we start setting fromEmulator packets
-						} else if(totalFetchedAssemblyPackets == SimulationConfig.NumInsToIgnore && value==ASSEMBLY) {
-							i=0;						
-						}	
-					}
+						
+					//ignore these many instructions: NumInsToIgnore 
+					if(totalFetchedAssemblyPackets < SimulationConfig.NumInsToIgnore) {
+						if(value == ASSEMBLY) {
+							CustomObjectPool.getCustomAsmCharPool().dequeue(tidApp);
+						}
+						return 0;
+					// totalFetchedAssemblyPackets just became equal to NumInsToIgnore, so 
+					// we start setting fromEmulator packets
+					} else if(totalFetchedAssemblyPackets == SimulationConfig.NumInsToIgnore && value==ASSEMBLY) {
+						i=0;						
+					}	
+
 					fromEmulator.enqueue(ip, value, tgt);					
 				} else {
 					return (i);
 				}
 			} catch (IOException e) {
-				misc.Error.showErrorAndExit("error in reading from file for tid = " + tidApp);
+				// We are expecting an end of file exception at the end of the trace.
+				// Lets return the number of elements read till now.
+				// Hopefully some thread will contain a subset simulation complete packet
+				//System.out.println("Thread " + tidApp + " 's trace file has completed");
+				return i;
+				// misc.Error.showErrorAndExit("error in reading from file for tid = " + tidApp + "\n" + e);
 			}
 		}
 		

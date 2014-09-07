@@ -44,13 +44,15 @@ protected:
 public:
 	THREAD_DATA *tldata;
 	uint32_t *memMapping;
-	Shm(int maxNumThreads);
-	Shm(uint64_t, int maxNumThreads);
-	Shm (uint32_t count,uint32_t localQueue);
+	Shm(int maxNumThreads, void (*lock)(int), void (*unlock)(int));
+	Shm(uint64_t, int maxNumThreads, void (*lock)(int), void (*unlock)(int));
+	Shm (uint32_t count,uint32_t localQueue, void (*lock)(int), void (*unlock)(int));
 	bool isSubsetsimCompleted(void);
 	bool setSubsetsimComplete(bool val);
 
 	int analysisFn (int tid,uint64_t ip, uint64_t value, uint64_t tgt);
+	int analysisFnAssembly (int tid,uint64_t ip, uint64_t value, char *asmString);
+
 	void onThread_start (int tid);
 	int onThread_finish (int tid, long numCISC);
 	int onSubset_finish (int tid, long numCISC);

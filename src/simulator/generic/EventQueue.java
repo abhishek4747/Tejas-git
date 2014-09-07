@@ -17,8 +17,9 @@ public class EventQueue
 	public void addEvent(Event event)
 	{
 		if( priorityQueue.add(event) == false) {
-			Event newEvent = event.clone();
-			priorityQueue.add(newEvent);
+			misc.Error.showErrorAndExit("Error in adding event to the event queue : " + event);
+//			Event newEvent = event.clone();
+//			priorityQueue.add(newEvent);
 		}
 	}
 	

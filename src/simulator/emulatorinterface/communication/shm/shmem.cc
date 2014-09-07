@@ -31,7 +31,7 @@ Shm::release_lock(packet *map) {
 }
 
 
-Shm::Shm(int maxNumActiveThreads) : IPCBase(maxNumActiveThreads)
+Shm::Shm(int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int)) : IPCBase(maxNumActiveThreads, lock, unlock)
 {
 	tldata = new THREAD_DATA[MaxNumActiveThreads];
 	memMapping = new uint32_t[MaxNumActiveThreads];
@@ -74,7 +74,7 @@ Shm::Shm(int maxNumActiveThreads) : IPCBase(maxNumActiveThreads)
 	isSubsetsimComplete = false;
 }
 
-Shm::Shm (uint64_t pid, int maxNumActiveThreads) : IPCBase(maxNumActiveThreads)
+Shm::Shm (uint64_t pid, int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int)) : IPCBase(maxNumActiveThreads, lock, unlock)
 {
 	tldata = new THREAD_DATA[MaxNumActiveThreads];
 	memMapping = new uint32_t[MaxNumActiveThreads];
@@ -127,12 +127,17 @@ Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 //	static int mem_read = 0;
 	int actual_tid = tid;
 	tid = memMapping[tid];
+
+	(*lock)(tid);
 	THREAD_DATA *myData = &tldata[tid];
 
 	// if my local queue is full, I should write to the shared memory and return if cannot return
 	// write immediately, so that PIN can yield this thread.
 	if (myData->tlqsize == locQ) {
-		if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
+		if (Shm::shmwrite(actual_tid,0, -1)==-1) {
+			(*unlock)(tid);
+			return -1;
+		}
 	}
 
 	// log the packet in my local queue
@@ -151,7 +156,15 @@ Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 	*in = (*in + 1) % locQ;
 	myData->tlqsize++;
 
+	(*unlock)(tid);
 	return 0;
+}
+
+int
+Shm::analysisFnAssembly (int tid,uint64_t ip, uint64_t val, char *asmString)
+{
+	printf("Shared Memory interface is not supposed to write assembly string !!");
+	exit(1);
 }
 
 void

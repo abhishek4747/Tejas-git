@@ -23,7 +23,9 @@ package emulatorinterface;
 
 import java.nio.ByteBuffer;
 
+import config.CommunicationType;
 import config.EmulatorConfig;
+import config.EmulatorType;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.Packet;
 import emulatorinterface.translator.x86.objparser.ObjParser;
@@ -109,7 +111,7 @@ public class DynamicInstructionBuffer implements Encoding
 			}
 		}
 		
-		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+		if(EmulatorConfig.communicationType==CommunicationType.file) {
 			assert(numAssemblyPackets==1) : "Invalid number of assembly packets : " + numAssemblyPackets;
 		}
 	}

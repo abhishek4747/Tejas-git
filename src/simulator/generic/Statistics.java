@@ -44,7 +44,7 @@ import emulatorinterface.translator.qemuTranslationCache.TranslatedInstructionCa
 public class Statistics {
 	
 	
-	static FileWriter outputFileWriter,traceWriter;
+	static FileWriter outputFileWriter;
 	
 	static String benchmark;
 	public static void printSystemConfig()
@@ -55,13 +55,7 @@ public class Statistics {
 			outputFileWriter.write("[Configuration]\n");
 			outputFileWriter.write("\n");
 			
-			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
-				outputFileWriter.write("EmulatorType: Pin\n");
-			} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
-				outputFileWriter.write("EmulatorType: Qemu\n");
-			}
-			
-			
+			outputFileWriter.write("EmulatorType: " + EmulatorConfig.emulatorType + "\n");
 			outputFileWriter.write("Benchmark: "+benchmark+"\n");
 			outputFileWriter.write("Schedule: " + (new Date()).toString() + "\n");
 		}
@@ -735,36 +729,6 @@ public class Statistics {
 	//static long subsetTime;
 	private static long simulationTime;
 
-	public static void printPowerTraceHeader(String delimiter){
-		try {
-			for (int i =0; i < SystemConfig.NoOfCores; i++)
-			{
-
-			traceWriter.write("Core"+delimiter);
-
-			traceWriter.write("Simple"+delimiter);
-			
-			traceWriter.write("Total"+delimiter);
-			
-			traceWriter.write("AggresiveIdeal"+delimiter);
-
-			traceWriter.write("Total"+delimiter);
-			
-			traceWriter.write("AggresiveNonIdeal"+delimiter);
-			
-			traceWriter.write("Total"+delimiter);
-		}
-			traceWriter.write("\n\n");
-
-
-		} catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		
-	}
-
-
 	public static void printSimulationTime()
 	{
 		//print time taken by simulator
@@ -825,17 +789,7 @@ public class Statistics {
 		}
 		
 	}	
-	public static void openTraceStream()
-	{
-		try
-		{
-			traceWriter = new FileWriter(SimulationConfig.outputFileName+"Trace.csv");
-		}
-		catch (IOException e)
-		{
-			misc.Error.showErrorAndExit("error in opening trace file !!");
-		}
-	}	
+
 	public static void openStream()
 	{
 		if(SimulationConfig.outputFileName == null)
@@ -884,13 +838,9 @@ public class Statistics {
 	
 	public static void closeStream()
 	{
-		try
-		{
+		try {
 			outputFileWriter.close();
-			traceWriter.close();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

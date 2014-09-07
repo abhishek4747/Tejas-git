@@ -3,6 +3,7 @@ package main;
 import java.io.File;
 
 import config.EmulatorConfig;
+import config.EmulatorType;
 import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.communication.StreamGobbler;
@@ -45,7 +46,8 @@ public class Emulator {
 				" -map " + SimulationConfig.MapEmuCores +
 				" -numIgn " + SimulationConfig.NumInsToIgnore +
 				" -numSim " + SimulationConfig.subsetSimSize +
-				" -id " + pid);
+				" -id " + pid + 
+				" -traceMethod " + EmulatorConfig.communicationType.toString());
 		
 		if(SimulationConfig.pinpointsSimulation == true)
 		{
@@ -65,6 +67,59 @@ public class Emulator {
 		
 		startEmulator(cmd.toString());
 	}
+	
+	public Emulator(String pinTool, String pinInstrumentor, 
+			String executableArguments, String basenameForTraceFile) 
+	{
+		// This constructor is used for trace collection inside a file
+		
+		System.out.println("subset sim size = "  + 
+				SimulationConfig.subsetSimSize + "\t" + 
+				SimulationConfig.subsetSimulation);
+		
+		System.out.println("marker functions = "  + SimulationConfig.markerFunctionsSimulation 
+				+ "\t start marker = " + SimulationConfig.startMarker
+				+ "\t end marker = " + SimulationConfig.endMarker);
+
+		// Creating command for PIN tool.
+		StringBuilder pin = null;
+		
+		if(new File(pinTool + "/pin.sh").exists())
+		{
+			pin = new StringBuilder(pinTool + "/pin.sh");
+		}
+		else
+		{
+			pin = new StringBuilder(pinTool + "/pin");
+		}
+
+		StringBuilder cmd = new StringBuilder(pin +  " -injection child "+
+				" -t " + pinInstrumentor +
+				" -maxNumActiveThreads  " + EmulatorConfig.maxThreadsForTraceCollection +
+				" -map " + SimulationConfig.MapEmuCores +
+				" -numIgn " + SimulationConfig.NumInsToIgnore +
+				" -numSim " + SimulationConfig.subsetSimSize +
+				" -traceMethod file -traceFileName " + basenameForTraceFile);
+		
+		if(SimulationConfig.pinpointsSimulation == true)
+		{
+			misc.Error.showErrorAndExit("Cannot create a trace file, and a pinpoints file at the same time !!");
+		}
+		if(SimulationConfig.startMarker != "")
+		{
+			cmd.append(" -startMarker " + SimulationConfig.startMarker);
+		}
+		if(SimulationConfig.endMarker != "")
+		{
+			cmd.append(" -endMarker " + SimulationConfig.endMarker);
+		}
+		
+		cmd.append(" -- " + executableArguments);
+		System.out.println("command is : " + cmd.toString());
+		
+		startEmulator(cmd.toString());
+	}
+
 	
 	public Emulator(String qemuTool, int pid)
 	{
@@ -108,7 +163,7 @@ public class Emulator {
 		
 		Main.ipcBase.finish();
 		
-		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+		if(EmulatorConfig.emulatorType==EmulatorType.pin) {
 			//System.err.println(errorMessage);
 			Process process;
 			String cmd[] = {"/bin/bash",

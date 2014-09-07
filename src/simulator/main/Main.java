@@ -9,11 +9,12 @@ import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.SNuca;
 import misc.Error;
 import misc.ShutDownHook;
+import config.CommunicationType;
 import config.EmulatorConfig;
+import config.EmulatorType;
 import config.SimulationConfig;
 import config.SystemConfig;
 import config.XMLParser;
-import emulatorinterface.RunnableFromFile;
 import emulatorinterface.RunnableThread;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.communication.filePacket.FilePacket;
@@ -38,9 +39,16 @@ public class Main {
 	public static int pid;
 	public static IpcBase ipcBase;
 
+	public static String executableAndArguments[];
+	public static String benchmarkArguments = " ";
+	public static long startTime, endTime;
+	public static boolean xmlParsingCompleted = false;
 	
 	public static void main(String[] arguments)
 	{
+		//different core components may work at different frequencies
+		startTime = System.currentTimeMillis();
+		
 		//register shut down hook
 		Runtime.getRuntime().addShutdownHook(new ShutDownHook());
 		
@@ -51,8 +59,17 @@ public class Main {
 		String configFileName = arguments[0];
 		SimulationConfig.outputFileName = arguments[1];
 		
+		executableAndArguments = new String[arguments.length-2];
+		
+		// read the command line arguments for the benchmark (not emulator) here.
+		for(int i=2; i < arguments.length; i++) {
+			executableAndArguments[i-2] = arguments[i]; 
+			benchmarkArguments = benchmarkArguments + " " + arguments[i];
+		}
+		
 		// Parse the command line arguments
 		XMLParser.parse(configFileName);
+		xmlParsingCompleted = true;
 		
 		// Initialize the statistics
 		Statistics.initStatistics();
@@ -62,9 +79,9 @@ public class Main {
 		initializeObjectPools();
 		
 		// Create a hash-table for the static representation of the executable
-		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+		if(EmulatorConfig.emulatorType==EmulatorType.pin) {
 			ObjParser.buildStaticInstructionTable(getEmulatorFile());
-		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+		} else if(EmulatorConfig.emulatorType==EmulatorType.none) {
 			ObjParser.initializeThreadMicroOpsList(SystemConfig.numEmuThreadsPerJavaThread);
 		}
 		
@@ -85,42 +102,18 @@ public class Main {
 		
 		runners = new RunnableThread[SystemConfig.maxNumJavaThreads];
 		
-		String benchmarkArguments=" ";
-		// read the command line arguments for the benchmark (not emulator) here.
-		for(int i=2; i < arguments.length; i++) {
-			benchmarkArguments = benchmarkArguments + " " + arguments[i];
-		}
-		
 		String emulatorArguments = constructEmulatorArguments(benchmarkArguments);
 				
 		// start emulator
 		startEmulator(emulatorArguments, pid, ipcBase);
 
-		//different core components may work at different frequencies
-		
-		//Initialize counters
-//		Counters powerCounters[] = new Counters[SystemConfig.NoOfCores];
-//		for(int i=0;i<SystemConfig.NoOfCores;i++){
-//			powerCounters[i] = new Counters();
-//		}
-		// Create runnable threads. Each thread reads from EMUTHREADS
-		//FIXME A single java thread can have multiple cores
-		
-		long startTime, endTime;
-		startTime = System.currentTimeMillis();
-		
 		String name;
 		for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
 			
 			name = "thread"+Integer.toString(i);
 			
-			if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
-				runners[i] = new RunnableFromFile(name,i, ipcBase, ArchitecturalComponent.getCores(), 
-						ArchitecturalComponent.getTokenBus());
-			} else {
-				runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores(), 
-						ArchitecturalComponent.getTokenBus());
-			}
+			runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores(), 
+				ArchitecturalComponent.getTokenBus());
 		}
 		
 		ipcBase.waitForJavaThreads();
@@ -128,9 +121,7 @@ public class Main {
 			emulator.forceKill();
 		}
 		
-		if(EmulatorConfig.CommunicationType!=EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
-			ipcBase.finish();
-		}
+		ipcBase.finish();
 
 		endTime = System.currentTimeMillis();
 		
@@ -147,7 +138,7 @@ public class Main {
 		
 		int numStaticInstructions = 0;
 		
-		if(EmulatorConfig.EmulatorType == EmulatorConfig.EMULATOR_PIN) {
+		if(EmulatorConfig.emulatorType == EmulatorType.pin) {
 			// approximately 3 micro-operations are required per cisc instruction
 			numStaticInstructions = ObjParser.noOfLines(getEmulatorFile()) * 3;
 		} else {
@@ -163,41 +154,37 @@ public class Main {
 
 	private static IpcBase startCommunicationChannel(int pid) {
 		IpcBase ipcBase = null;
-		if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_MICROOPS) {
-			// ipc is not required for file
-			ipcBase = null;
-		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_SHM) {
+		if(EmulatorConfig.communicationType==CommunicationType.sharedMemory) {
 			ipcBase = new SharedMem(pid);
- 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_NETWORK) {
+ 		} else if(EmulatorConfig.communicationType==CommunicationType.network) {
  			//ipcBase = new Network(IpcBase.MaxNumJavaThreads*IpcBase.EmuThreadsPerJavaThread);
  			ipcBase = new Network();
- 		} else if(EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_PACKET) {
- 			ipcBase = new FilePacket();
+ 		} else if(EmulatorConfig.communicationType==CommunicationType.file) {
+ 			ipcBase = new FilePacket(getExecutableAndArguments());
  		} else {
  			ipcBase = null;
- 			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.CommunicationType);
+ 			misc.Error.showErrorAndExit("Incorrect coomunication type : " + EmulatorConfig.communicationType);
  		}
 		
 		return ipcBase;
 	}
 
 	private static void startEmulator(String emulatorArguments, int pid, IpcBase ipcBase) {
-		if(	EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_MICROOPS ||
-				EmulatorConfig.CommunicationType==EmulatorConfig.COMMUNICATION_FILE_PACKET) {
-			
+		if(EmulatorConfig.communicationType==CommunicationType.file) {
 			// The emulator is not needed when we are reading from a file
 			emulator = null;
-			
 		} else {
 			
-			if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			if (EmulatorConfig.emulatorType==EmulatorType.pin) {
 				emulator = new Emulator(EmulatorConfig.PinTool, EmulatorConfig.PinInstrumentor, 
 						emulatorArguments, ((SharedMem)ipcBase).idToShmGet);
-			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			} else if (EmulatorConfig.emulatorType==EmulatorType.qemu) {
 				emulator = new Emulator(EmulatorConfig.QemuTool + " " + emulatorArguments, pid);
+			} else if (EmulatorConfig.emulatorType==EmulatorType.none) {
+				emulator = null;
 			} else {
 				emulator = null;
-				misc.Error.showErrorAndExit("Invalid emulator type : " + EmulatorConfig.EmulatorType);
+				misc.Error.showErrorAndExit("Invalid emulator type : " + EmulatorConfig.emulatorType);
 			}
 		}
 	}
@@ -205,13 +192,13 @@ public class Main {
 	private static String constructEmulatorArguments(String benchmarkArguments) {
 		String emulatorArguments = " ";
 		
-		if(EmulatorConfig.CommunicationType == EmulatorConfig.COMMUNICATION_NETWORK) {
+		if(EmulatorConfig.communicationType == CommunicationType.network) {
 			System.out.println("Emulator argument passed! portStart is: "+Network.portStart);
 			// Passing the start Port No through command line to the emulator
 			emulatorArguments += "-P " + Network.portStart;	
 		}
 		
-		if(EmulatorConfig.EmulatorType == EmulatorConfig.EMULATOR_QEMU) {
+		if(EmulatorConfig.emulatorType == EmulatorType.qemu) {
 			// send num instructions to skip and simulate to Qemu.
 			// semantics : this fields apply locally to all the threads in Qemu.
 			emulatorArguments += " -SO " + SimulationConfig.NumInsToIgnore 
@@ -283,5 +270,17 @@ public class Main {
 
 	public static void setEmulatorFile(String emulatorFile) {
 		Main.emulatorFile = emulatorFile;
+	}
+
+	public static String[] getExecutableAndArguments() {
+		return executableAndArguments;
+	}
+
+	public static String getBenchmarkArguments() {
+		return benchmarkArguments;
+	}
+	
+	public static long getStartTime() {
+		return startTime;
 	}
 }

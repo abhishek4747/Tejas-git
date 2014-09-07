@@ -375,26 +375,10 @@ public class ReorderBuffer extends SimulationElement{
 	public void setTimingStatistics()
 	{
 		core.setCoreCyclesTaken(GlobalClock.getCurrentTime()/core.getStepSize());
-		
-		System.out.println(core.getCore_number());
-		System.out.println(core.getCore_number()+" IW full : " + stall1Count);
-		System.out.println(core.getCore_number()+" phy reg unavailable : " + stall2Count);
-		System.out.println(core.getCore_number()+" LSQ full : " + stall3Count);
-		System.out.println(core.getCore_number()+" ROB full : " + stall4Count);
-		System.out.println(core.getCore_number()+" branch mispredicted : " + stall5Count);
-		System.out.println(core.getCore_number()+" Instruction Mem Stall : " + core.getExecEngine().getInstructionMemStall());
 	}
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		//		Statistics.setNoOfTLBRequests(execEngine.getCoreMemorySystem().getTLBuffer().getTlbRequests(), core.getCore_number());
-//		Statistics.setNoOfTLBHits(execEngine.getCoreMemorySystem().getTLBuffer().getTlbHits(), core.getCore_number());
-//		Statistics.setNoOfTLBMisses(execEngine.getCoreMemorySystem().getTLBuffer().getTlbMisses(), core.getCore_number());
-		
-//		Statistics.setNoOfIRequests(execEngine.getCoreMemorySystem().getiCache().noOfRequests, core.getCore_number());
-//		Statistics.setNoOfIHits(execEngine.getCoreMemorySystem().getiCache().hits, core.getCore_number());
-//		Statistics.setNoOfIMisses(execEngine.getCoreMemorySystem().getiCache().misses, core.getCore_number());
-		
 		if(SystemConfig.interconnect == Interconnect.Bus)
 		{
 			Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
@@ -411,17 +395,6 @@ public class ReorderBuffer extends SimulationElement{
 			setDataWorkingSetStats();
 		}
 		
-
-		System.out.println("numAccesses = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfAccesses );
-		System.out.println("numWritesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesReceived );
-		System.out.println("numResponsesReceived = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesReceived );
-		System.out.println("numResponsesSent = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfResponsesSent );
-		System.out.println("numWritesForwarded = L1 = " + execEngine.getCoreMemorySystem().getL1Cache().noOfWritesForwarded );
-		System.out.println("numAccesses = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfAccesses );
-		System.out.println("numWritesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesReceived );
-		System.out.println("numResponsesReceived = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesReceived );
-		System.out.println("numResponsesSent = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfResponsesSent );
-		System.out.println("numWritesForwarded = iCache = " + execEngine.getCoreMemorySystem().getiCache().noOfWritesForwarded );
 	}
 	
 	private void setInsWorkingSetStats() {

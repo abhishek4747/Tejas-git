@@ -8,6 +8,7 @@
 #define	H_include_IPC
 
 #include <stdint.h>
+#include <iostream>
 #include "common.h"
 
 // This must be equal to the MAXNUMTHREADS*EMUTHREADS in IPCBase.java file. This is
@@ -23,13 +24,19 @@ class IPCBase
 public:
 
 	int MaxNumActiveThreads;
+  void (*lock)(int);
+  void (*unlock)(int);
 
 	// Initialise buffers or other stuffs related to IPC mechanisms
-	IPCBase(int maxNumActiveThreads){MaxNumActiveThreads = maxNumActiveThreads;}
+	IPCBase(int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int)){MaxNumActiveThreads = maxNumActiveThreads; this->lock=lock; this->unlock=unlock;}
 
 	// Fill the packet struct when doing analysis and send to Java process. This is the
 	// most important function
 	virtual int analysisFn (int tid,uint64_t ip, uint64_t value, uint64_t tgt)=0;
+
+	// Fill the packet struct when doing analysis and send to Java process. This is the
+	// most important function
+	virtual int analysisFnAssembly (int tid,uint64_t ip, uint64_t value, char *asmString)=0;
 
 	// Things to be done when a thread is started in PIN/ application
 	virtual void onThread_start (int tid)=0;

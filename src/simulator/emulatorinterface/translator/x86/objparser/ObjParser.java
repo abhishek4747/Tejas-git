@@ -51,6 +51,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import config.EmulatorConfig;
+import config.EmulatorType;
 import main.CustomObjectPool;
 import main.Main;
 import misc.Error;
@@ -665,7 +666,7 @@ public class ObjParser
 		
 		boolean removedFromTail = false;		
 		// Riscify the assembly packets
-		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+		if(EmulatorConfig.emulatorType==EmulatorType.none) {
 			assemblyPacketList = threadMicroOpsList[tidApp];
 			threadMicroOpsList[tidApp].clear();
 			
@@ -707,7 +708,7 @@ public class ObjParser
 			
 			microOpIndex = 0;
 			
-		} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+		} else if (EmulatorConfig.emulatorType==EmulatorType.pin) {
 			assemblyPacketList = staticMicroOpList;
 			
 			microOpIndex = ciscIPtoRiscIP.getMicroOpIndex(startInstructionPointer);
@@ -821,10 +822,10 @@ public class ObjParser
 		
 		Instruction dynamicMicroOp = null;
 		
-		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+		if(EmulatorConfig.emulatorType==EmulatorType.pin) {
 			dynamicMicroOp = CustomObjectPool.getInstructionPool().borrowObject();
 			dynamicMicroOp.copy(staticMicroOp);
-		} else if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+		} else if(EmulatorConfig.emulatorType==EmulatorType.none) {
 			// This will ensure that the packet is returned to instruction pool
 			dynamicMicroOp = staticMicroOp;
 		}

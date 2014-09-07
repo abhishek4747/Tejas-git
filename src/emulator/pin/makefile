@@ -70,9 +70,10 @@ NETWORKDIR = $(COMMDIR)network/
 PIPEDIR = $(COMMDIR)pipe/
 SHMDIR = $(COMMDIR)shm/
 SHMBINDIR = $(COMMBINDIR)shm/
+FILEDIR = $(COMMDIR)filePacket/
 
-VPATH = $(TOPDIR):$(COMMDIR):$(SHMDIR):$(PIPEDIR):$(MMAPDIR):$(NETWORKDIR)
-PINCOMM_INCLUDE = -I$(COMMDIR) -I$(SHMDIR) -I$(PIPEDIR) -I$(MMAPDIR) -I$(NETWORKDIR)
+VPATH = $(TOPDIR):$(COMMDIR):$(SHMDIR):$(FILEDIR):$(PIPEDIR):$(MMAPDIR):$(NETWORKDIR)
+PINCOMM_INCLUDE = -I$(COMMDIR) -I$(SHMDIR) -I$(FILEDIR) -I$(PIPEDIR) -I$(MMAPDIR) -I$(NETWORKDIR)
 
 JNIPACKAGE = emulatorinterface.communication.shm.SharedMem
 JNINCLUDE = -I/usr/lib/jvm/java-6-openjdk/include -I/usr/lib/jvm/java-6-openjdk/include/linux -I/usr/lib/jvm/java-6-openjdk-amd64/include/ -I/usr/lib/jvm/java-7-openjdk-amd64/include/ -I/usr/lib/jvm/java-7-openjdk/include/ -I/usr/lib/jvm/java-7-openjdk-i386/include/ -I/usr/lib/jvm/java-6-openjdk-i386/include/
@@ -88,7 +89,7 @@ $(MYOBJDIR)libshmlib.so: $(SHMDIR)SharedMem.h $(SHMDIR)JNIShm.c common.h
 $(SHMDIR)SharedMem.h: $(SHMBINDIR)SharedMem.class
 	$(JAVAH) -classpath $(TOPBINDIR) -o $@ $(JNIPACKAGE)
 
-CEXEC = shmem.o mmap.o network.o pipe.o 
+CEXEC = shmem.o mmap.o network.o pipe.o filePacket.o
 PINLINK = $(patsubst %.o,$(MYOBJDIR)%.o,$(CEXEC))
 cppside: $(PINLINK)
 
@@ -122,8 +123,11 @@ $(OBJDIR):
 $(OBJDIR)%.o : %.cpp $(OBJDIR)make-directory $(PINLINK)
 	$(CXX) -c $(CXXFLAGS) $(PIN_CXXFLAGS) $(PINCOMM_INCLUDE) ${OUTOPT}$@ $<
 
+ZLIB_FLAG=-lz
+
+
 $(TOOLS): %$(PINTOOL_SUFFIX) : %.o
-	${PIN_LD} $(PIN_LDFLAGS) $(LINK_DEBUG) ${LINK_OUT}$@ $< $(PINLINK) ${PIN_LPATHS} $(PIN_LIBS) $(DBG)
+	${PIN_LD} $(PIN_LDFLAGS) $(LINK_DEBUG) ${LINK_OUT}$@ $< $(PINLINK) ${PIN_LPATHS} $(PIN_LIBS) $(ZLIB_FLAG) $(DBG)
 
 
 ## cleaning

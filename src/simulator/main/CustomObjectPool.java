@@ -1,6 +1,7 @@
 package main;
 
 import config.EmulatorConfig;
+import config.EmulatorType;
 import emulatorinterface.RunnableThread;
 import emulatorinterface.communication.CustomAsmCharPool;
 import generic.CustomInstructionPool;
@@ -24,7 +25,7 @@ public class CustomObjectPool {
 		System.out.println("creating instruction pool..");
 		setInstructionPool(new CustomInstructionPool(minInstructionPoolSize, maxInstructionPoolSize));
 		
-		if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+		if(EmulatorConfig.emulatorType==EmulatorType.none) {
 			System.out.println("creating custom asm-char pool. max threads = " + maxApplicationThreads);
 			customAsmCharPool = new CustomAsmCharPool(maxApplicationThreads);
 		}

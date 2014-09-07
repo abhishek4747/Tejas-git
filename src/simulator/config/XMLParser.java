@@ -21,6 +21,7 @@
 package config;
 
 import emulatorinterface.communication.IpcBase;
+import emulatorinterface.communication.shm.SharedMem;
 import generic.MultiPortingType;
 
 import java.io.BufferedReader;
@@ -34,6 +35,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.*;
 import net.NOC.CONNECTIONTYPE;
+import main.Emulator;
+import main.Main;
 import memorysystem.Cache;
 import memorysystem.Cache.CacheType;
 import memorysystem.Cache.CoherenceType;
@@ -67,8 +70,8 @@ public class XMLParser
 			//System.out.println("Root element : " + doc.getDocumentElement().getNodeName());
 			
 			createSharedCacheConfigs();
-			setEmulatorParameters();
 			setSimulationParameters();
+			setEmulatorParameters();
 			
 			setSystemParameters();
 		} 
@@ -178,22 +181,91 @@ public class XMLParser
 		}
 		return ret;
 	}
+	
+	static EmulatorType getEmulatorType(String emulatorType) {
+		EmulatorType t = null;
 		
+		try {
+			t = EmulatorType.valueOf(emulatorType);
+		} catch (Exception e) {
+			misc.Error.showErrorAndExit("Error in setting the emulator type argument." +
+					"\nExpected values : pin, or qemu");
+		}
 		
+		return t;
+	}
+	
+	static CommunicationType getCommunicationType(String communicationType) {
+		CommunicationType t = null;
+		
+		try {
+			t = CommunicationType.valueOf(communicationType);
+		} catch (Exception e) {
+			misc.Error.showErrorAndExit("Error in setting the communication type argument." +
+					"\nExpected values : sharedMemory, network, or file");
+		}
+		
+		return t;
+	}
+	
 	private static void setEmulatorParameters() {
 		NodeList nodeLst = doc.getElementsByTagName("Emulator");
 		Node emulatorNode = nodeLst.item(0);
 		Element emulatorElmnt = (Element) emulatorNode;
 		
-		EmulatorConfig.EmulatorType = Integer.parseInt(getImmediateString("EmulatorType", emulatorElmnt));
-		EmulatorConfig.CommunicationType = Integer.parseInt(getImmediateString("CommunicationType", emulatorElmnt));
+		EmulatorConfig.emulatorType = getEmulatorType(getImmediateString("EmulatorType", emulatorElmnt));
+		EmulatorConfig.communicationType = getCommunicationType(getImmediateString("CommunicationType", emulatorElmnt));
+				
 		EmulatorConfig.PinTool = getImmediateString("PinTool", emulatorElmnt);
 		EmulatorConfig.PinInstrumentor = getImmediateString("PinInstrumentor", emulatorElmnt);
 		EmulatorConfig.QemuTool = getImmediateString("QemuTool", emulatorElmnt);
 		EmulatorConfig.ShmLibDirectory = getImmediateString("ShmLibDirectory", emulatorElmnt);
 		EmulatorConfig.KillEmulatorScript = getImmediateString("KillEmulatorScript", emulatorElmnt);
+		
+		EmulatorConfig.storeExecutionTraceInAFile = Boolean.parseBoolean(getImmediateString("StoreExecutionTraceInAFile", emulatorElmnt));
+		EmulatorConfig.basenameForTraceFiles = getImmediateString("BasenameForTraceFiles", emulatorElmnt);
+		
+		if(EmulatorConfig.storeExecutionTraceInAFile==true) {
+			runEmulatorForTracing();
+			System.exit(0);
+		}
 	}
 	
+	static void checkIfTraceFileAlreadyExists() {
+		// Check if a trace file was already present
+		for(int i=0; i<EmulatorConfig.maxThreadsForTraceCollection; i++) {
+			String fileName = EmulatorConfig.basenameForTraceFiles + "_" + i + ".gz";
+			
+			File f = new File(fileName);
+			if(f!=null && f.exists()) {
+				misc.Error.showErrorAndExit("Trace file already present : " + fileName + " !!" + 
+					"\nKindly rename the trace file and start collecting trace again.");
+			}
+		}
+	}
+	
+	private static void runEmulatorForTracing() {
+		// Strict condition : Emulator is pin, and communication type is file.
+		if(EmulatorConfig.emulatorType==EmulatorType.pin && 
+			EmulatorConfig.communicationType==CommunicationType.file) {
+			
+		} else {
+			misc.Error.showErrorAndExit("Invalid emulator/communication-type combination !!");
+		}
+		
+		checkIfTraceFileAlreadyExists();
+		
+		Emulator emulator = new Emulator(EmulatorConfig.PinTool, EmulatorConfig.PinInstrumentor, 
+			Main.getBenchmarkArguments(), EmulatorConfig.basenameForTraceFiles);
+		
+		emulator.waitForEmulator();
+		
+		long endTime = System.currentTimeMillis();
+		float timeElapsedInMinutes = (float)(endTime-Main.getStartTime())/(1000.0f*60.0f);
+		
+		System.out.println("Completed trace collection successfully in " + timeElapsedInMinutes + " minutes.");
+	}
+
 	private static void setSimulationParameters()
 	{
 		NodeList nodeLst = doc.getElementsByTagName("Simulation");
@@ -243,20 +315,7 @@ public class XMLParser
 		{
 			SimulationConfig.detachMemSys = false;
 		}
-		
-		if(getImmediateString("writeToFile", simulationElmnt).compareTo("true") == 0 ||
-				getImmediateString("writeToFile", simulationElmnt).compareTo("True") == 0)
-		{
-			SimulationConfig.writeToFile = true;
-		}
-		else
-		{
-			SimulationConfig.writeToFile = false;
-		}
-		
-		SimulationConfig.numInstructionsToBeWritten = Integer.parseInt(getImmediateString("numInstructionsToBeWritten", simulationElmnt));
-		SimulationConfig.InstructionsFilename = getImmediateString("InstructionsFilename", simulationElmnt);
-		
+				
 		if(getImmediateString("subsetSim", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
 		{

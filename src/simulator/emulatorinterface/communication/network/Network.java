@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import main.CustomObjectPool;
 import config.EmulatorConfig;
+import config.EmulatorType;
 import config.SystemConfig;
 import emulatorinterface.communication.Encoding;
 import emulatorinterface.communication.IpcBase;
@@ -160,9 +161,9 @@ public class Network extends IpcBase implements Encoding {
 			
 			int numBytesConsumed = 0;
 			int maxSize = fromEmulator.spaceLeft();
-			if(EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_PIN) {
+			if(EmulatorConfig.emulatorType==EmulatorType.pin) {
 				
-			} else if (EmulatorConfig.EmulatorType==EmulatorConfig.EMULATOR_QEMU) {
+			} else if (EmulatorConfig.emulatorType==EmulatorType.qemu) {
 				
 				for(int numPacketsAdded=0; numPacketsAdded<maxSize; numPacketsAdded++) {
 		
@@ -207,7 +208,7 @@ public class Network extends IpcBase implements Encoding {
 				}
 				
 			} else {
-				misc.Error.showErrorAndExit("Invalid emulator type : " + EmulatorConfig.EmulatorType);
+				misc.Error.showErrorAndExit("Invalid emulator type : " + EmulatorConfig.emulatorType);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
