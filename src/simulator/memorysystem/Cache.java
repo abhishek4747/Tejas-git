@@ -469,6 +469,16 @@ public class Cache extends SimulationElement
 				cl.setState(MESI.INVALID);
 			}
 			
+			if(this.coherence==CoherenceType.Directory) {
+				long addr = ((AddressCarryingEvent)event).getAddress();
+				int coreNumber = 0;
+				if(this.containingMemSys!=null) {
+					coreNumber = this.containingMemSys.getCore().getCore_number();
+				}
+				
+				evictionUpdateDirectory(coreNumber, event, addr);
+			}
+			
 			invalidatePreviousLevelCaches(((AddressCarryingEvent)event).getAddress());
 		}
 		
@@ -846,7 +856,7 @@ public class Cache extends SimulationElement
 					{
 							int requestingCore = containingMemSys.getCore().getCore_number();
 							long address= evictedLine.getAddress();	//Generating an address of this cache line
-							evictionUpdateDirectory(requestingCore,evictedLine.getTag(),event,address);
+							evictionUpdateDirectory(requestingCore, event, address);
 					}
 					else if (this.isLastLevel)
 					{
@@ -1190,7 +1200,7 @@ public class Cache extends SimulationElement
 		 * Update directory for evictedLine
 		 * If modified, writeback, else just update sharers
 		 * */
-		private void evictionUpdateDirectory(int requestingCore, long dirAddress,Event event, long address) {
+		private void evictionUpdateDirectory(int requestingCore, Event event, long address) {
 			
 			CentralizedDirectoryCache centralizedDirectory = MemorySystem.getDirectoryCache();
 			long delay = 0;			
@@ -1225,7 +1235,6 @@ public class Cache extends SimulationElement
 				ArchitecturalComponent.getCores()[event.coreId].getRouter().
 				getPort().put(eventToBeSent);
 			}
-			invalidatePreviousLevelCaches(((AddressCarryingEvent)event).getAddress());		
 		}
 		
 		public long computeTag(long addr) {
