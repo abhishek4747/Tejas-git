@@ -99,7 +99,7 @@ public class FilePacket extends IpcBase implements Encoding {
 					} else {
 						totalFetchedAssemblyPackets += 1;
 						
-						if(totalFetchedAssemblyPackets%100000==0) {
+						if(totalFetchedAssemblyPackets%1000000==0) {
 							System.out.println("Number of assembly instructions till now : " + totalFetchedAssemblyPackets);
 						}
 						

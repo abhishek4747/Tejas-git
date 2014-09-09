@@ -379,7 +379,7 @@ public class RunnableThread implements Encoding, Runnable {
 		}
 		minN = (minN == Integer.MAX_VALUE) ? 0 : minN;
 		for (int i1 = 0; i1 < minN; i1++) {
-			for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
+			for (int tidEmu = 0; tidEmu < SystemConfig.NoOfCores; tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
 			}
 			if(tokenBus.getFrequency() > 0)
@@ -390,51 +390,6 @@ public class RunnableThread implements Encoding, Runnable {
 		if(prevTotalInstructions == -1) {
 			prevTotalInstructions=0;
 		}
-		
-		//calculating power traces
-		if(SimulationConfig.powerTrace==1){
-			for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
-				currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
-			}
-			if(currentTotalInstructions - prevTotalInstructions > SimulationConfig.numInsForTrace){
-				long[] cyclesElapsed = new long[maxCoreAssign];
-				long currentCycles;
-				Core currentCore;
-				for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
-					currentCore = pipelineInterfaces[tidEmu].getCore();
-					currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
-					cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
-					
-				}
-				for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
-					prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
-					
-				}
-				prevTotalInstructions = currentTotalInstructions;
-			}
-			currentTotalInstructions=0;
-		}
-		else if(SimulationConfig.powerTrace==2){
-			long cyclesTillNow = GlobalClock.getCurrentTime()/pipelineInterfaces[0].getCore().getStepSize();
-			if(cyclesTillNow - prevCycles[0] > SimulationConfig.numCyclesForTrace){
-				long[] cyclesElapsed = new long[maxCoreAssign];
-				long currentCycles;
-				Core currentCore;
-					for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
-						currentCore = pipelineInterfaces[tidEmu].getCore();
-						currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
-						cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
-						
-				}
-				for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
-					prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
-					
-				}
-				prevCycles[0] = cyclesTillNow;
-			}
-		}
-//		System.out.println("  Pipe Size end= "+inputToPipeline[0].getListSize());
-		
 	}
 
 	public void finishAllPipelines() {
@@ -480,50 +435,6 @@ public class RunnableThread implements Encoding, Runnable {
 					tokenBus.eq.processEvents();
 				GlobalClock.incrementClock();
 				//Why it cant be change into a separate function
-				if(SimulationConfig.powerTrace==1){
-					for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
-						currentTotalInstructions += pipelineInterfaces[tidEmu].getCore().getNoOfInstructionsExecuted();
-					}
-					if(currentTotalInstructions - prevTotalInstructions > SimulationConfig.numInsForTrace){
-						long[] cyclesElapsed = new long[maxCoreAssign];
-						long currentCycles;
-						Core currentCore;
-							for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
-							currentCore = pipelineInterfaces[tidEmu].getCore();
-							currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
-							cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
-							
-						}
-						for(int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++){
-							prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
-							
-						}
-						prevTotalInstructions = currentTotalInstructions;
-					}
-					currentTotalInstructions=0;
-				}
-				//change currentEMUTHREADS to maxcoreAssign if you use this
-				else if(SimulationConfig.powerTrace==2){
-					long cyclesTillNow = GlobalClock.getCurrentTime()/pipelineInterfaces[0].getCore().getStepSize();
-					if(cyclesTillNow - prevCycles[0] > SimulationConfig.numCyclesForTrace){
-						long[] cyclesElapsed = new long[currentEMUTHREADS];
-						long currentCycles;
-						Core currentCore;
-							for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
-								currentCore = pipelineInterfaces[tidEmu].getCore();
-								currentCycles = GlobalClock.getCurrentTime()/currentCore.getStepSize();
-								cyclesElapsed[tidEmu]=currentCycles-prevCycles[tidEmu];
-								
-						}
-						for(int tidEmu = 0; tidEmu < currentEMUTHREADS; tidEmu++){
-							prevCycles[tidEmu]=GlobalClock.getCurrentTime()/pipelineInterfaces[tidEmu].getCoreStepSize();
-							
-						}
-						prevCycles[0] = cyclesTillNow;
-					}
-				}
-//			}
-			//System.out.println("maxN is "+maxN);
 		}
 		
 		//FIXME move inside the writeback stage

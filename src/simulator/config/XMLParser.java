@@ -286,6 +286,12 @@ public class XMLParser
 		SimulationConfig.dataWorkingSetChunkSize = 
 				Long.parseLong(getImmediateString("DataWorkingSetChunkSize", simulationElmnt));
 		
+		//Read number of cores and define the array of core configurations
+		//Note that number of Cores specified in config.xml is deprecated and is instead done as follows
+		SystemConfig.maxNumJavaThreads = 1;
+		SystemConfig.numEmuThreadsPerJavaThread = Integer.parseInt(getImmediateString("NumCores", simulationElmnt));
+		SystemConfig.NoOfCores = SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread;
+		
 		int tempVal = Integer.parseInt(getImmediateString("IndexAddrModeEnable", simulationElmnt));
 		if (tempVal == 0)
 			SimulationConfig.IndexAddrModeEnable = false;
@@ -372,11 +378,6 @@ public class XMLParser
 		{
 			SimulationConfig.broadcast = false;
 		}
-		
-		SimulationConfig.powerTrace = Integer.parseInt(getImmediateString("PowerTrace", simulationElmnt));
-		SimulationConfig.numInsForTrace = Long.parseLong(getImmediateString("NumInsForTrace", simulationElmnt));
-		SimulationConfig.numCyclesForTrace = Long.parseLong(getImmediateString("NumCyclesForTrace", simulationElmnt));
-
 	}
 	
 	private static EnergyConfig getEnergyConfig(Element parent)
@@ -403,14 +404,6 @@ public class XMLParser
 		Node systemNode = nodeLst.item(0);
 		Element systemElmnt = (Element) systemNode;
 		
-		//Read number of cores and define the array of core configurations
-		//Note that number of Cores specified in config.xml is deprecated and is instead done as follows
-		//SystemConfig.maxNumJavaThreads = Integer.parseInt(getImmediateString("MaxNumJavaThreads", systemElmnt));
-		SystemConfig.maxNumJavaThreads = 1;
-		SystemConfig.numEmuThreadsPerJavaThread = Integer.parseInt(getImmediateString("NumEmuThreadsPerJavaThread", systemElmnt));
-		
-		SystemConfig.NoOfCores = SystemConfig.maxNumJavaThreads*SystemConfig.numEmuThreadsPerJavaThread;
-						
 		SystemConfig.mainMemoryLatency = Integer.parseInt(getImmediateString("MainMemoryLatency", systemElmnt));
 		SystemConfig.mainMemoryFrequency = Long.parseLong(getImmediateString("MainMemoryFrequency", systemElmnt));
 		SystemConfig.mainMemPortType = setPortType(getImmediateString("MainMemoryPortType", systemElmnt));

@@ -40,7 +40,6 @@ public class SimulationConfig
 	public static boolean markerFunctionsSimulation;
 	public static String startMarker;
 	public static String endMarker;
-	public static int powerTrace;
 	public static long numInsForTrace;
 	public static long numCyclesForTrace;
 	public static NucaType nucaType;
