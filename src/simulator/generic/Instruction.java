@@ -115,6 +115,13 @@ public class Instruction implements Serializable
 		this.sourceOperand1 = sourceInstruction.sourceOperand1;
 		this.sourceOperand2 = sourceInstruction.sourceOperand2;
 		this.destinationOperand = sourceInstruction.destinationOperand;
+		
+		this.sourceOperand1MemValue = sourceInstruction.sourceOperand1MemValue;
+		this.sourceOperand2MemValue = sourceInstruction.sourceOperand2MemValue;
+		this.destinationOperandMemValue = sourceInstruction.destinationOperandMemValue;
+		
+		this.serialNo = sourceInstruction.serialNo;
+		this.threadID = sourceInstruction.threadID;
 	}
 	
 	public static Instruction getIntALUInstruction(Operand sourceOperand1, Operand sourceOperand2, Operand destinationOperand)
