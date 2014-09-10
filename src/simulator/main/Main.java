@@ -21,6 +21,7 @@ import emulatorinterface.communication.filePacket.FilePacket;
 import emulatorinterface.communication.network.Network;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
+import generic.BenchmarkThreadMapping;
 import generic.Operand;
 import generic.PinPointsProcessing;
 import generic.Statistics;
@@ -43,6 +44,8 @@ public class Main {
 	public static String benchmarkArguments = " ";
 	public static long startTime, endTime;
 	public static boolean xmlParsingCompleted = false;
+	
+	public static BenchmarkThreadMapping benchmarkThreadMapping;
 	
 	public static void main(String[] arguments)
 	{
@@ -99,6 +102,7 @@ public class Main {
 		// Start communication channel before starting emulator
 		// PS : communication channel must be started before starting the emulator
 		ipcBase = startCommunicationChannel(pid);
+		benchmarkThreadMapping = new BenchmarkThreadMapping(getExecutableAndArguments());
 		
 		runners = new RunnableThread[SystemConfig.maxNumJavaThreads];
 		

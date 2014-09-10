@@ -364,5 +364,33 @@ public class Instruction implements Serializable
 			String.format("%-60s", "dstOp = " + destinationOperand) 
 		);
 	}
+	
+	public static long createAddressForBM(long address, int bm)
+	{
+		// In order to tag an address with the benchmark ID, 
+		// we replace the 8 MSB bits with the benchmark ID bits
+		// Address is represented using a long which is 64 bits long
+		// Changing the 8 MSB bits will not affect the 
+		// correctness since current 64 bit processors use only the 48 LSB bits of the addresses. 
+		// They ignore the top 16 bits. So changing top 8 bits should always work.
+		long newAddress = bm;
+		newAddress = newAddress << 56;
+		newAddress = newAddress | address;
+		return newAddress;
+	}
 
+	public void changeAddressesForBenchmark(int bm)
+	{
+		// This function modifies all the addresses in an instruction object
+		
+		// CISC program counter = -1 is a special value
+		if(ciscProgramCounter!=-1) {
+			ciscProgramCounter = createAddressForBM(ciscProgramCounter, bm);
+		}
+		
+		sourceOperand1MemValue = createAddressForBM(sourceOperand1MemValue, bm);
+		sourceOperand2MemValue = createAddressForBM(sourceOperand2MemValue, bm);
+		destinationOperandMemValue = createAddressForBM(destinationOperandMemValue, bm);
+		branchTargetAddress = createAddressForBM(branchTargetAddress, bm);
+	}
 }

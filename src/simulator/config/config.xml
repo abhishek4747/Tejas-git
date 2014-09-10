@@ -28,6 +28,7 @@
 		
 		<!--NOTE only file interface supports the execution of multiple benchmarks inside tejas-->
 		<!--if you are reading the packets from a file, the emulator must be set to none-->
+		<!--multiple benchmarks are specified using arguments to the simulator-->
 		<CommunicationType>sharedMemory</CommunicationType>  <!--file,sharedMemory,network-->
 		
 		<!--We can use tejas as an interface to create a compressed (gzip) trace file using the emulator-->

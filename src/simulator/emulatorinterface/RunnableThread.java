@@ -19,6 +19,7 @@ import java.util.TreeMap;
 
 //import main.Main;
 import main.CustomObjectPool;
+import main.Main;
 import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
 import config.EmulatorConfig;
@@ -31,6 +32,7 @@ import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.BarrierTable;
+import generic.BenchmarkThreadMapping;
 import generic.CircularPacketQueue;
 import generic.Core;
 import generic.GenericCircularQueue;
@@ -576,6 +578,15 @@ public class RunnableThread implements Encoding, Runnable {
 					thread.outstandingMicroOps.peek(i).setCISCProgramCounter(thread.packetList.get(0).ip);
 				} else {
 					thread.outstandingMicroOps.peek(i).setCISCProgramCounter(-1);
+				}
+			}
+			
+			// If I am running multiple benchmarks, the addresses of all the benchmarks must 
+			// be tagged with benchmark ID. The tagging happens only if : 
+			// (a) there are multiple benchmarks (b) the benchmark id for this thread is not zero  
+			if(Main.benchmarkThreadMapping.getNumBenchmarks()>1 && tidApp>0 && Main.benchmarkThreadMapping.getBenchmarkIDForThread(tidApp)!=0) {
+				for(int i=numMicroOpsBefore; i<numMicroOpsAfter; i++) {
+					thread.outstandingMicroOps.peek(i).changeAddressesForBenchmark(Main.benchmarkThreadMapping.getBenchmarkIDForThread(tidApp));
 				}
 			}
 			
