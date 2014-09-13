@@ -345,7 +345,6 @@ public class Cache extends SimulationElement
 			
 			else if (event.getRequestType() == RequestType.MSHR_Full)
 			{
-							
 				// Reset the requestType to actualRequestType
 				event.setRequestType(((AddressCarryingEvent)event).actualRequestType);
      			((AddressCarryingEvent)event).actualRequestType = null;
@@ -355,18 +354,7 @@ public class Cache extends SimulationElement
 				event.setEventTime(event.getEventTime()-GlobalClock.getCurrentTime());
 				
 				if (processingCache.addEvent((AddressCarryingEvent)event) == false) {
-					missStatusHoldingRegister.handleLowerMshrFull((AddressCarryingEvent)event);
-				} else {
-					/*System.out.println("*******MSHR_Full_Cleared******** : gloT = " + GlobalClock.getCurrentTime() + 
-							"\tevT = " + event.getEventTime() + "\t" + event.getRequestType() +
-							"\tmshr = " + this.missStatusHoldingRegister.getCurrentSize() +
-							//"\tID = " + event.privateSerializationID +
-							"\tset-addr = " + (((AddressCarryingEvent)event).getAddress()>>6) +
-							"\treqEle = " + event.getRequestingElement() +
-							"\taddr = " + ((AddressCarryingEvent)event).getAddress() + 
-							"\t" + this);
-					*/
-					missStatusHoldingRegister.removeMshrFullEvent((AddressCarryingEvent)event);
+					handleLowerMshrFull((AddressCarryingEvent)event);
 				}
 			}
 		}
@@ -390,7 +378,7 @@ public class Cache extends SimulationElement
 //			}
 			
 			//IF HIT
-			if (cl != null || missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
+			if (cl != null)
 			{
 				
 				/*if(this.levelFromTop == CacheType.Lower){
@@ -582,9 +570,8 @@ public class Cache extends SimulationElement
 									RequestType.Cache_Write);
 			
 			boolean isAddedinLowerMshr = this.nextLevel.addEvent(receivedEvent);
-			if(!isAddedinLowerMshr)
-			{
-				missStatusHoldingRegister.handleLowerMshrFull(receivedEvent);
+			if(!isAddedinLowerMshr) {
+				handleLowerMshrFull(receivedEvent);
 			}
 		}
 		
@@ -609,9 +596,8 @@ public class Cache extends SimulationElement
 									RequestType.Cache_Read);
 			
 			boolean isAddedinLowerMshr = this.nextLevel.addEvent(receivedEvent);
-			if(!isAddedinLowerMshr)
-			{
-				missStatusHoldingRegister.handleLowerMshrFull(receivedEvent);
+			if(!isAddedinLowerMshr) {
+				handleLowerMshrFull(receivedEvent);
 			}
 		}
 		
@@ -901,16 +887,9 @@ public class Cache extends SimulationElement
 					   										event.coreId);
 			
 			boolean isAdded = this.nextLevel.addEvent(eventToForward);
-			if( !isAdded )
-			{
-				boolean entryCreated =  missStatusHoldingRegister.addOutstandingRequest( eventToForward );
-				if (entryCreated)
-				{
-					missStatusHoldingRegister.handleLowerMshrFull( eventToForward );
-				}
-			}
-			else
-			{
+			if(!isAdded ) {
+				handleLowerMshrFull( eventToForward );
+			} else {
 				noOfWritesForwarded++;
 			}
 		}
@@ -1442,6 +1421,22 @@ public class Cache extends SimulationElement
 			//((Mode3MSHR)(missStatusHoldingRegister)).populateConnectedMSHR(this.prevLevel);
 		}
 		
+		public void handleLowerMshrFull( AddressCarryingEvent event)
+		{
+			AddressCarryingEvent eventToBeSent = (AddressCarryingEvent)event.clone();
+			eventToBeSent.setEventTime(eventToBeSent.getEventTime()
+					+ GlobalClock.getCurrentTime());
+			eventToBeSent.actualProcessingElement = eventToBeSent
+					.getProcessingElement();
+			eventToBeSent
+					.setProcessingElement(eventToBeSent.getRequestingElement());
+
+			eventToBeSent.actualRequestType = eventToBeSent.getRequestType();
+			eventToBeSent.setRequestType(RequestType.MSHR_Full);
+			eventToBeSent.setEventTime(eventToBeSent.getEventTime() + 1);
+
+			eventToBeSent.getEventQ().addEvent(eventToBeSent);
+		}
 		
 		//getters and setters
 		public MissStatusHoldingRegister getMissStatusHoldingRegister() {

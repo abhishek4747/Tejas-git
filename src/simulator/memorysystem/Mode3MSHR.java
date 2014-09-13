@@ -83,7 +83,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			/*
 			 * the higher level cache must check if mshr is full before requesting
 			 */
-			OMREntry newOMREntry = new OMREntry(new ArrayList<AddressCarryingEvent>(), null);
+			OMREntry newOMREntry = new OMREntry(new ArrayList<AddressCarryingEvent>());
 			newOMREntry.outStandingEvents.add(event);
 			mshr.put(blockAddr, newOMREntry);
 			return true;
@@ -121,38 +121,6 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		}
 	}
 	
-	public void removeMshrFullEvent( AddressCarryingEvent eventToBeSent)
-	{
-		OMREntry omrEntry =  getMshrEntry(eventToBeSent.getAddress());
-		if(omrEntry!=null) {
-			omrEntry.eventToForward = null;
-		}
-	}
-	
-	@Override
-	public boolean removeRequestsByRequestTypeAndAddress(AddressCarryingEvent addrevent)
-	{
-		long addr = addrevent.getAddress();
-		long blockAddr = addr >>> offset;
-		RequestType requestType = addrevent.getRequestType();
-		
-		OMREntry omrEntry = mshr.get(blockAddr);
-		
-		for(int i=0; i<omrEntry.outStandingEvents.size(); i++) {
-			if (omrEntry.outStandingEvents.get(i).getAddress()>>>offset==blockAddr &&
-					omrEntry.outStandingEvents.get(i).getRequestType()==requestType)
-			{
-				omrEntry.outStandingEvents.remove(i);
-				if(omrEntry.outStandingEvents.size()==0 && omrEntry.eventToForward==null) {
-					mshr.remove(blockAddr);
-				}
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
 	boolean contains(long address)
 	{
 		long blockaddr = address >>> offset;
@@ -180,102 +148,6 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	}
 	
 	@Override
-	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent)
-	{
-		// System.out.println("Entered handle lower mshr");
-		/*
-		 * System.out.println("_______MSHR_Full________ : glolT = " +
-		 * GlobalClock.getCurrentTime() + "\tevT = " +
-		 * eventToBeSent.getEventTime() + "\t" + eventToBeSent.getRequestType()
-		 * + "\tset-addr = " +
-		 * (((AddressCarryingEvent)eventToBeSent).getAddress()>>6) + "\t" +
-		 * eventToBeSent.getRequestingElement());
-		 */
-		eventToBeSent.setEventTime(eventToBeSent.getEventTime()
-				+ GlobalClock.getCurrentTime());
-		// System.out.println("\t after adding time, evT " +
-		// eventToBeSent.getEventTime());
-		OMREntry omrEntry = getMshrEntry(eventToBeSent.getAddress());
-		// System.out.println("MSHR_Full_OMREntry : " + omrEntry);
-
-		if (omrEntry == null) {
-			addOutstandingRequest(eventToBeSent);
-			omrEntry = getMshrEntry(eventToBeSent.getAddress());
-		}
-
-		if (omrEntry.eventToForward != null) {
-			// System.out.println("MSHR_Full_EventToForwardAlreadyThere : " +
-			// omrEntry.eventToForward);
-			// return;
-		}
-
-		omrEntry.eventToForward = eventToBeSent;
-
-		// Try in the next cycle
-		eventToBeSent.actualProcessingElement = eventToBeSent
-				.getProcessingElement();
-		eventToBeSent
-				.setProcessingElement(eventToBeSent.getRequestingElement());
-
-		eventToBeSent.actualRequestType = eventToBeSent.getRequestType();
-		eventToBeSent.setRequestType(RequestType.MSHR_Full);
-		eventToBeSent.setEventTime(eventToBeSent.getEventTime() + 1);
-		eventToBeSent.getEventQ().addEvent(eventToBeSent);
-	}
-	
-	ArrayList<OMREntry> getElementsReadyToProceed()
-	{
-		ArrayList<OMREntry> eventsReadyToProceed = new ArrayList<OMREntry>();
-		Enumeration<OMREntry> omrEntries = mshr.elements();
-		while(omrEntries.hasMoreElements())
-		{
-			OMREntry omrEntry = omrEntries.nextElement();
-			if(omrEntry.eventToForward!=null)
-			{
-				eventsReadyToProceed.add(omrEntry);
-			}
-		}
-		return eventsReadyToProceed;
-	}
-	
-	ArrayList<OMREntry> getElementsReadyToProceed(Vector<Integer> bankId)
-	{
-		ArrayList<OMREntry> eventsReadyToProceed = new ArrayList<OMREntry>();
-		Enumeration<OMREntry> omrEntries = mshr.elements();
-		while(omrEntries.hasMoreElements())
-		{
-			OMREntry omrEntry = omrEntries.nextElement();
-			if(omrEntry.eventToForward!=null && omrEntry.eventToForward.getDestinationId() != null && omrEntry.eventToForward.getDestinationId().equals(bankId))
-			{
-				eventsReadyToProceed.add(omrEntry);
-			}
-		}
-		return eventsReadyToProceed;
-	}
-	
-	@Override
-	public boolean containsWriteOfEvictedLine(long address)
-	{
-		if(true) {
-			return false;
-		}
-		//if the MSHR contains a write to given address
-		// AND if the eventToForward of the omrEntry is a Write
-		//  then
-		//    this either refers to a write to a block that is contained in the cache
-		//    OR this refers to an evicted block
-		OMREntry omrEntry = getMshrEntry(address >>> offset);
-		if(omrEntry != null && omrEntry.containsWriteToAddress(address))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	
-	@Override
 	public void dump()
 	{
 		Enumeration<OMREntry> omrEntries = mshr.elements();
@@ -292,97 +164,14 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			}*/
 			AddressCarryingEvent addrEvent = (AddressCarryingEvent) events.get(0);
 			System.out.print("block address = " + (addrEvent.getAddress() >>> offset));
-			if(omrEntry.eventToForward != null)
-			{
-				System.out.print(" : " + omrEntry.eventToForward.getRequestType() + " : " + (omrEntry.eventToForward!=null) );
-			}
-			System.out.println();
 			for(int i = 0; i < events.size(); i++)
 			{
 				addrEvent = (AddressCarryingEvent) events.get(i);				
-				System.out.print(addrEvent.getAddress() + "," + addrEvent.getRequestType() + "," + addrEvent.coreId + "\t");
+				System.out.println(addrEvent);//addrEvent.getAddress() + "," + addrEvent.getRequestType() + "," + addrEvent.coreId + "\t");
 			}
 			System.out.println();
 		}
 	}
-	/*methods with errors TODO
-	public void pullFromUpperMshrs()
-	{
-		startIndexForPulling = (startIndexForPulling + 1)%connectedMSHR.size();
-		
-		for(int i = 0, j = startIndexForPulling;
-			i < connectedMSHR.size();   
-			i++, j = (j+1)%connectedMSHR.size())
-		{
-			pullFrom(connectedMSHR.get(j));				
-		}
-	}
-	
-	public void pullFrom(MissStatusHoldingRegister mshr)
-	{
-		if(mshr.getNumberOfEntriesReadyToProceed() == 0)
-		{
-			return;
-		}
-		
-		ArrayList<OMREntry> eventToProceed = mshr.getElementsReadyToProceed();
-		processReadyEvents(eventToProceed,mshr);
-	}
-	
-	public void processReadyEvents(ArrayList<OMREntry> eventToProceed,MissStatusHoldingRegister mshr)
-	{
-		for(int k = 0;k < eventToProceed.size();k++)
-		{
-			if(missStatusHoldingRegister.isFull())
-			{
-				break;
-			}
-			
-			OMREntry omrEntry = eventToProceed.get(k);
-			omrEntry.readyToProceed = false;
-			
-			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(omrEntry.eventToForward);//####
-			
-			if(omrEntry.eventToForward.getRequestType() == RequestType.Cache_Write)
-			{
-				mshr.removeStartingWrites(omrEntry.eventToForward.getAddress());
-			}
-			
-			mshr.decrementNumberOfEntriesReadyToProceed();
-
-			if(this.getClass() == NucaCacheBank.class)
-			{
-				if (omrEntry.eventToForward.getDestinationBankId() == null || omrEntry.eventToForward.getSourceBankId() == null)
-				{
-					System.out.println("error from pulling ");
-				}
-			}
-			if(entryCreated)
-			{
-				*//*
-				 * if the pulled event results in a new omrEntry,
-				 * the processing of the request must be done
-				 *//*
-				handleAccess(omrEntry.eventToForward.getEventQ() , omrEntry.eventToForward);
-			}
-			else
-			{
-				*//*
-				 * if the pulled event is a write (omr entry already exists),
-				 * it may be that the cache line already exists at this level (either in the cache, or in the MSHR),
-				 * therefore, this request is effectively a hit;
-				 * to handle this possibility, we call handleAccess()
-				 *//*
-				AddressCarryingEvent eventToForward = missStatusHoldingRegister.getMshrEntry(omrEntry.eventToForward.getAddress()).eventToForward; 
-				if(eventToForward != null &&
-						eventToForward.getRequestType() == RequestType.Cache_Write)
-				{
-					handleAccess(omrEntry.eventToForward.getEventQ(), omrEntry.eventToForward);
-				}
-			}
-		}
-	}
-	*/
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
@@ -419,11 +208,6 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		} else {
 			return entry.outStandingEvents.size();
 		}
-	}
-
-	@Override
-	public boolean removeRequestsByRequestTypeAndAddressIfAvailable(AddressCarryingEvent addrevent) {
-		return removeRequestsByRequestTypeAndAddress(addrevent);
 	}
 
 	@Override

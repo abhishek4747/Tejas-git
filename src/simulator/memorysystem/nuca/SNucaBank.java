@@ -78,7 +78,7 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 		CacheLine cl = this.processRequest(requestType, address,event);
 		
 		//IF HIT
-		if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
+		if (cl != null)
 		{
 			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(event);
 			nucaCache.hits+=numOfOutStandingRequests; //

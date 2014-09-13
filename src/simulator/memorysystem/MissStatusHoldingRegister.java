@@ -30,17 +30,7 @@ public interface MissStatusHoldingRegister {
 	
 	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(AddressCarryingEvent event);
 	
-	public boolean removeRequestsByRequestTypeAndAddress(AddressCarryingEvent addrevent);
-	
-	public boolean removeRequestsByRequestTypeAndAddressIfAvailable(AddressCarryingEvent addrevent);
-	
 	public ArrayList<AddressCarryingEvent> removeRequestsByAddressIfAvailable(AddressCarryingEvent event);
 	
-	public void handleLowerMshrFull( AddressCarryingEvent eventToBeSent);
-	
-	public boolean containsWriteOfEvictedLine(long address);
-	
-	public void dump();
-	
-	public void removeMshrFullEvent(AddressCarryingEvent event);
+	public void dump();	
 }

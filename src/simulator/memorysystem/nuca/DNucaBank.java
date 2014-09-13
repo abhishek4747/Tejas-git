@@ -230,7 +230,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 		if(event.event_id==0) //Broadcast has not been done yet
 		{
 			//IF HIT
-			if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address) )
+			if (cl != null)
 			{
 				int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(event);
 				nucaCache.hits+=numOfOutStandingRequests; //
@@ -246,7 +246,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 		else
 		{
 			RequestType request;
-			if (cl != null || nucaCache.missStatusHoldingRegister.containsWriteOfEvictedLine(address))
+			if (cl != null)
 			{
 				request=RequestType.Cache_Hit;
 			}
