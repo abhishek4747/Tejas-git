@@ -24,6 +24,15 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	Hashtable<Long, OMREntry> mshr;
 	public int maxSizeReached = Integer.MIN_VALUE;
 	
+	/*
+	 * offset, cacheLatency and numCachePorts are containing cache parameters
+	 * mshrSize is the maximum legal size of the MSHR
+	 * NOTE : an approximation is employed here -- a cache's requesting element
+	 * checks if the MSHR is full before issuing a request. however, the request
+	 * processing is done after 'latency' cycles from the time of the request.
+	 * during this time, the cache's MSHR may fill up. we allow the MSHR to grow
+	 * beyond its specified size in this scenario. 
+	 */
 	public Mode3MSHR(int offset, int mshrSize, EventQueue eventQ) {
 		
 		super(PortType.Unlimited, -1, -1, // Port parameter (type, numPorts, occupancy)

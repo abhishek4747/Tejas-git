@@ -110,6 +110,15 @@ public class Cache extends SimulationElement
 		public CacheConfig cacheConfig;
 		public int id;
 		
+		ArrayList<AddressCarryingEvent> tmpHitEventList; //does NOT refer to a real
+														//hardware structure; used to
+														//avoid repeated creation of
+														//ArrayList<AddressCarryingEvent>
+														//objects when processing a
+														//cache hit
+		
+		ArrayList<AddressCarryingEvent> eventsWaitingOnLowerMSHR;
+		
 			
 		public Cache(String cacheName, int id, 
 				CacheConfig cacheParameters, CoreMemorySystem containingMemSys)
@@ -184,6 +193,9 @@ public class Cache extends SimulationElement
 			this.nucaType = NucaType.NONE;
 			
 			energy = cacheParameters.power;
+			
+			tmpHitEventList = new ArrayList<AddressCarryingEvent>();
+			eventsWaitingOnLowerMSHR = new ArrayList<AddressCarryingEvent>();
 		}
 		
 		public Cache(
@@ -239,6 +251,9 @@ public class Cache extends SimulationElement
 			//missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize);
 			//if(this.level)
 			missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, 10000, null);
+			
+			tmpHitEventList = new ArrayList<AddressCarryingEvent>();
+			eventsWaitingOnLowerMSHR = new ArrayList<AddressCarryingEvent>();
 			
 		}
 		
@@ -342,58 +357,38 @@ public class Cache extends SimulationElement
 			{
 				this.handleInvalidate((AddressCarryingEvent) event);
 			}
-			
-			else if (event.getRequestType() == RequestType.MSHR_Full)
-			{
-				// Reset the requestType to actualRequestType
-				event.setRequestType(((AddressCarryingEvent)event).actualRequestType);
-     			((AddressCarryingEvent)event).actualRequestType = null;
-				((AddressCarryingEvent)event).setProcessingElement(((AddressCarryingEvent)event).actualProcessingElement);
-				((AddressCarryingEvent)event).actualProcessingElement = null;
-				Cache processingCache = (Cache)event.getProcessingElement();
-				event.setEventTime(event.getEventTime()-GlobalClock.getCurrentTime());
-				
-				if (processingCache.addEvent((AddressCarryingEvent)event) == false) {
-					handleLowerMshrFull((AddressCarryingEvent)event);
-				}
-			}
 		}
 		
 		public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
 		{
-			long address = event.getAddress();
-			if(event.getRequestType() == RequestType.Cache_Write)
+			long address = event.getAddress();			
+			RequestType requestType = event.getRequestType();
+			
+			if(requestType == RequestType.Cache_Write)
 			{
 				noOfWritesReceived++;
 			}
 			
-			RequestType requestType = event.getRequestType();
-			
-			
 			CacheLine cl = this.processRequest(requestType, address, event);
-			
-//			if(this.levelFromTop==CacheType.L1) {
-//				System.out.println("numAccess = " + noOfAccesses + " addr = " + address + 
-//						" tag+set = " + (address>>>blockSizeBits));
-//			}
-			
+						
 			//IF HIT
 			if (cl != null)
 			{
+				hits++;
+				noOfRequests++;
+				noOfAccesses++;
 				
-				/*if(this.levelFromTop == CacheType.Lower){
-					System.out.println(event.getEventTime()+"  cache hit for address "+ event.getAddress() + "with tag = "+ computeTag(event.getAddress()));
-				}*/
-			//	int setNumber = this.getStartIdx(event.getAddress());
-				//System.out.println(setNumber+" setNumber "+ this.getId() + " " + event.coreId+" " + event.getAddress());
-				//setAccessFreq[setNumber][event.coreId]++;
-				
-				processBlockAvailable(event);				
+				tmpHitEventList.clear();
+				tmpHitEventList.add(event);
+				sendResponseToWaitingEvent(tmpHitEventList);
 			}
 			
 			//IF MISS
 			else
-			{	
+			{
+				//add to MSHR
+				boolean newOMREntryCreated = missStatusHoldingRegister.addOutstandingRequest(event);
+				
 				if(this.coherence == CoherenceType.Directory 
 						&& event.getRequestType() == RequestType.Cache_Write)
 				{
@@ -406,8 +401,10 @@ public class Cache extends SimulationElement
 				} 
 				else 
 				{
-	
-					sendReadRequest(event);
+					if(newOMREntryCreated)
+					{
+						sendReadRequest(event);
+					}
 				}
 			}
 		}
@@ -569,10 +566,7 @@ public class Cache extends SimulationElement
 									this.nextLevel,
 									RequestType.Cache_Write);
 			
-			boolean isAddedinLowerMshr = this.nextLevel.addEvent(receivedEvent);
-			if(!isAddedinLowerMshr) {
-				handleLowerMshrFull(receivedEvent);
-			}
+			addEventAtLowerCache(receivedEvent);
 		}
 		
 		/*
@@ -581,24 +575,13 @@ public class Cache extends SimulationElement
 		 */
 		public void sendReadRequestToLowerCache(AddressCarryingEvent receivedEvent)
 		{
-			/*AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(
-													receivedEvent.getEventQ(), 
-													this.nextLevel.getLatency(), 
-													this, 
-													this.nextLevel, 
-													RequestType.Cache_Read, 
-													receivedEvent.getAddress(),
-													receivedEvent.coreId);*/
 			receivedEvent.update(receivedEvent.getEventQ(),
 									this.nextLevel.getLatency(),
 									this,
 									this.nextLevel,
 									RequestType.Cache_Read);
 			
-			boolean isAddedinLowerMshr = this.nextLevel.addEvent(receivedEvent);
-			if(!isAddedinLowerMshr) {
-				handleLowerMshrFull(receivedEvent);
-			}
+			addEventAtLowerCache(receivedEvent);
 		}
 		
 		private void sendWriteRequestToMainMemory(AddressCarryingEvent receivedEvent)
@@ -694,11 +677,9 @@ public class Cache extends SimulationElement
 							if (this.isLastLevel)
 							{
 								putEventToPort(eventPoppedOut,eventPoppedOut.getRequestingElement(), RequestType.Main_Mem_Write, true,true);
-								//putEventToPort(eventPoppedOut,MemorySystem.mainMemory, RequestType.Main_Mem_Write, false,true);
 							}
 							else if (this.coherence == CoherenceType.None)
 							{
-									//putEventToPort(eventPoppedOut,this.nextLevel, RequestType.Cache_Write, true,true);
 								numberOfWrites++;
 								sampleWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
 							}
@@ -755,16 +736,23 @@ public class Cache extends SimulationElement
 			return !isSharedCache();
 		}
 		
-		/*
-		 * called by higher level cache
-		 *returned value signifies whether the event will be saved in mshr or not
-		 * */
-		public boolean addEvent(AddressCarryingEvent addressEvent)
-		{	
-			if(missStatusHoldingRegister.isFull())
+		public boolean addEventAtLowerCache(AddressCarryingEvent event)
+		{
+			if(this.nextLevel.getMissStatusHoldingRegister().isFull() == false)
 			{
+				this.nextLevel.getPort().put(event);
+				this.nextLevel.workingSetUpdate();
+				return true;
+			}
+			else
+			{
+				handleLowerMshrFull((AddressCarryingEvent)event);
 				return false;
 			}
+		}
+		
+		public void workingSetUpdate()
+		{
 			// Clear the working set data after every x instructions
 			if(this.containingMemSys!=null && this.workingSet!=null) {
 				
@@ -784,39 +772,6 @@ public class Cache extends SimulationElement
 					}
 				}
 			}
-			
-			
-			long address = addressEvent.getAddress();
-			
-			//System.out.println(address + " in l1 setNumber : " +this.getStartIdx(address));
-			boolean entryCreated = missStatusHoldingRegister.addOutstandingRequest(addressEvent);
-			if(entryCreated)
-			{
-				this.getPort().put(addressEvent);
-			}
-			else
-			{
-//				//if mode3mshr
-//				
-//				AddressCarryingEvent eventToForward = ((Mode3MSHR)missStatusHoldingRegister).getMshrEntry(addressEvent.getAddress()).eventToForward; 
-//				/*
-//				 * it is possible that an onrEntry corresponding to the line exists, and has a write as eventToForward
-//				 * in this situation, we are not expecting any memResponse for the line from below
-//				 * therefore, we have to schedule a handleAccess
-//				 */
-//				if(eventToForward != null &&
-//						eventToForward.getRequestType() == RequestType.Cache_Write)
-//				{
-//					//handleAccess(addressEvent.getEventQ(), addressEvent);
-//					/*
-//					 * directly calling handle access does not include hit-time
-//					 * instead, we schedule an event at time cur + hit-time
-//					 */
-//					this.getPort().put(addressEvent);
-//				}
-			}
-			
-			return true;
 		}
 		
 		protected void fillAndSatisfyRequests(EventQueue eventQ, Event event, MESI stateToSet)
@@ -886,12 +841,8 @@ public class Cache extends SimulationElement
 					   										event.getAddress(),
 					   										event.coreId);
 			
-			boolean isAdded = this.nextLevel.addEvent(eventToForward);
-			if(!isAdded ) {
-				handleLowerMshrFull( eventToForward );
-			} else {
-				noOfWritesForwarded++;
-			}
+			addEventAtLowerCache(eventToForward);
+			noOfWritesForwarded++;
 		}
 		
 		private void processBlockAvailable(AddressCarryingEvent event)
@@ -1424,18 +1375,32 @@ public class Cache extends SimulationElement
 		public void handleLowerMshrFull( AddressCarryingEvent event)
 		{
 			AddressCarryingEvent eventToBeSent = (AddressCarryingEvent)event.clone();
-			eventToBeSent.setEventTime(eventToBeSent.getEventTime()
-					+ GlobalClock.getCurrentTime());
 			eventToBeSent.actualProcessingElement = eventToBeSent
 					.getProcessingElement();
 			eventToBeSent
 					.setProcessingElement(eventToBeSent.getRequestingElement());
 
-			eventToBeSent.actualRequestType = eventToBeSent.getRequestType();
-			eventToBeSent.setRequestType(RequestType.MSHR_Full);
-			eventToBeSent.setEventTime(eventToBeSent.getEventTime() + 1);
+			eventToBeSent.setEventTime(GlobalClock.getCurrentTime() + 1);
 
-			eventToBeSent.getEventQ().addEvent(eventToBeSent);
+			eventsWaitingOnLowerMSHR.add(eventToBeSent);
+			//eventToBeSent.getEventQ().addEvent(eventToBeSent);
+		}
+		
+		public void oneCycleOperation()
+		{
+			while(!eventsWaitingOnLowerMSHR.isEmpty())
+			{
+				AddressCarryingEvent event = eventsWaitingOnLowerMSHR.remove(0);
+				
+				((AddressCarryingEvent)event).setProcessingElement(((AddressCarryingEvent)event).actualProcessingElement);
+				((AddressCarryingEvent)event).actualProcessingElement = null;
+				Cache processingCache = (Cache)event.getProcessingElement();
+				//event.setEventTime(event.getEventTime()-GlobalClock.getCurrentTime());
+				event.setEventTime(processingCache.getLatency());
+				
+				if(addEventAtLowerCache((AddressCarryingEvent)event) == false)
+					break;
+			}
 		}
 		
 		//getters and setters

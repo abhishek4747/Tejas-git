@@ -188,9 +188,6 @@ public abstract class CoreMemorySystem extends SimulationElement
 						"Set the firstLevel attribute field of the cache to true");
 				}
 			}
-			
-			this.core.getEventQueue().addEvent(new CachePullEvent(this.core.getEventQueue(),
-				0, cache, cache, RequestType.PerformPulls, this.coreID));
 		}		
 	}
 

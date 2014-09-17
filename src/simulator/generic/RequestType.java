@@ -88,11 +88,9 @@ public enum RequestType {
 	Send_Mem_Response,
 	Cache_Write_Writeback_Invalidate,
 	
-	PerformPulls, 
 	Send_Mem_Response_Invalidate,
 	Invalid_Event, Cache_Hit, Cache_Miss,
 
-	MSHR_Full,
 	Tlb_Miss_Response, CacheLine_Invalidate, Send_Migrate_Block
 	
 //	MEM_READ,

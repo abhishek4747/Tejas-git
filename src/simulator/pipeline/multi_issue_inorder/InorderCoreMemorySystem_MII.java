@@ -42,14 +42,7 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		}
 		
 		//attempt issue to lower level cache
-		AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
-		boolean isAddedinLowerMshr = this.l1Cache.addEvent(clone);
-		if(!isAddedinLowerMshr)
-		{
-			misc.Error.showErrorAndExit("Unable to add event to l1 Cache's MSHR !!" + 
-					"\nevent = " + addressEvent + 
-					"\niCache = " + this.iCache);
-		}
+		this.l1Cache.getPort().put(addressEvent);
 		
 		containingExecEngine.updateNoOfMemRequests(1);
 		if(requestType == RequestType.Cache_Read)
@@ -81,14 +74,7 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 
 		
 		//attempt issue to lower level cache
-		AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
-		boolean isAddedinLowerMshr = this.iCache.addEvent(clone);
-		if(!isAddedinLowerMshr)
-		{
-			misc.Error.showErrorAndExit("Unable to add event to iCache's MSHR !!" + 
-					"\nevent = " + addressEvent + 
-					"\niCache = " + this.iCache);
-		}
+		this.iCache.getPort().put(addressEvent);
 	}
 	
 	private int performITLBLookup(long address, MultiIssueInorderPipeline inorderPipeline)

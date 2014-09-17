@@ -107,7 +107,10 @@ public class CacheTest extends SimulationElement{
 
 		//attempt issue to lower level cache
 		AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
-		cache.addEvent(clone);
+		if(cache.getMissStatusHoldingRegister().isFull() == false)
+		{
+			cache.getPort().put(clone);
+		}
 	}
 
 	@Override

@@ -119,14 +119,6 @@ public class MemorySystem
 				
 				//Put the newly formed cache into the new list of caches
 				cacheList.put(cacheName, newCache);
-				
-				//add initial cachepull event
-				//if(newCache.levelFromTop == CacheType.Lower)
-				//{
-				ArchitecturalComponent.getCores()[0].getEventQueue().addEvent(
-					new CachePullEvent(ArchitecturalComponent.getCores()[0].getEventQueue(),
-					0, newCache, newCache, RequestType.PerformPulls, -1));
-				//}
 			}
 		}
 		
@@ -199,10 +191,6 @@ public class MemorySystem
 				
 				Cache c = new Cache(cacheName, component, config, null);
 				cacheList.put(cacheName, c);
-				
-				ArchitecturalComponent.getCores()[0].getEventQueue().addEvent(
-					new CachePullEvent(ArchitecturalComponent.getCores()[0].getEventQueue(),
-						0, c, c, RequestType.PerformPulls, -1));
 			}
 		}
 	}

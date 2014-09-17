@@ -38,14 +38,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 				 core.getCore_number());
 
 		//attempt issue to lower level cache
-		AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
-		boolean isAddedinLowerMshr = this.iCache.addEvent(clone);
-		if(!isAddedinLowerMshr)
-		{
-			misc.Error.showErrorAndExit("Unable to add event to iCache's MSHR !!" + 
-				"\nevent = " + addressEvent + 
-				"\niCache = " + this.iCache);
-		}
+		this.iCache.getPort().put(addressEvent);
 	}
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
@@ -94,15 +87,8 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		}
 		
 		//attempt issue to lower level cache
-		AddressCarryingEvent clone = (AddressCarryingEvent) addressEvent.clone();
-		boolean isAddedinLowerMshr = this.l1Cache.addEvent(clone);
-		if(!isAddedinLowerMshr)
-		{
-			misc.Error.showErrorAndExit("Unable to add event to l1 cache's MSHR !!" + 
-					"\nevent = " + addressEvent + 
-					"\nl1Cache = " + this.l1Cache);
-		}
-		
+		this.l1Cache.getPort().put(addressEvent);
+				
 		return true;
 	}
 	
