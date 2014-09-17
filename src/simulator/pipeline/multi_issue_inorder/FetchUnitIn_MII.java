@@ -95,7 +95,10 @@ public class FetchUnitIn_MII extends SimulationElement
 			{
 				this.fetchBuffer[i]= newInstruction;
 				this.fetchFillCount++;
-				newInstruction.setSerialNo(instCtr++);
+				if(newInstruction.getOperationType() != OperationType.sync)
+				{
+					newInstruction.setSerialNo(instCtr++);
+				}
 
 				// The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
 				// micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.
