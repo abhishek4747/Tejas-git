@@ -22,18 +22,15 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 	public void oneCycleOperation() {
 		
 		coreStepSize = core.getStepSize();
-		if(coreStepSize == 0)
-		{
-			//this core has been initialised, but has no pipeline running on it
-			return;
-		}
 		
 		OutOrderExecutionEngine execEngine;
 		
 		execEngine = (OutOrderExecutionEngine) core.getExecEngine();
 		
 		long currentTime = GlobalClock.getCurrentTime();
-		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
+		if(currentTime % coreStepSize == 0
+				&& execEngine.isExecutionBegun() == true
+				&& execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getReorderBuffer().performCommits();
 			execEngine.getWriteBackLogic().performWriteBack();
@@ -43,7 +40,9 @@ public class OutOfOrderPipeline implements pipeline.PipelineInterface {
 		//handle events
 		eventQ.processEvents();
 		
-		if(currentTime % coreStepSize == 0 && execEngine.isExecutionComplete() == false)
+		if(currentTime % coreStepSize == 0
+				&& execEngine.isExecutionBegun() == true
+				&& execEngine.isExecutionComplete() == false)
 		{
 			execEngine.getIWPusher().performIWPush();
 			execEngine.getRenamer().performRename();

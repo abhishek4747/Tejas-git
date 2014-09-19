@@ -2,27 +2,20 @@ package memorysystem;
 
 import generic.Event;
 import generic.EventQueue;
-import generic.GlobalClock;
 import generic.OMREntry;
 import generic.PortType;
-import generic.RequestType;
 import generic.SimulationElement;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
-
-import memorysystem.nuca.NucaCacheBank;
-
-//TODO needs huge fixes!
 
 public class Mode3MSHR extends SimulationElement implements MissStatusHoldingRegister{
 	
 	int offset;
 	final int mshrStructSize;
+	int currentSize;
 	Hashtable<Long, OMREntry> mshr;
-	public int maxSizeReached = Integer.MIN_VALUE;
 	
 	/*
 	 * offset, cacheLatency and numCachePorts are containing cache parameters
@@ -40,23 +33,12 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		
 		this.offset = offset;
 		this.mshrStructSize = mshrSize;
+		this.currentSize = 0;
 		mshr = new Hashtable<Long, OMREntry>(mshrSize);
 	}
 	
 	public int getCurrentSize()
 	{
-		int currentSize = 0;
-		Enumeration<OMREntry> omrIte = mshr.elements();
-		while(omrIte.hasMoreElements())
-		{
-			OMREntry omrEntry = omrIte.nextElement();
-			currentSize += omrEntry.outStandingEvents.size();
-		}
-		
-		if(currentSize>maxSizeReached) {
-			maxSizeReached = currentSize;
-		}
-		
 		return currentSize;
 	}
 	
@@ -79,11 +61,9 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	@Override
 	public boolean addOutstandingRequest(AddressCarryingEvent eventAdded)
 	{
-//		System.out.println("addRequestMSHR\ttime = " + GlobalClock.getCurrentTime() + 
-//				"\tevent = " + eventAdded);
-		AddressCarryingEvent event = (AddressCarryingEvent)eventAdded.clone();
+		currentSize++;
 		
-		//System.out.println("Adding outstanding request : " + event);
+		AddressCarryingEvent event = (AddressCarryingEvent)eventAdded.clone();
 		long addr = event.getAddress();
 		long blockAddr = addr >>> offset;
 		
@@ -99,7 +79,6 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		}
 		else
 		{			
-
 			ArrayList<AddressCarryingEvent> tempList = mshr.get(blockAddr).outStandingEvents;
 			tempList.add(event);
 			return false;
@@ -118,7 +97,6 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			return null;
 		} else {
 			Event removedEvent = entry.outStandingEvents.get(0);
-			// This update event method is just a copy of Mode1MSHR's code
 			event.update(removedEvent.getEventQ(),
 					0,
 					removedEvent.getRequestingElement(),
@@ -126,6 +104,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 					removedEvent.getRequestType()
 					);
 			
+			currentSize -= entry.outStandingEvents.size();
 			return entry.outStandingEvents;
 		}
 	}
@@ -155,54 +134,15 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			return null;
 		}
 	}
-	
-	@Override
-	public void dump()
-	{
-		Enumeration<OMREntry> omrEntries = mshr.elements();
-		System.out.println("size = " + getCurrentSize());
-		while(omrEntries.hasMoreElements())
-		{
-			OMREntry omrEntry = omrEntries.nextElement();
-			ArrayList<AddressCarryingEvent> events = omrEntry.outStandingEvents;
-			
-			/*if(events.size() == 0)
-			{
-				System.err.println(" outstanding event empty ");
-				continue;
-			}*/
-			AddressCarryingEvent addrEvent = (AddressCarryingEvent) events.get(0);
-			System.out.print("block address = " + (addrEvent.getAddress() >>> offset));
-			for(int i = 0; i < events.size(); i++)
-			{
-				addrEvent = (AddressCarryingEvent) events.get(i);				
-				System.out.println(addrEvent);//addrEvent.getAddress() + "," + addrEvent.getRequestType() + "," + addrEvent.coreId + "\t");
-			}
-			System.out.println();
-		}
-	}
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		
-		//only receives RequestType.PerformPulls
-		
-		/*TODO error in this line. pullFromUpperMshrs();*/
-		
-		//schedule pulling for the next cycle
-		event.addEventTime(1);
-		event.getEventQ().addEvent(event);
-		
+			
 	}
 
 	@Override
 	public int getMSHRStructSize() {
 		return mshrStructSize;
-	}
-
-	@Override
-	public int getMaxSizeReached() {
-		return maxSizeReached;
 	}
 
 	@Override
@@ -229,15 +169,42 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			return null;
 		} else {		
 			Event removedEvent = entry.outStandingEvents.get(0);
-			// This update event method is just a copy of Mode1MSHR's code
 			event.update(removedEvent.getEventQ(),
 					0,
 					removedEvent.getRequestingElement(),
 					removedEvent.getProcessingElement(),
 					removedEvent.getRequestType()
 					);
+			currentSize -= entry.outStandingEvents.size();
 			return entry.outStandingEvents;
 		}
+	}
+	
+	@Override
+	public void dump()
+	{
+		Enumeration<OMREntry> omrEntries = mshr.elements();
+		System.out.println("size = " + getCurrentSize());
+		while(omrEntries.hasMoreElements())
+		{
+			OMREntry omrEntry = omrEntries.nextElement();
+			ArrayList<AddressCarryingEvent> events = omrEntry.outStandingEvents;
+			
+			AddressCarryingEvent addrEvent = (AddressCarryingEvent) events.get(0);
+			System.out.print("block address = " + (addrEvent.getAddress() >>> offset));
+			for(int i = 0; i < events.size(); i++)
+			{
+				addrEvent = (AddressCarryingEvent) events.get(i);				
+				System.out.println(addrEvent);
+			}
+			System.out.println();
+		}
+	}
+
+	@Override
+	public int getMaxSizeReached() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

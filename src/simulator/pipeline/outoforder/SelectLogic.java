@@ -30,43 +30,40 @@ public class SelectLogic extends SimulationElement {
 	 */
 	public void performSelect()
 	{
-		if(execEngine.isToStall5() == true)
+		ReorderBuffer ROB = execEngine.getReorderBuffer();		
+		if(execEngine.isToStall5() == true /*pipeline stalled due to branch mis-prediction*/
+				|| ROB.head == -1 /*ROB empty*/)
 		{
-			//pipeline stalled due to branch mis-prediction
 			return;
 		}
 		
 		int noIssued = 0;
-		ReorderBuffer ROB = execEngine.getReorderBuffer();		
 		int i;
 		ReorderBufferEntry ROBEntry;
 		
-		if(ROB.head != -1)
+		i = ROB.head;
+		do
 		{
-			i = ROB.head;
-			do
+			ROBEntry = ROB.ROB[i];
+			
+			if(ROBEntry.getIssued() == false &&
+					ROBEntry.getAssociatedIWEntry() != null)
 			{
-				ROBEntry = ROB.ROB[i];
-				
-				if(ROBEntry.getIssued() == false &&
-						ROBEntry.getAssociatedIWEntry() != null)
+				if(ROBEntry.getAssociatedIWEntry().issueInstruction())
 				{
-					if(ROBEntry.getAssociatedIWEntry().issueInstruction())
-					{
-						//if issued
-						noIssued++;						
-					}
+					//if issued
+					noIssued++;						
 				}
-				
-				if(noIssued >= issueWidth)
-				{
-					break;
-				}
-				
-				i = (i+1)%ROB.MaxROBSize;
-				
-			}while(i != (ROB.tail+1)%ROB.MaxROBSize);
-		}
+			}
+			
+			if(noIssued >= issueWidth)
+			{
+				break;
+			}
+			
+			i = (i+1)%ROB.MaxROBSize;
+			
+		}while(i != (ROB.tail+1)%ROB.MaxROBSize);
 	}
 
 	@Override

@@ -857,41 +857,53 @@ public class Cache extends SimulationElement
 		
 		public void sendMemResponse(AddressCarryingEvent eventToRespondTo)
 		{
-			long delay = eventToRespondTo.getRequestingElement().getLatency();
+			long delay = 0;
 			
-			// ------- Add the network delay when coherent caches are communicating with each other -----------
-			// L1 data cache
 			if(eventToRespondTo.getRequestingElement().getClass()==Cache.class &&
-				((Cache)eventToRespondTo.getRequestingElement()).coherence==CoherenceType.Directory)
+					((Cache)eventToRespondTo.getRequestingElement()).isSharedCache()
+					|| ((Cache)eventToRespondTo.getProcessingElement()).isSharedCache())
 			{
-				delay += CentralizedDirectoryCache.getNetworkDelay(); 
-			}
-			
-			// Instruction cache connected directly to the lower cache
-			// Here, coherence is not there but network delay must be added
-			// We are checking for connection to lower cache because if tomorrow we have a private L2 cache, this
-			// network delay must not be added.
-			else if(eventToRespondTo.getRequestingElement().getClass()==Cache.class &&
-				((Cache)eventToRespondTo.getRequestingElement()).isPrivateCache() &&
-				((Cache)eventToRespondTo.getRequestingElement()).nextLevel.isSharedCache())
-			{
+				// Any communication involving a shared cache should consider the network latency
 				if(SystemConfig.interconnect == Interconnect.Bus)
 				{
 					// TODO : This delay should ideally be much lesser than the 
 					// network delay
 					delay += CentralizedDirectoryCache.getNetworkDelay();
 				}
+				else if(SystemConfig.interconnect == Interconnect.Noc)
+				{
+					//TODO
+				}
 			}
-
 						
-			noOfResponsesSent++;			
-			eventToRespondTo.getRequestingElement().getPort().put(
-							eventToRespondTo.update(
-									eventToRespondTo.getEventQ(),
-									delay,
-									eventToRespondTo.getProcessingElement(),
-									eventToRespondTo.getRequestingElement(),
-									RequestType.Mem_Response));
+			noOfResponsesSent++;
+			
+			eventToRespondTo.update(
+					eventToRespondTo.getEventQ(),
+					delay,
+					eventToRespondTo.getProcessingElement(),
+					eventToRespondTo.getRequestingElement(),
+					RequestType.Mem_Response);
+			
+			if(delay == 0)
+			{
+				//private caches communicating with each other
+				//can optimize simulation by employing function call rather than an event
+				if(eventToRespondTo.getProcessingElement().getClass() == Cache.class)
+				{
+					((Cache)eventToRespondTo.getProcessingElement()).handleMemResponse(
+											eventToRespondTo.getEventQ(), eventToRespondTo);
+				}
+				else
+				{
+					((CoreMemorySystem)eventToRespondTo.getProcessingElement()).handleEvent(
+							eventToRespondTo.getEventQ(), eventToRespondTo);
+				}
+			}
+			else
+			{
+				eventToRespondTo.getRequestingElement().getPort().put(eventToRespondTo);
+			}
 		}
 		
 		public void sendMemResponseDirectory(AddressCarryingEvent eventToRespondTo)

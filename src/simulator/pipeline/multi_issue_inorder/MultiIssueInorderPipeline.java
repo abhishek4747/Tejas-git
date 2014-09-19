@@ -33,11 +33,15 @@ public class MultiIssueInorderPipeline implements PipelineInterface{
 	
 	public void oneCycleOperation(){
 		long currentTime = GlobalClock.getCurrentTime();
-		if(currentTime % getCoreStepSize()==0 && !containingExecutionEngine.getExecutionComplete()){
+		if(currentTime % getCoreStepSize()==0
+				&& containingExecutionEngine.isExecutionBegun() == true
+				&& !containingExecutionEngine.getExecutionComplete()){
 			writeback();
 		}
 		drainEventQueue();		//Process Memory Requests
-		if(currentTime % getCoreStepSize()==0 && !containingExecutionEngine.getExecutionComplete()){
+		if(currentTime % getCoreStepSize()==0
+				&& containingExecutionEngine.isExecutionBegun() == true
+				&& !containingExecutionEngine.getExecutionComplete()){
 			mem();
 			exec();
 			decode();

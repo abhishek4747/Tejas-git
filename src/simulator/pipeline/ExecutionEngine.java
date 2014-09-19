@@ -28,6 +28,7 @@ public abstract class ExecutionEngine {
 	
 	protected Core containingCore;
 	protected boolean executionComplete;
+	protected boolean executionBegun;
 	protected CoreMemorySystem coreMemorySystem;
 
 	private long instructionMemStall;
@@ -38,6 +39,7 @@ public abstract class ExecutionEngine {
 	{
 		this.containingCore = containingCore;
 		executionComplete = false;
+		executionBegun = false;
 		coreMemorySystem = null;
 		instructionMemStall=0;
 		
@@ -82,6 +84,14 @@ public abstract class ExecutionEngine {
 
 	public boolean isExecutionComplete() {
 		return executionComplete;
+	}
+
+	public boolean isExecutionBegun() {
+		return executionBegun;
+	}
+
+	public void setExecutionBegun(boolean executionBegun) {
+		this.executionBegun = executionBegun;
 	}
 
 	public void setCoreMemorySystem(CoreMemorySystem coreMemorySystem) {

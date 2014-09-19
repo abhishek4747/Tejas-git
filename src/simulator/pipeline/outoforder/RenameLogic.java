@@ -42,60 +42,61 @@ public class RenameLogic extends SimulationElement {
 	
 	public void performRename()
 	{
-		if(execEngine.isToStall5() == true)
+		if(execEngine.isToStall5() == true /*pipeline stalled due to branch mis-prediction*/
+				|| execEngine.isToStall1() == true /*IW full*/)
 		{
-			//pipeline stalled due to branch mis-prediction
 			return;
 		}
 		
-		if(!execEngine.isToStall1())
+		for(int i = 0; i < decodeWidth; i++)
 		{
-			for(int i = 0; i < decodeWidth; i++)
+			if(renameBuffer.isFull() == true)
 			{
-				if(renameBuffer.isFull() == true)
+				break;
+			}
+			
+			if(decodeBuffer.peek(0) != null)
+			{
+				reorderBufferEntry = decodeBuffer.peek(0);
+				instruction = reorderBufferEntry.getInstruction();
+				threadID = reorderBufferEntry.getThreadID();
+				
+				//check if the instruction can be assigned a destination register
+				if(canDestOperandBeProcessed(reorderBufferEntry))
+				{
+					//find out which physical registers correspond
+					//to the source operands
+					processOperand1(reorderBufferEntry);
+					processOperand2(reorderBufferEntry);
+					
+					//check for availability of source operands
+					checkOperand1Availability();
+					if(reorderBufferEntry.isOperand2Available() == false)
+					{
+						checkOperand2Availability();
+					}
+					
+					//assign register for destination operand(s)
+					processDestOperand(reorderBufferEntry);
+					
+					renameBuffer.enqueue(decodeBuffer.dequeue());
+					reorderBufferEntry.setRenameDone(true);
+					
+					execEngine.setToStall2(false);
+					
+					if(SimulationConfig.debugMode)
+					{
+						System.out.println("renamed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
+					}
+				}
+				else
 				{
 					break;
 				}
-				
-				if(decodeBuffer.peek(0) != null)
-				{
-					reorderBufferEntry = decodeBuffer.peek(0);
-					instruction = reorderBufferEntry.getInstruction();
-					threadID = reorderBufferEntry.getThreadID();
-					
-					//check if the instruction can be assigned a destination register
-					if(canDestOperandBeProcessed(reorderBufferEntry))
-					{
-						//find out which physical registers correspond
-						//to the source operands
-						processOperand1(reorderBufferEntry);
-						processOperand2(reorderBufferEntry);
-						
-						//check for availability of source operands
-						checkOperand1Availability();
-						if(reorderBufferEntry.isOperand2Available() == false)
-						{
-							checkOperand2Availability();
-						}
-						
-						//assign register for destination operand(s)
-						processDestOperand(reorderBufferEntry);
-						
-						renameBuffer.enqueue(decodeBuffer.dequeue());
-						reorderBufferEntry.setRenameDone(true);
-						
-						execEngine.setToStall2(false);
-						
-						if(SimulationConfig.debugMode)
-						{
-							System.out.println("renamed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + reorderBufferEntry.getInstruction());
-						}
-					}
-					else
-					{
-						break;
-					}
-				}
+			}
+			else
+			{
+				break;
 			}
 		}
 	}

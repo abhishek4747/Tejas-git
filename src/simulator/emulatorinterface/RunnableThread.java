@@ -386,10 +386,13 @@ public class RunnableThread implements Encoding, Runnable {
 		for (int i1 = 0; i1 < minN; i1++) {
 			for (int tidEmu = 0; tidEmu < SystemConfig.NoOfCores; tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
-				Vector<Cache> coreCacheList = pipelineInterfaces[tidEmu].getCore().getExecEngine().getCoreMemorySystem().getCoreCacheList();
-				for(int i = 0; i < coreCacheList.size(); i++)
+				if(pipelineInterfaces[tidEmu].getCore().getExecEngine().isExecutionBegun() == true)
 				{
-					coreCacheList.get(i).oneCycleOperation();
+					Vector<Cache> coreCacheList = pipelineInterfaces[tidEmu].getCore().getExecEngine().getCoreMemorySystem().getCoreCacheList();
+					for(int i = 0; i < coreCacheList.size(); i++)
+					{
+						coreCacheList.get(i).oneCycleOperation();
+					}
 				}
 			}
 			Vector<Cache> sharedCacheList = MemorySystem.getSharedCacheList();
@@ -444,12 +447,15 @@ public class RunnableThread implements Encoding, Runnable {
 			}*/	
 //			for (int i1=0; i1< maxN; i1++)	{
 				for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
-						pipelineInterfaces[tidEmu].oneCycleOperation();
+					pipelineInterfaces[tidEmu].oneCycleOperation();
+					if(pipelineInterfaces[tidEmu].getCore().getExecEngine().isExecutionBegun() == true)
+					{
 						Vector<Cache> coreCacheList = pipelineInterfaces[tidEmu].getCore().getExecEngine().getCoreMemorySystem().getCoreCacheList();
 						for(int i = 0; i < coreCacheList.size(); i++)
 						{
 							coreCacheList.get(i).oneCycleOperation();
 						}
+					}
 				}
 				Vector<Cache> sharedCacheList = MemorySystem.getSharedCacheList();
 				for(int i = 0; i < sharedCacheList.size(); i++)
@@ -554,6 +560,7 @@ public class RunnableThread implements Encoding, Runnable {
 			this.pipelineInterfaces[tidApp].getCore().currentThreads++;  //current number of threads in this pipeline
 			System.out.println("num of threads on core " + tidApp + " = " + this.pipelineInterfaces[tidApp].getCore().currentThreads);
 			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionComplete(false);
+			this.pipelineInterfaces[tidApp].getCore().getExecEngine().setExecutionBegun(true);
 			currentEMUTHREADS ++;
 			if(tidApp>=maxCoreAssign)
 				maxCoreAssign = tidApp+1;

@@ -75,8 +75,7 @@ public class FetchLogic extends SimulationElement {
 				!execEngine.isToStall2() &&
 				!execEngine.isToStall3() &&
 				!execEngine.isToStall4() &&
-				!execEngine.isToStall5() &&
-				!execEngine.isToStall6())
+				!execEngine.isToStall5())
 		{
 			//add instructions, for whom "fetch" from iCache has completed, to fetch buffer
 			//decode stage reads from this buffer
@@ -196,13 +195,17 @@ public class FetchLogic extends SimulationElement {
 			}
 		}
 		
+		//SMT support
+		//round-robin among the various input-to-pipelines, fetching from a different
+		//non-empty input every cycle
+		/*
 		int noOfIterations = 0;
 		do
 		{
 			inputPipeToReadNext = (inputPipeToReadNext + 1)%core.getNo_of_input_pipes();
 			noOfIterations++;
 		}while(inputToPipeline[inputPipeToReadNext].isEmpty() == true
-				&& noOfIterations < fetchWidth);
+				&& noOfIterations < fetchWidth);*/
 	}
 
 	@Override

@@ -39,60 +39,61 @@ public class DecodeLogic extends SimulationElement {
 	
 	public void performDecode()
 	{
-		if(containingExecutionEngine.isToStall5() == true || containingExecutionEngine.isToStall6() == true)
+		if(containingExecutionEngine.isToStall5() == true /*pipeline stalled due to branch mis-prediction*/
+				|| containingExecutionEngine.isToStall1() == true /*IW full*/
+				|| containingExecutionEngine.isToStall2() == true /*rename stall*/)
 		{
-			//pipeline stalled due to branch mis-prediction
 			return;
 		}
 		
 		ReorderBuffer ROB = containingExecutionEngine.getReorderBuffer();
 		ReorderBufferEntry newROBEntry;
 		
-		if(!containingExecutionEngine.isToStall1() &&
-				!containingExecutionEngine.isToStall2())
+		for(int i = 0; i < decodeWidth; i++)
 		{
-			for(int i = 0; i < decodeWidth; i++)
+			if(decodeBuffer.isFull() == true)
 			{
-				if(decodeBuffer.isFull() == true)
+				break;
+			}
+			
+			Instruction headInstruction = fetchBuffer.peek(0);
+			if(headInstruction != null)
+			{
+				if(ROB.isFull())
 				{
+					containingExecutionEngine.setToStall4(true);
 					break;
 				}
 				
-				Instruction headInstruction = fetchBuffer.peek(0);
-				if(headInstruction != null)
+				if(headInstruction.getOperationType() == OperationType.load ||
+						headInstruction.getOperationType() == OperationType.store)
 				{
-					if(ROB.isFull())
+					if(containingExecutionEngine.getCoreMemorySystem().getLsqueue().isFull())
 					{
-						containingExecutionEngine.setToStall4(true);
+						containingExecutionEngine.setToStall3(true);
 						break;
-					}
-					
-					if(headInstruction.getOperationType() == OperationType.load ||
-							headInstruction.getOperationType() == OperationType.store)
-					{
-						if(containingExecutionEngine.getCoreMemorySystem().getLsqueue().isFull())
-						{
-							containingExecutionEngine.setToStall3(true);
-							break;
-						}
-					}
-					
-					newROBEntry = makeROBEntries(headInstruction);
-					
-					decodeBuffer.enqueue(newROBEntry);
-					fetchBuffer.dequeue();
-					
-					incrementNumAccesses(1);
-					
-					if(SimulationConfig.debugMode)
-					{
-						System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + headInstruction);
 					}
 				}
 				
-				containingExecutionEngine.setToStall3(false);
-				containingExecutionEngine.setToStall4(false);
+				newROBEntry = makeROBEntries(headInstruction);
+				
+				decodeBuffer.enqueue(newROBEntry);
+				fetchBuffer.dequeue();
+				
+				incrementNumAccesses(1);
+				
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("decoded : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + headInstruction);
+				}
 			}
+			else
+			{
+				break;
+			}
+			
+			containingExecutionEngine.setToStall3(false);
+			containingExecutionEngine.setToStall4(false);
 		}
 	}
 	

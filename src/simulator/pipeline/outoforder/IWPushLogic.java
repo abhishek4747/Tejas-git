@@ -34,9 +34,8 @@ public class IWPushLogic extends SimulationElement {
 	 */
 	public void performIWPush()
 	{
-		if(execEngine.isToStall5() == true)
+		if(execEngine.isToStall5() == true /*pipeline stalled due to branch mis-prediction*/)
 		{
-			//pipeline stalled due to branch mis-prediction
 			return;
 		}
 		
@@ -82,6 +81,10 @@ public class IWPushLogic extends SimulationElement {
 				renameBuffer.dequeue();
 				
 				execEngine.setToStall1(false);
+			}
+			else
+			{
+				break;
 			}
 		}
 	}

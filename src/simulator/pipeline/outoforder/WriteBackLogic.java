@@ -37,15 +37,9 @@ public class WriteBackLogic extends SimulationElement {
 	
 	public void performWriteBack()
 	{
-		if(ROB.head == -1)
+		if(execEngine.isToStall5() == true /*pipeline stalled due to branch mis-prediction*/
+				|| ROB.head == -1 /*ROB empty*/)
 		{
-			//ROB empty
-			return;
-		}
-		
-		if(execEngine.isToStall5() == true)
-		{
-			//pipeline stalled due to branch mis-prediction
 			return;
 		}
 		

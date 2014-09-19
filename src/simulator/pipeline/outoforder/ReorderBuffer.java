@@ -143,127 +143,129 @@ public class ReorderBuffer extends SimulationElement{
 			stall5Count++;
 		}
 		
+		if(execEngine.isToStall5() == true /*pipeline stalled due to branch mis-prediction*/)
+		{
+			return;
+		}
+		
 		boolean anyMispredictedBranch = false;
 		
-		if(execEngine.isToStall5() == false)
+		for(int no_insts = 0; no_insts < retireWidth; no_insts++)
 		{
-			for(int no_insts = 0; no_insts < retireWidth; no_insts++)
+			if(head == -1)
 			{
-				if(head == -1)
+				//ROB empty .. does not mean execution has completed
+				return;
+			}
+			
+			ReorderBufferEntry first = ROB[head];
+			Instruction firstInstruction = first.getInstruction();
+			OperationType firstOpType = firstInstruction.getOperationType();								
+			
+			if(first.isWriteBackDone() == true)
+			{
+				//has a thread finished?
+				if(firstOpType==OperationType.inValid)
 				{
-					//ROB empty .. does not mean execution has completed
-					return;
+					this.core.currentThreads--;
+					
+					if(this.core.currentThreads < 0)
+					{
+						this.core.currentThreads=0;
+						System.out.println("num threads < 0");
+					}
+					
+					if(this.core.currentThreads == 0)
+					{   //set exec complete only if there are no other thread already 
+														  //assigned to this pipeline	
+						execEngine.setExecutionComplete(true);
+					}
+					
+					if(SimulationConfig.pinpointsSimulation == false)
+					{
+						setTimingStatistics();
+						setPerCoreMemorySystemStatistics();
+					}
+					else
+					{
+						PinPointsProcessing.processEndOfSlice();
+					}
 				}
 				
-				ReorderBufferEntry first = ROB[head];
-				Instruction firstInstruction = first.getInstruction();
-				OperationType firstOpType = firstInstruction.getOperationType();								
-				
-				if(first.isWriteBackDone() == true)
+				//if store, and if store not yet validated
+				if(firstOpType == OperationType.store && !first.getLsqEntry().isValid())
 				{
-					//has a thread finished?
-					if(firstOpType==OperationType.inValid)
-					{
-						this.core.currentThreads--;
-						
-						if(this.core.currentThreads < 0)
-						{
-							this.core.currentThreads=0;
-							System.out.println("num threads < 0");
-						}
-						
-						if(this.core.currentThreads == 0)
-						{   //set exec complete only if there are no other thread already 
-															  //assigned to this pipeline	
-							execEngine.setExecutionComplete(true);
-						}
-						
-						if(SimulationConfig.pinpointsSimulation == false)
-						{
-							setTimingStatistics();
-							setPerCoreMemorySystemStatistics();
-						}
-						else
-						{
-							PinPointsProcessing.processEndOfSlice();
-						}
-					}
+					break;
+				}
+				
+				//update last valid IP seen
+				if(firstInstruction.getCISCProgramCounter() != -1)
+				{
+					lastValidIPSeen = firstInstruction.getCISCProgramCounter();
+				}
+				
+				//branch prediction
+				if(firstOpType == OperationType.branch)
+				{
+					//perform prediction
+					boolean prediction = execEngine.getBranchPredictor().predict(
+																		lastValidIPSeen,
+																		first.getInstruction().isBranchTaken());
+					if(prediction != first.getInstruction().isBranchTaken())
+					{	
+						anyMispredictedBranch = true;
+						mispredCount++;
+					}	
+					this.execEngine.getBranchPredictor().incrementNumAccesses(1);
 					
-					//if store, and if store not yet validated
-					if(firstOpType == OperationType.store && !first.getLsqEntry().isValid())
-					{
-						break;
-					}
-					
-					//update last valid IP seen
-					if(firstInstruction.getCISCProgramCounter() != -1)
-					{
-						lastValidIPSeen = firstInstruction.getCISCProgramCounter();
-					}
-					
-					//branch prediction
-					if(firstOpType == OperationType.branch)
-					{
-						//perform prediction
-						boolean prediction = execEngine.getBranchPredictor().predict(
-																			lastValidIPSeen,
-																			first.getInstruction().isBranchTaken());
-						if(prediction != first.getInstruction().isBranchTaken())
-						{	
-							anyMispredictedBranch = true;
-							mispredCount++;
-						}	
-						this.execEngine.getBranchPredictor().incrementNumAccesses(1);
-						
-						//train predictor
-						execEngine.getBranchPredictor().Train(
-								lastValidIPSeen,
-								firstInstruction.isBranchTaken(),
-								prediction
-								);	
-						this.execEngine.getBranchPredictor().incrementNumAccesses(1);
+					//train predictor
+					execEngine.getBranchPredictor().Train(
+							lastValidIPSeen,
+							firstInstruction.isBranchTaken(),
+							prediction
+							);	
+					this.execEngine.getBranchPredictor().incrementNumAccesses(1);
 
-						branchCount++;
-					}
-					
-					//Signal LSQ for committing the Instruction at the queue head
-					if(firstOpType == OperationType.load || firstOpType == OperationType.store)
+					branchCount++;
+				}
+				
+				//Signal LSQ for committing the Instruction at the queue head
+				if(firstOpType == OperationType.load || firstOpType == OperationType.store)
+				{
+					if (!first.getLsqEntry().isValid())
 					{
-						if (!first.getLsqEntry().isValid())
-						{
-							misc.Error.showErrorAndExit("The committed entry is not valid");
-						}
-						
-						execEngine.getCoreMemorySystem().issueLSQCommit(first);
+						misc.Error.showErrorAndExit("The committed entry is not valid");
 					}
 					
-					//free ROB entry
-					retireInstructionAtHead();
-					
-					//increment number of instructions executed
-					core.incrementNoOfInstructionsExecuted();
-					if(core.getNoOfInstructionsExecuted()%1000000==0)
-					{
-						System.out.println(core.getNoOfInstructionsExecuted()/1000000 + " million done on " + core.getCore_number());
-					}
+					execEngine.getCoreMemorySystem().issueLSQCommit(first);
+				}
+				
+				//free ROB entry
+				retireInstructionAtHead();
+				
+				//increment number of instructions executed
+				core.incrementNoOfInstructionsExecuted();
+				if(core.getNoOfInstructionsExecuted()%1000000==0)
+				{
+					System.out.println(core.getNoOfInstructionsExecuted()/1000000 + " million done on " + core.getCore_number());
+				}
 
-					//debug print
-					if(SimulationConfig.debugMode)
-					{
-						System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + firstInstruction);
+				//debug print
+				if(SimulationConfig.debugMode)
+				{
+					System.out.println("committed : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : " + firstInstruction);
 //						System.out.println(first.getOperand1PhyReg1()
 //								+ " : " + first.getOperand2PhyReg1()
 //								+ " : " + first.getPhysicalDestinationRegister());
-					}
-					
-					//return instruction to pool
-					returnInstructionToPool(firstInstruction);
 				}
-				else
-				{
-					//commits must be in order
-					break;
-				}
+				
+				//return instruction to pool
+				returnInstructionToPool(firstInstruction);
+			}
+			else
+			{
+				//commits must be in order
+				break;
 			}
 		}
 		
