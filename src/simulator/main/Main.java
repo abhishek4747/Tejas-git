@@ -49,9 +49,6 @@ public class Main {
 	
 	public static void main(String[] arguments)
 	{
-		//different core components may work at different frequencies
-		startTime = System.currentTimeMillis();
-		
 		//register shut down hook
 		Runtime.getRuntime().addShutdownHook(new ShutDownHook());
 		
@@ -110,6 +107,9 @@ public class Main {
 				
 		// start emulator
 		startEmulator(emulatorArguments, pid, ipcBase);
+
+		//different core components may work at different frequencies
+		startTime = System.currentTimeMillis();
 
 		String name;
 		for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {

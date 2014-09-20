@@ -523,12 +523,14 @@ VOID Instruction(INS ins, VOID *v) {
 	//int tid = IARG_THREAD_ID;
 
 
-	std::string *asmString = (std::string*)&Instruction;
+	char *asmChar = NULL;
 	if(traceMethod==File) {
+		std::string *asmString = (std::string*)&Instruction;
 		asmString = new string(INS_Disassemble(ins));
+		asmChar = (char *)asmString->c_str();
 	}
 
-	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_THREAD_ID, IARG_INST_PTR, IARG_PTR, asmString->c_str(), IARG_END);
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_THREAD_ID, IARG_INST_PTR, IARG_PTR, asmChar, IARG_END);
 
 
 	UINT32 memOperands = INS_MemoryOperandCount(ins);
