@@ -49,7 +49,7 @@ public class NocElements
 	public int noOfCacheBanks;
 	public int noOfL1Directories;
 	public int noOfMemoryControllers;
-	public NocInterface[][] nocElements;
+	public NocInterface[][] nocInterface;
 	public Vector<Core> cores;
 	public Vector<CentralizedDirectoryCache> l1Directories;
 	public Vector<MainMemoryController> memoryControllers;
@@ -57,7 +57,7 @@ public class NocElements
 	NucaType nucaType;
 	public NocElements(int r, int c)
 	{
-		nocElements = new NocInterface[r][c]; 
+		nocInterface = new NocInterface[r][c]; 
 		nocElementsLocations = new Vector<Vector<String>>();
 		rows = r;
 		columns = c;
@@ -68,30 +68,30 @@ public class NocElements
 	}
 	public void makeNocElements(TopLevelTokenBus tokenbus, NucaCache nucaCache)
 	{
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-            noc = new NOC();
-        else
-            noc = new OpticalNOC();
+//		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+        noc = new NOC();
+//        else
+//            noc = new OpticalNOC();
 		int coreNumber = 0;
 		int cacheNumber =0;
 		for(int i=0;i<rows;i++)
 		{
-			nocElements[i] = new NocInterface[columns];
+			nocInterface[i] = new NocInterface[columns];
 			for(int j=0;j<columns;j++)
 			{
 				if(nocElementsLocations.get(i).get(j).equals("1"))
 				{
-					nocElements[i][j] = (NocInterface) ArchitecturalComponent.getCores()[coreNumber];
+					nocInterface[i][j] = (NocInterface) ArchitecturalComponent.getCores()[coreNumber];
 					cores.add(ArchitecturalComponent.getCores()[coreNumber]);
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((Core)nocElements[i][j]).setId(id);
+					((Core)nocInterface[i][j]).setId(id);
 					coreNumber++;
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("0"))
 				{
-					nocElements[i][j] = nucaCache.cacheBank.get(cacheNumber);
+					nocInterface[i][j] = nucaCache.cacheBank.get(cacheNumber);
 					cacheNumber++;
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("D"))
@@ -99,33 +99,33 @@ public class NocElements
 					int dirId = i*columns+j;
 					CentralizedDirectoryCache directory = new CentralizedDirectoryCache("Directory", dirId, SystemConfig.directoryConfig, null, noOfCores, SystemConfig.dirNetworkDelay);
 					l1Directories.add(directory);
-					nocElements[i][j] = directory;
+					nocInterface[i][j] = directory;
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((CentralizedDirectoryCache)nocElements[i][j]).setId(id);
+					((CentralizedDirectoryCache)nocInterface[i][j]).setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("M"))
 				{
 					MainMemoryController mainMemoryController = new MainMemoryController(nucaType);
 					memoryControllers.add(mainMemoryController);
-					nocElements[i][j] =  mainMemoryController;
+					nocInterface[i][j] =  mainMemoryController;
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((MainMemoryController)nocElements[i][j]).setId(id);
+					((MainMemoryController)nocInterface[i][j]).setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("-"))
 				{
-					nocElements[i][j] = new NocElementDummy(PortType.Unlimited, 1, 1, null, 1, 1);// dummy values in constructor
+					nocInterface[i][j] = new NocElementDummy(PortType.Unlimited, 1, 1, null, 1, 1);// dummy values in constructor
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((NocElementDummy)nocElements[i][j]).setId(id);
+					((NocElementDummy)nocInterface[i][j]).setId(id);
 				}
 			}
 		}
-		noc.ConnectBanks(nocElements,rows,columns,SystemConfig.nocConfig,tokenbus);
+		noc.ConnectBanks(nocInterface,rows,columns,SystemConfig.nocConfig,tokenbus);
 	}
 	public Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)//nearest Memory Controller
     {

@@ -244,10 +244,10 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 						 ((AddressCarryingEvent)event).getAddress(),
 						 requestingCache.containingMemSys.getCore().getCore_number(),
 						 this.getId(),destinationId);
-				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-				{
+//				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//				{
 					this.getRouter().getPort().put(eventToBeSent);
-				}
+//				}
 			}
 			
 			return;
@@ -625,10 +625,10 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 					 requestType,
 					 event.getAddress(),event.coreId,
 					 this.getId(),destinationId);
-			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-			{
+//			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//			{
 				this.getRouter().getPort().put(eventToBeSent);
-			}
+//			}
 		}
 	}
 	
@@ -664,10 +664,10 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 						 getCacheAddress(c, dirEntry.getAddress()),
 						 c.containingMemSys.getCore().getCore_number(),
 						 this.getId(),destinationId);
-				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-				{
+//				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//				{
 					this.getRouter().getPort().put(eventToBeSent);
-				}
+//				}
 			}
 		}
 	}
@@ -695,10 +695,10 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 					 RequestType.Main_Mem_Read,
 					 event.getAddress(),event.coreId,
 					 this.getId(),destinationId);
-			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-			{
+//			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//			{
 				this.getRouter().getPort().put(eventToBeSent);
-			}
+//			}
 		}
 	}
 	
@@ -847,10 +847,10 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 					 RequestType.Send_Mem_Response,
 					 ((AddressCarryingEvent)event).getAddress(),event.coreId,
 					 this.getId(),destinationId);
-			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-			{
+//			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//			{
 				this.getRouter().getPort().put(eventToBeSent);
-			}
+//			}
 		}
 		
 	}

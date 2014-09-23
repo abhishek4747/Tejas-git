@@ -278,13 +278,13 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 		
 		RequestType requestType = event.getRequestType();
 		
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-		{
+//		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+//		{
 			MemorySystem.mainMemoryController.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
 												MemorySystem.mainMemoryController.getLatencyDelay(), this, 
 												MemorySystem.mainMemoryController, requestType, sourceId,
 												destinationId));
-		}
+//		}
 	}
     protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
 	{

@@ -126,11 +126,11 @@ public class DNuca extends NucaCache{
 											 addrEvent.getRequestType(),
 											 address,addrEvent.coreId,
 											 sourceId,destinationId);
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-		{
+//		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//		{
 			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().
 			getPort().put(eventToBeSent);
-		}
+//		}
 	}
 	Vector<Integer> getBankInBankSet(int bankSet,long addr) 
 	{

@@ -512,10 +512,10 @@ public class Cache extends SimulationElement
 							 addr,
 							 this.containingMemSys.coreID,
 							 this.containingMemSys.getCore().getId(),destinationId);
-					if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-					{
+//					if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//					{
 						this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
-					}
+//					}
 				}
 			}
 		}
@@ -613,10 +613,10 @@ public class Cache extends SimulationElement
 						 RequestType.Main_Mem_Write,
 						 receivedEvent.getAddress(),receivedEvent.coreId,
 						 this.containingMemSys.getCore().getId(),destinationId);
-				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-				{
+//				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//				{
 					this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
-				}
+//				}
 			}
 		}
 		
@@ -649,10 +649,10 @@ public class Cache extends SimulationElement
 						 RequestType.Main_Mem_Read,
 						 receivedEvent.getAddress(),receivedEvent.coreId,
 						 this.containingMemSys.getCore().getId(),destinationId);
-				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-				{
+//				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//				{
 					this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
-				}
+//				}
 			}
 		}
 		

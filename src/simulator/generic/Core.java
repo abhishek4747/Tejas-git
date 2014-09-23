@@ -563,7 +563,7 @@ public class Core extends SimulationElement implements NocInterface{
 	{
 		
 		Vector<Integer> id = event.getSourceId();
-		Class nocElementClass = SystemConfig.nocConfig.nocElements.nocElements[id.get(0)][id.get(1)].getClass();
+		Class nocElementClass = SystemConfig.nocConfig.nocElements.nocInterface[id.get(0)][id.get(1)].getClass();
 		
 		if(nocElementClass==Core.class)//memory response from another core's l1 cache
 		{
@@ -581,12 +581,12 @@ public class Core extends SimulationElement implements NocInterface{
 		{
 			//System.err.println("Mem Response");
 			AddressCarryingEvent addrEvent = ((AddressCarryingEvent)event);
-			if(SystemConfig.nocConfig.ConnType==CONNECTIONTYPE.ELECTRICAL)
-			{
+//			if(SystemConfig.nocConfig.ConnType==CONNECTIONTYPE.ELECTRICAL)
+//			{
 				nucaCache.updateMaxHopLength(addrEvent.hopLength,(AddressCarryingEvent)event);
 				nucaCache.updateMinHopLength(addrEvent.hopLength);
 				nucaCache.updateAverageHopLength(addrEvent.hopLength);
-			}
+//			}
 			ArrayList<AddressCarryingEvent> eventsToBeServed = nucaCache.missStatusHoldingRegister.removeRequestsByAddressIfAvailable(addrEvent);
 			this.sendResponseToWaitingEvent(eventsToBeServed);
 		}

@@ -23,21 +23,26 @@ package net;
 import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
+import generic.SimulationElement;
 import generic.Statistics;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+import net.NOC.CONNECTIONTYPE;
 import net.NOC.TOPOLOGY;
 import net.RoutingAlgo.SELSCHEME;
 
+import config.Interconnect;
 import config.NocConfig;
 import config.EnergyConfig;
+import config.SimulationConfig;
 import config.SystemConfig;
 
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
+import memorysystem.Cache.CoherenceType;
 import memorysystem.nuca.NucaCacheBank;
 
 public class Router extends Switch{
@@ -162,10 +167,36 @@ public class Router extends Switch{
 		// TODO Auto-generated method stub
 		RoutingAlgo.DIRECTION nextID;
 		boolean reqOrReply;
+		
 		Vector<Integer> currentId = this.reference.getId();
 		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationId();
-		
 		RequestType requestType = event.getRequestType();
+		
+		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.OPTICAL)
+		{
+			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.get(0)][destinationId.get(1)].getSimulationElement(); 
+			destination.getPort().put(
+					event.update(
+							eventQ,
+							3, //E/O + propagation + O/E
+							this, 
+							destination,
+							requestType));
+			return;
+		}
+		if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.get(0)][destinationId.get(1)].getSimulationElement(); 
+			destination.getPort().put(
+					event.update(
+							eventQ,
+							0, //We added the delay already during the send operation
+							this, 
+							destination,
+							requestType));
+			return;
+		}
+				
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
 				&& !currentId.equals(destinationId))  //event passed to switch in omega/buttrfly/fat tree connection
 		{
@@ -180,7 +211,8 @@ public class Router extends Switch{
 							this.connection[0],
 							requestType));
 		}
-		else if(currentId.equals(destinationId))                         //If this is the destination
+        //If this is the destination
+		else if(currentId.equals(destinationId))  
 		{
 			this.reference.getPort().put(
 					event.update(
@@ -191,8 +223,8 @@ public class Router extends Switch{
 							requestType));
 			this.FreeBuffer();
 		}
-		else if(event.getRequestingElement().getClass() != Router.class){ //If this event is just entering NOC,
-																			//then allocate buffer for it
+		//If this event is just entering NOC, then allocate buffer for it
+		else if(event.getRequestingElement().getClass() != Router.class){ 
 			if(this.AllocateBuffer())
 			{
 				this.getPort().put(
@@ -203,9 +235,8 @@ public class Router extends Switch{
 								this,
 								requestType));
 			}
-			else
-			{
-				//post event to this ID
+			else //post event to this ID
+			{				
 				this.getPort().put(
 						event.update(
 								eventQ,
@@ -218,9 +249,10 @@ public class Router extends Switch{
 		else
 		{
 			nextID = this.RouteComputation(currentId, destinationId);
-			reqOrReply = reqOrReply(requestType);
-			if(this.CheckNeighbourBuffer(nextID,reqOrReply))   //If buffer is available
-																//forward the event
+			reqOrReply = reqOrReply(requestType);              // To avoid deadlock
+			
+			//If buffer is available forward the event
+			if(this.CheckNeighbourBuffer(nextID,reqOrReply))   
 			{
 				//post event to nextID
 				this.hopCounters++;
@@ -235,9 +267,9 @@ public class Router extends Switch{
 								requestType));
 				this.FreeBuffer();
 			}
-			else                                               //If buffer is not available
-			{													//keep the event here itself
-				//post event to this ID
+			//If buffer is not available in next router keep the message here itself
+			else                                              
+			{	//post event to this ID
 				this.getPort().put(
 						event.update(
 								eventQ,

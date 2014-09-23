@@ -54,8 +54,8 @@ public class NucaCacheBank extends Cache implements NocInterface
         super("NucaCacheBank", 0, cacheParameters,containingMemSys);
     	this.timestamp = 0;
     	this.cacheParameters = cacheParameters;
-    	if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-    		this.router = new Router(SystemConfig.nocConfig,this);
+//    	if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+   		this.router = new Router(SystemConfig.nocConfig,this);
         isLastLevel = false;
         isFirstLevel = false;
         this.nucaType = nucaType;

@@ -71,10 +71,10 @@ public class SNuca extends NucaCache
 											 address,addrEvent.coreId,
 											 sourceId,destinationId);
 		
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-		{
+//		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//		{
 			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().
 			getPort().put(eventToBeSent);
-		}
+//		}
 	}
 }		
