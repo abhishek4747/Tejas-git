@@ -49,7 +49,7 @@ public class NucaCacheBank extends Cache
 	int cacheBankColumns;
 	NucaCache nucaCache;
 
-	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NucaCache nucaCache, NucaType nucaType)
+	NucaCacheBank(ID bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NucaCache nucaCache, NucaType nucaType)
     {
 		//TODO : cache id can be more intuitive
         super("NucaCacheBank", 0, cacheParameters,containingMemSys);

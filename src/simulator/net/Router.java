@@ -46,8 +46,6 @@ import memorysystem.Cache.CoherenceType;
 import memorysystem.nuca.NucaCacheBank;
 
 public class Router extends Switch{
-	
-	protected Vector<Integer> bankId = new Vector<Integer>(2); //bank id of router(vector <row,column>)
 	protected RoutingAlgo routingAlgo = new RoutingAlgo();
 	protected int numberOfRows;
 	protected int numberOfColumns;
@@ -117,7 +115,7 @@ public class Router extends Switch{
      * Parameters   : current and destination bank id
      * Return       : next bank id
      ***************************************************************************************/
-	public RoutingAlgo.DIRECTION RouteComputation(Vector<Integer> current,Vector<Integer> destination)
+	public RoutingAlgo.DIRECTION RouteComputation(ID current,ID destination)
 	{ 
 		//find the route to go
 		Vector<RoutingAlgo.DIRECTION> choices = new Vector<RoutingAlgo.DIRECTION>();
@@ -168,13 +166,13 @@ public class Router extends Switch{
 		RoutingAlgo.DIRECTION nextID;
 		boolean reqOrReply;
 		
-		Vector<Integer> currentId = this.reference.getId();
-		Vector<Integer> destinationId = ((AddressCarryingEvent)(event)).getDestinationId();
+		ID currentId = this.reference.getId();
+		ID destinationId = ((AddressCarryingEvent)(event)).getDestinationId();
 		RequestType requestType = event.getRequestType();
 		
 		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.OPTICAL)
 		{
-			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.get(0)][destinationId.get(1)].getSimulationElement(); 
+			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.getx()][destinationId.gety()].getSimulationElement(); 
 			destination.getPort().put(
 					event.update(
 							eventQ,

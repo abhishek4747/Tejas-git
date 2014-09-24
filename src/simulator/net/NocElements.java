@@ -93,9 +93,7 @@ public class NocElements
 				{
 					nocInterface[i][j] = (NocInterface) ArchitecturalComponent.getCores()[coreNumber].comInterface;
 					cores.add(ArchitecturalComponent.getCores()[coreNumber]);
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
+					ID id = new ID(i,j);
 					(nocInterface[i][j]).setId(id);
 					coreNumber++;
 				}
@@ -110,9 +108,7 @@ public class NocElements
 					CentralizedDirectoryCache directory = new CentralizedDirectoryCache("Directory", dirId, SystemConfig.directoryConfig, null, noOfCores, SystemConfig.dirNetworkDelay);
 					l1Directories.add(directory);
 					nocInterface[i][j] = (NocInterface)directory.comInterface;
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
+					ID id = new ID(i,j);
 					(nocInterface[i][j]).setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("M"))
@@ -120,19 +116,15 @@ public class NocElements
 					MainMemoryController mainMemoryController = new MainMemoryController(nucaType);
 					memoryControllers.add(mainMemoryController);
 					nocInterface[i][j] =  (NocInterface) mainMemoryController.comInterface;
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
+					ID id = new ID(i,j);
 					nocInterface[i][j].setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("-"))
 				{
 					// dummy values in constructor
 					nocInterface[i][j] = (NocInterface)((new NocElementDummy(PortType.Unlimited, 1, 1, null, 1, 1)).comInterface);
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
-				    nocInterface[i][j].setId(id);
+					ID id = new ID(i,j);
+					nocInterface[i][j].setId(id);
 				}
 			}
 		}
@@ -144,17 +136,17 @@ public class NocElements
      * Parameters   : Bank ID
      * Return       : Memory controller ID
      *************************************************************************/
-	public Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)//nearest Memory Controller
+	public ID getMemoryControllerId(ID currBankId)//nearest Memory Controller
     {
     	double distance = Double.MAX_VALUE;
-    	Vector<Integer> memControllerId = ((NocInterface) (SystemConfig.nocConfig.nocElements.memoryControllers.get(0).comInterface)).getId();
-    	int x1 = currBankId.get(0);//bankid/cacheColumns;
-    	int y1 = currBankId.get(1);//bankid%cacheColumns;
+    	ID memControllerId = ((NocInterface) (SystemConfig.nocConfig.nocElements.memoryControllers.get(0).comInterface)).getId();
+    	int x1 = currBankId.getx();//bankid/cacheColumns;
+    	int y1 = currBankId.gety();//bankid%cacheColumns;
    
     	for(MainMemoryController memController:SystemConfig.nocConfig.nocElements.memoryControllers)
     	{
-    		int x2 = ((NocInterface)memController.comInterface).getId().get(0);
-    		int y2 = ((NocInterface)memController.comInterface).getId().get(1);
+    		int x2 = ((NocInterface)memController.comInterface).getId().getx();
+    		int y2 = ((NocInterface)memController.comInterface).getId().gety();
     		double localdistance = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
     		if(localdistance < distance) 
     		{

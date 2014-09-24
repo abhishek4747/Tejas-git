@@ -21,7 +21,7 @@
 
 package generic;
 
-import java.util.Vector;
+import net.ID;
 
 public abstract class CommunicationInterface {
 	/*
@@ -33,7 +33,7 @@ public abstract class CommunicationInterface {
 			RequestType reqTye, 
 			long addr, 
 			int coreId,
-			Vector<Integer> destinationId,
+			ID destinationId,
 			SimulationElement source,
 			SimulationElement destination, 
 			int core_num);

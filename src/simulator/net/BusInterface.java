@@ -45,7 +45,7 @@ public class BusInterface extends CommunicationInterface{
 	@Override
 	public void sendMessage(EventQueue eventQueue, int delay,
 			RequestType reqTye, long addr, int coreId,
-			Vector<Integer> destinationId, SimulationElement source,
+			ID destinationId, SimulationElement source,
 			SimulationElement destination, int core_num) {
 		destination.getPort().put( //Put event to the destination
 				new AddressCarryingEvent(

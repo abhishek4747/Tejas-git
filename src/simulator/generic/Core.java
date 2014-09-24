@@ -11,6 +11,7 @@ import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCacheBank;
 import net.BusInterface;
+import net.ID;
 import net.NocInterface;
 import net.Router;
 import net.NOC.CONNECTIONTYPE;
@@ -548,8 +549,8 @@ public class Core extends SimulationElement{
 	private void handleMemResponse(EventQueue eventQ, AddressCarryingEvent event) 
 	{
 		
-		Vector<Integer> id = event.getSourceId();
-		Class nocElementClass = SystemConfig.nocConfig.nocElements.nocInterface[id.get(0)][id.get(1)].getClass();
+		ID id = event.getSourceId();
+		Class nocElementClass = SystemConfig.nocConfig.nocElements.nocInterface[id.getx()][id.gety()].getClass();
 		
 		if(nocElementClass==Core.class)//memory response from another core's l1 cache
 		{
@@ -617,7 +618,7 @@ public class Core extends SimulationElement{
 		nucaCache.updateAverageHopLength(addrEvent.hopLength);
 		
 		long addr = addrEvent.getAddress();
-		Vector<Integer> destinationId;
+		ID destinationId;
 		
 		if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{

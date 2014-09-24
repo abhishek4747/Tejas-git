@@ -43,7 +43,7 @@ public class NocInterface extends CommunicationInterface{
 	 */
 	Router router;
 	SimulationElement reference;
-	Vector<Integer> id;
+	ID id;
 	public NocInterface(NocConfig nocConfig, SimulationElement ref) {
 		super();
 		reference = ref;
@@ -52,7 +52,7 @@ public class NocInterface extends CommunicationInterface{
 	
 	@Override
 	public void sendMessage(EventQueue eventQueue, int delay, RequestType reqType, long addr,
-			int coreId, Vector<Integer> destinationId, SimulationElement source, SimulationElement destination, int core_num) {
+			int coreId, ID destinationId, SimulationElement source, SimulationElement destination, int core_num) {
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQueue,
 				delay,
 				source,
@@ -68,11 +68,11 @@ public class NocInterface extends CommunicationInterface{
 	public Router getRouter(){
 		return this.router;
 	}
-	public void setId(Vector<Integer> id)
+	public void setId(ID id)
 	{
 		this.id = id;
 	}
-	public Vector<Integer> getId()
+	public ID getId()
 	{
 		return id;
 	}

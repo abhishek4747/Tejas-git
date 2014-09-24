@@ -1,7 +1,7 @@
 package memorysystem;
 
-import java.util.Stack;
-import java.util.Vector;
+
+import net.ID;
 
 import generic.Event;
 import generic.EventQueue;
@@ -11,8 +11,8 @@ import generic.SimulationElement;
 public class AddressCarryingEvent extends Event implements Cloneable
 {
 	private long address;
-	private Vector<Integer> sourceId;
-	private Vector<Integer> destinationId;
+	private ID sourceId;
+	private ID destinationId;
 	public long event_id;
 	
 	public RequestType actualRequestType;
@@ -43,24 +43,24 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId,
-			Vector<Integer> sourceId, Vector<Integer> destinationId) {
+			ID sourceId, ID destinationId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType, coreId);
 		this.address = address;
-		this.sourceId = (Vector<Integer>) sourceId.clone();
-		this.destinationId = (Vector<Integer>) destinationId.clone();
+		this.sourceId = new ID(sourceId.getx(), sourceId.gety());
+		this.destinationId = new ID(destinationId.getx(),destinationId.gety());
 	}
 	public AddressCarryingEvent(long eventId, EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId,
-			Vector<Integer> sourceId, Vector<Integer> destinationId) {
+			ID sourceId, ID destinationId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
 				requestType, coreId);
 		this.event_id = eventId;
 		this.address = address;
-		this.sourceId = (Vector<Integer>) sourceId.clone();
-		this.destinationId = (Vector<Integer>) destinationId.clone();
+		this.sourceId = new ID(sourceId.getx(), sourceId.gety());
+		this.destinationId = new ID(destinationId.getx(),destinationId.gety());
 	}
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
@@ -75,7 +75,7 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId,
-			Vector<Integer> sourceId, Vector<Integer> destinationId) {
+			ID sourceId, ID destinationId) {
 		this.address = address;
 		this.coreId = coreId;
 		return (AddressCarryingEvent)this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
@@ -95,10 +95,10 @@ public class AddressCarryingEvent extends Event implements Cloneable
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, 
-			Vector<Integer> sourceId,
-			Vector<Integer> destinationId) {
-		this.sourceId = (Vector<Integer>) sourceId.clone();
-		this.destinationId = (Vector<Integer>) destinationId.clone();
+			ID sourceId,
+			ID destinationId) {
+		this.sourceId = new ID(sourceId.getx(), sourceId.gety());
+		this.destinationId = new ID(destinationId.getx(),destinationId.gety());
 		return (AddressCarryingEvent) this.update(eventQ, eventTime, requestingElement, processingElement, requestType);
 	}
 	
@@ -110,19 +110,19 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		this.address = address;
 	}
 
-	public void setSourceId(Vector<Integer> sourceId) {
-		this.sourceId = (Vector<Integer>) sourceId.clone();
+	public void setSourceId(ID sourceId) {
+		this.sourceId = new ID(sourceId.getx(), sourceId.gety());
 	}
 
-	public Vector<Integer> getSourceId() {
+	public ID getSourceId() {
 		return sourceId;
 	}
 
-	public void setDestinationId(Vector<Integer> destinationId) {
-		this.destinationId = (Vector<Integer>) destinationId.clone();
+	public void setDestinationId(ID destinationId) {
+		this.destinationId = new ID(destinationId.getx(),destinationId.gety());
 	}
 
-	public Vector<Integer> getDestinationId() {
+	public ID getDestinationId() {
 		return destinationId;
 	}
 	

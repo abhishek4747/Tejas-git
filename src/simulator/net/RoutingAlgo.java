@@ -72,17 +72,17 @@ public class RoutingAlgo{
      * Parameters   : current id, destination id, topology, number of rows and columns
      * Return       : next direction
      *************************************************************************/
-	public Vector<RoutingAlgo.DIRECTION> XYnextBank(Vector<Integer> current, Vector<Integer> destination, 
+	public Vector<RoutingAlgo.DIRECTION> XYnextBank(ID current, ID destination, 
 			NOC.TOPOLOGY topology, int numRows, int numColums)
 	{	
 		//XYRouting for mesh,torus,ring,bus
 		// to find next bank ID
 		Vector<RoutingAlgo.DIRECTION> choices = new Vector<RoutingAlgo.DIRECTION>();
 		int x1,y1,x2,y2;
-		x1 = current.elementAt(0);
-		y1 = current.elementAt(1);
-		x2 = destination.elementAt(0);
-		y2 = destination.elementAt(1);
+		x1 = current.getx();
+		y1 = current.gety();
+		x2 = destination.getx();
+		y2 = destination.gety();
 		if(topology == TOPOLOGY.BUS)
 		{
 			if(x1 < x2 || (x1 == x2 && y1 < y2))
@@ -166,13 +166,13 @@ public class RoutingAlgo{
      * Parameters   : current id, destination id, topology, number of rows and columns
      * Return       : next direction
      *************************************************************************/
-	public Vector<RoutingAlgo.DIRECTION> WestFirstnextBank(Vector<Integer> current, Vector<Integer> destination, 
+	public Vector<RoutingAlgo.DIRECTION> WestFirstnextBank(ID current, ID destination, 
 			NOC.TOPOLOGY topology, int numRows, int numColums)
 	{
 		Vector<RoutingAlgo.DIRECTION> choices = new Vector<DIRECTION>();
 		int y1,y2;
-		y1 = current.elementAt(1);
-		y2 = destination.elementAt(1);
+		y1 = current.gety();
+		y2 = destination.gety();
 		if(y2<y1){
 			if(topology == TOPOLOGY.TORUS)
 				if((y1-y2) > Math.ceil(numColums / 2)){
@@ -192,15 +192,15 @@ public class RoutingAlgo{
      * Parameters   : current id, destination id, topology, number of rows and columns
      * Return       : next direction
      *************************************************************************/
-	public Vector<RoutingAlgo.DIRECTION> NorthLastnextBank(Vector<Integer> current, Vector<Integer> destination, 
+	public Vector<RoutingAlgo.DIRECTION> NorthLastnextBank(ID current, ID destination, 
 			NOC.TOPOLOGY topology, int numRows, int numColums)
 	{
 		Vector<RoutingAlgo.DIRECTION> choices = new Vector<DIRECTION>();
 		int x1,y1,x2,y2;
-		x1 = current.elementAt(0);
-		y1 = current.elementAt(1);
-		x2 = destination.elementAt(0);
-		y2 = destination.elementAt(1);
+		x1 = current.getx();
+		y1 = current.gety();
+		x2 = destination.getx();
+		y2 = destination.gety();
 		if(x2 < x1){
 			if(topology == TOPOLOGY.TORUS)
 			{
@@ -237,15 +237,15 @@ public class RoutingAlgo{
      * Parameters   : current id, destination id, topology, number of rows and columns
      * Return       : next direction
      *************************************************************************/
-	public Vector<RoutingAlgo.DIRECTION> NegativeFirstnextBank(Vector<Integer> current, Vector<Integer> destination, 
+	public Vector<RoutingAlgo.DIRECTION> NegativeFirstnextBank(ID current, ID destination, 
 			NOC.TOPOLOGY topology, int numRows, int numColums)
 	{
 		Vector<RoutingAlgo.DIRECTION> choices = new Vector<DIRECTION>();
 		int x1,y1,x2,y2;
-		x1 = current.elementAt(0);
-		y1 = current.elementAt(1);
-		x2 = destination.elementAt(0);
-		y2 = destination.elementAt(1);
+		x1 = current.getx();
+		y1 = current.gety();
+		x2 = destination.getx();
+		y2 = destination.gety();
 		if(y2 < y1 && x2 < x1){
 			if(topology == TOPOLOGY.TORUS )
 				if(y1-y2 > Math.ceil(numColums / 2)){

@@ -40,6 +40,7 @@ import java.util.Queue;
 import java.util.Vector;
 
 import net.BusInterface;
+import net.ID;
 import net.NocElements;
 import net.NocInterface;
 import net.Router;
@@ -218,7 +219,7 @@ public class CentralizedDirectoryCache extends Cache
 		// L2 sends reply to Core 3 : We add Core 3 as the sharer for address x 
 		// Since, we this violates the MESI protocol, we invalidate the entry for address x
 		Cache requestingCache =null;
-		Vector<Integer> destinationId = null;
+		ID destinationId = null;
 		if(SystemConfig.interconnect == Interconnect.Bus)
 		{
 			requestingCache = (Cache)event.getRequestingElement();
@@ -594,7 +595,7 @@ public class CentralizedDirectoryCache extends Cache
 		
 		Cache ownerCache = dirEntry.getSharerAtIndex(0);
 		int delay = 0;
-		Vector<Integer> destinationId = null;
+		ID destinationId = null;
 		if(SystemConfig.interconnect == Interconnect.Bus)
 		{
 			delay = (int) (ownerCache.getLatency() +getNetworkDelay());
@@ -635,7 +636,7 @@ public class CentralizedDirectoryCache extends Cache
 			}
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
-				Vector<Integer> destinationId = ((NocInterface)(c.containingMemSys.getCore().comInterface)).getId();
+				ID destinationId = ((NocInterface)(c.containingMemSys.getCore().comInterface)).getId();
 				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(c.containingMemSys.getCore().getEventQueue(),
 						 0,this, 
 						 this.getRouter(),
@@ -667,7 +668,7 @@ public class CentralizedDirectoryCache extends Cache
 		}
 		else if(SystemConfig.interconnect == Interconnect.Noc)
 		{
-			Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(((NocInterface) this.comInterface).getId());
+			ID destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(((NocInterface) this.comInterface).getId());
 			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
 					 0,this, 
 					 this.getRouter(),
@@ -819,7 +820,7 @@ public class CentralizedDirectoryCache extends Cache
 		else if(SystemConfig.interconnect == Interconnect.Noc)
 		{
 			requestingCache =  SystemConfig.nocConfig.nocElements.cores.get(event.coreId).getExecEngine().getCoreMemorySystem().getL1Cache();
-			Vector<Integer> destinationId = ((NocInterface) requestingCache.containingMemSys.getCore().comInterface).getId();
+			ID destinationId = ((NocInterface) requestingCache.containingMemSys.getCore().comInterface).getId();
 			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
 					 0,this, 
 					 this.getRouter(),
