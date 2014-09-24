@@ -10,6 +10,7 @@ import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCacheBank;
+import net.BusInterface;
 import net.NocInterface;
 import net.Router;
 import net.NOC.CONNECTIONTYPE;
@@ -19,6 +20,7 @@ import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
 import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
 import config.CoreConfig;
+import config.Interconnect;
 import config.PipelineType;
 import config.EnergyConfig;
 import config.SystemConfig;
@@ -30,18 +32,17 @@ import config.CacheConfig;
  * all core parameters are defined here
  */
 
-public class Core extends SimulationElement implements NocInterface{
+public class Core extends SimulationElement{
 	
 	//long clock;
-	Router router;
 	public static NucaCache nucaCache;
-	Vector<Integer> nocElementId;
 	Port port;
 	int stepSize;
 	long frequency;
 	ExecutionEngine execEngine;
 	public EventQueue eventQueue;
 	public int currentThreads;
+	public CommunicationInterface comInterface;
 	
 	public boolean isPipelineInOrder() {
 		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.inOrder);
@@ -116,7 +117,7 @@ public class Core extends SimulationElement implements NocInterface{
 	{
 		super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);	
 		//TODO frequency from config file
-		this.router = new Router(SystemConfig.nocConfig, this);
+		
 		this.port = new Port(PortType.Unlimited, -1, -1);
 		this.eventQueue = new EventQueue();
 		this.frequency = SystemConfig.core[core_number].frequency;
@@ -147,6 +148,14 @@ public class Core extends SimulationElement implements NocInterface{
 		} else {
 			misc.Error.showErrorAndExit("pipeline type not identified : " + 
 				SystemConfig.core[core_number].pipelineType);
+		}
+		if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			comInterface = new BusInterface(this);
+		}
+		else if(SystemConfig.interconnect == Interconnect.Noc)
+		{
+			comInterface = new NocInterface(SystemConfig.nocConfig, this);
 		}
 		
 		setPowerConfigs();
@@ -482,30 +491,7 @@ public class Core extends SimulationElement implements NocInterface{
 	{
 		return stepSize;
 	}
-	@Override
-	public Router getRouter() {
-		// TODO Auto-generated method stub
-		return router;
-	}
-	@Override
-	public Vector<Integer> getId() {
-		// TODO Auto-generated method stub
-		return nocElementId;
-	}
-	public void setId(Vector<Integer> id) {
-		// TODO Auto-generated method stub
-		nocElementId = id;
-	}
-	@Override
-	public Port getPort() {
-		// TODO Auto-generated method stub
-		return port;
-	}
-	@Override
-	public SimulationElement getSimulationElement() {
-		// TODO Auto-generated method stub
-		return this;
-	}
+	
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) 
 	{
@@ -631,19 +617,14 @@ public class Core extends SimulationElement implements NocInterface{
 		nucaCache.updateAverageHopLength(addrEvent.hopLength);
 		
 		long addr = addrEvent.getAddress();
-		Vector<Integer> sourceId;
 		Vector<Integer> destinationId;
 		
 		if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{
-			sourceId = this.getId();
 			destinationId = nucaCache.getBankId(addr);
-			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-																		0,this, this.getRouter(), 
-																		RequestType.Main_Mem_Response, 
-																		addr,((AddressCarryingEvent)event).coreId,
-																		sourceId,destinationId);
-			this.getRouter().getPort().put(addressEvent);
+			comInterface.sendMessage(event.getEventQ(),0,RequestType.Main_Mem_Response,addr,
+					((AddressCarryingEvent)event).coreId,
+					destinationId,null,null, 0);
 		}
 	}
 	

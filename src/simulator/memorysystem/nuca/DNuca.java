@@ -27,6 +27,7 @@ import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import misc.Util;
+import net.NocInterface;
 import net.NOC.CONNECTIONTYPE;
 import net.optical.TopLevelTokenBus;
 import config.CacheConfig;
@@ -100,7 +101,7 @@ public class DNuca extends NucaCache{
    					}
    					for(NucaCacheBank nuca:cacheBank)
 					{
-						if(nuca.getBankId().equals(bankId))
+						if(((NocInterface)(nuca.comInterface)).getId().equals(bankId))
 						{
 							bankIdtoNucaCacheBank.put(bankId, nuca);
 						}

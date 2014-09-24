@@ -40,7 +40,7 @@ import net.NOC.CONNECTIONTYPE;
 import config.CacheConfig;
 import config.SystemConfig;
 
-public class DNucaBank extends NucaCacheBank implements NocInterface
+public class DNucaBank extends NucaCacheBank
 {
 	public HashMap<Long,Vector<RequestType>> eventIdToHitMissList;
 	public HashMap<Long,Vector<Integer>> eventIdToHitBankId;
@@ -101,30 +101,30 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
     void sendMigrateBlockRequest(AddressCarryingEvent event)
     {
     	Vector<Integer> destination = null;
-    	Vector<Integer> coreId = ArchitecturalComponent.getCores()[event.coreId].getId();
+    	Vector<Integer> coreId = ((NocInterface) ArchitecturalComponent.getCores()[event.coreId].comInterface).getId();
     	
     	int bankset = ((DNuca)nucaCache).getBankSetId(event.getAddress());
     	//Vector<Integer> nearestBank = ((DNuca)nucaCache).getNearestBank(bankset, coreId);
     	bankset=((DNuca)nucaCache).bankSetnum.get(bankset);
-    	int bankIndex = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).indexOf(this.getBankId());
+    	int bankIndex = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).indexOf(((NocInterface) this.comInterface).getId());
     	
-    	if(coreId.get(1)-this.getBankId().get(1)>0)
+    	if(coreId.get(1)-((NocInterface) this.comInterface).getId().get(1)>0)
     	{
     		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex+1);
     	}
-    	else if(coreId.get(1)-this.getBankId().get(1)<0)
+    	else if(coreId.get(1)-((NocInterface) this.comInterface).getId().get(1)<0)
     	{
     		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex-1);
     	}
     	
-    	if(coreId.get(1)-this.getBankId().get(1)!=0)
+    	if(coreId.get(1)-((NocInterface) this.comInterface).getId().get(1)!=0)
 	    {
 			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
 					 0,this, 
 					 this.getRouter(),
 					 RequestType.Migrate_Block,
 					 event.getAddress(),event.coreId,
-					 this.getId(),destination);
+					 ((NocInterface) this.comInterface).getId(),destination);
 			this.getRouter().getPort().put(eventToBeSent);
     	}
     }
@@ -150,7 +150,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
     	if (evictedLine != null && 
 				this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 		{
-			Vector<Integer> sourceId = new Vector<Integer>(this.getId());
+			Vector<Integer> sourceId = new Vector<Integer>(((NocInterface) this.comInterface).getId());
 			Vector<Integer> destinationId = (Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
 			
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
@@ -199,7 +199,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 						 this.getRouter(),
 						 RequestType.Send_Migrate_Block,
 						 addrEvent.getAddress(),event.coreId,
-						 this.getId(),(Vector<Integer>)eventIdToHitBankId.get(addrEvent.event_id).clone());
+						 ((NocInterface) this.comInterface).getId(),(Vector<Integer>)eventIdToHitBankId.get(addrEvent.event_id).clone());
 				this.getRouter().getPort().put(eventToBeSent);
     		}
     		else
@@ -260,7 +260,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 					 this.getRouter(),
 					 request,
 					 address,event.coreId,
-					 this.getBankId(),event.getSourceId());
+					 ((NocInterface) this.comInterface).getId(),event.getSourceId());
 			this.getRouter().getPort().put(eventToBeSent);
 			
 		}
@@ -299,7 +299,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 		Vector<Integer> destinationId;
 		if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{
-			sourceId = this.getId();
+			sourceId = ((NocInterface) this.comInterface).getId();
 			destinationId = nucaCache.getBankId(addr);
 			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																		0,this, this.getRouter(), 
@@ -325,7 +325,7 @@ public class DNucaBank extends NucaCacheBank implements NocInterface
 			if (evictedLine != null && 
 					this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 			{
-				sourceId = new Vector<Integer>(this.getId());
+				sourceId = new Vector<Integer>(((NocInterface) this.comInterface).getId());
 				destinationId =(Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
 				
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),

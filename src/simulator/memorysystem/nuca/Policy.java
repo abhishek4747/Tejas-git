@@ -23,6 +23,8 @@ package memorysystem.nuca;
 import generic.RequestType;
 import java.util.Vector;
 
+import net.NocInterface;
+
 import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
 
@@ -38,12 +40,13 @@ public class Policy {
 		{
 			misc.Error.showErrorAndExit(" source bank  id or destination bank id null ");
 		}
-		Vector<Integer> destinationId = (Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(cacheBank.getBankId());
+		Vector<Integer> destinationId = (Vector<Integer>) SystemConfig.nocConfig.nocElements.
+				getMemoryControllerId(((NocInterface) cacheBank.comInterface).getId());
 		//System.err.println("In SNucaPolicy Address : "+ event.getAddress() +destinationBankId);
 		AddressCarryingEvent addressEvent = event.updateEvent(event.getEventQ(),
 											0,cacheBank, cacheBank.getRouter(), 
 											RequestType.Main_Mem_Read,
-											cacheBank.getBankId(),
+											((NocInterface) cacheBank.comInterface).getId(),
 											destinationId);
 		return addressEvent;
 	}
@@ -56,14 +59,14 @@ public class Policy {
 											 0,cacheBank, cacheBank.getRouter(), 
 											 RequestType.Mem_Response, 
 											 addrEvent.getAddress(),addrEvent.coreId,
-											 cacheBank.getBankId(),destination);
+											 ((NocInterface) cacheBank.comInterface).getId(),destination);
 		cacheBank.getRouter().getPort().put(addressEvent);
 	}
 	
 	void broadcastToOtherBanks(AddressCarryingEvent addrEvent, long address,NucaCacheBank cacheBank)
 	{
 		int bankset = ((DNuca)nucaCache).getBankSetId(address);
-		Vector<Integer> sourceId = cacheBank.bankId;
+		Vector<Integer> sourceId = ((NocInterface) cacheBank.comInterface).getId();
 		Vector<Vector<Integer>> bankIds = ((DNuca)nucaCache).bankSetNumToBankIds.get(
 											((DNuca)nucaCache).bankSetnum.get(bankset));
 		DNuca.eventId++;
@@ -75,7 +78,8 @@ public class Policy {
 		((DNucaBank)cacheBank).eventIdToHitMissList.put(DNuca.eventId, temp);
 		for(Vector<Integer> i:bankIds)
 		{
-			if(!(cacheBank.bankId.get(0)==i.get(0) && cacheBank.bankId.get(1)==i.get(1)))
+			if(!(((NocInterface) cacheBank.comInterface).getId().get(0)==i.get(0) && 
+					((NocInterface) cacheBank.comInterface).getId().get(1)==i.get(1)))
 			{
 				Vector<Integer> destinationId = i;
 				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(DNuca.eventId,addrEvent.getEventQ(),

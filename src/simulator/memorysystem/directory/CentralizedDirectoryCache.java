@@ -20,6 +20,7 @@
 *****************************************************************************/
 package memorysystem.directory;
 
+import generic.CommunicationInterface;
 import generic.Core;
 import generic.Event;
 import generic.EventComparator;
@@ -38,6 +39,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Vector;
 
+import net.BusInterface;
 import net.NocElements;
 import net.NocInterface;
 import net.Router;
@@ -58,10 +60,9 @@ import memorysystem.MemorySystem;
 import memorysystem.Cache.CacheType;
 import memorysystem.nuca.NucaCache.Mapping;
 
-public class CentralizedDirectoryCache extends Cache implements NocInterface
+public class CentralizedDirectoryCache extends Cache
 {
-	Router router;
-	Vector<Integer> nocElementId;
+	public CommunicationInterface comInterface;
 	private long invalidations;
 	private long directoryMisses;
 	private long numReadMiss;
@@ -96,7 +97,14 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 
 		//this.levelFromTop = CacheType.Directory;
 		CentralizedDirectoryCache.networkDelay = networkDelay;
-		this.router = new Router(SystemConfig.nocConfig, this);
+		if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			comInterface = new BusInterface(this);
+		}
+		else if(SystemConfig.interconnect == Interconnect.Noc)
+		{
+			comInterface = new NocInterface(SystemConfig.nocConfig, this);
+		}
 		power = cacheParameters.power;
 	}
 	
@@ -210,6 +218,7 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		// L2 sends reply to Core 3 : We add Core 3 as the sharer for address x 
 		// Since, we this violates the MESI protocol, we invalidate the entry for address x
 		Cache requestingCache =null;
+		Vector<Integer> destinationId = null;
 		if(SystemConfig.interconnect == Interconnect.Bus)
 		{
 			requestingCache = (Cache)event.getRequestingElement();
@@ -217,38 +226,19 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		else if(SystemConfig.interconnect == Interconnect.Noc)
 		{
 			requestingCache =  SystemConfig.nocConfig.nocElements.cores.get(event.coreId).getExecEngine().getCoreMemorySystem().getL1Cache();
+			destinationId = ((NocInterface)requestingCache.containingMemSys.getCore().comInterface).getId();
 		}
 		
 		boolean needToInvalidateCacheEntry = (dirEntry==null) || (dirEntry.getState()==MESI.MODIFIED && dirEntry.getNoOfSharers()>0 && dirEntry.getOwner()!=requestingCache);
 		if(needToInvalidateCacheEntry)
 		{
-			if(SystemConfig.interconnect == Interconnect.Bus)
-			{			
-				requestingCache.getPort().put(
-					new AddressCarryingEvent(
-						requestingCache.containingMemSys.getCore().getEventQueue(),
-						0, //requestingCache.getLatency() + getNetworkDelay(), FIXME: 
-						this, 
-						requestingCache,
-						RequestType.MESI_Invalidate, 
-						((AddressCarryingEvent)event).getAddress(),
-						requestingCache.containingMemSys.getCore().getCore_number()));
-			}
-			else if(SystemConfig.interconnect == Interconnect.Noc)
-			{
-				Vector<Integer> destinationId = requestingCache.containingMemSys.getCore().getId();
-				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(requestingCache.containingMemSys.getCore().getEventQueue(),
-						 0,this, 
-						 this.getRouter(),
-						 RequestType.MESI_Invalidate,
-						 ((AddressCarryingEvent)event).getAddress(),
-						 requestingCache.containingMemSys.getCore().getCore_number(),
-						 this.getId(),destinationId);
-//				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-//				{
-					this.getRouter().getPort().put(eventToBeSent);
-//				}
-			}
+			
+			comInterface.sendMessage(requestingCache.containingMemSys.getCore().getEventQueue(),
+					0,
+					RequestType.MESI_Invalidate,
+					((AddressCarryingEvent)event).getAddress(), 
+					requestingCache.containingMemSys.getCore().getCore_number(),
+					destinationId, this, requestingCache,requestingCache.containingMemSys.getCore().getCore_number());
 			
 			return;
 		}
@@ -603,33 +593,22 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		}
 		
 		Cache ownerCache = dirEntry.getSharerAtIndex(0);
-		
+		int delay = 0;
+		Vector<Integer> destinationId = null;
 		if(SystemConfig.interconnect == Interconnect.Bus)
 		{
-			ownerCache.getPort().put(
-					new AddressCarryingEvent(
-							event.getEventQ(),
-							ownerCache.getLatency() +getNetworkDelay(),
-							event.getRequestingElement(), 
-							ownerCache,
-							requestType, 
-							event.getAddress(),
-							(event).coreId));
+			delay = (int) (ownerCache.getLatency() +getNetworkDelay());
 		}
 		else if(SystemConfig.interconnect == Interconnect.Noc)
 		{
-			Vector<Integer> destinationId =  ownerCache.containingMemSys.getCore().getId();
-			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
-					 0,this, 
-					 this.getRouter(),
-					 requestType,
-					 event.getAddress(),event.coreId,
-					 this.getId(),destinationId);
-//			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-//			{
-				this.getRouter().getPort().put(eventToBeSent);
-//			}
+			destinationId = ((NocInterface)(ownerCache.containingMemSys.getCore().comInterface)).getId();
 		}
+		comInterface.sendMessage(event.getEventQ(),
+				delay,
+				requestType,
+				event.getAddress(), 
+				event.coreId,
+				destinationId, event.getRequestingElement(), ownerCache,(event).coreId);
 	}
 	
 	private void sendeventToSharers(DirectoryEntry dirEntry, RequestType requestType, Cache excludeThisCache)
@@ -656,14 +635,14 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 			}
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
-				Vector<Integer> destinationId = c.containingMemSys.getCore().getId();
+				Vector<Integer> destinationId = ((NocInterface)(c.containingMemSys.getCore().comInterface)).getId();
 				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(c.containingMemSys.getCore().getEventQueue(),
 						 0,this, 
 						 this.getRouter(),
 						 requestType,
 						 getCacheAddress(c, dirEntry.getAddress()),
 						 c.containingMemSys.getCore().getCore_number(),
-						 this.getId(),destinationId);
+						 ((NocInterface) this.comInterface).getId(),destinationId);
 //				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 //				{
 					this.getRouter().getPort().put(eventToBeSent);
@@ -688,13 +667,13 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		}
 		else if(SystemConfig.interconnect == Interconnect.Noc)
 		{
-			Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(this.getId());
+			Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(((NocInterface) this.comInterface).getId());
 			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
 					 0,this, 
 					 this.getRouter(),
 					 RequestType.Main_Mem_Read,
 					 event.getAddress(),event.coreId,
-					 this.getId(),destinationId);
+					 ((NocInterface) this.comInterface).getId(),destinationId);
 //			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 //			{
 				this.getRouter().getPort().put(eventToBeSent);
@@ -840,13 +819,13 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		else if(SystemConfig.interconnect == Interconnect.Noc)
 		{
 			requestingCache =  SystemConfig.nocConfig.nocElements.cores.get(event.coreId).getExecEngine().getCoreMemorySystem().getL1Cache();
-			Vector<Integer> destinationId = requestingCache.containingMemSys.getCore().getId();
+			Vector<Integer> destinationId = ((NocInterface) requestingCache.containingMemSys.getCore().comInterface).getId();
 			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
 					 0,this, 
 					 this.getRouter(),
 					 RequestType.Send_Mem_Response,
 					 ((AddressCarryingEvent)event).getAddress(),event.coreId,
-					 this.getId(),destinationId);
+					 ((NocInterface) this.comInterface).getId(),destinationId);
 //			if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 //			{
 				this.getRouter().getPort().put(eventToBeSent);
@@ -863,26 +842,12 @@ public class CentralizedDirectoryCache extends Cache implements NocInterface
 		return power;
 	}
 
-	@Override
-	public Router getRouter() {
-		// TODO Auto-generated method stub
-		return router;
-	}
-
-	@Override
-	public Vector<Integer> getId() {
-		// TODO Auto-generated method stub
-		return nocElementId;
-	}
-	public void setId(Vector<Integer> id) {
-		// TODO Auto-generated method stub
-		nocElementId = id;
-	}
-	@Override
-	public SimulationElement getSimulationElement() {
-		// TODO Auto-generated method stub
-		return this;
-	}
+	
+//	public void setId(Vector<Integer> id) {
+//		// TODO Auto-generated method stub
+//		nocElementId = id;
+//	}
+	
 	
 	public int getDirectoryNumber(long addr)
 	{

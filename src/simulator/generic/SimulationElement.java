@@ -68,7 +68,10 @@ public abstract class SimulationElement implements Cloneable
 	public void setPort(Port port){
 		this.port = port;
 	}
-	
+	public SimulationElement getRouter()
+	{
+		return null;
+	}
 	/*public long getFrequency() {
 		return frequency;
 	}

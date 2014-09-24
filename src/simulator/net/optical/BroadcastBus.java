@@ -46,18 +46,18 @@ public class BroadcastBus extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
-		AddressCarryingEvent bCastEvent;
-		for(int i=0;i<totalBanks;i++)
-		{
-			bCastEvent= (AddressCarryingEvent) ((AddressCarryingEvent)event).clone();
-			banks[i][clusterId].getRouter().getPort().put(
-					bCastEvent.update(
-							eventQ,
-							1,
-							this, 
-							banks[i][clusterId].getRouter(),
-							bCastEvent.getRequestType()));
-		}
-		
+//		AddressCarryingEvent bCastEvent;
+//		for(int i=0;i<totalBanks;i++)
+//		{
+//			bCastEvent= (AddressCarryingEvent) ((AddressCarryingEvent)event).clone();
+//			banks[i][clusterId].getRouter().getPort().put(
+//					bCastEvent.update(
+//							eventQ,
+//							1,
+//							this, 
+//							banks[i][clusterId].getRouter(),
+//							bCastEvent.getRequestType()));
+//		}
+//		
 	}
 }

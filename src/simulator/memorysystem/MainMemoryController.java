@@ -4,24 +4,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.BusInterface;
 import net.NocInterface;
 import net.Router;
 
-import memorysystem.nuca.NucaCacheBank;
 import memorysystem.nuca.NucaCache.NucaType;
 import config.Interconnect;
 import config.EnergyConfig;
 import config.SystemConfig;
+import generic.CommunicationInterface;
 import generic.EventQueue;
 import generic.PortType;
 import generic.SimulationElement;
 import generic.Event;
 import generic.RequestType;
-import generic.Statistics;
 
-public class MainMemoryController extends SimulationElement implements NocInterface
+public class MainMemoryController extends SimulationElement
 {
-	Router router;
+	public CommunicationInterface comInterface;
 	Vector<Integer> nocElementId;
 	NucaType nucaType;
 	long numAccesses;
@@ -34,7 +34,14 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 				SystemConfig.mainMemoryFrequency
 				);
 		this.nucaType = nucaType;
-		this.router = new Router(SystemConfig.nocConfig, this);
+		if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			comInterface = new BusInterface(this);
+		}
+		else if(SystemConfig.interconnect == Interconnect.Noc)
+		{
+			comInterface = new NocInterface(SystemConfig.nocConfig, this);
+		}
 	}
 	
 	public MainMemoryController() {
@@ -71,7 +78,7 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 									this.getRouter(),
 									RequestType.Main_Mem_Response,((AddressCarryingEvent)event).getAddress(),
 									event.coreId,
-									this.getId(),((AddressCarryingEvent)event).getSourceId()));
+									((NocInterface) this.comInterface).getId(),((AddressCarryingEvent)event).getSourceId()));
 			}
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)
@@ -87,27 +94,6 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 		numAccesses += 1;
 	}
 	
-	@Override
-	public Router getRouter() {
-		// TODO Auto-generated method stub
-		return router;
-	}
-
-	@Override
-	public Vector<Integer> getId() {
-		// TODO Auto-generated method stub
-		return nocElementId;
-	}
-	public void setId(Vector<Integer> id) {
-		// TODO Auto-generated method stub
-		nocElementId = id;
-	}
-	@Override
-	public SimulationElement getSimulationElement() {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
 	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
 		EnergyConfig power = new EnergyConfig(SystemConfig.mainMemoryControllerPower, numAccesses);

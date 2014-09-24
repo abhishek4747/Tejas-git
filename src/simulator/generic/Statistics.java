@@ -17,6 +17,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.NocInterface;
 import net.Router;
 import net.Switch;
 
@@ -1013,11 +1014,11 @@ public class Statistics {
 					averageHopLength = ((NucaCache)cache).getAverageHoplength(); 
 					maxHopLength = ((NucaCache)cache).getMaxHopLength();
 					minHopLength = ((NucaCache)cache).getMinHopLength();
-					Statistics.nocTopology = ((NucaCache)cache).cacheBank.get(0).getRouter().topology.name();
-					Statistics.nocRoutingAlgo = ((NucaCache)cache).cacheBank.get(0).getRouter().rAlgo.name();
+					Statistics.nocTopology = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().topology.name();
+					Statistics.nocRoutingAlgo = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().rAlgo.name();
 					for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
 					{
-						Statistics.hopcount += ((NucaCache)cache).cacheBank.get(i).getRouter().hopCounters; 
+						Statistics.hopcount += ((NocInterface)((NucaCache)cache).cacheBank.get(i).comInterface).getRouter().hopCounters; 
 					}
 					if(Statistics.nocTopology.equals("FATTREE") ||
 							Statistics.nocTopology.equals("OMEGA") ||

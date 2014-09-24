@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+import net.NocInterface;
 import net.NOC.CONNECTIONTYPE;
 
 import main.ArchitecturalComponent;
@@ -504,14 +505,14 @@ public class Cache extends SimulationElement
 					Cache c = prevLevel.get(i);
 					EventQueue eventQueue = this.containingMemSys.getCore().getEventQueue();
 					
-					Vector<Integer> destinationId = c.containingMemSys.getCore().getId();
+					Vector<Integer> destinationId = ((NocInterface) c.containingMemSys.getCore().comInterface).getId();
 					AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(eventQueue,
 							 0,this.containingMemSys.getCore(), 
 							 this.containingMemSys.getCore().getRouter(),
 							 RequestType.MESI_Invalidate,
 							 addr,
 							 this.containingMemSys.coreID,
-							 this.containingMemSys.getCore().getId(),destinationId);
+							 ((NocInterface) this.containingMemSys.getCore().comInterface).getId(),destinationId);
 //					if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 //					{
 						this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
@@ -606,13 +607,14 @@ public class Cache extends SimulationElement
 			
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
-				Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(this.containingMemSys.getCore().getId());
+				Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.
+						getMemoryControllerId(((NocInterface) this.containingMemSys.getCore().comInterface).getId());
 				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(receivedEvent.getEventQ(),
 						 0,this.containingMemSys.getCore(), 
 						 this.containingMemSys.getCore().getRouter(),
 						 RequestType.Main_Mem_Write,
 						 receivedEvent.getAddress(),receivedEvent.coreId,
-						 this.containingMemSys.getCore().getId(),destinationId);
+						 ((NocInterface) this.containingMemSys.getCore().comInterface).getId(),destinationId);
 //				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 //				{
 					this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
@@ -642,13 +644,14 @@ public class Cache extends SimulationElement
 			
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
-				Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.getMemoryControllerId(this.containingMemSys.getCore().getId());
+				Vector<Integer> destinationId = SystemConfig.nocConfig.nocElements.
+						getMemoryControllerId(((NocInterface) this.containingMemSys.getCore().comInterface).getId());
 				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(receivedEvent.getEventQ(),
 						 0,this.containingMemSys.getCore(), 
 						 this.containingMemSys.getCore().getRouter(),
 						 RequestType.Main_Mem_Read,
 						 receivedEvent.getAddress(),receivedEvent.coreId,
-						 this.containingMemSys.getCore().getId(),destinationId);
+						 ((NocInterface) this.containingMemSys.getCore().comInterface).getId(),destinationId);
 //				if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 //				{
 					this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
@@ -920,13 +923,13 @@ public class Cache extends SimulationElement
 			}
 			else if(SystemConfig.interconnect == Interconnect.Noc)
 			{
-				Vector<Integer> destinationId = ArchitecturalComponent.getCores()[eventToRespondTo.coreId].getId();
+				Vector<Integer> destinationId = ((NocInterface) ArchitecturalComponent.getCores()[eventToRespondTo.coreId].comInterface).getId();
 				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(eventToRespondTo.getEventQ(),
 						 0,((Cache)eventToRespondTo.getProcessingElement()).containingMemSys.getCore(), 
 						 ((Cache)eventToRespondTo.getProcessingElement()).containingMemSys.getCore().getRouter(),
 						 RequestType.Mem_Response,
 						 eventToRespondTo.getAddress(),eventToRespondTo.coreId,
-						 this.containingMemSys.getCore().getId(),destinationId);
+						 ((NocInterface) this.containingMemSys.getCore().comInterface).getId(),destinationId);
 				this.containingMemSys.getCore().getRouter().getPort().put(eventToBeSent);
 			}
 		}
@@ -1002,7 +1005,7 @@ public class Cache extends SimulationElement
 						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
 						 RequestType.WriteHitDirectoryUpdate,
 						 address,event.coreId,
-						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+						 ((NocInterface) ArchitecturalComponent.getCores()[event.coreId].comInterface).getId(),destinationId);
 				ArchitecturalComponent.getCores()[event.coreId].getRouter().
 				getPort().put(eventToBeSent);
 			}
@@ -1049,7 +1052,7 @@ public class Cache extends SimulationElement
 						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
 						 RequestType.ReadMissDirectoryUpdate,
 						 address,event.coreId,
-						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+						 ((NocInterface) ArchitecturalComponent.getCores()[event.coreId].comInterface).getId(),destinationId);
 				ArchitecturalComponent.getCores()[event.coreId].getRouter().
 				getPort().put(eventToBeSent);
 			}
@@ -1093,7 +1096,7 @@ public class Cache extends SimulationElement
 						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
 						 RequestType.WriteMissDirectoryUpdate,
 						 address,event.coreId,
-						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+						 ((NocInterface) ArchitecturalComponent.getCores()[event.coreId].comInterface).getId(),destinationId);
 				ArchitecturalComponent.getCores()[event.coreId].getRouter().
 				getPort().put(eventToBeSent);
 			}
@@ -1131,7 +1134,7 @@ public class Cache extends SimulationElement
 						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
 						 RequestType.MemResponseDirectoryUpdate,
 						 address,event.coreId,
-						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+						 ((NocInterface) ArchitecturalComponent.getCores()[event.coreId].comInterface).getId(),destinationId);
 				ArchitecturalComponent.getCores()[event.coreId].getRouter().
 				getPort().put(eventToBeSent);
 			}
@@ -1173,7 +1176,7 @@ public class Cache extends SimulationElement
 						 ArchitecturalComponent.getCores()[event.coreId].getRouter(),
 						 RequestType.EvictionDirectoryUpdate,
 						 address,event.coreId,
-						 ArchitecturalComponent.getCores()[event.coreId].getId(),destinationId);
+						 ((NocInterface) ArchitecturalComponent.getCores()[event.coreId].comInterface).getId(),destinationId);
 				ArchitecturalComponent.getCores()[event.coreId].getRouter().
 				getPort().put(eventToBeSent);
 			}
@@ -1437,7 +1440,7 @@ public class Cache extends SimulationElement
 		{
 			Vector<Integer> destinationBankId = new Vector<Integer>();
 			int bankNumber= SystemConfig.nocConfig.nocElements.l1Directories.get(0).getDirectoryNumber(addr);
-			destinationBankId = SystemConfig.nocConfig.nocElements.l1Directories.get(bankNumber).getId();
+			destinationBankId = ((NocInterface) SystemConfig.nocConfig.nocElements.l1Directories.get(bankNumber).comInterface).getId();
 			return destinationBankId;
 		}
 }

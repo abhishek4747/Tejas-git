@@ -40,6 +40,7 @@ import misc.Util;
 import config.CacheConfig;
 import config.SimulationConfig;
 import net.NOC;
+import net.NocInterface;
 import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
 
@@ -208,7 +209,7 @@ public class NucaCache extends Cache
 	
 	public Vector<Integer> getCoreId(int coreId)
 	{
-		Vector<Integer> bankId = ArchitecturalComponent.getCores()[coreId].getId();
+		Vector<Integer> bankId = ((NocInterface) (ArchitecturalComponent.getCores()[coreId].comInterface)).getId();
 		return bankId;
 	}
 	
@@ -216,7 +217,7 @@ public class NucaCache extends Cache
 	{
 		Vector<Integer> destinationBankId = new Vector<Integer>();
 		int bankNumber= getBankNumber(addr);
-		destinationBankId = cacheBank.get(bankNumber).getBankId();
+		destinationBankId = ((NocInterface) cacheBank.get(bankNumber).comInterface).getId();
 		return destinationBankId;
 	}
 	

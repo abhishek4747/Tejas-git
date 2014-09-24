@@ -184,18 +184,18 @@ public class Router extends Switch{
 							requestType));
 			return;
 		}
-		if(SystemConfig.interconnect == Interconnect.Bus)
-		{
-			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.get(0)][destinationId.get(1)].getSimulationElement(); 
-			destination.getPort().put(
-					event.update(
-							eventQ,
-							0, //We added the delay already during the send operation
-							this, 
-							destination,
-							requestType));
-			return;
-		}
+//		if(SystemConfig.interconnect == Interconnect.Bus)
+//		{
+//			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.get(0)][destinationId.get(1)].getSimulationElement(); 
+//			destination.getPort().put(
+//					event.update(
+//							eventQ,
+//							0, //We added the delay already during the send operation
+//							this, 
+//							destination,
+//							requestType));
+//			return;
+//		}
 				
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
 				&& !currentId.equals(destinationId))  //event passed to switch in omega/buttrfly/fat tree connection
@@ -214,7 +214,7 @@ public class Router extends Switch{
         //If this is the destination
 		else if(currentId.equals(destinationId))  
 		{
-			this.reference.getPort().put(
+			((NocInterface)this.reference).getSimulationElement().getPort().put(
 					event.update(
 							eventQ,
 							0,

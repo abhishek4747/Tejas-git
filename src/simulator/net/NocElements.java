@@ -68,10 +68,7 @@ public class NocElements
 	}
 	public void makeNocElements(TopLevelTokenBus tokenbus, NucaCache nucaCache)
 	{
-//		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
         noc = new NOC();
-//        else
-//            noc = new OpticalNOC();
 		int coreNumber = 0;
 		int cacheNumber =0;
 		for(int i=0;i<rows;i++)
@@ -81,17 +78,17 @@ public class NocElements
 			{
 				if(nocElementsLocations.get(i).get(j).equals("1"))
 				{
-					nocInterface[i][j] = (NocInterface) ArchitecturalComponent.getCores()[coreNumber];
+					nocInterface[i][j] = (NocInterface) ArchitecturalComponent.getCores()[coreNumber].comInterface;
 					cores.add(ArchitecturalComponent.getCores()[coreNumber]);
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((Core)nocInterface[i][j]).setId(id);
+					(nocInterface[i][j]).setId(id);
 					coreNumber++;
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("0"))
 				{
-					nocInterface[i][j] = nucaCache.cacheBank.get(cacheNumber);
+					nocInterface[i][j] = (NocInterface) nucaCache.cacheBank.get(cacheNumber).comInterface;
 					cacheNumber++;
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("D"))
@@ -99,29 +96,30 @@ public class NocElements
 					int dirId = i*columns+j;
 					CentralizedDirectoryCache directory = new CentralizedDirectoryCache("Directory", dirId, SystemConfig.directoryConfig, null, noOfCores, SystemConfig.dirNetworkDelay);
 					l1Directories.add(directory);
-					nocInterface[i][j] = directory;
+					nocInterface[i][j] = (NocInterface)directory.comInterface;
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((CentralizedDirectoryCache)nocInterface[i][j]).setId(id);
+					(nocInterface[i][j]).setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("M"))
 				{
 					MainMemoryController mainMemoryController = new MainMemoryController(nucaType);
 					memoryControllers.add(mainMemoryController);
-					nocInterface[i][j] =  mainMemoryController;
+					nocInterface[i][j] =  (NocInterface) mainMemoryController.comInterface;
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((MainMemoryController)nocInterface[i][j]).setId(id);
+					nocInterface[i][j].setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("-"))
 				{
-					nocInterface[i][j] = new NocElementDummy(PortType.Unlimited, 1, 1, null, 1, 1);// dummy values in constructor
+					// dummy values in constructor
+					nocInterface[i][j] = (NocInterface)((new NocElementDummy(PortType.Unlimited, 1, 1, null, 1, 1)).comInterface);
 					Vector<Integer> id = new Vector<Integer>();
 					id.add(i);
 					id.add(j);
-					((NocElementDummy)nocInterface[i][j]).setId(id);
+				    nocInterface[i][j].setId(id);
 				}
 			}
 		}
@@ -130,19 +128,19 @@ public class NocElements
 	public Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)//nearest Memory Controller
     {
     	double distance = Double.MAX_VALUE;
-    	Vector<Integer> memControllerId = SystemConfig.nocConfig.nocElements.memoryControllers.get(0).getId();
+    	Vector<Integer> memControllerId = ((NocInterface) (SystemConfig.nocConfig.nocElements.memoryControllers.get(0).comInterface)).getId();
     	int x1 = currBankId.get(0);//bankid/cacheColumns;
     	int y1 = currBankId.get(1);//bankid%cacheColumns;
    
     	for(MainMemoryController memController:SystemConfig.nocConfig.nocElements.memoryControllers)
     	{
-    		int x2 = memController.getId().get(0);
-    		int y2 = memController.getId().get(1);
+    		int x2 = ((NocInterface)memController.comInterface).getId().get(0);
+    		int y2 = ((NocInterface)memController.comInterface).getId().get(1);
     		double localdistance = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
     		if(localdistance < distance) 
     		{
     			distance = localdistance;
-    			memControllerId = memController.getId();
+    			memControllerId = ((NocInterface)memController.comInterface).getId();
     		}
     	}
     	return memControllerId;
