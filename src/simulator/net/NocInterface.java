@@ -38,7 +38,9 @@ import config.SystemConfig;
  *
  *****************************************************/
 public class NocInterface extends CommunicationInterface{
-
+	/*
+	 * Messages are coming from simulation elements(cores, cache banks) in order to pass it to another through NOC.
+	 */
 	Router router;
 	SimulationElement reference;
 	Vector<Integer> id;
@@ -61,7 +63,6 @@ public class NocInterface extends CommunicationInterface{
 				this.getId(),
 				destinationId);
 		this.getRouter().getPort().put(addressEvent);
-		
 	}
 	
 	public Router getRouter(){

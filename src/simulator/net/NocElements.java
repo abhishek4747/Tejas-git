@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Anuj Arora
+				Contributor: Anuj Arora, Eldhose Peter
 *****************************************************************************/
 package net;
 
@@ -66,6 +66,19 @@ public class NocElements
 		l1Directories = new Vector<CentralizedDirectoryCache>();
 		memoryControllers = new Vector<MainMemoryController>();
 	}
+	/************************************************************************
+     * Method Name  : makeNocElements
+     * Purpose      : This function is used to connect the NOC elements as specified 
+     * 				  in the topology file. Placement of cache banks, core, directory and
+     * 				  memory controllers can be specified in the layout file
+     * 				  (Tejas/src/simulator/config/NocConfig.txt) in a particular format.
+     * 				  "1" denotes core, "0" denotes cache banks, "D" is used for directory,
+     * 				  "M" is for memory controller and "-" stands for dummy noc element.
+     * 				  In this function, all these elements are connected each other as specified 
+     * 				  in the configuration file. And also here we assign a vector id to the elements.
+     * Parameters   : Token bus and nuca cache
+     * Return       : void
+     *************************************************************************/
 	public void makeNocElements(TopLevelTokenBus tokenbus, NucaCache nucaCache)
 	{
         noc = new NOC();
@@ -125,6 +138,12 @@ public class NocElements
 		}
 		noc.ConnectBanks(nocInterface,rows,columns,SystemConfig.nocConfig,tokenbus);
 	}
+	/************************************************************************
+     * Method Name  : getMemoryControllerId
+     * Purpose      : To get the nearest memory controller ID by using the bank ID. 
+     * Parameters   : Bank ID
+     * Return       : Memory controller ID
+     *************************************************************************/
 	public Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)//nearest Memory Controller
     {
     	double distance = Double.MAX_VALUE;
