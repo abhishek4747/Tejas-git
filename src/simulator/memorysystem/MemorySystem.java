@@ -37,7 +37,7 @@ import memorysystem.nuca.SNuca;
 
 import memorysystem.nuca.NucaCache.NucaType;
 
-import memorysystem.Cache.CacheType;
+import memorysystem.coherence.Directory;
 import memorysystem.directory.CentralizedDirectoryCache;
 
 import generic.*;
@@ -141,13 +141,6 @@ public class MemorySystem
 		createSharedCaches();
 		createLinksBetweenSharedCaches();
 		createLinkFromPrivateCacheToSharedCache();
-		
-		for (Enumeration<String> cacheNameSet = cacheList.keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
-		{
-			String cacheName = cacheNameSet.nextElement();
-			Cache cacheToSetConnectedMSHR = cacheList.get(cacheName);
-			cacheToSetConnectedMSHR.populateConnectedMSHR();
-		}
 		
 		return coreMemSysArray;
 /*		
@@ -298,7 +291,7 @@ public class MemorySystem
 //		}
 //	}
 	
-	public static   CentralizedDirectoryCache getDirectoryCache()
+	public static Directory getDirectory(long addr)
 	{
 		return centralizedDirectory;
 	}

@@ -18,17 +18,15 @@ public interface MissStatusHoldingRegister {
 	
 	public int getCurrentSize();
 	
-	public int getMaxSizeReached();
-	
 	public int getMSHRStructSize();
 	
-	public int numOutStandingRequests(AddressCarryingEvent event);
+	public int numOutStandingRequests(long addr);
 	/*
 	 * return value signifies whether new omrentry created or not
 	 * */
 	public boolean addOutstandingRequest(AddressCarryingEvent event);
 	
-	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(AddressCarryingEvent event);
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(long addr);
 	
 	public ArrayList<AddressCarryingEvent> removeRequestsByAddressIfAvailable(AddressCarryingEvent event);
 	

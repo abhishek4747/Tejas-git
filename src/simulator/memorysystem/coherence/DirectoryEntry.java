@@ -1,24 +1,69 @@
-package memorysystem.directory;
+package memorysystem.coherence;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 
+import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CacheLine;
 import memorysystem.MESI;
-import memorysystem.Cache.CacheType;
 
 public class DirectoryEntry extends CacheLine {
-	// MESI state;
-	//boolean[] presenceBits;
-	Vector<Cache> sharers = null;
-	
-//	private boolean valid;
-	private double timestamp;
-//	private boolean modified;
 
+	private LinkedList<Cache> sharers = null;
+	private AddressCarryingEvent currentEvent = null;
+	private LinkedList<Cache> listOfAwaitedCacheResponses;
+	
+	public void addCacheToAwaitedCacheList(Cache c) {
+		if(listOfAwaitedCacheResponses.contains(c)==false) {
+			listOfAwaitedCacheResponses.add(c);
+		} else {
+			misc.Error.showErrorAndExit("Cannot add cache to the awaited cache list");
+		}		
+	}
+	
+	public void removeCacheFromAwaitedCacheList(Cache c) {
+		if(listOfAwaitedCacheResponses.contains(c)==false) {
+			misc.Error.showErrorAndExit("Cache to be removed not found. Cache : " + c);
+		}
+		
+		listOfAwaitedCacheResponses.remove(c);
+	}
+	
+	public boolean isLocked() {
+		return currentEvent!=null;
+	}
+	
+	public void unlock() {
+		if(currentEvent==null) {
+			misc.Error.showErrorAndExit("Trying to unlock an unlocked event !!");
+		}
+		
+		currentEvent = null;
+	}
+	
+	public void setCurrentEvent(AddressCarryingEvent event) {
+		if(isLocked()) {
+			misc.Error.showErrorAndExit("Trying to lock an already locked event !!");
+		}
+		
+		currentEvent = event;
+	}
+	
+	public AddressCarryingEvent getCurrentEvent() {
+		if(isLocked()==false) {
+			misc.Error.showErrorAndExit("The directory entry is in unlocked state !!");
+		}
+		
+		return currentEvent;
+	}
+	
 	public DirectoryEntry(){
 		super(1);
-		sharers = new Vector<Cache>(0);
+		sharers = new LinkedList<Cache>();
 		state = MESI.INVALID;
 		tag = 0;
 	}
@@ -44,7 +89,7 @@ public class DirectoryEntry extends CacheLine {
 		if(sharers.size()==0) {
 			return null;
 		} else if (sharers.size()==1) {
-			return sharers.elementAt(0); 
+			return sharers.get(0); 
 		} else {
 			misc.Error.showErrorAndExit("This directory entry has multiple owners : " + this);
 			return null;
@@ -67,10 +112,6 @@ public class DirectoryEntry extends CacheLine {
 		return this.sharers.size();
 	}
 	
-	public Cache getSharerAtIndex(int i){
-		return this.sharers.elementAt(i);
-	}
-	
 	public void addSharer(Cache c) {
 		
 		if(this.state==MESI.INVALID) {
@@ -80,7 +121,7 @@ public class DirectoryEntry extends CacheLine {
 		// You cannot add a new sharer for a modified entry.
 		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
 		// the same cache line which triggered the memResponse multiple times. For the time being, just ignore this hack.
-		if(this.state==MESI.MODIFIED && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
+		if(this.state==MESI.MODIFIED && this.sharers.size()>0 && this.sharers.get(0)!=c) {
 			misc.Error.showErrorAndExit("You cannot have multiple owners for a modified state !!\n" +
 					"currentOwner : " + getOwner().containingMemSys.getCore().getCore_number() + 
 					"\nnewOwner : " + c.containingMemSys.getCore().getCore_number() + 
@@ -90,7 +131,7 @@ public class DirectoryEntry extends CacheLine {
 		// You cannot add a new sharer for exclusive entry.
 		// For same entry, if you try to add an event, it was because the cache sent multiple requests for 
 		// the same cache line which triggered the memResponse multiple times. For the time being, just ignore this hack.
-		if(this.state==MESI.EXCLUSIVE && this.sharers.size()>0 && this.sharers.elementAt(0)!=c) {
+		if(this.state==MESI.EXCLUSIVE && this.sharers.size()>0 && this.sharers.get(0)!=c) {
 			misc.Error.showErrorAndExit("You cannot have multiple owners for exclusive state !!\n" +
 					"currentOwner : " + getOwner().containingMemSys.getCore().getCore_number() + 
 					"\nnewOwner : " + c.containingMemSys.getCore().getCore_number() + 
@@ -145,9 +186,21 @@ public class DirectoryEntry extends CacheLine {
 	{
 		StringBuilder s = new StringBuilder();
 		s.append("addr = " + this.getAddress() + " : "  + "state = " + this.getState() + " cores : " );
-		for(int i=0; i<this.sharers.size(); i++) {
-			s.append(this.sharers.elementAt(i).containingMemSys.getCore().getCore_number() + " , ");
+		for(Cache c : sharers) {
+			s.append(c.containingMemSys.getCore().getCore_number() + " , ");
 		}
 		return s.toString();
+	}
+
+	public LinkedList<Cache> getSharers() {
+		return sharers;
+	}
+	
+	public LinkedList<Cache> getListOfAwaitedCacheResponses() {
+		return listOfAwaitedCacheResponses;
+	}
+
+	public Cache getFirstSharer() {
+		return sharers.get(0);
 	}
 }

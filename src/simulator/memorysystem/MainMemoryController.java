@@ -48,31 +48,13 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 	
 	public void handleEvent(EventQueue eventQ, Event event)
 	{
-		if (event.getRequestType() == RequestType.Main_Mem_Read)
+		if (event.getRequestType() == RequestType.Cache_Read)
 		{
-			if(SystemConfig.interconnect==Interconnect.Bus)
-			{	
-				event.getRequestingElement().getPort().put(
-						event.update(
-								eventQ,
-								2,//wire delay from main memory to cache
-								null,
-								event.getRequestingElement(),
-								RequestType.Mem_Response));
-			}
-			else if(SystemConfig.interconnect==Interconnect.Noc)
-			{
-					//System.err.println("At Mem Controller " + ((AddressCarryingEvent)event).getAddress() + " " + ((AddressCarryingEvent)event).getSourceId());
-					this.getRouter().getPort().put(
-							new AddressCarryingEvent(
-									eventQ,
-									0,
-									this,
-									this.getRouter(),
-									RequestType.Main_Mem_Response,((AddressCarryingEvent)event).getAddress(),
-									event.coreId,
-									this.getId(),((AddressCarryingEvent)event).getSourceId()));
-			}
+			AddressCarryingEvent e = new AddressCarryingEvent(eventQ, 0,
+					this, event.getRequestingElement(),	RequestType.Mem_Response,
+					((AddressCarryingEvent)event).getAddress());
+			
+			getNetworkInterface().put(e);
 		}
 		else if (event.getRequestType() == RequestType.Main_Mem_Write)
 		{
@@ -114,7 +96,8 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
-	public EnergyConfig calculatePower(FileWriter outputFileWriter) throws IOException
+	
+	public EnergyConfig calculateEnergy(FileWriter outputFileWriter) throws IOException
 	{
 		EnergyConfig power = new EnergyConfig(SystemConfig.mainMemoryControllerPower, numAccesses);
 		return power;

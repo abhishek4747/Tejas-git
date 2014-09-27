@@ -213,7 +213,7 @@ public class Statistics {
 		}
 	}
 	
-	static void printPowerStatistics()
+	static void printEnergyStatistics()
 	{
 		try {
 			// Cores
@@ -257,7 +257,7 @@ public class Statistics {
 				mainMemoryPowers = new EnergyConfig[SystemConfig.nocConfig.nocElements.noOfMemoryControllers];
 				for(MainMemoryController controller:SystemConfig.nocConfig.nocElements.memoryControllers)
 				{
-					mainMemoryPowers[j] = controller.calculatePower(outputFileWriter);
+					mainMemoryPowers[j] = controller.calculateEnergy(outputFileWriter);
 					totalDynamicPower += mainMemoryPowers[j].dynamicEnergy;
 					totalAccesses += mainMemoryPowers[j].numAccesses;
 					j++;
@@ -1054,7 +1054,7 @@ public class Statistics {
 		}
 		
 		Statistics.printSimulationTime();
-		Statistics.printPowerStatistics();
+		Statistics.printEnergyStatistics();
 		
 		// Qemu translation cache stats
 		if(TranslatedInstructionCache.getHitRate()!=-1) {

@@ -85,4 +85,10 @@ public abstract class SimulationElement implements Cloneable
 	
 //	public abstract void handleEvent(EventQueue eventQueue);
 	public abstract void handleEvent(EventQueue eventQ, Event event);
+
+
+	public Object getNetworkInterface() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -86,32 +86,23 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	}
 	
 	@Override
-	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(AddressCarryingEvent event)
+	public ArrayList<AddressCarryingEvent> removeRequestsByAddress(long addr)
 	{
-		long address = event.getAddress();
-		long blockAddr = address >>> offset;
+		long blockAddr = addr >>> offset;
 		
 		OMREntry entry = this.mshr.remove(blockAddr);
 		if(entry==null) {
-			misc.Error.showErrorAndExit("event not in MSHR : " + event);
+			misc.Error.showErrorAndExit("event not in MSHR for address : " + addr);
 			return null;
 		} else {
-			Event removedEvent = entry.outStandingEvents.get(0);
-			event.update(removedEvent.getEventQ(),
-					0,
-					removedEvent.getRequestingElement(),
-					removedEvent.getProcessingElement(),
-					removedEvent.getRequestType()
-					);
-			
 			currentSize -= entry.outStandingEvents.size();
 			return entry.outStandingEvents;
 		}
 	}
 	
-	boolean contains(long address)
+	boolean contains(long addr)
 	{
-		long blockaddr = address >>> offset;
+		long blockaddr = addr >>> offset;
 		if( mshr.containsKey(blockaddr) )
 		{
 			return true;
@@ -122,9 +113,9 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 		}
 	}
 	
-	OMREntry getMshrEntry(long address)
+	OMREntry getMshrEntry(long addr)
 	{
-		long blockaddr = address >>> offset;
+		long blockaddr = addr >>> offset;
 		if(mshr.containsKey(blockaddr))
 		{
 			return mshr.get(blockaddr);
@@ -146,8 +137,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 	}
 
 	@Override
-	public int numOutStandingRequests(AddressCarryingEvent event) {
-		long addr = event.getAddress();
+	public int numOutStandingRequests(long addr) {
 		long dirAddr = addr>>>offset;
 		
 		OMREntry entry = mshr.get(dirAddr);
@@ -200,11 +190,4 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			System.out.println();
 		}
 	}
-
-	@Override
-	public int getMaxSizeReached() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 }

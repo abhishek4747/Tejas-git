@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-	Contributors:  Moksh Upadhyay
+	Contributors:  Moksh Upadhyay, Rajshekar, Prathmesh
 *****************************************************************************/
 package generic;
 
@@ -62,7 +62,7 @@ public enum RequestType {
 	Main_MemBank_Write,
 	Main_MemBank_Response,
 	
-	MESI_Invalidate,
+
 	MESI_RWITM,
 //	Mem_Response_with_State,
 	Request_for_copy,
@@ -78,31 +78,25 @@ public enum RequestType {
 	Migrate_Block,
 	TREE_BARRIER,
 	TREE_BARRIER_RELEASE,
-	ReadMissDirectoryUpdate,
-	WriteMissDirectoryUpdate,
-	WriteHitDirectoryUpdate,
-	EvictionDirectoryUpdate,
-	Cache_Read_Writeback,
-	Cache_Read_Writeback_Invalidate,
-	MemResponseDirectoryUpdate,
-	Send_Mem_Response,
-	Cache_Write_Writeback_Invalidate,
 	
-	Send_Mem_Response_Invalidate,
-	Invalid_Event, Cache_Hit, Cache_Miss,
+	// Directory Junk
+//	ReadMissDirectoryUpdate,
+//	WriteMissDirectoryUpdate,
+//	WriteHitDirectoryUpdate,
+//	EvictionDirectoryUpdate,
+//	MemResponseDirectoryUpdate,
+//	MESI_Invalidate,
+	
+	DirectoryWriteHit,
+	DirectoryReadMiss,
+	DirectoryWriteMiss,
+	DirectoryInvalidate,
+	DirectoryCachelineForwardRequest,
+	DirectoryEvictedFromSharedCache,
+	DirectoryEvictedFromCoherentCache,
+	DirectorySharedToExclusive,
+	
+	Cache_Hit, Cache_Miss,
 
-	Tlb_Miss_Response, CacheLine_Invalidate, Send_Migrate_Block
-	
-//	MEM_READ,
-//	MEM_WRI
-	
-	
-//	
-//	EVICTION_WRITE,
-//	MEM_BLOCK_READY,
-//	ADD_LSQ_ENTRY,
-//	VALIDATE_LSQ_ENTRY,
-//	LSQ_COMMIT,
-//	LSQ_LOAD_COMPLETE,
-//	MAIN_MEM_ACCESS_TLB
+	Tlb_Miss_Response, Send_Migrate_Block
 }
