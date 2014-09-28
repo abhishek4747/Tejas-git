@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -26,6 +26,7 @@ import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
+import net.ID;
 import net.NOC.CONNECTIONTYPE;
 import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
@@ -47,9 +48,7 @@ public class SNuca extends NucaCache
    			{
    				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
-   					Vector<Integer> bankId = new Vector<Integer>();
-   					bankId.add(i);
-   					bankId.add(j);
+   					ID bankId = new ID(i,j);
    					cacheBank.add(new SNucaBank(bankId, cacheParameters, containingMemSys, this, nucaType));
    				}
    			}
@@ -58,8 +57,8 @@ public class SNuca extends NucaCache
     void putEventToRouter(AddressCarryingEvent addrEvent)
 	{
 		long address = addrEvent.getAddress();
-		Vector<Integer> sourceId = getCoreId(addrEvent.coreId);
-		Vector<Integer> destinationId = getBankId(address);
+		ID sourceId = getCoreId(addrEvent.coreId);
+		ID destinationId = getBankId(address);
 		if(accessedBankIds.get(destinationId)==null)
 			accessedBankIds.put(destinationId,1);
 		else
@@ -71,10 +70,10 @@ public class SNuca extends NucaCache
 											 address,addrEvent.coreId,
 											 sourceId,destinationId);
 		
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-		{
+//		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//		{
 			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().
 			getPort().put(eventToBeSent);
-		}
+//		}
 	}
 }		

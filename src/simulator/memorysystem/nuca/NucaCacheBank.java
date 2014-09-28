@@ -19,6 +19,7 @@
 				Contributor: Anuj Arora, Mayur Harne
 *****************************************************************************/
 package memorysystem.nuca;
+import generic.CommunicationInterface;
 import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
@@ -28,15 +29,16 @@ import net.NOC.CONNECTIONTYPE;
 import net.NOC.TOPOLOGY;
 import java.util.Vector;
 import config.CacheConfig;
+import config.Interconnect;
 import config.SystemConfig;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 import memorysystem.nuca.NucaCache.NucaType;
 
-public class NucaCacheBank extends Cache implements NocInterface
+public class NucaCacheBank extends Cache
 {
-	public Router router;
+	public CommunicationInterface comInterface;
 	CacheConfig cacheParameters;
 	boolean isLastLevel;
 	boolean isFirstLevel;
@@ -45,17 +47,23 @@ public class NucaCacheBank extends Cache implements NocInterface
 	public Policy policy;
 	int cacheBankRows;
 	int cacheBankColumns;
-	protected Vector<Integer> bankId;
 	NucaCache nucaCache;
 
-	NucaCacheBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NucaCache nucaCache, NucaType nucaType)
+	NucaCacheBank(ID bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,NucaCache nucaCache, NucaType nucaType)
     {
 		//TODO : cache id can be more intuitive
         super("NucaCacheBank", 0, cacheParameters,containingMemSys);
     	this.timestamp = 0;
     	this.cacheParameters = cacheParameters;
-    	if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-    		this.router = new Router(SystemConfig.nocConfig,this);
+//    	if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
+    	if(SystemConfig.interconnect == Interconnect.Bus)
+		{
+			comInterface = new BusInterface(this);
+		}
+		else if(SystemConfig.interconnect == Interconnect.Noc)
+		{
+			comInterface = new NocInterface(SystemConfig.nocConfig, this);
+		}
         isLastLevel = false;
         isFirstLevel = false;
         this.nucaType = nucaType;
@@ -64,18 +72,8 @@ public class NucaCacheBank extends Cache implements NocInterface
         this.nucaCache = nucaCache;
         this.cacheBankColumns = SystemConfig.nocConfig.getNumberOfBankColumns();
         this.cacheBankRows = SystemConfig.nocConfig.getNumberOfBankRows();
-        this.bankId  = bankId;
+        ((NocInterface) this.comInterface).setId(bankId);
     }
-    
-    public Router getRouter()
-	{
-		return this.router;
-	}
-    
-    public Vector<Integer> getBankId()
-	{
-		return this.bankId;
-	}
     
     @Override
 	public void handleEvent(EventQueue eventQ, Event event)
@@ -102,10 +100,6 @@ public class NucaCacheBank extends Cache implements NocInterface
 			misc.Error.showErrorAndExit(" unexpected request came to cache bank");
 		}
 	}
-
-	
-
-	
 	protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
 	{
 	}
@@ -118,16 +112,5 @@ public class NucaCacheBank extends Cache implements NocInterface
 
 	public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
 	{
-	}
-
-	@Override
-	public Vector<Integer> getId() {
-		
-		return this.getBankId();
-	}
-
-	@Override
-	public SimulationElement getSimulationElement() {
-		return this;
 	}
 }

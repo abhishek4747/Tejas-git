@@ -52,34 +52,34 @@ public class DataBus extends SimulationElement {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
-		RequestType requestType = event.getRequestType();
-		if(event.getClass() == SignalWavelengthEvent.class && ((SignalWavelengthEvent) event).getWavelength() == -1){
-		this.topDataBus.getPort().put(event.update(
-					eventQ,
-					1,
-					this, 
-					this.topDataBus,
-					requestType));
-		}
-
-		
-		
-		else if(clusterId == (int)(((SignalWavelengthEvent) event).getWavelength()/this.totalBanks)) 
-			this.cacheBank[(int)(((SignalWavelengthEvent) event).getWavelength()%this.totalBanks)][clusterId].getRouter().getPort().put(event.
-					update(
-						eventQ,
-						1,
-						this, 
-						this.cacheBank[(int)(((SignalWavelengthEvent) event).getWavelength()%this.totalBanks)][clusterId].getRouter(),
-						requestType));
-		else{
-			this.topDataBus.getPort().put(event.update(
-					eventQ,
-					1,
-					this, 
-					this.topDataBus,
-					requestType));
-		}
-		
+//		RequestType requestType = event.getRequestType();
+//		if(event.getClass() == SignalWavelengthEvent.class && ((SignalWavelengthEvent) event).getWavelength() == -1){
+//		this.topDataBus.getPort().put(event.update(
+//					eventQ,
+//					1,
+//					this, 
+//					this.topDataBus,
+//					requestType));
+//		}
+//
+//		
+//		
+//		else if(clusterId == (int)(((SignalWavelengthEvent) event).getWavelength()/this.totalBanks)) 
+//			this.cacheBank[(int)(((SignalWavelengthEvent) event).getWavelength()%this.totalBanks)][clusterId].getRouter().getPort().put(event.
+//					update(
+//						eventQ,
+//						1,
+//						this, 
+//						this.cacheBank[(int)(((SignalWavelengthEvent) event).getWavelength()%this.totalBanks)][clusterId].getRouter(),
+//						requestType));
+//		else{
+//			this.topDataBus.getPort().put(event.update(
+//					eventQ,
+//					1,
+//					this, 
+//					this.topDataBus,
+//					requestType));
+//		}
+//		
 	}
 }

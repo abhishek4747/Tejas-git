@@ -36,10 +36,10 @@ import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
 import memorysystem.nuca.NucaCache.NucaType;
 
-public class SNucaBank extends NucaCacheBank implements NocInterface
+public class SNucaBank extends NucaCacheBank 
 {
 
-	SNucaBank(Vector<Integer> bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,SNuca nucaCache, NucaType nucaType)
+	SNucaBank(ID bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,SNuca nucaCache, NucaType nucaType)
     {
         super(bankId,cacheParameters,containingMemSys,nucaCache, nucaType);
     }
@@ -126,8 +126,8 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 		
 		long addr = addrEvent.getAddress();
 		
-		Vector<Integer> sourceId;
-		Vector<Integer> destinationId;
+		ID sourceId;
+		ID destinationId;
 		
 		/*if(event.getRequestingElement().getClass() == MainMemoryController.class)
 		{
@@ -148,8 +148,8 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 			if (evictedLine != null && 
 					this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
 			{
-				sourceId = new Vector<Integer>(this.getId());
-				destinationId = (Vector<Integer>) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
+				sourceId = new ID(((NocInterface) this.comInterface).getId());
+				destinationId = (ID) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
 				
 				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
 																			 0,this, this.getRouter(), 
@@ -163,11 +163,6 @@ public class SNucaBank extends NucaCacheBank implements NocInterface
 			nucaCache.noOfRequests += numOfOutStandingRequests;//change this value
 			policy.sendResponseToCore((AddressCarryingEvent)event, this);
 		}
-	}
-
-	@Override
-	public SimulationElement getSimulationElement() {
-		return this;
 	}
 	
 	public long getEvictions() {

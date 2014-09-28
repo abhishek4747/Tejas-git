@@ -20,20 +20,65 @@
 *****************************************************************************/
 package net;
 
+import generic.CommunicationInterface;
+import generic.EventQueue;
 import generic.Port;
+import generic.RequestType;
 import generic.SimulationElement;
 
 import java.util.Vector;
+
+import memorysystem.AddressCarryingEvent;
+
+import config.NocConfig;
+import config.SystemConfig;
 /*****************************************************
  * 
  * NocInterface to make the router generic
  *
  *****************************************************/
-public interface NocInterface{
+public class NocInterface extends CommunicationInterface{
+	/*
+	 * Messages are coming from simulation elements(cores, cache banks) in order to pass it to another through NOC.
+	 */
+	Router router;
+	SimulationElement reference;
+	ID id;
+	public NocInterface(NocConfig nocConfig, SimulationElement ref) {
+		super();
+		reference = ref;
+		this.router = new Router(SystemConfig.nocConfig, this);
+	}
 	
-	public Router getRouter();
-	public Vector<Integer> getId();
-	public Port getPort();
-	public SimulationElement getSimulationElement();
+	@Override
+	public void sendMessage(EventQueue eventQueue, int delay, RequestType reqType, long addr,
+			int coreId, ID destinationId, SimulationElement source, SimulationElement destination, int core_num) {
+		AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQueue,
+				delay,
+				source,
+				this.getRouter(), 
+				reqType, 
+				addr,
+				coreId,
+				this.getId(),
+				destinationId);
+		this.getRouter().getPort().put(addressEvent);
+	}
+	
+	public Router getRouter(){
+		return this.router;
+	}
+	public void setId(ID id)
+	{
+		this.id = id;
+	}
+	public ID getId()
+	{
+		return id;
+	}
+	public SimulationElement getSimulationElement()
+	{
+		return this.reference;
+	}
 	
 }

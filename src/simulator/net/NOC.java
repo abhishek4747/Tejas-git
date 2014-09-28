@@ -263,7 +263,7 @@ public class NOC{
 			intermediateSwitch.add(newOne);
 			newOne.connection[1] = nodes.lastElement();                          //right connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
-				newOne.range[1] = ((Router)(nodes.lastElement())).reference.getId().elementAt(1);
+				newOne.range[1] = ((Router)(nodes.lastElement())).reference.getId().gety();
 			else
 				newOne.range[1] = nodes.lastElement().range[1];                  //right range
 			nodes.lastElement().connection[0] = newOne;
@@ -271,7 +271,7 @@ public class NOC{
 			nodes.removeElementAt(lastElement - 1);                             //right is connected to rightmost end router in node list
 			newOne.connection[3] = nodes.lastElement();                         //left connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
-				newOne.range[0] = ((Router)(nodes.lastElement())).reference.getId().elementAt(1);
+				newOne.range[0] = ((Router)(nodes.lastElement())).reference.getId().gety();
 			else
 				newOne.range[0] = nodes.lastElement().range[0];                 //left range
 			nodes.lastElement().connection[0] = newOne;

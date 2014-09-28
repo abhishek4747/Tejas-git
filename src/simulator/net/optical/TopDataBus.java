@@ -23,6 +23,8 @@ package net.optical;
 
 import java.util.Vector;
 
+import net.ID;
+
 import config.NocConfig;
 
 import memorysystem.AddressCarryingEvent;
@@ -48,7 +50,7 @@ public class TopDataBus extends SimulationElement {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		
-		Vector<Integer> destinationBankId = ((AddressCarryingEvent) event).getDestinationId();
+		ID destinationBankId = ((AddressCarryingEvent) event).getDestinationId();
 		RequestType requestType = event.getRequestType();
 //		
 //		if(((AddressCarryingEvent)event).getRequestType() == RequestType.Main_Mem_Read ||
@@ -74,11 +76,11 @@ public class TopDataBus extends SimulationElement {
 			//System.out.println("top data TO entryPoint Mem_Response  " + requestType + " "+ ((AddressCarryingEvent) event).getSourceBankId()+ " " +((AddressCarryingEvent) event).getDestinationBankId());
 		}
 		else
-			this.lowLevelData.elementAt(destinationBankId.elementAt(1)).getPort().put(
+			this.lowLevelData.elementAt(destinationBankId.gety()).getPort().put(
 															((AddressCarryingEvent)event).update(eventQ, 
 															1, 
 															this,
-															this.lowLevelData.elementAt(destinationBankId.elementAt(1)),
+															this.lowLevelData.elementAt(destinationBankId.gety()),
 															requestType));
 		
 	}

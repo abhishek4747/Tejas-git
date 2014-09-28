@@ -21,8 +21,6 @@ import generic.Statistics;
 
 public class MainMemoryController extends SimulationElement implements NocInterface
 {
-	Router router;
-	Vector<Integer> nocElementId;
 	NucaType nucaType;
 	long numAccesses;
 	
@@ -34,7 +32,6 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 				SystemConfig.mainMemoryFrequency
 				);
 		this.nucaType = nucaType;
-		this.router = new Router(SystemConfig.nocConfig, this);
 	}
 	
 	public MainMemoryController() {
@@ -69,21 +66,6 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 		numAccesses += 1;
 	}
 	
-	@Override
-	public Router getRouter() {
-		// TODO Auto-generated method stub
-		return router;
-	}
-
-	@Override
-	public Vector<Integer> getId() {
-		// TODO Auto-generated method stub
-		return nocElementId;
-	}
-	public void setId(Vector<Integer> id) {
-		// TODO Auto-generated method stub
-		nocElementId = id;
-	}
 	@Override
 	public SimulationElement getSimulationElement() {
 		// TODO Auto-generated method stub

@@ -19,45 +19,42 @@
 	Contributors:  Eldhose Peter
 *****************************************************************************/
 
-package net.optical;
+package net;
 
-import config.NocConfig;
-import generic.Event;
-import generic.EventQueue;
-import generic.SimulationElement;
+import java.util.Vector;
+
 import memorysystem.AddressCarryingEvent;
-import memorysystem.nuca.NucaCacheBank;
 
-public class BroadcastBus extends SimulationElement{
+import generic.CommunicationInterface;
+import generic.EventQueue;
+import generic.RequestType;
+import generic.SimulationElement;
+
+public class BusInterface extends CommunicationInterface{
+
+	SimulationElement reference; //Connection to the simulation element which contains this interface.
 	
-	public int totalBanks;
-	public NucaCacheBank[][] banks;
-	public int clusterId;
-	public BroadcastBus(NocConfig nocConfig, int numBanks,NucaCacheBank[][] bankArray, int clusterId){
-		super(nocConfig.portType,
-				nocConfig.getAccessPorts(), 
-				nocConfig.getPortOccupancy(),
-				nocConfig.getLatency(),
-				nocConfig.operatingFreq);
-		totalBanks = numBanks;
-		banks = bankArray;
-		this.clusterId = clusterId;
+	public BusInterface(SimulationElement reference) {
+		super();
+		this.reference = reference;
 	}
+	/*
+	 * Messages are coming from simulation elements(cores, cache banks) in order to pass it to another
+	 * through electrical snooping Bus.
+	 */
 	@Override
-	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-//		AddressCarryingEvent bCastEvent;
-//		for(int i=0;i<totalBanks;i++)
-//		{
-//			bCastEvent= (AddressCarryingEvent) ((AddressCarryingEvent)event).clone();
-//			banks[i][clusterId].getRouter().getPort().put(
-//					bCastEvent.update(
-//							eventQ,
-//							1,
-//							this, 
-//							banks[i][clusterId].getRouter(),
-//							bCastEvent.getRequestType()));
-//		}
-//		
+	public void sendMessage(EventQueue eventQueue, int delay,
+			RequestType reqTye, long addr, int coreId,
+			ID destinationId, SimulationElement source,
+			SimulationElement destination, int core_num) {
+		destination.getPort().put( //Put event to the destination
+				new AddressCarryingEvent(
+					eventQueue,
+					delay,
+					source, 
+					destination,
+					reqTye, 
+					addr,
+					core_num));		
 	}
 }

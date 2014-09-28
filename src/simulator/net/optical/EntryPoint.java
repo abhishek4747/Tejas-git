@@ -23,6 +23,8 @@ package net.optical;
 
 import java.util.Vector;
 
+import net.ID;
+
 import memorysystem.AddressCarryingEvent;
 import memorysystem.MemorySystem;
 import memorysystem.SignalWavelengthEvent;
@@ -93,7 +95,7 @@ public class EntryPoint extends SimulationElement{
 			else if(requestType == RequestType.Cache_Read ||
 					requestType == RequestType.Cache_Read_from_iCache ||
 					requestType == RequestType.Cache_Write ){
-				Vector<Integer> bankId = ((AddressCarryingEvent)event).getDestinationId();
+				ID bankId = ((AddressCarryingEvent)event).getDestinationId();
 //				SignalWavelengthEvent WaveEvent = new SignalWavelengthEvent
 //						(eventQ, 
 //						0, 

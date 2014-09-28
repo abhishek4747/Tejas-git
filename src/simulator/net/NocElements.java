@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Anuj Arora
+				Contributor: Anuj Arora, Eldhose Peter
 *****************************************************************************/
 package net;
 
@@ -49,7 +49,7 @@ public class NocElements
 	public int noOfCacheBanks;
 	public int noOfL1Directories;
 	public int noOfMemoryControllers;
-	public NocInterface[][] nocElements;
+	public NocInterface[][] nocInterface;
 	public Vector<Core> cores;
 	public Vector<CentralizedDirectoryCache> l1Directories;
 	public Vector<MainMemoryController> memoryControllers;
@@ -57,7 +57,7 @@ public class NocElements
 	NucaType nucaType;
 	public NocElements(int r, int c)
 	{
-		nocElements = new NocInterface[r][c]; 
+		nocInterface = new NocInterface[r][c]; 
 		nocElementsLocations = new Vector<Vector<String>>();
 		rows = r;
 		columns = c;
@@ -66,32 +66,40 @@ public class NocElements
 		l1Directories = new Vector<CentralizedDirectoryCache>();
 		memoryControllers = new Vector<MainMemoryController>();
 	}
+	/************************************************************************
+     * Method Name  : makeNocElements
+     * Purpose      : This function is used to connect the NOC elements as specified 
+     * 				  in the topology file. Placement of cache banks, core, directory and
+     * 				  memory controllers can be specified in the layout file
+     * 				  (Tejas/src/simulator/config/NocConfig.txt) in a particular format.
+     * 				  "1" denotes core, "0" denotes cache banks, "D" is used for directory,
+     * 				  "M" is for memory controller and "-" stands for dummy noc element.
+     * 				  In this function, all these elements are connected each other as specified 
+     * 				  in the configuration file. And also here we assign a vector id to the elements.
+     * Parameters   : Token bus and nuca cache
+     * Return       : void
+     *************************************************************************/
 	public void makeNocElements(TopLevelTokenBus tokenbus, NucaCache nucaCache)
 	{
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-            noc = new NOC();
-        else
-            noc = new OpticalNOC();
+        noc = new NOC();
 		int coreNumber = 0;
 		int cacheNumber =0;
 		for(int i=0;i<rows;i++)
 		{
-			nocElements[i] = new NocInterface[columns];
+			nocInterface[i] = new NocInterface[columns];
 			for(int j=0;j<columns;j++)
 			{
 				if(nocElementsLocations.get(i).get(j).equals("1"))
 				{
-					nocElements[i][j] = (NocInterface) ArchitecturalComponent.getCores()[coreNumber];
+					nocInterface[i][j] = (NocInterface) ArchitecturalComponent.getCores()[coreNumber].comInterface;
 					cores.add(ArchitecturalComponent.getCores()[coreNumber]);
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
-					((Core)nocElements[i][j]).setId(id);
+					ID id = new ID(i,j);
+					(nocInterface[i][j]).setId(id);
 					coreNumber++;
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("0"))
 				{
-					nocElements[i][j] = nucaCache.cacheBank.get(cacheNumber);
+					nocInterface[i][j] = (NocInterface) nucaCache.cacheBank.get(cacheNumber).comInterface;
 					cacheNumber++;
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("D"))
@@ -99,50 +107,51 @@ public class NocElements
 					int dirId = i*columns+j;
 					CentralizedDirectoryCache directory = new CentralizedDirectoryCache("Directory", dirId, SystemConfig.directoryConfig, null, noOfCores, SystemConfig.dirNetworkDelay);
 					l1Directories.add(directory);
-					nocElements[i][j] = directory;
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
-					((CentralizedDirectoryCache)nocElements[i][j]).setId(id);
+					nocInterface[i][j] = (NocInterface)directory.comInterface;
+					ID id = new ID(i,j);
+					(nocInterface[i][j]).setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("M"))
 				{
 					MainMemoryController mainMemoryController = new MainMemoryController(nucaType);
 					memoryControllers.add(mainMemoryController);
-					nocElements[i][j] =  mainMemoryController;
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
-					((MainMemoryController)nocElements[i][j]).setId(id);
+					nocInterface[i][j] =  (NocInterface) mainMemoryController.comInterface;
+					ID id = new ID(i,j);
+					nocInterface[i][j].setId(id);
 				}
 				else if(nocElementsLocations.get(i).get(j).equals("-"))
 				{
-					nocElements[i][j] = new NocElementDummy(PortType.Unlimited, 1, 1, null, 1, 1);// dummy values in constructor
-					Vector<Integer> id = new Vector<Integer>();
-					id.add(i);
-					id.add(j);
-					((NocElementDummy)nocElements[i][j]).setId(id);
+					// dummy values in constructor
+					nocInterface[i][j] = (NocInterface)((new NocElementDummy(PortType.Unlimited, 1, 1, null, 1, 1)).comInterface);
+					ID id = new ID(i,j);
+					nocInterface[i][j].setId(id);
 				}
 			}
 		}
-		noc.ConnectBanks(nocElements,rows,columns,SystemConfig.nocConfig,tokenbus);
+		noc.ConnectBanks(nocInterface,rows,columns,SystemConfig.nocConfig,tokenbus);
 	}
-	public Vector<Integer> getMemoryControllerId(Vector<Integer> currBankId)//nearest Memory Controller
+	/************************************************************************
+     * Method Name  : getMemoryControllerId
+     * Purpose      : To get the nearest memory controller ID by using the bank ID. 
+     * Parameters   : Bank ID
+     * Return       : Memory controller ID
+     *************************************************************************/
+	public ID getMemoryControllerId(ID currBankId)//nearest Memory Controller
     {
     	double distance = Double.MAX_VALUE;
-    	Vector<Integer> memControllerId = SystemConfig.nocConfig.nocElements.memoryControllers.get(0).getId();
-    	int x1 = currBankId.get(0);//bankid/cacheColumns;
-    	int y1 = currBankId.get(1);//bankid%cacheColumns;
+    	ID memControllerId = ((NocInterface) (SystemConfig.nocConfig.nocElements.memoryControllers.get(0).comInterface)).getId();
+    	int x1 = currBankId.getx();//bankid/cacheColumns;
+    	int y1 = currBankId.gety();//bankid%cacheColumns;
    
     	for(MainMemoryController memController:SystemConfig.nocConfig.nocElements.memoryControllers)
     	{
-    		int x2 = memController.getId().get(0);
-    		int y2 = memController.getId().get(1);
+    		int x2 = ((NocInterface)memController.comInterface).getId().getx();
+    		int y2 = ((NocInterface)memController.comInterface).getId().gety();
     		double localdistance = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
     		if(localdistance < distance) 
     		{
     			distance = localdistance;
-    			memControllerId = memController.getId();
+    			memControllerId = ((NocInterface)memController.comInterface).getId();
     		}
     	}
     	return memControllerId;

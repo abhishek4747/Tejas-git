@@ -69,76 +69,76 @@ public class TokenBus extends SimulationElement{
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-		int flag = 0;
-		if(((AddressCarryingEvent)event).getRequestType() == RequestType.TOKEN)
-		{
-			if(currentId == totalBanks)
-			{
-				currentId = 0;
-				topTokenBus.getPort().put(event.
-						update(topTokenBus.eq,
-								1, 
-								this, 
-								this.topTokenBus, 
-								RequestType.TOKEN));
-			}
-			else 
-			{
-				int i;
-				for(i=currentId; i<totalBanks; i++)
-				{
-					if(((OpticalRouter)banks[i][clusterId].getRouter()).readyToSend){
-						banks[clusterId][i].getRouter().getPort().put(event.
-								update(topTokenBus.eq,
-										0, 
-										this, 
-										this.banks[i][clusterId].getRouter(), 
-										RequestType.TOKEN));
-						flag = 1;
-						currentId = i+1;
-						break;
-						
-					}
-				}
-				if(flag == 0)
-				{
-					currentId = 0;
-					this.getPort().put(event.
-							update(topTokenBus.eq,
-									1, 
-									this, 
-									this.topTokenBus, 
-									RequestType.TOKEN));
-				}
-			}
-		}
-		else
-		{
-			flag =0;
-			for(int j = currentIdLocal; j< totalBanks; j++)
-			{
-				if(((OpticalRouter)banks[j][clusterId].getRouter()).readyToSendLocally){
-					banks[clusterId][j].getRouter().getPort().put(event.
-							update(topTokenBus.eq,
-									0, 
-									this, 
-									this.banks[j][clusterId].getRouter(), 
-									RequestType.LOCAL_TOKEN));
-					currentIdLocal = (j+1)% totalBanks;
-					flag =1;
-					break;
-				}
-			}
-			if(flag == 0){
-				currentIdLocal = 0 ;
-				this.getPort().put(event.
-						update(topTokenBus.eq,
-								1,
-								this,
-								this, 
-								RequestType.LOCAL_TOKEN));
-			}
-		}
+//		// TODO Auto-generated method stub
+//		int flag = 0;
+//		if(((AddressCarryingEvent)event).getRequestType() == RequestType.TOKEN)
+//		{
+//			if(currentId == totalBanks)
+//			{
+//				currentId = 0;
+//				topTokenBus.getPort().put(event.
+//						update(topTokenBus.eq,
+//								1, 
+//								this, 
+//								this.topTokenBus, 
+//								RequestType.TOKEN));
+//			}
+//			else 
+//			{
+//				int i;
+//				for(i=currentId; i<totalBanks; i++)
+//				{
+//					if(((OpticalRouter)banks[i][clusterId].getRouter()).readyToSend){
+//						banks[clusterId][i].getRouter().getPort().put(event.
+//								update(topTokenBus.eq,
+//										0, 
+//										this, 
+//										this.banks[i][clusterId].getRouter(), 
+//										RequestType.TOKEN));
+//						flag = 1;
+//						currentId = i+1;
+//						break;
+//						
+//					}
+//				}
+//				if(flag == 0)
+//				{
+//					currentId = 0;
+//					this.getPort().put(event.
+//							update(topTokenBus.eq,
+//									1, 
+//									this, 
+//									this.topTokenBus, 
+//									RequestType.TOKEN));
+//				}
+//			}
+//		}
+//		else
+//		{
+//			flag =0;
+//			for(int j = currentIdLocal; j< totalBanks; j++)
+//			{
+//				if(((OpticalRouter)banks[j][clusterId].getRouter()).readyToSendLocally){
+//					banks[clusterId][j].getRouter().getPort().put(event.
+//							update(topTokenBus.eq,
+//									0, 
+//									this, 
+//									this.banks[j][clusterId].getRouter(), 
+//									RequestType.LOCAL_TOKEN));
+//					currentIdLocal = (j+1)% totalBanks;
+//					flag =1;
+//					break;
+//				}
+//			}
+//			if(flag == 0){
+//				currentIdLocal = 0 ;
+//				this.getPort().put(event.
+//						update(topTokenBus.eq,
+//								1,
+//								this,
+//								this, 
+//								RequestType.LOCAL_TOKEN));
+//			}
+//		}
 	}
 }

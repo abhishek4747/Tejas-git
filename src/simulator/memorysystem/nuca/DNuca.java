@@ -27,6 +27,8 @@ import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.CoreMemorySystem;
 import misc.Util;
+import net.ID;
+import net.NocInterface;
 import net.NOC.CONNECTIONTYPE;
 import net.optical.TopLevelTokenBus;
 import config.CacheConfig;
@@ -39,13 +41,13 @@ public class DNuca extends NucaCache{
 	int bankSetBits;
 	int numBanksinBankSet;
 	static long eventId;
-	HashMap<Integer,Vector<Vector<Integer>>> bankSetNumToBankIds;
+	HashMap<Integer,Vector<ID>> bankSetNumToBankIds;
 	public DNuca(CacheConfig cacheParameters,
 			CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,
 			NucaType nucaType) 
 	{
 		super(cacheParameters, containingMemSys, tokenbus, nucaType);
-		bankSetNumToBankIds = new HashMap<Integer,Vector<Vector<Integer>>>();
+		bankSetNumToBankIds = new HashMap<Integer,Vector<ID>>();
 		bankSetnum = new Vector<Integer>();
 		makeCacheBanks(cacheParameters, containingMemSys, tokenbus,nucaType,this);
 		makeBankSets();
@@ -61,9 +63,7 @@ public class DNuca extends NucaCache{
    			{
    				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
-   					Vector<Integer> bankId = new Vector<Integer>();
-   					bankId.add(i);
-   					bankId.add(j);
+   					ID bankId = new ID(i,j);
    					cacheBank.add(new DNucaBank(bankId, cacheParameters, containingMemSys, this, nucaType));
    				}
    			}
@@ -80,27 +80,25 @@ public class DNuca extends NucaCache{
    			{
    				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
-   					Vector<Integer> bankId = new Vector<Integer>();
-   					bankId.add(i);
-   					bankId.add(j);
+   					ID bankId = new ID(i,j);
    					if(bankSetNumToBankIds.get(i)==null)
    					{
    						numOfBankSets++;
    						bankSetnum.add(i);
-   						Vector<Vector<Integer>> temp = new Vector<Vector<Integer>>();
+   						Vector<ID> temp = new Vector<ID>();
    						temp.add(bankId);
    						bankSetNumToBankIds.put(i,temp);
    						
    					}
    					else
    					{
-   						Vector<Vector<Integer>> temp=bankSetNumToBankIds.get(i);
+   						Vector<ID> temp=bankSetNumToBankIds.get(i);
    						temp.add(bankId);
    						bankSetNumToBankIds.put(i,temp);
    					}
    					for(NucaCacheBank nuca:cacheBank)
 					{
-						if(nuca.getBankId().equals(bankId))
+						if(((NocInterface)(nuca.comInterface)).getId().equals(bankId))
 						{
 							bankIdtoNucaCacheBank.put(bankId, nuca);
 						}
@@ -113,9 +111,9 @@ public class DNuca extends NucaCache{
 	void putEventToRouter(AddressCarryingEvent addrEvent)
 	{
 		long address = addrEvent.getAddress();
-		Vector<Integer> sourceId = getCoreId(addrEvent.coreId);
+		ID sourceId = getCoreId(addrEvent.coreId);
 		int bankSet = getBankSetId(address);
-		Vector<Integer> destinationId = getNearestBank(bankSet, sourceId);//getBankInBankSet(bankSet, address);
+		ID destinationId = getNearestBank(bankSet, sourceId);//getBankInBankSet(bankSet, address);
 		if(accessedBankIds.get(destinationId)==null)
 			accessedBankIds.put(destinationId,1);
 		else
@@ -126,13 +124,13 @@ public class DNuca extends NucaCache{
 											 addrEvent.getRequestType(),
 											 address,addrEvent.coreId,
 											 sourceId,destinationId);
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
-		{
+//		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
+//		{
 			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().
 			getPort().put(eventToBeSent);
-		}
+//		}
 	}
-	Vector<Integer> getBankInBankSet(int bankSet,long addr) 
+	ID getBankInBankSet(int bankSet,long addr) 
 	{
 		int banknuminset =-1;
 		if(mapping == Mapping.SET_ASSOCIATIVE) 
@@ -174,15 +172,15 @@ public class DNuca extends NucaCache{
 			return 0;
 		}
 	}
-	Vector<Integer> getNearestBank(int bankSet,Vector<Integer> coreId)
+	ID getNearestBank(int bankSet,ID coreId)
 	{
-		Vector<Vector<Integer>> bankIds = bankSetNumToBankIds.get(bankSetnum.get(bankSet));
-		Vector<Integer> nearestBankId=null;
+		Vector<ID> bankIds = bankSetNumToBankIds.get(bankSetnum.get(bankSet));
+		ID nearestBankId=null;
 		int min=Integer.MAX_VALUE;
-		for(Vector<Integer> bankId:bankIds)
+		for(ID bankId:bankIds)
 		{
-			int dist = (coreId.get(0) - bankId.get(0))*(coreId.get(0) - bankId.get(0)) + 
-					   (coreId.get(1) - bankId.get(1))*(coreId.get(1) - bankId.get(1)) ;
+			int dist = (coreId.getx() - bankId.getx())*(coreId.getx() - bankId.getx()) + 
+					   (coreId.gety() - bankId.gety())*(coreId.gety() - bankId.gety()) ;
 			if(dist<min)
 			{
 				min=dist;

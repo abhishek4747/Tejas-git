@@ -39,7 +39,9 @@ import memorysystem.Mode3MSHR;
 import misc.Util;
 import config.CacheConfig;
 import config.SimulationConfig;
+import net.ID;
 import net.NOC;
+import net.NocInterface;
 import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
 
@@ -58,7 +60,7 @@ public class NucaCache extends Cache
 	}
     
     public Vector<NucaCacheBank> cacheBank;
-    public HashMap<Vector<Integer>,NucaCacheBank> bankIdtoNucaCacheBank; 
+    public HashMap<ID,NucaCacheBank> bankIdtoNucaCacheBank; 
     public int cacheRows;
     public int cacheColumns;
     public NOC noc;
@@ -69,7 +71,7 @@ public class NucaCache extends Cache
     private int minHopLength;
     private long numOfRequests;
     private int totalNucaBankAcesses;
-    static public HashMap<Vector<Integer>,Integer> accessedBankIds = new HashMap<Vector<Integer>, Integer>();
+    static public HashMap<ID,Integer> accessedBankIds = new HashMap<ID, Integer>();
     public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,NucaType nucaType)
     {
     	//TODO : cache id can be more intuitive
@@ -78,7 +80,7 @@ public class NucaCache extends Cache
     	this.cacheRows = SystemConfig.nocConfig.getNumberOfBankRows();
         this.cacheColumns = SystemConfig.nocConfig.getNumberOfBankColumns();
         this.cacheBank =new Vector<NucaCacheBank>();
-        this.bankIdtoNucaCacheBank = new HashMap<Vector<Integer>, NucaCacheBank>();
+        this.bankIdtoNucaCacheBank = new HashMap<ID, NucaCacheBank>();
         this.blockSizeBits = Util.logbase2(cacheParameters.getBlockSize());
         this.mapping = SystemConfig.nocConfig.mapping;
         maxHopLength = Integer.MIN_VALUE;
@@ -97,9 +99,7 @@ public class NucaCache extends Cache
    			{
    				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
-   					Vector<Integer> bankId = new Vector<Integer>();
-   					bankId.add(i);
-   					bankId.add(j);
+   					ID bankId = new ID(i,j);
    					cacheBank.add(new NucaCacheBank(bankId, cacheParameters, containingMemSys, this, nucaType));
    				}
    			}
@@ -187,17 +187,15 @@ public class NucaCache extends Cache
 	}
 
 	
-    public Vector<Integer> integerToBankId(int bankNumber)
+    public ID integerToBankId(int bankNumber)
 	{
-		Vector<Integer> id = new Vector<Integer>(2);
-		id.add((bankNumber/cacheColumns));
-		id.add((bankNumber%cacheColumns));
+		ID id = new ID(bankNumber/cacheColumns,bankNumber%cacheColumns);
 		return id;
 	}
 	
-	public int bankIdtoInteger(Vector<Integer> bankId)
+	public int bankIdtoInteger(ID bankId)
 	{
-		int bankNumber = bankId.get(0)*cacheColumns + bankId.get(1);
+		int bankNumber = bankId.getx()*cacheColumns + bankId.gety();
 		return bankNumber;
 	}
 	
@@ -206,17 +204,17 @@ public class NucaCache extends Cache
 		return cacheBank.size();		
 	}
 	
-	public Vector<Integer> getCoreId(int coreId)
+	public ID getCoreId(int coreId)
 	{
-		Vector<Integer> bankId = ArchitecturalComponent.getCores()[coreId].getId();
+		ID bankId = ((NocInterface) (ArchitecturalComponent.getCores()[coreId].comInterface)).getId();
 		return bankId;
 	}
 	
-	public Vector<Integer> getBankId(long addr)
+	public ID getBankId(long addr)
 	{
-		Vector<Integer> destinationBankId = new Vector<Integer>();
+		ID destinationBankId;
 		int bankNumber= getBankNumber(addr);
-		destinationBankId = cacheBank.get(bankNumber).getBankId();
+		destinationBankId = ((NocInterface) cacheBank.get(bankNumber).comInterface).getId();
 		return destinationBankId;
 	}
 	
