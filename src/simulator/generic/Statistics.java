@@ -237,13 +237,14 @@ public class Statistics {
 			// Main Memory
 			EnergyConfig mainMemoryEnergy = new EnergyConfig(0, 0);						
 			int memControllerId = 0;
+			outputFileWriter.write("\n\n");
 			for(MainMemoryController memController : ArchitecturalComponent.memoryControllers) {
 				String name = "MainMemoryController[" + memControllerId + "]";
 				memControllerId++;
 				mainMemoryEnergy.add(memController.calculateAndPrintEnergy(outputFileWriter, name));
 			}
 			
-			outputFileWriter.write("\n\n");
+			outputFileWriter.write("\n");
 			mainMemoryEnergy.printEnergyStats(outputFileWriter, "mainMemoryControllerEnergy.total");
 			totalEnergy.add(mainMemoryEnergy);
 			

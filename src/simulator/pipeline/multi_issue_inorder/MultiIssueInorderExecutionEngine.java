@@ -73,7 +73,8 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		this.setMemUnitIn(new MemUnitIn_MII(core,this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core,this));
 		this.executionComplete=false;
-		functionalUnitSet = new FunctionalUnitSet(core, core.getAllNUnits(),core.getAllLatencies());
+		functionalUnitSet = new FunctionalUnitSet(core, core.getAllNUnits(),core.getAllLatencies(),
+				core.getAllReciprocalsOfThroughputs());
 		memStall=0;
 		dataHazardStall=0;
 		

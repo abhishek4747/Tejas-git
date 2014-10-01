@@ -1,5 +1,6 @@
 package pipeline.multi_issue_inorder;
 
+import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.MemorySystem;
 import config.CoreConfig;
@@ -147,11 +148,11 @@ public class FetchUnitIn_MII extends SimulationElement
 						if(this.core.TreeBarrier == true){
 							setSleep(true);
 							int coreId = this.core.getCore_number();
-							this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
-									this.core.eventQueue,
+							ArchitecturalComponent.coreBroadcastBus.getPort().put(new AddressCarryingEvent(
+									0,this.core.eventQueue,
 									 this.core.barrier_latency,
-									 this.core.coreBcastBus, 
-									 this.core.coreBcastBus, 
+									 ArchitecturalComponent.coreBroadcastBus, 
+									 ArchitecturalComponent.coreBroadcastBus, 
 									 RequestType.TREE_BARRIER, 
 									 barrierAddress,
 									 coreId));
@@ -179,13 +180,13 @@ public class FetchUnitIn_MII extends SimulationElement
 										bar_lat = this.core.barrier_latency;
 								}
 								for(int i=0; i<bar.getNumThreads(); i++ ){
-									this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
+									ArchitecturalComponent.coreBroadcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(i));
 								}
-								this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+								ArchitecturalComponent.coreBroadcastBus.getPort().put(new AddressCarryingEvent(
 										 this.core.eventQueue,
 										 bar_lat,
-										 this.core.coreBcastBus, 
-										 this.core.coreBcastBus, 
+										 ArchitecturalComponent.coreBroadcastBus, 
+										 ArchitecturalComponent.coreBroadcastBus, 
 										 RequestType.PIPELINE_RESUME, 
 										 0));
 	

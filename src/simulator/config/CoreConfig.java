@@ -75,6 +75,13 @@ public class CoreConfig
 	public int FloatMulLatency;
 	public int FloatDivLatency;
 	
+	public int IntALUReciprocalOfThroughput;
+	public int IntMulReciprocalOfThroughput;
+	public int IntDivReciprocalOfThroughput;
+	public int FloatALUReciprocalOfThroughput;
+	public int FloatMulReciprocalOfThroughput;
+	public int FloatDivReciprocalOfThroughput;
+	
 	public Vector<CacheConfig> coreCacheList = new Vector<CacheConfig>();
 
 	public BranchPredictorConfig branchPredictor;

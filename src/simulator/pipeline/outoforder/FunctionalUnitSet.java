@@ -17,6 +17,7 @@ public class FunctionalUnitSet {
 	Core core;
 	private int[] nUnits;
 	private int[] latencies;
+	private int[] reciprocalsOfThroughputs;
 	
 	//usage : if timeWhenFUAvailable <= current_time, then FU available for use
 	//absolute time -- in terms of GlobalClock
@@ -27,16 +28,18 @@ public class FunctionalUnitSet {
 	long numComplexALUAccesses;
 	
 	
-	public FunctionalUnitSet(Core core, int[] _nUnits, int[] _latencies)
+	public FunctionalUnitSet(Core core, int[] _nUnits, int[] _latencies, int[] _reciprocalsOfThroughputs)
 	{
 		this.core = core;
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
 		latencies = new int[FunctionalUnitType.no_of_types.ordinal()];
+		reciprocalsOfThroughputs = new int[FunctionalUnitType.no_of_types.ordinal()];
 		
 		for(int i = 0; i < FunctionalUnitType.no_of_types.ordinal(); i++)
 		{
 			nUnits[i] = _nUnits[i];
 			latencies[i] = _latencies[i];
+			reciprocalsOfThroughputs[i] = _reciprocalsOfThroughputs[i];
 		}
 		
 		timeWhenFUAvailable = new long[FunctionalUnitType.no_of_types.ordinal()][];
@@ -61,10 +64,11 @@ public class FunctionalUnitSet {
 		{
 			if(timeWhenFUAvailable[FUType.ordinal()][i] <= current_time)
 			{
-				timeWhenFUAvailable[FUType.ordinal()][i] = current_time + latencies[FUType.ordinal()]*stepSize;
+				timeWhenFUAvailable[FUType.ordinal()][i] = current_time + reciprocalsOfThroughputs[FUType.ordinal()]*stepSize;
 				
 				if(FUType == FunctionalUnitType.integerALU)
 				{
+					//TODO this is overcounting in case of pipelined FUs
 					incrementIntALUAccesses(latencies[FUType.ordinal()]);
 				}
 				else if(FUType == FunctionalUnitType.floatALU)

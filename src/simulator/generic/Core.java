@@ -63,6 +63,7 @@ public class Core extends SimulationElement{
 	private int branchMispredictionPenalty;
 	private int[] nUnits;
 	private int[] latencies;
+	private int[] reciprocalOfThroughputs;
 	
 	//core power parameters
 	private EnergyConfig bPredPower;
@@ -206,8 +207,9 @@ public class Core extends SimulationElement{
 		setBarrierUnit(coreConfig.barrierUnit);
 		
 		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
-		latencies = new int[FunctionalUnitType.no_of_types.ordinal() + 2];
+		latencies = new int[FunctionalUnitType.no_of_types.ordinal()];
 					// +2 because memory unit has L1 latency, L2 latency, main memory latency
+		reciprocalOfThroughputs = new int[FunctionalUnitType.no_of_types.ordinal()];
 		
 		nUnits[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALUNum;
 		nUnits[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulNum;
@@ -222,6 +224,13 @@ public class Core extends SimulationElement{
 		latencies[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALULatency;
 		latencies[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulLatency;
 		latencies[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivLatency;
+		
+		reciprocalOfThroughputs[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALUReciprocalOfThroughput;
+		reciprocalOfThroughputs[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulReciprocalOfThroughput;
+		reciprocalOfThroughputs[FunctionalUnitType.integerDiv.ordinal()] = coreConfig.IntDivReciprocalOfThroughput;
+		reciprocalOfThroughputs[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALUReciprocalOfThroughput;
+		reciprocalOfThroughputs[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulReciprocalOfThroughput;
+		reciprocalOfThroughputs[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivReciprocalOfThroughput;
 	}
 	
 	/*public void boot()
@@ -384,6 +393,11 @@ public class Core extends SimulationElement{
 	public int getLatency(int FUType)
 	{
 		return latencies[FUType];
+	}
+	
+	public int[] getAllReciprocalsOfThroughputs()
+	{
+		return reciprocalOfThroughputs;
 	}
 
 	public int getIWSize() {

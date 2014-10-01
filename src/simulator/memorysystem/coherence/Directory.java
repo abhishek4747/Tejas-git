@@ -4,26 +4,21 @@ import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
 import generic.RequestType;
-import generic.SimulationElement;
 import generic.Statistics;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Queue;
-
-import com.sun.org.apache.xpath.internal.functions.FuncUnparsedEntityURI;
-
-import config.CacheConfig;
-import config.EnergyConfig;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MESI;
-import memorysystem.MemorySystem;
+import config.CacheConfig;
+import config.EnergyConfig;
+import config.SystemConfig;
 
 // Unlock function should call the state change function. This is called using the current event field inside the directory entry.
 // For write hit event, there is some mismatch
@@ -867,6 +862,7 @@ public class Directory extends Cache implements Coherence {
 	}
 
 	public void printStatistics(FileWriter outputFileWriter) throws IOException {
+		outputFileWriter.write("\n");
 		outputFileWriter.write("Directory Access due to ReadMiss\t=\t" + readMissAccesses + "\n");
 		outputFileWriter.write("Directory Access due to WriteMiss\t=\t" + writeMissAccesses + "\n");
 		outputFileWriter.write("Directory Access due to WriteHit\t=\t" + writeHitAccesses + "\n");
@@ -879,5 +875,16 @@ public class Directory extends Cache implements Coherence {
 			outputFileWriter.write("Directory Hit-Rate\t=\t" + Statistics.formatDouble((double)(hits)/(hits+misses)) + "\n");
 			outputFileWriter.write("Directory Miss-Rate\t=\t" + Statistics.formatDouble((double)(misses)/(hits+misses)) + "\n");
 		}
+	}
+	
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
+	{
+		long numAccesses = readMissAccesses + writeHitAccesses + writeMissAccesses 
+				+ evictedFromCoherentCacheAccesses + evictedFromSharedCacheAccesses;
+		EnergyConfig newPower = new EnergyConfig(SystemConfig.directoryConfig.power.leakageEnergy,
+				SystemConfig.directoryConfig.power.readDynamicEnergy);
+		EnergyConfig power = new EnergyConfig(newPower, numAccesses);
+		power.printEnergyStats(outputFileWriter, componentName);
+		return power;
 	}
 }

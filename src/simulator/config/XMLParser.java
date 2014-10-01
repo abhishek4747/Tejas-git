@@ -504,11 +504,13 @@ public class XMLParser
 			Element intALUElmnt = (Element)(coreElmnt.getElementsByTagName("IntALU")).item(0);
 			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", intALUElmnt));
 			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", intALUElmnt));
+			core.IntALUReciprocalOfThroughput = Integer.parseInt(getImmediateString("IntALUReciprocalOfThroughput", intALUElmnt));
 			core.intALUPower = getEnergyConfig(intALUElmnt);
 
 			Element floatALUElmnt = (Element)(coreElmnt.getElementsByTagName("FloatALU")).item(0);
 			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", floatALUElmnt));
 			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", floatALUElmnt));
+			core.FloatALUReciprocalOfThroughput = Integer.parseInt(getImmediateString("FloatALUReciprocalOfThroughput", floatALUElmnt));
 			core.floatALUPower = getEnergyConfig(floatALUElmnt);
 			
 			Element complexALUElmnt = (Element)(coreElmnt.getElementsByTagName("ComplexALU")).item(0);
@@ -520,6 +522,10 @@ public class XMLParser
 			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", complexALUElmnt));
 			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", complexALUElmnt));
 			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", complexALUElmnt));
+			core.IntMulReciprocalOfThroughput = Integer.parseInt(getImmediateString("IntMulReciprocalOfThroughput", complexALUElmnt));
+			core.IntDivReciprocalOfThroughput = Integer.parseInt(getImmediateString("IntDivReciprocalOfThroughput", complexALUElmnt));
+			core.FloatMulReciprocalOfThroughput = Integer.parseInt(getImmediateString("FloatMulReciprocalOfThroughput", complexALUElmnt));
+			core.FloatDivReciprocalOfThroughput = Integer.parseInt(getImmediateString("FloatDivReciprocalOfThroughput", complexALUElmnt));
 			core.complexALUPower = getEnergyConfig(complexALUElmnt);
 						
 			//set Branch Predictor Parameters

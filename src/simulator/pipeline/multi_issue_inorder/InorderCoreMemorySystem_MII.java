@@ -34,8 +34,7 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 																	 this, 
 																	 l1Cache,
 																	 requestType, 
-																	 address,
-																	 core.getCore_number());
+																	 address);
 		
 		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {
 			return false;
@@ -69,8 +68,7 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 				 this, 
 				 iCache,
 				 RequestType.Cache_Read, 
-				 address,
-				 core.getCore_number());
+				 address);
 
 		
 		//attempt issue to lower level cache
