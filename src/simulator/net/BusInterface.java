@@ -21,40 +21,23 @@
 
 package net;
 
-import java.util.Vector;
-
-import memorysystem.AddressCarryingEvent;
-
 import generic.CommunicationInterface;
-import generic.EventQueue;
-import generic.RequestType;
-import generic.SimulationElement;
+import generic.Event;
 
-public class BusInterface extends CommunicationInterface{
+public class BusInterface implements CommunicationInterface{
 
-	SimulationElement reference; //Connection to the simulation element which contains this interface.
-	
-	public BusInterface(SimulationElement reference) {
+	Bus bus;
+	public BusInterface() {
 		super();
-		this.reference = reference;
+		bus = new Bus();
 	}
+	
 	/*
 	 * Messages are coming from simulation elements(cores, cache banks) in order to pass it to another
 	 * through electrical snooping Bus.
 	 */
 	@Override
-	public void sendMessage(EventQueue eventQueue, int delay,
-			RequestType reqTye, long addr, int coreId,
-			ID destinationId, SimulationElement source,
-			SimulationElement destination, int core_num) {
-		destination.getPort().put( //Put event to the destination
-				new AddressCarryingEvent(
-					eventQueue,
-					delay,
-					source, 
-					destination,
-					reqTye, 
-					addr,
-					core_num));		
+	public void sendMessage(Event event) {
+		bus.sendBusMessage(event);		
 	}
 }

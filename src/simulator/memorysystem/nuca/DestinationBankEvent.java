@@ -19,8 +19,10 @@
 				Contributor: Mayur Harne
 *****************************************************************************/
 
-package memorysystem;
+package memorysystem.nuca;
 import java.util.Vector;
+
+import memorysystem.AddressCarryingEvent;
 import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
@@ -36,7 +38,7 @@ public class DestinationBankEvent extends AddressCarryingEvent
 			SimulationElement requestingElement,
 			SimulationElement processingElement,
 			RequestType requestType, long address,int coreId) {
-		super(eventQ, eventTime, requestingElement, 
+		super(address, eventQ, eventTime, requestingElement, 
 			  processingElement, requestType,address,coreId);
 		sourceBankId = null;
 		destinationBankId = null;

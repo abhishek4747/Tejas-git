@@ -33,12 +33,12 @@ import config.SystemConfig;
 
 public class SNuca extends NucaCache
 {
-    public SNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,NucaType nucaType)
+    public SNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, NucaType nucaType)
     {
-    	super(cacheParameters, containingMemSys, tokenbus,nucaType);
-    	makeCacheBanks(cacheParameters, containingMemSys, tokenbus,nucaType,this);
+    	super(cacheParameters, containingMemSys, nucaType);
+    	makeCacheBanks(cacheParameters, containingMemSys, nucaType,this);
     }
-    protected void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus, NucaType nucaType, SNuca nucaCache)
+    protected void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, NucaType nucaType, SNuca nucaCache)
    	{
        	int rows = SystemConfig.nocConfig.getNumberOfBankRows();
        	int cols = SystemConfig.nocConfig.getNumberOfBankColumns();

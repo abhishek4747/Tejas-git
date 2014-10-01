@@ -5,16 +5,23 @@ import generic.EventQueue;
 import generic.GlobalClock;
 import generic.RequestType;
 import generic.SimulationElement;
+import generic.Statistics;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import com.sun.org.apache.xpath.internal.functions.FuncUnparsedEntityURI;
 
+import config.CacheConfig;
+import config.EnergyConfig;
+
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 import memorysystem.CacheLine;
+import memorysystem.CoreMemorySystem;
 import memorysystem.MESI;
 import memorysystem.MemorySystem;
 
@@ -22,6 +29,18 @@ import memorysystem.MemorySystem;
 // For write hit event, there is some mismatch
 
 public class Directory extends Cache implements Coherence {
+	
+	long readMissAccesses = 0;
+	long writeHitAccesses = 0;
+	long writeMissAccesses = 0;
+	long evictedFromCoherentCacheAccesses = 0;
+	long evictedFromSharedCacheAccesses = 0;	
+
+	public Directory(String cacheName, int id, CacheConfig cacheParameters,
+			CoreMemorySystem containingMemSys) {
+		super(cacheName, id, cacheParameters, containingMemSys);
+		// TODO Auto-generated constructor stub
+	}
 
 	private DirectoryEntry[] lines;
 
@@ -42,19 +61,25 @@ public class Directory extends Cache implements Coherence {
 	}
 
 	public void writeHit(long addr, Cache c) {
+		writeHitAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryWriteHit);
 	}
 
 	public void readMiss(long addr, Cache c) {
+		readMissAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryReadMiss);
 	}
 
 	public void writeMiss(long addr, Cache c) {
+		writeMissAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryWriteMiss);
 	}
 
 	private void sendAnEventFromCacheToDirectoryAndAddToPendingList
 		(long addr, Cache c, RequestType request) {
+		
+		incrementHitMissInformation(addr);
+		
 		// Create an event
 		Directory directory = this;
 		AddressCarryingEvent event = new AddressCarryingEvent(
@@ -67,6 +92,16 @@ public class Directory extends Cache implements Coherence {
 		addPendingEvent(event);
 	}
 	
+	private void incrementHitMissInformation(long addr) {
+		DirectoryEntry dirEntry = getDirectoryEntry(addr);
+		
+		if(dirEntry==null || dirEntry.getState()==MESI.INVALID) {
+			misses++;
+		} else {
+			hits++;
+		}		
+	}
+
 	private void sendAnEventFromDirectoryToCache(long addr, Cache c, RequestType request) {
 		// Create an event
 		Directory directory = this;
@@ -317,10 +352,12 @@ public class Directory extends Cache implements Coherence {
 	}
 	
 	public void evictedFromSharedCache(long addr, Cache c) {
+		evictedFromSharedCacheAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryEvictedFromSharedCache);
 	}
 	
 	public void evictedFromCoherentCache(long addr, Cache c) {
+		evictedFromCoherentCacheAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryEvictedFromCoherentCache);
 	}
 	
@@ -827,5 +864,20 @@ public class Directory extends Cache implements Coherence {
 		
 		misc.Error.showErrorAndExit("no invalid entry found in fillDir()");
 		return null;
+	}
+
+	public void printStatistics(FileWriter outputFileWriter) throws IOException {
+		outputFileWriter.write("Directory Access due to ReadMiss\t=\t" + readMissAccesses + "\n");
+		outputFileWriter.write("Directory Access due to WriteMiss\t=\t" + writeMissAccesses + "\n");
+		outputFileWriter.write("Directory Access due to WriteHit\t=\t" + writeHitAccesses + "\n");
+		outputFileWriter.write("Directory Access due to EvictionFromCoherentCache\t=\t" + evictedFromCoherentCacheAccesses + "\n");
+		outputFileWriter.write("Directory Access due to EvictionFromSharedCache\t=\t" + evictedFromSharedCacheAccesses + "\n");
+		
+		outputFileWriter.write("Directory Hits\t=\t" + hits + "\n");
+		outputFileWriter.write("Directory Misses\t=\t" + misses + "\n");
+		if ((hits+misses) != 0) {
+			outputFileWriter.write("Directory Hit-Rate\t=\t" + Statistics.formatDouble((double)(hits)/(hits+misses)) + "\n");
+			outputFileWriter.write("Directory Miss-Rate\t=\t" + Statistics.formatDouble((double)(misses)/(hits+misses)) + "\n");
+		}
 	}
 }

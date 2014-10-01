@@ -21,15 +21,10 @@
 package net;
 
 import generic.CommunicationInterface;
-import generic.EventQueue;
-import generic.Port;
-import generic.RequestType;
-import generic.SimulationElement;
-
-import java.util.Vector;
-
-import memorysystem.AddressCarryingEvent;
-
+import generic.Event;
+import main.ArchitecturalComponent;
+import memorysystem.MainMemoryController;
+import net.NOC.CONNECTIONTYPE;
 import config.NocConfig;
 import config.SystemConfig;
 /*****************************************************
@@ -37,48 +32,44 @@ import config.SystemConfig;
  * NocInterface to make the router generic
  *
  *****************************************************/
-public class NocInterface extends CommunicationInterface{
+public class NocInterface implements CommunicationInterface{
 	/*
 	 * Messages are coming from simulation elements(cores, cache banks) in order to pass it to another through NOC.
 	 */
 	Router router;
-	SimulationElement reference;
-	ID id;
-	public NocInterface(NocConfig nocConfig, SimulationElement ref) {
+	
+	public NocInterface(NocConfig nocConfig) {
 		super();
-		reference = ref;
-		this.router = new Router(SystemConfig.nocConfig, this);
+		this.router = new Router(nocConfig, this);
 	}
 	
 	@Override
-	public void sendMessage(EventQueue eventQueue, int delay, RequestType reqType, long addr,
-			int coreId, ID destinationId, SimulationElement source, SimulationElement destination, int core_num) {
-		AddressCarryingEvent addressEvent = new AddressCarryingEvent(eventQueue,
-				delay,
-				source,
-				this.getRouter(), 
-				reqType, 
-				addr,
-				coreId,
-				this.getId(),
-				destinationId);
-		this.getRouter().getPort().put(addressEvent);
+	public void sendMessage(Event event) {
+		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.OPTICAL)
+		{
+			event.getProcessingElement().getPort().put(event);
+		}
+		else{
+			this.getRouter().getPort().put(event);
+		}
 	}
 	
 	public Router getRouter(){
 		return this.router;
 	}
+	
 	public void setId(ID id)
 	{
-		this.id = id;
-	}
-	public ID getId()
-	{
-		return id;
-	}
-	public SimulationElement getSimulationElement()
-	{
-		return this.reference;
+		getRouter().setID(id);
 	}
 	
+	public ID getId()
+	{
+		return getRouter().getID();
+	}
+
+	@Override
+	public MainMemoryController getNearestMemoryController() {
+		return ((NOC)ArchitecturalComponent.getInterConnect()).getNearestMemoryController(getId());		
+	}
 }

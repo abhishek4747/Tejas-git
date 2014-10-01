@@ -3,6 +3,10 @@ package main;
 import java.io.File;
 import java.io.IOException;
 
+import net.Bus;
+import net.BusInterface;
+import net.NOC;
+
 import memorysystem.nuca.DNuca;
 import memorysystem.nuca.DNucaBank;
 import memorysystem.nuca.NucaCache;
@@ -43,7 +47,7 @@ public class Main {
 	public static String executableAndArguments[];
 	public static String benchmarkArguments = " ";
 	public static long startTime, endTime;
-	public static boolean xmlParsingCompleted = false;
+	public static boolean printStatisticsOnAsynchronousTermination = false;
 	
 	public static BenchmarkThreadMapping benchmarkThreadMapping;
 	
@@ -69,7 +73,7 @@ public class Main {
 		
 		// Parse the command line arguments
 		XMLParser.parse(configFileName);
-		xmlParsingCompleted = true;
+		printStatisticsOnAsynchronousTermination = true;
 		
 		// Initialize the statistics
 		Statistics.initStatistics();
@@ -88,8 +92,8 @@ public class Main {
 		ObjParser.initializeDynamicInstructionBuffer(SystemConfig.numEmuThreadsPerJavaThread*SystemConfig.numEmuThreadsPerJavaThread);
 		ObjParser.initializeControlMicroOps();
 		
-		// initialize cores, memory, tokenBus
-		initializeArchitecturalComponents();
+		// initialize cores, memory
+		ArchitecturalComponent.createChip();
 		
 		//find pid
 		getMyPID();
@@ -116,8 +120,7 @@ public class Main {
 			
 			name = "thread"+Integer.toString(i);
 			
-			runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores(), 
-				ArchitecturalComponent.getTokenBus());
+			runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores());
 		}
 		
 		ipcBase.waitForJavaThreads();
@@ -212,14 +215,6 @@ public class Main {
 		// convention : benchmark specific arguments come at the end only.
 		emulatorArguments += benchmarkArguments;
 		return emulatorArguments;
-	}
-	
-	public static void initializeArchitecturalComponents() {
-		ArchitecturalComponent.setCoreBcastBus(ArchitecturalComponent.initCoreBcastBus());
-		ArchitecturalComponent.setCores(ArchitecturalComponent.initCores(ArchitecturalComponent.getCoreBcastBus()));
-		ArchitecturalComponent.setTokenBus(ArchitecturalComponent.initTokenBus());
-		ArchitecturalComponent.initMemorySystem(ArchitecturalComponent.getCores(),
-				ArchitecturalComponent.getTokenBus());
 	}
 
 	// checks if the command line arguments are in required format and number

@@ -17,25 +17,65 @@
 ------------------------------------------------------------------------------------------------------------
 
 	Contributors:  Eldhose Peter
-*****************************************************************************/
+ *****************************************************************************/
 package net;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
-import net.optical.TopLevelTokenBus;
-
+import main.ArchitecturalComponent;
+import memorysystem.MainMemoryController;
+import config.EnergyConfig;
 import config.NocConfig;
-import config.SystemConfig;
 
-public class NOC{
-	
+public class NOC extends InterConnect{
+
 	public ArrayList<Switch> intermediateSwitch;
-	
-	public NOC() {
+
+	int numRows; int numColumns; 
+	private NocInterface networkElements[][];
+	NocConfig nocConfig;
+
+	public NOC(NocConfig nocConfig) {
 		this.intermediateSwitch = new ArrayList<Switch>();
+		this.nocConfig = nocConfig;
+
+		BufferedReader readNocConfig = openTopologyFile(nocConfig.NocTopologyFile);
+		String str = null;
+		StringTokenizer st;
+		try {
+			str=readNocConfig.readLine();
+		} catch (IOException e) {
+			misc.Error.showErrorAndExit("Error in reading noc topology file !!");
+		}
+		st = new StringTokenizer(str," ");
+
+		this.numRows = Integer.parseInt((String)st.nextElement());
+		this.numColumns = Integer.parseInt((String)st.nextElement());
+
+		// Create network components
+		networkElements = new NocInterface[numRows][numColumns];
+		for(int i=0; i<numRows; i++) {
+			for(int j=0; j<numColumns; j++) {
+				getNetworkElements()[i][j] = createNocInterface(i, j);
+			}
+		}		
 	}
-	
+
+	private NocInterface createNocInterface(int i, int j) {
+		NocInterface nocInterface = new NocInterface(nocConfig);
+		ID id = new ID(i, j);
+		nocInterface.setId(id);
+		return nocInterface;
+	}
+
 	public static enum TOPOLOGY{
 		MESH,
 		TORUS,
@@ -52,45 +92,65 @@ public class NOC{
 		ELECTRICAL,
 		OPTICAL
 	}
+
+	public static BufferedReader openTopologyFile(String fileName) {
+		File outputFile = new File(fileName);
+		if(!outputFile.exists()) 
+		{
+			System.err.println("XML Configuration error : NocConfigFile doesnot exist");
+			System.exit(1);
+		}
+
+		BufferedReader readNocConfig = null;
+		try {
+			readNocConfig = new BufferedReader(new FileReader(outputFile));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return readNocConfig;
+	}
+
 	/************************************************************************
-     * Method Name  : ConnectBanks
-     * Purpose      : Connects cachebanks according to the topology
-     * Parameters   : matrix of cache banks, number of rows & number of columns, noc config
-     * Return       : void
-     *************************************************************************/
-	public void ConnectBanks(NocInterface networkElements[][],int numRows,int numColumns,NocConfig nocConfig, TopLevelTokenBus tokenBus)
+	 * Method Name  : ConnectNOCElements
+	 * Purpose      : Connects cachebanks according to the topology
+	 * Parameters   : matrix of cache banks, number of rows & number of columns, noc config
+	 * Return       : void
+	 *************************************************************************/
+	public void ConnectNOCElements()
 	{
-		switch (SystemConfig.nocConfig.topology) {
+		switch (nocConfig.topology) {
 		case MESH:
-			ConnectBanksMesh(networkElements, numRows, numColumns);
+			ConnectNOCElementsMesh(networkElements, numRows, numColumns);
 			break;
 		case TORUS:
-			ConnectBanksTorus(networkElements, numRows, numColumns);
+			ConnectNOCElementsTorus(networkElements, numRows, numColumns);
 			break;
 		case BUS :
-			ConnectBanksRingBus(networkElements, numRows, numColumns, 1);
+			ConnectNOCElementsRingBus(networkElements, numRows, numColumns, 1);
 			break;
 		case RING :
-			ConnectBanksRingBus(networkElements, numRows, numColumns, 0);
+			ConnectNOCElementsRingBus(networkElements, numRows, numColumns, 0);
 			break;
 		case OMEGA :
-			ConnectBanksOmega(networkElements, numColumns,nocConfig);
+			ConnectNOCElementsOmega(networkElements, numColumns,nocConfig);
 			break;
 		case BUTTERFLY :
-			ConnectBanksButterfly(networkElements, numColumns,nocConfig);
+			ConnectNOCElementsButterfly(networkElements, numColumns,nocConfig);
 			break;
 		case FATTREE :
-			ConnectBanksFatTree(networkElements, numColumns, nocConfig);
+			ConnectNOCElementsFatTree(networkElements, numColumns, nocConfig);
 			break;
 		}
 	}
+
 	/************************************************************************
-     * Method Name  : ConnectBanksMesh
-     * Purpose      : connect a marix of cachebank in mesh topology
-     * Parameters   : matrix of cache banks, number of rows & number of columns
-     * Return       : void
-     *************************************************************************/
-	public void ConnectBanksMesh(NocInterface[][] networkElements,int bankRows,int bankColumns)  //connect bank in MESH fashion
+	 * Method Name  : ConnectNOCElementsMesh
+	 * Purpose      : connect a marix of cachebank in mesh topology
+	 * Parameters   : matrix of cache banks, number of rows & number of columns
+	 * Return       : void
+	 *************************************************************************/
+	public void ConnectNOCElementsMesh(NocInterface[][] networkElements,int bankRows,int bankColumns)  //connect bank in MESH fashion
 	{
 		int i,j;
 		for(i=0;i<bankRows;i++)
@@ -98,34 +158,34 @@ public class NOC{
 			for(j=0;j<bankColumns;j++)
 			{
 				if(i==0)                        //setting null for 0th raw up connection
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.UP);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.UP);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.UP, networkElements[i-1][j]);
-				
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.UP, networkElements[i-1][j]);
+
 				if(j==bankColumns-1)             //right connections
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, networkElements[i][(j+1)]);
-				
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT, networkElements[i][(j+1)]);
+
 				if(i==bankRows-1)             //down connections
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.DOWN);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN, networkElements[i+1][j]);
-				
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.DOWN, networkElements[i+1][j]);
+
 				if(j==0)			            //left connections
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT, networkElements[i][(j-1)]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT, networkElements[i][(j-1)]);
 			}
-	    }
+		}
 	}
 	/************************************************************************
-     * Method Name  : ConnectBanksTorus
-     * Purpose      : connect a marix of cachebank in Torus topology
-     * Parameters   : matrix of cache banks, number of rows & number of columns
-     * Return       : void
-     *************************************************************************/
-	public void ConnectBanksTorus(NocInterface[][] networkElements,int bankRows,int bankColumns) //torus connection
+	 * Method Name  : ConnectNOCElementsTorus
+	 * Purpose      : connect a marix of cachebank in Torus topology
+	 * Parameters   : matrix of cache banks, number of rows & number of columns
+	 * Return       : void
+	 *************************************************************************/
+	public void ConnectNOCElementsTorus(NocInterface[][] networkElements,int bankRows,int bankColumns) //torus connection
 	{
 		int i,j;
 		for(i=0;i<bankRows;i++)
@@ -133,83 +193,83 @@ public class NOC{
 			for(j=0;j<bankColumns;j++)
 			{
 				if(i==0)                        //setting null for 0th raw up connection
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.UP,networkElements[bankRows-1][j]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.UP,networkElements[bankRows-1][j]);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.UP, networkElements[i-1][j]);
-				
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.UP, networkElements[i-1][j]);
+
 				if(j==bankColumns-1)             //right connections
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, networkElements[i][0]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT, networkElements[i][0]);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, networkElements[i][j+1]);
-				
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT, networkElements[i][j+1]);
+
 				if(i==bankRows-1)             //down connections
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN, networkElements[0][j]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.DOWN, networkElements[0][j]);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN, networkElements[i+1][j]);
-				
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.DOWN, networkElements[i+1][j]);
+
 				if(j==0)			            //left connections
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT, networkElements[i][bankColumns-1]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT, networkElements[i][bankColumns-1]);
 				else
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT, networkElements[i][j-1]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT, networkElements[i][j-1]);
 			}
-	    }
+		}
 	}
-	
+
 	/************************************************************************
-     * Method Name  : ConnectBanksRingBus
-     * Purpose      : connect a array of cachebank in ring or bus topology
-     * Parameters   : matrix of cache banks, number of banks & ring or bus
-     * Return       : void
-     *************************************************************************/
-	public void ConnectBanksRingBus(NocInterface[][] networkElements, int bankRows, int bankColumns, int ringOrBus)
+	 * Method Name  : ConnectNOCElementsRingBus
+	 * Purpose      : connect a array of cachebank in ring or bus topology
+	 * Parameters   : matrix of cache banks, number of banks & ring or bus
+	 * Return       : void
+	 *************************************************************************/
+	public void ConnectNOCElementsRingBus(NocInterface[][] networkElements, int bankRows, int bankColumns, int ringOrBus)
 	{
 		int i;
 		for(i=0;i<bankRows;i++)
 		{
 			for(int j=0;j<bankColumns;j++)
 			{
-				networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.UP);
+				networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.UP);
 				if(j == bankColumns -1)
 				{
 					if(i== bankRows - 1)
 					{
 						if(ringOrBus == 0)
-							networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT,networkElements[0][0]);
+							networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT,networkElements[0][0]);
 						else
-							networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT);
+							networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT);
 					}
 					else
 					{
-						networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT, networkElements[i+1][0]);
+						networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT, networkElements[i+1][0]);
 					}
 				}
 				else
 				{
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.RIGHT,networkElements[i][j+1]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.RIGHT,networkElements[i][j+1]);
 				}
-				networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.DOWN);
+				networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.DOWN);
 
 				if(j == 0){
 					if(i== 0)
 					{
 						if(ringOrBus == 0)
-							networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT,networkElements[bankRows-1][bankColumns-1]);
+							networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT,networkElements[bankRows-1][bankColumns-1]);
 						else
-							networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT);
+							networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT);
 					}
 					else
-						networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT, networkElements[i-1][bankColumns-1]);
+						networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT, networkElements[i-1][bankColumns-1]);
 				}
 				else
 				{
-					networkElements[i][j].getRouter().SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT,networkElements[i][j-1]);
+					networkElements[i][j].getRouter().SetConnectedNOCElements(RoutingAlgo.DIRECTION.LEFT,networkElements[i][j-1]);
 				}
 			}
 		}
 	}
-	
+
 	/* Following method is abandoned. Kept it for reference */
-/*	public memorysystem.nuca.NucaCacheBank connectFatTree(NucaCacheBank cacheBank[][], int start, int end)
+	/*	public memorysystem.nuca.NucaCacheBank connectFatTree(NucaCacheBank cacheBank[][], int start, int end)
 	{
 		if (start > end)
 			return null;
@@ -232,23 +292,23 @@ public class NOC{
 		}
 		else
 			root.router.SetConnectedBanks(RoutingAlgo.DIRECTION.LEFT);
-		     
+
 		return root;
 	}
-*/	
+	 */	
 	/************************************************************************
-     * Method Name  : ConnectBanksFatTree
-     * Purpose      : Connect the cache banks in fat tree topology. Initially
-     *                it takes a list of cache banks. Create a new element,
-     *                add it to head of the list, take last two elements and 
-     *                make these two as the children of the head element. 
-     *                Repeat this until a single element remains.
-     * Parameters   : matrix of cache banks, number of bank columns,
-     * 				  NOC configuration
-     * Return       : void
-     *************************************************************************/
-	
-	public void ConnectBanksFatTree(NocInterface[][] networkElements, int bankColumns,NocConfig nocConfig)
+	 * Method Name  : ConnectNOCElementsFatTree
+	 * Purpose      : Connect the cache banks in fat tree topology. Initially
+	 *                it takes a list of cache banks. Create a new element,
+	 *                add it to head of the list, take last two elements and 
+	 *                make these two as the children of the head element. 
+	 *                Repeat this until a single element remains.
+	 * Parameters   : matrix of cache banks, number of bank columns,
+	 * 				  NOC configuration
+	 * Return       : void
+	 *************************************************************************/
+
+	public void ConnectNOCElementsFatTree(NocInterface[][] networkElements, int bankColumns,NocConfig nocConfig)
 	{	
 		int lastElement;
 		String routerClassName = new String("net.Router");
@@ -263,7 +323,7 @@ public class NOC{
 			intermediateSwitch.add(newOne);
 			newOne.connection[1] = nodes.lastElement();                          //right connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
-				newOne.range[1] = ((Router)(nodes.lastElement())).reference.getId().gety();
+				newOne.range[1] = ((Router)(nodes.lastElement())).getID().gety();
 			else
 				newOne.range[1] = nodes.lastElement().range[1];                  //right range
 			nodes.lastElement().connection[0] = newOne;
@@ -271,7 +331,7 @@ public class NOC{
 			nodes.removeElementAt(lastElement - 1);                             //right is connected to rightmost end router in node list
 			newOne.connection[3] = nodes.lastElement();                         //left connection
 			if(nodes.lastElement().getClass().getName().equals(routerClassName))
-				newOne.range[0] = ((Router)(nodes.lastElement())).reference.getId().gety();
+				newOne.range[0] = ((Router)(nodes.lastElement())).getID().gety();
 			else
 				newOne.range[0] = nodes.lastElement().range[0];                 //left range
 			nodes.lastElement().connection[0] = newOne;
@@ -283,12 +343,12 @@ public class NOC{
 		//return nodes.elementAt(0);
 	}
 	/************************************************************************
-     * Method Name  : connectInputOmega
-     * Purpose      : connect the first column switches of omega network
-     * Parameters   : matrix of cache banks, number of bank columns,
-     * 				  NOC configuration
-     * Return       : void
-     *************************************************************************/
+	 * Method Name  : connectInputOmega
+	 * Purpose      : connect the first column switches of omega network
+	 * Parameters   : matrix of cache banks, number of bank columns,
+	 * 				  NOC configuration
+	 * Return       : void
+	 *************************************************************************/
 	public Vector<Switch> connectInputOmega(NocInterface[][] networkElements, int bankColumns,NocConfig nocConfig)
 	{
 		Vector<Switch> switchList = new Vector<Switch>();
@@ -307,14 +367,14 @@ public class NOC{
 		return switchList;
 	}
 	/************************************************************************
-     * Method Name  : connectOutputOmega
-     * Purpose      : connect the last column switches of omega network
-     * Parameters   : matrix of cache banks, number of bank columns, list of switches
-     *                size of list of switches, starting index of switch list
-     * Return       : void
-     *************************************************************************/
+	 * Method Name  : connectOutputOmega
+	 * Purpose      : connect the last column switches of omega network
+	 * Parameters   : matrix of cache banks, number of bank columns, list of switches
+	 *                size of list of switches, starting index of switch list
+	 * Return       : void
+	 *************************************************************************/
 	public void connectOutputOmega(NocInterface[][] networkElements, int bankColumns,Vector<Switch> switchList,
-									int switchListsize,int lastLevelStartingindex)
+			int switchListsize,int lastLevelStartingindex)
 	{
 		int i;
 		for(i=0;i<bankColumns/2;i++)
@@ -324,17 +384,17 @@ public class NOC{
 		}
 	}
 	/************************************************************************
-     * Method Name  : ConnectBanksOmega
-     * Purpose      : connect a matrix of cachebank in Omega topology.
-     * 				  Row number should be 1. Column should be 2^n.
-     * 				  Connection consisting of input connection part, output
-     * 				  connection part and connection of rest of the parts. 
-     * 				  First for loop creates a column of switches and next 
-     * 				  for loop connect those switches.   
-     * Parameters   : matrix of cache banks,number of bank columns, noc configuration
-     * Return       : void
-     *************************************************************************/
-	public void ConnectBanksOmega(NocInterface[][] networkElements, int bankColumns,NocConfig nocConfig)
+	 * Method Name  : ConnectNOCElementsOmega
+	 * Purpose      : connect a matrix of cachebank in Omega topology.
+	 * 				  Row number should be 1. Column should be 2^n.
+	 * 				  Connection consisting of input connection part, output
+	 * 				  connection part and connection of rest of the parts. 
+	 * 				  First for loop creates a column of switches and next 
+	 * 				  for loop connect those switches.   
+	 * Parameters   : matrix of cache banks,number of bank columns, noc configuration
+	 * Return       : void
+	 *************************************************************************/
+	public void ConnectNOCElementsOmega(NocInterface[][] networkElements, int bankColumns,NocConfig nocConfig)
 	{
 		int numberOfSwitchLevels = (int)(Math.log(bankColumns)/Math.log(2));
 		int i,j;
@@ -353,7 +413,7 @@ public class NOC{
 			{												//shuffled connections
 				switchList.elementAt(i* bankColumns/2 +j).connection[2] = switchList.elementAt((i+1)* bankColumns/2 + (2*j)%(bankColumns/2));
 				switchList.elementAt(i* bankColumns/2 +j).connection[3] = switchList.elementAt((i+1)* bankColumns/2 + (2*j + 1)%(bankColumns/2));
-				
+
 			}
 		}
 		int switchListsize = switchList.size();
@@ -361,12 +421,12 @@ public class NOC{
 		connectOutputOmega(networkElements,bankColumns,switchList,switchListsize,lastLevelStartingindex);
 	}
 	/************************************************************************
-     * Method Name  : connectInputButterfly
-     * Purpose      : connect the first column switches of butterfly network
-     * Parameters   : matrix of cache banks, number of bank columns,
-     * 				  NOC configuration
-     * Return       : void
-     *************************************************************************/
+	 * Method Name  : connectInputButterfly
+	 * Purpose      : connect the first column switches of butterfly network
+	 * Parameters   : matrix of cache banks, number of bank columns,
+	 * 				  NOC configuration
+	 * Return       : void
+	 *************************************************************************/
 	public Vector<Switch> connectInputButterfly(NocInterface[][] networkElements,int bankColumns,NocConfig nocConfig)
 	{
 		int i;
@@ -382,15 +442,15 @@ public class NOC{
 		return switchList;
 	}
 	/************************************************************************
-     * Method Name  : connectOutputButterfly
-     * Purpose      : connect the last column switches of omega network
-     * Parameters   : matrix of cache banks, number of bank columns, list of switches
-     *                number of levels of switches
-     * Return       : void
-     *************************************************************************/
-	
+	 * Method Name  : connectOutputButterfly
+	 * Purpose      : connect the last column switches of omega network
+	 * Parameters   : matrix of cache banks, number of bank columns, list of switches
+	 *                number of levels of switches
+	 * Return       : void
+	 *************************************************************************/
+
 	public void connectOutputButterfly(NocInterface[][] networkElements,int bankColumns, 
-										Vector<Switch> switchList,int numberOfSwitchLevels)
+			Vector<Switch> switchList,int numberOfSwitchLevels)
 	{
 		int i;
 		for(i=0;i<bankColumns/2;i++)
@@ -402,18 +462,18 @@ public class NOC{
 		}
 	}
 	/************************************************************************
-     * Method Name  : ConnectBanksButterfly
-     * Purpose      : connect a matrix of cachebank in butterfly topology.
-     * 				  Row number should be 1. Column should be 2^n.
-     * 				  Connection consisting of input connection part, output
-     * 				  connection part and connection of rest of the parts. 
-     * 				  First for loop creates a column of switches and next 
-     * 				  for loop connect those switches.   
-     * Parameters   : matrix of cache banks,number of bank columns, noc configuration
-     * Return       : void
-     *************************************************************************/
-	
-	public void ConnectBanksButterfly(NocInterface[][] networkElements, int bankColumns,NocConfig nocConfig)
+	 * Method Name  : ConnectNOCElementsButterfly
+	 * Purpose      : connect a matrix of cachebank in butterfly topology.
+	 * 				  Row number should be 1. Column should be 2^n.
+	 * 				  Connection consisting of input connection part, output
+	 * 				  connection part and connection of rest of the parts. 
+	 * 				  First for loop creates a column of switches and next 
+	 * 				  for loop connect those switches.   
+	 * Parameters   : matrix of cache banks,number of bank columns, noc configuration
+	 * Return       : void
+	 *************************************************************************/
+
+	public void ConnectNOCElementsButterfly(NocInterface[][] networkElements, int bankColumns,NocConfig nocConfig)
 	{
 		Vector<Switch> switchList;
 		int i,j,k;
@@ -441,5 +501,46 @@ public class NOC{
 			}
 		}
 		connectOutputButterfly(networkElements,bankColumns,switchList,numberOfSwitchLevels);
+	}
+
+	public int getNumRows() {
+		return numRows;
+	}
+
+	public int getNumColumns() {
+		return numColumns;
+	}
+
+	public NocInterface[][] getNetworkElements() {
+		return networkElements;
+	}
+
+	public void setNetworkElements(NocInterface networkElements[][]) {
+		this.networkElements = networkElements;
+	}
+
+	public MainMemoryController getNearestMemoryController(ID currBankId) {
+		MainMemoryController memControllerRet = null;
+		double distance = Double.MAX_VALUE;
+		int x1 = currBankId.getx();//bankid/cacheColumns;
+		int y1 = currBankId.gety();//bankid%cacheColumns;
+
+		for(MainMemoryController memController:ArchitecturalComponent.memoryControllers) {
+			int x2 = ((NocInterface)memController.getComInterface()).getId().getx();
+			int y2 = ((NocInterface)memController.getComInterface()).getId().gety();
+			double localdistance = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+			if(localdistance < distance) {
+				distance = localdistance;
+				memControllerRet = memController;
+			}
+		}	
+		return memControllerRet;
+	}
+
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter,
+			String name) {
+		EnergyConfig energyConfig = new EnergyConfig(0, 0);
+		
+		return energyConfig;
 	}
 }

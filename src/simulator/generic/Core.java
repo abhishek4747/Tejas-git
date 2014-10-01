@@ -2,30 +2,24 @@ package generic;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Vector;
 
-import memorysystem.AddressCarryingEvent;
-import memorysystem.MainMemoryController;
-import memorysystem.MemorySystem;
+import main.ArchitecturalComponent;
+import memorysystem.Cache;
+import memorysystem.CoreMemorySystem;
 import memorysystem.nuca.NucaCache;
-import memorysystem.nuca.NucaCacheBank;
 import net.BusInterface;
-import net.ID;
 import net.NocInterface;
-import net.Router;
-import net.NOC.CONNECTIONTYPE;
 import pipeline.ExecutionEngine;
+import pipeline.multi_issue_inorder.InorderCoreMemorySystem_MII;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
-import pipeline.outoforder.OutOrderExecutionEngine;
 import pipeline.outoforder.OutOfOrderPipeline;
+import pipeline.outoforder.OutOrderCoreMemorySystem;
+import pipeline.outoforder.OutOrderExecutionEngine;
 import config.CoreConfig;
-import config.Interconnect;
-import config.PipelineType;
 import config.EnergyConfig;
+import config.PipelineType;
 import config.SystemConfig;
-import config.CacheConfig;
 
 /**
  * represents a single core
@@ -43,8 +37,7 @@ public class Core extends SimulationElement{
 	ExecutionEngine execEngine;
 	public EventQueue eventQueue;
 	public int currentThreads;
-	public CommunicationInterface comInterface;
-	
+		
 	public boolean isPipelineInOrder() {
 		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.inOrder);
 	}
@@ -102,7 +95,7 @@ public class Core extends SimulationElement{
 	private pipeline.PipelineInterface pipelineInterface;
 	public int numReturns;
 	private int numInorderPipelines;
-	public CoreBcastBus coreBcastBus;
+	
 	public int barrier_latency;
 	public boolean TreeBarrier;
 	public int barrierUnit; //0=>central 1=>distributed
@@ -129,6 +122,11 @@ public class Core extends SimulationElement{
 		this.no_of_threads = no_of_threads;
 		this.threadIDs = threadIDs;
 		this.currentThreads =0;
+
+		this.noOfInstructionsExecuted = 0;
+		this.numReturns=0;
+
+		// Create execution engine
 		if(this.isPipelineInOrder()) {
 			this.execEngine = new MultiIssueInorderExecutionEngine(this, issueWidth);
 		} else if (isPipelineOutOfOrder()){
@@ -138,10 +136,7 @@ public class Core extends SimulationElement{
 				SystemConfig.core[core_number].pipelineType);
 		}
 		
-		
-		this.noOfInstructionsExecuted = 0;
-		this.numReturns=0;
-		
+		// Create pipeline interface
 		if(isPipelineInOrder()) {
 			this.pipelineInterface = new MultiIssueInorderPipeline(this, eventQueue);
 		} else if (isPipelineOutOfOrder()) {
@@ -150,14 +145,20 @@ public class Core extends SimulationElement{
 			misc.Error.showErrorAndExit("pipeline type not identified : " + 
 				SystemConfig.core[core_number].pipelineType);
 		}
-		if(SystemConfig.interconnect == Interconnect.Bus)
-		{
-			comInterface = new BusInterface(this);
+		
+		// Create core memory interface
+		CoreMemorySystem coreMemSys = null;
+		if(isPipelineInOrder()) {
+			coreMemSys = new InorderCoreMemorySystem_MII(this);
+		} else if (isPipelineOutOfOrder()) {
+			coreMemSys = new  OutOrderCoreMemorySystem(this);
+		} else {
+			misc.Error.showErrorAndExit("pipeline type not identified : " + 
+				SystemConfig.core[core_number].pipelineType);
 		}
-		else if(SystemConfig.interconnect == Interconnect.Noc)
-		{
-			comInterface = new NocInterface(SystemConfig.nocConfig, this);
-		}
+		
+		this.execEngine.setCoreMemorySystem(coreMemSys);
+		ArchitecturalComponent.coreMemSysArray.add(coreMemSys);
 		
 		setPowerConfigs();
 	}
@@ -184,9 +185,6 @@ public class Core extends SimulationElement{
 		dTLBPower = coreConfig.dTLBPower;
 	}
 	
-	public void setCoreBcastBus(CoreBcastBus coreBcastBus){
-		this.coreBcastBus = coreBcastBus;
-	}
 	private void initializeCoreParameters(CoreConfig coreConfig)
 	{
 		//TODO parameters to be set according to contents of an XML configuration file
@@ -496,139 +494,7 @@ public class Core extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) 
 	{
-		if (event.getRequestType() == RequestType.Main_Mem_Response )
-		{
-			handleMainMemoryResponse(eventQ, event);
-		}
-		else if (event.getRequestType() == RequestType.Mem_Response)
-		{
-			handleMemResponse(eventQ, (AddressCarryingEvent)event);
-		}
-		else if (event.getRequestType() == RequestType.Cache_Read_Writeback || 
-				event.getRequestType() == RequestType.Send_Mem_Response ||
-				event.getRequestType() == RequestType.Send_Mem_Response_Invalidate)
-		{
-			handleAccessWithDirectoryUpdates(eventQ, (AddressCarryingEvent)event);
-		}
-		else if (event.getRequestType() == RequestType.MESI_Invalidate)
-		{
-			this.handleInvalidate((AddressCarryingEvent) event);
-		}
-		else 
-		{
-			System.err.println(event.getRequestType());
-			misc.Error.showErrorAndExit(" unexpected request came to Core");
-		}
 	}	
-	private void handleInvalidate(AddressCarryingEvent event)
-	{
-		this.getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
-				new AddressCarryingEvent(
-						event.getEventQ(),
-						this.getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
-						this, 
-						this.getExecEngine().getCoreMemorySystem().getL1Cache(),
-						event.getRequestType(), 
-						event.getAddress(),
-						(event).coreId));
-	}
-
-	private void handleAccessWithDirectoryUpdates(EventQueue eventQ, AddressCarryingEvent event) 
-	{
-		this.getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
-				new AddressCarryingEvent(
-						event.getEventQ(),
-						this.getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
-						this, 
-						this.getExecEngine().getCoreMemorySystem().getL1Cache(),
-						event.getRequestType(), 
-						event.getAddress(),
-						(event).coreId));
-	}
-
-	private void handleMemResponse(EventQueue eventQ, AddressCarryingEvent event) 
-	{
-		
-		ID id = event.getSourceId();
-		Class nocElementClass = SystemConfig.nocConfig.nocElements.nocInterface[id.getx()][id.gety()].getClass();
-		
-		if(nocElementClass==Core.class)//memory response from another core's l1 cache
-		{
-			this.getExecEngine().getCoreMemorySystem().getL1Cache().getPort().put(
-					new AddressCarryingEvent(
-							event.getEventQ(),
-							this.getExecEngine().getCoreMemorySystem().getL1Cache().getLatency(),
-							this, 
-							this.getExecEngine().getCoreMemorySystem().getL1Cache(),
-							event.getRequestType(), 
-							event.getAddress(),
-							event.coreId));
-		}
-		else //memory response coming from L2
-		{
-			//System.err.println("Mem Response");
-			AddressCarryingEvent addrEvent = ((AddressCarryingEvent)event);
-//			if(SystemConfig.nocConfig.ConnType==CONNECTIONTYPE.ELECTRICAL)
-//			{
-				nucaCache.updateMaxHopLength(addrEvent.hopLength,(AddressCarryingEvent)event);
-				nucaCache.updateMinHopLength(addrEvent.hopLength);
-				nucaCache.updateAverageHopLength(addrEvent.hopLength);
-//			}
-			ArrayList<AddressCarryingEvent> eventsToBeServed = nucaCache.missStatusHoldingRegister.removeRequestsByAddressIfAvailable(addrEvent);
-			this.sendResponseToWaitingEvent(eventsToBeServed);
-		}
-	}
-	protected void sendResponseToWaitingEvent(ArrayList<AddressCarryingEvent> outstandingRequestList)
-	{
-		while (!outstandingRequestList.isEmpty())
-		{	
-			AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0);
-			if (eventPoppedOut.getRequestType() == RequestType.Cache_Read)
-			{
-				sendMemResponse(eventPoppedOut);
-			}
-			else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write)
-			{
-				if (nucaCache.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH)
-				{
-					MemorySystem.mainMemoryController.getPort().put(eventPoppedOut.updateEvent(eventPoppedOut.getEventQ(), 
-							MemorySystem.mainMemoryController.getLatencyDelay(), this, 
-							MemorySystem.mainMemoryController, RequestType.Main_Mem_Write,eventPoppedOut.getAddress(),eventPoppedOut.coreId));
-				}
-			}
-		}
-	}
-	public void sendMemResponse(AddressCarryingEvent eventToRespondTo)
-    {
-		nucaCache.noOfResponsesSent++;
-		eventToRespondTo.getRequestingElement().getPort().put(
-											eventToRespondTo.update(
-											eventToRespondTo.getEventQ(),
-											1,
-											eventToRespondTo.getProcessingElement(),
-											eventToRespondTo.getRequestingElement(),
-											RequestType.Mem_Response));
-    }
-	protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
-	{
-		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-		
-		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
-		nucaCache.updateMinHopLength(addrEvent.hopLength);
-		nucaCache.updateAverageHopLength(addrEvent.hopLength);
-		
-		long addr = addrEvent.getAddress();
-		ID destinationId;
-		
-		if(event.getRequestingElement().getClass() == MainMemoryController.class)
-		{
-			destinationId = nucaCache.getBankId(addr);
-			comInterface.sendMessage(event.getEventQ(),0,RequestType.Main_Mem_Response,addr,
-					((AddressCarryingEvent)event).coreId,
-					destinationId,null,null, 0);
-		}
-	}
-	
 	public EnergyConfig getbPredPower() {
 		return bPredPower;
 	}
@@ -763,6 +629,13 @@ public class Core extends SimulationElement{
 
 	public void setdTLBPower(EnergyConfig dTLBPower) {
 		this.dTLBPower = dTLBPower;
+	}
+
+	public void setComInterface(CommunicationInterface comInterface) {
+		this.comInterface = comInterface;
+		for(Cache cache : getExecEngine().getCoreMemorySystem().getCoreCacheList()) {
+			cache.setComInterface(comInterface);
+		}
 	}
 
 	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException

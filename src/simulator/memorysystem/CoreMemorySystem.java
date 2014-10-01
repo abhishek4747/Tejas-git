@@ -22,7 +22,6 @@ package memorysystem;
 
 import java.util.Hashtable;
 import java.util.Vector;
-import generic.CachePullEvent;
 import generic.PortType;
 import generic.SimulationElement;
 import generic.Core;
@@ -48,15 +47,19 @@ public abstract class CoreMemorySystem extends SimulationElement
 	// coreCacheList contains a vector of caches
 	// cacheNameList contains a vector of cache names
 	// Elements in both the lists have a one to one mapping
-	private Hashtable<String,Cache> cacheList = new Hashtable<String,Cache>();
+	private Hashtable<String,Cache> cacheNameToCacheMapping = new Hashtable<String,Cache>();
 	private Vector<Cache> coreCacheList = new Vector<Cache>();
 	
 	public Vector<Cache> getCoreCacheList() {
 		return coreCacheList;
 	}
 	
+	public void addToCoreCacheList(Cache c) {
+		coreCacheList.add(c);
+	}
+	
 	public Hashtable<String, Cache> getCacheList() {
-		return cacheList;
+		return cacheNameToCacheMapping;
 	}
 	
 	private String tagNameWithCoreId(String name) {
@@ -64,7 +67,7 @@ public abstract class CoreMemorySystem extends SimulationElement
 	}
 	
 	public Cache getCache(String cacheName) {
-		return cacheList.get(cacheName);
+		return cacheNameToCacheMapping.get(cacheName);
 	}
 	
 	protected CoreMemorySystem(Core core)
@@ -81,13 +84,13 @@ public abstract class CoreMemorySystem extends SimulationElement
 		//Initialise the TLB
 		int numPageLevels = 2;
 		iTLB = new TLB(SystemConfig.core[coreID].ITLBPortType,
-							SystemConfig.core[coreID].ITLBAccessPorts, 
-							SystemConfig.core[coreID].ITLBPortOccupancy, 
-							SystemConfig.core[coreID].ITLBLatency,
-							this,
-							SystemConfig.core[coreID].ITLBSize,
-							SystemConfig.mainMemoryLatency * numPageLevels,
-							SystemConfig.core[coreID].iTLBPower);
+				SystemConfig.core[coreID].ITLBAccessPorts, 
+				SystemConfig.core[coreID].ITLBPortOccupancy, 
+				SystemConfig.core[coreID].ITLBLatency,
+				this,
+				SystemConfig.core[coreID].ITLBSize,
+				SystemConfig.mainMemoryLatency * numPageLevels,
+				SystemConfig.core[coreID].iTLBPower);
 		
 		dTLB = new TLB(SystemConfig.core[coreID].DTLBPortType,
 				SystemConfig.core[coreID].DTLBAccessPorts, 
@@ -164,9 +167,9 @@ public abstract class CoreMemorySystem extends SimulationElement
 			Cache cache = new Cache(tagNameWithCoreId(cacheConfig.cacheName), 
 					core.getCore_number(), cacheConfig, this);
 			
-			cacheList.put(tagNameWithCoreId(cacheConfig.cacheName), cache);
-			coreCacheList.add(cache);
-			
+			cacheNameToCacheMapping.put(tagNameWithCoreId(cacheConfig.cacheName), cache);
+			addToCoreCacheList(cache);
+						
 			if(cacheConfig.cacheDataType==CacheDataType.Instruction) {
 				if(iCache==null && cacheConfig.firstLevel==true) {
 					iCache = cache;
@@ -188,7 +191,7 @@ public abstract class CoreMemorySystem extends SimulationElement
 						"Set the firstLevel attribute field of the cache to true");
 				}
 			}
-		}		
+		}
 	}
 
 	public abstract void issueRequestToInstrCache(long address);

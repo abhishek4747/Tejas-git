@@ -41,7 +41,6 @@ import generic.InstructionList;
 import generic.InstructionTable;
 import generic.Operand;
 import generic.OperationType;
-import generic.PartialDecodedInstruction;
 import generic.Statistics;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,7 +48,6 @@ import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import config.EmulatorConfig;
 import config.EmulatorType;
 import main.CustomObjectPool;
@@ -574,65 +572,13 @@ public class ObjParser
 		}
 		
 		return assemblyTokens;
-	} 
-	
-
-	// prints the assembly code parameters for a particular instruction
-	@SuppressWarnings("unused")
-	private static void printCodeDetails(Long linearAddress, String operation,
-			String operand1, String operand2, String operand3, long lineNumber,
-			PartialDecodedInstruction partialDecodedInstruction) 
-	{
-		System.out.print("\n\n"
-				+ String.format("%-180s", " ").replace(" ", "-")
-				+ "\n\n"
-				+ String.format("%-20s", "Line-number = " + lineNumber
-						+ "\tLinear-address = " + linearAddress + "\n")
-				+ String.format("%-20s", "Op = " + operation.toString())
-				+ String.format("%-40s", "Op1 = " + operand1)
-				+ String.format("%-40s", "Op2 = " + operand2)
-				+ String.format("%-40s", "Op3 = " + operand3));
-
-		printPartialDecodedInstruction(partialDecodedInstruction);
 	}
-
-	private static void printPartialDecodedInstruction(
-			PartialDecodedInstruction partialDecodedInstruction) 
-	{
-		System.out.print("\ninstructionClass = "
-				+ partialDecodedInstruction.getInstructionClass()
-				+ String.format("%-40s", "\toperand1 = "
-						+ partialDecodedInstruction.getOperand1())
-				+ String.format("%-40s", "\toperand2 = "
-						+ partialDecodedInstruction.getOperand2())
-				+ String.format("%-40s", "\toperand3 = "
-						+ partialDecodedInstruction.getOperand3())
-				+ "\ninstructionList = "
-				+ partialDecodedInstruction.getInstructionList());
-	}
-	
+		
 	private static boolean removeInstructionFromTail(GenericCircularQueue<Instruction> inputToPipeline, long instructionPointer, int previousSize) {
 		
 		if(inputToPipeline.size()<previousSize) {
 			misc.Error.showErrorAndExit("This is not possible !!!");
 		}
-		
-//		Instruction removedInstruction;
-//		boolean foundThisCISC = false;
-//		
-//		while( (inputToPipeline.isEmpty()== false) &&
-//			(inputToPipeline.peek(inputToPipeline.size()-1).getCISCProgramCounter()==instructionPointer))
-//		{
-//			foundThisCISC = true;
-//			removedInstruction = inputToPipeline.pop();
-//			try {
-//				CustomObjectPool.getInstructionPool().returnObject(removedInstruction);
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		
-//		return foundThisCISC;
 		
 		while(inputToPipeline.size()>previousSize) {
 			Instruction ins = inputToPipeline.pop();

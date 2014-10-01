@@ -23,34 +23,25 @@ package net;
 import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
-import generic.SimulationElement;
-import generic.Statistics;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-
-import net.NOC.CONNECTIONTYPE;
-import net.NOC.TOPOLOGY;
-import net.RoutingAlgo.SELSCHEME;
-
-import config.Interconnect;
-import config.NocConfig;
-import config.EnergyConfig;
-import config.SimulationConfig;
-import config.SystemConfig;
+import java.util.Vector;
 
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.Cache.CoherenceType;
-import memorysystem.nuca.NucaCacheBank;
+import net.NOC.TOPOLOGY;
+import net.RoutingAlgo.SELSCHEME;
+import config.EnergyConfig;
+import config.NocConfig;
+import config.SystemConfig;
 
 public class Router extends Switch{
 	protected RoutingAlgo routingAlgo = new RoutingAlgo();
 	protected int numberOfRows;
 	protected int numberOfColumns;
-	protected NocInterface reference;
-	protected int latencyBetweenBanks;
+	private ID id;
+	protected int latencyBetweenNOCElements;
 	protected Vector<Router> neighbours;
 	EnergyConfig power;
 	
@@ -68,8 +59,7 @@ public class Router extends Switch{
 		this.rAlgo = nocConfig.rAlgo;
 		this.numberOfRows = nocConfig.numberOfBankRows;
 		this.numberOfColumns = nocConfig.numberOfBankColumns;
-		this.reference = reference;
-		this.latencyBetweenBanks = nocConfig.latencyBetweenBanks;
+		this.latencyBetweenNOCElements = nocConfig.latencyBetweenNOCElements;
 		this.neighbours= new Vector<Router>(4);
 		this.hopCounters = 0;
 		power = nocConfig.power;
@@ -81,7 +71,7 @@ public class Router extends Switch{
 	 * @param dir
 	 * @param networkElements
 	 ***************************************************/
-	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir,NocInterface networkElements)
+	public void SetConnectedNOCElements(RoutingAlgo.DIRECTION dir,NocInterface networkElements)
 	{
 		this.neighbours.add(dir.ordinal(), networkElements.getRouter());
 	}
@@ -89,7 +79,7 @@ public class Router extends Switch{
 	 * Connects the banks
 	 * @param dir
 	 ***************************************************/
-	public void SetConnectedBanks(RoutingAlgo.DIRECTION dir)
+	public void SetConnectedNOCElements(RoutingAlgo.DIRECTION dir)
 	{
 		this.neighbours.add(dir.ordinal(), null);
 	}
@@ -146,12 +136,29 @@ public class Router extends Switch{
 		return choices.elementAt(0);
 	}
 	
-	public boolean reqOrReply(RequestType requestType){
-		if(requestType == RequestType.Main_Mem_Read || requestType == RequestType.Main_Mem_Response ||
-				requestType == RequestType.Main_Mem_Write || requestType == RequestType.Mem_Response)
-			return true;  //for reply messages
+	public boolean reqOrReply(ID currentId, ID destinationId) {
+		if(currentId.getx() < destinationId.getx())
+		{
+			if(currentId.gety() < destinationId.gety())
+			{
+				return false;//for reply messages
+			}
+			else
+			{
+				return true;//for incoming messages
+			}
+		}
 		else
-			return false; //for incoming messages
+		{
+			if(currentId.gety() < destinationId.gety())
+			{
+				return false;//for reply messages
+			}
+			else
+			{
+				return true;//for incoming messages
+			}
+		}
 	}
 	/************************************************************************
      * Method Name  : handleEvent
@@ -166,34 +173,9 @@ public class Router extends Switch{
 		RoutingAlgo.DIRECTION nextID;
 		boolean reqOrReply;
 		
-		ID currentId = this.reference.getId();
-		ID destinationId = ((AddressCarryingEvent)(event)).getDestinationId();
+		ID currentId = id;
+		ID destinationId = ((NocInterface)event.getProcessingElement().getComInterface()).getId();
 		RequestType requestType = event.getRequestType();
-		
-		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.OPTICAL)
-		{
-			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.getx()][destinationId.gety()].getSimulationElement(); 
-			destination.getPort().put(
-					event.update(
-							eventQ,
-							3, //E/O + propagation + O/E
-							this, 
-							destination,
-							requestType));
-			return;
-		}
-//		if(SystemConfig.interconnect == Interconnect.Bus)
-//		{
-//			SimulationElement destination = SystemConfig.nocConfig.nocElements.nocInterface[destinationId.get(0)][destinationId.get(1)].getSimulationElement(); 
-//			destination.getPort().put(
-//					event.update(
-//							eventQ,
-//							0, //We added the delay already during the send operation
-//							this, 
-//							destination,
-//							requestType));
-//			return;
-//		}
 				
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
 				&& !currentId.equals(destinationId))  //event passed to switch in omega/buttrfly/fat tree connection
@@ -212,13 +194,7 @@ public class Router extends Switch{
         //If this is the destination
 		else if(currentId.equals(destinationId))  
 		{
-			((NocInterface)this.reference).getSimulationElement().getPort().put(
-					event.update(
-							eventQ,
-							0,
-							this, 
-							this.reference.getSimulationElement(),
-							requestType));
+			event.getProcessingElement().getPort().put(event);
 			this.FreeBuffer();
 		}
 		//If this event is just entering NOC, then allocate buffer for it
@@ -238,7 +214,7 @@ public class Router extends Switch{
 				this.getPort().put(
 						event.update(
 								eventQ,
-								latencyBetweenBanks,
+								latencyBetweenNOCElements,
 								this, 
 								this,
 								requestType));
@@ -247,7 +223,7 @@ public class Router extends Switch{
 		else
 		{
 			nextID = this.RouteComputation(currentId, destinationId);
-			reqOrReply = reqOrReply(requestType);              // To avoid deadlock
+			reqOrReply = reqOrReply(currentId, destinationId);              // To avoid deadlock
 			
 			//If buffer is available forward the event
 			if(this.CheckNeighbourBuffer(nextID,reqOrReply))   
@@ -259,7 +235,7 @@ public class Router extends Switch{
 				this.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
 								eventQ,
-								latencyBetweenBanks,        	//this.getLatency()
+								latencyBetweenNOCElements,        	//this.getLatency()
 								this, 
 								this.GetNeighbours().elementAt(nextID.ordinal()),
 								requestType));
@@ -271,7 +247,7 @@ public class Router extends Switch{
 				this.getPort().put(
 						event.update(
 								eventQ,
-								latencyBetweenBanks,
+								latencyBetweenNOCElements,
 								this, 
 								this,
 								requestType));
@@ -288,5 +264,14 @@ public class Router extends Switch{
 		EnergyConfig power = new EnergyConfig(SystemConfig.nocConfig.power, hopCounters);
 		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
+	}
+	
+	public void setID(ID id) 
+	{
+		this.id = id.clone();
+	}
+	
+	public ID getID() {
+		return id;
 	}
 }

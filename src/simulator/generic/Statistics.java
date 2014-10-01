@@ -1,44 +1,32 @@
 package generic;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Vector;
 
-import net.NocInterface;
-import net.Router;
-import net.Switch;
-
 import main.ArchitecturalComponent;
+import main.Main;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
-import memorysystem.directory.CentralizedDirectoryCache;
+import memorysystem.coherence.Coherence;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
-
-import config.BranchPredictorConfig;
+import net.NocInterface;
+import net.Router;
 import config.CoreConfig;
 import config.EmulatorConfig;
-import config.Interconnect;
 import config.EnergyConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
-import config.BranchPredictorConfig.BP;
-import config.XMLParser;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.translator.qemuTranslationCache.TranslatedInstructionCache;
 
@@ -216,127 +204,69 @@ public class Statistics {
 	
 	static void printEnergyStatistics()
 	{
+		EnergyConfig totalEnergy = new EnergyConfig(0, 0);
+		
 		try {
 			// Cores
 			int i = 0;
 			
 			outputFileWriter.write("\n\n[ComponentName LeakageEnergy DynamicEnergy TotalEnergy NumDynamicAccesses] : \n");
 
-			EnergyConfig corePower = new EnergyConfig(0, 0);
+			EnergyConfig coreEnergy = new EnergyConfig(0, 0);
 			i = 0;
 			for(Core core : cores) {
-				corePower.add(core.calculateAndPrintEnergy(outputFileWriter, "core[" + (i++) + "]"));
+				coreEnergy.add(core.calculateAndPrintEnergy(outputFileWriter, "core[" + (i++) + "]"));
 			}
 			
 			outputFileWriter.write("\n\n");
-			corePower.printEnergyStats(outputFileWriter, "coreEnergy.total");
+			coreEnergy.printEnergyStats(outputFileWriter, "coreEnergy.total");
+			totalEnergy.add(coreEnergy);
 			
 			outputFileWriter.write("\n\n");
 			
-			// LLC
-			EnergyConfig cachePower = new EnergyConfig(0, 0);
-			for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); )
-			{
-				String cacheName = cacheNameSet.nextElement();
-				Cache cache = MemorySystem.getCacheList().get(cacheName);
-				cachePower.add(cache.calculateAndPrintEnergy(outputFileWriter, cache.toString()));
+			// Shared Cache
+			EnergyConfig sharedCacheEnergy = new EnergyConfig(0, 0);
+			for (Cache cache : MemorySystem.getSharedCacheList()) {
+				sharedCacheEnergy.add(cache.calculateAndPrintEnergy(outputFileWriter, cache.toString()));
 			}
+			
+			outputFileWriter.write("\n\n");
+			sharedCacheEnergy.printEnergyStats(outputFileWriter, "sharedCacheEnergy.total");
+			totalEnergy.add(sharedCacheEnergy);
 						
 			// Main Memory
-			EnergyConfig mainMemoryPower=null;
-			EnergyConfig[] mainMemoryPowers = null;
-			double totalDynamicPower=0;
-			int totalAccesses=0;
-			outputFileWriter.write("\n\n");
-			if(SystemConfig.interconnect == Interconnect.Bus)
-			{
-				mainMemoryPower = MemorySystem.mainMemoryController.calculateAndPrintEnergy(outputFileWriter, "MainMemoryController");
-			}
-			else if(SystemConfig.interconnect == Interconnect.Noc)
-			{
-				int j=0;
-				mainMemoryPowers = new EnergyConfig[SystemConfig.nocConfig.nocElements.noOfMemoryControllers];
-				for(MainMemoryController controller:SystemConfig.nocConfig.nocElements.memoryControllers)
-				{
-					mainMemoryPowers[j] = controller.calculateEnergy(outputFileWriter);
-					totalDynamicPower += mainMemoryPowers[j].dynamicEnergy;
-					totalAccesses += mainMemoryPowers[j].numAccesses;
-					j++;
-				}
-				outputFileWriter.write("MainMemoryController\t\t" + mainMemoryPowers[0].leakageEnergy + "\t" + totalDynamicPower 
-										+ "\t" + ( mainMemoryPowers[0].leakageEnergy + totalDynamicPower) + "\t" + totalAccesses);
-			}
-			outputFileWriter.write("\n\n");
-			
-			// Directory
-			EnergyConfig directoryPower=null;
-			EnergyConfig[] directoriesPower = null;
-			double totalDirectoryDynamicPower=0, totalDirectoryLeakagePower=0;
-			int totalDirectoryNumAccesses=0;
-			if(SystemConfig.interconnect == Interconnect.Bus)
-			{
-				directoryPower = MemorySystem.getDirectoryCache().calculateAndPrintEnergy(outputFileWriter, "Directory");
-			}
-			else if(SystemConfig.interconnect == Interconnect.Noc)
-			{
-				int j=0;
-				directoriesPower = new EnergyConfig[SystemConfig.nocConfig.nocElements.noOfL1Directories];
-				for(CentralizedDirectoryCache directory:SystemConfig.nocConfig.nocElements.l1Directories)
-				{
-					directoriesPower[j] = directory.calculateAndPrintEnergy(outputFileWriter, "Directory Bank " + j);
-					totalDirectoryLeakagePower += directoriesPower[j].leakageEnergy;
-					totalDirectoryDynamicPower += directoriesPower[j].dynamicEnergy;
-					totalDirectoryNumAccesses += directoriesPower[j].numAccesses;
-					outputFileWriter.write("\n");
-					j++;
-				}
-				outputFileWriter.write("\n");
-				outputFileWriter.write("Total Directory Power \t\t" + totalDirectoryLeakagePower + "\t" + totalDirectoryDynamicPower 
-						+ "\t" + ( totalDirectoryLeakagePower + totalDirectoryDynamicPower) + "\t" + totalDirectoryNumAccesses);
-			}
-			outputFileWriter.write("\n\n");
-			// NOC
-			EnergyConfig nocRouterPower = new EnergyConfig(0, 0);
-			i = 0;
-			for(Router router : ArchitecturalComponent.getNOCRouterList()) {
-				nocRouterPower.add(router.calculateAndPrintEnergy(outputFileWriter, "NOCRouter[" + (i++) + "]"));
+			EnergyConfig mainMemoryEnergy = new EnergyConfig(0, 0);						
+			int memControllerId = 0;
+			for(MainMemoryController memController : ArchitecturalComponent.memoryControllers) {
+				String name = "MainMemoryController[" + memControllerId + "]";
+				memControllerId++;
+				mainMemoryEnergy.add(memController.calculateAndPrintEnergy(outputFileWriter, name));
 			}
 			
 			outputFileWriter.write("\n\n");
-			nocRouterPower.printEnergyStats(outputFileWriter, "nocRouter.total");
+			mainMemoryEnergy.printEnergyStats(outputFileWriter, "mainMemoryControllerEnergy.total");
+			totalEnergy.add(mainMemoryEnergy);
+			
+			// Coherence
+			EnergyConfig coherenceEnergy = new EnergyConfig(0, 0);						
+			int coherenceId = 0;
+			for(Coherence coherence : ArchitecturalComponent.coherences) {
+				String name = "Coherence[" + coherenceId + "]";
+				coherenceId++;
+				coherenceEnergy.add(coherence.calculateAndPrintEnergy(outputFileWriter, name));
+			}
 			
 			outputFileWriter.write("\n\n");
-						
-			// Clock
-			//PowerConfigNew clockPower = GlobalClock.calculateAndPrintEnergy(outputFileWriter, "GlobalClock");
+			coherenceEnergy.printEnergyStats(outputFileWriter, "coherenceEnergy.total");
+			totalEnergy.add(coherenceEnergy);
+			
+			// Interconnect
+			EnergyConfig interconnectEnergy = new EnergyConfig(0, 0);
+			interconnectEnergy.add(ArchitecturalComponent.getInterConnect().calculateAndPrintEnergy(outputFileWriter, "Interconnect"));
+			totalEnergy.add(interconnectEnergy);
 			
 			outputFileWriter.write("\n\n");
-			
-			EnergyConfig totalPower = new EnergyConfig(0, 0);
-			totalPower.add(corePower);
-			totalPower.add(cachePower);
-			if(SystemConfig.interconnect == Interconnect.Bus)
-			{
-				totalPower.add(mainMemoryPower);
-			}
-			else if(SystemConfig.interconnect == Interconnect.Noc)
-			{
-				for(EnergyConfig m:mainMemoryPowers)
-					totalPower.add(m);
-			}
-			if(SystemConfig.interconnect == Interconnect.Bus)
-			{
-				totalPower.add(directoryPower);
-			}
-			else if(SystemConfig.interconnect == Interconnect.Noc)
-			{
-				for(EnergyConfig p:directoriesPower)
-					totalPower.add(p);
-			}
-			totalPower.add(nocRouterPower);
-			//totalPower.add(clockPower);
-			
-			totalPower.printEnergyStats(outputFileWriter, "TotalPower");
+			totalEnergy.printEnergyStats(outputFileWriter, "TotalEnergy");
 			
 		} catch (Exception e) {
 			System.err.println("error in printing stats + \nexception = " + e);
@@ -351,16 +281,7 @@ public class Statistics {
 	public static String nocTopology;
 	public static String nocRoutingAlgo;
 	public static int hopcount=0;
-	static long noOfDirHits;
-	static long noOfDirMisses;
-	static long noOfDirDataForwards;
-	static long noOfDirInvalidations;
-	static long noOfDirWritebacks;
-	static long noOfDirReadMiss;
-	static long noOfDirWriteMiss;
-	static long noOfDirWriteHits;
-	static long numOfDirEntries;
-	
+		
 	static float averageHopLength;
 	static int maxHopLength;
 	static int minHopLength;
@@ -383,7 +304,7 @@ public class Statistics {
 	public static void printMemorySystemStatistics()
 	{
 		//for each core, print memory system statistics
-		
+		Main.printStatisticsOnAsynchronousTermination = false;
 		try
 		{
 			outputFileWriter.write("\n");
@@ -463,63 +384,12 @@ public class Statistics {
 								+ totalBufferPower) + "\n");
 				*/
 			}
-			if(SystemConfig.interconnect == Interconnect.Bus)
-			{
-				outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + noOfDirReadMiss + "\n");
-				outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + noOfDirWriteMiss + "\n");
-				outputFileWriter.write("Directory Access due to Write-Hit\t=\t" + noOfDirWriteHits + "\n");
-				outputFileWriter.write("Directory Hits\t=\t" + noOfDirHits + "\n");
-				outputFileWriter.write("Directory Misses\t=\t" + noOfDirMisses + "\n");
-				outputFileWriter.write("Directory Invalidations\t=\t" + noOfDirInvalidations + "\n");
-				outputFileWriter.write("Directory DataForwards\t=\t" + noOfDirDataForwards + "\n");
-				outputFileWriter.write("Directory Writebacks\t=\t" + noOfDirWritebacks + "\n");
-				outputFileWriter.write("Directory Entries\t=\t" + numOfDirEntries + "\n");
-				if (noOfDirHits+noOfDirMisses != 0)
-				{
-					outputFileWriter.write("Directory Hit-Rate\t=\t" + formatDouble((double)(noOfDirHits)/(noOfDirHits+noOfDirMisses)) + "\n");
-					outputFileWriter.write("Directory Miss-Rate\t=\t" + formatDouble((double)(noOfDirMisses)/(noOfDirHits+noOfDirMisses)) + "\n");
-				
-				}
-			}
-			else if(SystemConfig.interconnect == Interconnect.Noc)
-			{
-				outputFileWriter.write("\n\n");
-				int j=0;
-				int totalDirHits=0;
-				int totalDirMisses=0;
-				for(CentralizedDirectoryCache directory : SystemConfig.nocConfig.nocElements.l1Directories)
-				{
-					outputFileWriter.write("Directory Bank " + j + "\n");
-					outputFileWriter.write("Directory Access due to Read-Miss\t=\t" + directory.getNumReadMiss() + "\n");
-					outputFileWriter.write("Directory Access due to Write-Miss\t=\t" + directory.getNumWriteMiss() + "\n");
-					outputFileWriter.write("Directory Access due to Write-Hit\t=\t" + directory.getNumWriteHit() + "\n");
-					outputFileWriter.write("Directory Hits\t=\t" + directory.getDirectoryHits() + "\n");
-					outputFileWriter.write("Directory Misses\t=\t" + directory.getDirectoryMisses() + "\n");
-					outputFileWriter.write("Directory Invalidations\t=\t" + directory.getInvalidations() + "\n");
-					outputFileWriter.write("Directory DataForwards\t=\t" + directory.getDataForwards() + "\n");
-					outputFileWriter.write("Directory Writebacks\t=\t" + directory.getWritebacks() + "\n");
-					outputFileWriter.write("Directory Entries\t=\t" + directory.getNumberOfDirectoryEntries() + "\n");
-					if (noOfDirHits+noOfDirMisses != 0)
-					{
-						outputFileWriter.write("Directory Hit-Rate\t=\t" + formatDouble((double)(directory.getDirectoryHits())/(directory.getDirectoryHits()
-																+directory.getDirectoryMisses())) + "\n");
-						outputFileWriter.write("Directory Miss-Rate\t=\t" + formatDouble((double)(directory.getDirectoryMisses())/(directory.getDirectoryHits()
-																+directory.getDirectoryMisses())) + "\n");
-					
-					}
-					totalDirHits += directory.getDirectoryHits();
-					totalDirMisses += directory.getDirectoryMisses();
-					j++;
-					outputFileWriter.write("\n\n");
-				}
-				outputFileWriter.write("Total Directory Hits\t=\t" + totalDirHits + "\n");
-				outputFileWriter.write("Total Directory Misses\t=\t" + totalDirMisses + "\n");
-				outputFileWriter.write("Total Directory Hit-Rate\t=\t" + formatDouble((double)(totalDirHits)/(totalDirHits+totalDirMisses)) + "\n");
-				outputFileWriter.write("Total Directory Miss-Rate\t=\t" + formatDouble((double)(totalDirMisses)/(totalDirHits+totalDirMisses)) + "\n");
-
-			}
-				
+										
 			outputFileWriter.write("\n\n");
+			
+			for(Coherence coherence : ArchitecturalComponent.coherences) {
+				coherence.printStatistics(outputFileWriter);
+			}
 		}
 		catch(IOException e)
 		{
@@ -538,7 +408,7 @@ public class Statistics {
 			consolidatedCacheList.put(c.cacheConfig.cacheName, cacheList);
 		}  else {
 			if(cacheList.contains(c)==true) {
-				misc.Error.showErrorAndExit("This cache has already been added to cache list");
+				misc.Error.showErrorAndExit("This cache has already been added to cache list " + c + " " + cacheList.toString());
 			} else {
 				cacheList.add(c);
 			}
@@ -932,56 +802,7 @@ public class Statistics {
 	public static void setExecutable(String executableFile) {
 		Statistics.benchmark = executableFile;
 	}
-	public static long getNoOfDirHits() {
-		return noOfDirHits;
-	}
-	public static void setNoOfDirHits(long noOfDirHits) {
-		Statistics.noOfDirHits = noOfDirHits;
-	}
-	public static long getNoOfDirMisses() {
-		return noOfDirMisses;
-	}
-	public static void setNoOfDirMisses(long noOfDirMisses) {
-		Statistics.noOfDirMisses = noOfDirMisses;
-	}
-	public static long getNoOfDirDataForwards() {
-		return noOfDirDataForwards;
-	}
-	public static void setNoOfDirDataForwards(long noOfDirDataForwards) {
-		Statistics.noOfDirDataForwards = noOfDirDataForwards;
-	}
-	public static long getNoOfDirInvalidations() {
-		return noOfDirInvalidations;
-	}
-	public static void setNoOfDirInvalidations(long noOfDirInvalidations) {
-		Statistics.noOfDirInvalidations = noOfDirInvalidations;
-	}
-
-	public static void setNoOfDirReadMiss(long noOfDirInvalidations) {
-		Statistics.noOfDirReadMiss = noOfDirInvalidations;
-	}
-	public static void setNoOfDirWriteMiss(long noOfDirInvalidations) {
-		Statistics.noOfDirWriteMiss = noOfDirInvalidations;
-	}
-	public static void setNoOfDirWriteHits(long noOfDirInvalidations) {
-		Statistics.noOfDirWriteHits = noOfDirInvalidations;
-	}
-	
-	public static void setNoOfDirEntries(long dirEntries)
-	{
-		Statistics.numOfDirEntries = dirEntries;
 		
-	}
-	public static long getNoOfDirWritebacks() {
-		return noOfDirWritebacks;
-	}
-	
-	public static void setNoOfDirWritebacks(long noOfDirWritebacks) {
-		Statistics.noOfDirWritebacks = noOfDirWritebacks;
-	}
-
-	
-	
 	public static void printAllStatistics(String benchmarkName, 
 			long startTime, long endTime) {
 		//set up statistics module
@@ -991,47 +812,9 @@ public class Statistics {
 		coreMemSys = ArchitecturalComponent.getCoreMemSysArray();
 
 		Statistics.setExecutable(benchmarkName);
-		if(SystemConfig.interconnect == Interconnect.Bus)
-		{
-			Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().getDirectoryHits());
-			Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().getDirectoryMisses());
-			Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
-			Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
-			Statistics.setNoOfDirReadMiss(MemorySystem.getDirectoryCache().getNumReadMiss());
-			Statistics.setNoOfDirWriteMiss(MemorySystem.getDirectoryCache().getNumWriteMiss());
-			Statistics.setNoOfDirWriteHits(MemorySystem.getDirectoryCache().getNumWriteHit());
-			Statistics.setNoOfDirEntries(MemorySystem.getDirectoryCache().getNumberOfDirectoryEntries());
-		}
-		//set memory statistics for levels L2 and below
-		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
-		{
-			String cacheName = cacheNameSet.nextElement();
-			Cache cache = MemorySystem.getCacheList().get(cacheName);
-			if(cache.getClass()!=Cache.class)
-			{
-				if (((NucaCache)cache).nucaType != NucaType.NONE )
-				{
-					averageHopLength = ((NucaCache)cache).getAverageHoplength(); 
-					maxHopLength = ((NucaCache)cache).getMaxHopLength();
-					minHopLength = ((NucaCache)cache).getMinHopLength();
-					Statistics.nocTopology = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().topology.name();
-					Statistics.nocRoutingAlgo = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().rAlgo.name();
-					for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
-					{
-						Statistics.hopcount += ((NocInterface)((NucaCache)cache).cacheBank.get(i).comInterface).getRouter().hopCounters; 
-					}
-					if(Statistics.nocTopology.equals("FATTREE") ||
-							Statistics.nocTopology.equals("OMEGA") ||
-							Statistics.nocTopology.equals("BUTTERFLY")) {
-						for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
-							Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
-						}
-					}
-				}
-				Statistics.totalNucaBankAccesses = ((NucaCache)cache).getTotalNucaBankAcesses();
-			}
-			
-		}
+		
+		//TODO : NUCA stats not being printed !!
+		//printNucaStats();
 			
 		Statistics.setSimulationTime(endTime - startTime);
 		
@@ -1069,6 +852,38 @@ public class Statistics {
 		
 		Statistics.closeStream();
 	}
+	
+	private static void printNucaStats() {
+		for(Cache cache : MemorySystem.getCacheList())
+		{
+			if(cache.getClass()!=Cache.class)
+			{
+				if (((NucaCache)cache).nucaType != NucaType.NONE )
+				{
+					averageHopLength = ((NucaCache)cache).getAverageHoplength(); 
+					maxHopLength = ((NucaCache)cache).getMaxHopLength();
+					minHopLength = ((NucaCache)cache).getMinHopLength();
+					Statistics.nocTopology = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().topology.name();
+					Statistics.nocRoutingAlgo = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().rAlgo.name();
+					for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
+					{
+						Statistics.hopcount += ((NocInterface)((NucaCache)cache).cacheBank.get(i).comInterface).getRouter().hopCounters; 
+					}
+					if(Statistics.nocTopology.equals("FATTREE") ||
+							Statistics.nocTopology.equals("OMEGA") ||
+							Statistics.nocTopology.equals("BUTTERFLY")) {
+						for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
+							Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
+						}
+					}
+				}
+				Statistics.totalNucaBankAccesses = ((NucaCache)cache).getTotalNucaBankAcesses();
+			}
+			
+		}
+		
+	}
+
 	public static long getNumCISCInsn(int javaTid, int tidEmu) {
 		return numCISCInsn[javaTid][tidEmu];
 	}

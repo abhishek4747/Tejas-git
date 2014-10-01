@@ -39,4 +39,9 @@ public class ID {
 	{
 		return new ID(x,y);
 	}
+	
+	public boolean equals(ID id)
+	{
+		return (this.x==id.x && this.y==id.y);
+	}
 }

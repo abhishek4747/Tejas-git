@@ -43,17 +43,16 @@ public class DNuca extends NucaCache{
 	static long eventId;
 	HashMap<Integer,Vector<ID>> bankSetNumToBankIds;
 	public DNuca(CacheConfig cacheParameters,
-			CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,
-			NucaType nucaType) 
+			CoreMemorySystem containingMemSys, NucaType nucaType) 
 	{
-		super(cacheParameters, containingMemSys, tokenbus, nucaType);
+		super(cacheParameters, containingMemSys, nucaType);
 		bankSetNumToBankIds = new HashMap<Integer,Vector<ID>>();
 		bankSetnum = new Vector<Integer>();
-		makeCacheBanks(cacheParameters, containingMemSys, tokenbus,nucaType,this);
+		makeCacheBanks(cacheParameters, containingMemSys, nucaType,this);
 		makeBankSets();
 		bankSetBits = Util.logbase2(numOfBankSets);
 	}
-	protected void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, TopLevelTokenBus tokenBus, NucaType nucaType, DNuca nucaCache)
+	protected void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, NucaType nucaType, DNuca nucaCache)
    	{
        	int rows = SystemConfig.nocConfig.getNumberOfBankRows();
        	int cols = SystemConfig.nocConfig.getNumberOfBankColumns();
@@ -61,7 +60,7 @@ public class DNuca extends NucaCache{
    		{
    			for(int j=0;j<cols;j++)
    			{
-   				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
+   				if(ArchitecturalComponent.noc.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
    					ID bankId = new ID(i,j);
    					cacheBank.add(new DNucaBank(bankId, cacheParameters, containingMemSys, this, nucaType));
@@ -78,7 +77,7 @@ public class DNuca extends NucaCache{
    		{
    			for(int j=0;j<cols;j++)
    			{
-   				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
+   				if(ArchitecturalComponent.noc.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
    				{
    					ID bankId = new ID(i,j);
    					if(bankSetNumToBankIds.get(i)==null)
@@ -126,8 +125,7 @@ public class DNuca extends NucaCache{
 											 sourceId,destinationId);
 //		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL) 
 //		{
-			ArchitecturalComponent.getCores()[addrEvent.coreId].getRouter().
-			getPort().put(eventToBeSent);
+			ArchitecturalComponent.getCores()[addrEvent.coreId].comInterface.sendMessage(eventToBeSent);
 //		}
 	}
 	ID getBankInBankSet(int bankSet,long addr) 

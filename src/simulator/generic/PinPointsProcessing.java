@@ -7,8 +7,6 @@ import java.util.Enumeration;
 import main.ArchitecturalComponent;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
-
-import config.Interconnect;
 import config.SimulationConfig;
 import config.SystemConfig;
 
@@ -233,11 +231,8 @@ public class PinPointsProcessing {
 			}
 			
 			int i = 0;
-			for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+			for (Cache cache : MemorySystem.getCacheList())
 			{
-				String cacheName = cacheNameSet.nextElement();
-				Cache cache = MemorySystem.getCacheList().get(cacheName);
-				
 				noOfCacheRequests[i] += (long) (cache.hits + cache.misses - tempnoOfCacheRequests[i]) * weightsArray[currentSlice];
 				tempnoOfCacheRequests[i] = cache.hits + cache.misses;
 				noOfCacheHits[i] += (long) (cache.hits - tempnoOfCacheHits[i]) * weightsArray[currentSlice];
@@ -289,11 +284,8 @@ public class PinPointsProcessing {
 		}
 		
 		int i = 0;
-		for (Enumeration<String> cacheNameSet = MemorySystem.getCacheList().keys(); cacheNameSet.hasMoreElements(); /*Nothing*/)
+		for (Cache cache : MemorySystem.getCacheList())
 		{
-			String cacheName = cacheNameSet.nextElement();
-			Cache cache = MemorySystem.getCacheList().get(cacheName);
-			
 			cache.hits = noOfCacheHits[i];
 			cache.misses = noOfCacheMisses[i];
 			

@@ -1,6 +1,7 @@
 package pipeline.outoforder;
 
 import config.SimulationConfig;
+import main.ArchitecturalComponent;
 import main.CustomObjectPool;
 import memorysystem.AddressCarryingEvent;
 import generic.Barrier;
@@ -110,7 +111,7 @@ public class FetchLogic extends SimulationElement {
 			
 			newInstruction = inputToPipeline[inputPipeToReadNext].peek(0);
 			
-			//process sync operation
+			//process sync operation(Barrier)
 			if(newInstruction.getOperationType() == OperationType.sync){
 				long barrierAddress = newInstruction.getCISCProgramCounter();
 				Barrier bar = BarrierTable.barrierList.get(barrierAddress);
@@ -118,11 +119,12 @@ public class FetchLogic extends SimulationElement {
 				if(this.core.TreeBarrier == true){
 					setSleep(true);
 					int coreId = this.core.getCore_number();
-					this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+					ArchitecturalComponent.coreBroadcastBus.getPort().put(new AddressCarryingEvent(
+							0,
 							this.core.eventQueue,
 							 1,
-							 this.core.coreBcastBus, 
-							 this.core.coreBcastBus, 
+							 ArchitecturalComponent.coreBroadcastBus, 
+							 ArchitecturalComponent.coreBroadcastBus, 
 							 RequestType.TREE_BARRIER, 
 							 barrierAddress,
 							 coreId));
@@ -133,13 +135,13 @@ public class FetchLogic extends SimulationElement {
 						System.out.println("    Time to cross " + bar.getBarrierAddress());
 						setSleep(true);
 						for(int j=0; j<bar.getNumThreads(); j++ ){
-							this.core.coreBcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
+							ArchitecturalComponent.coreBroadcastBus.addToResumeCore(bar.getBlockedThreads().elementAt(j));
 						}
-						this.core.coreBcastBus.getPort().put(new AddressCarryingEvent(
+						ArchitecturalComponent.coreBroadcastBus.getPort().put(new AddressCarryingEvent(
 								this.core.eventQueue,
 								 1,
-								 this.core.coreBcastBus, 
-								 this.core.coreBcastBus, 
+								 ArchitecturalComponent.coreBroadcastBus, 
+								 ArchitecturalComponent.coreBroadcastBus, 
 								 RequestType.PIPELINE_RESUME, 
 								 0));
 	

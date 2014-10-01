@@ -42,18 +42,17 @@ import config.SimulationConfig;
 import net.ID;
 import net.NOC;
 import net.NocInterface;
-import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
 
 public class NucaCache extends Cache
 {
-	public enum NucaType{
+	public static enum NucaType{
 		S_NUCA,
 		D_NUCA,
 		NONE
 	}
 	
-	public enum Mapping {
+	public static enum Mapping {
 		SET_ASSOCIATIVE,
 		ADDRESS,
 		BOTH
@@ -72,7 +71,7 @@ public class NucaCache extends Cache
     private long numOfRequests;
     private int totalNucaBankAcesses;
     static public HashMap<ID,Integer> accessedBankIds = new HashMap<ID, Integer>();
-    public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, TopLevelTokenBus tokenbus,NucaType nucaType)
+    public NucaCache(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, NucaType nucaType)
     {
     	//TODO : cache id can be more intuitive
     	super("NucaCache", 0, cacheParameters, containingMemSys);

@@ -20,31 +20,27 @@
 *****************************************************************************/
 package memorysystem;
 
+import generic.Core;
+import generic.Event;
+import generic.EventQueue;
+import generic.GlobalClock;
+import generic.RequestType;
+import generic.SimulationElement;
+
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-
-import net.NocInterface;
-import net.NOC.CONNECTIONTYPE;
+import java.util.ArrayList;
+import java.util.TreeSet;
 
 import main.ArchitecturalComponent;
 import memorysystem.coherence.Coherence;
-import memorysystem.coherence.Directory;
-import memorysystem.coherence.DirectoryEntry;
-import memorysystem.directory.CentralizedDirectoryCache;
-import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
-import memorysystem.nuca.NucaCacheBank;
+import misc.Util;
 import config.CacheConfig;
 import config.CacheConfig.WritePolicy;
 import config.CacheDataType;
 import config.CacheEnergyConfig;
-import config.Interconnect;
 import config.EnergyConfig;
-import config.SimulationConfig;
-import config.SystemConfig;
-import misc.Util;
-import generic.*;
 
 public class Cache extends SimulationElement
 {
@@ -87,8 +83,8 @@ public class Cache extends SimulationElement
 	
 	CacheEnergyConfig energy;
 	
-	String cacheName;
-	
+	public String cacheName;
+		
 	public void createLinkToNextLevelCache(Cache nextLevelCache) {
 		this.nextLevel = nextLevelCache;			
 		this.nextLevel.prevLevel.add(this);
@@ -111,6 +107,9 @@ public class Cache extends SimulationElement
 				cacheParameters.getLatency(),
 				cacheParameters.operatingFreq);
 		
+		// add myself to the global cache list
+		MemorySystem.addToCacheList(cacheName, this);
+				
 		if(cacheParameters.collectWorkingSetData==true) {
 			workingSet = new TreeSet<Long>();
 			workingSetChunkSize = cacheParameters.workingSetChunkSize;
@@ -134,7 +133,7 @@ public class Cache extends SimulationElement
 		if(this.containingMemSys==null) {
 			// Use the core memory system of core 0 for all the shared caches.
 			this.isSharedCache = true;
-			this.containingMemSys = MemorySystem.getCoreMemorySystems()[0];
+			//this.containingMemSys = ArchitecturalComponent.getCore(0).getExecEngine().getCoreMemorySystem(); 
 		}
 		
 		if(cacheParameters.nextLevel=="") {
@@ -315,8 +314,9 @@ public class Cache extends SimulationElement
 			addEventAtLowerCache(event);
 		} else {
 			Core core0 = ArchitecturalComponent.getCores()[0];
+			MainMemoryController memController = getComInterface().getNearestMemoryController();
 			event = new AddressCarryingEvent(core0.getEventQueue(), 0, 
-				this, MemorySystem.mainMemoryController, requestType, addr);
+				this, memController, requestType, addr);
 			sendEvent(event);
 		}
 	}
@@ -361,7 +361,7 @@ public class Cache extends SimulationElement
 			this.cacheConfig.cacheDataType==CacheDataType.Unified) );
 	}
 	
-	private boolean isSharedCache = true;
+	private boolean isSharedCache = false;
 	public boolean isSharedCache() {
 		return isSharedCache; 
 	}
@@ -421,7 +421,7 @@ public class Cache extends SimulationElement
 			event.getProcessingElement(), event.getRequestingElement(),
 			RequestType.Mem_Response);
 		
-		if(getNetworkInterface()!=event.getProcessingElement().getNetworkInterface()) {
+		if(getComInterface()!=event.getProcessingElement().getComInterface()) {
 			sendEvent(event);
 		} else {
 			event.getProcessingElement().handleEvent(event.getEventQ(), event);
@@ -634,8 +634,8 @@ public class Cache extends SimulationElement
 			misc.Error.showErrorAndExit("Send event with zero latency !!");
 		}
 		
-		if(event.getProcessingElement().getNetworkInterface()!=this.getNeworkInterface()) {
-			getNetworkInterface().put(event);
+		if(event.getProcessingElement().getComInterface()!=this.getComInterface()) {
+			getComInterface().sendMessage(event);
 		} else {
 			event.getProcessingElement().getPort().put(event);
 		}

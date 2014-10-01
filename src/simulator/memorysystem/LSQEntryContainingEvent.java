@@ -1,6 +1,5 @@
 package memorysystem;
 
-import generic.Event;
 import generic.EventQueue;
 import generic.RequestType;
 import generic.SimulationElement;
@@ -13,7 +12,7 @@ public class LSQEntryContainingEvent extends AddressCarryingEvent
 			SimulationElement processingElement,
 			RequestType requestType, LSQEntry lsqEntry,int coreId) {
 		super(eventQ, eventTime, requestingElement, processingElement,
-				requestType,lsqEntry.getAddr(),coreId);
+				requestType,lsqEntry.getAddr());
 		this.lsqEntry = lsqEntry;
 	}
 	

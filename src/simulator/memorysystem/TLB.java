@@ -83,7 +83,7 @@ public class TLB extends SimulationElement
 	 */
 	protected static long getPageID(long virtualAddr)
 	{
-		long pageID = virtualAddr >>> Global.PAGE_OFFSET_BITS;
+		long pageID = virtualAddr >>> MemorySystem.PAGE_OFFSET_BITS;
 		return pageID;
 	}
 	
@@ -102,13 +102,8 @@ public class TLB extends SimulationElement
 		{
 			tlbMisses++;
 			//Fetch the TLB entry from Main memory through the event TLBAddrSearchEvent
-			AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-					 memoryPenalty,
-					 this, 
-					 this,
-					 RequestType.Tlb_Miss_Response, 
-					 pageID,
-					 getCore().getCore_number());
+			AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(), memoryPenalty, this, 
+					this, RequestType.Tlb_Miss_Response, pageID);
 			
 			
 			this.getPort().put(addressEvent);
@@ -132,7 +127,7 @@ public class TLB extends SimulationElement
 	{
 		noOfAccesses++;
 		
-		long addressForTLB = pageID << Global.PAGE_OFFSET_BITS;
+		long addressForTLB = pageID << MemorySystem.PAGE_OFFSET_BITS;
 		
 		TLBEntry entry = new TLBEntry();
 		entry.setPhyAddr(addressForTLB);

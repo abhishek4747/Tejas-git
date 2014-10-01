@@ -73,7 +73,7 @@
 		<markerFunctions>false</markerFunctions>
 		<startSimMarker>XXX_startInstrumentation</startSimMarker>
 		<endSimMarker>XXX_endInstrumentation</endSimMarker>
-		<NumCores>64</NumCores>
+		<NumCores>4</NumCores>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -116,7 +116,6 @@
 				<LSQPortType>UL</LSQPortType>			<!--Type of access ports in the LSQ (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
 				<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
-				<LSQMultiPortingType>B</LSQMultiPortingType>	<!--Multi-porting option used in the LSQ('G' for GENUINE and 'B' for BANKED)-->
 				<LeakageEnergy>0.0318</LeakageEnergy>
 				<DynamicEnergy>0.1725</DynamicEnergy>
 			</LSQ>
@@ -263,30 +262,29 @@
 		</Core>
 		
 		<SharedCaches>
-			<Cache name="L2" nextLevel="L3" type="L2Cache_256K_8"/>
-			<Cache name="L3" type="L3Cache_1M_8"/>
+			<Cache name="L2" type="L2Cache_256K_8"/>
+			<!-- Cache name="L3" type="L3Cache_1M_8"/ -->
 		</SharedCaches>
 		
-		<Interconnect>Bus</Interconnect>
+		<Interconnect>NOC</Interconnect>
+		
 		<NOC>
-			<!--If you want to use NOC for any  other elements like core, L1 , add it here using a tag -->
-			<L2>
-				<NocConfigFile>/mnt/srishtistr0/home/anuj/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
-				<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped -->
-				<NocSelScheme>STATIC</NocSelScheme>
-				<NocNumberOfBuffers>4</NocNumberOfBuffers>
-				<NocPortType>UL</NocPortType>
-				<NocAccessPorts>-1</NocAccessPorts>
-				<NocPortOccupancy>-1</NocPortOccupancy>
-				<NocLatency>1</NocLatency>
-				<NocOperatingFreq>2000</NocOperatingFreq>
-				<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
-				<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
-				<NocLatencyBetweenBanks>2</NocLatencyBetweenBanks>
-				<NocRouterArbiter>RR</NocRouterArbiter>
-				<TechPoint>90</TechPoint>
-				<NocConnection>ELECTRICAL</NocConnection>
-			</L2>
+			<NocConfigFile>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
+			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped -->
+			<NocSelScheme>STATIC</NocSelScheme>
+			<NocNumberOfBuffers>4</NocNumberOfBuffers>
+			<NocPortType>UL</NocPortType>
+			<NocAccessPorts>-1</NocAccessPorts>
+			<NocPortOccupancy>-1</NocPortOccupancy>
+			<NocLatency>1</NocLatency>
+			<NocOperatingFreq>2000</NocOperatingFreq>
+			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
+			<NocLatencyBetweenNOCElements>2</NocLatencyBetweenNOCElements>
+			<NocRouterArbiter>RR_ARBITER</NocRouterArbiter>
+			<TechPoint>90</TechPoint>
+			<NocConnection>ELECTRICAL</NocConnection>
+			
 			
 			<LeakageEnergy>0.1877</LeakageEnergy>
 			<DynamicEnergy>2.1164</DynamicEnergy>
@@ -303,12 +301,11 @@
 				<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 				<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 				<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-				<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
 				<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 				<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 				<MSHRSize>4</MSHRSize>
 				<BusOccupancy>0</BusOccupancy>
-				<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+				<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 				<CacheType>Unified</CacheType>
 				<LeakageEnergy>.1092</LeakageEnergy>
 				<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
@@ -337,12 +334,11 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>4</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
@@ -358,12 +354,11 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>4</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
@@ -379,12 +374,11 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>4</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
@@ -400,12 +394,11 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>4</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1592</LeakageEnergy>
 			<ReadDynamicEnergy>0.43964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.43964264705</WriteDynamicEnergy>
@@ -421,17 +414,41 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<MultiPortingType>B</MultiPortingType>		<!--Multi-porting option used in the Cache('G' for GENUINE and 'B' for BANKED)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>4</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>N</Nuca>						<!--NUCA type (S : S-NUCA, D : D-NUCA, N : None)-->
+			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1892</LeakageEnergy>
 			<ReadDynamicEnergy>0.60964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.60964264705</WriteDynamicEnergy>
 			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
 		</L3Cache_1M_8>
+		
+		<Directory1>
+			<CoherenceType>Directory</CoherenceType>
+			<CoherenceMetadata>
+				<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+				<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+				<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
+				<Associativity>8</Associativity>
+				<NumEntries>1024</NumEntries>			<!--In KBs-->
+				<Latency>4</Latency>				<!--In clock cycles-->
+				<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+				<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+				<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+				<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+				<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+				<MSHRSize>4</MSHRSize>
+				<BusOccupancy>0</BusOccupancy>
+				<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+				<CacheType>Unified</CacheType>
+				<LeakageEnergy>.1092</LeakageEnergy>
+				<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
+				<WriteDynamicEnergy>.3396</WriteDynamicEnergy>
+			</CoherenceMetadata>		
+		</Directory1>
+		
 	</Library>
 	
 </Configuration>

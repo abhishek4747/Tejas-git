@@ -21,20 +21,13 @@
 
 package generic;
 
-import net.ID;
+import memorysystem.MainMemoryController;
 
-public abstract class CommunicationInterface {
+public interface CommunicationInterface {
 	/*
 	 * This is an abstract function to send a message from one simulation element to the other.
 	 * This is used by NOC or Bus based interconnection. 
 	 */
-	public abstract void sendMessage(EventQueue eventQueue,
-			int delay, 
-			RequestType reqTye, 
-			long addr, 
-			int coreId,
-			ID destinationId,
-			SimulationElement source,
-			SimulationElement destination, 
-			int core_num);
+	public void sendMessage(Event event);
+	public MainMemoryController getNearestMemoryController();
 }

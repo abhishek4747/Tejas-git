@@ -1,37 +1,151 @@
 package main;
 
-import java.util.ArrayList;
-
-import net.Router;
-import net.optical.TopLevelTokenBus;
 import emulatorinterface.communication.IpcBase;
-import memorysystem.CoreMemorySystem;
-import memorysystem.MemorySystem;
-import pipeline.outoforder.ICacheBuffer;
-import pipeline.outoforder.OutOrderExecutionEngine;
+import generic.CommunicationInterface;
 import generic.Core;
 import generic.CoreBcastBus;
 import generic.EventQueue;
 import generic.GlobalClock;
+import generic.SimulationElement;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import config.CacheConfig;
+import config.SystemConfig;
+
+import memorysystem.Cache;
+import memorysystem.CoreMemorySystem;
+import memorysystem.MainMemoryController;
+import memorysystem.MemorySystem;
+import memorysystem.coherence.Coherence;
+import memorysystem.coherence.Directory;
+import net.Bus;
+import net.InterConnect;
+import net.NOC;
+import net.Router;
+import pipeline.outoforder.ICacheBuffer;
+import pipeline.outoforder.OutOrderExecutionEngine;
 
 public class ArchitecturalComponent {
-
-	private static Core[] cores;
-	private static TopLevelTokenBus tokenBus;
-	private static CoreBcastBus coreBcastBus;
 	
-	public static TopLevelTokenBus initTokenBus() 
-	{
-		return new TopLevelTokenBus();
+	public static Vector<Core> cores = new Vector<Core>();
+	public static Vector<CoreMemorySystem> coreMemSysArray = new Vector<CoreMemorySystem>();
+	public static Vector<Coherence> coherences = new Vector<Coherence>();	
+	public static Vector<MainMemoryController> memoryControllers = new Vector<MainMemoryController>();
+	public static Vector<Cache> sharedCaches = new Vector<Cache>();
+	
+	private static InterConnect interconnect;
+	public static CoreBcastBus coreBroadcastBus;
+		
+	public static void createChip() {
+		// Interconnect
+			// Core
+			// Coherence
+			// Shared Cache
+			// Main Memory Controller
+
+		if(SystemConfig.interconnect ==  SystemConfig.Interconnect.Bus) {
+			ArchitecturalComponent.setInterConnect(new Bus());
+		} else if(SystemConfig.interconnect == SystemConfig.Interconnect.Noc) {
+			ArchitecturalComponent.setInterConnect(new NOC(SystemConfig.nocConfig));
+			createElementsOfNOC();			
+			((NOC)interconnect).ConnectNOCElements();
+		}
+		
+		MemorySystem.createLinkBetweenCaches();
+		MemorySystem.setCoherenceOfCaches();
+		initCoreBroadcastBus();
+		GlobalClock.systemTimingSetUp(getCores());
 	}
 	
+	private static void createElementsOfNOC() {
+		//create elements mentioned as topology file
+		BufferedReader readNocConfig = NOC.openTopologyFile(SystemConfig.nocConfig.NocTopologyFile);
+		
+		// Skip the first line. It contains numrows/cols information
+		try {
+			readNocConfig.readLine();
+		} catch (IOException e1) {
+			misc.Error.showErrorAndExit("Error in reading noc topology file !!");
+		}
+		
+		int numRows = ((NOC)interconnect).getNumRows();
+		int numColumns = ((NOC)interconnect).getNumColumns();
+		for(int i=0;i<numRows;i++)
+		{
+			String str = null;
+			try {
+				str = readNocConfig.readLine();
+			} catch (IOException e) {
+				misc.Error.showErrorAndExit("Error in reading noc topology file !!");
+			}
+			
+			StringTokenizer st = new StringTokenizer(str," ");
+			
+			for(int j=0;j<numColumns;j++)
+			{
+				String nextElementToken = (String)st.nextElement();
+				
+				System.out.println("NOC [" + i + "][" + j + "] = " + nextElementToken);
+				
+				CommunicationInterface comInterface = ((NOC)interconnect).getNetworkElements()[i][j];
+				
+				if(nextElementToken.equals("C")){
+					Core core = createCore(cores.size());
+					cores.add(core);
+					core.setComInterface(comInterface);
+				} else if(nextElementToken.equals("D")) {
+					Directory directory = MemorySystem.createDirectory();
+					coherences.add(directory);
+					directory.setComInterface(comInterface);
+					//TODO split and multiple directories
+				} else if(nextElementToken.equals("M")) {
+					MainMemoryController mainMemController = new MainMemoryController();
+					memoryControllers.add(mainMemController);
+					mainMemController.setComInterface(comInterface);
+				} else if(nextElementToken.equals("-")) {
+					//do nothing
+				} else {
+					Cache c = MemorySystem.createSharedCache(nextElementToken);
+					sharedCaches.add(c);
+					c.setComInterface(comInterface);
+					//TODO split and multiple shared caches
+				} 
+			}
+		}
+	}	
+	
+	static Core createCore(int coreNumber) {
+		return new Core(coreNumber, 1, 1, null, new int[]{0});
+	}
+		
+	public static InterConnect getInterConnect() {
+		return interconnect;
+	}
+	
+	public static void setInterConnect(InterConnect i) {
+		interconnect = i;
+	}
+		
 	//TODO read a config file
 	//create specified number of cores
 	//map threads to cores
-	public static Core[] initCores(CoreBcastBus coreBBus)
+	public static Core[] initCores()
 	{
 		System.out.println("initializing cores...");
-		System.out.println("Initializing core broadcast bus...");
 		
 		Core[] cores = new Core[IpcBase.getEmuThreadsPerJavaThread()];
 		for (int i=0; i<IpcBase.getEmuThreadsPerJavaThread(); i++) {
@@ -40,14 +154,9 @@ public class ArchitecturalComponent {
 							1,
 							null,
 							new int[]{0});
-			cores[i].setCoreBcastBus(coreBBus);
 		}
 		
-		coreBBus.setEventQueue(cores[0].eventQueue);
 		GlobalClock.systemTimingSetUp(cores);
-		for(int i=0 ; i < cores.length ; i++){
-			coreBBus.addToCoreList(cores[i]);
-		}
 		
 		//TODO wont work in case of multiple runnable threads
 //			for(int i = 0; i<IpcBase.getEmuThreadsPerJavaThread(); i++)
@@ -69,12 +178,23 @@ public class ArchitecturalComponent {
 		return cores;
 	}
 
-	public static Core[] getCores() {
+	public static Core getCore(int i) {
+		return cores.get(i);
+	}
+	
+	public static Vector<Core> getCoresVector() {
 		return cores;
 	}
-
-	public static void setCores(Core[] cores) {
-		ArchitecturalComponent.cores = cores;
+	
+	public static Core[] getCores() {
+		Core[] coreArray = new Core[cores.size()];
+		int i=0;
+		for(Core core : cores) {
+			coreArray[i] = core;
+			i++;
+		}
+		
+		return coreArray;
 	}
 
 	public static long getNoOfInstsExecuted()
@@ -148,38 +268,16 @@ public class ArchitecturalComponent {
 		}*/
 	}
 	
-	public static TopLevelTokenBus getTokenBus() {
-		return tokenBus;
-	}
-
-	public static void setTokenBus(TopLevelTokenBus inTokenBus) {
-		tokenBus = inTokenBus;
-	}
 	
-	private static CoreMemorySystem coreMemSysArray[];
 	public static CoreMemorySystem[] getCoreMemSysArray()
 	{
-		return coreMemSysArray;
-	}
-
-	public static void initMemorySystem(Core[] cores2,
-			TopLevelTokenBus tokenBus2) {
-		
-		 //TODO mem sys need not know eventQ during initialisation
-		coreMemSysArray = MemorySystem.initializeMemSys(ArchitecturalComponent.getCores(),
-				ArchitecturalComponent.getTokenBus());		
-	}
-
-	public static CoreBcastBus initCoreBcastBus() {
-		return new CoreBcastBus();
-	}
-
-	public static CoreBcastBus getCoreBcastBus() {
-		return coreBcastBus;
-	}
-
-	public static void setCoreBcastBus(CoreBcastBus coreBcastBus) {
-		ArchitecturalComponent.coreBcastBus = coreBcastBus;
+		CoreMemorySystem[] toBeReturned = new CoreMemorySystem[coreMemSysArray.size()];
+		int i = 0;
+		for(CoreMemorySystem c : coreMemSysArray) {
+			toBeReturned[i] = c;
+			i++;
+		}
+		return toBeReturned;
 	}
 
 	private static ArrayList<Router> nocRouterList = new ArrayList<Router>();
@@ -190,5 +288,14 @@ public class ArchitecturalComponent {
 	
 	public static ArrayList<Router> getNOCRouterList() {
 		return nocRouterList;
+	}
+
+	public static void initCoreBroadcastBus() {
+		coreBroadcastBus = new CoreBcastBus();		
+	}
+
+	public static MainMemoryController getMainMemoryController(CommunicationInterface comInterface) {
+		//TODO : return the nearest memory controller based on the location of the communication interface
+		return memoryControllers.get(0);
 	}
 }

@@ -21,11 +21,7 @@
 package config;
 
 import java.util.Vector;
-
 import generic.PortType;
-import generic.MultiPortingType;
-
-
 
 public class CoreConfig 
 {
@@ -36,8 +32,7 @@ public class CoreConfig
 	public PortType LSQPortType;
 	public int LSQAccessPorts;
 	public int LSQPortOccupancy;
-	public MultiPortingType LSQMultiportType;
-	
+		
 	public PipelineType pipelineType;
 		
 	public int ITLBSize;

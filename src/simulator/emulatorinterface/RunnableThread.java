@@ -4,29 +4,16 @@
 
 package emulatorinterface;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Vector;
 
-//import com.sun.xml.internal.ws.streaming.TidyXMLStreamReader;
-
-//import main.Main;
-import main.CustomObjectPool;
 import main.Main;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
-import net.optical.TopLevelTokenBus;
 import pipeline.PipelineInterface;
-import config.EmulatorConfig;
-import config.SimulationConfig;
 import config.SystemConfig;
 import emulatorinterface.ThreadBlockState.blockState;
 import emulatorinterface.communication.Encoding;
@@ -35,14 +22,11 @@ import emulatorinterface.communication.Packet;
 import emulatorinterface.communication.shm.SharedMem;
 import emulatorinterface.translator.x86.objparser.ObjParser;
 import generic.BarrierTable;
-import generic.BenchmarkThreadMapping;
 import generic.CircularPacketQueue;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
-import generic.InstructionLinkedList;
-import generic.OperationType;
 import generic.Statistics;
 
 /* MaxNumThreads threads are created from this class. Each thread
@@ -51,8 +35,6 @@ import generic.Statistics;
  */
 public class RunnableThread implements Encoding, Runnable {
 	
-	TopLevelTokenBus tokenBus;
-
 	public static final int INSTRUCTION_THRESHOLD = 2000;
 	
 	boolean oNotProcess = false;
@@ -158,7 +140,6 @@ public class RunnableThread implements Encoding, Runnable {
 				if (fromEmulator.size() == 0) {
 					continue;
 				}
-				
 				// update the number of read packets
 				threadParam.totalRead += numReads;
 				
@@ -319,8 +300,7 @@ public class RunnableThread implements Encoding, Runnable {
 
 	// initialise a reader thread with the correct thread id and the buffer to
 	// write the results in.
-	public RunnableThread(String threadName, int javaTid, IpcBase ipcBase, 
-			Core[] cores, TopLevelTokenBus tokenBus) {
+	public RunnableThread(String threadName, int javaTid, IpcBase ipcBase, Core[] cores) {
 
 		this.ipcBase = ipcBase;
 		
@@ -328,7 +308,6 @@ public class RunnableThread implements Encoding, Runnable {
 		emulatorThreadState = new EmulatorThreadState[EMUTHREADS];
 		threadBlockState = new ThreadBlockState[EMUTHREADS];
 		
-		this.tokenBus = tokenBus;
 		// dynamicInstructionBuffer = new DynamicInstructionBuffer[EMUTHREADS];
 		inputToPipeline = (GenericCircularQueue<Instruction> [])
 								Array.newInstance(GenericCircularQueue.class, EMUTHREADS);
@@ -400,8 +379,7 @@ public class RunnableThread implements Encoding, Runnable {
 			{
 				sharedCacheList.get(i).oneCycleOperation();
 			}
-			if(tokenBus.getFrequency() > 0)
-				tokenBus.eq.processEvents();
+			
 			GlobalClock.incrementClock();
 		}
 		
@@ -457,13 +435,13 @@ public class RunnableThread implements Encoding, Runnable {
 						}
 					}
 				}
+				
 				Vector<Cache> sharedCacheList = MemorySystem.getSharedCacheList();
 				for(int i = 0; i < sharedCacheList.size(); i++)
 				{
 					sharedCacheList.get(i).oneCycleOperation();
 				}
-				if(tokenBus.getFrequency() > 0)
-					tokenBus.eq.processEvents();
+				
 				GlobalClock.incrementClock();
 				//Why it cant be change into a separate function
 		}

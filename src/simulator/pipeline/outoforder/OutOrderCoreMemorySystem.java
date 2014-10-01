@@ -8,6 +8,7 @@ import generic.GlobalClock;
 import generic.RequestType;
 import generic.SimulationElement;
 import memorysystem.AddressCarryingEvent;
+import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 import memorysystem.LSQEntryContainingEvent;
 import memorysystem.MemorySystem;
@@ -34,8 +35,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 				 this, 
 				 iCache,
 				 RequestType.Cache_Read, 
-				 address,
-				 core.getCore_number());
+				 address);
 
 		//attempt issue to lower level cache
 		this.iCache.getPort().put(addressEvent);
@@ -78,8 +78,7 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 												 this, 
 												 l1Cache,
 												 requestType, 
-												 address,
-												 core.getCore_number());
+												 address);
 		
 		
 		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {

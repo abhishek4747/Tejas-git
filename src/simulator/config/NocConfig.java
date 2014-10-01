@@ -21,7 +21,6 @@
 
 package config;
 
-import net.NocElements;
 import generic.PortType;
 import memorysystem.nuca.NucaCache.Mapping;
 import net.RoutingAlgo;
@@ -40,7 +39,7 @@ public class NocConfig
 	public int portOccupancy;
 	public int numberOfBuffers;
 	public RoutingAlgo.ALGO rAlgo;
-	public int latencyBetweenBanks;
+	public int latencyBetweenNOCElements;
 	public SELSCHEME selScheme;
 	public ARBITER arbiterType;
 	public int technologyPoint;
@@ -48,7 +47,7 @@ public class NocConfig
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
 	public Mapping mapping;
-	public NocElements nocElements;
+	public String NocTopologyFile; 
 	
 	public int getLatency() {
 		return latency;

@@ -20,20 +20,14 @@
 *****************************************************************************/
 package config;
 
-import memorysystem.Cache.CoherenceType;
 import memorysystem.nuca.NucaCache.NucaType;
-import memorysystem.Cache;
 import generic.PortType;
-import generic.MultiPortingType;
 
 public class CacheConfig 
 {
 	public long operatingFreq;
 	
-	public WritePolicy writePolicy;
-//	public boolean isFirstLevel;
-	public Cache.CacheType levelFromTop;
-	
+	public WritePolicy writePolicy;	
 	public String nextLevel;
 	public int blockSize;
 	public int assoc;
@@ -44,12 +38,9 @@ public class CacheConfig
 	public PortType portType;
 	public int accessPorts;
 	public int portOccupancy;
-	public MultiPortingType multiportType;
-	public CoherenceType coherence;
+	
 	public int numberOfBuses;
 	public int busOccupancy;
-//	public int numberOfBankColumns;
-//	public int numberOfBankRows;
 	public int mshrSize;
 	public NucaType nucaType;
 	
@@ -63,6 +54,8 @@ public class CacheConfig
 	public boolean firstLevel = false;
 	public CacheDataType cacheDataType = null;
 	public String nextLevelId;
+
+	public String coherenceName;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH
@@ -102,10 +95,6 @@ public class CacheConfig
 		return portOccupancy;
 	}
 
-	public MultiPortingType getMultiportType() {
-		return multiportType;
-	}
-	
 	protected void setWritePolicy(WritePolicy writePolicy) {
 		this.writePolicy = writePolicy;
 	}
@@ -136,26 +125,6 @@ public class CacheConfig
 
 	protected void setPortOccupancy(int portOccupancy) {
 		this.portOccupancy = portOccupancy;
-	}
-
-	protected void setMultiportType(MultiPortingType multiportType) {
-		this.multiportType = multiportType;
-	}
-
-	public Cache.CacheType getLevelFromTop() {
-		return levelFromTop;
-	}
-
-	protected void setLevelFromTop(Cache.CacheType levelFromTop) {
-		this.levelFromTop = levelFromTop;
-	}
-
-	public CoherenceType getCoherence() {
-		return coherence;
-	}
-
-	public void setCoherence(CoherenceType coherence) {
-		this.coherence = coherence;
 	}
 
 	public int getNumberOfBuses() {

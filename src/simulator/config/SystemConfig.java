@@ -27,6 +27,10 @@ import generic.PortType;
 
 public class SystemConfig 
 {
+	public static enum Interconnect {
+		Bus, Noc
+	}
+
 	public static int NoOfCores;
 	
 	public static int maxNumJavaThreads;
@@ -41,7 +45,7 @@ public class SystemConfig
 	public static int mainMemoryPortOccupancy;
 	public static int cacheBusLatency;
 	public static String coherenceEnforcingCache;
-	public static CacheConfig directoryConfig;
+	public static DirectoryConfig directoryConfig;
 	
 	public static NocConfig nocConfig;
 	//Directory Latencies:

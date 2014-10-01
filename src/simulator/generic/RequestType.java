@@ -48,8 +48,7 @@ public enum RequestType {
 	Cache_Read,
 	Cache_Read_from_iCache,
 	Cache_Write,
-	Main_Mem_Read,
-	Main_Mem_Write,
+	
 	Mem_Response,
 	LSQ_Commit,
 	
@@ -69,7 +68,7 @@ public enum RequestType {
 	Request_for_modified_copy,
 	Reply_with_shared_copy,
 	Write_Modified_to_sharedmem, 
-	Main_Mem_Response,
+	
 
 	TOKEN,
 	LOCAL_TOKEN,

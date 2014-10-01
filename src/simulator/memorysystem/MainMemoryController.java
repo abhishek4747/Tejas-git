@@ -1,46 +1,27 @@
 package memorysystem;
 
+import generic.Event;
+import generic.EventQueue;
+import generic.RequestType;
+import generic.SimulationElement;
+
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Vector;
 
-import net.NocInterface;
-import net.Router;
-
-import memorysystem.nuca.NucaCacheBank;
-import memorysystem.nuca.NucaCache.NucaType;
-import config.Interconnect;
 import config.EnergyConfig;
 import config.SystemConfig;
-import generic.EventQueue;
-import generic.PortType;
-import generic.SimulationElement;
-import generic.Event;
-import generic.RequestType;
-import generic.Statistics;
 
-public class MainMemoryController extends SimulationElement implements NocInterface
+public class MainMemoryController extends SimulationElement
 {
-	NucaType nucaType;
 	long numAccesses;
 	
-	public MainMemoryController(NucaType nucaType) {
+	public MainMemoryController() {
 		super(SystemConfig.mainMemPortType,
 				SystemConfig.mainMemoryAccessPorts,
 				SystemConfig.mainMemoryPortOccupancy,
 				SystemConfig.mainMemoryLatency,
 				SystemConfig.mainMemoryFrequency
 				);
-		this.nucaType = nucaType;
-	}
-	
-	public MainMemoryController() {
-		super(PortType.Unlimited,
-				-1, 
-				10,
-				250,
-				3600);
-		this.nucaType = NucaType.NONE;
 	}
 	
 	public void handleEvent(EventQueue eventQ, Event event)
@@ -51,9 +32,9 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 					this, event.getRequestingElement(),	RequestType.Mem_Response,
 					((AddressCarryingEvent)event).getAddress());
 			
-			getNetworkInterface().put(e);
+			getComInterface().sendMessage(e);
 		}
-		else if (event.getRequestType() == RequestType.Main_Mem_Write)
+		else if (event.getRequestType() == RequestType.Cache_Write)
 		{
 			//Just to tell the requesting things that the write is completed
 		}
@@ -66,12 +47,6 @@ public class MainMemoryController extends SimulationElement implements NocInterf
 		numAccesses += 1;
 	}
 	
-	@Override
-	public SimulationElement getSimulationElement() {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
 	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
 	{
 		EnergyConfig power = new EnergyConfig(SystemConfig.mainMemoryControllerPower, numAccesses);

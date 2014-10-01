@@ -1,15 +1,5 @@
 package pipeline.outoforder;
 
-import java.io.FileWriter;
-import java.io.IOException;
-
-import main.CustomObjectPool;
-import memorysystem.MemorySystem;
-import memorysystem.directory.CentralizedDirectoryCache;
-import config.Interconnect;
-import config.EnergyConfig;
-import config.SimulationConfig;
-import config.SystemConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -21,6 +11,13 @@ import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
 import generic.Statistics;
+
+import java.io.FileWriter;
+import java.io.IOException;
+
+import main.CustomObjectPool;
+import config.EnergyConfig;
+import config.SimulationConfig;
 
 public class ReorderBuffer extends SimulationElement{
 	
@@ -381,14 +378,6 @@ public class ReorderBuffer extends SimulationElement{
 	
 	public void setPerCoreMemorySystemStatistics()
 	{
-		if(SystemConfig.interconnect == Interconnect.Bus)
-		{
-			Statistics.setNoOfDirHits(MemorySystem.getDirectoryCache().hits);
-			Statistics.setNoOfDirMisses(MemorySystem.getDirectoryCache().misses);
-			Statistics.setNoOfDirInvalidations(MemorySystem.getDirectoryCache().getInvalidations());
-			Statistics.setNoOfDirDataForwards(MemorySystem.getDirectoryCache().getDataForwards());
-			Statistics.setNoOfDirWritebacks(MemorySystem.getDirectoryCache().getWritebacks());
-		}	
 		if(SimulationConfig.collectInsnWorkingSetInfo==true) {
 			setInsWorkingSetStats();
 		}
