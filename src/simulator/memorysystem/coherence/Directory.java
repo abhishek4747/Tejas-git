@@ -4,6 +4,7 @@ import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
 import generic.RequestType;
+import generic.SimulationElement;
 import generic.Statistics;
 
 import java.io.FileWriter;
@@ -13,9 +14,11 @@ import java.util.LinkedList;
 
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
-import memorysystem.CacheLine;
+
 import memorysystem.CoreMemorySystem;
 import memorysystem.MESI;
+import memorysystem.MemorySystem;
+import misc.Util;
 import config.CacheConfig;
 import config.EnergyConfig;
 import config.SystemConfig;
@@ -23,7 +26,54 @@ import config.SystemConfig;
 // Unlock function should call the state change function. This is called using the current event field inside the directory entry.
 // For write hit event, there is some mismatch
 
-public class Directory extends Cache implements Coherence {
+public class Directory extends SimulationElement implements Coherence {
+	
+	public CoreMemorySystem containingMemSys;
+	protected int blockSize; // in bytes
+	public int blockSizeBits; // in bits
+	public  int assoc;
+	protected int assocBits; // in bits
+	protected int size; // MegaBytes
+	protected int numLines;
+	protected int numLinesBits;
+	public int numSetsBits;
+	protected double timestamp;
+	protected int numLinesMask;
+	private int getNumLines() {
+		long totSize = size;
+		return (int)(totSize / (long)(blockSize));
+	}
+	
+	public int getSetIdx(long addr)
+	{
+		int startIdx = getStartIdx(addr);
+		return startIdx/assoc;
+	}
+	
+	public int getStartIdx(long addr) {
+		long SetMask =( 1 << (numSetsBits) )- 1;
+		int startIdx = (int) ((addr >>> blockSizeBits) & (SetMask));
+		return startIdx;
+	}
+	
+	public int getNextIdx(int startIdx,int idx) {
+		int index = startIdx +( idx << numSetsBits);
+		return index;
+	}
+	
+	protected void mark(DirectoryEntry ll, long tag)
+	{
+		ll.setTag(tag);
+		mark(ll);
+	}
+	
+	private void mark(DirectoryEntry ll)
+	{
+		ll.setTimestamp(timestamp);
+		timestamp += 1.0;
+	}	
+	
+	long hits = 0, misses = 0;
 	
 	long readMissAccesses = 0;
 	long writeHitAccesses = 0;
@@ -33,8 +83,35 @@ public class Directory extends Cache implements Coherence {
 
 	public Directory(String cacheName, int id, CacheConfig cacheParameters,
 			CoreMemorySystem containingMemSys) {
-		super(cacheName, id, cacheParameters, containingMemSys);
-		// TODO Auto-generated constructor stub
+		
+		super(cacheParameters.portType,
+				cacheParameters.getAccessPorts(), 
+				cacheParameters.getPortOccupancy(),
+				cacheParameters.getLatency(),
+				cacheParameters.operatingFreq);
+		
+		MemorySystem.coherenceNameMappings.put(cacheName, this);
+		
+		this.blockSize = cacheParameters.getBlockSize();
+		this.assoc = cacheParameters.getAssoc();
+		this.size = cacheParameters.getSize();
+		this.blockSizeBits = Util.logbase2(blockSize);
+		this.assocBits = Util.logbase2(assoc);
+		this.numLines = getNumLines();
+		this.numLinesBits = Util.logbase2(numLines);
+		this.numSetsBits = numLinesBits - assocBits;
+		
+		// Create directory entries
+		lines = new DirectoryEntry[cacheParameters.numEntries];
+        for(int i=0;i<lines.length;i++) {
+            lines[i] = new DirectoryEntry();
+        }
+        
+        // Create a pending events field of each set in the directory cache
+        int numSets = lines.length/assoc;
+        for(int i=0; i<numSets; i++) {
+        	pendingEvents.add(new LinkedList<AddressCarryingEvent>());
+        }
 	}
 
 	private DirectoryEntry[] lines;
@@ -78,8 +155,7 @@ public class Directory extends Cache implements Coherence {
 		// Create an event
 		Directory directory = this;
 		AddressCarryingEvent event = new AddressCarryingEvent(
-				c.getEventQueue(), GlobalClock.getCurrentTime()
-						+ directory.getLatency(), c, directory, request, addr);
+				c.getEventQueue(), 0, c, directory, request, addr);
 
 		// 2. Send event to directory
 		c.sendEvent(event);
@@ -253,7 +329,7 @@ public class Directory extends Cache implements Coherence {
 	}
 
 	public long getSetAddress(long addr) {
-		return addr >>> blockSizeBits;
+		return getSetIdx(addr);
 	}
 
 	public void unlock(long addr, Cache c) {
@@ -340,9 +416,34 @@ public class Directory extends Cache implements Coherence {
 	private long getLineAddress(long addr) {
 		return addr >>> blockSizeBits;
 	}
+	
+	public DirectoryEntry accessDir(long addr) {
+		/* compute startIdx and the tag */
+		int startIdx = getStartIdx(addr);
+		long tag = computeTag(addr);
+		
+		/* search in a set */
+		for(int idx = 0; idx < assoc; idx++) 
+		{
+			// calculate the index
+			int index = getNextIdx(startIdx,idx);
+			// fetch the cache line
+			DirectoryEntry ll = this.lines[index];
+			// If the tag is matching, we have a hit
+			if(ll.hasTagMatch(tag)){
+				return  ll;
+			}
+		}
+		return null;
+	}
+	
+	public long computeTag(long addr) {
+		long tag = addr >>> (numSetsBits + blockSizeBits);
+		return tag;
+	}
 
 	private DirectoryEntry getDirectoryEntry(long addr) {
-		DirectoryEntry dirEntry = (DirectoryEntry) access(addr);
+		DirectoryEntry dirEntry = (DirectoryEntry) accessDir(addr);
 		return dirEntry;
 	}
 	
@@ -410,6 +511,9 @@ public class Directory extends Cache implements Coherence {
 		// Lock the directory entry
 		DirectoryEntry dirEntry = getDirectoryEntry(addr);
 		dirEntry.setCurrentEvent(event);
+		
+		// Remove this entry from the pending events queue
+		pendingEvents.get(getSetIdx(addr)).remove(event);
 
 		Cache senderCache = (Cache) event.getRequestingElement();
 
@@ -449,7 +553,14 @@ public class Directory extends Cache implements Coherence {
 			case EXCLUSIVE: {
 				
 				if(dirEntry.getOwner()==c) {
-					misc.Error.showErrorAndExit("ReadMiss cannot be called from an owner cache");
+					if(c.access(addr)==null) {
+						misc.Error.showErrorAndExit("Invalid state");
+					} else {
+						// Following is a sequence of events which can cause this state : 
+						// core1 read, read in the same cycle. This will lead to two readMisses
+						// For the second readMiss, we will find the directory entry to contain the same cache as the owner cache
+						unlock(addr, null);
+					}
 				} else {
 					dirEntry.addCacheToAwaitedCacheList(c);
 					sendCachelineForwardRequest(dirEntry.getOwner(), c, addr);
@@ -460,7 +571,14 @@ public class Directory extends Cache implements Coherence {
 			
 			case SHARED: {
 				if(dirEntry.getSharers().contains(c)) {
-					misc.Error.showErrorAndExit("ReadMiss cannot be called from a sharer cache");
+					if(c.access(addr)==null) {
+						misc.Error.showErrorAndExit("Invalid state");
+					} else {
+						// Following is a sequence of events which can cause this state : 
+						// core1 read, read in the same cycle. This will lead to two readMisses
+						// For the second readMiss, we will find the directory entry to contain the same cache as one of the sharer cache
+						unlock(addr, null);
+					}
 				} else {
 					dirEntry.addCacheToAwaitedCacheList(c);
 					sendCachelineForwardRequest(dirEntry.getFirstSharer(), c, addr);
@@ -487,7 +605,14 @@ public class Directory extends Cache implements Coherence {
 			case EXCLUSIVE: {
 				
 				if(dirEntry.getOwner()==c) {
-					misc.Error.showErrorAndExit("WriteMiss cannot be called from an owner cache");
+					if(c.access(addr)==null) {
+						misc.Error.showErrorAndExit("Invalid state");
+					} else {
+						// Following is a sequence of events which can cause this state : 
+						// core1 write, write in the same cycle. This will lead to two writeMisses
+						// For the second writeMiss, we will find the directory entry to contain the same cache as the owner cache
+						unlock(addr, null);
+					}
 				} else {
 					dirEntry.addCacheToAwaitedCacheList(c);
 					sendCachelineForwardRequest(dirEntry.getOwner(), c, addr);					
@@ -498,7 +623,14 @@ public class Directory extends Cache implements Coherence {
 			
 			case SHARED: {
 				if(dirEntry.getSharers().contains(c)) {
-					misc.Error.showErrorAndExit("WriteMiss cannot be called from a sharer cache");
+					if(c.access(addr)==null) {
+						misc.Error.showErrorAndExit("Invalid state");
+					} else {
+						// Following is a sequence of events which can cause this state : 
+						// core1 read, write in the same cycle. This will lead to two writeMisses
+						// For the writeMiss, we will find the directory entry to contain the same cache as one of the sharer cache
+						unlock(addr, null);
+					}
 				} else {
 					sendInvalidateForDirectoryEntry(dirEntry);
 					dirEntry.addCacheToAwaitedCacheList(c);
@@ -567,7 +699,9 @@ public class Directory extends Cache implements Coherence {
 			case MODIFIED: 
 			case EXCLUSIVE: {
 				if(dirEntry.getOwner()==c) {
-					misc.Error.showErrorAndExit("");
+					if(c.access(addr)==null) {
+						misc.Error.showErrorAndExit("");
+					}
 				} else {
 					dirEntry.getOwner().updateStateOfCacheLine(addr, MESI.INVALID);
 					c.updateStateOfCacheLine(addr, MESI.MODIFIED);
@@ -681,7 +815,7 @@ public class Directory extends Cache implements Coherence {
 					dirEntry.setState(MESI.EXCLUSIVE);
 					dirEntry.getOwner().updateStateOfCacheLine(addr, MESI.EXCLUSIVE);
 				} else if (dirEntry.getSharers().size()==0) {
-					misc.Error.showErrorAndExit("Invalid state");					
+					dirEntry.setState(MESI.INVALID);					
 				}
 				
 				break;
@@ -712,7 +846,7 @@ public class Directory extends Cache implements Coherence {
 		} else {
 			// If there is an invalid entry in the cache, then use this directory entry
 			if (isThereAnInvalidEntryInCacheSet(addr)) {
-				DirectoryEntry evictedEntry = this.fillDir(addr, MESI.INVALID);
+				DirectoryEntry evictedEntry = (DirectoryEntry) this.fillDir(addr);
 				return true;
 			}
 			
@@ -744,7 +878,7 @@ public class Directory extends Cache implements Coherence {
 		for (int idx = 0; idx < assoc; idx++) 
 		{
 			int nextIdx = getNextIdx(startIdx, idx);
-			DirectoryEntry ll = (DirectoryEntry)getCacheLine(nextIdx);
+			DirectoryEntry ll = this.lines[nextIdx];
 			if (ll.getTag() == tag && ll.getState() != MESI.INVALID) 
 			{	
 				misc.Error.showErrorAndExit("attempting fillDir for a line already present. address : " + addr);
@@ -775,7 +909,7 @@ public class Directory extends Cache implements Coherence {
 			// calculate the index
 			int index = getNextIdx(startIdx,idx);
 			// fetch the cache line
-			CacheLine ll = getCacheLine(index);
+			DirectoryEntry ll = lines[index];
 			// If the tag is matching, we have a hit
 			if(ll.getState() == MESI.INVALID) {
 				return  true;
@@ -794,7 +928,7 @@ public class Directory extends Cache implements Coherence {
 			// calculate the index
 			int index = getNextIdx(startIdx,idx);
 			// fetch the cache line
-			DirectoryEntry ll = (DirectoryEntry) getCacheLine(index);
+			DirectoryEntry ll = lines[index];
 			// If the tag is matching, we have a hit
 			if(ll.isLocked() == true) {
 				return  true;
@@ -826,12 +960,7 @@ public class Directory extends Cache implements Coherence {
 		return true;
 	}
 
-	private DirectoryEntry fillDir(long addr, MESI stateToSet) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public CacheLine fill(long addr) //Returns a copy of the evicted line
+	public DirectoryEntry fillDir(long addr) //Returns a copy of the evicted line
 	{
 		/* compute startIdx and the tag */
 		int startIdx = getStartIdx(addr);
@@ -842,7 +971,7 @@ public class Directory extends Cache implements Coherence {
 		for (int idx = 0; idx < assoc; idx++) 
 		{
 			int nextIdx = getNextIdx(startIdx, idx);
-			DirectoryEntry ll = (DirectoryEntry)getCacheLine(nextIdx);
+			DirectoryEntry ll = lines[nextIdx];
 			if (ll.getTag() == tag && ll.getState() != MESI.INVALID) 
 			{	
 				misc.Error.showErrorAndExit("attempting fillDir for a line already present. address : " + addr);
@@ -886,5 +1015,17 @@ public class Directory extends Cache implements Coherence {
 		EnergyConfig power = new EnergyConfig(newPower, numAccesses);
 		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
+	}
+	
+	public void sendEvent(AddressCarryingEvent event) {
+		if(event.getEventTime()!=0) {
+			misc.Error.showErrorAndExit("Send event with zero latency !!");
+		}
+		
+		if(event.getProcessingElement().getComInterface()!=this.getComInterface()) {
+			getComInterface().sendMessage(event);
+		} else {
+			event.getProcessingElement().getPort().put(event);
+		}
 	}
 }

@@ -15,7 +15,7 @@ public class DirectoryEntry extends CacheLine {
 
 	private LinkedList<Cache> sharers = null;
 	private AddressCarryingEvent currentEvent = null;
-	private LinkedList<Cache> listOfAwaitedCacheResponses;
+	private LinkedList<Cache> listOfAwaitedCacheResponses = new LinkedList<Cache>();
 	
 	public void addCacheToAwaitedCacheList(Cache c) {
 		if(listOfAwaitedCacheResponses.contains(c)==false) {
@@ -46,7 +46,7 @@ public class DirectoryEntry extends CacheLine {
 	}
 	
 	public void setCurrentEvent(AddressCarryingEvent event) {
-		if(isLocked()) {
+		if(isLocked() && event!=null) {
 			misc.Error.showErrorAndExit("Trying to lock an already locked event !!");
 		}
 		
@@ -154,7 +154,7 @@ public class DirectoryEntry extends CacheLine {
 		this.sharers.remove(c);
 	}
 
-	protected boolean hasTagMatch(long tag)
+	public boolean hasTagMatch(long tag)
 	{
 		if (tag == this.getTag())
 			return true;
@@ -166,7 +166,7 @@ public class DirectoryEntry extends CacheLine {
 		return tag;
 	}
 
-	protected void setTag(long tag) {
+	public void setTag(long tag) {
 		this.tag = tag;
 	}
 
@@ -174,7 +174,7 @@ public class DirectoryEntry extends CacheLine {
 		return timestamp;
 	}
 
-	protected void setTimestamp(double timestamp) {
+	public void setTimestamp(double timestamp) {
 		this.timestamp = timestamp;
 	}
 	

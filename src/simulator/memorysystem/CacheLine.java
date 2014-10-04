@@ -45,7 +45,7 @@ public class CacheLine implements Cloneable
         }
     }
 	
-	protected boolean hasTagMatch(long tag)
+	public boolean hasTagMatch(long tag)
 	{
 		if (tag == this.getTag())
 			return true;
@@ -75,7 +75,7 @@ public class CacheLine implements Cloneable
 		return tag;
 	}
 
-	protected void setTag(long tag) {
+	public void setTag(long tag) {
 		this.tag = tag;
 	}
 
@@ -91,7 +91,7 @@ public class CacheLine implements Cloneable
 		return timestamp;
 	}
 
-	protected void setTimestamp(double timestamp) {
+	public void setTimestamp(double timestamp) {
 		this.timestamp = timestamp;
 	}
 

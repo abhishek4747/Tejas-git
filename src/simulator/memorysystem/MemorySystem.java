@@ -53,17 +53,17 @@ public class MemorySystem
 {
 	public static final int PAGE_OFFSET_BITS = 12;
 	
-	public static Hashtable<String, Cache> cacheList = new Hashtable<String, Cache>();
-	public static Hashtable<String, Coherence> coherenceList = new Hashtable<String, Coherence>();
+	public static Hashtable<String, Cache> cacheNameMappings = new Hashtable<String, Cache>();
+	public static Hashtable<String, Coherence> coherenceNameMappings = new Hashtable<String, Coherence>();
 	
 	public static void setCoherenceOfCaches() {
-		for(Map.Entry<String, Cache> cacheListEntry :  cacheList.entrySet()) {
+		for(Map.Entry<String, Cache> cacheListEntry :  cacheNameMappings.entrySet()) {
 			Cache c = cacheListEntry.getValue();
 			if(c.cacheConfig.coherenceName.equals("None")) {
-				return;
+				continue;
 			}
 			
-			Coherence coherence = coherenceList.get(c.cacheConfig.coherenceName);
+			Coherence coherence = coherenceNameMappings.get(c.cacheConfig.coherenceName);
 			c.setCoherence(coherence);
 		}
 	}
@@ -74,7 +74,7 @@ public class MemorySystem
 	}
 
 	public static void createLinkBetweenCaches() {
-		for(Map.Entry<String, Cache> cacheListEntry :  cacheList.entrySet()) {
+		for(Map.Entry<String, Cache> cacheListEntry :  cacheNameMappings.entrySet()) {
 			Cache c = cacheListEntry.getValue();
 			createLinkToNextLevelCache(c);
 		}
@@ -98,7 +98,7 @@ public class MemorySystem
 			nextLevelName += "[0]";
 		}
 		
-		Cache nextLevelCache = cacheList.get(nextLevelName);
+		Cache nextLevelCache = cacheNameMappings.get(nextLevelName);
 		if(nextLevelCache==null) {
 			misc.Error.showErrorAndExit("Inside " + cacheName + ".\n" +
 				"Could not find the next level cache. Name : " + nextLevelName);
@@ -136,10 +136,10 @@ public class MemorySystem
 	}
 
 	public static void addToCacheList(String cacheName, Cache cache) {
-		if(cacheList.contains(cacheName)) {
+		if(cacheNameMappings.contains(cacheName)) {
 			misc.Error.showErrorAndExit("A cache with same name already exists !!\nCachename : " + cacheName);
 		} else {
-			cacheList.put(cacheName, cache);
+			cacheNameMappings.put(cacheName, cache);
 		}
 	}
 	
@@ -173,7 +173,7 @@ public class MemorySystem
 
 	public static Vector<Cache> getSharedCacheList() {
 		Vector<Cache> retCache = new Vector<Cache>();
-		for(Map.Entry<String, Cache> cacheListEntry :  cacheList.entrySet()) {
+		for(Map.Entry<String, Cache> cacheListEntry :  cacheNameMappings.entrySet()) {
 			Cache c = cacheListEntry.getValue();
 			if(c.isSharedCache() && c.getClass()==Cache.class) {
 				retCache.add(c);
@@ -185,7 +185,7 @@ public class MemorySystem
 	
 	public static Vector<Cache> getCacheList() {
 		Vector<Cache> retCache = new Vector<Cache>();
-		for(Map.Entry<String, Cache> cacheListEntry :  cacheList.entrySet()) {
+		for(Map.Entry<String, Cache> cacheListEntry :  cacheNameMappings.entrySet()) {
 			Cache c = cacheListEntry.getValue();
 			if(c.getClass()==Cache.class) {
 				retCache.add(c);
