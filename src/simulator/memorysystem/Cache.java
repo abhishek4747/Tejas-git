@@ -416,15 +416,15 @@ public class Cache extends SimulationElement
 	}
 	
 	public void sendMemResponse(AddressCarryingEvent event)
-	{
-		event.update(event.getEventQ(), 0,
-			event.getProcessingElement(), event.getRequestingElement(),
-			RequestType.Mem_Response);
+	{// XXX change
+		AddressCarryingEvent memResponseEvent = new AddressCarryingEvent(
+				event.getEventQ(), 0, event.getProcessingElement(),
+				event.getRequestingElement(), RequestType.Mem_Response, event.getAddress());
 		
-		if(getComInterface()!=event.getProcessingElement().getComInterface()) {
-			sendEvent(event);
+		if(getComInterface()!=memResponseEvent.getProcessingElement().getComInterface()) {
+			sendEvent(memResponseEvent);
 		} else {
-			event.getProcessingElement().handleEvent(event.getEventQ(), event);
+			memResponseEvent.getProcessingElement().handleEvent(memResponseEvent.getEventQ(), memResponseEvent);
 		}
 		
 		noOfResponsesSent++;
@@ -604,7 +604,7 @@ public class Cache extends SimulationElement
 			((AddressCarryingEvent)event).payloadElement = null;
 			Cache processingCache = (Cache)event.getProcessingElement();
 			//event.setEventTime(event.getEventTime()-GlobalClock.getCurrentTime());
-			event.setEventTime(processingCache.getLatency());
+			event.setEventTime(0);
 			
 			if(addEventAtLowerCache((AddressCarryingEvent)event) == false)
 				break;

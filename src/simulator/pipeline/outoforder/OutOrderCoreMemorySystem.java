@@ -7,11 +7,11 @@ import generic.ExecCompleteEvent;
 import generic.GlobalClock;
 import generic.RequestType;
 import generic.SimulationElement;
+import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
-import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 import memorysystem.LSQEntryContainingEvent;
-import memorysystem.MemorySystem;
+import memorysystem.coherence.Directory;
 
 public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 	
@@ -82,6 +82,13 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		
 		
 		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {
+//			XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
+//				System.out.println("------------ MSHR of L1. Size : " + this.l1Cache.getMissStatusHoldingRegister().getCurrentSize() + " at time " + GlobalClock.getCurrentTime());
+//				this.l1Cache.getMissStatusHoldingRegister().dump();
+//				
+//				System.out.println("------------ Directory Pending Events ---------------");
+//				((Directory)this.l1Cache.mycoherence).toStringPendingEvents();
+//			}
 			return false;
 		}
 		

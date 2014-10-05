@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
 
@@ -133,16 +134,26 @@ public class Directory extends SimulationElement implements Coherence {
 	}
 
 	public void writeHit(long addr, Cache c) {
+//		XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
+//			System.out.println("Directory WriteHit t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
+//		}
+		
 		writeHitAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryWriteHit);
 	}
 
 	public void readMiss(long addr, Cache c) {
+//		XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
+//			System.out.println("Directory ReadMiss t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
+//		}
 		readMissAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryReadMiss);
 	}
 
 	public void writeMiss(long addr, Cache c) {
+//		XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
+//			System.out.println("Directory WriteMiss t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
+//		}
 		writeMissAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryWriteMiss);
 	}
@@ -448,11 +459,17 @@ public class Directory extends SimulationElement implements Coherence {
 	}
 	
 	public void evictedFromSharedCache(long addr, Cache c) {
+//		XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
+//			System.out.println("Directory EvictShared t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
+//		}
 		evictedFromSharedCacheAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryEvictedFromSharedCache);
 	}
 	
 	public void evictedFromCoherentCache(long addr, Cache c) {
+//		XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
+//			System.out.println("Directory EvictCoherent t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
+//		}
 		evictedFromCoherentCacheAccesses++;
 		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryEvictedFromCoherentCache);
 	}
@@ -501,6 +518,14 @@ public class Directory extends SimulationElement implements Coherence {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event e) {
 		AddressCarryingEvent event = (AddressCarryingEvent) e;
+		if(event.serializationID == 100214)
+		{
+			System.out.println("culprit handle :\n" + event);
+		}
+		if(event.serializationID == 100213)
+		{
+			System.out.println("culprit handle :\n" + event);
+		}
 		event.setHasArrivedAtDestination(true);
 		long addr = event.getAddress();
 
@@ -513,8 +538,10 @@ public class Directory extends SimulationElement implements Coherence {
 		dirEntry.setCurrentEvent(event);
 		
 		// Remove this entry from the pending events queue
-		pendingEvents.get(getSetIdx(addr)).remove(event);
-
+		if(pendingEvents.get((int)getSetAddress(addr)).remove(event)==false) {
+			misc.Error.showErrorAndExit("Unable to remove pending event : " + event);
+		}
+		
 		Cache senderCache = (Cache) event.getRequestingElement();
 
 		switch (event.getRequestType()) {
@@ -670,10 +697,13 @@ public class Directory extends SimulationElement implements Coherence {
 		switch(dirEntry.getState()) {
 			case MODIFIED: 
 			case EXCLUSIVE: {
-				dirEntry.getOwner().updateStateOfCacheLine(addr, MESI.SHARED);
-				c.updateStateOfCacheLine(addr, MESI.SHARED);
-				dirEntry.setState(MESI.SHARED);
-				dirEntry.addSharer(c);
+				if(dirEntry.getSharers().contains(c) == false) {
+					// XXX change
+					dirEntry.getOwner().updateStateOfCacheLine(addr, MESI.SHARED);
+					c.updateStateOfCacheLine(addr, MESI.SHARED);
+					dirEntry.setState(MESI.SHARED);
+					dirEntry.addSharer(c);
+				}
 				break;
 			}
 			
@@ -1026,6 +1056,20 @@ public class Directory extends SimulationElement implements Coherence {
 			getComInterface().sendMessage(event);
 		} else {
 			event.getProcessingElement().getPort().put(event);
+		}
+	}
+	
+	public void toStringPendingEvents() {
+		int set = 0;
+		for(LinkedList<AddressCarryingEvent> pendingEventList : pendingEvents) {
+			if(pendingEventList.size()>0) {
+				System.out.println("Pending events for set " + set + " . size :  " + pendingEventList.size() + " : ");
+				for(AddressCarryingEvent event : pendingEventList) {
+					System.out.println(event);
+				}
+			}
+			
+			set++;
 		}
 	}
 }

@@ -181,7 +181,7 @@ public class Mode3MSHR extends SimulationElement implements MissStatusHoldingReg
 			ArrayList<AddressCarryingEvent> events = omrEntry.outStandingEvents;
 			
 			AddressCarryingEvent addrEvent = (AddressCarryingEvent) events.get(0);
-			System.out.print("block address = " + (addrEvent.getAddress() >>> offset));
+			System.out.println("block address = " + (addrEvent.getAddress() >>> offset));
 			for(int i = 0; i < events.size(); i++)
 			{
 				addrEvent = (AddressCarryingEvent) events.get(i);				

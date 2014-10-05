@@ -647,6 +647,7 @@ public class Core extends SimulationElement{
 
 	public void setComInterface(CommunicationInterface comInterface) {
 		this.comInterface = comInterface;
+		this.getExecEngine().getCoreMemorySystem().setComInterface(comInterface);
 		for(Cache cache : getExecEngine().getCoreMemorySystem().getCoreCacheList()) {
 			cache.setComInterface(comInterface);
 		}

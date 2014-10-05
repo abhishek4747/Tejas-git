@@ -49,7 +49,9 @@ public class DirectoryEntry extends CacheLine {
 		if(isLocked() && event!=null) {
 			misc.Error.showErrorAndExit("Trying to lock an already locked event !!");
 		}
-		
+		if(event != null && event.serializationID == 100213){
+			System.out.println("culprit 100213 locking");
+		}
 		currentEvent = event;
 	}
 	
