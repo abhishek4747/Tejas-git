@@ -297,6 +297,11 @@
 			<DynamicEnergy>2.1164</DynamicEnergy>
 		</NOC>
 		
+		<BUS>
+			<LeakageEnergy>0.1877</LeakageEnergy>
+			<DynamicEnergy>2.1164</DynamicEnergy>
+		</BUS>
+		
 		<Directory>
 			<Type0>
 				<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->

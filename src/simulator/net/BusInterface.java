@@ -21,6 +21,8 @@
 
 package net;
 
+import main.ArchitecturalComponent;
+import memorysystem.MainMemoryController;
 import generic.CommunicationInterface;
 import generic.Event;
 
@@ -39,5 +41,11 @@ public class BusInterface implements CommunicationInterface{
 	@Override
 	public void sendMessage(Event event) {
 		bus.sendBusMessage(event);		
+	}
+
+	@Override
+	public MainMemoryController getNearestMemoryController() {
+		// TODO Auto-generated method stub
+		return ArchitecturalComponent.getMainMemoryController(this);
 	}
 }
