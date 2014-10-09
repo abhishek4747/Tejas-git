@@ -93,7 +93,8 @@ public class ArchitecturalComponent {
 				misc.Error.showErrorAndExit("Error in reading noc topology file !!");
 			}
 			
-			StringTokenizer st = new StringTokenizer(str," ");
+			//StringTokenizer st = new StringTokenizer(str," ");
+			StringTokenizer st = new StringTokenizer(str);
 			
 			for(int j=0;j<numColumns;j++)
 			{

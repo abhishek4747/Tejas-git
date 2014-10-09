@@ -770,6 +770,11 @@ public class Cache extends SimulationElement
 		CacheLine cl = this.access(addr);
 		
 		if(cl!=null) {
+			
+			if(cl.isLocked() && newState==MESI.INVALID) {
+				return;
+			}
+			
 			cl.setState(newState);
 			
 			if(prevLevel!=null && prevLevel.size()!=0) {
@@ -782,10 +787,6 @@ public class Cache extends SimulationElement
 						c.updateStateOfCacheLine(addr, newState);
 					}
 				}
-			}
-			
-			if(newState==MESI.INVALID && cl.isLocked()) {
-				unlock(addr, null);
 			}
 		}	
 	}

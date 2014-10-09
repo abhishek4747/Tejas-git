@@ -73,7 +73,7 @@
 		<markerFunctions>false</markerFunctions>
 		<startSimMarker>XXX_startInstrumentation</startSimMarker>
 		<endSimMarker>XXX_endInstrumentation</endSimMarker>
-		<NumCores>4</NumCores>
+		<NumCores>64</NumCores>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -317,6 +317,7 @@
 				<LeakageEnergy>.1092</LeakageEnergy>
 				<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
 				<WriteDynamicEnergy>.3396</WriteDynamicEnergy>
+				<IsDirectory>true</IsDirectory>
 			</Type0>
 			
 			<directoryAccessLatency>2</directoryAccessLatency>

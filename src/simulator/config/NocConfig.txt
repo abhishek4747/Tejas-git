@@ -1,4 +1,11 @@
-3 3
-M C L2
-C D C
-- C -
+10 10
+M	L2	D	-	-	-	-	-	-	-  
+C	C	C	C	C	C	C	C	-	-
+C	C	C	C	C	C	C	C	-	-
+C	C	C	C	C	C	C	C	-	-
+C	C	C	C	C	C	C	C	-	-
+C	C	C	C	C	C	C	C	-	-
+C	C	C	C	C	C	C	C	-	-
+C	C	C	C	C	C	C	C	-	-
+C	C	C	C	C	C	C	C	-	-
+-	-	-	-	-	-	-	-	-	-

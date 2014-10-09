@@ -618,7 +618,6 @@ public class RunnableThread implements Encoding, Runnable {
 				javaTid, tidEmu);
 			
 			int newLength = inputToPipeline[tidEmu].size();
-			
 			noOfMicroOps[tidEmu] += newLength - oldLength;
 			
 			if (!thread.halted && this.inputToPipeline[tidEmu].size() > INSTRUCTION_THRESHOLD) {
@@ -627,11 +626,6 @@ public class RunnableThread implements Encoding, Runnable {
 
 			thread.packetList.clear();
 			thread.packetList.add(pnew);
-			
-			long temp=noOfMicroOps[tidEmu] % 1000000;
-			if(temp < 5  && this.inputToPipeline[tidEmu].size() > 0) {
-				System.out.println("number of micro-ops = " + noOfMicroOps[tidEmu]+" on core "+tidApp);
-			}
 		}
 		
 		return isSpaceInPipelineBuffer;
