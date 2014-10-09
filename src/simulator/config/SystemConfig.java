@@ -48,6 +48,8 @@ public class SystemConfig
 	public static DirectoryConfig directoryConfig;
 	
 	public static NocConfig nocConfig;
+	public static EnergyConfig busEnergy;
+	
 	//Directory Latencies:
 	public static int directoryAccessLatency;
 	public static int memWBDelay;

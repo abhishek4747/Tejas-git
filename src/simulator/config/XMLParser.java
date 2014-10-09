@@ -635,7 +635,11 @@ public class XMLParser
 		Element nocElmnt = (Element) NocLst.item(0);
 		SystemConfig.nocConfig.power = getEnergyConfig(nocElmnt);
 		setNocProperties(nocElmnt, SystemConfig.nocConfig);
-		
+
+		//set Bus Parameters
+		NodeList busLst = systemElmnt.getElementsByTagName("BUS");
+		Element busElmnt = (Element) busLst.item(0);
+		SystemConfig.busEnergy = getEnergyConfig(busElmnt);
 	}
 
 	private static void setNocProperties(Element NocType, NocConfig nocConfig)
