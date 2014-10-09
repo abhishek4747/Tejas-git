@@ -706,6 +706,13 @@ public class XMLParser
 			cache.size = 0;
 		}
 		
+		NodeList nodeLst = CacheType.getElementsByTagName("IsDirectory");
+		if (nodeLst.item(0) == null) {
+			cache.isDirectory = false;
+		} else {
+			cache.isDirectory = Boolean.parseBoolean(getImmediateString("IsDirectory", CacheType));
+		}
+		
 		if(isElementPresent("NumEntries", CacheType)) {
 			cache.numEntries = Integer.parseInt(getImmediateString("NumEntries", CacheType));
 			cache.size = cache.numEntries*cache.blockSize;
@@ -732,7 +739,7 @@ public class XMLParser
 		cache.busOccupancy = Integer.parseInt(getImmediateString("BusOccupancy", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
-		cache.nucaType = NucaType.valueOf(tempStr);
+		cache.nucaType = NucaType.NONE; // TODO : We are not using NUCA right now.
 		
 		cache.cacheDataType = CacheDataType.valueOf(getImmediateString("CacheType", CacheType));
 		

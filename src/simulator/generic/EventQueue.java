@@ -39,19 +39,7 @@ public class EventQueue
 			{
 				//remove the event at the head of the queue.
 				event = priorityQueue.remove();
-				
-//				XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
-//					System.out.println("t(" + GlobalClock.getCurrentTime() + ") : " + event);
-//				}
-				
-				if(event.serializationID==14518378l) {
-					System.out.println("Culprit event : " + event);
-				}
-				
-				if(event.serializationID==14518378l) {
-					System.out.println("Culprit event : " + event);
-				}
-				
+								
 				//If the event could not be handled, add it to the queue.
 				//TODO This is in compliance with the new structure.
 				event.getProcessingElement().handleEvent(this, event);

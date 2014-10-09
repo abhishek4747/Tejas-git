@@ -24,7 +24,7 @@ public class WriteBackLogic extends SimulationElement {
 	
 	public WriteBackLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, -1, -1, null, -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.execEngine = execEngine;
 		ROB = execEngine.getReorderBuffer();

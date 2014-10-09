@@ -20,6 +20,7 @@
 *****************************************************************************/
 package memorysystem;
 
+import emulatorinterface.translator.visaHandler.Invalid;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
@@ -30,10 +31,12 @@ import generic.SimulationElement;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.TreeSet;
 
 import main.ArchitecturalComponent;
 import memorysystem.coherence.Coherence;
+import memorysystem.coherence.Directory;
 import memorysystem.nuca.NucaCache.NucaType;
 import misc.Util;
 import config.CacheConfig;
@@ -67,8 +70,6 @@ public class Cache extends SimulationElement
 	public Cache nextLevel; //Points towards the next level in the cache hierarchy
 	protected CacheLine lines[];
 	
-	public MissStatusHoldingRegister missStatusHoldingRegister;
-	
 	public long noOfRequests;
 	public long noOfAccesses;
 	public long noOfResponsesReceived;
@@ -93,9 +94,9 @@ public class Cache extends SimulationElement
 	public CacheConfig cacheConfig;
 	public int id;
 	
-	//does NOT refer to a real hardware structure; used to avoid repeated creation of
-	//ArrayList<AddressCarryingEvent> objects when processing a cache hit
-	ArrayList<AddressCarryingEvent> tmpHitEventList;
+	public long mshrMaxSize;
+	public LinkedList<AddressCarryingEvent> mshr;
+	
 	ArrayList<AddressCarryingEvent> eventsWaitingOnLowerMSHR;
 	
 	public Cache(String cacheName, int id, 
@@ -157,43 +158,102 @@ public class Cache extends SimulationElement
 		this.misses = 0;
 		this.evictions = 0;
 		// make the cache
-		makeCache();
+		makeCache(cacheParameters.isDirectory);
 		
-		if(this.containingMemSys!=null) {
-			missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, 
-				this.containingMemSys.core.eventQueue);
-		} else {
-			missStatusHoldingRegister = new Mode3MSHR(blockSizeBits, cacheParameters.mshrSize, 
-				null);
-		}
+		this.mshrMaxSize = cacheParameters.mshrSize;
+		this.mshr = new LinkedList<AddressCarryingEvent>();
 		
 		this.nucaType = NucaType.NONE;
 		
 		energy = cacheParameters.power;
 		
-		tmpHitEventList = new ArrayList<AddressCarryingEvent>();
 		eventsWaitingOnLowerMSHR = new ArrayList<AddressCarryingEvent>();
+		
+        // Create a pending events field of each set in the directory cache
+        int numSets = lines.length/assoc;
+        for(int i=0; i<numSets; i++) {
+        	pendingEvents.add(new LinkedList<AddressCarryingEvent>());
+        }
 	}
 	
+	public void unlock(long addr, Cache c) {
+		CacheLine cl = access(addr);
+		//case : read miss in both cache and directory. when cache gets the line
+		//from the lower level, it calls directory's unlock -- at this point
+		//directory's line is invalid, which is actually legal
+		if(cl==null) {
+			misc.Error.showErrorAndExit("Invalid state");
+		}
+
+		if (c != null) {
+			if (cl.getListOfAwaitedCacheResponses().contains(c)) {
+				cl.removeCacheFromAwaitedCacheList(c);
+			} else {
+				misc.Error.showErrorAndExit("No response expected from this cache : "	+ c);
+			}
+		}
+
+		if (cl.getListOfAwaitedCacheResponses().isEmpty() == true) {
+			AddressCarryingEvent currentEvent = cl.getCurrentEvent();
+			cl.setCurrentEvent(null);
+			callStateChangeFunction(currentEvent);
+
+			AddressCarryingEvent nextEvent = getPendingEventToProcess(addr);
+			if (nextEvent != null) {
+				handleEvent(nextEvent.getEventQ(), nextEvent);
+			}
+		}
+	}
+	
+	protected void callStateChangeFunction(AddressCarryingEvent event) {
+		switch(event.getRequestType()) {
+			case Cache_Read: {
+				sendResponseToWaitingEvent(event);
+				break;
+			}
+			
+			case Cache_Write: {
+				sendResponseToWaitingEvent(event);
+				updateStateOfCacheLine(event.getAddress(), MESI.MODIFIED);
+				break;
+			}
+			
+			case EvictCacheLine: {
+				updateStateOfCacheLine(event.getAddress(), MESI.INVALID);
+				break;
+			}
+		}	
+	}
+
 	public void setCoherence(Coherence c) {
 		this.mycoherence = c;
 	}
 	
-	private AddressCarryingEvent eventBeingServiced = null;
-	
 	private boolean printCacheDebugMessages = false;
-	public void handleEvent(EventQueue eventQ, Event event)
+	public void handleEvent(EventQueue eventQ, Event e)
 	{
+//		if(ArchitecturalComponent.getCores()[1].getNoOfInstructionsExecuted() > 6000000l) {
+//			System.out.println("\n\nCache[ " + this + "] handleEvent currEvent : " + e);
+//			toStringPendingEvents();
+//		}
+//		
+//		if(e.serializationID==30208059) {
+//			System.out.println("culprint");
+//		}
+		
+		AddressCarryingEvent event = (AddressCarryingEvent)e;
 		printCacheDebugMessage(event);
 		
 		long addr = ((AddressCarryingEvent)event).getAddress();
 		RequestType requestType = event.getRequestType();
-		eventBeingServiced = (AddressCarryingEvent)event;
-		
+				
 		switch(event.getRequestType()) {
 			case Cache_Read:
 			case Cache_Write: {
-				handleAccess(addr, requestType);
+				if(lockCacheLineAndRemovePendingEvent(event)==false) {
+					return;
+				}
+				handleAccess(addr, requestType, event);
 				break;
 			}
 			
@@ -217,8 +277,24 @@ public class Cache extends SimulationElement
 				break;
 			}
 		}
+	}
+	
+	protected boolean lockCacheLineAndRemovePendingEvent(
+			AddressCarryingEvent event) {
+		event.setHasArrivedAtDestination(true);
+		long addr = event.getAddress();
+
+		if (canProcess(addr, event) == false) {
+			return false;
+		}
 		
-		eventBeingServiced = null;
+		// Lock the directory entry
+		CacheLine dirEntry = access(addr);
+		dirEntry.setCurrentEvent(event);
+		
+		// Remove this entry from the pending events queue
+		removePendingEvent(event);
+		return true;
 	}
 	
 	private void handleDirectorySharedToExclusive(long addr) {
@@ -243,8 +319,42 @@ public class Cache extends SimulationElement
 			}
 		}
 	}
+	
+	public void addToMSHR(AddressCarryingEvent event) {
+		if(mshr.contains(event)==true) {
+			misc.Error.showErrorAndExit("Event already present in the MSHR : " + event);
+		}
+		
+		mshr.add(event);
+	}
+	
+	public void removeFromMSHR(long addr) {
+		CacheLine cl = access(addr);
+		if(cl!=null && cl.isLocked()) {
+			mshr.remove(cl.getCurrentEvent());
+		} else {
+			// There is no (locked) cacheline for this addr. 
+			// In its absence, we should search for an event in the mshr with address==addr, and remove it 
+			for(AddressCarryingEvent event : mshr) {
+				if(event.getAddress()==addr) {
+					misc.Error.showErrorAndExit("cacheline for addr : " + addr + " not locked. Suspect event : " + event);
+				}
+			}
+			
+			misc.Error.showErrorAndExit("cacheline for addr : " + addr + " not locked. Suspect event : NONE !!");
+		}
+	}
+	
+	public void printMSHR() {
+		int i=0;
+		System.out.println("\nMSHR of " + this + "\n");
+		for(AddressCarryingEvent event : mshr) {
+			System.out.println(i + " : " + event);
+			i++;
+		}
+	}
 
-	public void handleAccess(long addr, RequestType requestType) {
+	public void handleAccess(long addr, RequestType requestType, AddressCarryingEvent event) {
 		
 		if(requestType == RequestType.Cache_Write) {
 			noOfWritesReceived++;
@@ -254,10 +364,9 @@ public class Cache extends SimulationElement
 					
 		//IF HIT
 		if (cl != null) {
-			cacheHit(addr, requestType, cl);
+			cacheHit(addr, requestType, cl, event);
 		} else {
-			//add to MSHR
-			boolean newOMREntryCreated = missStatusHoldingRegister.addOutstandingRequest(eventBeingServiced);
+			addToMSHR(event);
 			
 			if(this.mycoherence != null) {
 				if(requestType == RequestType.Cache_Write) {
@@ -266,14 +375,12 @@ public class Cache extends SimulationElement
 					mycoherence.readMiss(addr, this);
 				}
 			} else {
-				if(newOMREntryCreated) {
-					sendRequestToNextLevel(addr, RequestType.Cache_Read);
-				}
+				sendRequestToNextLevel(addr, RequestType.Cache_Read);
 			}
 		}
 	}
 
-	private void cacheHit(long addr, RequestType requestType, CacheLine cl) {
+	private void cacheHit(long addr, RequestType requestType, CacheLine cl, AddressCarryingEvent event) {
 		hits++;
 		noOfRequests++;
 		noOfAccesses++;
@@ -282,15 +389,24 @@ public class Cache extends SimulationElement
 			(cl.getState()==MESI.SHARED || cl.getState()==MESI.EXCLUSIVE))
 		{
 			if(mycoherence!=null) {
-				mycoherence.writeHit(addr, this);
+				mycoherence.writeHit(addr, this);				
 			} else {
-				sendRequestToNextLevel(addr, RequestType.Cache_Write);
+				// We are already writing into the next level cache in sendResponseToWaitingEvent function
+				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_BACK) 	{
+					sendRequestToNextLevel(addr, RequestType.Cache_Write);
+				}			
 			}
-		}			
+		}
 		
-		tmpHitEventList.clear();
-		tmpHitEventList.add(eventBeingServiced);
-		sendResponseToWaitingEvent(tmpHitEventList);			
+		// If I am not updating the state of any other cache as a response to this event, unlock the cacheline
+			// ReadHit does not change any state
+		if(requestType==RequestType.Cache_Read ||
+			// WriteHit without coherence does not change any state
+			(requestType==RequestType.Cache_Write && mycoherence==null) ||
+			// WriteHit for an already modified line does not change any state
+			(mycoherence!=null && cl.isModified())) {
+			unlock(addr, null);
+		}		
 	}
 	
 	protected void handleMemResponse(long addr) {
@@ -321,24 +437,14 @@ public class Cache extends SimulationElement
 		}
 	}
 	
-	protected void sendResponseToWaitingEvent(ArrayList<AddressCarryingEvent> outstandingRequestList) {
-		AddressCarryingEvent lastWriteEvent = null;
-		while (!outstandingRequestList.isEmpty())
-		{
-			AddressCarryingEvent eventPoppedOut = (AddressCarryingEvent) outstandingRequestList.remove(0); 
-			if (eventPoppedOut.getRequestType() == RequestType.Cache_Read) {
-				sendMemResponse(eventPoppedOut);
+	protected void sendResponseToWaitingEvent(AddressCarryingEvent event) {
+		if (event.getRequestType() == RequestType.Cache_Read) {
+			sendMemResponse(event);
+		} else if (event.getRequestType() == RequestType.Cache_Write) {
+			if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH) 	{
+				AddressCarryingEvent lastWriteEvent = (AddressCarryingEvent) event.clone();
+				sendRequestToNextLevel(lastWriteEvent.getAddress(), RequestType.Cache_Write);
 			}
-			
-			else if (eventPoppedOut.getRequestType() == RequestType.Cache_Write) {
-				if (this.writePolicy == CacheConfig.WritePolicy.WRITE_THROUGH) 	{
-					lastWriteEvent = (AddressCarryingEvent) eventPoppedOut.clone();
-				}
-			}
-		}
-		
-		if(lastWriteEvent!=null) {
-			sendRequestToNextLevel(lastWriteEvent.getAddress(), RequestType.Cache_Write);
 		}
 	}
 	
@@ -372,9 +478,10 @@ public class Cache extends SimulationElement
 	
 	public boolean addEventAtLowerCache(AddressCarryingEvent event)
 	{
-		if(this.nextLevel.getMissStatusHoldingRegister().isFull() == false)
+		if(this.nextLevel.isMSHRFull() == false)
 		{
 			sendEvent(event);
+			this.nextLevel.addPendingEvent(event);
 			this.nextLevel.workingSetUpdate();
 			return true;
 		}
@@ -385,41 +492,47 @@ public class Cache extends SimulationElement
 		}
 	}
 	
-	protected void fillAndSatisfyRequests(long addr)
+	public void fillAndSatisfyRequests(long addr)
 	{
-		ArrayList<AddressCarryingEvent> eventsToBeServed = missStatusHoldingRegister.removeRequestsByAddress(addr);
+		removeFromMSHR(addr);
 		
-		misses += eventsToBeServed.size();
-		noOfRequests += eventsToBeServed.size();
-		noOfAccesses+=eventsToBeServed.size() + 1;
+		misses += 1;
+		noOfRequests += 1;
+		noOfAccesses+= 1 + 1;
 		
-		//System.out.println(this.levelFromTop + "    hits : " + hits + "\tmisses : " + misses + "\trequests : " + noOfRequests);
 		CacheLine evictedLine = this.fill(addr, MESI.EXCLUSIVE);
 		
-		//This does not ensure inclusiveness
 		if (evictedLine != null && 	evictedLine.getState() != MESI.INVALID) {
+			misc.Error.showErrorAndExit("fill should not have evicted a valid cacheline !!");
 			if(mycoherence!=null) {
-				mycoherence.evictedFromCoherentCache(evictedLine.getAddress(), this);
-				if(evictedLine.isModified() && writePolicy==WritePolicy.WRITE_BACK) {
-					sendRequestToNextLevel(evictedLine.getAddress(), RequestType.Cache_Write);
-				}
-				// coherence would do the invalidation for this cache 
+				misc.Error.showErrorAndExit("fill should not have evicted a valid cacheline !!");
+//				mycoherence.forceInvalidate(addr);
+//				mycoherence.evictedFromCoherentCache(evictedLine.getAddress(), this);
+//				if(evictedLine.isModified() && writePolicy==WritePolicy.WRITE_BACK) {
+//					sendRequestToNextLevel(evictedLine.getAddress(), RequestType.Cache_Write);
+//				}
 			} else {
-				if(evictedLine.isModified()) {
+				if(evictedLine.isModified() && writePolicy==WritePolicy.WRITE_BACK) {
 					sendRequestToNextLevel(evictedLine.getAddress(), RequestType.Cache_Write);
 				}
 				updateStateOfCacheLine(evictedLine.getAddress(), MESI.INVALID);
 			}
 		}
 		
-		sendResponseToWaitingEvent(eventsToBeServed);
+		if(mycoherence==null) {
+			// If I am a coherent cache, the directory would unlock me.
+			unlock(addr, null);
+		}
 	}
 	
 	public void sendMemResponse(AddressCarryingEvent event)
-	{// XXX change
+	{
 		AddressCarryingEvent memResponseEvent = new AddressCarryingEvent(
 				event.getEventQ(), 0, event.getProcessingElement(),
 				event.getRequestingElement(), RequestType.Mem_Response, event.getAddress());
+		
+//		if(ArchitecturalComponent.getCores()[1].getNoOfInstructionsExecuted() > 6000000l)
+//			System.out.println("sending mem response from " + event.getProcessingElement() + " to " + event.getRequestingElement() + " for addr : " + event.getAddress());
 		
 		if(getComInterface()!=memResponseEvent.getProcessingElement().getComInterface()) {
 			sendEvent(memResponseEvent);
@@ -452,10 +565,16 @@ public class Cache extends SimulationElement
 		return index;
 	}
 	
-	public CacheLine getCacheLine(int idx) {
-		return this.lines[idx];
+	public CacheLine accessValid(long addr)
+	{
+		CacheLine cl = access(addr);
+		if(cl!=null && cl.getState()!=MESI.INVALID) {
+			return cl;
+		} else {
+			return null;
+		}
 	}
-
+	
 	public CacheLine access(long addr)
 	{
 		/* compute startIdx and the tag */
@@ -468,9 +587,9 @@ public class Cache extends SimulationElement
 			// calculate the index
 			int index = getNextIdx(startIdx,idx);
 			// fetch the cache line
-			CacheLine ll = getCacheLine(index);
+			CacheLine ll = this.lines[index];
 			// If the tag is matching, we have a hit
-			if(ll.hasTagMatch(tag) && (ll.getState() != MESI.INVALID)) {
+			if(ll.hasTagMatch(tag)) {
 				return  ll;
 			}
 		}
@@ -489,12 +608,11 @@ public class Cache extends SimulationElement
 		timestamp += 1.0;
 	}
 	
-	private void makeCache()
+	private void makeCache(boolean isDirectory)
 	{
 		lines = new CacheLine[numLines];
-		for(int i = 0; i < numLines; i++)
-		{
-			lines[i] = new CacheLine(i);
+		for(int i = 0; i < numLines; i++) {
+			lines[i] = new CacheLine(isDirectory);
 		}
 	}
 	
@@ -505,7 +623,7 @@ public class Cache extends SimulationElement
 	}
 	
 	protected CacheLine accessAndMark(long addr) {
-		CacheLine cl = access(addr);
+		CacheLine cl = accessValid(addr);
 		if(cl != null) {
 			mark(cl);
 		}
@@ -526,8 +644,8 @@ public class Cache extends SimulationElement
 		for (int idx = 0; idx < assoc; idx++) 
 		{
 			int nextIdx = getNextIdx(startIdx, idx);
-			CacheLine ll = getCacheLine(nextIdx);
-			if (ll.getTag() == tag && ll.getState() != MESI.INVALID) 
+			CacheLine ll = this.lines[nextIdx];
+			if (ll.getTag() == tag) 
 			{	
 				addressAlreadyPresent = true;
 				fillLine = ll;
@@ -538,8 +656,8 @@ public class Cache extends SimulationElement
 		for (int idx = 0;!addressAlreadyPresent && idx < assoc; idx++) 
 		{
 			int nextIdx = getNextIdx(startIdx, idx);
-			CacheLine ll = getCacheLine(nextIdx);
-			if (!(ll.isValid())) 
+			CacheLine ll = this.lines[nextIdx];
+			if (ll.isValid()==false && ll.isLocked()==false) 
 			{
 				fillLine = ll;
 				break;
@@ -554,13 +672,21 @@ public class Cache extends SimulationElement
 			for(int idx=0; idx<assoc; idx++) 
 			{
 				int index = getNextIdx(startIdx, idx);
-				CacheLine ll = getCacheLine(index);
-				if(minTimeStamp > ll.getTimestamp()) 
-				{
+				CacheLine ll = this.lines[index];
+				
+				if(ll.isLocked()==true) {
+					continue;
+				}
+				
+				if(minTimeStamp > ll.getTimestamp()) {
 					minTimeStamp = ll.getTimestamp();
 					fillLine = ll;
 				}
 			}
+		}
+		
+		if(fillLine==null) {
+			misc.Error.showErrorAndExit("Unholy mess !!");
 		}
 
 		/* if there has been an eviction */
@@ -611,9 +737,8 @@ public class Cache extends SimulationElement
 		}
 	}
 	
-	//getters and setters
-	public MissStatusHoldingRegister getMissStatusHoldingRegister() {
-		return missStatusHoldingRegister;
+	public boolean isMSHRFull() {
+		return (mshr.size()>=mshrMaxSize);
 	}
 
 	public String toString()
@@ -646,19 +771,23 @@ public class Cache extends SimulationElement
 		
 		if(cl!=null) {
 			cl.setState(newState);
-		}
-		
-		if(prevLevel!=null && prevLevel.size()!=0) {
-			if(newState==MESI.INVALID && prevLevel.get(0).mycoherence!=null) {
-				// If the previous level caches have coherence, then the coherence
-				// system should be asked to invalidate the address from the sharer caches
-				prevLevel.get(0).mycoherence.evictedFromSharedCache(addr, this);
-			} else {
-				for(Cache c : prevLevel) {
-					c.updateStateOfCacheLine(addr, newState);
+			
+			if(prevLevel!=null && prevLevel.size()!=0) {
+				if(newState==MESI.INVALID && prevLevel.get(0).mycoherence!=null) {
+					// If the previous level caches have coherence, then the coherence
+					// system should be asked to invalidate the address from the sharer caches
+					prevLevel.get(0).mycoherence.evictedFromSharedCache(addr, this);
+				} else {
+					for(Cache c : prevLevel) {
+						c.updateStateOfCacheLine(addr, newState);
+					}
 				}
 			}
-		}
+			
+			if(newState==MESI.INVALID && cl.isLocked()) {
+				unlock(addr, null);
+			}
+		}	
 	}
 
 	public EventQueue getEventQueue() {
@@ -746,6 +875,223 @@ public class Cache extends SimulationElement
 		
 		if(workingSet!=null) {
 			workingSet.clear();
+		}
+	}
+	
+	// List of pending event list for each set in the cache
+	private ArrayList<LinkedList<AddressCarryingEvent>> pendingEvents = new ArrayList<LinkedList<AddressCarryingEvent>>();
+	
+	public void addPendingEvent(AddressCarryingEvent event) {
+		long addr = event.getAddress();
+		long setAddress = getSetIdx(addr);
+		pendingEvents.get((int) setAddress).add(event);
+		event.setHasArrivedAtDestination(false);
+	}
+	
+	private long getLineAddress(long addr) {
+		return addr >>> blockSizeBits;
+	}
+	
+	/*
+	 * Returns the first event which satisfies these properties : 
+	 * (a) has reached the directory
+	 * (b) belongs to the same lineAddr as that of addr or belongs to a line which is not present in the set or belongs to a line which is present in the set and is unlocked
+	 */
+	protected AddressCarryingEvent getPendingEventToProcess(long addr) {
+		long myLineAddr = getLineAddress(addr);
+		int setAddr = (int) getSetIdx(addr);
+
+		for (AddressCarryingEvent event : pendingEvents.get(setAddr)) {
+			long nextAddr = event.getAddress();
+			long nextLineAddr = getLineAddress(nextAddr);
+			CacheLine dirEntry = access(nextAddr);
+			boolean validDirEntry = dirEntry!=null && dirEntry.isValid()==true;
+			
+			if (myLineAddr!=nextLineAddr && validDirEntry) {
+				if(dirEntry.isLocked()==false && event.hasArrivedAtDestination()==true) {
+					// this event belongs to a different (valid) line in the same set. If its unlocked, and it has reached destination, return it
+					return event;
+				}
+			} else if (event.hasArrivedAtDestination()) {
+				// If you reach here, it means -
+				// (a) this event belongs to the same line (As this line is unlocked, there's no issue in returning this event)
+				// (b) this event belongs to a line which is not present in the set
+				return event;
+			}
+		}
+		
+		return null;
+	}
+	
+	protected void removePendingEvent(AddressCarryingEvent event) {
+		long addr = event.getAddress();
+		if(pendingEvents.get((int)getSetIdx(addr)).remove(event)==false) {
+			misc.Error.showErrorAndExit("Unable to remove pending event : " + event);
+		}
+	}
+	
+	protected boolean isThereAPendingEventForTheSameLineBeforeMe(
+			AddressCarryingEvent event) {
+		long addr = event.getAddress();
+		int setAddr = (int) getSetIdx(addr);
+		long lineAddr = getLineAddress(addr);
+		
+		for(AddressCarryingEvent e : pendingEvents.get(setAddr)) {
+			if(e==event) {
+				// reached at my point. So I am the first event for this line
+				return false;
+			}
+			
+			long newAddr = e.getAddress();
+			long newLineAddr = getLineAddress(newAddr);
+			if(lineAddr==newLineAddr) {
+				return true;
+			}
+		}
+		
+		misc.Error.showErrorAndExit("Unholy mess !!");
+		return true;
+	}
+	
+	private CacheLine getLRUUnlockedEntry(long addr) {
+		/* compute startIdx and the tag */
+		int startIdx = getStartIdx(addr);
+		long tag = computeTag(addr); 
+		/* find any invalid lines -- no eviction */
+		CacheLine fillLine = null;
+				
+		for (int idx = 0; idx < assoc; idx++) 
+		{
+			int nextIdx = getNextIdx(startIdx, idx);
+			CacheLine ll = this.lines[nextIdx];
+			if (ll.getTag() == tag && ll.getState() != MESI.INVALID) 
+			{	
+				misc.Error.showErrorAndExit("attempting fillDir for a line already present. address : " + addr);
+			}
+			if (!(ll.isLocked())) 
+			{
+				if(fillLine == null)
+				{
+					fillLine = ll;
+				}
+				else if(fillLine.getTimestamp() > ll.getTimestamp())
+				{
+					fillLine = ll;
+				}
+			}
+		}
+		
+		return fillLine;
+	}
+	
+	private AddressCarryingEvent createEvictionEventForAddr(long addr) {
+		AddressCarryingEvent event =  new AddressCarryingEvent();
+		event.setAddress(addr);
+		event.setRequestType(RequestType.EvictCacheLine);
+		return event;
+	}
+	
+	protected void sendAnEventFromMeToCache(long addr, Cache c, RequestType request) {
+		// Create an event
+		
+		AddressCarryingEvent event = new AddressCarryingEvent(
+			c.getEventQueue(), 0, this, c, request, addr);
+	
+		// 2. Send event to cache
+		this.sendEvent(event);
+	}
+	
+	protected void evictCacheLine(CacheLine evictedEntry) {
+		long addr = evictedEntry.getAddress();
+		
+		if(mycoherence!=null) {
+			mycoherence.evictedFromCoherentCache(addr, this);
+		} else {
+			//This line has been locked by canProcess method.
+			//Unlocking the cacheline would unlock it, and update the cacheline state to Invalid
+			unlock(addr, null);
+		}
+	}
+	
+	protected boolean canProcess(long addr, AddressCarryingEvent event) {
+		
+		if(isThereAPendingEventForTheSameLineBeforeMe(event)) {
+			return false;
+		}
+
+		CacheLine dirEntry = access(addr);
+		if (dirEntry != null) {
+			if (dirEntry.isLocked() == false) {
+				// The directory entry is present and its unlocked right now
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			// If there is an invalid entry in the cache, then use this directory entry
+			if (isThereAnInvalidUnlockedEntryInCacheSet(addr)) {
+				CacheLine evictedEntry = (CacheLine) this.fill(addr, MESI.INVALID);
+				return true;
+			} else if (isThereAnUnlockedEntryInCacheSet(addr)) {
+				CacheLine evictedEntry = getLRUUnlockedEntry(addr);
+				evictedEntry.setCurrentEvent(createEvictionEventForAddr(evictedEntry.getAddress()));
+				evictCacheLine(evictedEntry);
+				return false;
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	protected boolean isThereAnInvalidUnlockedEntryInCacheSet(long addr) {
+		/* compute startIdx and the tag */
+		int startIdx = getStartIdx(addr);
+		
+		/* search in a set */
+		for(int idx = 0; idx < assoc; idx++) 
+		{
+			// calculate the index
+			int index = getNextIdx(startIdx,idx);
+			// fetch the cache line
+			CacheLine ll = lines[index];
+			// If the tag is matching, we have a hit
+			if(ll.getState() == MESI.INVALID && ll.isLocked()==false) {
+				return  true;
+			}
+		}
+		return false;
+	}
+	
+	protected boolean isThereAnUnlockedEntryInCacheSet(long addr) {
+		/* compute startIdx and the tag */
+		int startIdx = getStartIdx(addr);
+		
+		/* search in a set */
+		for(int idx = 0; idx < assoc; idx++) 
+		{
+			// calculate the index
+			int index = getNextIdx(startIdx,idx);
+			// fetch the cache line
+			CacheLine ll = lines[index];
+			// If the tag is matching, we have a hit
+			if(ll.isLocked() == false) {
+				return  true;
+			}
+		}
+		return false;
+	}
+	
+	public void toStringPendingEvents() {
+		int set = 0;
+		for(LinkedList<AddressCarryingEvent> pendingEventList : pendingEvents) {
+			if(pendingEventList.size()>0) {
+				System.out.println("Pending events for set " + set + " . size :  " + pendingEventList.size() + " : ");
+				for(AddressCarryingEvent event : pendingEventList) {
+					System.out.println(event);
+				}
+			}
+			
+			set++;
 		}
 	}
 }

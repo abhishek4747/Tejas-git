@@ -32,7 +32,7 @@ public class ExecUnitIn_MII extends SimulationElement{
 	
 	public ExecUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1 , -1, -1);
 		this.core = core;
 		this.eventQueue = core.getEventQueue();
 		containingExecutionEngine = execEngine;

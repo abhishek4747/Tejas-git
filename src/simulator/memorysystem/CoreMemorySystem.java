@@ -72,7 +72,7 @@ public abstract class CoreMemorySystem extends SimulationElement
 	
 	protected CoreMemorySystem(Core core)
 	{
-		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		
 		this.setCore(core);
 		this.coreID = core.getCore_number();

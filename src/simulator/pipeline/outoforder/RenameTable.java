@@ -38,7 +38,7 @@ public class RenameTable extends SimulationElement{
 						int nArchRegisters, int nPhyRegisters, RegisterFile associatedRegisterFile,
 						int noOfThreads)
 	{
-		super(PortType.Unlimited, -1, -1, null, -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.execEngine = execEngine;
 		this.nArchRegisters = nArchRegisters;
 		this.nPhyRegisters = nPhyRegisters;

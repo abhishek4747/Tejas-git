@@ -11,7 +11,7 @@ public class CoreBcastBus extends SimulationElement{
 	public Vector<Integer> toResume =  new Vector<Integer>();
 
 	public CoreBcastBus() {
-		super(PortType.Unlimited, 1, 1, null, 1, 1);
+		super(PortType.Unlimited, 1, 1, 1, 1);
 	}
 
 	public void addToResumeCore(int id){

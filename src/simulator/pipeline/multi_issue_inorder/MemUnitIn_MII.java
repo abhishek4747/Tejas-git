@@ -24,7 +24,7 @@ public class MemUnitIn_MII extends SimulationElement{
 	long instCtr; //for debug
 
 	public MemUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine) {
-		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1 , -1, -1);
 		this.core = core;
 		this.eventQueue = core.getEventQueue();
 		containingExecutionEngine = execEngine;

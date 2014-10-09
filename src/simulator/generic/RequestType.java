@@ -86,6 +86,8 @@ public enum RequestType {
 //	MemResponseDirectoryUpdate,
 //	MESI_Invalidate,
 	
+	EvictCacheLine,
+	
 	DirectoryWriteHit,
 	DirectoryReadMiss,
 	DirectoryWriteMiss,

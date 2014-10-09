@@ -43,7 +43,7 @@ public class ReorderBuffer extends SimulationElement{
 
 	public ReorderBuffer(Core _core, OutOrderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, -1, -1, _core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		
 		core = _core;
 		this.execEngine = execEngine;

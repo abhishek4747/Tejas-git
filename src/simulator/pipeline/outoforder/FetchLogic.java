@@ -31,7 +31,7 @@ public class FetchLogic extends SimulationElement {
 
 	public FetchLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.execEngine = execEngine;
 		fetchBuffer = execEngine.getFetchBuffer();
@@ -177,8 +177,7 @@ public class FetchLogic extends SimulationElement {
 			}
 			
 			//add to iCache buffer, and issue request to iCache
-			if(!iCacheBuffer.isFull()
-					&& execEngine.getCoreMemorySystem().getiCache().getMissStatusHoldingRegister().getCurrentSize() < execEngine.getCoreMemorySystem().getiCache().getMissStatusHoldingRegister().getMSHRStructSize())
+			if(!iCacheBuffer.isFull() && execEngine.getCoreMemorySystem().getiCache().isMSHRFull()==false)
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)

@@ -30,26 +30,19 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		int tlbMissPenalty = performDTLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-																	 l1Cache.getLatencyDelay() + tlbMissPenalty,
-																	 this, 
-																	 l1Cache,
-																	 requestType, 
-																	 address);
+			tlbMissPenalty, this, l1Cache, requestType, address);
 		
-		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {
+		if(l1Cache.isMSHRFull()) {
 			return false;
 		}
 		
-		//attempt issue to lower level cache
 		this.l1Cache.getPort().put(addressEvent);
+		this.l1Cache.addPendingEvent(addressEvent);
 		
 		containingExecEngine.updateNoOfMemRequests(1);
-		if(requestType == RequestType.Cache_Read)
-		{
+		if(requestType == RequestType.Cache_Read) {
 			containingExecEngine.updateNoOfLd(1);
-		}
-		else if(requestType == RequestType.Cache_Write)
-		{
+		} else if(requestType == RequestType.Cache_Write) {
 			containingExecEngine.updateNoOfSt(1);
 		}
 		
@@ -64,15 +57,12 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		int tlbMissPenalty = performITLBLookup(address, inorderPipeline);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-				 iCache.getLatencyDelay() + tlbMissPenalty,
-				 this, 
-				 iCache,
-				 RequestType.Cache_Read, 
-				 address);
-
+			tlbMissPenalty, this, iCache, RequestType.Cache_Read, address);
 		
 		//attempt issue to lower level cache
 		this.iCache.getPort().put(addressEvent);
+		
+		this.iCache.addPendingEvent(addressEvent);
 	}
 	
 	private int performITLBLookup(long address, MultiIssueInorderPipeline inorderPipeline)

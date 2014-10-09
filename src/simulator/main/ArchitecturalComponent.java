@@ -237,25 +237,9 @@ public class ArchitecturalComponent {
 	{
 		CoreMemorySystem coreMemSys = null;
 		System.out.println("\n\nMSHR DUMP\n\n");
-		for(int i = 0; i < ArchitecturalComponent.getCores().length; i++)
-		{
-			coreMemSys = ArchitecturalComponent.getCores()[i].getExecEngine().getCoreMemorySystem();
-			System.out.println("---------------------------------------------------------------------------");
-			System.out.println("CORE " + i);
-			System.out.println("coreMemSys");
-			System.out.println("i - mshr");
-			coreMemSys.getiCache().getMissStatusHoldingRegister().dump();
-			System.out.println("l1-mshr");
-			coreMemSys.getL1Cache().getMissStatusHoldingRegister().dump();
-			System.out.println("iCache");
-			coreMemSys.getiCache().getMissStatusHoldingRegister().dump();
-			System.out.println("L1");
-			coreMemSys.getL1Cache().getMissStatusHoldingRegister().dump();
+		for(Cache c : MemorySystem.getCacheList()) {
+			c.printMSHR();
 		}
-		
-		System.out.println("---------------------------------------------------------------------------");
-		System.out.println("L2");
-		coreMemSys.getiCache().nextLevel.getMissStatusHoldingRegister().dump();
 		
 	}
 

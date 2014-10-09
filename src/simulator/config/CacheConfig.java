@@ -56,6 +56,8 @@ public class CacheConfig
 	public String nextLevelId;
 
 	public String coherenceName;
+
+	public boolean isDirectory = false;
 	
 	public static enum WritePolicy{
 		WRITE_BACK, WRITE_THROUGH

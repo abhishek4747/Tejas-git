@@ -29,7 +29,7 @@ public class DecodeLogic extends SimulationElement {
 	
 	public DecodeLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1 , -1, -1);
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
 		fetchBuffer = execEngine.getFetchBuffer();

@@ -111,9 +111,7 @@ public class Core extends SimulationElement{
 			int[] threadIDs)
 	{
 		super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);	
-		//TODO frequency from config file
-		
-		this.port = new Port(PortType.Unlimited, -1, -1);
+
 		this.eventQueue = new EventQueue();
 		this.frequency = SystemConfig.core[core_number].frequency;
 		initializeCoreParameters(SystemConfig.core[core_number]);

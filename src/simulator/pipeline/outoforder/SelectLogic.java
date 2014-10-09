@@ -15,7 +15,7 @@ public class SelectLogic extends SimulationElement {
 	
 	public SelectLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.execEngine = execEngine;
 		IW = execEngine.getInstructionWindow();

@@ -31,7 +31,7 @@ public class InstructionWindow extends SimulationElement {
 	
 	public InstructionWindow(Core core, OutOrderExecutionEngine executionEngine)
 	{
-		super(PortType.Unlimited, -1, -1, core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		
 		maxIWSize = core.getIWSize();

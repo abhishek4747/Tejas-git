@@ -20,7 +20,7 @@ public class IWPushLogic extends SimulationElement {
 	
 	public IWPushLogic(Core core, OutOrderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, -1, -1 ,core.getEventQueue(), -1, -1);
+		super(PortType.Unlimited, -1, -1 , -1, -1);
 		this.core = core;
 		this.execEngine = execEngine;
 		renameBuffer = execEngine.getRenameBuffer();		

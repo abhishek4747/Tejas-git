@@ -7,14 +7,16 @@ public class Port
 
 	//occupancy defines the number of clockCycles needed for  
 	//a single transfer on the port.
+	private long latencyOfConnectedElement;
 	private long occupancy;
 	private long[] portBusyUntil;
 	
 	//NOTE : Time is in terms of GlobalClock cycles
 	
-	public Port(PortType portType, int noOfPorts, long occupancy)
+	public Port(PortType portType, int noOfPorts, long occupancy, long latencyOfConnectedElement)
 	{
 		this.portType = portType;
+		this.latencyOfConnectedElement = latencyOfConnectedElement;
 		
 		//initialise no. of ports and the occupancy.
 		if(portType==PortType.Unlimited)
@@ -59,7 +61,7 @@ public class Port
 		if(this.portType == PortType.Unlimited)
 		{
 			// For an unlimited port, set the event with current-time.
-			event.addEventTime(GlobalClock.getCurrentTime());
+			event.addEventTime(GlobalClock.getCurrentTime() + latencyOfConnectedElement);
 			event.getEventQ().addEvent(event);
 			return;
 		}
@@ -93,7 +95,7 @@ public class Port
 			}
 						
 			// set the time of the event
-			event.addEventTime(portBusyUntil[availablePortID]);
+			event.addEventTime(portBusyUntil[availablePortID] + latencyOfConnectedElement);
 			
 			// add event in the eventQueue
 			event.getEventQ().addEvent(event);

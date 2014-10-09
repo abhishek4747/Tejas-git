@@ -31,14 +31,12 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		int tlbMissPenalty = performITLBLookup(address);
 		
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-				 iCache.getLatencyDelay() + tlbMissPenalty,
-				 this, 
-				 iCache,
-				 RequestType.Cache_Read, 
-				 address);
+			tlbMissPenalty, this, iCache, RequestType.Cache_Read, address);
 
 		//attempt issue to lower level cache
 		this.iCache.getPort().put(addressEvent);
+		
+		this.iCache.addPendingEvent(addressEvent);
 	}
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
@@ -74,26 +72,14 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 											long address)
 	{
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
-												 l1Cache.getLatencyDelay(),
-												 this, 
-												 l1Cache,
-												 requestType, 
-												 address);
+			0, this, l1Cache, requestType, address);		
 		
-		
-		if(l1Cache.missStatusHoldingRegister.getCurrentSize() >= l1Cache.missStatusHoldingRegister.getMSHRStructSize()) {
-//			XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
-//				System.out.println("------------ MSHR of L1. Size : " + this.l1Cache.getMissStatusHoldingRegister().getCurrentSize() + " at time " + GlobalClock.getCurrentTime());
-//				this.l1Cache.getMissStatusHoldingRegister().dump();
-//				
-//				System.out.println("------------ Directory Pending Events ---------------");
-//				((Directory)this.l1Cache.mycoherence).toStringPendingEvents();
-//			}
+		if(l1Cache.isMSHRFull()) {
 			return false;
 		}
 		
-		//attempt issue to lower level cache
-		this.l1Cache.getPort().put(addressEvent);
+		this.l1Cache.getPort().put(addressEvent);		
+		this.l1Cache.addPendingEvent(addressEvent);
 				
 		return true;
 	}

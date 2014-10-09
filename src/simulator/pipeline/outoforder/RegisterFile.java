@@ -21,7 +21,7 @@ public class RegisterFile extends SimulationElement{
 	
 	public RegisterFile(Core core, int _registerFileSize)
 	{
-		super(PortType.Unlimited, -1, -1, null, -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		
 		this.core = core;
 		registerFileSize = _registerFileSize;
