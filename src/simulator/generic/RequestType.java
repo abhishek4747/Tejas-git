@@ -91,7 +91,7 @@ public enum RequestType {
 	DirectoryWriteHit,
 	DirectoryReadMiss,
 	DirectoryWriteMiss,
-	DirectoryInvalidate,
+	
 	DirectoryCachelineForwardRequest,
 	DirectoryEvictedFromSharedCache,
 	DirectoryEvictedFromCoherentCache,

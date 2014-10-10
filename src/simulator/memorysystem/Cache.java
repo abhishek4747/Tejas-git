@@ -220,6 +220,16 @@ public class Cache extends SimulationElement
 			
 			case EvictCacheLine: {
 				updateStateOfCacheLine(event.getAddress(), MESI.INVALID);
+				
+				if(event.getRequestingElement()==this && event.getProcessingElement()==this) {
+					// Is this the originating event for the eviction of addr
+					return;
+				} else {
+					// The unlock event should cascade downwards
+					Cache senderCache = (Cache)event.getRequestingElement();
+					senderCache.unlock(event.getAddress(), null);
+				}
+				
 				break;
 			}
 		}	
@@ -262,8 +272,11 @@ public class Cache extends SimulationElement
 				break;
 			}
 			
-			case DirectoryInvalidate: {
-				handleDirectoryInvalidate(addr);
+			case EvictCacheLine: {
+				if(lockCacheLineAndRemovePendingEvent(event)==false) {
+					return;
+				}
+				evictCacheLine(addr);
 				break;
 			}
 			
@@ -415,10 +428,6 @@ public class Cache extends SimulationElement
 		if(mycoherence!=null) {
 			mycoherence.unlock(addr, this);
 		}
-	}
-	
-	public void handleDirectoryInvalidate(long addr) {
-		mycoherence.unlock(addr, this);
 	}
 	
 	public void sendRequestToNextLevel(long addr, RequestType requestType) {
@@ -989,10 +998,12 @@ public class Cache extends SimulationElement
 		AddressCarryingEvent event =  new AddressCarryingEvent();
 		event.setAddress(addr);
 		event.setRequestType(RequestType.EvictCacheLine);
+		event.setRequestingElement(this);
+		event.setProcessingElement(this);
 		return event;
 	}
 	
-	protected void sendAnEventFromMeToCache(long addr, Cache c, RequestType request) {
+	protected AddressCarryingEvent sendAnEventFromMeToCache(long addr, Cache c, RequestType request) {
 		// Create an event
 		
 		AddressCarryingEvent event = new AddressCarryingEvent(
@@ -1000,20 +1011,54 @@ public class Cache extends SimulationElement
 	
 		// 2. Send event to cache
 		this.sendEvent(event);
+		
+		return event;
 	}
 	
-	protected void evictCacheLine(CacheLine evictedEntry) {
-		long addr = evictedEntry.getAddress();
+	protected void evictCacheLine(long addr) {
+		AddressCarryingEvent evictionEvent = createEvictionEventForAddr(addr);
 		
-		if(mycoherence!=null) {
-			mycoherence.evictedFromCoherentCache(addr, this);
+		CacheLine evictedEntry = access(addr);
+		if(evictedEntry!=null) {
+			// Lock the cache line
+			evictedEntry.setCurrentEvent(evictionEvent);
+			
+			 // XXX change
+			// Am I a top level cache
+			if(this.cacheConfig.firstLevel==true) {
+				unlock(addr, null);
+			} else {
+				// Am I just below a directory
+				if(isBelowCoherenceLevel()) {
+					Coherence prevLevelCoherence = getPrevLevelCoherence();
+					prevLevelCoherence.evictedFromSharedCache(addr, this);
+				} else {
+					for(Cache c : prevLevel) {
+						evictedEntry.addCacheToAwaitedCacheList(c);
+						AddressCarryingEvent event = sendAnEventFromMeToCache(addr, c, RequestType.EvictCacheLine);
+						c.addPendingEvent(event);
+					}
+				}
+			}
 		} else {
-			//This line has been locked by canProcess method.
-			//Unlocking the cacheline would unlock it, and update the cacheline state to Invalid
+			System.out.println("here!!");
+			// Since I do not have the cacheline, any cache above me will not have it[Inclusive cache]
 			unlock(addr, null);
 		}
 	}
 	
+	private Coherence getPrevLevelCoherence() {
+		return prevLevel.get(0).mycoherence;
+	}
+	
+	private boolean isBelowCoherenceLevel() {
+		if(prevLevel!=null && prevLevel.size()>0 && prevLevel.get(0).mycoherence!=null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	protected boolean canProcess(long addr, AddressCarryingEvent event) {
 		
 		if(isThereAPendingEventForTheSameLineBeforeMe(event)) {
@@ -1035,8 +1080,7 @@ public class Cache extends SimulationElement
 				return true;
 			} else if (isThereAnUnlockedEntryInCacheSet(addr)) {
 				CacheLine evictedEntry = getLRUUnlockedEntry(addr);
-				evictedEntry.setCurrentEvent(createEvictionEventForAddr(evictedEntry.getAddress()));
-				evictCacheLine(evictedEntry);
+				evictCacheLine(evictedEntry.getAddress());
 				return false;
 			} else {
 				return false;

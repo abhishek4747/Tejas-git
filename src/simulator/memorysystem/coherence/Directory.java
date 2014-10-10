@@ -110,7 +110,7 @@ public class Directory extends Cache implements Coherence {
 				} else {
 					for (Cache sharerCache : dirEntry.getSharers()) {
 						if (sharerCache != c) {
-							sendAnEventFromMeToCache(addr, sharerCache, RequestType.DirectoryInvalidate);
+							sendAnEventFromMeToCache(addr, sharerCache, RequestType.EvictCacheLine);
 							dirEntry.addCacheToAwaitedCacheList(sharerCache);
 						}
 					}
@@ -309,7 +309,7 @@ public class Directory extends Cache implements Coherence {
 		
 		for(Cache c : evictedEntry.getSharers()) {
 			evictedEntry.addCacheToAwaitedCacheList(c);
-			sendAnEventFromMeToCache(addr, c, RequestType.DirectoryInvalidate);
+			sendAnEventFromMeToCache(addr, c, RequestType.EvictCacheLine);
 		}
 	}
 
