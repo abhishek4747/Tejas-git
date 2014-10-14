@@ -177,7 +177,7 @@ public class FetchLogic extends SimulationElement {
 			}
 			
 			//add to iCache buffer, and issue request to iCache
-			if(!iCacheBuffer.isFull() && execEngine.getCoreMemorySystem().getiCache().isMSHRFull()==false)
+			if(!iCacheBuffer.isFull() && execEngine.getCoreMemorySystem().getiCache().isBusy()==false)
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
 				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)

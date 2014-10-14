@@ -27,14 +27,12 @@ import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 public class CacheLine implements Cloneable
 {
 	private long tag;
-	private double timestamp;
+	private long timestamp;
 	private long address;
 	private MESI state = MESI.INVALID;
 	private boolean isDirectory = false;
 	
 	private LinkedList<Cache> sharers = null;
-	private AddressCarryingEvent currentEvent = null;
-	private LinkedList<Cache> listOfAwaitedCacheResponses = new LinkedList<Cache>();
 	
 	public CacheLine(boolean isDirectory)
 	{
@@ -161,7 +159,7 @@ public class CacheLine implements Cloneable
 		return timestamp;
 	}
 
-	public void setTimestamp(double timestamp) {
+	public void setTimestamp(long timestamp) {
 		this.timestamp = timestamp;
 	}
 
@@ -182,10 +180,6 @@ public class CacheLine implements Cloneable
 
 	public void setState(MESI state) {
 		this.state = state;
-		
-		if(state==MESI.INVALID && currentEvent!=null) {
-			misc.Error.showErrorAndExit("Cannot invalidate a locked entry : " + currentEvent);
-		}
 	}
 
 	public long getAddress() {
@@ -196,65 +190,11 @@ public class CacheLine implements Cloneable
 		this.address = address;
 	}
 	
-	
-	public void addCacheToAwaitedCacheList(Cache c) {
-		if(listOfAwaitedCacheResponses.contains(c)==false) {
-			listOfAwaitedCacheResponses.add(c);
-		} else {
-			misc.Error.showErrorAndExit("Cannot add cache to the awaited cache list");
-		}		
-	}
-	
-	public void removeCacheFromAwaitedCacheList(Cache c) {
-		if(listOfAwaitedCacheResponses.contains(c)==false) {
-			misc.Error.showErrorAndExit("Cache to be removed not found. Cache : " + c);
-		}
-		
-		listOfAwaitedCacheResponses.remove(c);
-	}
-	
-	public boolean isLocked() {
-		return currentEvent!=null;
-	}
-	
-	public void unlock() {
-		if(currentEvent==null) {
-			misc.Error.showErrorAndExit("Trying to unlock an unlocked event !!");
-		}
-		
-		currentEvent = null;
-	}
-	
-	public void setCurrentEvent(AddressCarryingEvent event) {
-		
-//		if(state==MESI.INVALID && event!=null) {
-//			misc.Error.showErrorAndExit("Cannot lock an invalid entry");
-//		}
-		
-		if(isLocked() && event!=null) {
-			misc.Error.showErrorAndExit("Trying to lock an already locked event. \nOld Event : " + currentEvent + "\nNew Event : " + event + "\nline : " + this);
-		}
-		
-		currentEvent = event;
-	}
-	
-	public AddressCarryingEvent getCurrentEvent() {
-		if(isLocked()==false) {
-			misc.Error.showErrorAndExit("The cache line / directory entry is in unlocked state !!");
-		}
-		
-		return currentEvent;
-	}
-	
 	public LinkedList<Cache> getSharers() {
 		checkIsDirectory();
 		return sharers;
 	}
 	
-	public LinkedList<Cache> getListOfAwaitedCacheResponses() {
-		return listOfAwaitedCacheResponses;
-	}
-
 	public Cache getFirstSharer() {
 		checkIsDirectory();
 		return sharers.get(0);

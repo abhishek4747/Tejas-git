@@ -9,9 +9,6 @@ public class AddressCarryingEvent extends Event implements Cloneable
 {
 	private long address;
 	public long event_id;
-	public boolean hasArrivedAtDestination = false;	
-	public RequestType payloadRequestType;	
-	public SimulationElement payloadElement;
 	public int hopLength;
 
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
@@ -73,15 +70,4 @@ public class AddressCarryingEvent extends Event implements Cloneable
 		return s;
 	}
 
-	public void setHasArrivedAtDestination(boolean b) {
-		hasArrivedAtDestination = b;
-	}
-	
-	public boolean hasArrivedAtDestination() {
-		return hasArrivedAtDestination;
-	}
-	
-	public SimulationElement getPayloadElement() {
-		return payloadElement;
-	}
 }

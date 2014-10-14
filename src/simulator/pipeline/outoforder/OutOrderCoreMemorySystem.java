@@ -35,8 +35,6 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 
 		//attempt issue to lower level cache
 		this.iCache.getPort().put(addressEvent);
-		
-		this.iCache.addPendingEvent(addressEvent);
 	}
 	
 	public void allocateLSQEntry(boolean isLoad, long address, ReorderBufferEntry robEntry)
@@ -74,12 +72,11 @@ public class OutOrderCoreMemorySystem extends CoreMemorySystem {
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 			0, this, l1Cache, requestType, address);		
 		
-		if(l1Cache.isMSHRFull()) {
+		if(l1Cache.isBusy()) {
 			return false;
 		}
 		
 		this.l1Cache.getPort().put(addressEvent);		
-		this.l1Cache.addPendingEvent(addressEvent);
 				
 		return true;
 	}

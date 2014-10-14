@@ -44,7 +44,7 @@ public class Directory extends Cache implements Coherence {
 //			System.out.println("Directory WriteHit t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
 //		}
 		writeHitAccesses++;
-		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryWriteHit);
+		sendAnEventFromCacheToDirectory(addr, c, RequestType.DirectoryWriteHit);
 	}
 
 	public void readMiss(long addr, Cache c) {
@@ -52,7 +52,7 @@ public class Directory extends Cache implements Coherence {
 //			System.out.println("Directory ReadMiss t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
 //		}
 		readMissAccesses++;
-		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryReadMiss);
+		sendAnEventFromCacheToDirectory(addr, c, RequestType.DirectoryReadMiss);
 	}
 
 	public void writeMiss(long addr, Cache c) {
@@ -60,11 +60,10 @@ public class Directory extends Cache implements Coherence {
 //			System.out.println("Directory WriteMiss t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
 //		}
 		writeMissAccesses++;
-		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryWriteMiss);
+		sendAnEventFromCacheToDirectory(addr, c, RequestType.DirectoryWriteMiss);
 	}
 
-	private void sendAnEventFromCacheToDirectoryAndAddToPendingList
-	(long addr, Cache c, RequestType request) {
+	private AddressCarryingEvent sendAnEventFromCacheToDirectory(long addr, Cache c, RequestType request) {
 		
 		incrementHitMissInformation(addr);
 		
@@ -76,7 +75,7 @@ public class Directory extends Cache implements Coherence {
 		// 2. Send event to directory
 		c.sendEvent(event);
 		
-		addPendingEvent(event);
+		return event;
 	}
 	
 	private void incrementHitMissInformation(long addr) {
@@ -89,62 +88,42 @@ public class Directory extends Cache implements Coherence {
 		}		
 	}
 
-	public void writeHitSendMessage(long addr, Cache c) {
+	public void handleWriteHit(long addr, Cache c, AddressCarryingEvent event) {
 		CacheLine dirEntry = access(addr);
 
 		switch (dirEntry.getState()) {
-			case MODIFIED: {
-				unlock(addr, null);
-				break;
-			}
-	
-			case EXCLUSIVE: {
-				unlock(addr, null);
-				break;
-			}
-	
+			case MODIFIED:
+			case EXCLUSIVE:
 			case SHARED: {
-				if (dirEntry.isSharer(c) == false) {
-					c.fillAndSatisfyRequests(addr); // XXX change
-					unlock(addr, null); // Invalid directory state
-				} else {
-					for (Cache sharerCache : dirEntry.getSharers()) {
-						if (sharerCache != c) {
-							sendAnEventFromMeToCache(addr, sharerCache, RequestType.EvictCacheLine);
-							dirEntry.addCacheToAwaitedCacheList(sharerCache);
-						}
+				
+				if(dirEntry.isSharer(c)==false) {
+					System.err.println("WriteHit expects cache to be a sharer. Cache : " + c + ". Addr : " + addr);
+				}
+				
+				for(Cache sharerCache : dirEntry.getSharers()) {
+					if(sharerCache!=c) {
+						sendAnEventFromMeToCache(addr, sharerCache, RequestType.EvictCacheLine);
 					}
 				}
-	
+				
+				dirEntry.clearAllSharers();
+				dirEntry.addSharer(c);
+				dirEntry.setState(MESI.MODIFIED);
+				
 				break;
 			}
 	
 			case INVALID: {
-				unlock(addr, null); // Invalid directory state
+				dirEntry.clearAllSharers();
+				dirEntry.setState(MESI.MODIFIED);
+				dirEntry.addSharer(c);				
 				break;
 			}
 		}
-	}
-
-	public void writeStateChange(long addr, Cache c) {
-		CacheLine dirEntry = access(addr);
 		
-		if(c.access(addr)==null) {
-			forceInvalidate(dirEntry);
-		} else {
-			for (Cache sharerCache : dirEntry.getSharers()) {
-				if (sharerCache != c) {
-					sharerCache.updateStateOfCacheLine(addr, MESI.INVALID);
-				}
-			}
-			
-			dirEntry.clearAllSharers();
-			dirEntry.setState(MESI.MODIFIED);
-			dirEntry.addSharer(c);
-			c.updateStateOfCacheLine(addr, MESI.MODIFIED);
-		}
+		sendAnEventFromMeToCache(addr, c, RequestType.AckDirectoryWriteHit);
 	}
-
+	
 	private void forceInvalidate(CacheLine dirEntry) {
 		misc.Error.showErrorAndExit("Force Invalidate !!");
 		// The directory is in an inconsistent state. 
@@ -157,194 +136,148 @@ public class Directory extends Cache implements Coherence {
 		dirEntry.setState(MESI.INVALID);		
 	}
 
-	public void callStateChangeFunction(AddressCarryingEvent currentEvent) {
-		long addr = currentEvent.getAddress();
-		Cache c = (Cache) currentEvent.getRequestingElement();
-				
-		switch(currentEvent.getRequestType()) {
-			case DirectoryWriteHit: {
-				writeStateChange(addr, c);
-				break;
-			}
-			
-			case DirectoryReadMiss: {
-				readMissStateChange(addr, c);
-				break;
-			}
-			
-			case DirectoryWriteMiss: {
-				writeStateChange(addr, c);
-				break;
-			}
-			
-			case EvictCacheLine:
-			case DirectoryEvictedFromSharedCache: {
-				evictedFromSharedCacheStateChange(addr, c);
-				break;
-			}
-			
-			case DirectoryEvictedFromCoherentCache: {
-				evictedFromCoherentCacheStateChange(addr, c);
-				break;
-			}
-		}
-		
-		if(currentEvent.getRequestingElement()!=null) {
-			//requesting element would be null in the directory line eviction scenario
-			((Cache)currentEvent.getRequestingElement()).unlock(addr, null);			
-		}
-	}
-
-	public void evictedFromSharedCache(long addr, Cache c) {
+	public AddressCarryingEvent evictedFromSharedCache(long addr, Cache c) {
 //		XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
 //			System.out.println("Directory EvictShared t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
 //		}
 		evictedFromSharedCacheAccesses++;
-		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryEvictedFromSharedCache);
+		return sendAnEventFromCacheToDirectory(addr, c, RequestType.DirectoryEvictedFromSharedCache);
 	}
 	
-	public void evictedFromCoherentCache(long addr, Cache c) {
+	public AddressCarryingEvent evictedFromCoherentCache(long addr, Cache c) {
 //		XXX if(ArchitecturalComponent.getCore(0).getNoOfInstructionsExecuted()>3000000l) {
 //			System.out.println("Directory EvictCoherent t : " + GlobalClock.getCurrentTime() + " addr : " + addr + " cache : " + c);
 //		}
 		evictedFromCoherentCacheAccesses++;
-		sendAnEventFromCacheToDirectoryAndAddToPendingList(addr, c, RequestType.DirectoryEvictedFromCoherentCache);
+		return sendAnEventFromCacheToDirectory(addr, c, RequestType.DirectoryEvictedFromCoherentCache);
 	}
 	
-	private void evictedFromSharedCacheSendMessage(long addr, Cache c) {
-		CacheLine dirEntry = access(addr);
-		
-		switch(dirEntry.getState()) {
-			case MODIFIED:
-			case EXCLUSIVE:
-			case SHARED:
-			{
-				evictCacheLine(dirEntry);
-				break;
-			}
-			
-			case INVALID: {
-				unlock(addr, null);
-				break;
-			}
-		}
-	}
-	
-	private void evictedFromSharedCacheStateChange(long addr, Cache c) {
-		CacheLine dirEntry = access(addr);
-		
-		switch(dirEntry.getState()) {
-			case MODIFIED:
-			case EXCLUSIVE:
-			case SHARED:
-			{
-				for(Cache sharer : dirEntry.getSharers()) {
-					sharer.updateStateOfCacheLine(addr, MESI.INVALID);
-				}
-				dirEntry.clearAllSharers();
-				dirEntry.setState(MESI.INVALID);
-				break;
-			}
-			
-			case INVALID: {
-				break;
-			}
-		}
-	}
-
-	@Override
 	public void handleEvent(EventQueue eventQ, Event e) {
 		AddressCarryingEvent event = (AddressCarryingEvent) e;
 		long addr = event.getAddress();
+		RequestType reqType = e.getRequestType();
 
 //		if(ArchitecturalComponent.getCores()[0].getNoOfInstructionsExecuted() > 4000000) {
 //			System.out.println("\n\nDirectory handleEvent currEvent : " + event);
 //			toStringPendingEvents();
 //		}
 		
-		if(e.serializationID==17532037) {
-			System.out.println("culprint");
-		}
-		
-		if(lockCacheLineAndRemovePendingEvent(event)==false) {
-			return;
+		if(access(addr)==null && (reqType==RequestType.DirectoryWriteHit || reqType==RequestType.DirectoryWriteMiss ||
+			reqType==RequestType.DirectoryReadMiss || reqType==RequestType.DirectoryEvictedFromCoherentCache)) {
+			
+			// This events expect a directory entry to be present.
+			// Create a directory entry.
+			CacheLine evictedEntry = fill(addr, MESI.INVALID);
+			
+			if(evictedEntry!=null && evictedEntry.isValid()) {
+				handleEvictFromSharedCache(evictedEntry.getAddress());
+			}
 		}
 		
 		Cache senderCache = (Cache) event.getRequestingElement();
 
 		switch (event.getRequestType()) {
 			case DirectoryWriteHit: {
-				writeHitSendMessage(addr, senderCache);
+				handleWriteHit(addr, senderCache, event);
 				break;
 			}
 			
 			case DirectoryReadMiss: {
-				readMissSendMessage(addr, senderCache);
+				handleReadMiss(addr, senderCache);
 				break;
 			}
 			
 			case DirectoryWriteMiss: {
-				writeMissSendMessage(addr, senderCache);
+				handleWriteMiss(addr, senderCache);
 				break;
 			}
 			
 			case DirectoryEvictedFromSharedCache: {
-				evictedFromSharedCacheSendMessage(addr, senderCache);
+				handleEvictFromSharedCache(addr);
 				break;
 			}
 			
 			case DirectoryEvictedFromCoherentCache: {
-				evictedFromCoherentCacheSendMessage(addr, senderCache);
+				handleEvictedFromCoherentCache(addr, senderCache);
 				break;
 			}
 		}
 	}
 	
-	protected void evictCacheLine(CacheLine evictedEntry) {
-		long addr = evictedEntry.getAddress();
+	private void handleEvictedFromCoherentCache(long addr, Cache c) {
+		CacheLine dirEntry = access(addr);
 		
-		if(evictedEntry.getListOfAwaitedCacheResponses().size()!=0) {
-			misc.Error.showErrorAndExit("Cannot invalidate an entry which is already expecting cache responses");
+		if(dirEntry.isSharer(c)) {
+			dirEntry.removeSharer(c);
+			if(dirEntry.getSharers().size()==0) {
+				dirEntry.setState(MESI.INVALID);
+			} else if(dirEntry.getSharers().size()==1) {
+				dirEntry.setState(MESI.EXCLUSIVE);
+				sendAnEventFromMeToCache(addr, dirEntry.getOwner(), RequestType.DirectorySharedToExclusive);
+			}
 		}
 		
-		for(Cache c : evictedEntry.getSharers()) {
-			evictedEntry.addCacheToAwaitedCacheList(c);
-			sendAnEventFromMeToCache(addr, c, RequestType.EvictCacheLine);
+		sendAnEventFromMeToCache(addr, c, RequestType.AckEvictCacheLine);
+	}
+
+	private void handleWriteMiss(long addr, Cache c) {
+		CacheLine dirEntry = access(addr);
+		
+		handleReadMiss(addr, c);
+		for(Cache sharerCache : dirEntry.getSharers()) {
+			if(sharerCache!=c) {
+				sendAnEventFromMeToCache(addr, sharerCache, RequestType.EvictCacheLine);
+			}
+		}
+		
+		dirEntry.clearAllSharers();
+		dirEntry.addSharer(c);
+		dirEntry.setState(MESI.MODIFIED);
+	}
+
+	private void handleEvictFromSharedCache(long addr) {
+		CacheLine cl = access(addr);
+		
+		if(cl==null || cl.isValid()==false) {
+			return;
+		} else {
+			for(Cache c : cl.getSharers()) {
+				sendAnEventFromMeToCache(addr, c, RequestType.EvictCacheLine);
+			}
+			
+			cl.clearAllSharers();
+			cl.setState(MESI.INVALID);			
 		}
 	}
 
-	private void readMissSendMessage(long addr, Cache c) {
+	private void handleReadMiss(long addr, Cache c) {
 		CacheLine dirEntry = access(addr);
 		
 		switch(dirEntry.getState()) {
 			case MODIFIED: 
-			case EXCLUSIVE: {
+			case EXCLUSIVE: 
+			case SHARED : {
 				
-				if(dirEntry.getOwner()==c) {
-					c.fillAndSatisfyRequests(addr); // XXX change
-					unlock(addr, null); // Invalid directory state
+				if(dirEntry.isSharer(c)==true) {
+					System.err.println("ReadMiss from a sharer cache. Addr : " + addr + ". Cache : " + c);
+					invalidAccesses++;
+					sendAnEventFromMeToCache(addr, c, RequestType.Mem_Response);
 				} else {
-					dirEntry.addCacheToAwaitedCacheList(c);
-					sendCachelineForwardRequest(dirEntry.getOwner(), c, addr);
+					Cache sharerCache = dirEntry.getFirstSharer();
+					sendCachelineForwardRequest(sharerCache, c, addr);
 				}
+				
+				dirEntry.setState(MESI.SHARED);
+				dirEntry.addSharer(c);
 				
 				break;
 			}
 			
-			case SHARED: {
-				if(dirEntry.getSharers().contains(c)) {
-					c.fillAndSatisfyRequests(addr); // XXX change
-					unlock(addr, null); // Invalid directory state
-				} else {
-					dirEntry.addCacheToAwaitedCacheList(c);
-					sendCachelineForwardRequest(dirEntry.getFirstSharer(), c, addr);
-				}
-
-				break;
-			}
 			
 			case INVALID: {
-				dirEntry.addCacheToAwaitedCacheList(c);
+				dirEntry.setState(MESI.EXCLUSIVE);
+				dirEntry.clearAllSharers();
+				dirEntry.addSharer(c);
 				// If the line is supposed to be fetched from the next level cache, 
 				// we will just send a cacheRead request to this cache
 				// Note that the directory is not coming into the picture. This is just a minor hack to maintain readability of the code
@@ -353,49 +286,6 @@ public class Directory extends Cache implements Coherence {
 			}
 		}
 	}
-	
-	private void writeMissSendMessage(long addr, Cache c) {
-		CacheLine dirEntry = access(addr);
-		
-		switch(dirEntry.getState()) {
-			case MODIFIED: 
-			case EXCLUSIVE: {
-				
-				if(dirEntry.getOwner()==c) {
-					c.fillAndSatisfyRequests(addr); // XXX change
-					unlock(addr, null); // Invalid directory state
-				} else {
-					dirEntry.addCacheToAwaitedCacheList(c);
-					sendCachelineForwardRequest(dirEntry.getOwner(), c, addr);					
-				}
-				
-				break;
-			}
-			
-			case SHARED: {
-				if(dirEntry.getSharers().contains(c)) {
-					c.fillAndSatisfyRequests(addr); // XXX change
-					unlock(addr, null); // Invalid directory state
-				} else {
-					evictCacheLine(dirEntry);
-					dirEntry.addCacheToAwaitedCacheList(c);
-					sendCachelineForwardRequest(dirEntry.getFirstSharer(), c, addr);
-				}
-
-				break;
-			}
-			
-			case INVALID: {
-				dirEntry.addCacheToAwaitedCacheList(c);
-				// If the line is supposed to be fetched from the next level cache, 
-				// we will just send a cacheRead request to this cache
-				c.sendRequestToNextLevel(addr, RequestType.Cache_Read);
-
-				break;
-			}
-		}
-	}
-
 	
 	private void sendCachelineForwardRequest(Cache ownerCache, Cache destinationCache, long addr) {
 		EventQueue eventQueue = ownerCache.getEventQueue();
@@ -439,84 +329,10 @@ public class Directory extends Cache implements Coherence {
 					dirEntry.addSharer(c);
 					break;
 				}
-			}			
+			}
 		}				
 	}
 	
-	private void evictedFromCoherentCacheSendMessage(long addr, Cache c) {
-		CacheLine dirEntry = access(addr);
-		
-		switch(dirEntry.getState()) {
-			case MODIFIED:
-			case EXCLUSIVE: {
-				if(dirEntry.getOwner()!=c) {
-					unlock(addr, null); // Invalid directory state
-				} else {
-					unlock(addr, null);
-				}
-				
-				break;
-			}
-			
-			case SHARED: {
-				if(dirEntry.getSharers().contains(c)==false) {
-					unlock(addr, null); // Invalid directory state
-				} else {
-					if(dirEntry.getSharers().size()==2) {
-						for(Cache sharer : dirEntry.getSharers()) {
-							if(sharer!=c) {
-								dirEntry.addCacheToAwaitedCacheList(sharer);
-								sendAnEventFromMeToCache(addr, sharer, RequestType.DirectorySharedToExclusive);
-								break;
-							}
-						}
-					} else {
-						unlock(addr, null);
-					}
-				}
-				
-				break;
-			}
-			
-			case INVALID: {
-				unlock(addr, null); // Invalid directory state
-				break;
-			}
-		}	
-	}
-	
-	private void evictedFromCoherentCacheStateChange(long addr, Cache c) {
-		CacheLine dirEntry = access(addr);
-		
-		switch(dirEntry.getState()) {
-			case MODIFIED:
-			case EXCLUSIVE: {
-				// Directory need not call unlock of the cache. The state change function of cache should do the needful.
-				dirEntry.clearAllSharers();
-				dirEntry.setState(MESI.INVALID);
-				
-				break;
-			}
-			
-			case SHARED: {
-				// Directory need not call unlock of the cache. The state change function of cache should do the needful.
-				dirEntry.removeSharer(c);
-				if(dirEntry.getSharers().size()==1) {
-					dirEntry.setState(MESI.EXCLUSIVE);
-					dirEntry.getOwner().updateStateOfCacheLine(addr, MESI.EXCLUSIVE);
-				} else if (dirEntry.getSharers().size()==0) {
-					dirEntry.setState(MESI.INVALID);					
-				}
-				
-				break;
-			}
-			
-			case INVALID: {
-				break;
-			}
-		}
-	}
-
 	public void printStatistics(FileWriter outputFileWriter) throws IOException {
 		outputFileWriter.write("\n");
 		outputFileWriter.write("Directory Access due to ReadMiss\t=\t" + readMissAccesses + "\n");

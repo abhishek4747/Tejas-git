@@ -32,12 +32,11 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		AddressCarryingEvent addressEvent = new AddressCarryingEvent(getCore().getEventQueue(),
 			tlbMissPenalty, this, l1Cache, requestType, address);
 		
-		if(l1Cache.isMSHRFull()) {
+		if(l1Cache.isBusy()) {
 			return false;
 		}
 		
 		this.l1Cache.getPort().put(addressEvent);
-		this.l1Cache.addPendingEvent(addressEvent);
 		
 		containingExecEngine.updateNoOfMemRequests(1);
 		if(requestType == RequestType.Cache_Read) {
@@ -61,8 +60,6 @@ public class InorderCoreMemorySystem_MII extends CoreMemorySystem {
 		
 		//attempt issue to lower level cache
 		this.iCache.getPort().put(addressEvent);
-		
-		this.iCache.addPendingEvent(addressEvent);
 	}
 	
 	private int performITLBLookup(long address, MultiIssueInorderPipeline inorderPipeline)

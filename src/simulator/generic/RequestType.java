@@ -46,16 +46,16 @@ public enum RequestType {
 	Validate_LSQ_Addr,
 	Attempt_L1_Issue,
 	Cache_Read,
-	Cache_Read_from_iCache,
-	Cache_Write,
 	
+	Cache_Write,
+
 	Mem_Response,
 	LSQ_Commit,
 	
 	//banked memory element's request types
 	CacheBank_Read,
 	CacheBank_Write,
-	CacheBank_Read_from_iCache,
+	
 	MemBank_Response,
 	Main_MemBank_Read,
 	Main_MemBank_Write,
@@ -92,6 +92,10 @@ public enum RequestType {
 	DirectoryReadMiss,
 	DirectoryWriteMiss,
 	
+	// Acknowledgements
+	AckEvictCacheLine,
+	AckDirectoryWriteHit,
+	
 	DirectoryCachelineForwardRequest,
 	DirectoryEvictedFromSharedCache,
 	DirectoryEvictedFromCoherentCache,
@@ -99,5 +103,5 @@ public enum RequestType {
 	
 	Cache_Hit, Cache_Miss,
 
-	Tlb_Miss_Response, Send_Migrate_Block
+	Tlb_Miss_Response, Send_Migrate_Block,    
 }

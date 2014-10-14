@@ -19,6 +19,8 @@ public abstract class Event implements Cloneable
 	public int coreId;
 	public long serializationID = 0;
 	public static long globalSerializationID = 0;
+	public RequestType payloadRequestType;	
+	public SimulationElement payloadElement;
 	
 	public void incrementSerializationID() {
 		globalSerializationID++;
@@ -159,5 +161,21 @@ public abstract class Event implements Cloneable
 	public void dump()
 	{
 		System.out.println(coreId + " : " + requestType + " : " + requestingElement + " : " + processingElement + " : " + eventTime);
+	}
+
+	public void setPayloadElement(SimulationElement element) {
+		this.payloadElement = element;
+	}
+	
+	public void setPayloadRequestType(RequestType reqType) {
+		this.payloadRequestType = reqType;
+	}
+	
+	public SimulationElement getPayloadElement() {
+		return payloadElement;
+	}
+	
+	public RequestType getPayloadRequestType() {
+		return payloadRequestType;
 	}
 }

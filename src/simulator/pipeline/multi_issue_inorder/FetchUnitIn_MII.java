@@ -77,7 +77,7 @@ public class FetchUnitIn_MII extends SimulationElement
 		for(int i=(this.fetchBufferIndex+this.fetchFillCount)%this.fetchBufferCapacity;this.fetchFillCount<this.fetchBufferCapacity
 				;i = (i+1)%this.fetchBufferCapacity){
 			
-			if(containingExecutionEngine.multiIssueInorderCoreMemorySystem.getiCache().isMSHRFull()){
+			if(containingExecutionEngine.multiIssueInorderCoreMemorySystem.getiCache().isBusy()){
 				break;
 			}
 			
