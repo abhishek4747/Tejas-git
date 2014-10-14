@@ -261,6 +261,7 @@ public class Cache extends SimulationElement {
 		CacheLine cl = accessValid(addr);
 		
 		if(cl==null) {
+			misc.Error.showErrorAndExit("Ack write hit expects cache line");
 			// writehit expects a line to be present
 			if(isThereAnUnlockedOrInvalidEntryInCacheSet(addr)) {
 				fillAndSatisfyRequests(addr);
@@ -275,6 +276,13 @@ public class Cache extends SimulationElement {
 	}
 
 	protected void handleDirectorySharedToExclusive(long addr) {
+		if(accessValid(addr)==null) {
+			// c1 and c2 both have address x
+			// both decide to evict at the same time
+			// c2's evict reaches directory first. directory asks c1 to change state from shared to exclusive
+			// c1 however does not have the line
+			noteInvalidState("shared to exclusive for a line that does not exist. addr : " + addr + ". cache : " + this);
+		}
 		updateStateOfCacheLine(addr, MESI.EXCLUSIVE);
 	}
 
@@ -471,7 +479,9 @@ public class Cache extends SimulationElement {
 
 	private void handleEvictedLine(CacheLine evictedLine) {
 		if (evictedLine != null && evictedLine.getState() != MESI.INVALID) {
-			
+			if(mshr.isAddrInMSHR(evictedLine.getAddress())) {
+				misc.Error.showErrorAndExit("evicting locked line : " + evictedLine + ". cache : " + this);
+			}
 			if (mycoherence != null) {
 				 AddressCarryingEvent evictEvent = mycoherence.evictedFromCoherentCache(evictedLine.getAddress(), this);
 				 mshr.addToMSHR(evictEvent);
@@ -920,5 +930,11 @@ public class Cache extends SimulationElement {
 
 	public void printMSHR() {
 		mshr.printMSHR();
+	}
+	
+	protected void noteInvalidState(String msg) {
+		invalidAccesses++;
+		
+		//System.err.println(msg);
 	}
 }

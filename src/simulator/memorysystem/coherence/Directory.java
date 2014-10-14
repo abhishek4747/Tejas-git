@@ -97,7 +97,9 @@ public class Directory extends Cache implements Coherence {
 			case SHARED: {
 				
 				if(dirEntry.isSharer(c)==false) {
-					System.err.println("WriteHit expects cache to be a sharer. Cache : " + c + ". Addr : " + addr);
+					// Valid case : c1 and c2 are sharers address x
+					// Both encountered a write at the same time
+					noteInvalidState("WriteHit expects cache to be a sharer. Cache : " + c + ". Addr : " + addr);
 				}
 				
 				for(Cache sharerCache : dirEntry.getSharers()) {
@@ -114,6 +116,7 @@ public class Directory extends Cache implements Coherence {
 			}
 	
 			case INVALID: {
+				noteInvalidState("WriteHit expects entry to be in a valid state. Cache : " + c + ". Addr : " + addr);
 				dirEntry.clearAllSharers();
 				dirEntry.setState(MESI.MODIFIED);
 				dirEntry.addSharer(c);				
@@ -155,6 +158,7 @@ public class Directory extends Cache implements Coherence {
 	public void handleEvent(EventQueue eventQ, Event e) {
 		AddressCarryingEvent event = (AddressCarryingEvent) e;
 		long addr = event.getAddress();
+		long lineAddr = event.getAddress()>>blockSizeBits;
 		RequestType reqType = e.getRequestType();
 
 //		if(ArchitecturalComponent.getCores()[0].getNoOfInstructionsExecuted() > 4000000) {
@@ -170,7 +174,8 @@ public class Directory extends Cache implements Coherence {
 			CacheLine evictedEntry = fill(addr, MESI.INVALID);
 			
 			if(evictedEntry!=null && evictedEntry.isValid()) {
-				handleEvictFromSharedCache(evictedEntry.getAddress());
+//				System.out.println("Evicted line : " + (evictedEntry.getAddress()>>blockSizeBits) + "\n" + evictedEntry);
+				invalidateDirectoryEntry(evictedEntry);
 			}
 		}
 		
@@ -215,6 +220,11 @@ public class Directory extends Cache implements Coherence {
 				dirEntry.setState(MESI.EXCLUSIVE);
 				sendAnEventFromMeToCache(addr, dirEntry.getOwner(), RequestType.DirectorySharedToExclusive);
 			}
+		} else {
+			// Cache c1 holds an address x
+			// directory and c1 evict line for x in the same cycle
+			// When c1's invalidate message reaches directory, it is not a sharer
+			noteInvalidState("Eviction from a non-sharer. Cache : " + c + ". Addr : " + addr);
 		}
 		
 		sendAnEventFromMeToCache(addr, c, RequestType.AckEvictCacheLine);
@@ -241,13 +251,18 @@ public class Directory extends Cache implements Coherence {
 		if(cl==null || cl.isValid()==false) {
 			return;
 		} else {
-			for(Cache c : cl.getSharers()) {
-				sendAnEventFromMeToCache(addr, c, RequestType.EvictCacheLine);
-			}
-			
-			cl.clearAllSharers();
-			cl.setState(MESI.INVALID);			
+			invalidateDirectoryEntry(cl);			
 		}
+	}
+
+	private void invalidateDirectoryEntry(CacheLine cl) {
+		long addr = cl.getAddress();
+		for(Cache c : cl.getSharers()) {
+			sendAnEventFromMeToCache(addr, c, RequestType.EvictCacheLine);
+		}
+		
+		cl.clearAllSharers();
+		cl.setState(MESI.INVALID);		
 	}
 
 	private void handleReadMiss(long addr, Cache c) {
@@ -259,8 +274,13 @@ public class Directory extends Cache implements Coherence {
 			case SHARED : {
 				
 				if(dirEntry.isSharer(c)==true) {
-					System.err.println("ReadMiss from a sharer cache. Addr : " + addr + ". Cache : " + c);
-					invalidAccesses++;
+					// Cache c1 and c2 are sharers of address x
+					// Both perform a write at the same time. Hence, both send a writeHit to the directory at the same time
+					// Assume c2's writeHit reaches directory first. It sends invalidate to c1. This invalidate is queued behind the write entry in c1's mshr entry for addr
+					// c1's writeHit reaches directory. The directory re-configured the owner to c1
+					// c1 processes invalidate from c2
+					// now, there is a read at c1. The c1 sends readMiss to directory. However, it is a sharer.
+					noteInvalidState("Miss from a sharer. Cache : " + c + ". Addr : " + addr);
 					sendAnEventFromMeToCache(addr, c, RequestType.Mem_Response);
 				} else {
 					Cache sharerCache = dirEntry.getFirstSharer();
@@ -299,40 +319,6 @@ public class Directory extends Cache implements Coherence {
 		this.sendEvent(event);
 	}
 
-	private void readMissStateChange(long addr, Cache c) {
-		CacheLine dirEntry = access(addr);
-		
-		if(c.access(addr)==null) {
-			forceInvalidate(dirEntry);
-		} else {			
-			switch(dirEntry.getState()) {
-				case MODIFIED: 
-				case EXCLUSIVE: {
-					if(dirEntry.getSharers().contains(c) == false) {
-						dirEntry.getOwner().updateStateOfCacheLine(addr, MESI.SHARED);
-						c.updateStateOfCacheLine(addr, MESI.SHARED);
-						dirEntry.setState(MESI.SHARED);
-						dirEntry.addSharer(c);
-					}
-					break;
-				}
-				
-				case SHARED: {
-					c.updateStateOfCacheLine(addr, MESI.SHARED);
-					dirEntry.addSharer(c);
-					break;
-				}
-				
-				case INVALID: {
-					c.updateStateOfCacheLine(addr, MESI.EXCLUSIVE);
-					dirEntry.setState(MESI.EXCLUSIVE);
-					dirEntry.addSharer(c);
-					break;
-				}
-			}
-		}				
-	}
-	
 	public void printStatistics(FileWriter outputFileWriter) throws IOException {
 		outputFileWriter.write("\n");
 		outputFileWriter.write("Directory Access due to ReadMiss\t=\t" + readMissAccesses + "\n");
