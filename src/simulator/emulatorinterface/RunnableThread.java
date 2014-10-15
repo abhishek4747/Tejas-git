@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import main.ArchitecturalComponent;
 import main.Main;
 import memorysystem.Cache;
 import memorysystem.MemorySystem;
@@ -363,21 +364,19 @@ public class RunnableThread implements Encoding, Runnable {
 		}
 		minN = (minN == Integer.MAX_VALUE) ? 0 : minN;
 		for (int i1 = 0; i1 < minN; i1++) {
-			for (int tidEmu = 0; tidEmu < SystemConfig.NoOfCores; tidEmu++) {
+			for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
 				if(pipelineInterfaces[tidEmu].getCore().getExecEngine().isExecutionBegun() == true)
 				{
 					Vector<Cache> coreCacheList = pipelineInterfaces[tidEmu].getCore().getExecEngine().getCoreMemorySystem().getCoreCacheList();
-					for(int i = 0; i < coreCacheList.size(); i++)
-					{
-						coreCacheList.get(i).oneCycleOperation();
+					for(Cache c : coreCacheList) {
+						c.oneCycleOperation();
 					}
 				}
 			}
-			Vector<Cache> sharedCacheList = MemorySystem.getSharedCacheList();
-			for(int i = 0; i < sharedCacheList.size(); i++)
-			{
-				sharedCacheList.get(i).oneCycleOperation();
+			Vector<Cache> sharedCacheList = ArchitecturalComponent.getSharedCacheList();
+			for(Cache c : sharedCacheList) {
+				c.oneCycleOperation();
 			}
 			
 			GlobalClock.incrementClock();
@@ -436,7 +435,7 @@ public class RunnableThread implements Encoding, Runnable {
 					}
 				}
 				
-				Vector<Cache> sharedCacheList = MemorySystem.getSharedCacheList();
+				Vector<Cache> sharedCacheList = ArchitecturalComponent.getSharedCacheList();
 				for(int i = 0; i < sharedCacheList.size(); i++)
 				{
 					sharedCacheList.get(i).oneCycleOperation();

@@ -231,7 +231,7 @@ public class PinPointsProcessing {
 			}
 			
 			int i = 0;
-			for (Cache cache : MemorySystem.getCacheList())
+			for (Cache cache : ArchitecturalComponent.getCacheList())
 			{
 				noOfCacheRequests[i] += (long) (cache.hits + cache.misses - tempnoOfCacheRequests[i]) * weightsArray[currentSlice];
 				tempnoOfCacheRequests[i] = cache.hits + cache.misses;
@@ -284,7 +284,7 @@ public class PinPointsProcessing {
 		}
 		
 		int i = 0;
-		for (Cache cache : MemorySystem.getCacheList())
+		for (Cache cache : ArchitecturalComponent.getCacheList())
 		{
 			cache.hits = noOfCacheHits[i];
 			cache.misses = noOfCacheMisses[i];

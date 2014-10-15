@@ -75,11 +75,9 @@ public class MemorySystem
 				
 				if(config.isDirectory==true) {
 					Directory d = new Directory(token, 0, config, null);
-					ArchitecturalComponent.coherences.add(d);
 					return d;
 				} else {
 					Cache c = new Cache(token+"[0]", 0, config, null);
-					ArchitecturalComponent.sharedCaches.add(c);
 					return c;
 				}
 			}
@@ -185,30 +183,6 @@ public class MemorySystem
     	
     	return memControllerRet;
     }
-
-	public static Vector<Cache> getSharedCacheList() {
-		Vector<Cache> retCache = new Vector<Cache>();
-		for(Map.Entry<String, Cache> cacheListEntry :  cacheNameMappings.entrySet()) {
-			Cache c = cacheListEntry.getValue();
-			if(c.isSharedCache() && c.getClass()==Cache.class) {
-				retCache.add(c);
-			}			
-		}
-		
-		return retCache;
-	}
-	
-	public static Vector<Cache> getCacheList() {
-		Vector<Cache> retCache = new Vector<Cache>();
-		for(Map.Entry<String, Cache> cacheListEntry :  cacheNameMappings.entrySet()) {
-			Cache c = cacheListEntry.getValue();
-			if(c.getClass()==Cache.class) {
-				retCache.add(c);
-			}
-		}
-		
-		return retCache;
-	}
 
 //	static Core[] cores;
 //	

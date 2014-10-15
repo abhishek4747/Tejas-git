@@ -62,7 +62,7 @@
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
-		<DetachMemSys>true</DetachMemSys>		<!--True to detach memory system-->
+		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
 		<PrintPowerStats>true</PrintPowerStats>
 		<Broadcast>false</Broadcast>
 		<pinpointsSim>false</pinpointsSim>

@@ -226,7 +226,7 @@ public class Statistics {
 			
 			// Shared Cache
 			EnergyConfig sharedCacheEnergy = new EnergyConfig(0, 0);
-			for (Cache cache : MemorySystem.getSharedCacheList()) {
+			for (Cache cache : ArchitecturalComponent.getSharedCacheList()) {
 				sharedCacheEnergy.add(cache.calculateAndPrintEnergy(outputFileWriter, cache.toString()));
 			}
 			
@@ -339,7 +339,7 @@ public class Statistics {
 			}
 			
 			outputFileWriter.write("\n\n[Shared Caches]\n\n");
-			for (Cache c : MemorySystem.getSharedCacheList()) {
+			for (Cache c : ArchitecturalComponent.getSharedCacheList()) {
 				printCacheStats(c);
 				addToConsolidatedCacheList(c);
 			}
@@ -855,7 +855,7 @@ public class Statistics {
 	}
 	
 	private static void printNucaStats() {
-		for(Cache cache : MemorySystem.getCacheList())
+		for(Cache cache : ArchitecturalComponent.getCacheList())
 		{
 			if(cache.getClass()!=Cache.class)
 			{

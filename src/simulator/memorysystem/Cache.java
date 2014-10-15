@@ -120,10 +120,18 @@ public class Cache extends SimulationElement {
 
 		// add myself to the global cache list
 		if(cacheParameters.isDirectory==true) {
-			//
+			ArchitecturalComponent.coherences.add((Coherence) this);
 		} else {
 			MemorySystem.addToCacheList(cacheName, this);
+			
+			if(containingMemSys==null) {
+				ArchitecturalComponent.sharedCaches.add(this);
+			}
+			
+			ArchitecturalComponent.caches.add(this);
 		}
+		
+		
 
 		if (cacheParameters.collectWorkingSetData == true) {
 			workingSet = new TreeSet<Long>();

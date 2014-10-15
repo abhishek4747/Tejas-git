@@ -46,6 +46,7 @@ public class ArchitecturalComponent {
 	public static Vector<Coherence> coherences = new Vector<Coherence>();	
 	public static Vector<MainMemoryController> memoryControllers = new Vector<MainMemoryController>();
 	public static Vector<Cache> sharedCaches = new Vector<Cache>();
+	public static Vector<Cache> caches = new Vector<Cache>();
 	
 	private static InterConnect interconnect;
 	public static CoreBcastBus coreBroadcastBus;
@@ -232,7 +233,7 @@ public class ArchitecturalComponent {
 	{
 		CoreMemorySystem coreMemSys = null;
 		System.out.println("\n\nMSHR DUMP\n\n");
-		for(Cache c : MemorySystem.getCacheList()) {
+		for(Cache c : getCacheList()) {
 			c.printMSHR();
 		}
 		
@@ -276,5 +277,13 @@ public class ArchitecturalComponent {
 	public static MainMemoryController getMainMemoryController(CommunicationInterface comInterface) {
 		//TODO : return the nearest memory controller based on the location of the communication interface
 		return memoryControllers.get(0);
+	}
+	
+	public static Vector<Cache> getCacheList() {
+		return caches;
+	}
+	
+	public static Vector<Cache> getSharedCacheList() {
+		return sharedCaches;
 	}
 }
