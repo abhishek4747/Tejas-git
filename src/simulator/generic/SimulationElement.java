@@ -78,4 +78,17 @@ public abstract class SimulationElement implements Cloneable
 	public CommunicationInterface getComInterface() {
 		return comInterface;
 	}
+	
+	public void sendEvent(Event event) {
+		if (event.getEventTime() != 0) {
+			misc.Error.showErrorAndExit("Send event with zero latency !!");
+		}
+
+		if (event.getProcessingElement().getComInterface() != this
+				.getComInterface()) {
+			getComInterface().sendMessage(event);
+		} else {
+			event.getProcessingElement().getPort().put(event);
+		}
+	}
 }

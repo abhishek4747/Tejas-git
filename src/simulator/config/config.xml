@@ -266,17 +266,18 @@
 			
 			<Cache name="I1" nextLevel="L2" firstLevel="true" type="ICache_32K_8"/>
 			<Cache name="L1" nextLevel="L2" firstLevel="true" type="L1Cache_32K_8"/>
+			<Cache name="L2" nextLevel="L3" type="L2Cache_256K_8"/>
 		</Core>
 		
 		<SharedCaches>
-			<Cache name="L2" type="L2Cache_256K_8"/>
-			<!-- Cache name="L3" type="L3Cache_1M_8"/ -->
+			<Cache name="L3" type="L3Cache_1M_8"/>
+			<Cache name="D1" type="Directory1"/>
 		</SharedCaches>
 		
 		<Interconnect>NOC</Interconnect>
 		
 		<NOC>
-			<NocConfigFile>/home/prathmesh/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
+			<NocConfigFile>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
 			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped -->
 			<NocSelScheme>STATIC</NocSelScheme>
 			<NocNumberOfBuffers>4</NocNumberOfBuffers>
@@ -301,39 +302,7 @@
 			<LeakageEnergy>0.1877</LeakageEnergy>
 			<DynamicEnergy>2.1164</DynamicEnergy>
 		</BUS>
-		
-		<Directory>
-			<Type0>
-				<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-				<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-				<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
-				<Associativity>8</Associativity>
-				<NumEntries>1024</NumEntries>			<!--In KBs-->
-				<Latency>4</Latency>				<!--In clock cycles-->
-				<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-				<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
-				<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-				<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-				<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-				<MSHRSize>4</MSHRSize>
-				<BusOccupancy>0</BusOccupancy>
-				<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-				<CacheType>Unified</CacheType>
-				<LeakageEnergy>.1092</LeakageEnergy>
-				<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
-				<WriteDynamicEnergy>.3396</WriteDynamicEnergy>
-				<IsDirectory>true</IsDirectory>
-			</Type0>
-			
-			<directoryAccessLatency>2</directoryAccessLatency>
-			<memWBDelay>200</memWBDelay>
-			<dataTransferDelay>3</dataTransferDelay>
-			<invalidationSendDelay>3</invalidationSendDelay>
-			<invalidationAckCollectDelay>3</invalidationAckCollectDelay>
-			<ownershipChangeDelay>3</ownershipChangeDelay>
-			<dirNetworkDelay>1</dirNetworkDelay>
-		</Directory>
-		
+	
 	</System>
 
 	<!--Give all the library elements here-->
@@ -379,7 +348,7 @@
 		</ICache_32K_8>
 		
 		<L1Cache_32K_8>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
 			<BlockSize>64</BlockSize>			<!--In bytes-->
 			<Associativity>8</Associativity>
 			<Size>32768</Size>					<!--In Bytes-->
@@ -387,7 +356,7 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>Directory</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>4</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
@@ -407,7 +376,7 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>D1</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>4</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
@@ -439,27 +408,26 @@
 		</L3Cache_1M_8>
 		
 		<Directory1>
-			<CoherenceType>Directory</CoherenceType>
-			<CoherenceMetadata>
-				<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-				<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-				<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
-				<Associativity>8</Associativity>
-				<NumEntries>1024</NumEntries>			<!--In KBs-->
-				<Latency>4</Latency>				<!--In clock cycles-->
-				<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-				<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
-				<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-				<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-				<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-				<MSHRSize>4</MSHRSize>
-				<BusOccupancy>0</BusOccupancy>
-				<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-				<CacheType>Unified</CacheType>
-				<LeakageEnergy>.1092</LeakageEnergy>
-				<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
-				<WriteDynamicEnergy>.3396</WriteDynamicEnergy>
-			</CoherenceMetadata>		
+			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
+			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
+			<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
+			<Associativity>8</Associativity>
+			<NumEntries>1024</NumEntries>			<!--In KBs-->
+			<Latency>4</Latency>				<!--In clock cycles-->
+			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
+			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
+			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
+			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<MSHRSize>4</MSHRSize>
+			<BusOccupancy>0</BusOccupancy>
+			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<CacheType>Unified</CacheType>
+			<LeakageEnergy>.1092</LeakageEnergy>
+			<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
+			<WriteDynamicEnergy>.3396</WriteDynamicEnergy>
+			<IsDirectory>true</IsDirectory>
+			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
 		</Directory1>
 		
 	</Library>

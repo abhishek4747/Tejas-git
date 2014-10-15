@@ -37,7 +37,7 @@ public class SystemConfig
 	public static int numEmuThreadsPerJavaThread;	
 	
 	public static CoreConfig[] core; 
-	public static Vector<CacheConfig> declaredCacheConfigs=new Vector<CacheConfig>();	
+	public static Vector<CacheConfig> sharedCacheConfigs=new Vector<CacheConfig>();	
 	public static int mainMemoryLatency;
 	public static long mainMemoryFrequency;
 	public static PortType mainMemPortType;
@@ -45,20 +45,10 @@ public class SystemConfig
 	public static int mainMemoryPortOccupancy;
 	public static int cacheBusLatency;
 	public static String coherenceEnforcingCache;
-	public static DirectoryConfig directoryConfig;
 	
 	public static NocConfig nocConfig;
 	public static EnergyConfig busEnergy;
 	
-	//Directory Latencies:
-	public static int directoryAccessLatency;
-	public static int memWBDelay;
-	public static int dataTransferDelay;
-	public static int invalidationSendDelay;
-	public static int invalidationAckCollectDelay;
-	public static int ownershipChangeDelay;
-	//Clock Gating Style
-	public static int dirNetworkDelay;
 	public static Interconnect interconnect;
 	public static EnergyConfig  mainMemoryControllerPower;
 	public static EnergyConfig  globalClockPower;

@@ -154,7 +154,7 @@ public class GlobalClock {
 				break;
 		}
 		
-		System.out.println("HCF = " + HCF);
+		//System.out.println("HCF = " + HCF);
 		
 		for(i = 0; i < SystemConfig.NoOfCores; i++)
 		{
@@ -182,7 +182,7 @@ public class GlobalClock {
 			cur = cur + freq_list[0];
 		}
 		
-		System.out.println("LCM = " + LCM);
+		//System.out.println("LCM = " + LCM);
 		
 		//set step sizes of components
 		for(i = 0; i < SystemConfig.NoOfCores; i++)

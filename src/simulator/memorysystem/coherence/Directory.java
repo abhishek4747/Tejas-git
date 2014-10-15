@@ -339,8 +339,8 @@ public class Directory extends Cache implements Coherence {
 	{
 		long numAccesses = readMissAccesses + writeHitAccesses + writeMissAccesses 
 				+ evictedFromCoherentCacheAccesses + evictedFromSharedCacheAccesses;
-		EnergyConfig newPower = new EnergyConfig(SystemConfig.directoryConfig.power.leakageEnergy,
-				SystemConfig.directoryConfig.power.readDynamicEnergy);
+		EnergyConfig newPower = new EnergyConfig(cacheConfig.power.leakageEnergy,
+				cacheConfig.power.readDynamicEnergy);
 		EnergyConfig power = new EnergyConfig(newPower, numAccesses);
 		power.printEnergyStats(outputFileWriter, componentName);
 		return power;

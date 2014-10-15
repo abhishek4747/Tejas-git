@@ -100,7 +100,7 @@ public class ArchitecturalComponent {
 			{
 				String nextElementToken = (String)st.nextElement();
 				
-				System.out.println("NOC [" + i + "][" + j + "] = " + nextElementToken);
+				//System.out.println("NOC [" + i + "][" + j + "] = " + nextElementToken);
 				
 				CommunicationInterface comInterface = ((NOC)interconnect).getNetworkElements()[i][j];
 				
@@ -108,11 +108,6 @@ public class ArchitecturalComponent {
 					Core core = createCore(cores.size());
 					cores.add(core);
 					core.setComInterface(comInterface);
-				} else if(nextElementToken.equals("D")) {
-					Directory directory = MemorySystem.createDirectory();
-					coherences.add(directory);
-					directory.setComInterface(comInterface);
-					//TODO split and multiple directories
 				} else if(nextElementToken.equals("M")) {
 					MainMemoryController mainMemController = new MainMemoryController();
 					memoryControllers.add(mainMemController);
@@ -121,7 +116,6 @@ public class ArchitecturalComponent {
 					//do nothing
 				} else {
 					Cache c = MemorySystem.createSharedCache(nextElementToken);
-					sharedCaches.add(c);
 					c.setComInterface(comInterface);
 					//TODO split and multiple shared caches
 				} 

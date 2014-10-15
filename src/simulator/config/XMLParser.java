@@ -68,14 +68,7 @@ public class XMLParser
 		} 
 		catch (Exception e) 
 		{
-			// Cannot use shutdown handler here 
-			// the stats file is not setup yet
-			// so printing stats in the shutdown hook will halt the display of error message 
-			// so the exact error cannot be debugged
-			//System.err.println("Error in reading config file : " + e);
-			//System.err.flush();
-			//new Exception().printStackTrace();
-			//System.exit(0);
+			e.printStackTrace();
 			misc.Error.showErrorAndExit("Error in reading config file : " + e);
 		}
  	}
@@ -91,7 +84,7 @@ public class XMLParser
 		for(int i=0; i<nodeLst.getLength(); i++) {
 			Element cacheNode = (Element)nodeLst.item(i);			
 			CacheConfig config = createCacheConfig(cacheNode);
-			SystemConfig.declaredCacheConfigs.add(config);
+			SystemConfig.sharedCacheConfigs.add(config);
 		}
 	}
 	
@@ -410,14 +403,7 @@ public class XMLParser
 		SystemConfig.cacheBusLatency = Integer.parseInt(getImmediateString("CacheBusLatency", systemElmnt));
 
 		SystemConfig.core = new CoreConfig[SystemConfig.NoOfCores];
-		SystemConfig.directoryAccessLatency = Integer.parseInt(getImmediateString("directoryAccessLatency", systemElmnt));
-		SystemConfig.memWBDelay = Integer.parseInt(getImmediateString("memWBDelay", systemElmnt));
-		SystemConfig.dataTransferDelay = Integer.parseInt(getImmediateString("dataTransferDelay", systemElmnt));
-		SystemConfig.invalidationSendDelay = Integer.parseInt(getImmediateString("invalidationSendDelay", systemElmnt));
-		SystemConfig.invalidationAckCollectDelay = Integer.parseInt(getImmediateString("invalidationAckCollectDelay", systemElmnt));
-		SystemConfig.ownershipChangeDelay = Integer.parseInt(getImmediateString("ownershipChangeDelay", systemElmnt));
-		SystemConfig.dirNetworkDelay = Integer.parseInt(getImmediateString("dirNetworkDelay", systemElmnt));
-	
+		
 		NodeList powerLst = doc.getElementsByTagName("Power");
 		Node powerNode = powerLst.item(0);
 		Element powerElmnt = (Element) powerNode;
@@ -597,38 +583,6 @@ public class XMLParser
 			}
 		}
 		
-		//Set Directory Parameters
-		SystemConfig.directoryConfig = new DirectoryConfig();
-		NodeList dirLst=systemElmnt.getElementsByTagName("Directory");
-		Element dirElmnt = (Element) dirLst.item(0);
-		setCacheProperties(dirElmnt, SystemConfig.directoryConfig);
-		SystemConfig.directoryConfig.power = getCacheEnergyConfig(dirElmnt);
-		
-//		//Code for remaining Cache configurations
-//		NodeList cacheLst = systemElmnt.getElementsByTagName("Cache");
-//		for (int i = 0; i < cacheLst.getLength(); i++)
-//		{
-//			Element cacheElmnt = (Element) cacheLst.item(i);
-//			String cacheName = cacheElmnt.getAttribute("name");
-//
-//			if (!(SystemConfig.declaredCaches.containsKey(cacheName)))	//If the identically named cache is not already present
-//			{
-//				CacheConfig newCacheConfigEntry = new CacheConfig();
-////				newCacheConfigEntry.isFirstLevel = false;
-//				newCacheConfigEntry.levelFromTop = Cache.CacheType.Lower;
-//				String cacheType = cacheElmnt.getAttribute("type");
-//				Element cacheTypeElmnt = searchLibraryForItem(cacheType);
-//				setCacheProperties(cacheTypeElmnt, newCacheConfigEntry);
-//				newCacheConfigEntry.nextLevel = cacheElmnt.getAttribute("nextLevel");
-//				newCacheConfigEntry.operatingFreq = Long.parseLong(cacheElmnt.getAttribute("frequency"));
-//				newCacheConfigEntry.power = getCachePowerConfig(cacheTypeElmnt);
-//				SystemConfig.declaredCaches.put(cacheName, newCacheConfigEntry);
-//			}
-//		}
-				
-		
-		
-		
 		//set NOC Parameters
 		SystemConfig.nocConfig = new NocConfig();
 		NodeList NocLst = systemElmnt.getElementsByTagName("NOC");
@@ -720,8 +674,6 @@ public class XMLParser
 		if(isElementPresent("NumEntries", CacheType)) {
 			cache.numEntries = Integer.parseInt(getImmediateString("NumEntries", CacheType));
 			cache.size = cache.numEntries*cache.blockSize;
-			System.out.println("Number of entries in directory : " + cache.numEntries);
-			System.out.println("Directory size in terms of bytes (Considering one directory entry = one cache line ) : " + cache.size);
 		} else {
 			cache.numEntries = 0;
 		}

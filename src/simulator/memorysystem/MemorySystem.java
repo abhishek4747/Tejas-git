@@ -69,8 +69,24 @@ public class MemorySystem
 	}
 	
 	public static Cache createSharedCache(String token) {
-		Cache c = new Cache(token+"[0]", 0, SystemConfig.declaredCacheConfigs.get(0), null);
-		return c;
+		
+		for(CacheConfig config : SystemConfig.sharedCacheConfigs) {
+			if(token.equals(config.cacheName)) {
+				
+				if(config.isDirectory==true) {
+					Directory d = new Directory(token, 0, config, null);
+					ArchitecturalComponent.coherences.add(d);
+					return d;
+				} else {
+					Cache c = new Cache(token+"[0]", 0, config, null);
+					ArchitecturalComponent.sharedCaches.add(c);
+					return c;
+				}
+			}
+		}
+		
+		misc.Error.showErrorAndExit("Unable to find a cache config for " + token);
+		return null;
 	}
 
 	public static void createLinkBetweenCaches() {
@@ -128,11 +144,6 @@ public class MemorySystem
 				"\nnextLevelIdStrAfterTransformation : " + nextLevelIdStr + "\n" + e);
 			return -1;
 		}
-	}
-
-	public static Directory createDirectory() {
-		Directory directory = new Directory("Directory", 0, SystemConfig.directoryConfig, null);
-		return directory;		
 	}
 
 	public static void addToCacheList(String cacheName, Cache cache) {

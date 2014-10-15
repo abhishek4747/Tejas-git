@@ -119,7 +119,11 @@ public class Cache extends SimulationElement {
 						.getLatency(), cacheParameters.operatingFreq);
 
 		// add myself to the global cache list
-		MemorySystem.addToCacheList(cacheName, this);
+		if(cacheParameters.isDirectory==true) {
+			//
+		} else {
+			MemorySystem.addToCacheList(cacheName, this);
+		}
 
 		if (cacheParameters.collectWorkingSetData == true) {
 			workingSet = new TreeSet<Long>();
@@ -732,27 +736,6 @@ public class Cache extends SimulationElement {
 		return cachePower;
 	}
 
-	public void sendEvent(AddressCarryingEvent event) {
-		if (event.getEventTime() != 0) {
-			misc.Error.showErrorAndExit("Send event with zero latency !!");
-		}
-
-		if (event.getProcessingElement().getComInterface() != this
-				.getComInterface()) {
-			getComInterface().sendMessage(event);
-		} else {
-			event.getProcessingElement().getPort().put(event);
-		}
-	}
-	
-//	public Port getPort() {
-//		if(this.isTopLevelCache()==false) {
-//			System.out.println("culprint");
-//		}
-//		
-//		return this.port;
-//	}
-	
 	public void updateStateOfCacheLine(long addr, MESI newState) {
 		CacheLine cl = this.access(addr);
 		
