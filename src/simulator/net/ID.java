@@ -39,7 +39,10 @@ public class ID {
 	{
 		return new ID(x,y);
 	}
-	
+	public String toString()
+	{
+		return "["+this.x+" , "+this.y+"]";
+	}
 	public boolean equals(ID id)
 	{
 		return (this.x==id.x && this.y==id.y);
