@@ -42,7 +42,9 @@ public abstract class Event implements Cloneable
 	//Element which processes the event.
 	protected SimulationElement requestingElement;
 	protected SimulationElement processingElement;
-
+	protected SimulationElement actualRequestingElement;
+	protected SimulationElement actualProcessingElement;
+	
 	public Event(EventQueue eventQ, SimulationElement requestingElement,
 			SimulationElement processingElement, RequestType requestType) 
 	{
@@ -84,7 +86,25 @@ public abstract class Event implements Cloneable
 		this.priority = requestType.ordinal();
 		return this;
 	}
-
+	public Event update(SimulationElement requestingElement,
+			SimulationElement processingElement, SimulationElement actualRequestingElement,
+			SimulationElement actualProcessingElement)
+	{
+		incrementSerializationID();
+		this.requestingElement = requestingElement;
+		this.processingElement = processingElement;
+		this.actualProcessingElement = actualProcessingElement;
+		this.actualRequestingElement = actualRequestingElement;
+		return this;
+	}
+	public Event update(SimulationElement requestingElement,
+			SimulationElement processingElement)
+	{
+		incrementSerializationID();
+		this.requestingElement = requestingElement;
+		this.processingElement = processingElement;
+		return this;
+	}
 	//Converts request-type to priority.
 	private long calculatePriority(RequestType requestType) 
 	{
@@ -104,14 +124,21 @@ public abstract class Event implements Cloneable
 		return requestingElement;
 	}
 	
+	public SimulationElement getActualRequestingElement() {
+		return actualRequestingElement;
+	}
+	
 	public void setRequestingElement(SimulationElement requestingElement) {
 		this.requestingElement = requestingElement;
 	}
 
 	public SimulationElement getProcessingElement() {
 		return processingElement;
-	}  
-
+	}
+	
+	public SimulationElement getActualProcessingElement() {
+		return actualProcessingElement;
+	}
 	public void setProcessingElement(SimulationElement processingElement) {
 		this.processingElement = processingElement;
 	}

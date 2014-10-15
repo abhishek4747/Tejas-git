@@ -164,6 +164,7 @@ public class Switch extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		int nextID;
+		event.setEventTime(0);
 		ID destinationId = ((NocInterface)event.getProcessingElement().getComInterface()).getId();
 		int elementNumber = destinationId.gety();     //bank id interpreted as one row, multiple column number
 															//and second element gives the actual number and first number

@@ -61,7 +61,7 @@ public class Port
 		if(this.portType == PortType.Unlimited)
 		{
 			// For an unlimited port, set the event with current-time.
-			event.addEventTime(GlobalClock.getCurrentTime() + latencyOfConnectedElement);
+			event.setEventTime(GlobalClock.getCurrentTime() + latencyOfConnectedElement);
 			event.getEventQ().addEvent(event);
 			return;
 		}
@@ -95,7 +95,7 @@ public class Port
 			}
 						
 			// set the time of the event
-			event.addEventTime(portBusyUntil[availablePortID] + latencyOfConnectedElement);
+			event.setEventTime(portBusyUntil[availablePortID] + latencyOfConnectedElement);
 			
 			// add event in the eventQueue
 			event.getEventQ().addEvent(event);

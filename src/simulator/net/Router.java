@@ -44,6 +44,8 @@ public class Router extends Switch{
 	protected int latencyBetweenNOCElements;
 	protected Vector<Router> neighbours;
 	EnergyConfig power;
+	public static int incoming=0;
+	public static int outgoing=0;	
 	
 	/************************************************************************
      * Method Name  : Router
@@ -172,10 +174,11 @@ public class Router extends Switch{
 		// TODO Auto-generated method stub
 		RoutingAlgo.DIRECTION nextID;
 		boolean reqOrReply;
-		
 		ID currentId = id;
-		ID destinationId = ((NocInterface)event.getProcessingElement().getComInterface()).getId();
+		ID destinationId = ((NocInterface)event.getActualProcessingElement().getComInterface()).getId();
 		RequestType requestType = event.getRequestType();
+		
+		event.setEventTime(0);
 				
 		if((topology == TOPOLOGY.OMEGA || topology == TOPOLOGY.BUTTERFLY || topology == TOPOLOGY.FATTREE)
 				&& !currentId.equals(destinationId))  //event passed to switch in omega/buttrfly/fat tree connection
@@ -194,6 +197,7 @@ public class Router extends Switch{
         //If this is the destination
 		else if(currentId.equals(destinationId))  
 		{
+			event.update(event.getActualRequestingElement(), event.getActualProcessingElement());
 			event.getProcessingElement().getPort().put(event);
 			this.FreeBuffer();
 		}
@@ -201,37 +205,24 @@ public class Router extends Switch{
 		else if(event.getRequestingElement().getClass() != Router.class){ 
 			if(this.AllocateBuffer())
 			{
-				this.getPort().put(
-						event.update(
-								eventQ,
-								0,	//this.getLatency()
-								this, 
-								this,
-								requestType));
+				event.setRequestingElement(this);
+				handleEvent(eventQ, event);
 			}
 			else //post event to this ID
-			{				
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenNOCElements,
-								this, 
-								this,
-								requestType));
+			{			
+				this.getPort().put(	event.update(this,this));
 			}
 		}
 		else
 		{
 			nextID = this.RouteComputation(currentId, destinationId);
 			reqOrReply = reqOrReply(currentId, destinationId);              // To avoid deadlock
-			
 			//If buffer is available forward the event
 			if(this.CheckNeighbourBuffer(nextID,reqOrReply))   
 			{
 				//post event to nextID
 				this.hopCounters++;
 				((AddressCarryingEvent)event).hopLength++;
-				//System.err.println(((AddressCarryingEvent)event).hopLength);
 				this.GetNeighbours().elementAt(nextID.ordinal()).getPort().put(
 						event.update(
 								eventQ,
@@ -244,13 +235,7 @@ public class Router extends Switch{
 			//If buffer is not available in next router keep the message here itself
 			else                                              
 			{	//post event to this ID
-				this.getPort().put(
-						event.update(
-								eventQ,
-								latencyBetweenNOCElements,
-								this, 
-								this,
-								requestType));
+				this.getPort().put(	event.update(this,this));
 			}
 		}
 	}
