@@ -24,12 +24,12 @@
 		<!--Currently we support following (emulator,communication) combinations : -->
 		<!--(pin, sharedMemory), (qemu, sharedMemory), (qemu, network), (none, file)-->
 		<!--(pin,file) combination can be used to collect execution trace of an application in a compressed file-->
-		<EmulatorType>none</EmulatorType> <!--pin,qemu-->
+		<EmulatorType>pin</EmulatorType> <!--pin,qemu-->
 		
 		<!--NOTE only file interface supports the execution of multiple benchmarks inside tejas-->
 		<!--if you are reading the packets from a file, the emulator must be set to none-->
 		<!--multiple benchmarks are specified using arguments to the simulator-->
-		<CommunicationType>file</CommunicationType>  <!--file,sharedMemory,network-->
+		<CommunicationType>sharedMemory</CommunicationType>  <!--file,sharedMemory,network-->
 		
 		<!--We can use tejas as an interface to create a compressed (gzip) trace file using the emulator-->
 		<!--Set this option to true if you want to create a trace file of the benchmark execution-->
@@ -42,11 +42,11 @@
 		<!--We do not allow overwriting of trace files. So if a tracefile with same name is pre-existing, kindly rename it-->
 		<BasenameForTraceFiles>/home/prathmesh/benchmarks/pthread_sort/pthread_sort</BasenameForTraceFiles>
 		
-		<PinTool>/home/prathmesh/Data/Softwares/Linux/PinTool/pin-2.13-62732-gcc.4.4.7-linux</PinTool>
-		<PinInstrumentor>/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/home/prathmesh/PIN</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
-		<ShmLibDirectory>/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
-		<KillEmulatorScript>/home/prathmesh/workspace/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
+		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
+		<KillEmulatorScript>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
 	</Emulator>
 	
 	<!--Simulation Parameters-->
@@ -62,14 +62,14 @@
 		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
 		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
 		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
-		<DetachMemSys>false</DetachMemSys>		<!--True to detach memory system-->
+		<DetachMemSys>true</DetachMemSys>		<!--True to detach memory system-->
 		<PrintPowerStats>true</PrintPowerStats>
 		<Broadcast>false</Broadcast>
 		<pinpointsSim>false</pinpointsSim>
 		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
 		<NumInsToIgnore>0</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<subsetSim>true</subsetSim>
-		<subsetSimSize>20000000</subsetSimSize>
+		<subsetSimSize>10000000</subsetSimSize>
 		<markerFunctions>false</markerFunctions>
 		<startSimMarker>XXX_startInstrumentation</startSimMarker>
 		<endSimMarker>XXX_endInstrumentation</endSimMarker>
