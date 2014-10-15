@@ -24,7 +24,7 @@
 		<!--Currently we support following (emulator,communication) combinations : -->
 		<!--(pin, sharedMemory), (qemu, sharedMemory), (qemu, network), (none, file)-->
 		<!--(pin,file) combination can be used to collect execution trace of an application in a compressed file-->
-		<EmulatorType>pin</EmulatorType> <!--pin,qemu-->
+		<EmulatorType>none</EmulatorType> <!--pin,qemu-->
 		
 		<!--NOTE only file interface supports the execution of multiple benchmarks inside tejas-->
 		<!--if you are reading the packets from a file, the emulator must be set to none-->
@@ -35,7 +35,7 @@
 		<!--Set this option to true if you want to create a trace file of the benchmark execution-->
 		<!--In this mode, Tejas will be used only as an interface to the emulator. NO simulation will be performed-->
 		<!--Right now, this option is valid ONLY for emulator type pin and communication type file-->
-		<StoreExecutionTraceInAFile>true</StoreExecutionTraceInAFile>
+		<StoreExecutionTraceInAFile>false</StoreExecutionTraceInAFile>
 		
 		<!-- If store packets in a file option is set to true, this parameter indicates the basename for the trace files -->
 		<!--One trace file is maintained for each store. The name of trace file for core n is basename_n.gz-->

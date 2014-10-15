@@ -92,7 +92,11 @@ public class MemorySystem
 	public static void createLinkBetweenCaches() {
 		for(Map.Entry<String, Cache> cacheListEntry :  cacheNameMappings.entrySet()) {
 			Cache c = cacheListEntry.getValue();
-			createLinkToNextLevelCache(c);
+			
+			// If the next level field has been set in the coreMemSys, do not set it again
+			if(c.nextLevel==null) {
+				createLinkToNextLevelCache(c);
+			}
 		}
 	}
 	
