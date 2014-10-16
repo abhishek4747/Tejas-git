@@ -39,4 +39,7 @@ public interface Encoding {
 	static final int PROCESS_SWITCH = 31;
 	static final int DOM_SWITCH = 32;
 	static final int CPL_SWITCH = 34;
+	static final int PARENT_SPAWN = 35;
+	static final int CHILD_START = 36;
+
 }

@@ -37,13 +37,12 @@ protected:
 		uint64_t tot_prod;							/* total packets produced */
 		uint64_t sum;								/* checksum */
 		uint8_t _pad[PADSIZE];						/* to handle false sharing */
-		uint32_t avail;								/* check the availability 1 = yes, 0= no */
 //		uint32_t tid;								/* current tid running on it (implemented for shmem reuse)*/
 	};
 
 public:
 	THREAD_DATA *tldata;
-	uint32_t *memMapping;
+//	uint32_t *memMapping;
 	Shm(int maxNumThreads, void (*lock)(int), void (*unlock)(int));
 	Shm(uint64_t, int maxNumThreads, void (*lock)(int), void (*unlock)(int));
 	Shm (uint32_t count,uint32_t localQueue, void (*lock)(int), void (*unlock)(int));

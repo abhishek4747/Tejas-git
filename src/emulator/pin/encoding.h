@@ -28,5 +28,8 @@
 #define DOM_SWITCH 32
 #define CPL_SWITCH 34
 
+#define PARENT_SPAWN 35
+#define CHILD_START 36
+
 
 const char* findType(int type);

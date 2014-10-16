@@ -41,6 +41,7 @@
 
 #include "encoding.h"
 
+OS_THREAD_ID father_id = INVALID_OS_THREAD_ID;
 #ifdef _LP64
 #define MASK 0xffffffffffffffff
 #else
@@ -93,6 +94,10 @@ std::string pinpointsFilename;
 unsigned long * sliceArray;
 int numberOfSlices;
 int currentSlice;
+uint32_t *threadMapping;
+bool *isThreadActive;
+long *parentId;
+long *currentId;
 
 int MaxNumActiveThreads;
 
@@ -144,30 +149,72 @@ void sendTimerPacket(int tid, bool compulsory) {
 		}
 	}
 }
-
+int findThreadMapping(unsigned int id)
+{
+	int index;
+	for(index=0; index < MaxNumActiveThreads; index++)
+	{
+		if(threadMapping[index] == id)
+			return index;
+	}
+	cout<<"FATAL ERROR : ThreadMapping cannot resolve";
+	fflush(stdout);
+	exit(0);
+}
 #define cmp(a)	(rtn_name->find(a) != string::npos)
 
 bool isActive(int tid) {
 	return pumpingStatus[tid];
 }
 void reActivate(int tid) {
+	tid= findThreadMapping(tid);
 	pumpingStatus[tid] = true;
 	cout << "reAcivated " << tid << "\n";
 	curSynchVar[tid] = 0;
 }
 void deActivate(int tid, ADDRINT addr) {
+	tid= findThreadMapping(tid);
 	curSynchVar[tid] = addr;
 	cout << "deAcivated " << tid << "\n";
 	pumpingStatus[tid] = false;
 }
 bool hasEntered(int tid, ADDRINT addr) {
+	tid= findThreadMapping(tid);
 	return (curSynchVar[tid] == addr);
+}
+int findParentSegment(long parent)
+{
+	int index;
+	for(index=0; index< MaxNumActiveThreads; index++)
+	{
+		if(currentId[index] == parent)
+			return index;
+	}
+	cout<<"FATAL ERROR--- cannot find parent\n";
+	return -1;
 }
 
 VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	PIN_MutexLock(&lock);
 	numThreads++;
 	livethreads++;
+
+	int i;
+	for(i=0;i<MaxNumActiveThreads;i++){
+		if(isThreadActive[i] == false)
+		{
+			isThreadActive[i] = true;
+			break;
+		}
+	}
+	threadMapping[i] = threadid;
+	parentId[i] = PIN_GetParentTid();
+	currentId[i] = PIN_GetTid();
+	int parent = -1;
+	if(parentId[i]!=0)
+	{
+		parent = findParentSegment(parentId[i]);
+	}
 
 	if(livethreads>MaxNumActiveThreads) {
 		cout<<"Number of live threads till now = "<<livethreads<<endl;
@@ -179,19 +226,29 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v) {
 	threadAlive[threadid] = true;
 	cout << "threads till now " << numThreads << "\n";
 	fflush(stdout);
-	pumpingStatus[numThreads - 1] = true;
+	pumpingStatus[i] = true;
+	threadid = findThreadMapping(threadid);
 	tst->onThread_start(threadid);
+	while (tst->analysisFn(threadid, parent, CHILD_START, PIN_GetParentTid()) == -1) {
+				PIN_Yield();
+			}
+	if(parent != -1){
+		while (tst->analysisFn(parent, threadid, PARENT_SPAWN, PIN_GetTid()) == -1) {
+				PIN_Yield();
+			}
+	}
 	PIN_MutexUnlock(&lock);
 }
 
 VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
-
+	PIN_MutexLock(&lock);
+	tid= findThreadMapping(tid);
 	printf("thread %d finished exec\n",tid);
 	fflush(stdout);
-	PIN_MutexLock(&lock);
 	while (tst->onThread_finish(tid, (numCISC[tid])) == -1) {
 				PIN_Yield();
 		}
+	isThreadActive[tid] = false;
 	cout << "wrote -1 for tid " << tid << "\n";
 	livethreads--;
 	threadAlive[tid] = false;
@@ -201,6 +258,7 @@ VOID ThreadFini(THREADID tid, const CONTEXT *ctxt, INT32 flags, VOID *v) {
 
 //Pass a memory read record
 VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
+	tid= findThreadMapping(tid);
 	if (!isActive(tid))
 		return;
 
@@ -222,6 +280,8 @@ VOID RecordMemRead(THREADID tid, VOID * ip, VOID * addr) {
 
 // Pass a memory write record
 VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
+
+	tid= findThreadMapping(tid);
 	if (!isActive(tid))
 		return;
 
@@ -242,6 +302,7 @@ VOID RecordMemWrite(THREADID tid, VOID * ip, VOID * addr) {
 }
 
 VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
+	tid= findThreadMapping(tid);
 	if (!isActive(tid))
 		return;
 
@@ -271,25 +332,29 @@ VOID BrnFun(THREADID tid, ADDRINT tadr, BOOL taken, VOID *ip) {
 }
 VOID RegValRead(THREADID tid,VOID * ip,REG* _reg)
 {
-	if (ignoreActive) return;
-		checkSum+=6;
-		uint64_t nip = MASK & (uint64_t)ip;
-		uint64_t _nreg = MASK & (uint64_t)_reg;
-		while (tst->analysisFn(tid,nip,6,_nreg)== -1) {
-			PIN_Yield();
-		}
+	if (ignoreActive)
+		return;
+	checkSum+=6;
+	uint64_t nip = MASK & (uint64_t)ip;
+	uint64_t _nreg = MASK & (uint64_t)_reg;
+	tid= findThreadMapping(tid);
+	while (tst->analysisFn(tid,nip,6,_nreg)== -1) {
+		PIN_Yield();
+	}
 }
 
 
 VOID RegValWrite(THREADID tid,VOID * ip,REG* _reg)
 {
-	if (ignoreActive) return;
-		checkSum+=7;
-		uint64_t nip = MASK & (uint64_t)ip;
-		uint64_t _nreg = MASK & (uint64_t)_reg;
-		while (tst->analysisFn(tid,nip,7,_nreg)== -1) {
-			PIN_Yield();
-		}
+	if (ignoreActive)
+		return;
+	tid= findThreadMapping(tid);
+	checkSum+=7;
+	uint64_t nip = MASK & (uint64_t)ip;
+	uint64_t _nreg = MASK & (uint64_t)_reg;
+	while (tst->analysisFn(tid,nip,7,_nreg)== -1) {
+		PIN_Yield();
+	}
 }
 VOID CountIns()
 {
@@ -319,13 +384,10 @@ VOID FunEndInstrumentation() {
 		fflush(stdout);
 	}
 }
-static int barrier = 0;
+
 VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
-	if(encode == 22){
-		cout<<"barrier in causality tool : "<<++barrier<<"\n";
-		fflush(stdout);
-	}
 	uint64_t time = ClockGetTime();
+	tid= findThreadMapping(tid);
 	sendTimerPacket(tid,true);
 
 	PIN_MutexLock(&lock);
@@ -341,7 +403,7 @@ VOID FunEntry(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 VOID FunExit(ADDRINT first_arg, UINT32 encode, THREADID tid) {
 	uint64_t time = ClockGetTime();
 
-
+	tid= findThreadMapping(tid);
 	sendTimerPacket(tid,false);
 
 	PIN_MutexLock(&lock);
@@ -359,7 +421,7 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
         PIN_MutexLock(&lock);
         checkSum +=encode;
         PIN_MutexUnlock(&lock);
-
+        tid= threadMapping[tid];
         uint64_t uarg = MASK & (uint64_t) first_arg;
         uint64_t value = MASK & (uint64_t) val;
         while (tst->analysisFn(tid, value, encode, uarg) == -1) {
@@ -369,8 +431,8 @@ VOID BarrierInit(ADDRINT first_arg, ADDRINT val, UINT32 encode, THREADID tid) {
 /*** This function is called on every instruction ***/
 VOID printip(THREADID tid, VOID *ip, char *asmString) {
 
+	tid= findThreadMapping(tid);
 	PIN_MutexLock(&lock);
-
 	if(ignoreActive == false)
 		numCISC[tid]++;
 	totalNumCISC++;
@@ -582,13 +644,11 @@ VOID FlagRtn(RTN rtn, VOID* v) {
 		encode = CONDWAIT;
 	/*** For barriers. Used for research purpose ***/
 	else if (cmp("pthread_barrier_wait")){
-
 		encode = BARRIERWAIT;
 	}
 	else if (cmp("parsec_barrier_wait"))
 			encode = BARRIERWAIT;
 	else if (cmp("pthread_barrier_init")) {
-		cout << "barrier init encountered !!\n";
 		encode = BARRIERINIT;
 	}
 	/*** For barriers. Used for research purpose ***/
@@ -635,7 +695,6 @@ VOID Fini(INT32 code, VOID *v) {
 	fflush(stdout);
 
 	tst->setSubsetsimComplete(true);
-
 	// Now, we will write -2 packet in shared memory.
 	// This will ensure that complete emulator (PIN) gets stopped.
 
@@ -644,7 +703,6 @@ VOID Fini(INT32 code, VOID *v) {
 	while (tst->onSubset_finish((int)0, (numCISC[0])) == -1) {
 		PIN_Yield();
 	}
-
 	cout<<"subset finish called by thread "<<0<<endl;
 	fflush(stdout);
 
@@ -694,6 +752,19 @@ int main(int argc, char * argv[]) {
 	}
 
 	MaxNumActiveThreads = KnobMaxNumActiveThreads;
+
+	threadMapping =  new uint32_t[MaxNumActiveThreads];
+	isThreadActive =  new bool[MaxNumActiveThreads];
+	parentId = new long[MaxNumActiveThreads];
+	currentId = new long[MaxNumActiveThreads];
+	int index;
+	for(index = 0; index < MaxNumActiveThreads; index++)
+	{
+		parentId[index] = -1;
+		currentId[index] = -1;
+		isThreadActive[index] = false;
+	}
+
 	numInsToIgnore = KnobIgnore;
 	startMarker = KnobStartMarker;
 	endMarker = KnobEndMarker;

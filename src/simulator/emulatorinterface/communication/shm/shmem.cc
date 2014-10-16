@@ -34,7 +34,6 @@ Shm::release_lock(packet *map) {
 Shm::Shm(int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int)) : IPCBase(maxNumActiveThreads, lock, unlock)
 {
 	tldata = new THREAD_DATA[MaxNumActiveThreads];
-	memMapping = new uint32_t[MaxNumActiveThreads];
 
 	// get a unique key
 	key_t key=ftok(ftokpath,ftok_id);
@@ -67,8 +66,6 @@ Shm::Shm(int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int)) : IPCB
 		myData->sum = 0;
 		myData->tlq = new packet[locQ];
 		myData->shm = tldata[0].shm+(COUNT+5)*t;		// point to the correct index of the shared memory
-		myData->avail = 1;
-//		myData->tid = 0;
 	}
 
 	isSubsetsimComplete = false;
@@ -77,8 +74,6 @@ Shm::Shm(int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int)) : IPCB
 Shm::Shm (uint64_t pid, int maxNumActiveThreads, void (*lock)(int), void (*unlock)(int)) : IPCBase(maxNumActiveThreads, lock, unlock)
 {
 	tldata = new THREAD_DATA[MaxNumActiveThreads];
-	memMapping = new uint32_t[MaxNumActiveThreads];
-
 	// get a unique key
 	key_t key=ftok(ftokpath,pid);
 	if ( key == (key_t)-1 )
@@ -110,7 +105,6 @@ Shm::Shm (uint64_t pid, int maxNumActiveThreads, void (*lock)(int), void (*unloc
 		myData->sum = 0;
 		myData->tlq = new packet[locQ];
 		myData->shm = tldata[0].shm+(COUNT+5)*t;		// point to the correct index of the shared memory
-		myData->avail = 1;
 //		myData->tid = 0;
 	}
 
@@ -124,31 +118,21 @@ Shm::Shm (uint64_t pid, int maxNumActiveThreads, void (*lock)(int), void (*unloc
 int
 Shm::analysisFn (int tid,uint64_t ip, uint64_t val, uint64_t addr)
 {
-//	static int mem_read = 0;
-	int actual_tid = tid;
-	tid = memMapping[tid];
-
 	(*lock)(tid);
 	THREAD_DATA *myData = &tldata[tid];
-
 	// if my local queue is full, I should write to the shared memory and return if cannot return
 	// write immediately, so that PIN can yield this thread.
 	if (myData->tlqsize == locQ) {
-		if (Shm::shmwrite(actual_tid,0, -1)==-1) {
+		if (Shm::shmwrite(tid,0, -1)==-1) {
 			(*unlock)(tid);
 			return -1;
 		}
 	}
-
 	// log the packet in my local queue
 	packet *myQueue = myData->tlq;
 	uint32_t *in = &(myData->in);
 	packet *sendPacket = &(myQueue[*in]);
-//    if(val == 2)
-//    {
-//    	printf("mem read in shmem =  %d  \n",++mem_read);
-//    	fflush(stdout);
-//    }
+
 	sendPacket->ip = (uint64_t)ip;
 	sendPacket->value = val;
 	sendPacket->tgt = (uint64_t)addr;
@@ -170,19 +154,11 @@ Shm::analysisFnAssembly (int tid,uint64_t ip, uint64_t val, char *asmString)
 void
 Shm::onThread_start (int tid)
 {
-	int i;
-	for(i=0;i<MaxNumActiveThreads;i++){
-		if(tldata[i].avail == 1)
-		{
-			tldata[i].avail=0;
-			break;
-		}
-	}
-	THREAD_DATA *myData = &tldata[i];
+
+	THREAD_DATA *myData = &tldata[tid];
 	packet *shmem = myData->shm;
 //	myData->avail =0;
 //	printf("Thread %d start alloc to %d in = %d  out=%d sum=%d prod_ptr=%d\n",tid,i,myData->in,myData->out,myData->sum,myData->prod_ptr);
-	memMapping[tid] = i;
 	//get_lock(shmem);
 	shmem[COUNT].value = 0; // queue size pointer
 	shmem[COUNT + 1].value = 0; // flag[0] = 0
@@ -194,21 +170,17 @@ Shm::onThread_start (int tid)
 int
 Shm::onThread_finish (int tid, long numCISC)
 {
-	int actual_tid = tid;
-	tid = memMapping[tid];   //find the mapped mem segment
 	THREAD_DATA *myData = &tldata[tid];
 
 	// keep writing till we empty our local queue
 	while (myData->tlqsize !=0) {
-		if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
+		if (Shm::shmwrite(tid,0, -1)==-1) return -1;
 	}
 
-
 	// last write to our shared memory. This time write a -1 in the 'value' field of the packet
-	int ret = Shm::shmwrite(actual_tid,1, numCISC);
+	int ret = Shm::shmwrite(tid,1, numCISC);
 
 	if(ret != -1){
-		myData->avail = 1;
 		myData->tlqsize = 0;
 	}
 	return ret;
@@ -216,27 +188,23 @@ Shm::onThread_finish (int tid, long numCISC)
 
 int Shm::onSubset_finish (int tid, long numCISC)
 {
-	int actual_tid = tid;
-		tid = memMapping[tid];   //find the mapped mem segment
 		THREAD_DATA *myData = &tldata[tid];
 
 		// keep writing till we empty our local queue
 		while (myData->tlqsize !=0) {
-			if (Shm::shmwrite(actual_tid,0, -1)==-1) return -1;
+			if (Shm::shmwrite(tid,0, -1)==-1) return -1;
 		}
-
 		while(true) {
 			while(analysisFn(tid, 0, SUBSETSIMCOMPLETE, numCISC)==-1) {
 				continue;
 			}
 		}
-
+		std::cout<<"after1\n";fflush(stdout);
 
 		// last write to our shared memory. This time write a -2 in the 'value' field of the packet
-		int ret = Shm::shmwrite(actual_tid,2, numCISC);
+		int ret = Shm::shmwrite(tid,2, numCISC);
 
 		if(ret != -1){
-			myData->avail = 1;
 			myData->tlqsize = 0;
 		}
 
@@ -248,7 +216,7 @@ int Shm::onSubset_finish (int tid, long numCISC)
  * If last is 0 then normal write and if last is 1 then write -1 at the end
  * The numCISC's value is valid only if this is the last packet
  */
-static bool printIPTrace = false;
+static bool printIPTrace = true;
 static FILE **pinTraceFile;
 static int *numShmWritePackets;
 int
@@ -262,7 +230,7 @@ Shm::shmwrite (int tid, int last, long numCISC)
 		pinTraceFile = new FILE*[MaxNumActiveThreads];
 		for(int i=0; i<MaxNumActiveThreads; i++) {
 			char fileName[1000];
-			sprintf(fileName, "/mnt/srishtistr0/home/prathmesh/tmp/eldhoseDa%d", i);
+			sprintf(fileName, "/mnt/srishtistr0/home/eldhose/tmp/eldhoseDa%d", i);
 			pinTraceFile[i] = fopen(fileName, "w");
 		}
 	}
@@ -276,7 +244,6 @@ Shm::shmwrite (int tid, int last, long numCISC)
 
 	static int num_shmem=0;
 	//pthread_mutex_lock(&mul_lock);
-	tid = memMapping[tid];
 	//pthread_mutex_unlock(&mul_lock);
 	int queue_size;
 	int numWrite;
@@ -302,8 +269,10 @@ Shm::shmwrite (int tid, int last, long numCISC)
 		for (int i=0; i< numWrite; i++) {
 
 			if(printIPTrace==true) {
-				fprintf(pinTraceFile[tid], "pinTrace[%d] %d : %ld\n", tid, (++numShmWritePackets[tid]),
-						myData->tlq[(myData->out+i)%locQ].ip);
+				fprintf(pinTraceFile[tid], "pinTrace[%d] %d : %ld  : %ld  : %d\n", tid, (++numShmWritePackets[tid]),
+						myData->tlq[(myData->out+i)%locQ].ip,
+						myData->tlq[(myData->out+i)%locQ].value,
+						myData->tlq[(myData->out+i)%locQ].tgt);
 			}
 
 			// for checksum
