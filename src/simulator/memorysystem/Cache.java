@@ -192,7 +192,7 @@ public class Cache extends SimulationElement {
 
 		energy = cacheParameters.power;
 
-		eventsWaitingOnLowerMSHR = new LinkedList<AddressCarryingEvent>();
+		eventsWaitingOnMSHR = new LinkedList<AddressCarryingEvent>();
 	}
 
 	
@@ -434,7 +434,12 @@ public class Cache extends SimulationElement {
 			this.nextLevel.workingSetUpdate();
 			return true;
 		} else {
-			handleLowerMshrFull((AddressCarryingEvent) event);
+			// Slight approximation used. MSHR full is a rare event.
+			// On occurrence of such events, we just add this event to the pending events list of the lower level cache.
+			// The network congestion and the port occupancy of the next level is not modelled in such cases.
+			// It must be noted that the MSHR full event of the first level caches is being modelled correctly.
+			// This approximation applies only to non-firstlevel caches.
+			this.nextLevel.eventsWaitingOnMSHR.add(event);
 			return false;
 		}
 	}
@@ -479,6 +484,8 @@ public class Cache extends SimulationElement {
 				case EvictCacheLine: {
 					updateStateOfCacheLine(addr, MESI.INVALID);
 					addUnprocessedEventsToEventQueue(missList);
+					
+					processEventsInPendingList();
 					return;
 				}
 			}
@@ -486,6 +493,15 @@ public class Cache extends SimulationElement {
 		
 		if(writeEvent!=null && writePolicy==WritePolicy.WRITE_THROUGH) {
 			sendRequestToNextLevel(addr, RequestType.Cache_Write);
+		}
+		
+		processEventsInPendingList();
+	}
+
+	private void processEventsInPendingList() {
+		while(eventsWaitingOnMSHR.isEmpty()==false && mshr.isMSHRFull()==false) {
+			AddressCarryingEvent event = eventsWaitingOnMSHR.remove();
+			handleEvent(event.getEventQ(), event);
 		}
 	}
 
@@ -701,35 +717,7 @@ public class Cache extends SimulationElement {
 		return evictedLine;
 	}
 
-	LinkedList<AddressCarryingEvent> eventsWaitingOnLowerMSHR = new LinkedList<AddressCarryingEvent>(); 
-	public void handleLowerMshrFull(AddressCarryingEvent event) {
-		AddressCarryingEvent eventToBeSent = (AddressCarryingEvent) event
-				.clone();
-		eventToBeSent.payloadElement = eventToBeSent.getProcessingElement();
-		eventToBeSent
-				.setProcessingElement(eventToBeSent.getRequestingElement());
-
-		eventToBeSent.setEventTime(GlobalClock.getCurrentTime() + 1);
-
-		eventsWaitingOnLowerMSHR.add(eventToBeSent);
-		// eventToBeSent.getEventQ().addEvent(eventToBeSent);
-	}
-
-	public void oneCycleOperation() {
-		while (!eventsWaitingOnLowerMSHR.isEmpty()) {
-			AddressCarryingEvent event = eventsWaitingOnLowerMSHR.remove(0);
-
-			((AddressCarryingEvent) event)
-					.setProcessingElement(((AddressCarryingEvent) event).payloadElement);
-			((AddressCarryingEvent) event).payloadElement = null;
-			Cache processingCache = (Cache) event.getProcessingElement();
-			// event.setEventTime(event.getEventTime()-GlobalClock.getCurrentTime());
-			event.setEventTime(0);
-
-			if (addEventAtLowerCache((AddressCarryingEvent) event) == false)
-				break;
-		}
-	}
+	LinkedList<AddressCarryingEvent> eventsWaitingOnMSHR = new LinkedList<AddressCarryingEvent>(); 
 
 	public String toString() {
 		return cacheName;

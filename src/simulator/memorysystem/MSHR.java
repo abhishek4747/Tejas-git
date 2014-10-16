@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 public class MSHR {
 	private int mshrMaxSize;
+	private int mshrSize;
 	private LinkedList<LinkedList<AddressCarryingEvent>> missRegister;
 	private int blockSizeBits;
 	
@@ -24,6 +25,8 @@ public class MSHR {
 		} else {
 			createMSHREntry(event);
 		}
+		
+		mshrSize++;
 	}
 
 	public LinkedList<AddressCarryingEvent> removeEventsFromMSHR(long addr) {
@@ -34,24 +37,24 @@ public class MSHR {
 		}
 
 		missRegister.remove(missList);
-
+		mshrSize-=missList.size();
 		return missList;
 	}
 
 	public boolean isAddrInMSHR(long addr) {
-		return (getWaitingEventsInMSHR(addr) != null);
+		if(isMSHREmpty()) {
+			return false;
+		} else {
+			return (getWaitingEventsInMSHR(addr) != null);
+		}
 	}
 
-	public int sizeMSHR() {
-		int size = 0;
-		for (LinkedList<AddressCarryingEvent> missList : missRegister) {
-			size += missList.size();
-		}
-		return size;
+	private boolean isMSHREmpty() {
+		return mshrSize==0;
 	}
 
 	public boolean isMSHRFull() {
-		return (sizeMSHR() >= mshrMaxSize);
+		return (mshrSize >= mshrMaxSize);
 	}
 
 	public void printMSHR() {

@@ -62,7 +62,7 @@ public class RunnableThread implements Encoding, Runnable {
 	long prevTotalInstructions, currentTotalInstructions;
 	long[] prevCycles;
 	
-	IpcBase ipcBase;
+	public IpcBase ipcBase;
 
 	private static int liveJavaThreads;
 	
@@ -343,11 +343,6 @@ public class RunnableThread implements Encoding, Runnable {
 		currentTotalInstructions=0;
 //		threadCoreMaping = new Hashtable<Integer, Integer>();
 		prevCycles=new long[EMUTHREADS];
-		
-		// Special case must be made for RunnableFromFile
-		if(this.ipcBase != null) {
-			(new Thread(this, threadName)).start();
-		}
 	}
 
 	protected void runPipelines() {
@@ -366,17 +361,6 @@ public class RunnableThread implements Encoding, Runnable {
 		for (int i1 = 0; i1 < minN; i1++) {
 			for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
 				pipelineInterfaces[tidEmu].oneCycleOperation();
-				if(pipelineInterfaces[tidEmu].getCore().getExecEngine().isExecutionBegun() == true)
-				{
-					Vector<Cache> coreCacheList = pipelineInterfaces[tidEmu].getCore().getExecEngine().getCoreMemorySystem().getCoreCacheList();
-					for(Cache c : coreCacheList) {
-						c.oneCycleOperation();
-					}
-				}
-			}
-			Vector<Cache> sharedCacheList = ArchitecturalComponent.getSharedCacheList();
-			for(Cache c : sharedCacheList) {
-				c.oneCycleOperation();
 			}
 			
 			GlobalClock.incrementClock();
@@ -425,21 +409,7 @@ public class RunnableThread implements Encoding, Runnable {
 //			for (int i1=0; i1< maxN; i1++)	{
 				for (int tidEmu = 0; tidEmu < maxCoreAssign; tidEmu++) {
 					pipelineInterfaces[tidEmu].oneCycleOperation();
-					if(pipelineInterfaces[tidEmu].getCore().getExecEngine().isExecutionBegun() == true)
-					{
-						Vector<Cache> coreCacheList = pipelineInterfaces[tidEmu].getCore().getExecEngine().getCoreMemorySystem().getCoreCacheList();
-						for(int i = 0; i < coreCacheList.size(); i++)
-						{
-							coreCacheList.get(i).oneCycleOperation();
-						}
-					}
-				}
-				
-				Vector<Cache> sharedCacheList = ArchitecturalComponent.getSharedCacheList();
-				for(int i = 0; i < sharedCacheList.size(); i++)
-				{
-					sharedCacheList.get(i).oneCycleOperation();
-				}
+				}			
 				
 				GlobalClock.incrementClock();
 				//Why it cant be change into a separate function

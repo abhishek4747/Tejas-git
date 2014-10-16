@@ -318,7 +318,7 @@
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>4</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
@@ -338,7 +338,7 @@
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>4</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
@@ -358,7 +358,7 @@
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>4</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
@@ -378,7 +378,7 @@
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<Coherence>D1</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>4</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1592</LeakageEnergy>
@@ -398,7 +398,7 @@
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>4</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1892</LeakageEnergy>
@@ -412,14 +412,14 @@
 			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
 			<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
 			<Associativity>8</Associativity>
-			<NumEntries>1024</NumEntries>			<!--In KBs-->
+			<NumEntries>65536</NumEntries>
 			<Latency>4</Latency>				<!--In clock cycles-->
 			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>4</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<CacheType>Unified</CacheType>

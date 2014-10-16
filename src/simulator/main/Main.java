@@ -112,25 +112,27 @@ public class Main {
 		// start emulator
 		startEmulator(emulatorArguments, pid, ipcBase);
 
-		//different core components may work at different frequencies
+		for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
+			runners[i] = new RunnableThread("thread"+Integer.toString(i),i, ipcBase, ArchitecturalComponent.getCores());
+		}
+		
 		startTime = System.currentTimeMillis();
 
-		String name;
 		for (int i=0; i<SystemConfig.maxNumJavaThreads; i++) {
-			
-			name = "thread"+Integer.toString(i);
-			
-			runners[i] = new RunnableThread(name,i, ipcBase, ArchitecturalComponent.getCores());
+			if(runners[i].ipcBase != null) {
+				(new Thread(runners[i], "thread"+Integer.toString(i))).start();
+			}
 		}
 		
 		ipcBase.waitForJavaThreads();
+
+		endTime = System.currentTimeMillis();
+		
 		if(emulator!=null) {
 			emulator.forceKill();
 		}
 		
 		ipcBase.finish();
-
-		endTime = System.currentTimeMillis();
 		
 		PinPointsProcessing.windup();
 		
