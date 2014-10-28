@@ -726,7 +726,10 @@ public class XMLParser
 			branchPredictor.predictorMode = BP.PAg;
 		else if(tempStr.equalsIgnoreCase("PAp"))
 			branchPredictor.predictorMode = BP.PAp;
-		
+		else if(tempStr.equalsIgnoreCase("TAGE"))
+		{
+                        branchPredictor.predictorMode = BP.TAGE;
+		}
 		branchPredictor.PCBits = Integer.parseInt(getImmediateString("PCBits", predictorElmnt));
 		branchPredictor.BHRsize = Integer.parseInt(getImmediateString("BHRsize", predictorElmnt));
 		branchPredictor.saturating_bits = Integer.parseInt(getImmediateString("SaturatingBits", predictorElmnt));

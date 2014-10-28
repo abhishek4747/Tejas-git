@@ -101,7 +101,7 @@
 			<PipelineType>outOfOrder</PipelineType>	<!--inOrder,outOfOrder(set issue width for multi-issue in-order)-->
 			
 			<BranchPredictor>
-				<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp -->
+				<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp, TAGE -->
 				<PCBits>4</PCBits>
 				<BHRsize>4</BHRsize>
 				<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->

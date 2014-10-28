@@ -7,6 +7,6 @@ public class BranchPredictorConfig {
 	public BP predictorMode;
 	
 	public static enum BP {
-		NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GShare, GAg, GAp, PAg, PAp
+		NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GShare, GAg, GAp, PAg, PAp,TAGE
 	}
 }

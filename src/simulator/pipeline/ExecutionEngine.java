@@ -19,6 +19,7 @@ import pipeline.branchpredictor.PAgPredictor;
 import pipeline.branchpredictor.PApPredictor;
 import pipeline.branchpredictor.PerfectPredictor;
 import pipeline.branchpredictor.TournamentPredictor;
+import pipeline.branchpredictor.TAGE;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.Instruction;
@@ -74,6 +75,11 @@ public abstract class ExecutionEngine {
 			this.branchPredictor = new PApPredictor(this, coreConfig.branchPredictor.PCBits, 
 					coreConfig.branchPredictor.BHRsize, 
 					coreConfig.branchPredictor.saturating_bits);
+		else if(coreConfig.branchPredictor.predictorMode == BP.TAGE)
+                        this.branchPredictor = new TAGE(this,
+                                        coreConfig.branchPredictor.BHRsize,
+                                        coreConfig.branchPredictor.saturating_bits);
+
 	}
 	
 	public abstract void setInputToPipeline(GenericCircularQueue<Instruction>[] inpList);
