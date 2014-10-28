@@ -77,7 +77,7 @@ public abstract class ExecutionEngine {
 					coreConfig.branchPredictor.saturating_bits);
 		else if(coreConfig.branchPredictor.predictorMode == BP.TAGE)
                         this.branchPredictor = new TAGE(this,
-                                        coreConfig.branchPredictor.BHRsize,
+                                        coreConfig.branchPredictor.PCBits,
                                         coreConfig.branchPredictor.saturating_bits);
 
 	}

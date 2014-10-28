@@ -40,10 +40,10 @@
 		<!-- If store packets in a file option is set to true, this parameter indicates the basename for the trace files -->
 		<!--One trace file is maintained for each store. The name of trace file for core n is basename_n.gz-->
 		<!--We do not allow overwriting of trace files. So if a tracefile with same name is pre-existing, kindly rename it-->
-		<BasenameForTraceFiles>/home/prathmesh/benchmarks/pthread_sort/pthread_sort</BasenameForTraceFiles>
+		<BasenameForTraceFiles>/mnt/srishtistr0/home/raj/workspace/Tejas/Traces/ls</BasenameForTraceFiles>
 		
-		<PinTool>/mnt/srishtistr0/home/prathmesh/PIN</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/mnt/srishtistr0/scratch/tejas_experiments/resources/pin-62732</PinTool>
+		<PinInstrumentor>/mnt/srishtistr0/home/raj/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
 		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
 		<KillEmulatorScript>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
@@ -338,7 +338,7 @@
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
 			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>32</MSHRSize>
+			<MSHRSize>1</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<LeakageEnergy>0.1092</LeakageEnergy>
