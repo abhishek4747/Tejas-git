@@ -450,10 +450,8 @@ public class Cache extends SimulationElement {
 		noOfAccesses += 1 + 1;
 
 		CacheLine evictedLine = this.fill(addr, MESI.SHARED);
-		
-		processEventsInMSHR(addr);
-
 		handleEvictedLine(evictedLine);
+		processEventsInMSHR(addr);		
 	}
 
 	private void processEventsInMSHR(long addr) {
@@ -481,6 +479,7 @@ public class Cache extends SimulationElement {
 					break;
 				}
 				
+				case DirectoryEvictedFromCoherentCache:
 				case EvictCacheLine: {
 					updateStateOfCacheLine(addr, MESI.INVALID);
 					addUnprocessedEventsToEventQueue(missList);
@@ -538,7 +537,8 @@ public class Cache extends SimulationElement {
 				getEventQueue().addEvent(event);
 				timeToSet++;
 			}
-			if(event.getRequestType()==RequestType.EvictCacheLine) {
+			if(event.getRequestType()==RequestType.EvictCacheLine
+					|| event.getRequestType()==RequestType.DirectoryEvictedFromCoherentCache) {
 				startAddition = true;
 			}
 		}		
