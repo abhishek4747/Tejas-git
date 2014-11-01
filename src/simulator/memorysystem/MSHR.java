@@ -1,5 +1,7 @@
 package memorysystem;
 
+import generic.RequestType;
+
 import java.util.LinkedList;
 
 public class MSHR {
@@ -110,5 +112,42 @@ public class MSHR {
 		}
 		
 		misc.Error.showErrorAndExit("No event for addr : " + addr);
+	}
+
+
+	public long sumEventsPendingInMSHR = 0,  sumNumMSHREntries = 0;
+	public long freqEventsPendingInMSHR = 0;
+	
+	public void noteMSHRStats() {
+		sumEventsPendingInMSHR += mshrSize;
+		freqEventsPendingInMSHR++;
+		sumNumMSHREntries += missRegister.size();
+	}
+	
+	public double getAvgNumEventsPendingInMSHR() {
+		return (double)sumEventsPendingInMSHR/(double)freqEventsPendingInMSHR;
+	}
+	
+	public double getAvgNumEventsPendingInMSHREntry() {
+		return (double)sumEventsPendingInMSHR/(double)(sumNumMSHREntries);
+	}
+
+	public int getNumPendingEventsForAddr(long addr) {
+		
+		long lineAddr = getLineAddr(addr);
+		int numRet = 0;
+		for (LinkedList<AddressCarryingEvent> missList : missRegister) {
+			if (getLineAddr(missList.peek().getAddress()) == lineAddr) {
+				for(AddressCarryingEvent e : missList) {
+					if(e.getRequestType()==RequestType.EvictCacheLine || e.getRequestType()==RequestType.DirectoryEvictedFromCoherentCache) {
+						return numRet;
+					} else {
+						numRet++;
+					}
+				}
+			}
+		}
+		
+		return numRet;
 	}
 }
