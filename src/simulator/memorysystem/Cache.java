@@ -20,12 +20,10 @@
  *****************************************************************************/
 package memorysystem;
 
-import emulatorinterface.translator.visaHandler.Invalid;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
-import generic.Port;
 import generic.RequestType;
 import generic.SimulationElement;
 
@@ -33,14 +31,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.TreeSet;
-
-import sun.security.util.PendingException;
 
 import main.ArchitecturalComponent;
 import memorysystem.coherence.Coherence;
-import memorysystem.coherence.Directory;
 import memorysystem.nuca.NucaCache.NucaType;
 import misc.Util;
 import config.CacheConfig;
@@ -445,9 +439,10 @@ public class Cache extends SimulationElement {
 	}
 
 	public void fillAndSatisfyRequests(long addr) {
-		misses += 1;
-		noOfRequests += 1;
-		noOfAccesses += 1 + 1;
+		int numPendingEvents = mshr.getNumPendingEventsForAddr(addr);
+		misses += numPendingEvents;
+		noOfRequests += numPendingEvents;
+		noOfAccesses += 1 + numPendingEvents;
 
 		CacheLine evictedLine = this.fill(addr, MESI.SHARED);
 		handleEvictedLine(evictedLine);
@@ -521,11 +516,10 @@ public class Cache extends SimulationElement {
 	private void handleCleanToModified(long addr, AddressCarryingEvent event) {
 		if(mycoherence!=null) {
 			mycoherence.writeHit(addr, this);
+			mshr.addToMSHR(event);
 		} else {
 			sendRequestToNextLevel(addr, RequestType.Cache_Write);
-		}
-		
-		mshr.addToMSHR(event);
+		}		
 	}
 
 	private void addUnprocessedEventsToEventQueue(LinkedList<AddressCarryingEvent> missList) {
@@ -915,5 +909,17 @@ public class Cache extends SimulationElement {
 		invalidAccesses++;
 		
 		//System.err.println(msg);
+	}
+
+	public void noteMSHRStats() {
+		mshr.noteMSHRStats();
+	}
+	
+	public double getAvgNumEventsPendingInMSHR() {
+		return mshr.getAvgNumEventsPendingInMSHR();
+	}
+	
+	public double getAvgNumEventsPendingInMSHREntry() {
+		return mshr.getAvgNumEventsPendingInMSHREntry();
 	}
 }

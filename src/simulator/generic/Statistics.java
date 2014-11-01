@@ -417,7 +417,7 @@ public class Statistics {
 	}
 
 	static void printStatisticsForACache(String name, 
-		long hits, long misses, long evictions) throws IOException 
+		long hits, long misses, long evictions, double avgNumEventsInMSHR, double avgNumEventsInMSHREntry) throws IOException 
 	{
 		outputFileWriter.write("\n");
 		outputFileWriter.write("\n" + name + " Hits\t=\t" + hits);
@@ -430,13 +430,16 @@ public class Statistics {
 		float missrate = (float)misses/(float)(hits+misses);
 		outputFileWriter.write("\n" + name + " Miss-Rate\t=\t" + missrate);
 		
+		outputFileWriter.write("\n" + name + " AvgNumEventsInMSHR\t=\t" + formatDouble(avgNumEventsInMSHR));
+		outputFileWriter.write("\n" + name + " AvgNumEventsInMSHREntry\t=\t" + formatDouble(avgNumEventsInMSHREntry));
+		
 		//outputFileWriter.write("\n" + name + " Evictions\t=\t" + evictions);
 		outputFileWriter.write("\n");
 	}
 	
 	static void printCacheStats(Cache c) throws IOException
 	{
-		printStatisticsForACache(c.toString(), c.hits, c.misses, c.evictions);
+		printStatisticsForACache(c.toString(), c.hits, c.misses, c.evictions, c.getAvgNumEventsPendingInMSHR(), c.getAvgNumEventsPendingInMSHREntry());
 	}
 	
 	static void printConsolidatedCacheStats(String cacheName, 
@@ -450,7 +453,22 @@ public class Statistics {
 			evictions += c.evictions;
 		}
 		
-		printStatisticsForACache(cacheName, hits, misses, evictions);
+		int numCaches = 0;
+		double avgNumEventsInMSHR = 0, avgNumEventsInMSHREntry = 0;
+		for(Cache c : cacheArray) {
+			if((c.hits+c.misses)==0) {
+				continue;
+			}
+			
+			numCaches++;
+			avgNumEventsInMSHR += c.getAvgNumEventsPendingInMSHR(); 
+			avgNumEventsInMSHREntry += c.getAvgNumEventsPendingInMSHREntry();
+		}
+		
+		avgNumEventsInMSHR = avgNumEventsInMSHR / (double)numCaches;
+		avgNumEventsInMSHREntry = avgNumEventsInMSHREntry / (double)numCaches;
+		
+		printStatisticsForACache(cacheName, hits, misses, evictions, avgNumEventsInMSHR, avgNumEventsInMSHREntry);
 	}
 	
 	static void printInsWorkingSetStats() throws IOException {

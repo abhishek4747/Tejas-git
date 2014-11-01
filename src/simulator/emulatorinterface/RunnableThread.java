@@ -364,6 +364,13 @@ public class RunnableThread implements Encoding, Runnable {
 			}
 			
 			GlobalClock.incrementClock();
+			
+			if(GlobalClock.getCurrentTime()%1000==0) {
+				// Every 1000 cycles, iterate over all the caches, and note the MSHR sizes
+				for(Cache c : ArchitecturalComponent.getCacheList()) {
+					c.noteMSHRStats();
+				}
+			}
 		}
 		
 		if(prevTotalInstructions == -1) {
