@@ -1,9 +1,10 @@
 package pipeline.outoforder;
 
+import pipeline.FunctionalUnitType;
+import pipeline.OpTypeToFUTypeMapping;
 import config.SimulationConfig;
 import generic.Core;
 import generic.ExecCompleteEvent;
-import generic.FunctionalUnitType;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
@@ -51,63 +52,18 @@ public class IWEntry {
 		
 		if(associatedROBEntry.isOperand1Available() && associatedROBEntry.isOperand2Available())
 		{
-			if(opType == OperationType.mov ||
-					opType == OperationType.xchg)
-			{
-				issueMovXchg();
-				return true;
-			}
+			boolean issued = issueOthers();
 			
-			else if(opType == OperationType.load ||
-					opType == OperationType.store)
+			if(issued == true &&
+					(opType == OperationType.load || opType == OperationType.store))
 			{
 				issueLoadStore();
-				return true;
 			}
 			
-			else 
-			{
-				return issueOthers();
-			}
+			return issued;
 		}		
 
 		return false;
-	}
-	
-	void issueMovXchg()
-	{
-		//no FU required
-		
-		associatedROBEntry.setIssued(true);
-		
-		//remove IW entry
-		instructionWindow.removeFromWindow(this);
-		
-		//schedule completion of execution - 1 cycle operation
-		core.getEventQueue().addEvent(
-				new ExecCompleteEvent(
-						null,
-						GlobalClock.getCurrentTime() + core.getStepSize(),
-						null, 
-						execEngine.getExecuter(),
-						
-						RequestType.EXEC_COMPLETE,
-						associatedROBEntry));
-		
-		//dependent instructions can begin in the next cycle
-		core.getEventQueue().addEvent(
-				new BroadCastEvent(
-						GlobalClock.getCurrentTime(),
-						null, 
-						execEngine.getExecuter(),
-						RequestType.BROADCAST,
-						associatedROBEntry));
-		
-
-		if(SimulationConfig.debugMode)
-		{
-			System.out.println("issue : " + GlobalClock.getCurrentTime()/core.getStepSize() + " : "  + associatedROBEntry.getInstruction());
-		}		
 	}
 	
 	void issueLoadStore()
@@ -131,8 +87,6 @@ public class IWEntry {
 			associatedROBEntry.setWriteBackDone1(true);
 			associatedROBEntry.setWriteBackDone2(true);
 		}
-		
-		associatedROBEntry.setFUInstance(0);
 		
 		//remove IW entry
 		instructionWindow.removeFromWindow(this);
@@ -166,37 +120,37 @@ public class IWEntry {
 		//will be > 0 otherwise, indicating how long before
 		//	an FU of the type will be available
 
-		FURequest = execEngine.getFunctionalUnitSet().requestFU(
-																FUType,
-																GlobalClock.getCurrentTime(),
-																core.getStepSize() );
+		FURequest = execEngine.getExecutionCore().requestFU(FUType);
 		
 		if(FURequest <= 0)
 		{
-			associatedROBEntry.setIssued(true);
-			associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
+			if(opType != OperationType.load && opType != OperationType.store)
+			{
+				associatedROBEntry.setIssued(true);
+				associatedROBEntry.setFUInstance((int) ((-1) * FURequest));
+				
+				//remove IW entry
+				instructionWindow.removeFromWindow(this);			
 			
-			//remove IW entry
-			instructionWindow.removeFromWindow(this);
-			
-			core.getEventQueue().addEvent(
-					new BroadCastEvent(
-							GlobalClock.getCurrentTime() + (core.getLatency(
-									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) - 1) * core.getStepSize(),
-							null, 
-							execEngine.getExecuter(),
-							RequestType.BROADCAST,
-							associatedROBEntry));
-			
-			core.getEventQueue().addEvent(
-					new ExecCompleteEvent(
-							null,
-							GlobalClock.getCurrentTime() + core.getLatency(
-									OpTypeToFUTypeMapping.getFUType(opType).ordinal()) * core.getStepSize(),
-							null, 
-							execEngine.getExecuter(),
-							RequestType.EXEC_COMPLETE,
-							associatedROBEntry));
+				core.getEventQueue().addEvent(
+						new BroadCastEvent(
+								GlobalClock.getCurrentTime() + (execEngine.getExecutionCore().getFULatency(
+										OpTypeToFUTypeMapping.getFUType(opType)) - 1) * core.getStepSize(),
+								null, 
+								execEngine.getExecuter(),
+								RequestType.BROADCAST,
+								associatedROBEntry));
+				
+				core.getEventQueue().addEvent(
+						new ExecCompleteEvent(
+								null,
+								GlobalClock.getCurrentTime() + execEngine.getExecutionCore().getFULatency(
+										OpTypeToFUTypeMapping.getFUType(opType)) * core.getStepSize(),
+								null, 
+								execEngine.getExecuter(),
+								RequestType.EXEC_COMPLETE,
+								associatedROBEntry));
+			}
 
 			if(SimulationConfig.debugMode)
 			{

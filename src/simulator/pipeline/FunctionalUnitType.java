@@ -1,4 +1,4 @@
-package generic;
+package pipeline;
 
 public enum FunctionalUnitType {
 
@@ -10,6 +10,7 @@ public enum FunctionalUnitType {
 	floatMul,
 	floatDiv,
 	memory,
+	jump,
 	no_of_types
 	
 }

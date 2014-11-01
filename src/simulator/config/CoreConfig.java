@@ -61,12 +61,16 @@ public class CoreConfig
 	
 	public int BranchMispredPenalty;
 	
+	public int ExecutionCoreNumPorts;
+	
 	public int IntALUNum;
 	public int IntMulNum;
 	public int IntDivNum;
 	public int FloatALUNum;
 	public int FloatMulNum;
 	public int FloatDivNum;
+	public int JumpNum;
+	public int MemoryNum;
 	
 	public int IntALULatency;
 	public int IntMulLatency;
@@ -74,6 +78,8 @@ public class CoreConfig
 	public int FloatALULatency;
 	public int FloatMulLatency;
 	public int FloatDivLatency;
+	public int JumpLatency;
+	public int MemoryLatency;
 	
 	public int IntALUReciprocalOfThroughput;
 	public int IntMulReciprocalOfThroughput;
@@ -81,6 +87,17 @@ public class CoreConfig
 	public int FloatALUReciprocalOfThroughput;
 	public int FloatMulReciprocalOfThroughput;
 	public int FloatDivReciprocalOfThroughput;
+	public int JumpReciprocalOfThroughput;
+	public int MemoryReciprocalOfThroughput;
+	
+	public int[] IntALUPortNumbers;
+	public int[] IntMulPortNumbers;
+	public int[] IntDivPortNumbers;
+	public int[] FloatALUPortNumbers;
+	public int[] FloatMulPortNumbers;
+	public int[] FloatDivPortNumbers;
+	public int[] JumpPortNumbers;
+	public int[] MemoryPortNumbers;
 	
 	public Vector<CacheConfig> coreCacheList = new Vector<CacheConfig>();
 

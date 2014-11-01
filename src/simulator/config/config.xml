@@ -202,39 +202,82 @@
 				
 			</RegisterFile>
 			
+			<ExecutionCoreNumPorts>6</ExecutionCoreNumPorts>
+			
 			<IntALU>
-				<IntALUNum>4</IntALUNum>				<!--Number of Integer ALUs-->
-				<IntALULatency>1</IntALULatency>		<!--Latency of Integer ALUs-->
-				<IntALUReciprocalOfThroughput>1</IntALUReciprocalOfThroughput>
+				<Num>3</Num>				<!--Number of Integer ALUs-->
+				<Latency>1</Latency>		<!--Latency of Integer ALUs-->
+				<ReciprocalOfThroughput>1</ReciprocalOfThroughput>
+				<PortNumber>0</PortNumber>
+				<PortNumber>1</PortNumber>
+				<PortNumber>5</PortNumber>
 				<LeakageEnergy>0.0542</LeakageEnergy>
 				<DynamicEnergy>0.3257</DynamicEnergy>			
 			</IntALU>
 			
+			<IntMul>
+				<Num>1</Num>
+				<Latency>3</Latency>
+				<ReciprocalOfThroughput>1</ReciprocalOfThroughput>
+				<PortNumber>1</PortNumber>
+				<LeakageEnergy>0.0271</LeakageEnergy>
+				<DynamicEnergy>0.6514</DynamicEnergy>			
+			</IntMul>
+			
+			<IntDiv>
+				<Num>1</Num>
+				<Latency>21</Latency>
+				<ReciprocalOfThroughput>12</ReciprocalOfThroughput>
+				<PortNumber>0</PortNumber>
+				<LeakageEnergy>0.0271</LeakageEnergy>
+				<DynamicEnergy>0.6514</DynamicEnergy>			
+			</IntDiv>
+			
 			<FloatALU>
-				<FloatALUNum>2</FloatALUNum>			<!--Number of Floating Point ALUs-->
-				<FloatALULatency>2</FloatALULatency>		<!--Latency of Floating Point ALUs-->
-				<FloatALUReciprocalOfThroughput>1</FloatALUReciprocalOfThroughput>
+				<Num>1</Num>
+				<Latency>3</Latency>
+				<ReciprocalOfThroughput>1</ReciprocalOfThroughput>
+				<PortNumber>1</PortNumber>
 				<LeakageEnergy>0.0654</LeakageEnergy>
 				<DynamicEnergy>0.5366</DynamicEnergy>			
 			</FloatALU>
 			
-			<ComplexALU>
-				<IntMulNum>1</IntMulNum>			<!--Number of Integer Multipliers-->
-				<IntDivNum>1</IntDivNum>			<!--Number of Integer Dividers-->
-				<FloatMulReciprocalOfThroughput>1</FloatMulReciprocalOfThroughput>
-				<FloatMulNum>1</FloatMulNum>			<!--Number of Floating Point Multipliers-->
-				<FloatDivNum>1</FloatDivNum>			<!--Number of Floating Point Dividers-->
-				<IntMulLatency>2</IntMulLatency>		<!--Latency of Integer Multipliers-->
-				<IntDivLatency>4</IntDivLatency>		<!--Latency of Integer Dividers-->
-				<FloatMulLatency>4</FloatMulLatency>		<!--Latency of Floating Point Multipliers-->
-				<FloatDivLatency>8</FloatDivLatency>		<!--Latency of Floating Point Dividers-->
-				<IntMulReciprocalOfThroughput>1</IntMulReciprocalOfThroughput>
-				<IntDivReciprocalOfThroughput>1</IntDivReciprocalOfThroughput>
-				<FloatMulReciprocalOfThroughput>1</FloatMulReciprocalOfThroughput>
-				<FloatDivReciprocalOfThroughput>1</FloatDivReciprocalOfThroughput>
+			<FloatMul>
+				<Num>1</Num>
+				<Latency>5</Latency>
+				<ReciprocalOfThroughput>1</ReciprocalOfThroughput>
+				<PortNumber>0</PortNumber>
 				<LeakageEnergy>0.0271</LeakageEnergy>
-				<DynamicEnergy>0.6514</DynamicEnergy>
-			</ComplexALU>
+				<DynamicEnergy>0.6514</DynamicEnergy>			
+			</FloatMul>
+			
+			<FloatDiv>
+				<Num>1</Num>
+				<Latency>24</Latency>
+				<ReciprocalOfThroughput>12</ReciprocalOfThroughput>
+				<PortNumber>0</PortNumber>
+				<LeakageEnergy>0.0271</LeakageEnergy>
+				<DynamicEnergy>0.6514</DynamicEnergy>			
+			</FloatDiv>
+			
+			<Jump>
+				<Num>1</Num>
+				<Latency>1</Latency>
+				<ReciprocalOfThroughput>1</ReciprocalOfThroughput>
+				<PortNumber>5</PortNumber>
+				<LeakageEnergy>0.0271</LeakageEnergy>
+				<DynamicEnergy>0.6514</DynamicEnergy>			
+			</Jump>
+			
+			<Memory>
+				<Num>2</Num>
+				<Latency>1</Latency>
+				<ReciprocalOfThroughput>1</ReciprocalOfThroughput>
+				<PortNumber>2</PortNumber>
+				<PortNumber>3</PortNumber>
+				<LeakageEnergy>0.0271</LeakageEnergy>
+				<DynamicEnergy>0.6514</DynamicEnergy>			
+			</Memory>
 			
 			<ResultsBroadcastBus>
 				<LeakageEnergy>0.0239</LeakageEnergy>

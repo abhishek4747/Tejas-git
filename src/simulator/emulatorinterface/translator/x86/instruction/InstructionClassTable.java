@@ -348,7 +348,7 @@ public class InstructionClassTable {
 			instructionClassTable.put(floatingPointDivision[i],
 					InstructionClass.FLOATING_POINT_DIVISION);
 
-		String floatingPointALU[] = "fadd|faddp|fiadd|fiaddp|fsub|fsubp|fsubr|fsubrp|fisub|fisubr|fisubrp|addsd|subsd"
+		String floatingPointALU[] = "fadd|faddp|fiadd|fiaddp|fsub|fsubp|fsubr|fsubrp|fisub|fisubr|fisubrp|addsd|subsd|unpcklps"
 				.split("\\|");
 		for (int i = 0; i < floatingPointALU.length; i++)
 			instructionClassTable.put(floatingPointALU[i],

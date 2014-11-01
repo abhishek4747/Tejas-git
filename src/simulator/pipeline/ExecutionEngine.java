@@ -31,6 +31,7 @@ public abstract class ExecutionEngine {
 	protected boolean executionComplete;
 	protected boolean executionBegun;
 	protected CoreMemorySystem coreMemorySystem;
+	protected ExecutionCore executionCore;
 
 	private long instructionMemStall;
 	
@@ -45,6 +46,8 @@ public abstract class ExecutionEngine {
 		instructionMemStall=0;
 		
 		CoreConfig coreConfig = SystemConfig.core[containingCore.getCore_number()];
+		
+		executionCore = new ExecutionCore(containingCore);
 		
 		if(coreConfig.branchPredictor.predictorMode == BP.NoPredictor)
 			this.branchPredictor = new NoPredictor(this);
@@ -86,6 +89,10 @@ public abstract class ExecutionEngine {
 
 	public void setExecutionComplete(boolean executionComplete) {
 		this.executionComplete = executionComplete;
+	}
+
+	public ExecutionCore getExecutionCore() {
+		return executionCore;
 	}
 
 	public boolean isExecutionComplete() {

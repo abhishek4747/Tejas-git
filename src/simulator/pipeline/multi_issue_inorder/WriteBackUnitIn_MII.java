@@ -35,7 +35,7 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 	
 	public WriteBackUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine)
 	{
-		super(PortType.Unlimited, core.getNoOfRegFilePorts(), -1 , -1, -1);
+		super(PortType.Unlimited, -1, -1 , -1, -1);
 		this.core = core;
 		containingExecutionEngine = execEngine;
 		memWbLatch = execEngine.getMemWbLatch();
