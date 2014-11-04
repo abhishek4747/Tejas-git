@@ -298,7 +298,7 @@ public class InstructionClassTable {
 		for (int i = 0; i < call.length; i++)
 			instructionClassTable.put(call[i], InstructionClass.CALL);
 
-		String nop[] = "nop".split("\\|");
+		String nop[] = "nop|nopl|fnop|nopw".split("\\|");
 		for (int i = 0; i < nop.length; i++)
 			instructionClassTable.put(nop[i], InstructionClass.NOP);
 
@@ -348,7 +348,7 @@ public class InstructionClassTable {
 			instructionClassTable.put(floatingPointDivision[i],
 					InstructionClass.FLOATING_POINT_DIVISION);
 
-		String floatingPointALU[] = "fadd|faddp|fiadd|fiaddp|fsub|fsubp|fsubr|fsubrp|fisub|fisubr|fisubrp|addsd|subsd|unpcklps"
+		String floatingPointALU[] = "fadd|faddp|fiadd|fiaddp|fsub|fsubp|fsubr|fsubrp|fisub|fisubr|fisubrp|addsd|subsd|unpcklps|ucomisd"
 				.split("\\|");
 		for (int i = 0; i < floatingPointALU.length; i++)
 			instructionClassTable.put(floatingPointALU[i],
@@ -401,7 +401,7 @@ public class InstructionClassTable {
 			instructionClassTable.put(repeat[i], InstructionClass.REPEAT);
 
 		// TODO SSE Instructions
-		String SSEMove[] = "movaps|movapd|movups|movupd|movhps|movhpd|movhlps|movlpd|movlhps|movlhpd|movlps|movlpd|movmskps|movmskpd|movss|movsd|movdqa|movdqu|movq2dq|movdq2q"
+		String SSEMove[] = "movaps|movapd|movups|movupd|movhps|movhpd|movhlps|movlpd|movlhps|movlhpd|movlps|movlpd|movmskps|movmskpd|movss|movsd|movdqa|movdqu|movq2dq|movdq2q|movq"
 				.split("\\|");
 		for (int i = 0; i < SSEMove.length; i++)
 			instructionClassTable.put(SSEMove[i], InstructionClass.SSE_MOVE);
