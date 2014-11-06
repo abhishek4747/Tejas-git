@@ -5,11 +5,11 @@ import java.io.IOException;
 
 import config.EnergyConfig;
 import config.SimulationConfig;
-import pipeline.outoforder.OpTypeToFUTypeMapping;
+import pipeline.FunctionalUnitType;
+import pipeline.OpTypeToFUTypeMapping;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.FunctionalUnitType;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
@@ -60,6 +60,8 @@ public class DecodeUnit_MII extends SimulationElement{
 			return;
 		}
 		
+		containingExecutionEngine.getExecutionCore().clearPortUsage();
+		
 		Instruction ins = null;
 				
 		while(ifIdLatch.isEmpty() == false
@@ -80,13 +82,10 @@ public class DecodeUnit_MII extends SimulationElement{
 				
 				//check for structural hazards
 				long FURequest = 0;
-				if(OpTypeToFUTypeMapping.getFUType(ins.getOperationType()) != FunctionalUnitType.inValid
-						&& OpTypeToFUTypeMapping.getFUType(ins.getOperationType()) != FunctionalUnitType.memory)
+				if(OpTypeToFUTypeMapping.getFUType(ins.getOperationType()) != FunctionalUnitType.inValid)
 				{
-					FURequest = containingExecutionEngine.getFunctionalUnitSet().requestFU(
-							OpTypeToFUTypeMapping.getFUType(ins.getOperationType()),
-							GlobalClock.getCurrentTime() + 1,
-							core.getStepSize() );
+					FURequest = containingExecutionEngine.getExecutionCore().requestFU(
+							OpTypeToFUTypeMapping.getFUType(ins.getOperationType()));
 				
 					if(FURequest > 0)
 					{
@@ -97,32 +96,33 @@ public class DecodeUnit_MII extends SimulationElement{
 				incrementNumDecodes(1);
    				
 				//add destination register of ins to list of outstanding registers
-				if(ins.getDestinationOperand() != null)
+				if(ins.getOperationType() == OperationType.load)
 				{
-					if(ins.getOperationType() == OperationType.load)
-					{
-						addToValueReadyArray(ins.getDestinationOperand(), Long.MAX_VALUE);
-					}
-					else if(ins.getOperationType() == OperationType.mov)
-					{
-						addToValueReadyArray(ins.getDestinationOperand(), GlobalClock.getCurrentTime() + 1);
-					}
-					else
-					{
-						addToValueReadyArray(ins.getDestinationOperand(),
-											GlobalClock.getCurrentTime()
-												+ containingExecutionEngine.getFunctionalUnitSet().getFULatency(
-														OpTypeToFUTypeMapping.getFUType(ins.getOperationType())));
-					}
+					addToValueReadyArray(ins.getDestinationOperand(), Long.MAX_VALUE);
 				}
-				
-				if(ins.getOperationType() == OperationType.xchg)
+				else if(ins.getOperationType() == OperationType.xchg)
 				{
-					addToValueReadyArray(ins.getSourceOperand1(), GlobalClock.getCurrentTime() + 1);
+					addToValueReadyArray(ins.getSourceOperand1(),
+							GlobalClock.getCurrentTime()
+								+ containingExecutionEngine.getExecutionCore().getFULatency(
+										OpTypeToFUTypeMapping.getFUType(ins.getOperationType())));
 					if(ins.getSourceOperand1().getValue() != ins.getSourceOperand2().getValue()
 							|| ins.getSourceOperand1().getOperandType() != ins.getSourceOperand2().getOperandType())
 					{
-						addToValueReadyArray(ins.getSourceOperand2(), GlobalClock.getCurrentTime() + 1);
+						addToValueReadyArray(ins.getSourceOperand2(),
+								GlobalClock.getCurrentTime()
+									+ containingExecutionEngine.getExecutionCore().getFULatency(
+											OpTypeToFUTypeMapping.getFUType(ins.getOperationType())));
+					}
+				}
+				else
+				{
+					if(ins.getDestinationOperand() != null)
+					{
+						addToValueReadyArray(ins.getDestinationOperand(),
+											GlobalClock.getCurrentTime()
+												+ containingExecutionEngine.getExecutionCore().getFULatency(
+														OpTypeToFUTypeMapping.getFUType(ins.getOperationType())));
 					}
 				}
 				

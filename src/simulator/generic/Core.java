@@ -10,6 +10,7 @@ import memorysystem.nuca.NucaCache;
 import net.BusInterface;
 import net.NocInterface;
 import pipeline.ExecutionEngine;
+import pipeline.FunctionalUnitType;
 import pipeline.multi_issue_inorder.InorderCoreMemorySystem_MII;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
@@ -30,60 +31,13 @@ import config.SystemConfig;
 public class Core extends SimulationElement{
 	
 	//long clock;
-	public static NucaCache nucaCache;
+	CoreConfig coreConfig;
 	Port port;
 	int stepSize;
 	long frequency;
 	ExecutionEngine execEngine;
 	public EventQueue eventQueue;
-	public int currentThreads;
-		
-	public boolean isPipelineInOrder() {
-		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.inOrder);
-	}
-	
-	public boolean isPipelineOutOfOrder() {
-		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.outOfOrder);
-	}
-	
-
-	//core parameters
-	private int decodeWidth;
-	private int issueWidth;
-	private int retireWidth;
-	private int reorderBufferSize;
-	private int IWSize;
-	private int integerRegisterFileSize;
-	private int floatingPointRegisterFileSize;
-	private int nIntegerArchitecturalRegisters;
-	private int nFloatingPointArchitecturalRegisters;
-	private int nMachineSpecificRegisters;
-	private int noOfRegFilePorts;
-	private int regFileOccupancy;
-	private int branchMispredictionPenalty;
-	private int[] nUnits;
-	private int[] latencies;
-	private int[] reciprocalOfThroughputs;
-	
-	//core power parameters
-	private EnergyConfig bPredPower;
-	private EnergyConfig decodePower;
-	private EnergyConfig intRATPower;
-	private EnergyConfig floatRATPower;
-	private EnergyConfig intFreeListPower;
-	private EnergyConfig floatFreeListPower;
-	private EnergyConfig lsqPower;
-	private EnergyConfig intRegFilePower;
-	private EnergyConfig floatRegFilePower;
-	private EnergyConfig iwPower;
-	private EnergyConfig robPower;
-	private EnergyConfig intALUPower;
-	private EnergyConfig floatALUPower;
-	private EnergyConfig complexALUPower;
-	private EnergyConfig resultsBroadcastBusPower;
-	private EnergyConfig iTLBPower;
-	private EnergyConfig dTLBPower;
-	
+	public int currentThreads;	
 	private int core_number;
 	private int no_of_input_pipes;
 	private int no_of_threads;
@@ -112,10 +66,11 @@ public class Core extends SimulationElement{
 	{
 		super(PortType.Unlimited, -1, -1, -1, SystemConfig.core[core_number].frequency);	
 
-		this.eventQueue = new EventQueue();
-		this.frequency = SystemConfig.core[core_number].frequency;
-		initializeCoreParameters(SystemConfig.core[core_number]);
+		coreConfig = SystemConfig.core[core_number];
 		
+		this.eventQueue = new EventQueue();
+		this.frequency = coreConfig.frequency;
+				
 		this.core_number = core_number;
 		this.no_of_input_pipes = no_of_input_pipes;
 		this.no_of_threads = no_of_threads;
@@ -127,7 +82,7 @@ public class Core extends SimulationElement{
 
 		// Create execution engine
 		if(this.isPipelineInOrder()) {
-			this.execEngine = new MultiIssueInorderExecutionEngine(this, issueWidth);
+			this.execEngine = new MultiIssueInorderExecutionEngine(this, coreConfig.IssueWidth);
 		} else if (isPipelineOutOfOrder()){
 			this.execEngine = new OutOrderExecutionEngine(this);
 		} else {
@@ -158,77 +113,6 @@ public class Core extends SimulationElement{
 		
 		this.execEngine.setCoreMemorySystem(coreMemSys);
 		ArchitecturalComponent.coreMemSysArray.add(coreMemSys);
-		
-		setPowerConfigs();
-	}
-	
-	private void setPowerConfigs()
-	{
-		CoreConfig coreConfig = SystemConfig.core[getCore_number()];
-		bPredPower = coreConfig.bPredPower;
-		decodePower = coreConfig.decodePower;
-		intRATPower = coreConfig.intRATPower;
-		floatRATPower = coreConfig.floatRATPower;
-		intFreeListPower = coreConfig.intFreeListPower;
-		floatFreeListPower = coreConfig.floatFreeListPower;
-		lsqPower = coreConfig.lsqPower;
-		intRegFilePower = coreConfig.intRegFilePower;
-		floatRegFilePower = coreConfig.floatRegFilePower;
-		iwPower = coreConfig.iwPower;
-		robPower = coreConfig.robPower;
-		intALUPower = coreConfig.intALUPower;
-		floatALUPower = coreConfig.floatALUPower;
-		complexALUPower = coreConfig.complexALUPower;
-		resultsBroadcastBusPower = coreConfig.resultsBroadcastBusPower;
-		iTLBPower = coreConfig.iTLBPower;
-		dTLBPower = coreConfig.dTLBPower;
-	}
-	
-	private void initializeCoreParameters(CoreConfig coreConfig)
-	{
-		//TODO parameters to be set according to contents of an XML configuration file
-		setDecodeWidth(coreConfig.DecodeWidth);
-		setIssueWidth(coreConfig.IssueWidth);
-		setRetireWidth(coreConfig.RetireWidth);
-		setReorderBufferSize(coreConfig.ROBSize);
-		setIWSize(coreConfig.IWSize);
-		setIntegerRegisterFileSize(coreConfig.IntRegFileSize);
-		setFloatingPointRegisterFileSize(coreConfig.FloatRegFileSize);
-		setNIntegerArchitecturalRegisters(coreConfig.IntArchRegNum);
-		setNFloatingPointArchitecturalRegisters(coreConfig.FloatArchRegNum);
-		
-		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
-		setBranchMispredictionPenalty(coreConfig.BranchMispredPenalty);
-		setNumInorderPipelines(coreConfig.IssueWidth);
-		setTreeBarrier(coreConfig.TreeBarrier);
-		setBarrierLatency(coreConfig.barrierLatency);
-		setBarrierUnit(coreConfig.barrierUnit);
-		
-		nUnits = new int[FunctionalUnitType.no_of_types.ordinal()];
-		latencies = new int[FunctionalUnitType.no_of_types.ordinal()];
-					// +2 because memory unit has L1 latency, L2 latency, main memory latency
-		reciprocalOfThroughputs = new int[FunctionalUnitType.no_of_types.ordinal()];
-		
-		nUnits[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALUNum;
-		nUnits[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulNum;
-		nUnits[FunctionalUnitType.integerDiv.ordinal()] = coreConfig.IntDivNum;
-		nUnits[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALUNum;
-		nUnits[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulNum;
-		nUnits[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivNum;
-		
-		latencies[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALULatency;
-		latencies[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulLatency;
-		latencies[FunctionalUnitType.integerDiv.ordinal()] = coreConfig.IntDivLatency;
-		latencies[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALULatency;
-		latencies[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulLatency;
-		latencies[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivLatency;
-		
-		reciprocalOfThroughputs[FunctionalUnitType.integerALU.ordinal()] = coreConfig.IntALUReciprocalOfThroughput;
-		reciprocalOfThroughputs[FunctionalUnitType.integerMul.ordinal()] = coreConfig.IntMulReciprocalOfThroughput;
-		reciprocalOfThroughputs[FunctionalUnitType.integerDiv.ordinal()] = coreConfig.IntDivReciprocalOfThroughput;
-		reciprocalOfThroughputs[FunctionalUnitType.floatALU.ordinal()] = coreConfig.FloatALUReciprocalOfThroughput;
-		reciprocalOfThroughputs[FunctionalUnitType.floatMul.ordinal()] = coreConfig.FloatMulReciprocalOfThroughput;
-		reciprocalOfThroughputs[FunctionalUnitType.floatDiv.ordinal()] = coreConfig.FloatDivReciprocalOfThroughput;
 	}
 	
 	/*public void boot()
@@ -258,6 +142,14 @@ public class Core extends SimulationElement{
 		this.clock++;
 	}*/
 	
+	public boolean isPipelineInOrder() {
+		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.inOrder);
+	}
+	
+	public boolean isPipelineOutOfOrder() {
+		return (SystemConfig.core[this.core_number].pipelineType==PipelineType.outOfOrder);
+	}
+	
 	private void setBarrierLatency(int barrierLatency) {
 		this.barrier_latency = barrierLatency;
 		
@@ -277,8 +169,9 @@ public class Core extends SimulationElement{
 	{
 		TreeBarrier = bar;
 	}
+	
 	public int getIssueWidth() {
-		return issueWidth;
+		return coreConfig.IssueWidth;
 	}
 
 	public int getNumInorderPipelines() {
@@ -289,16 +182,8 @@ public class Core extends SimulationElement{
 		this.numInorderPipelines = numInorderPipelines;
 	}
 
-	public void setIssueWidth(int issueWidth) {
-		this.issueWidth = issueWidth;
-	}
-
 	public int getRetireWidth() {
-		return retireWidth;
-	}
-
-	public void setRetireWidth(int retireWidth) {
-		this.retireWidth = retireWidth;
+		return coreConfig.RetireWidth;
 	}
 
 	public EventQueue getEventQueue() {
@@ -314,96 +199,35 @@ public class Core extends SimulationElement{
 	}
 
 	public int getBranchMispredictionPenalty() {
-		return branchMispredictionPenalty;
-	}
-
-	public void setBranchMispredictionPenalty(int branchMispredictionPenalty) {
-		this.branchMispredictionPenalty = branchMispredictionPenalty;
+		return coreConfig.BranchMispredPenalty;
 	}
 
 	public int getDecodeWidth() {
-		return decodeWidth;
-	}
-
-	public void setDecodeWidth(int decodeWidth) {
-		this.decodeWidth = decodeWidth;
+		return coreConfig.DecodeWidth;
 	}
 
 	public int getFloatingPointRegisterFileSize() {
-		return floatingPointRegisterFileSize;
-	}
-
-	public void setFloatingPointRegisterFileSize(int floatingPointRegisterFileSize) {
-		this.floatingPointRegisterFileSize = floatingPointRegisterFileSize;
+		return coreConfig.FloatRegFileSize;
 	}
 
 	public int getIntegerRegisterFileSize() {
-		return integerRegisterFileSize;
-	}
-
-	public void setIntegerRegisterFileSize(int integerRegisterFileSize) {
-		this.integerRegisterFileSize = integerRegisterFileSize;
+		return coreConfig.IntRegFileSize;
 	}
 
 	public int getNFloatingPointArchitecturalRegisters() {
-		return nFloatingPointArchitecturalRegisters;
-	}
-
-	public void setNFloatingPointArchitecturalRegisters(
-			int floatingPointArchitecturalRegisters) {
-		nFloatingPointArchitecturalRegisters = floatingPointArchitecturalRegisters;
+		return coreConfig.FloatArchRegNum;
 	}
 
 	public int getNIntegerArchitecturalRegisters() {
-		return nIntegerArchitecturalRegisters;
-	}
-
-	public void setNIntegerArchitecturalRegisters(int integerArchitecturalRegisters) {
-		nIntegerArchitecturalRegisters = integerArchitecturalRegisters;
-	}
-
-	public int getNMachineSpecificRegisters() {
-		return nMachineSpecificRegisters;
-	}
-
-	public void setNMachineSpecificRegisters(int machineSpecificRegisters) {
-		nMachineSpecificRegisters = machineSpecificRegisters;
+		return coreConfig.IntArchRegNum;
 	}
 
 	public int getReorderBufferSize() {
-		return reorderBufferSize;
-	}
-
-	public void setReorderBufferSize(int reorderBufferSize) {
-		this.reorderBufferSize = reorderBufferSize;
-	}
-	
-	public int[] getAllNUnits()
-	{
-		return nUnits;
-	}
-	
-	public int[] getAllLatencies()
-	{
-		return latencies;
-	}
-	
-	public int getLatency(int FUType)
-	{
-		return latencies[FUType];
-	}
-	
-	public int[] getAllReciprocalsOfThroughputs()
-	{
-		return reciprocalOfThroughputs;
+		return coreConfig.ROBSize;
 	}
 
 	public int getIWSize() {
-		return IWSize;
-	}
-
-	public void setIWSize(int size) {
-		IWSize = size;
+		return coreConfig.IWSize;
 	}
 	
 	public int[] getThreadIDs() {
@@ -421,22 +245,6 @@ public class Core extends SimulationElement{
 	public int getCore_number() {
 		return core_number;
 	}
-
-	public int getNoOfRegFilePorts() {
-		return noOfRegFilePorts;
-	}
-
-	public void setNoOfRegFilePorts(int noOfRegFilePorts) {
-		this.noOfRegFilePorts = noOfRegFilePorts;
-	}
-
-	public int getRegFileOccupancy() {
-		return regFileOccupancy;
-	}
-
-	public void setRegFileOccupancy(int regFileOccupancy) {
-		this.regFileOccupancy = regFileOccupancy;
-	}
 	
 	public long getNoOfInstructionsExecuted() {
 		return noOfInstructionsExecuted;
@@ -451,20 +259,10 @@ public class Core extends SimulationElement{
 		this.noOfInstructionsExecuted++;
 	}
 	
-	
-//	public InorderPipeline getInorderPipeline(){
-//		return this.inorderPipeline;
-//	}
-	
-	
-
-	
 	public pipeline.PipelineInterface getPipelineInterface() {
 		return pipelineInterface;
 	}
-//	public void setInorderPipeline(InorderPipeline _inorderPipeline){
-//		this.inorderPipeline = _inorderPipeline;
-//	}
+	
 	public void setPipelineInterface(OutOfOrderPipeline pipelineInterface) {
 		this.pipelineInterface = pipelineInterface;
 	}
@@ -506,141 +304,74 @@ public class Core extends SimulationElement{
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) 
 	{
-	}	
-	public EnergyConfig getbPredPower() {
-		return bPredPower;
 	}
-
-	public void setbPredPower(EnergyConfig bPredPower) {
-		this.bPredPower = bPredPower;
+	
+	public EnergyConfig getbPredPower() {
+		return coreConfig.bPredPower;
 	}
 
 	public EnergyConfig getDecodePower() {
-		return decodePower;
-	}
-
-	public void setDecodePower(EnergyConfig decodePower) {
-		this.decodePower = decodePower;
+		return coreConfig.decodePower;
 	}
 
 	public EnergyConfig getIntRATPower() {
-		return intRATPower;
-	}
-
-	public void setIntRATPower(EnergyConfig intRATPower) {
-		this.intRATPower = intRATPower;
+		return coreConfig.intRATPower;
 	}
 
 	public EnergyConfig getFpRATPower() {
-		return floatRATPower;
-	}
-
-	public void setFpRATPower(EnergyConfig fpRATPower) {
-		this.floatRATPower = fpRATPower;
+		return coreConfig.floatRATPower;
 	}
 
 	public EnergyConfig getIntFreeListPower() {
-		return intFreeListPower;
-	}
-
-	public void setIntFreeListPower(EnergyConfig intFreeListPower) {
-		this.intFreeListPower = intFreeListPower;
+		return coreConfig.intFreeListPower;
 	}
 
 	public EnergyConfig getFpFreeListPower() {
-		return floatFreeListPower;
-	}
-
-	public void setFpFreeListPower(EnergyConfig fpFreeListPower) {
-		this.floatFreeListPower = fpFreeListPower;
+		return coreConfig.floatFreeListPower;
 	}
 
 	public EnergyConfig getLsqPower() {
-		return lsqPower;
-	}
-
-	public void setLsqPower(EnergyConfig lsqPower) {
-		this.lsqPower = lsqPower;
+		return coreConfig.lsqPower;
 	}
 
 	public EnergyConfig getIntRegFilePower() {
-		return intRegFilePower;
-	}
-
-	public void setIntRegFilePower(EnergyConfig intRegFilePower) {
-		this.intRegFilePower = intRegFilePower;
+		return coreConfig.intRegFilePower;
 	}
 
 	public EnergyConfig getFpRegFilePower() {
-		return floatRegFilePower;
-	}
-
-	public void setFpRegFilePower(EnergyConfig fpRegFilePower) {
-		this.floatRegFilePower = fpRegFilePower;
+		return coreConfig.floatRegFilePower;
 	}
 
 	public EnergyConfig getIwPower() {
-		return iwPower;
-	}
-
-	public void setIwPower(EnergyConfig iwPower) {
-		this.iwPower = iwPower;
+		return coreConfig.iwPower;
 	}
 
 	public EnergyConfig getRobPower() {
-		return robPower;
-	}
-
-	public void setRobPower(EnergyConfig robPower) {
-		this.robPower = robPower;
+		return coreConfig.robPower;
 	}
 
 	public EnergyConfig getIntALUPower() {
-		return intALUPower;
-	}
-
-	public void setIntALUPower(EnergyConfig intALUPower) {
-		this.intALUPower = intALUPower;
+		return coreConfig.intALUPower;
 	}
 
 	public EnergyConfig getFloatALUPower() {
-		return floatALUPower;
-	}
-
-	public void setFloatALUPower(EnergyConfig floatALUPower) {
-		this.floatALUPower = floatALUPower;
+		return coreConfig.floatALUPower;
 	}
 
 	public EnergyConfig getComplexALUPower() {
-		return complexALUPower;
-	}
-
-	public void setComplexALUPower(EnergyConfig complexALUPower) {
-		this.complexALUPower = complexALUPower;
+		return coreConfig.complexALUPower;
 	}
 
 	public EnergyConfig getResultsBroadcastBusPower() {
-		return resultsBroadcastBusPower;
-	}
-
-	public void setResultsBroadcastBusPower(EnergyConfig resultsBroadcastBusPower) {
-		this.resultsBroadcastBusPower = resultsBroadcastBusPower;
+		return coreConfig.resultsBroadcastBusPower;
 	}
 
 	public EnergyConfig getiTLBPower() {
-		return iTLBPower;
-	}
-
-	public void setiTLBPower(EnergyConfig iTLBPower) {
-		this.iTLBPower = iTLBPower;
+		return coreConfig.iTLBPower;
 	}
 
 	public EnergyConfig getdTLBPower() {
-		return dTLBPower;
-	}
-
-	public void setdTLBPower(EnergyConfig dTLBPower) {
-		this.dTLBPower = dTLBPower;
+		return coreConfig.dTLBPower;
 	}
 
 	public void setComInterface(CommunicationInterface comInterface) {

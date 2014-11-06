@@ -37,6 +37,8 @@ public class SelectLogic extends SimulationElement {
 			return;
 		}
 		
+		execEngine.getExecutionCore().clearPortUsage();
+		
 		int noIssued = 0;
 		int i;
 		ReorderBufferEntry ROBEntry;

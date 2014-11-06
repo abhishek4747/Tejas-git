@@ -481,32 +481,91 @@ public class XMLParser
 			core.FloatArchRegNum = Integer.parseInt(getImmediateString("FloatArchRegNum", floatRegisterFileElmnt));
 			core.floatRegFilePower = getEnergyConfig(floatRegisterFileElmnt);
 			
-			Element intALUElmnt = (Element)(coreElmnt.getElementsByTagName("IntALU")).item(0);
-			core.IntALUNum = Integer.parseInt(getImmediateString("IntALUNum", intALUElmnt));
-			core.IntALULatency = Integer.parseInt(getImmediateString("IntALULatency", intALUElmnt));
-			core.IntALUReciprocalOfThroughput = Integer.parseInt(getImmediateString("IntALUReciprocalOfThroughput", intALUElmnt));
-			core.intALUPower = getEnergyConfig(intALUElmnt);
-
-			Element floatALUElmnt = (Element)(coreElmnt.getElementsByTagName("FloatALU")).item(0);
-			core.FloatALUNum = Integer.parseInt(getImmediateString("FloatALUNum", floatALUElmnt));
-			core.FloatALULatency = Integer.parseInt(getImmediateString("FloatALULatency", floatALUElmnt));
-			core.FloatALUReciprocalOfThroughput = Integer.parseInt(getImmediateString("FloatALUReciprocalOfThroughput", floatALUElmnt));
-			core.floatALUPower = getEnergyConfig(floatALUElmnt);
+			core.ExecutionCoreNumPorts = Integer.parseInt(coreElmnt.getElementsByTagName("ExecutionCoreNumPorts").item(0).getFirstChild().getNodeValue());
 			
-			Element complexALUElmnt = (Element)(coreElmnt.getElementsByTagName("ComplexALU")).item(0);
-			core.IntMulNum = Integer.parseInt(getImmediateString("IntMulNum", complexALUElmnt));
-			core.IntDivNum = Integer.parseInt(getImmediateString("IntDivNum", complexALUElmnt));
-			core.FloatMulNum = Integer.parseInt(getImmediateString("FloatMulNum", complexALUElmnt));
-			core.FloatDivNum = Integer.parseInt(getImmediateString("FloatDivNum", complexALUElmnt));
-			core.IntMulLatency = Integer.parseInt(getImmediateString("IntMulLatency", complexALUElmnt));
-			core.IntDivLatency = Integer.parseInt(getImmediateString("IntDivLatency", complexALUElmnt));
-			core.FloatMulLatency = Integer.parseInt(getImmediateString("FloatMulLatency", complexALUElmnt));
-			core.FloatDivLatency = Integer.parseInt(getImmediateString("FloatDivLatency", complexALUElmnt));
-			core.IntMulReciprocalOfThroughput = Integer.parseInt(getImmediateString("IntMulReciprocalOfThroughput", complexALUElmnt));
-			core.IntDivReciprocalOfThroughput = Integer.parseInt(getImmediateString("IntDivReciprocalOfThroughput", complexALUElmnt));
-			core.FloatMulReciprocalOfThroughput = Integer.parseInt(getImmediateString("FloatMulReciprocalOfThroughput", complexALUElmnt));
-			core.FloatDivReciprocalOfThroughput = Integer.parseInt(getImmediateString("FloatDivReciprocalOfThroughput", complexALUElmnt));
-			core.complexALUPower = getEnergyConfig(complexALUElmnt);
+			Element intALUElmnt = (Element)(coreElmnt.getElementsByTagName("IntALU")).item(0);
+			core.IntALUNum = Integer.parseInt(getImmediateString("Num", intALUElmnt));
+			core.IntALULatency = Integer.parseInt(getImmediateString("Latency", intALUElmnt));
+			core.IntALUReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", intALUElmnt));
+			core.IntALUPortNumbers = new int[core.IntALUNum];
+			for(int j = 0; j < core.IntALUNum; j++)
+			{
+				core.IntALUPortNumbers[j] = Integer.parseInt(intALUElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			Element intMulElmnt = (Element)(coreElmnt.getElementsByTagName("IntMul")).item(0);
+			core.IntMulNum = Integer.parseInt(getImmediateString("Num", intMulElmnt));
+			core.IntMulLatency = Integer.parseInt(getImmediateString("Latency", intMulElmnt));
+			core.IntMulReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", intMulElmnt));
+			core.IntMulPortNumbers = new int[core.IntMulNum];
+			for(int j = 0; j < core.IntMulNum; j++)
+			{
+				core.IntMulPortNumbers[j] = Integer.parseInt(intMulElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			Element intDivElmnt = (Element)(coreElmnt.getElementsByTagName("IntDiv")).item(0);
+			core.IntDivNum = Integer.parseInt(getImmediateString("Num", intDivElmnt));
+			core.IntDivLatency = Integer.parseInt(getImmediateString("Latency", intDivElmnt));
+			core.IntDivReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", intDivElmnt));
+			core.IntDivPortNumbers = new int[core.IntDivNum];
+			for(int j = 0; j < core.IntDivNum; j++)
+			{
+				core.IntDivPortNumbers[j] = Integer.parseInt(intDivElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			Element floatALUElmnt = (Element)(coreElmnt.getElementsByTagName("FloatALU")).item(0);
+			core.FloatALUNum = Integer.parseInt(getImmediateString("Num", floatALUElmnt));
+			core.FloatALULatency = Integer.parseInt(getImmediateString("Latency", floatALUElmnt));
+			core.FloatALUReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", floatALUElmnt));
+			core.FloatALUPortNumbers = new int[core.FloatALUNum];
+			for(int j = 0; j < core.FloatALUNum; j++)
+			{
+				core.FloatALUPortNumbers[j] = Integer.parseInt(floatALUElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			Element floatMulElmnt = (Element)(coreElmnt.getElementsByTagName("FloatMul")).item(0);
+			core.FloatMulNum = Integer.parseInt(getImmediateString("Num", floatMulElmnt));
+			core.FloatMulLatency = Integer.parseInt(getImmediateString("Latency", floatMulElmnt));
+			core.FloatMulReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", floatMulElmnt));
+			core.FloatMulPortNumbers = new int[core.FloatMulNum];
+			for(int j = 0; j < core.FloatMulNum; j++)
+			{
+				core.FloatMulPortNumbers[j] = Integer.parseInt(floatMulElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			Element floatDivElmnt = (Element)(coreElmnt.getElementsByTagName("FloatDiv")).item(0);
+			core.FloatDivNum = Integer.parseInt(getImmediateString("Num", floatDivElmnt));
+			core.FloatDivLatency = Integer.parseInt(getImmediateString("Latency", floatDivElmnt));
+			core.FloatDivReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", floatDivElmnt));
+			core.FloatDivPortNumbers = new int[core.FloatDivNum];
+			for(int j = 0; j < core.FloatDivNum; j++)
+			{
+				core.FloatDivPortNumbers[j] = Integer.parseInt(floatDivElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			Element jumpElmnt = (Element)(coreElmnt.getElementsByTagName("Jump")).item(0);
+			core.JumpNum = Integer.parseInt(getImmediateString("Num", jumpElmnt));
+			core.JumpLatency = Integer.parseInt(getImmediateString("Latency", jumpElmnt));
+			core.JumpReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", jumpElmnt));
+			core.JumpPortNumbers = new int[core.JumpNum];
+			for(int j = 0; j < core.JumpNum; j++)
+			{
+				core.JumpPortNumbers[j] = Integer.parseInt(jumpElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			Element memoryElmnt = (Element)(coreElmnt.getElementsByTagName("Memory")).item(0);
+			core.MemoryNum = Integer.parseInt(getImmediateString("Num", memoryElmnt));
+			core.MemoryLatency = Integer.parseInt(getImmediateString("Latency", memoryElmnt));
+			core.MemoryReciprocalOfThroughput = Integer.parseInt(getImmediateString("ReciprocalOfThroughput", memoryElmnt));
+			core.MemoryPortNumbers = new int[core.MemoryNum];
+			for(int j = 0; j < core.MemoryNum; j++)
+			{
+				core.MemoryPortNumbers[j] = Integer.parseInt(memoryElmnt.getElementsByTagName("PortNumber").item(j).getFirstChild().getNodeValue());
+			}
+			
+			core.intALUPower = getEnergyConfig(intALUElmnt);
+			core.floatALUPower = getEnergyConfig(floatALUElmnt);
+			core.complexALUPower = getEnergyConfig(intMulElmnt);
 						
 			//set Branch Predictor Parameters
 			core.branchPredictor = new BranchPredictorConfig();

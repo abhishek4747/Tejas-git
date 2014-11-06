@@ -3,15 +3,15 @@ package pipeline.multi_issue_inorder;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import pipeline.FunctionalUnitType;
+import pipeline.OpTypeToFUTypeMapping;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.StageLatch_MII;
-import pipeline.outoforder.OpTypeToFUTypeMapping;
 import config.EnergyConfig;
 import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.FunctionalUnitType;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.OperationType;
@@ -69,7 +69,7 @@ public class ExecUnitIn_MII extends SimulationElement{
 				if(FUType != FunctionalUnitType.memory
 						&& FUType != FunctionalUnitType.inValid)
 				{
-					lat = containingExecutionEngine.getFunctionalUnitSet().getFULatency(FUType);
+					lat = containingExecutionEngine.getExecutionCore().getFULatency(FUType);
 				}
 				/*
 				 * memory address computation for loads/stores happens in this cycle

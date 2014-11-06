@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import config.EnergyConfig;
 import memorysystem.CoreMemorySystem;
+import pipeline.ExecutionCore;
 import pipeline.ExecutionEngine;
 import generic.Core;
 import generic.GenericCircularQueue;
@@ -37,7 +38,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 	private RegisterFile floatingPointRegisterFile;
 	private RenameTable integerRenameTable;
 	private RenameTable floatingPointRenameTable;
-	private FunctionalUnitSet functionalUnitSet;
 
 	//Core-specific memory system (a set of LSQ, TLB and L1 cache)
 	private OutOrderCoreMemorySystem outOrderCoreMemorySystem;
@@ -78,10 +78,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		floatingPointRegisterFile = new RegisterFile(core, core.getFloatingPointRegisterFileSize());
 		floatingPointRenameTable = new RenameTable(this, core.getNFloatingPointArchitecturalRegisters(), core.getFloatingPointRegisterFileSize(), floatingPointRegisterFile, core.getNo_of_input_pipes());
 
-		functionalUnitSet = new FunctionalUnitSet(core, core.getAllNUnits(), core.getAllLatencies(),
-				core.getAllReciprocalsOfThroughputs());
-
-
 		fetchBuffer = new GenericCircularQueue(Instruction.class, core.getDecodeWidth());
 		fetcher = new FetchLogic(core, this);
 		decodeBuffer = new GenericCircularQueue(ReorderBufferEntry.class, core.getDecodeWidth());
@@ -120,10 +116,6 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 
 	public RenameTable getFloatingPointRenameTable() {
 		return floatingPointRenameTable;
-	}
-
-	public FunctionalUnitSet getFunctionalUnitSet() {
-		return functionalUnitSet;
 	}
 
 	public RegisterFile getIntegerRegisterFile() {
@@ -270,7 +262,7 @@ public class OutOrderExecutionEngine extends ExecutionEngine {
 		EnergyConfig robPower =  getReorderBuffer().calculateAndPrintEnergy(outputFileWriter, componentName + ".ROB");
 		totalPower.add(totalPower, robPower);
 
-		EnergyConfig fuPower =  getFunctionalUnitSet().calculateAndPrintEnergy(outputFileWriter, componentName + ".FuncUnit");
+		EnergyConfig fuPower =  getExecutionCore().calculateAndPrintEnergy(outputFileWriter, componentName + ".FuncUnit");
 		totalPower.add(totalPower, fuPower);
 
 		EnergyConfig resultsBroadcastBusPower =  getExecuter().calculateAndPrintEnergy(outputFileWriter, componentName + ".resultsBroadcastBus");

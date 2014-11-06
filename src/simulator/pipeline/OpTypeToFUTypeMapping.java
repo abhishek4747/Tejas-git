@@ -1,6 +1,5 @@
-package pipeline.outoforder;
+package pipeline;
 
-import generic.FunctionalUnitType;
 import generic.OperationType;
 
 /**
@@ -37,9 +36,15 @@ public class OpTypeToFUTypeMapping {
 									return FunctionalUnitType.memory;
 								}
 			case jump		:	{
-									return FunctionalUnitType.integerALU;
+									return FunctionalUnitType.jump;
 								}
 			case branch		:	{
+									return FunctionalUnitType.jump;
+								}
+			case mov		:	{
+									return FunctionalUnitType.integerALU;
+								}
+			case xchg		:	{
 									return FunctionalUnitType.integerALU;
 								}
 			default			:	{

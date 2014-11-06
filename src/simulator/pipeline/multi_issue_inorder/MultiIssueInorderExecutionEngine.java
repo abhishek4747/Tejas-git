@@ -6,7 +6,6 @@ import config.EnergyConfig;
 import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
-import pipeline.outoforder.FunctionalUnitSet;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
@@ -44,10 +43,8 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 	
 	long valueReadyInteger[];
 	long valueReadyFloat[];
-	long valueReadyMSR[];
 	
 	private int mispredStall;	//to simulate pipeline flush during branch misprediction
-	private FunctionalUnitSet functionalUnitSet;
 	StageLatch_MII ifIdLatch,idExLatch,exMemLatch,memWbLatch,wbDoneLatch;
 	
 	public int noOfOutstandingLoads = 0;
@@ -73,8 +70,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		this.setMemUnitIn(new MemUnitIn_MII(core,this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core,this));
 		this.executionComplete=false;
-		functionalUnitSet = new FunctionalUnitSet(core, core.getAllNUnits(),core.getAllLatencies(),
-				core.getAllReciprocalsOfThroughputs());
 		memStall=0;
 		dataHazardStall=0;
 		
@@ -88,7 +83,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		
 		valueReadyInteger = new long[core.getNIntegerArchitecturalRegisters()];
 		valueReadyFloat = new long[core.getNFloatingPointArchitecturalRegisters()];
-		valueReadyMSR = new long[core.getNMachineSpecificRegisters()];
 	}
 
 	public int getNumPipelines() {
@@ -97,14 +91,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 
 	public void setNumPipelines(int numPipelines) {
 		this.numPipelines = numPipelines;
-	}
-
-	public FunctionalUnitSet getFunctionalUnitSet() {
-		return functionalUnitSet;
-	}
-
-	public void setFunctionalUnitSet(FunctionalUnitSet functionalUnitSet) {
-		this.functionalUnitSet = functionalUnitSet;
 	}
 
 	public FetchUnitIn_MII getFetchUnitIn(){
@@ -248,10 +234,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		return valueReadyFloat;
 	}
 
-	public long[] getValueReadyMSR() {
-		return valueReadyMSR;
-	}
-
 	public int getMispredStall() {
 		return mispredStall;
 	}
@@ -328,7 +310,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine{
 		EnergyConfig regFilePower =  getWriteBackUnitIn().calculateAndPrintEnergy(outputFileWriter, componentName + ".regFile");
 		totalPower.add(totalPower, regFilePower);
 		
-		EnergyConfig fuPower =  getFunctionalUnitSet().calculateAndPrintEnergy(outputFileWriter, componentName + ".FuncUnit");
+		EnergyConfig fuPower =  getExecutionCore().calculateAndPrintEnergy(outputFileWriter, componentName + ".FuncUnit");
 		totalPower.add(totalPower, fuPower);
 		
 		EnergyConfig resultsBroadcastBusPower =  getExecUnitIn().calculateAndPrintEnergy(outputFileWriter, componentName + ".resultsBroadcastBus");
