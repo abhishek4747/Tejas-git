@@ -54,7 +54,7 @@ public class MemUnitIn_MII extends SimulationElement{
 				if(ins.getOperationType() == OperationType.load)
 				{
 					//issue load request
-					if(!SimulationConfig.detachMemSys)
+					if(!SimulationConfig.detachMemSysData)
 					{		
 						boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Read,
@@ -71,7 +71,7 @@ public class MemUnitIn_MII extends SimulationElement{
 				}
 				if(ins.getOperationType() == OperationType.store)
 				{
-					if(!SimulationConfig.detachMemSys)
+					if(!SimulationConfig.detachMemSysData)
 					{
 						boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem.issueRequestToL1Cache(
 								RequestType.Cache_Write,

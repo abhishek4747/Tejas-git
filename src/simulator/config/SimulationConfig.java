@@ -31,7 +31,9 @@ public class SimulationConfig
 	public static long NumInsToIgnore; // Number of "Profilable" instructions to ignore from start
 	public static String outputFileName;
 	public static boolean debugMode;
-	public static boolean detachMemSys;
+	
+	public static boolean detachMemSysInsn;
+	public static boolean detachMemSysData;
 	
 	public static boolean subsetSimulation;
 	public static long subsetSimSize;

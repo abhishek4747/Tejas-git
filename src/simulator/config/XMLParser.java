@@ -296,16 +296,10 @@ public class XMLParser
 		{
 			SimulationConfig.debugMode = false;
 		}
-		if(getImmediateString("DetachMemSys", simulationElmnt).compareTo("true") == 0 ||
-				getImmediateString("DetachMemSys", simulationElmnt).compareTo("True") == 0)
-		{
-			SimulationConfig.detachMemSys = true;
-		}
-		else
-		{
-			SimulationConfig.detachMemSys = false;
-		}
-				
+		
+		SimulationConfig.detachMemSysData = Boolean.parseBoolean(getImmediateString("DetachMemSysData", simulationElmnt));
+		SimulationConfig.detachMemSysInsn = Boolean.parseBoolean(getImmediateString("DetachMemSysInsn", simulationElmnt));
+		
 		if(getImmediateString("subsetSim", simulationElmnt).compareTo("true") == 0 ||
 				getImmediateString("subsetSim", simulationElmnt).compareTo("True") == 0)
 		{

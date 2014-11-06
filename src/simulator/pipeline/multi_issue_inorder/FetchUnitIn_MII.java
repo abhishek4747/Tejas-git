@@ -103,7 +103,7 @@ public class FetchUnitIn_MII extends SimulationElement
 
 				// The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
 				// micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.
-				if(SimulationConfig.detachMemSys || newInstruction.getCISCProgramCounter()==-1)
+				if(SimulationConfig.detachMemSysInsn || newInstruction.getCISCProgramCounter()==-1)
 				{
 					this.fetchBufferStatus[i]=true;
 				}

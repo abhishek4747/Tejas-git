@@ -37,7 +37,7 @@ public class ICacheBuffer {
 		}
 		
 		buffer[tail] = newInstruction;
-		if(SimulationConfig.detachMemSys == true ||
+		if(SimulationConfig.detachMemSysInsn == true ||
 				newInstruction.getOperationType() == OperationType.inValid ||
 				newInstruction.getCISCProgramCounter() == -1) // The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
 															  // micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.

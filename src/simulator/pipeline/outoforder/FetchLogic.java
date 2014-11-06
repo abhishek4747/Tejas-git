@@ -167,7 +167,7 @@ public class FetchLogic extends SimulationElement {
 			if(newInstruction.getOperationType() == OperationType.load ||
 					newInstruction.getOperationType() == OperationType.store)
 			{
-				if(SimulationConfig.detachMemSys == true)
+				if(SimulationConfig.detachMemSysData == true)
 				{
 					inputToPipeline[inputPipeToReadNext].pollFirst();
 					CustomObjectPool.getInstructionPool().returnObject(newInstruction);
@@ -180,7 +180,7 @@ public class FetchLogic extends SimulationElement {
 			if(!iCacheBuffer.isFull() && execEngine.getCoreMemorySystem().getiCache().isBusy()==false)
 			{
 				iCacheBuffer.addToBuffer(inputToPipeline[inputPipeToReadNext].pollFirst());
-				if(SimulationConfig.detachMemSys == false && newInstruction.getOperationType() != OperationType.inValid)
+				if(SimulationConfig.detachMemSysInsn == false && newInstruction.getOperationType() != OperationType.inValid)
 				{
 						// The first micro-operation of an instruction has a valid CISC IP. All the subsequent 
 					  	// micro-ops will have IP = -1(meaning invalid). We must not forward this requests to iCache.
