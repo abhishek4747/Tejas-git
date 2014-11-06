@@ -72,7 +72,7 @@ public abstract class CoreMemorySystem extends SimulationElement
 	
 	protected CoreMemorySystem(Core core)
 	{
-		super(PortType.Unlimited, -1, -1, -1, -1);
+		super(PortType.Unlimited, -1, -1, 0, -1);
 		
 		this.setCore(core);
 		this.coreID = core.getCore_number();
@@ -82,7 +82,7 @@ public abstract class CoreMemorySystem extends SimulationElement
 		createLinksBetweenCoreCaches();
 		
 		//Initialise the TLB
-		int numPageLevels = 2;
+		int numPageLevels = 1;
 		iTLB = new TLB(SystemConfig.core[coreID].ITLBPortType,
 				SystemConfig.core[coreID].ITLBAccessPorts, 
 				SystemConfig.core[coreID].ITLBPortOccupancy, 

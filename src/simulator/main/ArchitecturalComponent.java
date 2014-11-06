@@ -33,6 +33,7 @@ import memorysystem.MemorySystem;
 import memorysystem.coherence.Coherence;
 import memorysystem.coherence.Directory;
 import net.Bus;
+import net.BusInterface;
 import net.InterConnect;
 import net.NOC;
 import net.Router;
@@ -60,6 +61,7 @@ public class ArchitecturalComponent {
 
 		if(SystemConfig.interconnect ==  SystemConfig.Interconnect.Bus) {
 			ArchitecturalComponent.setInterConnect(new Bus());
+			createElementsOfBus();
 		} else if(SystemConfig.interconnect == SystemConfig.Interconnect.Noc) {
 			ArchitecturalComponent.setInterConnect(new NOC(SystemConfig.nocConfig));
 			createElementsOfNOC();			
@@ -70,6 +72,30 @@ public class ArchitecturalComponent {
 		MemorySystem.setCoherenceOfCaches();
 		initCoreBroadcastBus();
 		GlobalClock.systemTimingSetUp(getCores());
+	}
+	
+	private static void createElementsOfBus() {
+		
+		BusInterface busInterface = new BusInterface();
+		
+		// Create Cores
+		for(int i=0; i<SystemConfig.NoOfCores; i++) {
+			Core core = createCore(i);
+			core.setComInterface(busInterface);
+			cores.add(core);
+		}
+		
+		// Create Shared Cache
+		// PS : Directory will be created as a special shared cache
+		for(CacheConfig cacheConfig : SystemConfig.sharedCacheConfigs) {
+			Cache c = MemorySystem.createSharedCache(cacheConfig.cacheName);
+			c.setComInterface(busInterface);
+		}
+		
+		// Create Main Memory Controller
+		MainMemoryController mainMemController = new MainMemoryController();
+		mainMemController.setComInterface(busInterface);
+		memoryControllers.add(mainMemController);
 	}
 	
 	private static void createElementsOfNOC() {

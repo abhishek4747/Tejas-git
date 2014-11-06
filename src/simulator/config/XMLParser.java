@@ -647,6 +647,8 @@ public class XMLParser
 		NodeList busLst = systemElmnt.getElementsByTagName("BUS");
 		Element busElmnt = (Element) busLst.item(0);
 		SystemConfig.busEnergy = getEnergyConfig(busElmnt);
+		SystemConfig.busConfig = new BusConfig();
+		SystemConfig.busConfig.setLatency(Integer.parseInt(getImmediateString("Latency", busElmnt)));
 	}
 
 	private static void setNocProperties(Element NocType, NocConfig nocConfig)

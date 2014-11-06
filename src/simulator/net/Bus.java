@@ -19,6 +19,7 @@ public class Bus extends InterConnect {
 	 {
 		 //TODO : Add code for arbiter here
 		 hopCounter++;
+		 event.addEventTime(SystemConfig.busConfig.getLatency());
 		 event.getProcessingElement().getPort().put(event);
 	 }
 

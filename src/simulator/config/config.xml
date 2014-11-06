@@ -343,6 +343,7 @@
 		</NOC>
 		
 		<BUS>
+			<Latency>30</Latency>
 			<LeakageEnergy>0.1877</LeakageEnergy>
 			<DynamicEnergy>2.1164</DynamicEnergy>
 		</BUS>

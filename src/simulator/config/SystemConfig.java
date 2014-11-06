@@ -45,7 +45,7 @@ public class SystemConfig
 	public static int mainMemoryPortOccupancy;
 	public static int cacheBusLatency;
 	public static String coherenceEnforcingCache;
-	
+	public static BusConfig busConfig;
 	public static NocConfig nocConfig;
 	public static EnergyConfig busEnergy;
 	
