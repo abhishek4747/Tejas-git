@@ -6,22 +6,13 @@ import generic.Core;
 import generic.CoreBcastBus;
 import generic.EventQueue;
 import generic.GlobalClock;
-import generic.SimulationElement;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 import java.util.Vector;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import config.CacheConfig;
 import config.SystemConfig;
@@ -31,7 +22,8 @@ import memorysystem.CoreMemorySystem;
 import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
 import memorysystem.coherence.Coherence;
-import memorysystem.coherence.Directory;
+import memorysystem.nuca.NucaCache;
+import memorysystem.nuca.NucaCache.NucaType;
 import net.Bus;
 import net.BusInterface;
 import net.InterConnect;
@@ -48,7 +40,7 @@ public class ArchitecturalComponent {
 	public static Vector<MainMemoryController> memoryControllers = new Vector<MainMemoryController>();
 	public static Vector<Cache> sharedCaches = new Vector<Cache>();
 	public static Vector<Cache> caches = new Vector<Cache>();
-	
+	public static HashMap<String, NucaCache> nucaList=  new HashMap<String, NucaCache>();
 	private static InterConnect interconnect;
 	public static CoreBcastBus coreBroadcastBus;
 		
@@ -88,8 +80,8 @@ public class ArchitecturalComponent {
 		// Create Shared Cache
 		// PS : Directory will be created as a special shared cache
 		for(CacheConfig cacheConfig : SystemConfig.sharedCacheConfigs) {
-			Cache c = MemorySystem.createSharedCache(cacheConfig.cacheName);
-			c.setComInterface(busInterface);
+			Cache c = MemorySystem.createSharedCache(cacheConfig.cacheName, busInterface);
+//			c.setComInterface(busInterface);
 		}
 		
 		// Create Main Memory Controller
@@ -142,8 +134,7 @@ public class ArchitecturalComponent {
 				} else if(nextElementToken.equals("-")) {
 					//do nothing
 				} else {
-					Cache c = MemorySystem.createSharedCache(nextElementToken);
-					c.setComInterface(comInterface);
+					Cache c = MemorySystem.createSharedCache(nextElementToken, comInterface);
 					//TODO split and multiple shared caches
 				} 
 			}

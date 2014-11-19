@@ -28,6 +28,7 @@ import java.util.Vector;
 
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
+import memorysystem.Cache;
 import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
 import memorysystem.MESI;
@@ -41,14 +42,16 @@ import net.NOC.CONNECTIONTYPE;
 import config.CacheConfig;
 import config.SystemConfig;
 
-public class DNucaBank extends NucaCacheBank
+public class DNucaBank extends Cache implements NucaInterface
 {
 	public HashMap<Long,Vector<RequestType>> eventIdToHitMissList;
 	public HashMap<Long,ID> eventIdToHitBankId;
-
-	DNucaBank(ID bankId,CacheConfig cacheParameters, CoreMemorySystem containingMemSys,DNuca nucaCache, NucaType nucaType)
+	public NucaCache parent;
+	public DNucaBank(String cacheName, int id, CacheConfig cacheParameters,
+			CoreMemorySystem containingMemSys, NucaCache nuca)
     {
-        super(bankId,cacheParameters,containingMemSys,nucaCache, nucaType);
+        super(cacheName , id, cacheParameters, containingMemSys);
+        this.parent = nuca;
         eventIdToHitMissList = new HashMap<Long, Vector<RequestType>>();
         eventIdToHitBankId = new HashMap<Long, ID>();
     }

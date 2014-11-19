@@ -877,26 +877,26 @@ public class Statistics {
 		{
 			if(cache.getClass()!=Cache.class)
 			{
-				if (((NucaCache)cache).nucaType != NucaType.NONE )
-				{
-					averageHopLength = ((NucaCache)cache).getAverageHoplength(); 
-					maxHopLength = ((NucaCache)cache).getMaxHopLength();
-					minHopLength = ((NucaCache)cache).getMinHopLength();
-					Statistics.nocTopology = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().topology.name();
-					Statistics.nocRoutingAlgo = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().rAlgo.name();
-					for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
-					{
-						Statistics.hopcount += ((NocInterface)((NucaCache)cache).cacheBank.get(i).comInterface).getRouter().hopCounters; 
-					}
-					if(Statistics.nocTopology.equals("FATTREE") ||
-							Statistics.nocTopology.equals("OMEGA") ||
-							Statistics.nocTopology.equals("BUTTERFLY")) {
-						for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
-							Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
-						}
-					}
-				}
-				Statistics.totalNucaBankAccesses = ((NucaCache)cache).getTotalNucaBankAcesses();
+//				if (((NucaCache)cache).nucaType != NucaType.NONE )
+//				{
+//					averageHopLength = ((NucaCache)cache).getAverageHoplength(); 
+//					maxHopLength = ((NucaCache)cache).getMaxHopLength();
+//					minHopLength = ((NucaCache)cache).getMinHopLength();
+//					Statistics.nocTopology = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().topology.name();
+//					Statistics.nocRoutingAlgo = ((NocInterface)((NucaCache)cache).cacheBank.get(0).comInterface).getRouter().rAlgo.name();
+//					for(int i=0;i< ((NucaCache)cache).cacheRows;i++)
+//					{
+//						Statistics.hopcount += ((NocInterface)((NucaCache)cache).cacheBank.get(i).comInterface).getRouter().hopCounters; 
+//					}
+//					if(Statistics.nocTopology.equals("FATTREE") ||
+//							Statistics.nocTopology.equals("OMEGA") ||
+//							Statistics.nocTopology.equals("BUTTERFLY")) {
+//						for(int k = 0 ; k<((NucaCache)cache).noc.intermediateSwitch.size();k++){
+//							Statistics.hopcount += ((NucaCache)cache).noc.intermediateSwitch.get(k).hopCounters;
+//						}
+//					}
+//				}
+//				Statistics.totalNucaBankAccesses = ((NucaCache)cache).getTotalNucaBankAcesses();
 			}
 			
 		}

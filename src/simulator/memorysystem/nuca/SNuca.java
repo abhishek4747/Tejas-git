@@ -20,40 +20,26 @@
 *****************************************************************************/
 package memorysystem.nuca;
 
+import generic.CommunicationInterface;
+
 import java.util.Vector;
 
 import main.ArchitecturalComponent;
 import memorysystem.AddressCarryingEvent;
+import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
 import net.ID;
 import net.NOC.CONNECTIONTYPE;
-import net.optical.TopLevelTokenBus;
 import config.SystemConfig;
 
-public class SNuca extends NucaCache
+public class SNuca extends Cache
 {
-    public SNuca(CacheConfig cacheParameters, CoreMemorySystem containingMemSys, NucaType nucaType)
+    public SNuca(String cacheName, int id, CacheConfig cacheParameters,
+			CoreMemorySystem containingMemSys)
     {
-    	super(cacheParameters, containingMemSys, nucaType);
-    	makeCacheBanks(cacheParameters, containingMemSys, nucaType,this);
+    	super(cacheName, id, cacheParameters, containingMemSys);
     }
-    protected void makeCacheBanks(CacheConfig cacheParameters,CoreMemorySystem containingMemSys, NucaType nucaType, SNuca nucaCache)
-   	{
-       	int rows = SystemConfig.nocConfig.getNumberOfBankRows();
-       	int cols = SystemConfig.nocConfig.getNumberOfBankColumns();
-   		for(int i=0;i<rows;i++)
-   		{
-   			for(int j=0;j<cols;j++)
-   			{
-   				if(SystemConfig.nocConfig.nocElements.nocElementsLocations.get(i).get(j).equals("0"))
-   				{
-   					ID bankId = new ID(i,j);
-   					cacheBank.add(new SNucaBank(bankId, cacheParameters, containingMemSys, this, nucaType));
-   				}
-   			}
-   		}
-   	}
     void putEventToRouter(AddressCarryingEvent addrEvent)
 	{
 		long address = addrEvent.getAddress();

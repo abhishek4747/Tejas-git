@@ -666,18 +666,7 @@ public class XMLParser
 		nocConfig.operatingFreq = Integer.parseInt(getImmediateString("NocOperatingFreq", NocType));
 		nocConfig.latencyBetweenNOCElements = Integer.parseInt(getImmediateString("NocLatencyBetweenNOCElements", NocType));
 		
-		String tempStr = getImmediateString("NucaMapping", NocType);
-		if (tempStr.equalsIgnoreCase("S"))
-			nocConfig.mapping = Mapping.SET_ASSOCIATIVE;
-		else if (tempStr.equalsIgnoreCase("A"))
-			nocConfig.mapping = Mapping.ADDRESS;
-		else
-		{
-			System.err.println("XML Configuration error : Invalid value of 'NucaMapping' (please enter 'S'or 'A')");
-			System.exit(1);
-		}
-		
-		tempStr = getImmediateString("NocTopology", NocType);
+		String tempStr = getImmediateString("NocTopology", NocType);
 		nocConfig.topology = TOPOLOGY.valueOf(tempStr);
 		
 		tempStr = getImmediateString("NocRoutingAlgorithm", NocType);
@@ -750,7 +739,18 @@ public class XMLParser
 		cache.busOccupancy = Integer.parseInt(getImmediateString("BusOccupancy", CacheType));
 		
 		tempStr = getImmediateString("Nuca", CacheType);
-		cache.nucaType = NucaType.NONE; // TODO : We are not using NUCA right now.
+		cache.nucaType = NucaType.valueOf(tempStr); // TODO : We are not using NUCA right now.
+		
+		tempStr = getImmediateString("NucaMapping", CacheType);
+		if (tempStr.equalsIgnoreCase("S"))
+			cache.mapping = Mapping.SET_ASSOCIATIVE;
+		else if (tempStr.equalsIgnoreCase("A"))
+			cache.mapping = Mapping.ADDRESS;
+		else
+		{
+			System.err.println("XML Configuration error : Invalid value of 'NucaMapping' (please enter 'S'or 'A')");
+			System.exit(1);
+		}
 		
 		cache.cacheDataType = CacheDataType.valueOf(getImmediateString("CacheType", CacheType));
 		

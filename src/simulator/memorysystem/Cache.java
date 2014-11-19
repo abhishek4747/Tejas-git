@@ -35,6 +35,7 @@ import java.util.TreeSet;
 
 import main.ArchitecturalComponent;
 import memorysystem.coherence.Coherence;
+import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
 import misc.Util;
 import config.CacheConfig;
@@ -111,7 +112,7 @@ public class Cache extends SimulationElement {
 		super(cacheParameters.portType, cacheParameters.getAccessPorts(),
 				cacheParameters.getPortOccupancy(), cacheParameters
 						.getLatency(), cacheParameters.operatingFreq);
-
+		System.out.println(cacheName);
 		// add myself to the global cache list
 		if(cacheParameters.isDirectory==true) {
 			ArchitecturalComponent.coherences.add((Coherence) this);
@@ -182,7 +183,7 @@ public class Cache extends SimulationElement {
 
 		this.mshr = new MSHR(cacheConfig.mshrSize, blockSizeBits);
 
-		this.nucaType = NucaType.NONE;
+		this.nucaType = cacheParameters.nucaType;
 
 		energy = cacheParameters.power;
 
@@ -381,6 +382,11 @@ public class Cache extends SimulationElement {
 		Cache c = this.nextLevel;
 		AddressCarryingEvent event = null;
 		if (c != null) {
+			if(c.nucaType != NucaType.NONE)
+			{
+				NucaCache nuca = ArchitecturalComponent.nucaList.get("L2");
+				c = nuca.getBank(addr);
+			}
 			event = new AddressCarryingEvent(c.getEventQueue(), 0, this, c,
 					requestType, addr);
 			addEventAtLowerCache(event);

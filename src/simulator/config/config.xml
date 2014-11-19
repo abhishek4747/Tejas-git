@@ -43,10 +43,10 @@
 		<BasenameForTraceFiles>/mnt/srishtistr0/home/raj/workspace/Tejas/Traces/ls</BasenameForTraceFiles>
 		
 		<PinTool>/mnt/srishtistr0/scratch/tejas_experiments/resources/pin-62732</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/raj/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinInstrumentor>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
-		<ShmLibDirectory>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
-		<KillEmulatorScript>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
+		<ShmLibDirectory>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
+		<KillEmulatorScript>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
 	</Emulator>
 	
 	<!--Simulation Parameters-->
@@ -310,19 +310,18 @@
 			
 			<Cache name="I1" nextLevel="L2" firstLevel="true" type="ICache_32K_8"/>
 			<Cache name="L1" nextLevel="L2" firstLevel="true" type="L1Cache_32K_8"/>
-			<Cache name="L2" nextLevel="L3" type="L2Cache_256K_8"/>
+			<!--Cache name="L2" nextLevel="L3" type="L2Cache_256K_8"/-->
 		</Core>
 		
 		<SharedCaches>
-			<Cache name="L3" type="L3Cache_1M_8"/>
+			<Cache name="L2" type="L2Cache_256K_8"/>
 			<Cache name="D1" type="Directory1"/>
 		</SharedCaches>
 		
 		<Interconnect>NOC</Interconnect>
 		
 		<NOC>
-			<NocConfigFile>/mnt/srishtistr0/home/prathmesh/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
-			<NucaMapping>S</NucaMapping> <!-- S: Set-Associative A: Address-Mapped -->
+			<NocConfigFile>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
 			<NocSelScheme>STATIC</NocSelScheme>
 			<NocNumberOfBuffers>4</NocNumberOfBuffers>
 			<NocPortType>UL</NocPortType>
@@ -366,6 +365,7 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
@@ -386,6 +386,7 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
@@ -406,6 +407,7 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->			
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
@@ -425,7 +427,8 @@
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<Nuca>S_NUCA</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->			
 			<LeakageEnergy>0.1592</LeakageEnergy>
 			<ReadDynamicEnergy>0.43964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.43964264705</WriteDynamicEnergy>
@@ -446,6 +449,7 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
 			<LeakageEnergy>0.1892</LeakageEnergy>
 			<ReadDynamicEnergy>0.60964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.60964264705</WriteDynamicEnergy>
@@ -467,6 +471,7 @@
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
 			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
 			<CacheType>Unified</CacheType>
 			<LeakageEnergy>.1092</LeakageEnergy>
 			<ReadDynamicEnergy>.3396</ReadDynamicEnergy>

@@ -40,10 +40,8 @@ import net.NocInterface;
 import main.ArchitecturalComponent;
 import memorysystem.coherence.Coherence;
 import memorysystem.coherence.Directory;
-import memorysystem.nuca.DNuca;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
-import memorysystem.nuca.SNuca;
 import pipeline.multi_issue_inorder.InorderCoreMemorySystem_MII;
 import pipeline.outoforder.OutOrderCoreMemorySystem;
 import config.CacheConfig;
@@ -68,18 +66,31 @@ public class MemorySystem
 		}
 	}
 	
-	public static Cache createSharedCache(String token) {
-		
+	public static Cache createSharedCache(String token, CommunicationInterface comInterface) {
 		for(CacheConfig config : SystemConfig.sharedCacheConfigs) {
 			if(token.equals(config.cacheName)) {
-				
+				Cache c = null;
 				if(config.isDirectory==true) {
-					Directory d = new Directory(token, 0, config, null);
-					return d;
-				} else {
-					Cache c = new Cache(token+"[0]", 0, config, null);
-					return c;
+					c = new Directory(token, 0, config, null);
 				}
+				else if(config.nucaType != NucaType.NONE)
+				{
+					NucaCache nuca;
+					if(!ArchitecturalComponent.nucaList.containsKey(token))
+					{
+						nuca = new NucaCache(token, 0, config, null);
+						ArchitecturalComponent.nucaList.put(token, nuca);
+					}
+					else{
+						nuca = ArchitecturalComponent.nucaList.get(token);
+					}
+					c = nuca.createBanks(token, config, comInterface);
+				}
+				else {
+					c = new Cache(token+"[0]", 0, config, null);
+				}
+				c.setComInterface(comInterface);
+				return c;
 			}
 		}
 		

@@ -1,5 +1,5 @@
 10 10
-M	L3	D1	-	-	-	-	-	-	-  
+M	L2	D1	L2	L2	L2	-	-	-	-  
 C	C	C	C	C	C	C	C	-	-
 C	C	C	C	C	C	C	C	-	-
 C	C	C	C	C	C	C	C	-	-

@@ -22,7 +22,6 @@
 package config;
 
 import generic.PortType;
-import memorysystem.nuca.NucaCache.Mapping;
 import net.RoutingAlgo;
 import net.NOC.CONNECTIONTYPE;
 import net.NOC.TOPOLOGY;
@@ -46,7 +45,6 @@ public class NocConfig
 	public CONNECTIONTYPE ConnType;
 	public int numberOfBankColumns;
 	public int numberOfBankRows;
-	public Mapping mapping;
 	public String NocTopologyFile; 
 	
 	public int getLatency() {

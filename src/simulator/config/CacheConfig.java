@@ -20,6 +20,7 @@
 *****************************************************************************/
 package config;
 
+import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
 import generic.PortType;
 
@@ -43,6 +44,7 @@ public class CacheConfig
 	public int busOccupancy;
 	public int mshrSize;
 	public NucaType nucaType;
+	public Mapping mapping;
 	
 	public boolean collectWorkingSetData = false;
 	public long workingSetChunkSize = -1;
