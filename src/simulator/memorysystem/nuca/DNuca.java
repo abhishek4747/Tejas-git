@@ -112,7 +112,7 @@ public class DNuca extends NucaCache{
 		long address = addrEvent.getAddress();
 		ID sourceId = getCoreId(addrEvent.coreId);
 		int bankSet = getBankSetId(address);
-		ID destinationId = getNearestBank(bankSet, sourceId);//getBankInBankSet(bankSet, address);
+		ID destinationId = getDNucaBank(bankSet, sourceId);//getBankInBankSet(bankSet, address);
 		if(accessedBankIds.get(destinationId)==null)
 			accessedBankIds.put(destinationId,1);
 		else
@@ -170,7 +170,7 @@ public class DNuca extends NucaCache{
 			return 0;
 		}
 	}
-	ID getNearestBank(int bankSet,ID coreId)
+	ID getDNucaBank(int bankSet,ID coreId)
 	{
 		Vector<ID> bankIds = bankSetNumToBankIds.get(bankSetnum.get(bankSet));
 		ID nearestBankId=null;

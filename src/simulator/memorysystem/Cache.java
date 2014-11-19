@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
+import net.NocInterface;
+
 import main.ArchitecturalComponent;
 import memorysystem.coherence.Coherence;
 import memorysystem.nuca.NucaCache;
@@ -384,8 +386,8 @@ public class Cache extends SimulationElement {
 		if (c != null) {
 			if(c.nucaType != NucaType.NONE)
 			{
-				NucaCache nuca = ArchitecturalComponent.nucaList.get("L2");
-				c = nuca.getBank(addr);
+				NucaCache nuca = ArchitecturalComponent.nucaList.get("L2");//FIXME: dont use static L2
+				c = nuca.getBank(((NocInterface)this.getComInterface()).getId(),addr);
 			}
 			event = new AddressCarryingEvent(c.getEventQueue(), 0, this, c,
 					requestType, addr);
