@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -16,7 +16,7 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Anuj Arora
+				Contributor: Eldhose Peter
 *****************************************************************************/
 package memorysystem.nuca;
 import memorysystem.CoreMemorySystem;

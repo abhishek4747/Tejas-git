@@ -3,14 +3,6 @@ package main;
 import java.io.File;
 import java.io.IOException;
 
-import net.Bus;
-import net.BusInterface;
-import net.NOC;
-
-import memorysystem.nuca.DNuca;
-import memorysystem.nuca.DNucaBank;
-import memorysystem.nuca.NucaCache;
-import memorysystem.nuca.SNuca;
 import misc.Error;
 import misc.ShutDownHook;
 import config.CommunicationType;

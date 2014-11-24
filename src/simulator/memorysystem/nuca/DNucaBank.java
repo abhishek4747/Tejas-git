@@ -107,6 +107,32 @@ public class DNucaBank extends NucaCache implements NucaInterface
 		}
 		return (DNucaBank) parent.cacheBank.get(migrateIndex);
 	}
+	public void doMigration(long addr, RequestType requestType,
+			AddressCarryingEvent event, CacheLine cl) 
+	{
+		DNucaBank migrateDestination = getMigrateDestination(myId, 
+				((DNucaBank) event.getRequestingElement()).getMyId(),
+				((DNucaBank) event.getRequestingElement()).getSetId());
+		//Migrate
+		cl.setState(MESI.INVALID); //Invalidation of block in current bank
+		AddressCarryingEvent migrateEvent = new AddressCarryingEvent(this.getEventQueue(), 
+				0,
+				this,
+				migrateDestination,
+				RequestType.Migrate_Block,
+				addr);
+		sendEvent(migrateEvent);
+		
+		AddressCarryingEvent newEvent = new AddressCarryingEvent(this.getEventQueue(), 
+				0,
+				this,
+				event.getRequestingElement(),
+				requestType,
+				addr);
+		newEvent.dn_status = 2;
+		newEvent.parentEvent = event.parentEvent;
+		sendEvent(newEvent);
+	}
 	public void handleBroadcastAccess(long addr, RequestType requestType,
 			AddressCarryingEvent event) 
 	{
@@ -116,29 +142,7 @@ public class DNucaBank extends NucaCache implements NucaInterface
 		CacheLine cl = this.accessAndMark(addr);
 
 		if (cl != null) {
-			
-			DNucaBank migrateDestination = getMigrateDestination(myId, 
-					((DNucaBank) event.getRequestingElement()).getMyId(),
-					((DNucaBank) event.getRequestingElement()).getSetId());
-			//Migrate
-			cl.setState(MESI.INVALID); //Invalidation of block in current bank
-			AddressCarryingEvent migrateEvent = new AddressCarryingEvent(this.getEventQueue(), 
-					0,
-					this,
-					migrateDestination,
-					RequestType.Migrate_Block,
-					addr);
-			sendEvent(migrateEvent);
-			
-			AddressCarryingEvent newEvent = new AddressCarryingEvent(this.getEventQueue(), 
-					0,
-					this,
-					event.getRequestingElement(),
-					requestType,
-					addr);
-			newEvent.dn_status = 2;
-			newEvent.parentEvent = event.parentEvent;
-			sendEvent(newEvent);
+			doMigration(addr, requestType, event, cl);			
 		}
 		else {
 			AddressCarryingEvent newEvent = new AddressCarryingEvent(this.getEventQueue(), 

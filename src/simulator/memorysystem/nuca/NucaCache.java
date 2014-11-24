@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -16,30 +16,22 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Anuj Arora, Mayur Harne
+				Contributor: Eldhose Peter
 *****************************************************************************/
 
 
 package memorysystem.nuca;
 
 import generic.CommunicationInterface;
-import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.RequestType;
-import generic.SimulationElement;
 
 import java.util.HashMap;
 import java.util.Vector;
 
-import main.ArchitecturalComponent;
-import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
-import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
-import memorysystem.MESI;
 import memorysystem.MSHR;
-import memorysystem.MainMemoryController;
 import net.ID;
 import net.NocInterface;
 import config.CacheConfig;
@@ -59,14 +51,13 @@ public class NucaCache extends Cache
 	}
     
     public Vector<Cache> cacheBank;
-    public HashMap<ID,NucaCacheBank> bankIdtoNucaCacheBank; 
     public Vector<Vector<Integer>> bankSets; //set of bank sets, each value denote the position of cache bank in "cacheBank"
     public NucaType nucaType;
     public Mapping mapping;
     public HashMap<Event, Integer> activeEventsInDNuca;
 
     public HashMap<Long, Event> currentList = new HashMap<Long, Event>();
-    static public HashMap<ID,Integer> accessedBankIds = new HashMap<ID, Integer>();
+
     public NucaCache(String cacheName, int id, CacheConfig cacheParameters,
 			CoreMemorySystem containingMemSys)
 	{

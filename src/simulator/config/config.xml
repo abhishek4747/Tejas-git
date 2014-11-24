@@ -69,12 +69,12 @@
 		<pinpointsSim>false</pinpointsSim>
 		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
 		<NumInsToIgnore>0</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
-		<subsetSim>true</subsetSim>
+		<subsetSim>false</subsetSim>
 		<subsetSimSize>10000000</subsetSimSize>
 		<markerFunctions>false</markerFunctions>
 		<startSimMarker>XXX_startInstrumentation</startSimMarker>
 		<endSimMarker>XXX_endInstrumentation</endSimMarker>
-		<NumCores>64</NumCores>
+		<NumCores>32</NumCores>
 	</Simulation>
 
 	<!--System Parameters-->
@@ -402,7 +402,7 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>D1</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
@@ -423,11 +423,11 @@
 			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
 			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
 			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>D1</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
 			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<MSHRSize>8</MSHRSize>
+			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>S_NUCA</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
+			<Nuca>D_NUCA</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
 			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->			
 			<LeakageEnergy>0.1592</LeakageEnergy>
 			<ReadDynamicEnergy>0.43964264705</ReadDynamicEnergy>

@@ -1,11 +1,11 @@
 10 10
-M	L2	D1	L2	L2	L2	-	-	-	-  
-C	C	C	C	C	C	C	C	-	-
-C	C	C	C	C	C	C	C	-	-
-C	C	C	C	C	C	C	C	-	-
-C	C	C	C	C	C	C	C	-	-
-C	C	C	C	C	C	C	C	-	-
-C	C	C	C	C	C	C	C	-	-
-C	C	C	C	C	C	C	C	-	-
-C	C	C	C	C	C	C	C	-	-
+M	-	D1	-	-	-	-	-	-	-  
+C	L2	C	L2	C	L2	C	L2	-	-
+L2	C	L2	C	L2	C	L2	C	-	-
+C	L2	C	L2	C	L2	C	L2	-	-
+L2	C	L2	C	L2	C	L2	C	-	-
+C	L2	C	L2	C	L2	C	L2	-	-
+L2	C	L2	C	L2	C	L2	C	-	-
+C	L2	C	L2	C	L2	C	L2	-	-
+L2	C	L2	C	L2	C	L2	C	-	-
 -	-	-	-	-	-	-	-	-	-
