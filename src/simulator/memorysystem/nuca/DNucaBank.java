@@ -1,5 +1,5 @@
 /*****************************************************************************
-				BhartiSim Simulator
+				Tejas Simulator
 ------------------------------------------------------------------------------------------------------------
 
    Copyright [2010] [Indian Institute of Technology, Delhi]
@@ -16,323 +16,244 @@
    limitations under the License.
 ------------------------------------------------------------------------------------------------------------
 
-				Contributor: Anuj Arora
+				Contributor: Eldhose Peter
 *****************************************************************************/
 package memorysystem.nuca;
 
+import generic.Event;
+import generic.EventQueue;
 import generic.RequestType;
 
 import java.util.HashMap;
 import java.util.Vector;
 
+import memorysystem.AddressCarryingEvent;
+import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
-import net.ID;
+import memorysystem.MESI;
 import config.CacheConfig;
 
 public class DNucaBank extends NucaCache implements NucaInterface
-{
-	public HashMap<Long,Vector<RequestType>> eventIdToHitMissList;
-	public HashMap<Long,ID> eventIdToHitBankId;
+{	
 	public NucaCache parent;
+	public int setId;
+	public int myId;
+	
+
 	public DNucaBank(String cacheName, int id, CacheConfig cacheParameters,
 			CoreMemorySystem containingMemSys, NucaCache nuca)
     {
         super(cacheName , id, cacheParameters, containingMemSys);
         this.parent = nuca;
-        eventIdToHitMissList = new HashMap<Long, Vector<RequestType>>();
-        eventIdToHitBankId = new HashMap<Long, ID>();
+        this.setId = -1;
+        this.mshr = nuca.getMshr();
+        activeEventsInDNuca = new HashMap<Event, Integer>();
     }
+
+	public void broadcastRequest(long addr, RequestType requestType, AddressCarryingEvent event) {
+		AddressCarryingEvent newEvent = null;
+		for(Integer bankId : parent.bankSets.get(setId))
+		{
+			if(bankId == myId)
+				continue;//Dont send to itself
+			DNucaBank destination = (DNucaBank) parent.cacheBank.get(bankId);
+			newEvent = new AddressCarryingEvent(this.getEventQueue(), 
+					0,
+					this,
+					destination,
+					requestType,
+					addr);
+			newEvent.dn_status = 1;
+			newEvent.parentEvent = event;
+			sendEvent(newEvent);
+		}
+		if(requestType != event.getRequestType())
+			misc.Error.showErrorAndExit("Something went wrong");
+		activeEventsInDNuca.put(event, 0);
+	}
+	public void cacheHitDnuca(long addr, RequestType requestType, CacheLine cl, AddressCarryingEvent event)
+	{
+		cacheHit(addr, requestType, cl, event);
+		if(mshr.isAddrInMSHR(addr))
+			processEventsInMSHR(addr);
+		parent.currentList.remove(addr);
+	}
+	@Override
+	public void handleAccess(long addr, RequestType requestType,
+			AddressCarryingEvent event) {
+
+		if (requestType == RequestType.Cache_Write) {
+			noOfWritesReceived++;
+		}
+		CacheLine cl = this.accessAndMark(addr);
+
+		// IF HIT
+		if (cl != null) {
+			cacheHit(addr, requestType, cl, event);
+			if(mshr.isAddrInMSHR(addr))
+				processEventsInMSHR(addr);
+		} else { //Miss in nearest bank
+			mshr.addToMSHR(event);
+			broadcastRequest(addr, requestType, event);//FIXME: If there is only one bank in bankset
+	                                           		   //        then dont broadcast. Go to nextlevel.
+		}
+		parent.currentList.remove(addr);
+	}
+	private DNucaBank getMigrateDestination(int currentId, int rootBankId, int setId)
+	{
+		Vector<Integer> set = parent.bankSets.get(setId);
+		int migrateIndex = -1;
+		if(set.indexOf(rootBankId) > set.indexOf(currentId))
+		{
+			migrateIndex = set.get(set.indexOf(currentId) + 1);
+		}
+		else
+		{
+			migrateIndex = set.get(set.indexOf(currentId) - 1);
+		}
+		return (DNucaBank) parent.cacheBank.get(migrateIndex);
+	}
+	public void handleBroadcastAccess(long addr, RequestType requestType,
+			AddressCarryingEvent event) 
+	{
+		if (requestType == RequestType.Cache_Write) {
+			noOfWritesReceived++;
+		}
+		CacheLine cl = this.accessAndMark(addr);
+
+		if (cl != null) {
+			
+			DNucaBank migrateDestination = getMigrateDestination(myId, 
+					((DNucaBank) event.getRequestingElement()).getMyId(),
+					((DNucaBank) event.getRequestingElement()).getSetId());
+			//Migrate
+			cl.setState(MESI.INVALID); //Invalidation of block in current bank
+			AddressCarryingEvent migrateEvent = new AddressCarryingEvent(this.getEventQueue(), 
+					0,
+					this,
+					migrateDestination,
+					RequestType.Migrate_Block,
+					addr);
+			sendEvent(migrateEvent);
+			
+			AddressCarryingEvent newEvent = new AddressCarryingEvent(this.getEventQueue(), 
+					0,
+					this,
+					event.getRequestingElement(),
+					requestType,
+					addr);
+			newEvent.dn_status = 2;
+			newEvent.parentEvent = event.parentEvent;
+			sendEvent(newEvent);
+		}
+		else {
+			AddressCarryingEvent newEvent = new AddressCarryingEvent(this.getEventQueue(), 
+					0,
+					this,
+					event.getRequestingElement(),
+					requestType,
+					addr);
+			newEvent.dn_status = 3;
+			newEvent.parentEvent = event.parentEvent;
+			sendEvent(newEvent);
+		}
+	}
+	public void handleAccessDNuca(long addr, RequestType requestType, AddressCarryingEvent event)
+	{
+		if(event.dn_status == 2) //Hit reply came
+		{
+			if(!activeEventsInDNuca.containsKey(event.parentEvent))
+			{
+				misc.Error.showErrorAndExit("Hit more than once!!! Multiple copies!!!");
+			}
+			else{
+				activeEventsInDNuca.remove(event.parentEvent);
+			}
+		}
+		else if(event.dn_status == 3)//Miss reply came
+		{
+			if(activeEventsInDNuca.containsKey(event.parentEvent))
+			{//Till now no bank in the same set replied a hit
+				activeEventsInDNuca.put(event.parentEvent, activeEventsInDNuca.get(event.parentEvent)+1);
+				if(activeEventsInDNuca.get(event.parentEvent) == parent.bankSets.get(setId).size()-1)
+				{//Actual Miss -- Got miss from all the other banks in this bank set
+					activeEventsInDNuca.remove(event.parentEvent);
+					sendRequestToNextLevel(addr, RequestType.Cache_Read);
+				}
+			}//else means somebody has reported a hit. Leave this reply.
+		}
+		else
+		{//broadcast request received
+			handleBroadcastAccess(addr, requestType, event);
+		}
+	}
+	@Override
+	public void handleEvent(EventQueue eventQ, Event e) {
+		AddressCarryingEvent event = (AddressCarryingEvent) e;
+		printCacheDebugMessage(event);
+		
+		long addr = ((AddressCarryingEvent) event).getAddress();
+		RequestType requestType = event.getRequestType();
+
+		if(event.dn_status > 0){//within set
+			handleAccessDNuca(addr, requestType, event);
+			return;
+		}
+		
+		if((requestType==RequestType.Cache_Read || requestType==RequestType.Cache_Write || requestType==RequestType.EvictCacheLine))
+		{
+			if(parent.currentList.containsKey(addr) || mshr.isAddrInMSHR(addr)) {
+					mshr.addToMSHR(event);
+					return;
+			}
+			else{
+				parent.currentList.put(addr, event);
+			}
+		}
+		switch (event.getRequestType()) {
+			case Cache_Read:
+			case Cache_Write: {
+				handleAccess(addr, requestType, event);
+				break;
+			}
+			
+			case Mem_Response: {
+				handleMemResponse(event);
+				break;
+			}
 	
-//    @Override
-//	public void handleEvent(EventQueue eventQ, Event event)
-//    {
-//    	if (event.getRequestType() == RequestType.Cache_Read
-//				|| event.getRequestType() == RequestType.Cache_Write ) 
-//    	{
-//    		this.handleAccess(eventQ, (AddressCarryingEvent)event);
-//    	}
-//		else if (event.getRequestType() == RequestType.Main_Mem_Read ||
-//				  event.getRequestType() == RequestType.Main_Mem_Write )
-//		{
-//			this.handleMemoryReadWrite(eventQ,event);
-//		}
-//		else if (event.getRequestType() == RequestType.Main_Mem_Response )
-//		{
-//			handleMainMemoryResponse(eventQ, event);
-//		}
-//		else if (event.getRequestType() == RequestType.Cache_Hit||
-//				event.getRequestType() == RequestType.Cache_Miss)
-//		{
-//			handleCacheHitMiss(eventQ, event);
-//		}
-//		else if (event.getRequestType() == RequestType.Send_Migrate_Block)
-//		{
-//			handleSendCopyBlock(eventQ,event);
-//		}
-//		else if (event.getRequestType() == RequestType.Migrate_Block)
-//		{
-//			handleMigrateBlock(eventQ,event);
-//		}
-//		else 
-//		{
-//			System.err.println(event.getRequestType());
-//			misc.Error.showErrorAndExit(" unexpected request came to cache bank");
-//		}
-//	}
-//    private void handleSendCopyBlock(EventQueue eventQ, Event event) 
-//    {
-//    	AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-//    	nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
-//		nucaCache.updateMinHopLength(addrEvent.hopLength);
-//		nucaCache.updateAverageHopLength(addrEvent.hopLength);
-//		CacheLine cl = this.access(addrEvent.getAddress());
-//    	if(cl!=null)//if line is already invalid
-//    		cl.setState(MESI.INVALID);
-//    	sendMigrateBlockRequest(addrEvent);
-//	}
-//    void sendMigrateBlockRequest(AddressCarryingEvent event)
-//    {
-//    	ID destination = null;
-//    	ID coreId = ((NocInterface) ArchitecturalComponent.getCores()[event.coreId].comInterface).getId();
-//    	
-//    	int bankset = ((DNuca)nucaCache).getBankSetId(event.getAddress());
-//    	//Vector<Integer> nearestBank = ((DNuca)nucaCache).getNearestBank(bankset, coreId);
-//    	bankset=((DNuca)nucaCache).bankSetnum.get(bankset);
-//    	int bankIndex = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).indexOf(((NocInterface) this.comInterface).getId());
-//    	
-//    	if(coreId.gety()-((NocInterface) this.comInterface).getId().gety()>0)
-//    	{
-//    		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex+1);
-//    	}
-//    	else if(coreId.gety()-((NocInterface) this.comInterface).getId().gety()<0)
-//    	{
-//    		destination = ((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).get(bankIndex-1);
-//    	}
-//    	
-//    	if(coreId.gety()-((NocInterface) this.comInterface).getId().gety()!=0)
-//	    {
-//			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
-//					 0,this, 
-//					 this.getRouter(),
-//					 RequestType.Migrate_Block,
-//					 event.getAddress(),event.coreId,
-//					 ((NocInterface) this.comInterface).getId(),destination);
-//			this.getRouter().getPort().put(eventToBeSent);
-//    	}
-//    }
-//	private void handleMigrateBlock(EventQueue eventQ, Event event) 
-//    {
-//    	AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-//    	nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
-//		nucaCache.updateMinHopLength(addrEvent.hopLength);
-//		nucaCache.updateAverageHopLength(addrEvent.hopLength);
-//    	long addr = addrEvent.getAddress();
-//    	
-//    	int bankset = ((DNuca)nucaCache).getBankSetId(addr);
-//    	bankset = ((DNuca)nucaCache).bankSetnum.get(bankset);
-//    	for(ID bank:((DNuca)nucaCache).bankSetNumToBankIds.get(bankset))
-//    	{
-//    		NucaCacheBank cache  = ((DNuca)nucaCache).bankIdtoNucaCacheBank.get(bank);
-//    		CacheLine cl = cache.access(addrEvent.getAddress());
-//    		if(cl!=null)
-//    			cl.setState(MESI.INVALID);
-//    	}
-//    	nucaCache.incrementTotalNucaBankAcesses(1);
-//    	CacheLine evictedLine = this.fill(addr,MESI.EXCLUSIVE);
-//    	if (evictedLine != null && 
-//				this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
-//		{
-//			ID sourceId = new ID(((NocInterface) this.comInterface).getId().getx(),((NocInterface) this.comInterface).getId().gety());
-//			ID destinationId = (ID) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
-//			
-//			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-//																		 0,this, this.getRouter(), 
-//																		 RequestType.Main_Mem_Write, 
-//																		 addr,((AddressCarryingEvent)event).coreId,
-//																		 sourceId,destinationId);
-//			this.getRouter().getPort().put(addressEvent);
-//		}
-//	}
-//	public void handleCacheHitMiss(EventQueue eventQ, Event event) 
-//    {
-//    	AddressCarryingEvent addrEvent = (AddressCarryingEvent)event;
-//    	nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
-//		nucaCache.updateMinHopLength(addrEvent.hopLength);
-//		nucaCache.updateAverageHopLength(addrEvent.hopLength);
-//		if(addrEvent.getRequestType()==RequestType.Cache_Hit && eventIdToHitMissList.get(addrEvent.event_id).contains(RequestType.Cache_Hit))
-//		{
-//			misc.Error.showErrorAndExit("Error!!!! Two Block Copies created in the same Bank Set !!!!");
-//		}
-//		eventIdToHitMissList.get(addrEvent.event_id).add(addrEvent.getRequestType());
-//    	
-//    	if(addrEvent.getRequestType()==RequestType.Cache_Hit)
-//    	{	
-//    		int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
-//			nucaCache.hits+=numOfOutStandingRequests;
-//			nucaCache.noOfRequests += numOfOutStandingRequests;
-//			policy.sendResponseToCore(addrEvent, this);
-//			eventIdToHitBankId.put(addrEvent.event_id, addrEvent.getSourceId());
-//			
-//			if(NucaCache.accessedBankIds.get(addrEvent.getSourceId())==null)
-//				NucaCache.accessedBankIds.put(addrEvent.getSourceId(),1);
-//			else
-//				NucaCache.accessedBankIds.put(addrEvent.getSourceId(),NucaCache.accessedBankIds.get(addrEvent.getSourceId())+1);
-//    	}
-//    	int bankset = ((DNuca)nucaCache).getBankSetId(addrEvent.getAddress());
-//    	bankset = ((DNuca)nucaCache).bankSetnum.get(bankset);
-//    	if(eventIdToHitMissList.get(addrEvent.event_id).size() == 
-//    			((DNuca)nucaCache).bankSetNumToBankIds.get(bankset).size())
-//    	{
-//    		if(eventIdToHitMissList.get(addrEvent.event_id).contains(RequestType.Cache_Hit))
-//    		{
-//				@SuppressWarnings("unchecked")
-//				AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.getEventQ(),
-//						 0,this, 
-//						 this.getRouter(),
-//						 RequestType.Send_Migrate_Block,
-//						 addrEvent.getAddress(),event.coreId,
-//						 ((NocInterface) this.comInterface).getId(),(ID)eventIdToHitBankId.get(addrEvent.event_id).clone());
-//				this.getRouter().getPort().put(eventToBeSent);
-//    		}
-//    		else
-//    		{
-//    			AddressCarryingEvent tempEvent= policy.updateEventOnMiss( (AddressCarryingEvent)event,this);
-//				if(tempEvent != null)
-//				{
-//					tempEvent.getProcessingElement().getPort().put(tempEvent);
-//				}
-//    		}
-//			eventIdToHitBankId.remove(addrEvent.event_id);
-//    		eventIdToHitMissList.remove(addrEvent.event_id);
-//    	}
-//	}
-//    
-//	public void handleAccess(EventQueue eventQ, AddressCarryingEvent event)
-//	{
-//		RequestType requestType = event.getRequestType();
-//		long address = event.getAddress();
-//		
-//		nucaCache.incrementTotalNucaBankAcesses(1);
-//		nucaCache.updateMaxHopLength(event.hopLength,event);
-//		nucaCache.updateMinHopLength(event.hopLength);
-//		nucaCache.updateAverageHopLength(event.hopLength);
-//		//Process the access
-//		CacheLine cl = this.processRequest(requestType, address,event);
-//		
-//		if(event.event_id==0) //Broadcast has not been done yet
-//		{
-//			//IF HIT
-//			if (cl != null)
-//			{
-//				int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(event);
-//				nucaCache.hits+=numOfOutStandingRequests; //
-//				nucaCache.noOfRequests += numOfOutStandingRequests;//
-//				policy.sendResponseToCore(event, this);
-//			}
-//			//IF MISS
-//			else
-//			{
-//				policy.broadcastToOtherBanks(event, address,this);
-//			}
-//		}
-//		else
-//		{
-//			RequestType request;
-//			if (cl != null)
-//			{
-//				request=RequestType.Cache_Hit;
-//			}
-//			else
-//			{
-//				request=RequestType.Cache_Miss;
-//			}
-//			
-//			AddressCarryingEvent eventToBeSent = new AddressCarryingEvent(event.event_id,event.getEventQ(),
-//					 0,this, 
-//					 this.getRouter(),
-//					 request,
-//					 address,event.coreId,
-//					 ((NocInterface) this.comInterface).getId(),event.getSourceId());
-//			this.getRouter().getPort().put(eventToBeSent);
-//			
-//		}
-//	}
-//    protected void handleMemoryReadWrite(EventQueue eventQ, Event event) 
-//    {
-//		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-//		
-//		nucaCache.updateMaxHopLength(addrEvent.hopLength,addrEvent);
-//		nucaCache.updateMinHopLength(addrEvent.hopLength);
-//		nucaCache.updateAverageHopLength(addrEvent.hopLength);
-//		
-//		ID sourceId = addrEvent.getSourceId();
-//		ID destinationId = ((AddressCarryingEvent)event).getDestinationId();
-//		
-//		RequestType requestType = event.getRequestType();
-//		
-////		if(SystemConfig.nocConfig.ConnType == CONNECTIONTYPE.ELECTRICAL)
-////		{
-//			MemorySystem.mainMemoryController.getPort().put(((AddressCarryingEvent)event).updateEvent(eventQ, 
-//												MemorySystem.mainMemoryController.getLatencyDelay(), this, 
-//												MemorySystem.mainMemoryController, requestType, sourceId,
-//												destinationId));
-////		}
-//	}
-//    protected void handleMainMemoryResponse(EventQueue eventQ, Event event) 
-//	{
-//		AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-//
-//    	nucaCache.updateMaxHopLength(addrEvent.hopLength,(AddressCarryingEvent)event);
-//    	nucaCache.updateMinHopLength(addrEvent.hopLength);
-//    	nucaCache.updateAverageHopLength(addrEvent.hopLength);
-//		long addr = addrEvent.getAddress();
-//		
-//		ID sourceId;
-//		ID destinationId;
-//		if(event.getRequestingElement().getClass() == MainMemoryController.class)
-//		{
-//			sourceId = ((NocInterface) this.comInterface).getId();
-//			destinationId = nucaCache.getBankId(addr);
-//			AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-//																		0,this, this.getRouter(), 
-//																		RequestType.Main_Mem_Response, 
-//																		addr,((AddressCarryingEvent)event).coreId,
-//																		sourceId,destinationId);
-//			this.getRouter().getPort().put(addressEvent);
-//		}
-//		
-//		if(event.getRequestingElement().getClass() == Router.class)
-//		{
-//			int bankset = ((DNuca)nucaCache).getBankSetId(addr);
-//			bankset = ((DNuca)nucaCache).bankSetnum.get(bankset);
-//	    	for(ID bank:((DNuca)nucaCache).bankSetNumToBankIds.get(bankset))
-//	    	{
-//	    		NucaCacheBank cache  = ((DNuca)nucaCache).bankIdtoNucaCacheBank.get(bank);
-//	    		CacheLine cl = cache.access(addrEvent.getAddress());
-//	    		if(cl!=null)
-//	    			cl.setState(MESI.INVALID);
-//	    	}
-//	    	nucaCache.incrementTotalNucaBankAcesses(1);
-//			CacheLine evictedLine = this.fill(addr,MESI.EXCLUSIVE);
-//			if (evictedLine != null && 
-//					this.writePolicy != CacheConfig.WritePolicy.WRITE_THROUGH )
-//			{
-//				sourceId = new ID(((NocInterface) this.comInterface).getId());
-//				destinationId =(ID) SystemConfig.nocConfig.nocElements.getMemoryControllerId(nucaCache.getBankId(addr));
-//				
-//				AddressCarryingEvent addressEvent = new AddressCarryingEvent(event.getEventQ(),
-//																			 0,this, this.getRouter(), 
-//																			 RequestType.Main_Mem_Write, 
-//																			 addr,((AddressCarryingEvent)event).coreId,
-//																			 sourceId,destinationId);
-//				this.getRouter().getPort().put(addressEvent);
-//			}
-//			int numOfOutStandingRequests = nucaCache.missStatusHoldingRegister.numOutStandingRequests(addrEvent);
-//			nucaCache.misses += numOfOutStandingRequests;//change this value
-//			nucaCache.noOfRequests += numOfOutStandingRequests;//change this value
-//			policy.sendResponseToCore((AddressCarryingEvent)event, this);
-//		}
-//	}
+			case EvictCacheLine: {
+				updateStateOfCacheLine(addr, MESI.INVALID);
+				break;
+			}
+			
+			case AckEvictCacheLine: {
+				processEventsInMSHR(addr);
+				break;
+			}
+			case Migrate_Block: {
+				handleMemResponse(event);
+				break;
+			}
+			default : 
+			{
+				misc.Error.showErrorAndExit("Unknown request type " + requestType);
+				break;
+			}
+		}
+	}
+	public int getSetId() {
+		return setId;
+	}
+	public void setSetId(int setId) {
+		this.setId = setId;
+	}
+	public int getMyId() {
+		return myId;
+	}
+	public void setMyId(int myId) {
+		this.myId = myId;
+	}
 	public long getEvictions() {
 		return evictions;
 	}

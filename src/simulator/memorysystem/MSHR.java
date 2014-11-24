@@ -4,6 +4,8 @@ import generic.RequestType;
 
 import java.util.LinkedList;
 
+import main.ArchitecturalComponent;
+
 public class MSHR {
 	private int mshrMaxSize;
 	private int mshrSize;
@@ -27,17 +29,18 @@ public class MSHR {
 		} else {
 			createMSHREntry(event);
 		}
-		
+//		System.out.println("Added to MSHR " + addr + " " + this.toString()+ " " + mshrSize);
 		mshrSize++;
 	}
 
 	public LinkedList<AddressCarryingEvent> removeEventsFromMSHR(long addr) {
 		LinkedList<AddressCarryingEvent> missList = getWaitingEventsInMSHR(addr);
 		if (missList == null) {
-			misc.Error.showErrorAndExit("No pending event in MSHR for addr : "
-					+ addr + ". Cache : " + this);
+			return null;
+//			misc.Error.showErrorAndExit("No pending event in MSHR for addr : "
+//					+ addr + ". Cache : " + this);
 		}
-
+//		System.out.println("Removing from MSHR " + addr + " " + this.toString() + " size " + missList.size());
 		missRegister.remove(missList);
 		mshrSize-=missList.size();
 		return missList;
@@ -114,7 +117,18 @@ public class MSHR {
 		misc.Error.showErrorAndExit("No event for addr : " + addr);
 	}
 
-
+	public boolean removeEventFromMSHR(long addr, AddressCarryingEvent event)
+	{
+//		System.out.println("MSHR total : " + --ArchitecturalComponent.added);
+		LinkedList<AddressCarryingEvent> missList = getWaitingEventsInMSHR(addr);
+		missList.remove(event);
+		if(missList.size() == 0){
+			missRegister.remove(missList);
+			return false;
+		}
+		else
+			return true;
+	}
 	public long sumEventsPendingInMSHR = 0,  sumNumMSHREntries = 0;
 	public long freqEventsPendingInMSHR = 0;
 	

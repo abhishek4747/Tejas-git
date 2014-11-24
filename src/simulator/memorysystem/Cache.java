@@ -104,7 +104,7 @@ public class Cache extends SimulationElement {
 	public CacheConfig cacheConfig;
 	public int id;
 
-	private MSHR mshr;
+	protected MSHR mshr;
 	public boolean isBusy() {
 		return mshr.isMSHRFull();
 	}
@@ -114,7 +114,6 @@ public class Cache extends SimulationElement {
 		super(cacheParameters.portType, cacheParameters.getAccessPorts(),
 				cacheParameters.getPortOccupancy(), cacheParameters
 						.getLatency(), cacheParameters.operatingFreq);
-		System.out.println(cacheName);
 		// add myself to the global cache list
 		if(cacheParameters.isDirectory==true) {
 			ArchitecturalComponent.coherences.add((Coherence) this);
@@ -197,13 +196,13 @@ public class Cache extends SimulationElement {
 		this.mycoherence = c;
 	}
 
-	private boolean printCacheDebugMessages = false;
+	public boolean printCacheDebugMessages = false;
 
 	public void handleEvent(EventQueue eventQ, Event e) {
 		// if(ArchitecturalComponent.getCores()[1].getNoOfInstructionsExecuted()
 		// > 6000000l) {
 //		 System.out.println("\n\nCache[ " + this + "] handleEvent currEvent : " + e);
-		 //missRegister.printMSHR();
+//		 System.out.println("*******************" + this.toString());printMSHR();
 		// toStringPendingEvents();
 		// }
 		//
@@ -264,13 +263,13 @@ public class Cache extends SimulationElement {
 		}
 	}
 
-	private void handleAckDirectoryWriteHit(AddressCarryingEvent event) {
+	protected void handleAckDirectoryWriteHit(AddressCarryingEvent event) {
 		//This function just ensures that the writeHit event gets a line
 		long addr = event.getAddress();
 		CacheLine cl = accessValid(addr);
 		
 		if(cl==null) {
-			misc.Error.showErrorAndExit("Ack write hit expects cache line");
+			misc.Error.showErrorAndExit("Ack write hit expects cache line " + this.cacheName + " " + addr);
 			// writehit expects a line to be present
 			if(isThereAnUnlockedOrInvalidEntryInCacheSet(addr)) {
 				fillAndSatisfyRequests(addr);
@@ -295,7 +294,7 @@ public class Cache extends SimulationElement {
 		updateStateOfCacheLine(addr, MESI.EXCLUSIVE);
 	}
 
-	private void handleDirectoryCachelineForwardRequest(long addr, Cache cache) {
+	protected void handleDirectoryCachelineForwardRequest(long addr, Cache cache) {
 		AddressCarryingEvent event = new AddressCarryingEvent(
 				cache.getEventQueue(), 0, this, cache,
 				RequestType.Mem_Response, addr);
@@ -305,7 +304,7 @@ public class Cache extends SimulationElement {
 		this.sendEvent(event);
 	}
 
-	private void printCacheDebugMessage(Event event) {
+	protected void printCacheDebugMessage(Event event) {
 		if (printCacheDebugMessages == true) {
 			if (event.getClass() == AddressCarryingEvent.class) {
 				System.out.println("CACHE : globalTime = "
@@ -314,14 +313,13 @@ public class Cache extends SimulationElement {
 						+ "\trequestingElelement = "
 						+ event.getRequestingElement() + "\taddress = "
 						+ ((AddressCarryingEvent) event).getAddress() + "\t"
-						+ this);
+						+ this + "\t" + ((AddressCarryingEvent) event).dn_status);
 			}
 		}
 	}
 
 	public void handleAccess(long addr, RequestType requestType,
 			AddressCarryingEvent event) {
-
 		if (requestType == RequestType.Cache_Write) {
 			noOfWritesReceived++;
 		}
@@ -346,7 +344,7 @@ public class Cache extends SimulationElement {
 		}
 	}
 
-	private void cacheHit(long addr, RequestType requestType, CacheLine cl,
+	protected void cacheHit(long addr, RequestType requestType, CacheLine cl,
 			AddressCarryingEvent event) {
 		hits++;
 		noOfRequests++;
@@ -391,7 +389,7 @@ public class Cache extends SimulationElement {
 			}
 			event = new AddressCarryingEvent(c.getEventQueue(), 0, this, c,
 					requestType, addr);
-			addEventAtLowerCache(event);
+			addEventAtLowerCache(event, c);
 		} else {
 			Core core0 = ArchitecturalComponent.getCores()[0];
 			MainMemoryController memController = getComInterface()
@@ -430,10 +428,10 @@ public class Cache extends SimulationElement {
 		return !isSharedCache();
 	}
 
-	public boolean addEventAtLowerCache(AddressCarryingEvent event) {
-		if (this.nextLevel.isBusy() == false) {
+	public boolean addEventAtLowerCache(AddressCarryingEvent event, Cache c) {
+		if (c.isBusy() == false) {
 			sendEvent(event);
-			this.nextLevel.workingSetUpdate();
+			c.workingSetUpdate();
 			return true;
 		} else {
 			// Slight approximation used. MSHR full is a rare event.
@@ -441,7 +439,7 @@ public class Cache extends SimulationElement {
 			// The network congestion and the port occupancy of the next level is not modelled in such cases.
 			// It must be noted that the MSHR full event of the first level caches is being modelled correctly.
 			// This approximation applies only to non-firstlevel caches.
-			this.nextLevel.eventsWaitingOnMSHR.add(event);
+			c.eventsWaitingOnMSHR.add(event);
 			return false;
 		}
 	}
@@ -457,9 +455,12 @@ public class Cache extends SimulationElement {
 		processEventsInMSHR(addr);		
 	}
 
-	private void processEventsInMSHR(long addr) {
-		
+	protected void processEventsInMSHR(long addr) {
 		LinkedList<AddressCarryingEvent> missList = mshr.removeEventsFromMSHR(addr);
+		if(missList==null){
+			misc.Error.showErrorAndExit("MissList is null " + addr + " " + this.cacheName);
+			return;
+		}
 		AddressCarryingEvent writeEvent = null;
 				
 		for(AddressCarryingEvent event : missList) {
@@ -507,7 +508,7 @@ public class Cache extends SimulationElement {
 		}
 	}
 
-	private void handleEvictedLine(CacheLine evictedLine) {
+	protected void handleEvictedLine(CacheLine evictedLine) {
 		if (evictedLine != null && evictedLine.getState() != MESI.INVALID) {
 			if(mshr.isAddrInMSHR(evictedLine.getAddress())) {
 				misc.Error.showErrorAndExit("evicting locked line : " + evictedLine + ". cache : " + this);

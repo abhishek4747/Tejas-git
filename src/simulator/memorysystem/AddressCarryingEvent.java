@@ -10,7 +10,8 @@ public class AddressCarryingEvent extends Event implements Cloneable
 	private long address;
 	public long event_id;
 	public int hopLength;
-
+	public int dn_status=-1; //-1=initial, 1=broadcast, 2=hit, 3=miss
+	public Event parentEvent=null;
 	public AddressCarryingEvent(EventQueue eventQ, long eventTime,
 			SimulationElement requestingElement,
 			SimulationElement processingElement,

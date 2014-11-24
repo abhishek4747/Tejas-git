@@ -23,13 +23,23 @@
 package memorysystem.nuca;
 
 import generic.CommunicationInterface;
+import generic.Core;
+import generic.Event;
+import generic.EventQueue;
+import generic.RequestType;
 import generic.SimulationElement;
 
 import java.util.HashMap;
 import java.util.Vector;
 
+import main.ArchitecturalComponent;
+import memorysystem.AddressCarryingEvent;
 import memorysystem.Cache;
+import memorysystem.CacheLine;
 import memorysystem.CoreMemorySystem;
+import memorysystem.MESI;
+import memorysystem.MSHR;
+import memorysystem.MainMemoryController;
 import net.ID;
 import net.NocInterface;
 import config.CacheConfig;
@@ -53,15 +63,18 @@ public class NucaCache extends Cache
     public Vector<Vector<Integer>> bankSets; //set of bank sets, each value denote the position of cache bank in "cacheBank"
     public NucaType nucaType;
     public Mapping mapping;
+    public HashMap<Event, Integer> activeEventsInDNuca;
 
+    public HashMap<Long, Event> currentList = new HashMap<Long, Event>();
     static public HashMap<ID,Integer> accessedBankIds = new HashMap<ID, Integer>();
     public NucaCache(String cacheName, int id, CacheConfig cacheParameters,
 			CoreMemorySystem containingMemSys)
 	{
 		super(cacheName, id, cacheParameters, containingMemSys);
         this.cacheBank =new Vector<Cache>(); //cache banks are added later
-        if(cacheParameters.nucaType == NucaType.D_NUCA)
+        if(cacheParameters.nucaType == NucaType.D_NUCA){
         	this.bankSets = new Vector<Vector<Integer>>();
+        }
         this.mapping = cacheParameters.mapping;
         this.nucaType = cacheParameters.nucaType;
     }
@@ -75,7 +88,7 @@ public class NucaCache extends Cache
 		else if(config.nucaType == NucaType.D_NUCA)
 		{
 			c = new DNucaBank(token+"["+size+"]", 0, config, null, this);
-			addToBankSet(cominterface);
+			addToBankSet((DNucaBank) c, cominterface);
 		}
 		cacheBank.add(c);
 		return c;
@@ -133,7 +146,7 @@ public class NucaCache extends Cache
 		}
 		return (Cache) this.cacheBank.get(bankNum);
 	}
-	public void addToBankSet(CommunicationInterface cominterface)
+	public void addToBankSet(DNucaBank c, CommunicationInterface cominterface)
 	{
 		//All the cache banks in the same row is added to same set. 
 		ID id = ((NocInterface) cominterface).getId();
@@ -145,6 +158,8 @@ public class NucaCache extends Cache
 		bankSets.get(row).add(this.cacheBank.size()); //Next element to be added to "cacheBank" is the new cache bank.
 												 //See -- In function createBanks, cacheBank.add(c)
                                          		 //So, cacheBank.size() gives its position in "cacheBank"
+		c.setSetId(row);
+		c.setMyId(this.cacheBank.size());
 	}
 	int getBankNum(long addr)
 	{
@@ -198,7 +213,15 @@ public class NucaCache extends Cache
 	{
 		return cacheBank.size();		
 	}
-	
+	public MSHR getMshr()
+	{
+		return this.mshr;
+	}
+	@Override
+	public void handleEvent(EventQueue q, Event e)
+	{
+		misc.Error.showErrorAndExit("In nuca cache");
+	}
 //	public void updateMaxHopLength(int newHopLength,AddressCarryingEvent event) 
 //	{
 //		numOfRequests++;

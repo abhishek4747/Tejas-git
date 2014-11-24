@@ -25,7 +25,7 @@ public class PipelineTests {
 		Main.initializeObjectPools();
 		
 		// initialize cores, memory, tokenBus
-		Main.initializeArchitecturalComponents();		
+//		Main.initializeArchitecturalComponents();		//FIXME
 		inputToPipeline = new GenericCircularQueue<Instruction>(
 											Instruction.class, INSTRUCTION_THRESHOLD);
 		GenericCircularQueue<Instruction>[] toBeSet = (GenericCircularQueue<Instruction>[])
