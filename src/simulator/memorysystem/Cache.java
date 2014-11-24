@@ -196,7 +196,7 @@ public class Cache extends SimulationElement {
 		this.mycoherence = c;
 	}
 
-	public boolean printCacheDebugMessages = false;
+	private boolean printCacheDebugMessages = false;
 
 	public void handleEvent(EventQueue eventQ, Event e) {
 		// if(ArchitecturalComponent.getCores()[1].getNoOfInstructionsExecuted()
@@ -269,7 +269,7 @@ public class Cache extends SimulationElement {
 		CacheLine cl = accessValid(addr);
 		
 		if(cl==null) {
-			misc.Error.showErrorAndExit("Ack write hit expects cache line " + this.cacheName + " " + addr);
+			misc.Error.showErrorAndExit("Ack write hit expects cache line");
 			// writehit expects a line to be present
 			if(isThereAnUnlockedOrInvalidEntryInCacheSet(addr)) {
 				fillAndSatisfyRequests(addr);
@@ -320,6 +320,7 @@ public class Cache extends SimulationElement {
 
 	public void handleAccess(long addr, RequestType requestType,
 			AddressCarryingEvent event) {
+
 		if (requestType == RequestType.Cache_Write) {
 			noOfWritesReceived++;
 		}
@@ -457,10 +458,6 @@ public class Cache extends SimulationElement {
 
 	protected void processEventsInMSHR(long addr) {
 		LinkedList<AddressCarryingEvent> missList = mshr.removeEventsFromMSHR(addr);
-		if(missList==null){
-			misc.Error.showErrorAndExit("MissList is null " + addr + " " + this.cacheName);
-			return;
-		}
 		AddressCarryingEvent writeEvent = null;
 				
 		for(AddressCarryingEvent event : missList) {

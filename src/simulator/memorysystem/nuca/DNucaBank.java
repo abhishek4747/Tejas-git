@@ -71,13 +71,7 @@ public class DNucaBank extends NucaCache implements NucaInterface
 			misc.Error.showErrorAndExit("Something went wrong");
 		activeEventsInDNuca.put(event, 0);
 	}
-	public void cacheHitDnuca(long addr, RequestType requestType, CacheLine cl, AddressCarryingEvent event)
-	{
-		cacheHit(addr, requestType, cl, event);
-		if(mshr.isAddrInMSHR(addr))
-			processEventsInMSHR(addr);
-		parent.currentList.remove(addr);
-	}
+
 	@Override
 	public void handleAccess(long addr, RequestType requestType,
 			AddressCarryingEvent event) {
