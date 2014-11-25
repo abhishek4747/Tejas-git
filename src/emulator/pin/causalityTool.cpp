@@ -368,8 +368,9 @@ VOID FunStartInstrumentation() {
 	{
 		ignoreActive = false;
 		numInsToIgnore = 0;
+    	numInsToSimulate = KnobSimulate;
 		cout << "at function " << startMarker << " : beginning instrumentation" << endl;
-		cout << "ignoreActive = " << ignoreActive << " numInsToIgnore = " << numInsToIgnore << endl;
+		cout << "ignoreActive = " << ignoreActive << " numInsToIgnore = " << numInsToIgnore << "  numInsToSimulate = " << numInsToSimulate<< endl;
 		fflush(stdout);
 	}
 }
@@ -433,9 +434,10 @@ VOID printip(THREADID tid, VOID *ip, char *asmString) {
 
 	tid= findThreadMapping(tid);
 	PIN_MutexLock(&lock);
-	if(ignoreActive == false)
+	if(ignoreActive == false) {
 		numCISC[tid]++;
-	totalNumCISC++;
+		totalNumCISC++;
+	}
 
 	if(pinpointsFilename.compare("nofile") == 0)
 	{
