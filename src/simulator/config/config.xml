@@ -68,7 +68,7 @@
 		<Broadcast>false</Broadcast>
 		<pinpointsSim>false</pinpointsSim>
 		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
-		<NumInsToIgnore>60000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
+		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
 		<subsetSim>false</subsetSim>
 		<subsetSimSize>10000000</subsetSimSize>
 		<markerFunctions>false</markerFunctions>

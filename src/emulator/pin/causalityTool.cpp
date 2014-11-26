@@ -86,7 +86,7 @@ UINT64 numInsToIgnore = 0;
 INT64 numInsToSimulate = 0;
 std::string startMarker;
 std::string endMarker;
-BOOL ignoreActive = false;
+BOOL ignoreActive = true;
 UINT64 numCISC[MaxThreads];
 UINT64 totalNumCISC;
 bool threadAlive[MaxThreads];
@@ -556,6 +556,7 @@ VOID printip(THREADID tid, VOID *ip, char *asmString) {
 }
 
 VOID funcHandler(CHAR* name, int a, int b, int c) {
+	ignoreActive = false;
 	cout << "function encountered\n ";
 	cout << "numSim = " << totalNumCISC << "\n";
 }

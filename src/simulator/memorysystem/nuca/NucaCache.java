@@ -41,6 +41,7 @@ public class NucaCache extends Cache
 	public static enum NucaType{
 		S_NUCA,
 		D_NUCA,
+		O_NUCA,
 		NONE
 	}
 	
@@ -55,6 +56,9 @@ public class NucaCache extends Cache
     public NucaType nucaType;
     public Mapping mapping;
     public HashMap<Event, Integer> activeEventsInDNuca;
+    public boolean ONucaStatus;
+    public long hopCount;
+    public long migrations;
 
     public HashMap<Long, Event> currentList = new HashMap<Long, Event>();
 
@@ -66,8 +70,12 @@ public class NucaCache extends Cache
         if(cacheParameters.nucaType == NucaType.D_NUCA){
         	this.bankSets = new Vector<Vector<Integer>>();
         }
+        ONucaStatus = false;
+        hopCount = 0;
+        migrations = 0;
         this.mapping = cacheParameters.mapping;
         this.nucaType = cacheParameters.nucaType;
+        
     }
     
     public Cache createBanks(String token, CacheConfig config, CommunicationInterface cominterface) {
@@ -81,6 +89,9 @@ public class NucaCache extends Cache
 			c = new DNucaBank(token+"["+size+"]", 0, config, null, this);
 			addToBankSet((DNucaBank) c, cominterface);
 		}
+		if(config.nucaType == NucaType.O_NUCA){
+			c = new SNucaBank(token+"["+size+"]", 0, config, null, this);
+		}
 		cacheBank.add(c);
 		return c;
 	}
@@ -89,6 +100,8 @@ public class NucaCache extends Cache
 			return getSNucaBank(addr);
 		else if(this.nucaType == NucaType.D_NUCA)
 			return getDNucaBank(getBankSetId(addr), id);
+		else if(this.nucaType == NucaType.O_NUCA && this.ONucaStatus == false)
+			return getSNucaBank(addr);
 		else
 		{
 			misc.Error.showErrorAndExit("Invalid Nuca Type");
@@ -212,6 +225,10 @@ public class NucaCache extends Cache
 	public void handleEvent(EventQueue q, Event e)
 	{
 		misc.Error.showErrorAndExit("In nuca cache");
+	}
+	public void callCacheHandleEvent(EventQueue q, Event e)
+	{
+		super.handleEvent(q, e);
 	}
 //	public void updateMaxHopLength(int newHopLength,AddressCarryingEvent event) 
 //	{

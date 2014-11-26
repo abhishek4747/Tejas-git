@@ -19,6 +19,8 @@
 				Contributor: Eldhose Peter
 *****************************************************************************/
 package memorysystem.nuca;
+import generic.Event;
+import generic.EventQueue;
 import memorysystem.CoreMemorySystem;
 import config.CacheConfig;
 
@@ -41,5 +43,10 @@ public class SNucaBank extends NucaCache  implements NucaInterface
 	}
 	public void incrementEvictions(long evictions) {
 		this.evictions += evictions;
+	}
+	@Override
+	public void handleEvent(EventQueue q, Event e)
+	{
+		callCacheHandleEvent(q, e);
 	}
 }

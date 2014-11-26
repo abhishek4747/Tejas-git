@@ -27,6 +27,7 @@ import config.EmulatorConfig;
 import config.EnergyConfig;
 import config.SimulationConfig;
 import config.SystemConfig;
+import config.SystemConfig.Interconnect;
 import emulatorinterface.communication.IpcBase;
 import emulatorinterface.translator.qemuTranslationCache.TranslatedInstructionCache;
 
@@ -349,15 +350,31 @@ public class Statistics {
 				printConsolidatedCacheStats(entry.getKey(), entry.getValue());
 			}
 			
-			outputFileWriter.write("\n\nNUCA Type\t=\t" + SimulationConfig.nucaType + "\n");
-			if (nocRoutingAlgo != null)
+			for(String name : ArchitecturalComponent.nucaList.keySet())
 			{
-				outputFileWriter.write("L2 noc Topology\t=\t" + nocTopology + "\n");
-				outputFileWriter.write("L2 noc Routing Algorithm\t=\t" + nocRoutingAlgo + "\n");
+				NucaCache nuca = ArchitecturalComponent.nucaList.get(name);
+				long access = 0;
+				for(Cache bank : nuca.cacheBank)
+				{
+					access += bank.hits;
+					access += bank.misses;
+				}
+				outputFileWriter.write("\n\nNUCA \t\t=\t" + name + "\n");
+				outputFileWriter.write("NUCA Type\t=\t" + ArchitecturalComponent.nucaList.get(name).nucaType + "\n");
+				outputFileWriter.write("Total Nuca Bank Accesses\t=\t" + access +"\n");
+				outputFileWriter.write("Total Nuca Bank Migrations\t=\t" + nuca.migrations +"\n");
+				outputFileWriter.write("Average number of NUCA Events\t=\t" + (float)nuca.hopCount/access +"\n");				
+				
+			}
+			
+			if (SystemConfig.interconnect == Interconnect.Noc)
+			{
+				outputFileWriter.write("\n\nNOC Topology\t\t=\t" + SystemConfig.nocConfig.topology + "\n");
+				outputFileWriter.write("NOC Routing Algorithm\t=\t" + SystemConfig.nocConfig.rAlgo + "\n");
 			}
 			if(SimulationConfig.nucaType!=NucaType.NONE)
 			{
-				outputFileWriter.write("Total Nuca Bank Accesses\t=\t" + totalNucaBankAccesses +"\n");
+				
 				
 				/* TODO anuj
 				double totalNucaBankPower = (totalNucaBankAccesses*PowerConfig.dcache2Power)/executionTime;
@@ -370,10 +387,7 @@ public class Statistics {
 					outputFileWriter.write("Router Hops\t=\t" + hopcount + "\n");
 					outputFileWriter.write("Total Router Power\t=\t" + totalRouterPower + "\n");
 				}*/
-				outputFileWriter.write("Minimum Hop Length\t=\t" + minHopLength + "\n");
-				outputFileWriter.write("Maximum Hop Length\t=\t" + maxHopLength + "\n");
-				outputFileWriter.write("Average Hop Length\t=\t" + averageHopLength + "\n");
-				
+								
 				/* TODO anuj
 				double totalBufferPower = (Switch.totalBufferAccesses*PowerConfig.bufferEnergy)/executionTime;
 				outputFileWriter.write("Total Buffer Accesses\t=\t" + Switch.totalBufferAccesses + "\n");

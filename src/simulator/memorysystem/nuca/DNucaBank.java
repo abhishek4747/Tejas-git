@@ -57,6 +57,7 @@ public class DNucaBank extends NucaCache implements NucaInterface
 		{
 			if(bankId == myId)
 				continue;//Dont send to itself
+			parent.hopCount++;
 			DNucaBank destination = (DNucaBank) parent.cacheBank.get(bankId);
 			newEvent = new AddressCarryingEvent(this.getEventQueue(), 
 					0,
@@ -111,6 +112,8 @@ public class DNucaBank extends NucaCache implements NucaInterface
 	public void doMigration(long addr, RequestType requestType,
 			AddressCarryingEvent event, CacheLine cl) 
 	{
+		parent.hopCount++;
+		parent.migrations++;
 		DNucaBank migrateDestination = getMigrateDestination(myId, 
 				((DNucaBank) event.getRequestingElement()).getMyId(),
 				((DNucaBank) event.getRequestingElement()).getSetId());
