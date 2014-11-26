@@ -50,22 +50,4 @@ public class EventQueue
 		head = (head + 1) % queueSize;
 		
 	}
-	
-	public boolean isEmpty()
-	{
-		return myPriorityQueue.isEmpty();
-	}
-	
-	public void dump()
-	{
-		System.out.println("------------------------------------------------------------------------------------");
-		System.out.println("event queue size = " + priorityQueue.size());
-		Iterator<Event> iterator = priorityQueue.iterator();
-		while(iterator.hasNext())
-		{
-			Event event = iterator.next();			
-			event.dump();
-		}
-		System.out.println("------------------------------------------------------------------------------------");
-	}
 }

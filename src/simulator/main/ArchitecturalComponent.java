@@ -23,8 +23,6 @@ import memorysystem.MainMemoryController;
 import memorysystem.MemorySystem;
 import memorysystem.coherence.Coherence;
 import memorysystem.nuca.NucaCache;
-import memorysystem.nuca.NucaCache.NucaType;
-import memorysystem.coherence.Directory;
 import net.Bus;
 import net.BusInterface;
 import net.InterConnect;
@@ -247,7 +245,6 @@ public class ArchitecturalComponent {
 			eventQueue = ArchitecturalComponent.getCores()[i].getEventQueue();
 			System.out.println("---------------------------------------------------------------------------");
 			System.out.println("CORE " + i);
-			eventQueue.dump();
 		}
 	}
 
