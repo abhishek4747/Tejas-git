@@ -900,7 +900,7 @@ public class Cache extends SimulationElement {
 			// If the tag is matching, we have a hit
 			if (mshr.isAddrInMSHR(ll.getAddress()) == false) {
 				return true;
-			}else if (ll.getState() == MESI.INVALID && mshr.isAddrInMSHR(ll.getAddress()) == false) {
+			}else if (ll.getState() == MESI.INVALID) {
 				return true;
 			} 
 		}
