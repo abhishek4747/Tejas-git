@@ -47,6 +47,7 @@ public class DNucaBank extends NucaCache implements NucaInterface
         this.parent = nuca;
         this.setId = -1;
         this.mshr = nuca.getMshr();
+        this.eventsWaitingOnMSHR = nuca.eventsWaitingOnMSHR;
         activeEventsInDNuca = new HashMap<Event, Integer>();
     }
 

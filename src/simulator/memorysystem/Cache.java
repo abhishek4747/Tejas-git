@@ -441,6 +441,7 @@ public class Cache extends SimulationElement {
 			// It must be noted that the MSHR full event of the first level caches is being modelled correctly.
 			// This approximation applies only to non-firstlevel caches.
 			c.eventsWaitingOnMSHR.add(event);
+//			System.out.println();
 			return false;
 		}
 	}
@@ -717,7 +718,7 @@ public class Cache extends SimulationElement {
 		return evictedLine;
 	}
 
-	LinkedList<AddressCarryingEvent> eventsWaitingOnMSHR = new LinkedList<AddressCarryingEvent>(); 
+	public LinkedList<AddressCarryingEvent> eventsWaitingOnMSHR = new LinkedList<AddressCarryingEvent>(); 
 
 	public String toString() {
 		return cacheName;
@@ -897,11 +898,11 @@ public class Cache extends SimulationElement {
 			// fetch the cache line
 			CacheLine ll = lines[index];
 			// If the tag is matching, we have a hit
-			if (ll.getState() == MESI.INVALID) {
+			if (mshr.isAddrInMSHR(ll.getAddress()) == false) {
 				return true;
-			} else if (mshr.isAddrInMSHR(ll.getAddress()) == false) {
+			}else if (ll.getState() == MESI.INVALID && mshr.isAddrInMSHR(ll.getAddress()) == false) {
 				return true;
-			}
+			} 
 		}
 		
 		return false;
