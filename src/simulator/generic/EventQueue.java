@@ -1,6 +1,8 @@
 package generic;
 
+import java.lang.reflect.Array;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 
 import main.ArchitecturalComponent;
@@ -8,52 +10,50 @@ import memorysystem.AddressCarryingEvent;
 
 public class EventQueue 
 {
-	private PriorityQueue<Event> priorityQueue;
-
+	static final int queueSize = 1024;
+	LinkedList<Event> myPriorityQueue[];
+	int head = 0;
+	
 	public EventQueue() 
 	{
-		priorityQueue = new PriorityQueue<Event>(1, new EventComparator());
+		myPriorityQueue = (LinkedList<Event>[]) Array.newInstance(LinkedList.class, queueSize);
+		for(int i=0; i<queueSize; i++) {
+			myPriorityQueue[i] = new LinkedList<Event>(); 
+		}
+	}
+	
+	int getIndex(int index) {
+		return (head+index)%queueSize;
 	}
 	
 	public void addEvent(Event event)
 	{
-		if( priorityQueue.add(event) == false) {
-			misc.Error.showErrorAndExit("Error in adding event to the event queue : " + event);
-//			Event newEvent = event.clone();
-//			priorityQueue.add(newEvent);
+		long currentClockTime = GlobalClock.currentTime;
+		long eventTime = event.getEventTime();
+		if(eventTime<currentClockTime) {
+			myPriorityQueue[getIndex(0)].add(event);
+		} else {
+			int diffTime = (int)(eventTime - currentClockTime);
+			myPriorityQueue[getIndex(diffTime)].add(event);
 		}
 	}
 	
 	public void processEvents()
 	{
-		Event event;
-		long eventTime;
+		LinkedList<Event> eventList = myPriorityQueue[head];
 		
-		long currentClockTime = GlobalClock.currentTime;
-		
-		while(!priorityQueue.isEmpty())
-		{
-			//get the eventTime of the event on the head of the queue.
-			eventTime = priorityQueue.peek().getEventTime();
-			if (eventTime <= currentClockTime)
-			{
-				//remove the event at the head of the queue.
-				event = priorityQueue.remove();
-								
-				//If the event could not be handled, add it to the queue.
-				//TODO This is in compliance with the new structure.
-				event.getProcessingElement().handleEvent(this, event);
-			}
-			else
-			{
-				break;
-			}
+		while(eventList.isEmpty()==false) {
+			Event e = eventList.pollFirst();
+			e.getProcessingElement().handleEvent(this, e);
 		}
+	
+		head = (head + 1) % queueSize;
+		
 	}
 	
 	public boolean isEmpty()
 	{
-		return priorityQueue.isEmpty();
+		return myPriorityQueue.isEmpty();
 	}
 	
 	public void dump()
@@ -65,17 +65,6 @@ public class EventQueue
 		{
 			Event event = iterator.next();			
 			event.dump();
-			/*if(event.getRequestType() == RequestType.PerformPulls)
-			{
-				System.out.println(event.getRequestType());
-			}
-			else if(event.getClass() == AddressCarryingEvent.class)
-			{
-				AddressCarryingEvent addrEvent = (AddressCarryingEvent) event;
-				System.out.println(addrEvent.getRequestType() + "," + addrEvent.getAddress() + "," + addrEvent.coreId + "," + addrEvent.getProcessingElement() + "," + addrEvent.getRequestingElement() + ","+addrEvent.getEventTime());
-			} else {
-				System.out.println(event.getRequestType() + ","+ event.coreId + "," + event.getProcessingElement() + "," + event.getRequestingElement() + ","+event.getEventTime());
-			}*/
 		}
 		System.out.println("------------------------------------------------------------------------------------");
 	}

@@ -29,9 +29,9 @@ import generic.Event;
 public class BusInterface implements CommunicationInterface{
 
 	Bus bus;
-	public BusInterface() {
+	public BusInterface(Bus bus) {
 		super();
-		bus = new Bus();
+		this.bus = bus;
 	}
 	
 	/*

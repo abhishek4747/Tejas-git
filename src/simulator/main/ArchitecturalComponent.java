@@ -24,6 +24,7 @@ import memorysystem.MemorySystem;
 import memorysystem.coherence.Coherence;
 import memorysystem.nuca.NucaCache;
 import memorysystem.nuca.NucaCache.NucaType;
+import memorysystem.coherence.Directory;
 import net.Bus;
 import net.BusInterface;
 import net.InterConnect;
@@ -68,11 +69,13 @@ public class ArchitecturalComponent {
 	
 	private static void createElementsOfBus() {
 		
-		BusInterface busInterface = new BusInterface();
+		Bus bus = new Bus();
+		BusInterface busInterface;
 		
 		// Create Cores
 		for(int i=0; i<SystemConfig.NoOfCores; i++) {
 			Core core = createCore(i);
+			busInterface = new BusInterface(bus);
 			core.setComInterface(busInterface);
 			cores.add(core);
 		}
@@ -80,12 +83,14 @@ public class ArchitecturalComponent {
 		// Create Shared Cache
 		// PS : Directory will be created as a special shared cache
 		for(CacheConfig cacheConfig : SystemConfig.sharedCacheConfigs) {
+			busInterface = new BusInterface(bus);
 			Cache c = MemorySystem.createSharedCache(cacheConfig.cacheName, busInterface);
 //			c.setComInterface(busInterface);
 		}
 		
 		// Create Main Memory Controller
 		MainMemoryController mainMemController = new MainMemoryController();
+		busInterface = new BusInterface(bus);
 		mainMemController.setComInterface(busInterface);
 		memoryControllers.add(mainMemController);
 	}
