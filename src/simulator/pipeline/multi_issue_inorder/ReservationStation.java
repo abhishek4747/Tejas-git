@@ -1,12 +1,25 @@
 package pipeline.multi_issue_inorder;
 
 import generic.OperationType;
+import generic.Operand;
 
-public class ReservationStation {
+class RS {
 	OperationType opType;
-	int busy;
+	boolean busy;
 	int Qi;
 	int Qj, Qk;
-	Object Vij, Vik;
-	
+	Operand Vj, Vk;
+
+}
+
+public class ReservationStation {
+	int size;
+	RS rs[];
+
+	ReservationStation(int size) {
+		this.size = size;
+		this.rs = new RS[size];
+		for (int i = 0; i < size; i++)
+			rs[i] = new RS();
+	}
 }

@@ -1,7 +1,9 @@
 package pipeline.multi_issue_inorder;
 
+import generic.Core;
 import generic.Instruction;
 import generic.Operand;
+import generic.OperationType;
 
 class ROBSlot {
 	Instruction instr;
@@ -21,7 +23,16 @@ public class ROB {
 	public int tail;
 	public int curSize;
 
-	ROB(int ROBSize) {
+	Core core;
+	MultiIssueInorderExecutionEngine containingExecutionEngine;
+
+	long lastValidIpSeen;
+	int numMispredictedBranches;
+	int numBranches;
+
+	ROB(Core core, MultiIssueInorderExecutionEngine execEngine, int ROBSize) {
+		this.core = core;
+		this.containingExecutionEngine = execEngine;
 		this.ROBSize = ROBSize;
 		rob = new ROBSlot[ROBSize];
 		for (int i = 0; i < ROBSize; i++)
@@ -29,6 +40,9 @@ public class ROB {
 		head = -1;
 		tail = -1;
 		curSize = 0;
+		lastValidIpSeen = -1;
+		numMispredictedBranches = 0;
+		numBranches = 0;
 	}
 
 	public boolean add(Instruction i) {
@@ -56,6 +70,36 @@ public class ROB {
 		} else
 			head = (head + 1) % ROBSize;
 		return true;
+	}
+
+	public void performCommit() {
+		if (head == -1)
+			return;
+		if (rob[head].instr.getCISCProgramCounter() != -1) {
+			lastValidIpSeen = rob[head].instr.getCISCProgramCounter();
+		}
+		if (rob[head].ready) {
+			if (rob[head].instr.getOperationType() == OperationType.branch) {
+				boolean prediction = containingExecutionEngine
+						.getBranchPredictor().predict(lastValidIpSeen,
+								rob[head].instr.isBranchTaken());
+				if (prediction != rob[head].instr.isBranchTaken()) {
+					containingExecutionEngine.setMispredStall(core
+							.getBranchMispredictionPenalty());
+					numMispredictedBranches++;
+				}
+				this.containingExecutionEngine.getBranchPredictor()
+						.incrementNumAccesses(1);
+
+				containingExecutionEngine.getBranchPredictor().Train(
+						rob[head].instr.getCISCProgramCounter(),
+						rob[head].instr.isBranchTaken(), prediction);
+				this.containingExecutionEngine.getBranchPredictor()
+						.incrementNumAccesses(1);
+
+				numBranches++;
+			}
+		}
 	}
 
 }

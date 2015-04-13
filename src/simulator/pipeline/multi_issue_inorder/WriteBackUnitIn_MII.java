@@ -22,111 +22,105 @@ import generic.RequestType;
 import generic.SimulationElement;
 import generic.Statistics;
 
-public class WriteBackUnitIn_MII extends SimulationElement{
-	
+public class WriteBackUnitIn_MII extends SimulationElement {
+
 	Core core;
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
 	StageLatch_MII memWbLatch;
-	
-	long instCtr; //for debug
-	
+
+	long instCtr; // for debug
+
 	long numIntRegFileAccesses;
 	long numFloatRegFileAccesses;
-	
-	public WriteBackUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine)
-	{
-		super(PortType.Unlimited, -1, -1 , -1, -1);
+
+	public WriteBackUnitIn_MII(Core core,
+			MultiIssueInorderExecutionEngine execEngine) {
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		containingExecutionEngine = execEngine;
 		memWbLatch = execEngine.getMemWbLatch();
-		
+
 		instCtr = 0;
 	}
-	
-	public void performWriteBack(MultiIssueInorderPipeline inorderPipeline)
-	{
-		if(containingExecutionEngine.getMispredStall() > 0)
-		{
+
+	public void performWriteBack(MultiIssueInorderPipeline inorderPipeline) {
+		if (containingExecutionEngine.getMispredStall() > 0) {
 			return;
 		}
-		
+
 		Instruction ins = null;
-		
-		while(memWbLatch.isEmpty() == false)
-		{
+
+		while (memWbLatch.isEmpty() == false) {
 			ins = memWbLatch.peek(0);
-			if(ins != null)
-			{
-				//check if simulation complete
-				if(ins.getOperationType()==OperationType.inValid)
-				{
+			if (ins != null) {
+				// check if simulation complete
+				if (ins.getOperationType() == OperationType.inValid) {
 					this.core.currentThreads--;
-					
-					if(this.core.currentThreads == 0){   //set exec complete only if there are n other thread already 
-														  //assigned to this pipeline	
+
+					if (this.core.currentThreads == 0) { // set exec complete
+															// only if there are
+															// n other thread
+															// already
+															// assigned to this
+															// pipeline
 						containingExecutionEngine.setExecutionComplete(true);
-						if(SimulationConfig.pinpointsSimulation == false)
-						{					
-							containingExecutionEngine.setTimingStatistics();			
-							containingExecutionEngine.setPerCoreMemorySystemStatistics();
-						}
-						else
-						{
+						if (SimulationConfig.pinpointsSimulation == false) {
+							containingExecutionEngine.setTimingStatistics();
+							containingExecutionEngine
+									.setPerCoreMemorySystemStatistics();
+						} else {
 							PinPointsProcessing.processEndOfSlice();
 						}
 					}
-				}
-				else
-				{
-					if(core.getNoOfInstructionsExecuted()%1000000==0)
-					{
-						System.out.println(core.getNoOfInstructionsExecuted()/1000000 + " million done" + " by core "+core.getCore_number() 
-								+ " global clock cycle " + GlobalClock.getCurrentTime());
+				} else {
+					if (core.getNoOfInstructionsExecuted() % 1000000 == 0) {
+						System.out.println(core.getNoOfInstructionsExecuted()
+								/ 1000000 + " million done" + " by core "
+								+ core.getCore_number()
+								+ " global clock cycle "
+								+ GlobalClock.getCurrentTime());
 					}
 					core.incrementNoOfInstructionsExecuted();
 				}
-				
-				//increment register file accesses for power statistics
-				
-				//operand fetch
+
+				// increment register file accesses for power statistics
+
+				// operand fetch
 				incrementNumRegFileAccesses(ins.getSourceOperand1(), 1);
 				incrementNumRegFileAccesses(ins.getSourceOperand2(), 1);
-				
-				//write-back
+
+				// write-back
 				incrementNumRegFileAccesses(ins.getDestinationOperand(), 1);
-				if(ins.getOperationType() == OperationType.xchg)
-				{
+				if (ins.getOperationType() == OperationType.xchg) {
 					incrementNumRegFileAccesses(ins.getSourceOperand1(), 1);
-					if(ins.getSourceOperand1().getValue() != ins.getSourceOperand2().getValue()
-							|| ins.getSourceOperand1().getOperandType() != ins.getSourceOperand2().getOperandType())
-					{
+					if (ins.getSourceOperand1().getValue() != ins
+							.getSourceOperand2().getValue()
+							|| ins.getSourceOperand1().getOperandType() != ins
+									.getSourceOperand2().getOperandType()) {
 						incrementNumRegFileAccesses(ins.getSourceOperand2(), 1);
 					}
 				}
-				
-				if(ins.getSerialNo() != instCtr && ins.getOperationType() != OperationType.inValid)
-				{
+
+				if (ins.getSerialNo() != instCtr
+						&& ins.getOperationType() != OperationType.inValid) {
 					misc.Error.showErrorAndExit("wb out of order!!");
 				}
-				instCtr++;	
-				
-				if(SimulationConfig.debugMode)
-				{
-					System.out.println("write back : " + GlobalClock.getCurrentTime()/core.getStepSize() + "\n"  + ins + "\n");
+				instCtr++;
+
+				if (SimulationConfig.debugMode) {
+					System.out.println("write back : "
+							+ GlobalClock.getCurrentTime() / core.getStepSize()
+							+ "\n" + ins + "\n");
 				}
-				
-				memWbLatch.poll();				
-				try
-				{
+
+				memWbLatch.poll();
+				try {
 					CustomObjectPool.getInstructionPool().returnObject(ins);
 					core.numReturns++;
-				}
-				catch (Exception e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}
-			else
-			{
+			} else {
 				break;
 			}
 		}
@@ -136,45 +130,42 @@ public class WriteBackUnitIn_MII extends SimulationElement{
 	public void handleEvent(EventQueue eventQ, Event event) {
 
 	}
-	
-	void incrementNumRegFileAccesses(Operand operand, int incrementBy)
-	{
-		if(operand == null)
-		{
+
+	void incrementNumRegFileAccesses(Operand operand, int incrementBy) {
+		if (operand == null) {
 			return;
 		}
-		
-		if(operand.isIntegerRegisterOperand())
-		{
+
+		if (operand.isIntegerRegisterOperand()) {
 			incrementNumIntRegFileAccesses(incrementBy);
-		}
-		else if(operand.isFloatRegisterOperand())
-		{
+		} else if (operand.isFloatRegisterOperand()) {
 			incrementNumFloatRegFileAccesses(incrementBy);
 		}
 	}
-	
-	void incrementNumIntRegFileAccesses(int incrementBy)
-	{
+
+	void incrementNumIntRegFileAccesses(int incrementBy) {
 		numIntRegFileAccesses += incrementBy;
 	}
-	
-	void incrementNumFloatRegFileAccesses(int incrementBy)
-	{
+
+	void incrementNumFloatRegFileAccesses(int incrementBy) {
 		numFloatRegFileAccesses += incrementBy;
 	}
-	
-	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter, String componentName) throws IOException
-	{
+
+	public EnergyConfig calculateAndPrintEnergy(FileWriter outputFileWriter,
+			String componentName) throws IOException {
 		EnergyConfig totalPower = new EnergyConfig(0, 0);
-		EnergyConfig intRegFilePower = new EnergyConfig(core.getIntRegFilePower(), numIntRegFileAccesses);
+		EnergyConfig intRegFilePower = new EnergyConfig(
+				core.getIntRegFilePower(), numIntRegFileAccesses);
 		totalPower.add(totalPower, intRegFilePower);
-		EnergyConfig floatRegFilePower = new EnergyConfig(core.getFpRegFilePower(), numFloatRegFileAccesses);
+		EnergyConfig floatRegFilePower = new EnergyConfig(
+				core.getFpRegFilePower(), numFloatRegFileAccesses);
 		totalPower.add(totalPower, floatRegFilePower);
-		
-		intRegFilePower.printEnergyStats(outputFileWriter, componentName + ".int");
-		floatRegFilePower.printEnergyStats(outputFileWriter, componentName + ".float");
-		
+
+		intRegFilePower.printEnergyStats(outputFileWriter, componentName
+				+ ".int");
+		floatRegFilePower.printEnergyStats(outputFileWriter, componentName
+				+ ".float");
+
 		return totalPower;
 	}
 }
