@@ -22,7 +22,7 @@ public class DecodeUnit_MII extends SimulationElement {
 	Core core;
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
 	StageLatch_MII ifIdLatch;
-	StageLatch_MII idExLatch;
+	ReservationStation idExRS;
 
 	long numBranches;
 	long numMispredictedBranches;
@@ -40,7 +40,7 @@ public class DecodeUnit_MII extends SimulationElement {
 		this.core = core;
 		containingExecutionEngine = execEngine;
 		ifIdLatch = execEngine.getIfIdLatch();
-		idExLatch = execEngine.getIdExLatch();
+		idExRS = execEngine.getIdExRS();
 
 		numBranches = 0;
 		numMispredictedBranches = 0;

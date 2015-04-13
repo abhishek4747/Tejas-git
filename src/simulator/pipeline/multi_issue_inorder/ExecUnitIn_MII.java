@@ -22,7 +22,7 @@ public class ExecUnitIn_MII extends SimulationElement {
 	Core core;
 	EventQueue eventQueue;
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
-	StageLatch_MII idExLatch;
+	ReservationStation idExRS;
 	StageLatch_MII exMemLatch;
 	long[] instructionCompletesAt;
 
@@ -35,7 +35,7 @@ public class ExecUnitIn_MII extends SimulationElement {
 		this.core = core;
 		this.eventQueue = core.getEventQueue();
 		containingExecutionEngine = execEngine;
-		idExLatch = execEngine.getIdExLatch();
+		idExRS = execEngine.getIdExRS();
 		exMemLatch = execEngine.getExMemLatch();
 
 		instructionCompletesAt = new long[containingExecutionEngine
@@ -114,5 +114,9 @@ public class ExecUnitIn_MII extends SimulationElement {
 				numResultsBroadCastBusAccess);
 		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
+	}
+
+	public static int getSize() {
+		return ReservationStation.getRSSize()/5;
 	}
 }

@@ -22,4 +22,8 @@ public class ReservationStation {
 		for (int i = 0; i < size; i++)
 			rs[i] = new RS();
 	}
+	
+	public static int getRSSize(){
+		return 10;
+	}
 }

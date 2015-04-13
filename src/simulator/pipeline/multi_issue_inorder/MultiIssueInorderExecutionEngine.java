@@ -2,6 +2,8 @@ package pipeline.multi_issue_inorder;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
+
 import config.EnergyConfig;
 import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
@@ -20,9 +22,11 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	int issueWidth;
 	private FetchUnitIn_MII fetchUnitIn;
 	private DecodeUnit_MII decodeUnitIn;
-	private ExecUnitIn_MII execUnitIn;
+	private ExecUnitIn_MII execUnitIns[];
 	private MemUnitIn_MII memUnitIn;
 	private WriteBackUnitIn_MII writeBackUnitIn;
+	private CommitUnit_MII commitUnitIn;
+	
 	private boolean executionComplete;
 	private boolean fetchComplete;
 	public InorderCoreMemorySystem_MII multiIssueInorderCoreMemorySystem;
@@ -45,7 +49,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 	private int mispredStall; // to simulate pipeline flush during branch
 								// misprediction
-	StageLatch_MII ifIdLatch, idExLatch, exMemLatch, memWbLatch, wbDoneLatch;
+	StageLatch_MII ifIdLatch, exMemLatch, memWbLatch, wbDoneLatch;
+	
+	ReservationStation idExRS;
 
 	public int noOfOutstandingLoads = 0;
 
@@ -58,17 +64,19 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		this.issueWidth = issueWidth;
 
 		ifIdLatch = new StageLatch_MII(issueWidth);
-		idExLatch = new StageLatch_MII(issueWidth);
+		idExRS = new ReservationStation(ReservationStation.getRSSize());
 		exMemLatch = new StageLatch_MII(issueWidth);
 		memWbLatch = new StageLatch_MII(issueWidth);
 		wbDoneLatch = new StageLatch_MII(issueWidth);
+		
 
 		this.setFetchUnitIn(new FetchUnitIn_MII(core, core.getEventQueue(),
 				this));
 		this.setDecodeUnitIn(new DecodeUnit_MII(core, this));
-		this.setExecUnitIn(new ExecUnitIn_MII(core, this));
+		this.setExecUnitInSize(ExecUnitIn_MII.getSize());
 		this.setMemUnitIn(new MemUnitIn_MII(core, this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core, this));
+		this.setCommitUnitIn(new CommitUnit_MII(core, this));
 		this.executionComplete = false;
 		memStall = 0;
 		dataHazardStall = 0;
@@ -84,6 +92,10 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		valueReadyInteger = new long[core.getNIntegerArchitecturalRegisters()];
 		valueReadyFloat = new long[core
 				.getNFloatingPointArchitecturalRegisters()];
+	}
+
+	private void setCommitUnitIn(CommitUnit_MII commitUnit_MII) {
+		this.commitUnitIn = commitUnit_MII;
 	}
 
 	public int getNumPipelines() {
@@ -102,8 +114,8 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		return this.decodeUnitIn;
 	}
 
-	public ExecUnitIn_MII getExecUnitIn() {
-		return this.execUnitIn;
+	public ExecUnitIn_MII getExecUnitIn(int index) {
+		return this.execUnitIns[index];
 	}
 
 	public MemUnitIn_MII getMemUnitIn() {
@@ -122,8 +134,12 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		this.decodeUnitIn = _decodeUnitIn;
 	}
 
-	public void setExecUnitIn(ExecUnitIn_MII _execUnitIn) {
-		this.execUnitIn = _execUnitIn;
+	public void setExecUnitInSize(int size){
+		this.execUnitIns = new ExecUnitIn_MII[size];
+	}
+	
+	public void setExecUnitIn(ExecUnitIn_MII _execUnitIn, int index) {
+		this.execUnitIns[index] = _execUnitIn;
 	}
 
 	public void setMemUnitIn(MemUnitIn_MII _memUnitIn) {
@@ -300,8 +316,8 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		return this.ifIdLatch;
 	}
 
-	public StageLatch_MII getIdExLatch() {
-		return this.idExLatch;
+	public ReservationStation getIdExRS() {
+		return this.idExRS;
 	}
 
 	public StageLatch_MII getExMemLatch() {
@@ -365,10 +381,13 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 				outputFileWriter, componentName + ".FuncUnit");
 		totalPower.add(totalPower, fuPower);
 
-		EnergyConfig resultsBroadcastBusPower = getExecUnitIn()
-				.calculateAndPrintEnergy(outputFileWriter,
-						componentName + ".resultsBroadcastBus");
-		totalPower.add(totalPower, resultsBroadcastBusPower);
+		for (int i=0; i<ExecUnitIn_MII.getSize(); i++){
+			EnergyConfig resultsBroadcastBusPower = getExecUnitIn(i)
+					.calculateAndPrintEnergy(outputFileWriter,
+							componentName + ".resultsBroadcastBus");
+			totalPower.add(totalPower, resultsBroadcastBusPower);
+		}
+		
 
 		totalPower.printEnergyStats(outputFileWriter, componentName + ".total");
 
@@ -393,5 +412,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	@Override
 	public void setNumberOfMispredictedBranches(long numMispredictedBranches) {
 		decodeUnitIn.numMispredictedBranches = numMispredictedBranches;
+	}
+
+	public CommitUnit_MII getCommitUnitIn() {
+		return this.commitUnitIn;
 	}
 }
