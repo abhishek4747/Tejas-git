@@ -69,10 +69,19 @@ public class ROB {
 			tail = -1;
 		} else
 			head = (head + 1) % ROBSize;
+		curSize--;
 		return true;
 	}
 
-	public void performCommit() {
+	void flush() {
+		for (int i = 0; i < ROBSize; i++)
+			rob[i].busy = false;
+		head = -1;
+		tail = -1;
+		curSize = 0;
+	}
+
+	public void performCommit(RF rf) {
 		if (head == -1)
 			return;
 		if (rob[head].instr.getCISCProgramCounter() != -1) {
@@ -98,7 +107,8 @@ public class ROB {
 					containingExecutionEngine.setMispredStall(core
 							.getBranchMispredictionPenalty());
 					numMispredictedBranches++;
-					// TODO flush ROB and RF[].Qi
+					flush();
+					rf.flush();
 				}
 			}
 			removeFromHead();

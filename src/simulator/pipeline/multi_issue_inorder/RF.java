@@ -19,4 +19,9 @@ public class RF {
 		for (int i = 0; i < size; i++)
 			rf[i] = new Register();
 	}
+
+	void flush() {
+		for (int i = 0; i < size; i++)
+			rf[i].Qi = 0;
+	}
 }
