@@ -13,7 +13,8 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
 	EventQueue eventQ;
 	int coreStepSize;
-	StageLatch_MII ifId, idEx, exMem, memWb, wbDone;
+	StageLatch_MII ifId, exMem, memWb, wbDone;
+	ReservationStation idEx;
 
 	public MultiIssueInorderPipeline(Core _core, EventQueue eventQ) {
 
@@ -29,7 +30,7 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 												// sizes of the cores will be
 												// set.
 		this.ifId = containingExecutionEngine.getIfIdLatch();
-		this.idEx = containingExecutionEngine.getIdExLatch();
+		this.idEx = containingExecutionEngine.getIdExRS();
 		this.exMem = containingExecutionEngine.getExMemLatch();
 		this.memWb = containingExecutionEngine.getMemWbLatch();
 		this.wbDone = containingExecutionEngine.getWbDoneLatch();
@@ -40,6 +41,7 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 		if (currentTime % getCoreStepSize() == 0
 				&& containingExecutionEngine.isExecutionBegun() == true
 				&& !containingExecutionEngine.getExecutionComplete()) {
+			commit();
 			writeback();
 		}
 		drainEventQueue(); // Process Memory Requests
@@ -60,6 +62,10 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	private void drainEventQueue() {
 		eventQ.processEvents();
 	}
+	
+	public void commit(){
+		containingExecutionEngine.getCommitUnitIn().performCommit(this);
+	}
 
 	public void writeback() {
 		containingExecutionEngine.getWriteBackUnitIn().performWriteBack(this);
@@ -70,7 +76,9 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	}
 
 	public void exec() {
-		containingExecutionEngine.getExecUnitIn().execute(this);
+		for (int i = 0; i < ExecUnitIn_MII.getSize(); i++) {
+			containingExecutionEngine.getExecUnitIn(i).execute(this);
+		}
 	}
 
 	public void decode() {
@@ -115,7 +123,7 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 		return this.ifId;
 	}
 
-	public StageLatch_MII getIdExLatch() {
+	public ReservationStation getIdExRS() {
 		return this.idEx;
 	}
 
