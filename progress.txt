@@ -1,0 +1,8 @@
+Until now we have done the following:
+1. created classes for the Reservation Stations, Reorder Buffers, CDB and Register Files.
+2. In the class for Reorder Buffer, there is a class for each slot in the reorder buffer. There are also functions for addition of an instruction to the ROB, one for the deletion of the entry at the head of the ROB, one for performing a commit of an instruction and one for flushing the ROB in case of a branch misprediction.
+3. In the class for RegisterFile, we have a function for flushing the contents of the RF[].Qi for all the registers in case of a misprediction.
+4. In the code for the CDB, there is a function to find if the register value is present in the CDB and thus can be inserted into the ROB or not, the function insert is used to push the data value into the CDB from the EX units in case there is an empty slot, the function get is used to return the value of a register in the CDB and isFull() is used to find whether or not the CDB is full.
+5. We have also integrated the code for the Commit unit into the pipeline.
+6. Config file has been updated to include fields for multiple execution units and reservation stations.
+7. We have setup the code on Eclipse and the pipeline tests is now running.
