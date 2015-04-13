@@ -83,11 +83,6 @@ public class ROB {
 				boolean prediction = containingExecutionEngine
 						.getBranchPredictor().predict(lastValidIpSeen,
 								rob[head].instr.isBranchTaken());
-				if (prediction != rob[head].instr.isBranchTaken()) {
-					containingExecutionEngine.setMispredStall(core
-							.getBranchMispredictionPenalty());
-					numMispredictedBranches++;
-				}
 				this.containingExecutionEngine.getBranchPredictor()
 						.incrementNumAccesses(1);
 
@@ -98,7 +93,19 @@ public class ROB {
 						.incrementNumAccesses(1);
 
 				numBranches++;
+
+				if (prediction != rob[head].instr.isBranchTaken()) {
+					containingExecutionEngine.setMispredStall(core
+							.getBranchMispredictionPenalty());
+					numMispredictedBranches++;
+					// TODO flush ROB and RF[].Qi
+				}
 			}
+			removeFromHead();
+			core.incrementNoOfInstructionsExecuted();
+			if (core.getNoOfInstructionsExecuted() % 1000000 == 0)
+				System.out.println(core.getNoOfInstructionsExecuted() / 1000000
+						+ " million done on " + core.getCore_number());
 		}
 	}
 
