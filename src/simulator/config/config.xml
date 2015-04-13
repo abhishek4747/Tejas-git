@@ -1,74 +1,55 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!--/*****************************************************************************
-				Tejas Simulator
-*************************************************************************************
-
-   Copyright 2010 Indian Institute of Technology, Delhi
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-******************************************************************************
-	Contributors:  Moksh Upadhyay, Abhishek Sagar, Prathmesh Kallurkar
-*****************************************************************************/-->
+<?xml version='1.0' encoding='UTF-8'?>
 <Configuration>
 	<Emulator>
-		<!--Emulator type and communication type define what is the input for instruction data to Tejas-->
-		<!--Currently we support following (emulator,communication) combinations : -->
-		<!--(pin, sharedMemory), (qemu, sharedMemory), (qemu, network), (none, file)-->
-		<!--(pin,file) combination can be used to collect execution trace of an application in a compressed file-->
-		<EmulatorType>pin</EmulatorType> <!--pin,qemu-->
 		
-		<!--NOTE only file interface supports the execution of multiple benchmarks inside tejas-->
-		<!--if you are reading the packets from a file, the emulator must be set to none-->
-		<!--multiple benchmarks are specified using arguments to the simulator-->
-		<CommunicationType>sharedMemory</CommunicationType>  <!--file,sharedMemory,network-->
 		
-		<!--We can use tejas as an interface to create a compressed (gzip) trace file using the emulator-->
-		<!--Set this option to true if you want to create a trace file of the benchmark execution-->
-		<!--In this mode, Tejas will be used only as an interface to the emulator. NO simulation will be performed-->
-		<!--Right now, this option is valid ONLY for emulator type pin and communication type file-->
+		
+		
+		<EmulatorType>pin</EmulatorType> 
+		
+		
+		
+		
+		<CommunicationType>sharedMemory</CommunicationType>  
+		
+		
+		
+		
+		
 		<StoreExecutionTraceInAFile>false</StoreExecutionTraceInAFile>
 		
-		<!-- If store packets in a file option is set to true, this parameter indicates the basename for the trace files -->
-		<!--One trace file is maintained for each store. The name of trace file for core n is basename_n.gz-->
-		<!--We do not allow overwriting of trace files. So if a tracefile with same name is pre-existing, kindly rename it-->
+		
+		
+		
 		<BasenameForTraceFiles>/mnt/srishtistr0/home/raj/workspace/Tejas/Traces/ls</BasenameForTraceFiles>
 		
-		<PinTool>/mnt/srishtistr0/scratch/tejas_experiments/resources/pin-62732</PinTool>
-		<PinInstrumentor>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
+		<PinTool>/home/abhishek/Downloads/tejas_installation_kit/Tejas-Simulator/PIN/pin-2.14-67254-gcc.4.4.7-linux</PinTool>
+		<PinInstrumentor>/home/abhishek/Downloads/tejas_installation_kit/Tejas-Simulator/Tejas/src/emulator/pin/obj-pin/causalityTool.so</PinInstrumentor>
 		<QemuTool>/home/prathmesh/workspace/qemu/x86_64-linux-user/qemu-x86_64 /home/prathmesh/tmp/testQemu.o</QemuTool>
-		<ShmLibDirectory>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
-		<KillEmulatorScript>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
+		<ShmLibDirectory>/home/abhishek/Downloads/tejas_installation_kit/Tejas-Simulator/Tejas/src/emulator/pin/obj-comm</ShmLibDirectory>
+		<KillEmulatorScript>/home/abhishek/Downloads/tejas_installation_kit/Tejas-Simulator/Tejas/src/simulator/main/killAllDescendents.sh</KillEmulatorScript>
 	</Emulator>
 	
-	<!--Simulation Parameters-->
+	
 	<Simulation>
 		<CollectInsnWorkingSet>false</CollectInsnWorkingSet> 
-		<InsnWorkingSetChunkSize>3000000</InsnWorkingSetChunkSize> <!--Chunk size of instructions over which working set must be noted-->
+		<InsnWorkingSetChunkSize>3000000</InsnWorkingSetChunkSize> 
 		
 		<CollectDataWorkingSet>false</CollectDataWorkingSet>
-		<DataWorkingSetChunkSize>3000000</DataWorkingSetChunkSize> <!--Chunk size of instructions over which working set must be noted-->
+		<DataWorkingSetChunkSize>3000000</DataWorkingSetChunkSize> 
 		
-		<NumTempIntReg>16</NumTempIntReg>			<!--Number of temporary Integer registers-->
-		<IndexAddrModeEnable>0</IndexAddrModeEnable>		<!--Indexed addressing mode Enabled or disabled (Write 1 for YES, 0 for NO)-->
-		<EmuCores>0</EmuCores>					<!--The cores on which emulator will run(supports ',' and '-' for ranges)-->
-		<JavaCores>1</JavaCores>				<!--The cores on which simulator will run(supports ',' and '-' for ranges)-->
-		<DebugMode>false</DebugMode>				<!--True if debug related printing is desired-->
+		<NumTempIntReg>16</NumTempIntReg>			
+		<IndexAddrModeEnable>0</IndexAddrModeEnable>		
+		<EmuCores>0</EmuCores>					
+		<JavaCores>1</JavaCores>				
+		<DebugMode>false</DebugMode>				
 		<DetachMemSysData>false</DetachMemSysData>
 		<DetachMemSysInsn>false</DetachMemSysInsn>
 		<PrintPowerStats>true</PrintPowerStats>
 		<Broadcast>false</Broadcast>
 		<pinpointsSim>false</pinpointsSim>
 		<pinpointsFile>/mnt/srishtistr0/scratch/rajshekar/tejas/PinPoints_working_directory/soplex.test.Data/t.sorted</pinpointsFile>
-		<NumInsToIgnore>0000000</NumInsToIgnore>	<!--Ignores these many profilable instructions from the start of the program-->
+		<NumInsToIgnore>0000000</NumInsToIgnore>	
 		<subsetSim>false</subsetSim>
 		<subsetSimSize>10000000</subsetSimSize>
 		<markerFunctions>false</markerFunctions>
@@ -77,73 +58,73 @@
 		<NumCores>32</NumCores>
 	</Simulation>
 
-	<!--System Parameters-->
+	
 	<System>
 		<MainMemory>
-			<MainMemoryLatency>200</MainMemoryLatency>		<!--The latency of main memory (in clock cycles)-->
-			<MainMemoryFrequency>3600</MainMemoryFrequency>		<!--Operating frequency of the main memory (in MHz)-->
-			<MainMemoryPortType>FCFS</MainMemoryPortType>		<!--Type of access ports in the Main Memory (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	<!--Number of access ports in the Main Memory-->
-			<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	<!--The occupancy of the Main Memory ports (in clock cycles)-->
+			<MainMemoryLatency>200</MainMemoryLatency>		
+			<MainMemoryFrequency>3600</MainMemoryFrequency>		
+			<MainMemoryPortType>FCFS</MainMemoryPortType>		
+			<MainMemoryAccessPorts>1</MainMemoryAccessPorts>	
+			<MainMemoryPortOccupancy>1</MainMemoryPortOccupancy>	
 			<LeakageEnergy>0.0073</LeakageEnergy>
 			<DynamicEnergy>0.0544</DynamicEnergy>
 		</MainMemory>
 		
-		<CacheBusLatency>1</CacheBusLatency>			<!--Latency of the RING used for broadcasting messages for cache coherence-->
+		<CacheBusLatency>1</CacheBusLatency>			
 		
 		<GlobalClock>
 			<LeakageEnergy>0.3456</LeakageEnergy>
 			<DynamicEnergy>0.2886</DynamicEnergy>
 		</GlobalClock>
 			
-		<!--Core Parameters-->
+		
 		<Core>
-			<CoreFrequency>3400</CoreFrequency>		<!--Operating frequency of the core (in MHz)-->
-			<PipelineType>outOfOrder</PipelineType>	<!--inOrder,outOfOrder(set issue width for multi-issue in-order)-->
+			<CoreFrequency>3400</CoreFrequency>		
+			<PipelineType>outOfOrder</PipelineType>	
 			
 			<BranchPredictor>
-				<Predictor_Mode>GShare</Predictor_Mode>	<!-- Legal Values are NoPredictor, PerfectPredictor, AlwaysTaken, AlwaysNotTaken, Tournament, Bimodal, GAg, GAp, GShare, PAg, PAp, TAGE -->
+				<Predictor_Mode>GShare</Predictor_Mode>	
 				<PCBits>4</PCBits>
 				<BHRsize>4</BHRsize>
-				<BranchMispredPenalty>8</BranchMispredPenalty>	<!--Branch misprediction penalty-->
+				<BranchMispredPenalty>8</BranchMispredPenalty>	
 				<SaturatingBits>1</SaturatingBits>
 				<LeakageEnergy>0.0178</LeakageEnergy>
 				<DynamicEnergy>0.0962</DynamicEnergy>
 			</BranchPredictor>			
 			
 			<LSQ>
-				<LSQSize>64</LSQSize>				<!--Maximum number of entries in the LSQ-->
-				<LSQLatency>0</LSQLatency>			<!--In clock cycles-->
-				<LSQPortType>UL</LSQPortType>			<!--Type of access ports in the LSQ (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-				<LSQAccessPorts>-1</LSQAccessPorts>		<!--Number of access ports in the LSQ-->
-				<LSQPortOccupancy>-1</LSQPortOccupancy>		<!--The occupancy of the LSQ ports (in clock cycles)-->
+				<LSQSize>64</LSQSize>				
+				<LSQLatency>0</LSQLatency>			
+				<LSQPortType>UL</LSQPortType>			
+				<LSQAccessPorts>-1</LSQAccessPorts>		
+				<LSQPortOccupancy>-1</LSQPortOccupancy>		
 				<LeakageEnergy>0.0318</LeakageEnergy>
 				<DynamicEnergy>0.1725</DynamicEnergy>
 			</LSQ>
 
 			<ITLB>
-				<Size>128</Size>				<!--Maximum number of entries in the ITLB-->
-				<Latency>4</Latency>			<!--In clock cycles-->
-				<MissPenalty>10</MissPenalty>			<!--In clock cycles-->
-				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
-				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
+				<Size>128</Size>				
+				<Latency>4</Latency>			
+				<MissPenalty>10</MissPenalty>			
+				<PortType>UL</PortType>			
+				<AccessPorts>-1</AccessPorts>		
+				<PortOccupancy>-1</PortOccupancy>		
 				<LeakageEnergy>0.00546275</LeakageEnergy>
 				<DynamicEnergy>0.06792852941</DynamicEnergy>
 			</ITLB>
 			
 			<DTLB>
-				<Size>128</Size>				<!--Maximum number of entries in the DTLB-->
-				<Latency>4</Latency>			<!--In clock cycles-->
-				<MissPenalty>10</MissPenalty>			<!--In clock cycles-->
-				<PortType>UL</PortType>			<!--Type of access ports in the ITLB (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-				<AccessPorts>-1</AccessPorts>		<!--Number of access ports in the ITLB-->
-				<PortOccupancy>-1</PortOccupancy>		<!--The occupancy of the ITLB ports (in clock cycles)-->
+				<Size>128</Size>				
+				<Latency>4</Latency>			
+				<MissPenalty>10</MissPenalty>			
+				<PortType>UL</PortType>			
+				<AccessPorts>-1</AccessPorts>		
+				<PortOccupancy>-1</PortOccupancy>		
 				<LeakageEnergy>0.00546275</LeakageEnergy>
 				<DynamicEnergy>0.06792852941</DynamicEnergy>
 			</DTLB>
 			
-			<Decode>								<!--Instruction decode-->
+			<Decode>								
 				<Width>4</Width>			
 				<LeakageEnergy>0.0598</LeakageEnergy>
 				<DynamicEnergy>0.0347</DynamicEnergy>
@@ -173,30 +154,30 @@
 			</Rename>
 			
 			<InstructionWindow>
-				<IssueWidth>4</IssueWidth>			<!--Instruction issue width-->
-				<IWSize>54</IWSize>				<!--Maximum number of entries in the Instruction Window-->
+				<IssueWidth>4</IssueWidth>			
+				<IWSize>54</IWSize>				
 				<LeakageEnergy>0.0046</LeakageEnergy>
 				<DynamicEnergy>0.0142</DynamicEnergy>
 			</InstructionWindow>
 			
 			<ROB>
-				<RetireWidth>4</RetireWidth>			<!--Instruction retire width-->
-				<ROBSize>168</ROBSize>				<!--Maximum number of entries in the ROB-->
+				<RetireWidth>4</RetireWidth>			
+				<ROBSize>168</ROBSize>				
 				<LeakageEnergy>0.0058</LeakageEnergy>
 				<DynamicEnergy>0.0304</DynamicEnergy>
 			</ROB>
 
 			<RegisterFile>
 				<Integer>
-					<IntRegFileSize>160</IntRegFileSize>		<!--Maximum number of entries in the Integer register file-->
-					<IntArchRegNum>32</IntArchRegNum>		<!--Number of Integer architectural registers-->
+					<IntRegFileSize>160</IntRegFileSize>		
+					<IntArchRegNum>32</IntArchRegNum>		
 					<LeakageEnergy>0.0108</LeakageEnergy>
 					<DynamicEnergy>0.0572</DynamicEnergy>
 				</Integer>
 				
 				<Float>
-					<FloatRegFileSize>144</FloatRegFileSize>		<!--Maximum number of entries in the Floating point register file-->
-					<FloatArchRegNum>32</FloatArchRegNum>		<!--Number of Floating point architectural registers-->
+					<FloatRegFileSize>144</FloatRegFileSize>		
+					<FloatArchRegNum>32</FloatArchRegNum>		
 					<LeakageEnergy>0.0075</LeakageEnergy>
 					<DynamicEnergy>0.0207</DynamicEnergy>
 				</Float>
@@ -206,8 +187,8 @@
 			<ExecutionCoreNumPorts>6</ExecutionCoreNumPorts>
 			
 			<IntALU>
-				<Num>3</Num>				<!--Number of Integer ALUs-->
-				<Latency>1</Latency>		<!--Latency of Integer ALUs-->
+				<Num>3</Num>				
+				<Latency>1</Latency>		
 				<ReciprocalOfThroughput>1</ReciprocalOfThroughput>
 				<PortNumber>0</PortNumber>
 				<PortNumber>1</PortNumber>
@@ -285,43 +266,43 @@
 				<DynamicEnergy>0.5948</DynamicEnergy>
 			</ResultsBroadcastBus>
 			
-			<TreeBarrier>false</TreeBarrier>			<!--Only for particular purposes. Otherwise keep it as false-->
+			<TreeBarrier>false</TreeBarrier>			
 			<BarrierLatency>2</BarrierLatency>
-			<BarrierUnit>Distributed</BarrierUnit>			<!--Central and distributed-->
+			<BarrierUnit>Distributed</BarrierUnit>			
 			
-			<!--Specify all the private caches of a core here-->
 			
-			<!--The caches which connect directly to the core must be specified as firstLevel caches-->
-			<!--In case you want to use an unified first level cache, set the cache type to unified in the cache property field-->
 			
-			<!--Each cache has has a unique (name,id) pair. The (name,id) pair is used to create connections between caches-->
 			
-			<!--For private caches, the id of the cache is the core-number. -->
-			<!--For a shared cache which may be split up, the ids are assigned from 0,1, to (numComponents-1)-->
+			
+			
+			
+			
+			
+			
 						
-			<!--nextLevelId field is a mathematical formula which evaluates the id of the next level cache-->
-			<!--The id of the current cache can be specified by a special symbol $i-->
-			<!--It must be used if we want to generate a topology where there are multiple caches in the next level of memory hierarchy-->
 			
-			<!--Example icache scenario where there are 4 cores, and 2 cores share same L2 cache-->
-			<!--Cache name="iCache" nextLevel="L2" nextLevelId="$i/2" firstLevel="true" type="ICache_32K_4"/-->
-			<!--Cache name="L2" numComponents="2" nextLevel="L3" type="L2Cache_256K_8"/-->
-			<!--Here core0,core1 will use L2[0] and core2,core3 will use L2[1]-->
 			
-			<Cache name="I1" nextLevel="L2" firstLevel="true" type="ICache_32K_8"/>
-			<Cache name="L1" nextLevel="L2" firstLevel="true" type="L1Cache_32K_8"/>
-			<!--Cache name="L2" nextLevel="L3" type="L2Cache_256K_8"/-->
+			
+			
+			
+			
+			
+			
+			
+			<Cache firstLevel="true" name="I1" nextLevel="L2" type="ICache_32K_8" />
+			<Cache firstLevel="true" name="L1" nextLevel="L2" type="L1Cache_32K_8" />
+			
 		</Core>
 		
 		<SharedCaches>
-			<Cache name="L2" type="L2Cache_256K_8"/>
-			<Cache name="D1" type="Directory1"/>
+			<Cache name="L2" type="L2Cache_256K_8" />
+			<Cache name="D1" type="Directory1" />
 		</SharedCaches>
 		
 		<Interconnect>NOC</Interconnect>
 		
 		<NOC>
-			<NocConfigFile>/mnt/srishtistr0/home/eldhose/workspace/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
+			<NocConfigFile>/home/abhishek/Downloads/tejas_installation_kit/Tejas-Simulator/Tejas/src/simulator/config/NocConfig.txt</NocConfigFile>
 			<NocSelScheme>STATIC</NocSelScheme>
 			<NocNumberOfBuffers>4</NocNumberOfBuffers>
 			<NocPortType>UL</NocPortType>
@@ -329,7 +310,7 @@
 			<NocPortOccupancy>-1</NocPortOccupancy>
 			<NocLatency>1</NocLatency>
 			<NocOperatingFreq>2000</NocOperatingFreq>
-			<NocTopology>MESH</NocTopology>     <!--NOCTopology-->
+			<NocTopology>MESH</NocTopology>     
 			<NocRoutingAlgorithm>SIMPLE</NocRoutingAlgorithm>
 			<NocLatencyBetweenNOCElements>2</NocLatencyBetweenNOCElements>
 			<NocRouterArbiter>RR_ARBITER</NocRouterArbiter>
@@ -349,135 +330,135 @@
 	
 	</System>
 
-	<!--Give all the library elements here-->
+	
 	<Library>
 		<UnifiedCache_32K_8>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<WriteMode>WB</WriteMode>			
+			<BlockSize>64</BlockSize>			
 			<Associativity>8</Associativity>
-			<Size>32768</Size>					<!--In Bytes-->
-			<Latency>3</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Size>32768</Size>					
+			<Latency>3</Latency>				
+			<PortType>UL</PortType>				
+			<AccessPorts>1</AccessPorts>			
+			<PortOccupancy>1</PortOccupancy>		
+			<Coherence>None</Coherence>			
+			<NumBuses>1</NumBuses>			
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
+			<Nuca>NONE</Nuca>						
+			<NucaMapping>S</NucaMapping>            
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
-			<CacheType>Unified</CacheType>  <!--Instruction,Data,Unified-->
+			<CacheType>Unified</CacheType>  
 		</UnifiedCache_32K_8>
 		
 		<ICache_32K_8>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<WriteMode>WB</WriteMode>			
+			<BlockSize>64</BlockSize>			
 			<Associativity>8</Associativity>
-			<Size>32768</Size>					<!--In Bytes-->
-			<Latency>3</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Size>32768</Size>					
+			<Latency>3</Latency>				
+			<PortType>UL</PortType>				
+			<AccessPorts>1</AccessPorts>			
+			<PortOccupancy>1</PortOccupancy>		
+			<Coherence>None</Coherence>			
+			<NumBuses>1</NumBuses>			
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
+			<Nuca>NONE</Nuca>						
+			<NucaMapping>S</NucaMapping>            
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
-			<CacheType>Instruction</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
+			<CacheType>Instruction</CacheType>  
 		</ICache_32K_8>
 		
 		<L1Cache_32K_8>
-			<WriteMode>WT</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<WriteMode>WT</WriteMode>			
+			<BlockSize>64</BlockSize>			
 			<Associativity>8</Associativity>
-			<Size>32768</Size>					<!--In Bytes-->
-			<Latency>3</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>D1</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Size>32768</Size>					
+			<Latency>3</Latency>				
+			<PortType>UL</PortType>				
+			<AccessPorts>1</AccessPorts>			
+			<PortOccupancy>1</PortOccupancy>		
+			<Coherence>D1</Coherence>			
+			<NumBuses>1</NumBuses>			
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->			
+			<Nuca>NONE</Nuca>						
+			<NucaMapping>S</NucaMapping>            			
 			<LeakageEnergy>0.1092</LeakageEnergy>
 			<ReadDynamicEnergy>0.33964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.33964264705</WriteDynamicEnergy>
-			<CacheType>Data</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
+			<CacheType>Data</CacheType>  
 		</L1Cache_32K_8>
 		
 		<L2Cache_256K_8>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<WriteMode>WB</WriteMode>			
+			<BlockSize>64</BlockSize>			
 			<Associativity>8</Associativity>
-			<Size>262144</Size>					<!--In Bytes-->
-			<Latency>32</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Size>262144</Size>					
+			<Latency>32</Latency>				
+			<PortType>UL</PortType>				
+			<AccessPorts>1</AccessPorts>			
+			<PortOccupancy>1</PortOccupancy>		
+			<Coherence>None</Coherence>			
+			<NumBuses>1</NumBuses>			
 			<MSHRSize>32</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>D_NUCA</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->			
+			<Nuca>D_NUCA</Nuca>						
+			<NucaMapping>S</NucaMapping>            			
 			<LeakageEnergy>0.1592</LeakageEnergy>
 			<ReadDynamicEnergy>0.43964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.43964264705</WriteDynamicEnergy>
-			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
+			<CacheType>Unified</CacheType>  
 		</L2Cache_256K_8>
 		
 		<L3Cache_1M_8>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<BlockSize>64</BlockSize>			<!--In bytes-->
+			<WriteMode>WB</WriteMode>			
+			<BlockSize>64</BlockSize>			
 			<Associativity>8</Associativity>
-			<Size>1048576</Size>					<!--In Bytes-->
-			<Latency>60</Latency>				<!--In clock cycles-->
-			<PortType>UL</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>1</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>None</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Size>1048576</Size>					
+			<Latency>60</Latency>				
+			<PortType>UL</PortType>				
+			<AccessPorts>1</AccessPorts>			
+			<PortOccupancy>1</PortOccupancy>		
+			<Coherence>None</Coherence>			
+			<NumBuses>1</NumBuses>			
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
+			<Nuca>NONE</Nuca>						
+			<NucaMapping>S</NucaMapping>            
 			<LeakageEnergy>0.1892</LeakageEnergy>
 			<ReadDynamicEnergy>0.60964264705</ReadDynamicEnergy>
 			<WriteDynamicEnergy>0.60964264705</WriteDynamicEnergy>
-			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
+			<CacheType>Unified</CacheType>  
 		</L3Cache_1M_8>
 		
 		<Directory1>
-			<WriteMode>WB</WriteMode>			<!--Write-back (WB) or write-through (WT)-->
-			<LastLevel>N</LastLevel>			<!--Whether this is the last level in the hierarchy or not (Y for yes, N for no)-->
-			<BlockSize>64</BlockSize>			<!--In bytes (this should be same as the block size of the Caches between those you want coherence)-->
+			<WriteMode>WB</WriteMode>			
+			<LastLevel>N</LastLevel>			
+			<BlockSize>64</BlockSize>			
 			<Associativity>8</Associativity>
 			<NumEntries>65536</NumEntries>
-			<Latency>4</Latency>				<!--In clock cycles-->
-			<PortType>FCFS</PortType>				<!--Type of access ports in the Cache (UL : Unlimited; FCFS : First Come First Serve; PR : Priority port)-->
-			<AccessPorts>2</AccessPorts>			<!--Number of access ports in the Cache-->
-			<PortOccupancy>1</PortOccupancy>		<!--The occupancy of the cache ports (in clock cycles)-->
-			<Coherence>N</Coherence>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
-			<NumBuses>1</NumBuses>			<!--Coherence of upper level (N : None, S : Snoopy, D : Directory)-->
+			<Latency>4</Latency>				
+			<PortType>FCFS</PortType>				
+			<AccessPorts>2</AccessPorts>			
+			<PortOccupancy>1</PortOccupancy>		
+			<Coherence>N</Coherence>			
+			<NumBuses>1</NumBuses>			
 			<MSHRSize>8</MSHRSize>
 			<BusOccupancy>0</BusOccupancy>
-			<Nuca>NONE</Nuca>						<!--NUCA type (S_NUCA, D_NUCA, NONE)-->
-			<NucaMapping>S</NucaMapping>            <!--Valid for NUCA; S: Set-Associative A: Address-Mapped -->
+			<Nuca>NONE</Nuca>						
+			<NucaMapping>S</NucaMapping>            
 			<CacheType>Unified</CacheType>
 			<LeakageEnergy>.1092</LeakageEnergy>
 			<ReadDynamicEnergy>.3396</ReadDynamicEnergy>
 			<WriteDynamicEnergy>.3396</WriteDynamicEnergy>
 			<IsDirectory>true</IsDirectory>
-			<CacheType>Unified</CacheType>  <!--I : Instruction, D : Data, U : Unified-->
+			<CacheType>Unified</CacheType>  
 		</Directory1>
 		
 	</Library>

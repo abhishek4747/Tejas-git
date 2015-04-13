@@ -25,14 +25,15 @@ public class PipelineTests {
 		Main.initializeObjectPools();
 		
 		// initialize cores, memory, tokenBus
-//		Main.initializeArchitecturalComponents();		//FIXME
+		ArchitecturalComponent.createChip();
 		inputToPipeline = new GenericCircularQueue<Instruction>(
 											Instruction.class, INSTRUCTION_THRESHOLD);
 		GenericCircularQueue<Instruction>[] toBeSet = (GenericCircularQueue<Instruction>[])
 														Array.newInstance(GenericCircularQueue.class, 1);
 		toBeSet[0] = inputToPipeline;
-		ArchitecturalComponent.getCores()[0].getPipelineInterface().setInputToPipeline(toBeSet);
-		ArchitecturalComponent.getCores()[0].currentThreads = 1;
+		ArchitecturalComponent.getCore(0).getPipelineInterface().setInputToPipeline(toBeSet);
+		ArchitecturalComponent.getCore(0).currentThreads = 1;
+		ArchitecturalComponent.getCore(0).getExecEngine().setExecutionBegun(true);
 		
 		// Initialize the statistics
 		Statistics.initStatistics();
@@ -140,9 +141,9 @@ public class PipelineTests {
 		for(int i = 0; i < 100; i++)
 		{
 			newInst = Instruction.getFloatingPointDivision(
-										Operand.getIntegerRegister(0),
-										Operand.getIntegerRegister(0),
-										Operand.getIntegerRegister(0));
+										Operand.getFloatRegister(0),
+										Operand.getFloatRegister(0),
+										Operand.getFloatRegister(0));
 			
 			inputToPipeline.enqueue(newInst);
 		}		

@@ -91,6 +91,7 @@ public class Cache extends SimulationElement {
 	public NucaType nucaType;
 	
 	public long invalidAccesses = 0;
+	public long numBytesWrittenToLowerLevel = 0;
 
 	CacheEnergyConfig energy;
 
@@ -356,6 +357,7 @@ public class Cache extends SimulationElement {
 		} else if (requestType == RequestType.Cache_Write) {
 			if(this.writePolicy == WritePolicy.WRITE_THROUGH) {
 				sendRequestToNextLevel(addr, RequestType.Cache_Write);
+				numBytesWrittenToLowerLevel += 4;
 			}
 			
 			if( (cl.getState() == MESI.SHARED || cl.getState() == MESI.EXCLUSIVE)  && 
@@ -494,6 +496,7 @@ public class Cache extends SimulationElement {
 		
 		if(writeEvent!=null && writePolicy==WritePolicy.WRITE_THROUGH) {
 			sendRequestToNextLevel(addr, RequestType.Cache_Write);
+			numBytesWrittenToLowerLevel += 4;
 		}
 		
 		processEventsInPendingList();
@@ -514,8 +517,9 @@ public class Cache extends SimulationElement {
 			if (mycoherence != null) {
 				 AddressCarryingEvent evictEvent = mycoherence.evictedFromCoherentCache(evictedLine.getAddress(), this);
 				 mshr.addToMSHR(evictEvent);
-			} else if (evictedLine.isModified() && writePolicy == WritePolicy.WRITE_BACK) {
+			} /*else*/ if (evictedLine.isModified() && writePolicy == WritePolicy.WRITE_BACK) {
 				sendRequestToNextLevel(evictedLine.getAddress(), RequestType.Cache_Write);
+				numBytesWrittenToLowerLevel += blockSize;
 			}
 		}
 	}

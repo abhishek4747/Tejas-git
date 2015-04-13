@@ -36,6 +36,7 @@ public class CacheLine implements Cloneable
 	
 	public CacheLine(boolean isDirectory)
 	{
+		this.setAddress(-1);
 		this.setTag(-1);
 		this.setState(MESI.INVALID);
 		this.setTimestamp(0);

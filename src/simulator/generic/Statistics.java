@@ -339,6 +339,8 @@ public class Statistics {
 				outputFileWriter.write("\n");
 			}
 			
+			outputFileWriter.write("\n\nbytes transferred from L1 to L2 = " + ArchitecturalComponent.getCores()[0].getExecEngine().getCoreMemorySystem().getL1Cache().numBytesWrittenToLowerLevel);
+			
 			outputFileWriter.write("\n\n[Shared Caches]\n\n");
 			for (Cache c : ArchitecturalComponent.getSharedCacheList()) {
 				printCacheStats(c);
