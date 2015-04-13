@@ -80,7 +80,7 @@
 		
 		<Core>
 			<CoreFrequency>3400</CoreFrequency>		
-			<PipelineType>outOfOrder</PipelineType>	
+			<PipelineType>inOrder</PipelineType>	
 			
 			<BranchPredictor>
 				<Predictor_Mode>GShare</Predictor_Mode>	

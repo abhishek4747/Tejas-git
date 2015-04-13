@@ -180,6 +180,7 @@ public class PipelineTests {
 			
 			default :	misc.Error.showErrorAndExit("unknown test type");
 		}
+		System.out.println("Tests completed!!");
 	}
 
 }
