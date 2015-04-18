@@ -9,7 +9,6 @@ class RS {
 	int Qi;
 	int Qj, Qk;
 	Operand Vj, Vk;
-
 }
 
 public class ReservationStation {
