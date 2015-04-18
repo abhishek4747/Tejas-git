@@ -23,21 +23,28 @@ public class ExecUnitIn_MII extends SimulationElement {
 	EventQueue eventQueue;
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
 	ReservationStation idExRS;
-	StageLatch_MII exMemLatch;
 	long[] instructionCompletesAt;
+	CommonDataBus cdb;
+	ROB rob;
+	FunctionalUnitType futype;
+	StageLatch_MII exMemLatch;
 
 	long instCtr; // for debug
 
 	long numResultsBroadCastBusAccess;
 
-	public ExecUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine) {
+	public ExecUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine, FunctionalUnitType futype) {
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.eventQueue = core.getEventQueue();
 		containingExecutionEngine = execEngine;
 		idExRS = execEngine.getIdExRS();
+		cdb = execEngine.getCDB();
+		rob = execEngine.getROB();
+		this.futype = futype;
+		
 		exMemLatch = execEngine.getExMemLatch();
-
+		
 		instructionCompletesAt = new long[containingExecutionEngine
 				.getIssueWidth()];
 		for (int i = 0; i < containingExecutionEngine.getIssueWidth(); i++) {
@@ -54,8 +61,13 @@ public class ExecUnitIn_MII extends SimulationElement {
 
 		Instruction ins = null;
 
-		while (idExLatch.isEmpty() == false && exMemLatch.isFull() == false) {
-			ins = idExLatch.peek(0);
+		while (idExRS.isEmpty(futype) == false && exMemLatch.isFull() == false) {
+			int rsid = idExRS.getIWithFu(futype);
+			ins = rob.rob[idExRS.rs[rsid].Qi].instr;
+			long insCompletesAt = rob.rob[idExRS.rs[rsid].Qi].instructionCompletesAt;
+			idExRS.rs[rsid].Qk = 0;
+			idExRS.rs[rsid].Qj = 0;
+			
 			if (ins != null) {
 				FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(ins
 						.getOperationType());
@@ -78,9 +90,8 @@ public class ExecUnitIn_MII extends SimulationElement {
 				instCtr++;
 
 				// move ins to next stage
-				exMemLatch.add(ins, idExLatch.getInstructionCompletesAt(ins)
-						+ lat);
-				idExLatch.poll();
+				exMemLatch.add(ins, insCompletesAt+ lat);
+//				idExLatch.poll();
 
 				if (ins.getDestinationOperand() != null
 						|| ins.getOperationType() == OperationType.xchg) {

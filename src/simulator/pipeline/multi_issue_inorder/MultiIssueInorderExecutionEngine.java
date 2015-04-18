@@ -29,6 +29,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	
 	private ROB rob;
 	private RF rf;
+	private CommonDataBus cdb;
 	
 	private boolean executionComplete;
 	private boolean fetchComplete;
@@ -74,6 +75,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		
 		rob = new ROB(_core, this, ROB.getROBSize());
 		rf = new RF(RF.getRFSize());
+		cdb = new CommonDataBus(CommonDataBus.getCDBSize());
 		
 		
 		this.setFetchUnitIn(new FetchUnitIn_MII(core, core.getEventQueue(),
@@ -430,5 +432,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 	public CommitUnit_MII getCommitUnitIn() {
 		return this.commitUnitIn;
+	}
+
+	public CommonDataBus getCDB() {
+		return this.cdb;
 	}
 }

@@ -1,5 +1,7 @@
 package pipeline.multi_issue_inorder;
 
+import pipeline.FunctionalUnitType;
+import pipeline.OpTypeToFUTypeMapping;
 import generic.OperationType;
 import generic.Operand;
 
@@ -33,6 +35,37 @@ public class ReservationStation {
 	
 	public boolean isFull(){
 		return this.getFree()==-1;
+	}
+	
+	public boolean isEmpty(){
+		return this.getFree()>-1;
+	}
+	
+	public int getIWithOp(OperationType op){
+		for (int i=0; i<size; i++){
+			if (!rs[i].busy && rs[i].opType==op){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public int getIWithFu(FunctionalUnitType fu){
+		for (int i=0; i<size; i++){
+			if (!rs[i].busy && OpTypeToFUTypeMapping.getFUType(rs[i].opType)==fu){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	
+	public boolean isEmpty(OperationType op){
+		return this.getIWithOp(op)>-1;
+	}
+	
+	public boolean isEmpty(FunctionalUnitType fu){
+		return this.getIWithFu(fu)>-1;
 	}
 	
 	public static int getRSSize(){

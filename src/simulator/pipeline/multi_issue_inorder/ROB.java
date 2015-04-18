@@ -14,6 +14,7 @@ class ROBSlot {
 	Operand r2;
 	boolean r2avail;
 	Operand dest;
+	long instructionCompletesAt;
 }
 
 public class ROB {
@@ -45,7 +46,7 @@ public class ROB {
 		numBranches = 0;
 	}
 
-	public boolean add(Instruction i) {
+	public boolean add(Instruction i, long insCompletesAt) {
 		if (curSize != ROBSize && !rob[tail].busy) {
 			rob[tail].instr = i;
 			rob[tail].busy = true;
@@ -55,6 +56,7 @@ public class ROB {
 			rob[tail].r1 = i.getSourceOperand1();
 			rob[tail].r2 = i.getSourceOperand2();
 			rob[tail].dest = i.getDestinationOperand();
+			rob[tail].instructionCompletesAt = insCompletesAt;
 			tail = (tail + 1) % ROBSize;
 			curSize++;
 			return true;

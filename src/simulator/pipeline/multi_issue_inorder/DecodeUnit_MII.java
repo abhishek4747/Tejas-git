@@ -230,7 +230,7 @@ public class DecodeUnit_MII extends SimulationElement {
 				instCtr++;
 
 				// move ins to next stage
-				idExLatch.add(ins, GlobalClock.getCurrentTime() + 1);
+//				idExLatch.add(ins, GlobalClock.getCurrentTime() + 1);
 				ifIdLatch.poll();
 
 				if (SimulationConfig.debugMode) {
