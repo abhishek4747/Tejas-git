@@ -19,6 +19,7 @@ public class StageLatch_MII {
 	int head;
 	int tail;
 	int curSize;
+	public int id;
 
 	public StageLatch_MII(int size) {
 		this.size = size;

@@ -32,6 +32,7 @@ public class ExecUnitIn_MII extends SimulationElement {
 	long instCtr; // for debug
 
 	long numResultsBroadCastBusAccess;
+	public int id;
 
 	public ExecUnitIn_MII(Core core, MultiIssueInorderExecutionEngine execEngine, FunctionalUnitType futype) {
 		super(PortType.Unlimited, -1, -1, -1, -1);

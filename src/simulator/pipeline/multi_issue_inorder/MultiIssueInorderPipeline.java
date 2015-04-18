@@ -126,7 +126,7 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	public ReservationStation getIdExRS() {
 		return this.idEx;
 	}
-
+	
 	public StageLatch_MII getExMemLatch() {
 		return this.exMem;
 	}
