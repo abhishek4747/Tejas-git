@@ -20,7 +20,7 @@ public class CommitUnit_MII extends SimulationElement {
 	public void performCommit(MultiIssueInorderPipeline inorderPipeline){
 		if (containingExecutionEngine.getMispredStall() > 0)
 			return;
-		
+		this.containingExecutionEngine.getROB().performCommit(containingExecutionEngine.getRF());
 		// if Non branch instruction
 			// Wait untill instruction reaches head of ROB
 			// Update RF

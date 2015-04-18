@@ -8,6 +8,7 @@ import config.EnergyConfig;
 import config.SimulationConfig;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
+import pipeline.FunctionalUnitType;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
@@ -69,19 +70,24 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 		ifIdLatch = new StageLatch_MII(issueWidth);
 		idExRS = new ReservationStation(ReservationStation.getRSSize());
-		exMemLatch = new StageLatch_MII(issueWidth);
+		
 		memWbLatch = new StageLatch_MII(issueWidth);
 		wbDoneLatch = new StageLatch_MII(issueWidth);
 		
 		rob = new ROB(_core, this, ROB.getROBSize());
 		rf = new RF(RF.getRFSize());
-		cdb = new CommonDataBus(CommonDataBus.getCDBSize());
+		cdb = new CommonDataBus(core, this,CommonDataBus.getCDBSize());
 		
 		
 		this.setFetchUnitIn(new FetchUnitIn_MII(core, core.getEventQueue(),
 				this));
 		this.setDecodeUnitIn(new DecodeUnit_MII(core, this));
 		this.setExecUnitInSize(ExecUnitIn_MII.getSize());
+		for (int i=0; i<execUnitIns.length;i++){
+			this.execUnitIns[i] = new ExecUnitIn_MII(_core, this, FunctionalUnitType.integerALU);
+			this.execUnitIns[i].id = i;
+		}
+		exMemLatch = new StageLatch_MII(execUnitIns.length);
 		this.setMemUnitIn(new MemUnitIn_MII(core, this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core, this));
 		this.setCommitUnitIn(new CommitUnit_MII(core, this));
@@ -328,10 +334,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		return this.idExRS;
 	}
 
-	public StageLatch_MII getExMemLatch() {
-		return this.exMemLatch;
-	}
-
 	public StageLatch_MII getMemWbLatch() {
 		return this.memWbLatch;
 	}
@@ -436,5 +438,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 	public CommonDataBus getCDB() {
 		return this.cdb;
+	}
+
+	public StageLatch_MII getExMemLatch() {
+		return this.exMemLatch;
 	}
 }

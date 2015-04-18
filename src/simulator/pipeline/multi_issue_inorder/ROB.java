@@ -101,8 +101,7 @@ public class ROB {
 		}
 		if (rob[head].ready) {
 			if (rob[head].instr.getOperationType() == OperationType.branch) {
-				boolean prediction = containingExecutionEngine
-						.getBranchPredictor().predict(lastValidIpSeen,
+				boolean prediction = containingExecutionEngine.getBranchPredictor().predict(lastValidIpSeen,
 								rob[head].instr.isBranchTaken());
 				this.containingExecutionEngine.getBranchPredictor()
 						.incrementNumAccesses(1);
@@ -116,14 +115,17 @@ public class ROB {
 				numBranches++;
 
 				if (prediction != rob[head].instr.isBranchTaken()) {
-					containingExecutionEngine.setMispredStall(core
-							.getBranchMispredictionPenalty());
+					containingExecutionEngine.setMispredStall(core.getBranchMispredictionPenalty());
 					numMispredictedBranches++;
 					flush();
 					rf.flush();
 				}
 			}
+			if (rf.rf[(int)rob[head].dest.getValue()].Qi == head){
+				rf.rf[(int)rob[head].dest.getValue()].busy = false;
+			}
 			removeFromHead();
+			
 			core.incrementNoOfInstructionsExecuted();
 			if (core.getNoOfInstructionsExecuted() % 1000000 == 0)
 				System.out.println(core.getNoOfInstructionsExecuted() / 1000000

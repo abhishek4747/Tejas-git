@@ -27,11 +27,14 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 	Core core;
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
 	StageLatch_MII memWbLatch;
-
+	ReservationStation rs;
+	CommonDataBus cdb;
+	
 	long instCtr; // for debug
 
 	long numIntRegFileAccesses;
 	long numFloatRegFileAccesses;
+	private ROB rob;
 
 	public WriteBackUnitIn_MII(Core core,
 			MultiIssueInorderExecutionEngine execEngine) {
@@ -39,7 +42,10 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 		this.core = core;
 		containingExecutionEngine = execEngine;
 		memWbLatch = execEngine.getMemWbLatch();
-
+		rs = execEngine.getIdExRS();
+		rob = execEngine.getROB();
+		cdb = execEngine.getCDB();
+		
 		instCtr = 0;
 	}
 
@@ -52,6 +58,35 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 
 		while (memWbLatch.isEmpty() == false) {
 			ins = memWbLatch.peek(0);
+			int r=-1;
+			for (int i = 0; i < rs.size; i++) {
+				if(rob.rob[rs.rs[i].Qi].instr==ins){
+					r = i;
+					break;
+				}
+			}
+			
+			if (r==-1){
+				System.out.println("ins not in RS");
+			}
+			rs.rs[r].busy = false;
+			int b = rs.rs[r].Qi;
+			
+			for (int i=0; i<rs.size; i++){
+				if (rs.rs[i].Qj==b){
+					rs.rs[i].Qj = 0;
+				}
+				if (rs.rs[i].Qk==b){
+					rs.rs[i].Qk = 0;
+				}
+			}
+			
+//			rob.rob[b].ready = true;
+			
+			cdb.insert(b, 0);
+			
+			
+			
 			if (ins != null) {
 				// check if simulation complete
 				if (ins.getOperationType() == OperationType.inValid) {

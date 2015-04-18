@@ -1,9 +1,11 @@
 package pipeline.multi_issue_inorder;
 
+import pipeline.outoforder.ReorderBuffer;
 import generic.Event;
 import generic.EventQueue;
-import generic.PortType;
 import generic.SimulationElement;
+import generic.Core;
+import generic.PortType;
 
 public class CommonDataBus extends SimulationElement {
 	int size;
@@ -11,11 +13,12 @@ public class CommonDataBus extends SimulationElement {
 	int register[];
 	Object value[];
 	int occupied;
-
-	public CommonDataBus(int size) {
-		super(PortType.FirstComeFirstServe, CommonDataBus.getCDBSize(), 1, 0,
-				-1);
+	ROB rob;
+	
+	public CommonDataBus(Core core, MultiIssueInorderExecutionEngine execEngine, int size) {
+		super(PortType.FirstComeFirstServe, CommonDataBus.getCDBSize(), 1, 0, -1);
 		this.size = size;
+		rob = execEngine.getROB();
 		this.busy = new boolean[size];
 		this.register = new int[size];
 		this.value = new Object[size];
@@ -77,9 +80,17 @@ public class CommonDataBus extends SimulationElement {
 			return value[r];
 		}
 	}
-
-	public boolean isFull() {
-		return occupied == size;
+	
+	public void flushCDB(){
+		for (int i=0; i<size; i++){
+			if (busy[i]){
+				rob.rob[register[i]].ready = true;
+			}
+		}
+	}
+	
+	public boolean isFull(){
+		return occupied==size;
 	}
 
 	public static int getCDBSize() {
