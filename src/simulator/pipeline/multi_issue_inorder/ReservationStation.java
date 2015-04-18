@@ -11,6 +11,19 @@ class RS {
 	int Qi;
 	int Qj, Qk;
 	Operand Vj, Vk;
+	
+	RS(){
+		busy = false;
+		Qi = -1;
+		Qj = -1;
+		Qk = -1;
+		Vj = new Operand();
+		Vk = new Operand();
+	}
+	
+	public void print(){
+		System.out.println("RS: busy:"+busy+" Qi:"+Qi+" Qj:"+Qj+" Qk:"+Qk+" Vj:"+Vj.getValue()+" Vk:"+Vk.getValue()+" OpType:"+opType);
+	}
 }
 
 public class ReservationStation {
@@ -52,7 +65,7 @@ public class ReservationStation {
 	
 	public int getIWithFu(FunctionalUnitType fu){
 		for (int i=0; i<size; i++){
-			if (!rs[i].busy && OpTypeToFUTypeMapping.getFUType(rs[i].opType)==fu){
+			if (rs[i].opType!=null && !rs[i].busy && OpTypeToFUTypeMapping.getFUType(rs[i].opType)==fu){
 				return i;
 			}
 		}

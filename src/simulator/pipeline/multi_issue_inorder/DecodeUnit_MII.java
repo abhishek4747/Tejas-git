@@ -91,6 +91,7 @@ public class DecodeUnit_MII extends SimulationElement {
 					
 					idExRS.rs[r].busy = true;
 					idExRS.rs[r].Qi = b;
+					idExRS.rs[r].opType = ins.getOperationType();
 					rob.add(ins, GlobalClock.getCurrentTime() + 1);
 					
 					if (ins.getOperationType()==OperationType.floatALU 

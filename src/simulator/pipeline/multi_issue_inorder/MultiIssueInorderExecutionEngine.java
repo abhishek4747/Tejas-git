@@ -56,7 +56,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 								// misprediction
 	StageLatch_MII ifIdLatch, exMemLatch, memWbLatch, wbDoneLatch;
 	
-	ReservationStation idExRS;
+	private ReservationStation idExRS;
 
 	public int noOfOutstandingLoads = 0;
 
@@ -70,7 +70,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 		ifIdLatch = new StageLatch_MII(issueWidth);
 		idExRS = new ReservationStation(ReservationStation.getRSSize());
-		
+		exMemLatch = new StageLatch_MII(ExecUnitIn_MII.getSize());
 		memWbLatch = new StageLatch_MII(issueWidth);
 		wbDoneLatch = new StageLatch_MII(issueWidth);
 		
@@ -87,7 +87,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 			this.execUnitIns[i] = new ExecUnitIn_MII(_core, this, FunctionalUnitType.integerALU);
 			this.execUnitIns[i].id = i;
 		}
-		exMemLatch = new StageLatch_MII(execUnitIns.length);
+		
 		this.setMemUnitIn(new MemUnitIn_MII(core, this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core, this));
 		this.setCommitUnitIn(new CommitUnit_MII(core, this));

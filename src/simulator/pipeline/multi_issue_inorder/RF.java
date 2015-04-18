@@ -5,6 +5,8 @@ import generic.EventQueue;
 import generic.Operand;
 import generic.SimulationElement;
 
+import generic.PortType;
+
 class Register {
 	boolean busy;
 	Operand value;
@@ -16,7 +18,7 @@ public class RF extends SimulationElement {
 	Register rf[];
 
 	RF(int size) {
-		super(null, -1, -1, -1, -1);
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.size = size;
 		rf = new Register[size];
 		for (int i = 0; i < size; i++)

@@ -40,11 +40,12 @@ public class ExecUnitIn_MII extends SimulationElement {
 		this.eventQueue = core.getEventQueue();
 		containingExecutionEngine = execEngine;
 		idExRS = execEngine.getIdExRS();
+		exMemLatch = execEngine.getExMemLatch();
+
 		cdb = execEngine.getCDB();
 		rob = execEngine.getROB();
 		this.futype = futype;
 		
-		exMemLatch = execEngine.getExMemLatch();
 		
 		instructionCompletesAt = new long[containingExecutionEngine
 				.getIssueWidth()];
@@ -62,14 +63,22 @@ public class ExecUnitIn_MII extends SimulationElement {
 
 		Instruction ins = null;
 
+		if (exMemLatch==null){
+			System.out.println("Exit");
+		}else{
+			System.out.println("+1");
+		}
+		
 		while (idExRS.isEmpty(futype) == false && exMemLatch.isFull() == false) {
 			int rsid = idExRS.getIWithFu(futype);
-			ins = rob.rob[idExRS.rs[rsid].Qi].instr;
-			long insCompletesAt = rob.rob[idExRS.rs[rsid].Qi].instructionCompletesAt;
-			idExRS.rs[rsid].Qk = 0;
-			idExRS.rs[rsid].Qj = 0;
-			
-			if (ins != null) {
+			if (rsid!=-1){
+				ins = rob.rob[idExRS.rs[rsid].Qi].instr;
+				long insCompletesAt = rob.rob[idExRS.rs[rsid].Qi].instructionCompletesAt;
+				idExRS.rs[rsid].Qk = 0;
+				idExRS.rs[rsid].Qj = 0;
+//			}
+//			
+//			if (ins != null) {
 				FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(ins
 						.getOperationType());
 				long lat = 1;
@@ -129,6 +138,6 @@ public class ExecUnitIn_MII extends SimulationElement {
 	}
 
 	public static int getSize() {
-		return ReservationStation.getRSSize()/5;
+		return ReservationStation.getRSSize()/2;
 	}
 }
