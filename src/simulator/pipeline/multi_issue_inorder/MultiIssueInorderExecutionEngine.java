@@ -27,6 +27,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	private WriteBackUnitIn_MII writeBackUnitIn;
 	private CommitUnit_MII commitUnitIn;
 	
+	private ROB rob;
+	private RF rf;
+	
 	private boolean executionComplete;
 	private boolean fetchComplete;
 	public InorderCoreMemorySystem_MII multiIssueInorderCoreMemorySystem;
@@ -69,7 +72,10 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		memWbLatch = new StageLatch_MII(issueWidth);
 		wbDoneLatch = new StageLatch_MII(issueWidth);
 		
-
+		rob = new ROB(_core, this, ROB.getROBSize());
+		rf = new RF(RF.getRFSize());
+		
+		
 		this.setFetchUnitIn(new FetchUnitIn_MII(core, core.getEventQueue(),
 				this));
 		this.setDecodeUnitIn(new DecodeUnit_MII(core, this));
@@ -330,6 +336,14 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 	public StageLatch_MII getWbDoneLatch() {
 		return this.wbDoneLatch;
+	}
+	
+	public ROB getROB(){
+		return this.rob;
+	}
+	
+	public RF getRF(){
+		return this.rf;
 	}
 
 	@Override

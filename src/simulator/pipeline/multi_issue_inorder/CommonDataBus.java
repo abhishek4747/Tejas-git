@@ -27,7 +27,7 @@ public class CommonDataBus {
 		return -1;
 	}
 	
-	public void insert(int register, Object value){
+	public boolean insert(int register, Object value){
 		// Not sure if this register is already there
 		int r = find(register);
 		if (r==-1){
@@ -36,6 +36,7 @@ public class CommonDataBus {
 					this.register[i] = register;
 					this.value[i] = value;
 					this.busy[i] = true;
+					return true;
 				}
 			}
 		}else{
@@ -46,7 +47,9 @@ public class CommonDataBus {
 				occupied++;
 			}
 			this.busy[r] = true;
+			return true;
 		}
+		return false;
 	}
 	
 	public Object get(int register){

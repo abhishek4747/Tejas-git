@@ -23,6 +23,19 @@ public class ReservationStation {
 			rs[i] = new RS();
 	}
 	
+	public int getFree(){
+		for (int i=0; i<size; i++){
+			if (!rs[i].busy){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public boolean isFull(){
+		return this.getFree()==-1;
+	}
+	
 	public static int getRSSize(){
 		return 10;
 	}

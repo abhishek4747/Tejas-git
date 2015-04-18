@@ -61,6 +61,15 @@ public class ROB {
 		}
 		return false;
 	}
+	
+	public int getTail(){
+		if (curSize!=ROBSize){
+			return tail;
+		}
+		return -1;
+		
+	}
+	
 
 	public boolean removeFromHead() {
 		rob[head].busy = false;
@@ -80,6 +89,7 @@ public class ROB {
 		tail = -1;
 		curSize = 0;
 	}
+	
 
 	public void performCommit(RF rf) {
 		if (head == -1)
@@ -119,4 +129,7 @@ public class ROB {
 		}
 	}
 
+	public static int getROBSize() {
+		return 10;
+	}
 }

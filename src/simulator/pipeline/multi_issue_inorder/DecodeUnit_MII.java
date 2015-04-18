@@ -13,6 +13,7 @@ import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
+import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -23,6 +24,8 @@ public class DecodeUnit_MII extends SimulationElement {
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
 	StageLatch_MII ifIdLatch;
 	ReservationStation idExRS;
+	ROB rob;
+	RF rf;
 
 	long numBranches;
 	long numMispredictedBranches;
@@ -41,6 +44,8 @@ public class DecodeUnit_MII extends SimulationElement {
 		containingExecutionEngine = execEngine;
 		ifIdLatch = execEngine.getIfIdLatch();
 		idExRS = execEngine.getIdExRS();
+		rob = execEngine.getROB();
+		rf = execEngine.getRF();
 
 		numBranches = 0;
 		numMispredictedBranches = 0;
@@ -58,13 +63,74 @@ public class DecodeUnit_MII extends SimulationElement {
 		containingExecutionEngine.getExecutionCore().clearPortUsage();
 
 		Instruction ins = null;
+		
+		
 
-		while (ifIdLatch.isEmpty() == false && idExLatch.isFull() == false) {
+		while (ifIdLatch.isEmpty() == false && idExRS.isFull() == false ) {
 			ins = ifIdLatch.peek(0);
 			OperationType opType;
 
 			if (ins != null) {
 				opType = ins.getOperationType();
+				Operand o1 = ins.getSourceOperand1();
+				int b = rob.getTail();
+				if (b!=-1){
+					int r = idExRS.getFree();
+					if (rf.rf[(int)o1.getValue()].busy){
+						int h = rf.rf[(int)o1.getValue()].Qi;
+						if (rob.rob[h].ready){
+							idExRS.rs[r].Vj = rob.rob[h].r1;
+							idExRS.rs[r].Qj = 0;
+						}else{
+							idExRS.rs[r].Qj = h;
+						}
+					}else{
+						idExRS.rs[r].Vj = rf.rf[(int)o1.getValue()].value;
+						idExRS.rs[r].Qj = 0;
+					}
+					
+					idExRS.rs[r].busy = true;
+					idExRS.rs[r].Qi = b;
+					rob.add(ins);
+					
+					if (ins.getOperationType()==OperationType.floatALU 
+							|| ins.getOperationType() == OperationType.integerALU
+							|| ins.getOperationType() == OperationType.store){
+						Operand o2 = ins.getSourceOperand2();
+						if (rf.rf[(int)o2.getValue()].busy){
+							int h = rf.rf[(int)o2.getValue()].Qi;
+							if (rob.rob[h].ready){
+								idExRS.rs[r].Vk = rob.rob[h].r2;
+								idExRS.rs[r].Qk = 0;
+							}else{
+								idExRS.rs[r].Qk = h;
+							}
+						}else{
+							idExRS.rs[r].Vk = rf.rf[(int)o2.getValue()].value;
+							idExRS.rs[r].Qk = 0;
+						}	
+					}
+					
+					if (ins.getOperationType()==OperationType.floatALU 
+							|| ins.getOperationType() == OperationType.integerALU){
+						Operand od = ins.getDestinationOperand();
+						rf.rf[(int)od.getValue()].Qi = b;
+						rf.rf[(int)od.getValue()].busy = true;
+						rob.rob[b].dest = od;
+					}
+					
+					if (ins.getOperationType()==OperationType.load){
+						//rs.rs[r]
+					}
+					
+					if (ins.getOperationType()==OperationType.store){
+						//
+					}
+				}
+				
+				
+				
+				
 
 				if (checkDataHazard(ins)) // Data Hazard Detected,Stall Pipeline
 				{
