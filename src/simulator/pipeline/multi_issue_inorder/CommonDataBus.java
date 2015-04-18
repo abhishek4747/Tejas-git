@@ -1,6 +1,11 @@
 package pipeline.multi_issue_inorder;
 
-public class CommonDataBus {
+import generic.Event;
+import generic.EventQueue;
+import generic.PortType;
+import generic.SimulationElement;
+
+public class CommonDataBus extends SimulationElement{
 	int size;
 	boolean busy[];
 	int register[];
@@ -8,6 +13,7 @@ public class CommonDataBus {
 	int occupied;
 	
 	public CommonDataBus(int size) {
+		super(PortType.FirstComeFirstServe, CommonDataBus.getCDBSize(), 1, 0, -1);
 		this.size = size;
 		this.busy = new boolean[size];
 		this.register = new int[size];
@@ -73,6 +79,12 @@ public class CommonDataBus {
 	
 	public static int getCDBSize(){
 		return 4;
+	}
+
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }
