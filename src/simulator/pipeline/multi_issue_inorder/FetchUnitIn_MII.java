@@ -124,6 +124,7 @@ public class FetchUnitIn_MII extends SimulationElement {
 		}
 
 		Instruction ins;
+		System.out.print("Fetch unit ");
 
 		if (!this.fetchBufferStatus[this.fetchBufferIndex])
 			containingExecutionEngine.incrementInstructionMemStall(1);
@@ -134,7 +135,7 @@ public class FetchUnitIn_MII extends SimulationElement {
 				&& this.fetchBufferStatus[this.fetchBufferIndex]
 				&& this.ifId_latch.isFull() == false) {
 			ins = this.fetchBuffer[this.fetchBufferIndex];
-
+			System.out.print(ins);
 			if (ins.getOperationType() == OperationType.sync) {
 				this.fetchFillCount--;
 				this.fetchBufferIndex = (this.fetchBufferIndex + 1)

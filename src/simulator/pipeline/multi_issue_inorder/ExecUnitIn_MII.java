@@ -60,20 +60,15 @@ public class ExecUnitIn_MII extends SimulationElement {
 		if (containingExecutionEngine.getMispredStall() > 0) {
 			return;
 		}
-
+		System.out.print("In exec "+id);
 		Instruction ins = null;
-
-		if (exMemLatch==null){
-			System.out.println("Exit");
-		}else{
-			System.out.println("+1");
-		}
 		
 		while (idExRS.isEmpty(futype) == false && exMemLatch.isFull() == false) {
 			int rsid = idExRS.getIWithFu(futype);
+			System.out.print("Execute = "+rsid);
 			if (rsid!=-1){
-				ins = rob.rob[idExRS.rs[rsid].Qi].instr;
-				long insCompletesAt = rob.rob[idExRS.rs[rsid].Qi].instructionCompletesAt;
+				ins = rob.rob.absPeek(idExRS.rs[rsid].Qi).instr;
+				long insCompletesAt = rob.rob.absPeek(idExRS.rs[rsid].Qi).instructionCompletesAt;
 				idExRS.rs[rsid].Qk = 0;
 				idExRS.rs[rsid].Qj = 0;
 //			}
@@ -117,6 +112,7 @@ public class ExecUnitIn_MII extends SimulationElement {
 				break;
 			}
 		}
+		System.out.println();
 	}
 
 	@Override

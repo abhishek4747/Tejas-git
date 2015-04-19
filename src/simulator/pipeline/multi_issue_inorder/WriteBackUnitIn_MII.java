@@ -55,12 +55,13 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 		}
 
 		Instruction ins = null;
-
+		System.out.print("In WB");
 		while (memWbLatch.isEmpty() == false) {
+			System.out.print(" CDB write");
 			ins = memWbLatch.peek(0);
 			int r=-1;
 			for (int i = 0; i < rs.size; i++) {
-				if(rob.rob[rs.rs[i].Qi].instr==ins){
+				if(rob.rob.absPeek(rs.rs[i].Qi).instr==ins){
 					r = i;
 					break;
 				}
@@ -159,6 +160,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 				break;
 			}
 		}
+		System.out.println();
 	}
 
 	@Override

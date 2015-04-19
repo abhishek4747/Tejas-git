@@ -38,11 +38,12 @@ public class MemUnitIn_MII extends SimulationElement {
 		if (containingExecutionEngine.getMispredStall() > 0) {
 			return;
 		}
-
+		System.out.print("In mem");
 		Instruction ins = null;
 
 		while (exMemLatch.isEmpty() == false && memWbLatch.isFull() == false) {
 			ins = exMemLatch.peek(0);
+			System.out.print("Writing to mem");
 
 			if (ins != null) {
 				long lat = 1;
@@ -92,6 +93,7 @@ public class MemUnitIn_MII extends SimulationElement {
 				break;
 			}
 		}
+		System.out.println();
 	}
 
 	@Override

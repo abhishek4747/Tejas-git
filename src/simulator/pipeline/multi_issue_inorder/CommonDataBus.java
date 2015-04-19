@@ -84,7 +84,7 @@ public class CommonDataBus extends SimulationElement {
 	public void flushCDB(){
 		for (int i=0; i<size; i++){
 			if (busy[i]){
-				rob.rob[register[i]].ready = true;
+				rob.rob.absPeek(register[i]).ready = true;
 			}
 		}
 	}

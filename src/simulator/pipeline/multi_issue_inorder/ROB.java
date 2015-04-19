@@ -4,6 +4,7 @@ import generic.Core;
 import generic.Instruction;
 import generic.Operand;
 import generic.OperationType;
+import generic.GenericCircularQueue;
 
 class ROBSlot {
 	Instruction instr;
@@ -18,11 +19,8 @@ class ROBSlot {
 }
 
 public class ROB {
-	public ROBSlot[] rob;
+	GenericCircularQueue<ROBSlot> rob;
 	public int ROBSize;
-	public int head;
-	public int tail;
-	public int curSize;
 
 	Core core;
 	MultiIssueInorderExecutionEngine containingExecutionEngine;
@@ -35,102 +33,91 @@ public class ROB {
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
 		this.ROBSize = ROBSize;
-		rob = new ROBSlot[ROBSize];
-		for (int i = 0; i < ROBSize; i++)
-			rob[i] = new ROBSlot();
-		head = -1;
-		tail = -1;
-		curSize = 0;
+		rob = new GenericCircularQueue<ROBSlot>(ROBSlot.class, ROBSize);
 		lastValidIpSeen = -1;
 		numMispredictedBranches = 0;
 		numBranches = 0;
 	}
 
 	public boolean add(Instruction i, long insCompletesAt) {
-		if (curSize != ROBSize && !rob[tail].busy) {
-			rob[tail].instr = i;
-			rob[tail].busy = true;
-			rob[tail].ready = false;
-			rob[tail].r1avail = false;
-			rob[tail].r2avail = false;
-			rob[tail].r1 = i.getSourceOperand1();
-			rob[tail].r2 = i.getSourceOperand2();
-			rob[tail].dest = i.getDestinationOperand();
-			rob[tail].instructionCompletesAt = insCompletesAt;
-			tail = (tail + 1) % ROBSize;
-			curSize++;
+		if (!rob.isFull()) {
+			ROBSlot r = new ROBSlot();
+			r.busy = true;
+			r.instr = i;
+			r.ready = false;
+			r.r1avail = false;
+			r.r2avail = false;
+			r.r1 = i.getSourceOperand1();
+			r.r2 = i.getSourceOperand2();
+			r.dest = i.getDestinationOperand();
+			r.instructionCompletesAt = insCompletesAt;
+			rob.enqueue(r);
 			return true;
 		}
 		return false;
 	}
-	
-	public int getTail(){
-		if (curSize!=ROBSize){
-			return tail;
-		}
-		return -1;
-		
-	}
-	
 
-	public boolean removeFromHead() {
-		rob[head].busy = false;
-		if (head == tail) {
-			head = -1;
-			tail = -1;
-		} else
-			head = (head + 1) % ROBSize;
-		curSize--;
-		return true;
+	public int getTail() {
+		if (rob.isFull())
+			return -2;
+		if (rob.isEmpty())
+			return -1;
+		return rob.getTail();
+	}
+
+	public void removeFromHead() {
+		rob.dequeue();
 	}
 
 	void flush() {
-		for (int i = 0; i < ROBSize; i++)
-			rob[i].busy = false;
-		head = -1;
-		tail = -1;
-		curSize = 0;
+		rob.clear();
 	}
-	
 
 	public void performCommit(RF rf) {
-		if (head == -1)
+		if (rob.isEmpty())
 			return;
-		if (rob[head].instr.getCISCProgramCounter() != -1) {
-			lastValidIpSeen = rob[head].instr.getCISCProgramCounter();
+		System.out.print("in commit unit, performCommit(RF)");
+		if (rob.peek(0).instr.getCISCProgramCounter() != -1) {
+			lastValidIpSeen = rob.peek(0).instr.getCISCProgramCounter();
 		}
-		if (rob[head].ready) {
-			if (rob[head].instr.getOperationType() == OperationType.branch) {
-				boolean prediction = containingExecutionEngine.getBranchPredictor().predict(lastValidIpSeen,
-								rob[head].instr.isBranchTaken());
+		if (rob.peek(0).ready) {
+			System.out.print(" in rob.peek(0).ready");
+			if (rob.peek(0).instr.getOperationType() == OperationType.branch) {
+				System.out.print(" Branch");
+				boolean prediction = containingExecutionEngine
+						.getBranchPredictor().predict(lastValidIpSeen,
+								rob.peek(0).instr.isBranchTaken());
 				this.containingExecutionEngine.getBranchPredictor()
 						.incrementNumAccesses(1);
 
 				containingExecutionEngine.getBranchPredictor().Train(
-						rob[head].instr.getCISCProgramCounter(),
-						rob[head].instr.isBranchTaken(), prediction);
+						rob.peek(0).instr.getCISCProgramCounter(),
+						rob.peek(0).instr.isBranchTaken(), prediction);
 				this.containingExecutionEngine.getBranchPredictor()
 						.incrementNumAccesses(1);
 
 				numBranches++;
 
-				if (prediction != rob[head].instr.isBranchTaken()) {
-					containingExecutionEngine.setMispredStall(core.getBranchMispredictionPenalty());
+				if (prediction != rob.peek(0).instr.isBranchTaken()) {
+					System.out.print(" taken");
+					containingExecutionEngine.setMispredStall(core
+							.getBranchMispredictionPenalty());
 					numMispredictedBranches++;
 					flush();
 					rf.flush();
 				}
 			}
-			if (rf.rf[(int)rob[head].dest.getValue()].Qi == head){
-				rf.rf[(int)rob[head].dest.getValue()].busy = false;
+			if (rf.rf[(int) rob.peek(0).dest.getValue()].Qi == rob.getHead()) {
+				rf.rf[(int) rob.peek(0).dest.getValue()].busy = false;
 			}
 			removeFromHead();
-			
+
 			core.incrementNoOfInstructionsExecuted();
 			if (core.getNoOfInstructionsExecuted() % 1000000 == 0)
 				System.out.println(core.getNoOfInstructionsExecuted() / 1000000
 						+ " million done on " + core.getCore_number());
 		}
+		System.out.println();
 	}
 
 	public static int getROBSize() {
