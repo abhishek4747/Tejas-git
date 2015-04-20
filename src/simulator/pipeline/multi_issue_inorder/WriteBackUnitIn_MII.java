@@ -7,7 +7,6 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
 import generic.OperationType;
-import generic.PinPointsProcessing;
 import generic.PortType;
 import generic.SimulationElement;
 
@@ -80,7 +79,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 				}
 			}
 
-			//rob.rob[b].ready = true;
+			// rob.rob[b].ready = true;
 
 			cdb.insert(b, 0);
 
@@ -127,7 +126,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 				break;
 			}
 		}
-		//cdb.flushCDB();
+		// cdb.flushCDB();
 	}
 
 	@Override

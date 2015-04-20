@@ -13,9 +13,11 @@ public class CommonDataBus extends SimulationElement {
 	Object value[];
 	int occupied;
 	ROB rob;
-	
-	public CommonDataBus(Core core, MultiIssueInorderExecutionEngine execEngine, int size) {
-		super(PortType.FirstComeFirstServe, CommonDataBus.getCDBSize(), 1, 0, -1);
+
+	public CommonDataBus(Core core,
+			MultiIssueInorderExecutionEngine execEngine, int size) {
+		super(PortType.FirstComeFirstServe, CommonDataBus.getCDBSize(), 1, 0,
+				-1);
 		this.size = size;
 		rob = execEngine.getROB();
 		this.busy = new boolean[size];
@@ -81,17 +83,17 @@ public class CommonDataBus extends SimulationElement {
 			return value[r];
 		}
 	}
-	
-	public void flushCDB(){
-		for (int i=0; i<size; i++){
-			if (busy[i]){
+
+	public void flushCDB() {
+		for (int i = 0; i < size; i++) {
+			if (busy[i]) {
 				rob.rob.absPeek(register[i]).ready = true;
 			}
 		}
 	}
-	
-	public boolean isFull(){
-		return occupied==size;
+
+	public boolean isFull() {
+		return occupied == size;
 	}
 
 	public static int getCDBSize() {
