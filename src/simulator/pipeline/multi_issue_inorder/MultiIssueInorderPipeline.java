@@ -91,7 +91,7 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	}
 
 	public void exec() {
-		for (int i = 0; i < ExecUnitIn_MII.getSize(); i++) {
+		for (int i = 0; i < containingExecutionEngine.getExecUnitIns().length; i++) {
 			containingExecutionEngine.getExecUnitIn(i).execute(this);
 		}
 	}

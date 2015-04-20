@@ -30,12 +30,15 @@ public class ROB {
 	long lastValidIpSeen;
 	int numMispredictedBranches;
 	int numBranches;
+	RF irf, frf;
 
 	ROB(Core core, MultiIssueInorderExecutionEngine execEngine, int ROBSize) {
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
 		this.ROBSize = ROBSize;
 		rob = new GenericCircularQueue<ROBSlot>(ROBSlot.class, ROBSize);
+		irf = execEngine.getIntRF();
+		frf = execEngine.getFloatRF();
 		lastValidIpSeen = -1;
 		numMispredictedBranches = 0;
 		numBranches = 0;
@@ -80,7 +83,7 @@ public class ROB {
 		rob.clear();
 	}
 
-	public void performCommit(RF rf) {
+	public void performCommit() {
 		System.out.println("6--> In commit Unit");
 		if (rob.isEmpty()){
 			System.out.println("\tROB empty. Nothing to be done.");
@@ -152,12 +155,13 @@ public class ROB {
 								.getBranchMispredictionPenalty());
 						numMispredictedBranches++;
 						flush();
-						rf.flush();
+						irf.flush();
+						frf.flush();
 					}
 				}
 				
-				if (rf.rf[(int) rob.peek(0).dest.getValue()].Qi == rob.getHead()) {
-					rf.rf[(int) rob.peek(0).dest.getValue()].busy = false;
+				if (RF.getRegister(irf, frf, rob.peek(0).dest).Qi==rob.getHead()){
+					RF.getRegister(irf, frf, rob.peek(0).dest).busy = false;
 				}
 				
 				removeFromHead();
@@ -169,9 +173,5 @@ public class ROB {
 							+ core.getCore_number());
 			}
 		}
-	}
-
-	public static int getROBSize() {
-		return 10;
 	}
 }

@@ -125,6 +125,9 @@ public class CoreConfig
 	public EnergyConfig resultsBroadcastBusPower;
 	public EnergyConfig iTLBPower;
 	public EnergyConfig dTLBPower;
+
+	public int numReservationStation;
+	public int cdbSize;
 	
 	public int getICacheLatency() {
 		int latency = 0;

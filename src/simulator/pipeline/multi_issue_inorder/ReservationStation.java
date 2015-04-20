@@ -1,9 +1,10 @@
 package pipeline.multi_issue_inorder;
 
+import generic.Operand;
+import generic.OperationType;
 import pipeline.FunctionalUnitType;
 import pipeline.OpTypeToFUTypeMapping;
-import generic.OperationType;
-import generic.Operand;
+import config.CoreConfig;;
 
 class RS {
 	OperationType opType;

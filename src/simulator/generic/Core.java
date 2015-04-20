@@ -6,11 +6,7 @@ import java.io.IOException;
 import main.ArchitecturalComponent;
 import memorysystem.Cache;
 import memorysystem.CoreMemorySystem;
-import memorysystem.nuca.NucaCache;
-import net.BusInterface;
-import net.NocInterface;
 import pipeline.ExecutionEngine;
-import pipeline.FunctionalUnitType;
 import pipeline.multi_issue_inorder.InorderCoreMemorySystem_MII;
 import pipeline.multi_issue_inorder.MultiIssueInorderExecutionEngine;
 import pipeline.multi_issue_inorder.MultiIssueInorderPipeline;
@@ -412,5 +408,28 @@ public class Core extends SimulationElement{
 		totalPower.printEnergyStats(outputFileWriter, componentName + ".total");
 		
 		return totalPower;
+	}
+
+	public int getCDBSize() {
+		return coreConfig.cdbSize;
+	}
+	
+	public int getIntALUNum(){
+		return coreConfig.IntALUNum;
+	}
+	public int getIntMulNum(){
+		return coreConfig.IntMulNum;
+	}
+	public int getIntDivNum(){
+		return coreConfig.IntDivNum;
+	}
+	public int getFloatALUNum(){
+		return coreConfig.FloatALUNum;
+	}
+	public int getFloatMulNum(){
+		return coreConfig.FloatMulNum;
+	}
+	public int getFloatDivNum(){
+		return coreConfig.FloatDivNum;
 	}
 }

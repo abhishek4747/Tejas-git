@@ -23,7 +23,7 @@ public class DecodeUnit_MII extends SimulationElement {
 	StageLatch_MII ifIdLatch;
 	ReservationStation idExRS;
 	ROB rob;
-	RF rf;
+	RF irf, frf;
 
 	long numBranches;
 	long numMispredictedBranches;
@@ -43,7 +43,8 @@ public class DecodeUnit_MII extends SimulationElement {
 		ifIdLatch = execEngine.getIfIdLatch();
 		idExRS = execEngine.getIdExRS();
 		rob = execEngine.getROB();
-		rf = execEngine.getRF();
+		irf = execEngine.getIntRF();
+		frf = execEngine.getFloatRF();
 
 		numBranches = 0;
 		numMispredictedBranches = 0;
@@ -88,8 +89,9 @@ public class DecodeUnit_MII extends SimulationElement {
 						
 					}else{
 						Operand o1 = ins.getSourceOperand1();
-						if (rf.rf[(int) o1.getValue()].busy) {
-							int h = rf.rf[(int) o1.getValue()].Qi;
+						o1.getOperandType();
+						if (RF.getRegister(irf, frf, o1).busy) {
+							int h = RF.getRegister(irf, frf, o1).Qi; 
 							if (rob.rob.absPeek(h).ready) {
 								idExRS.rs[r].Vj = rob.rob.absPeek(h).r1;
 								idExRS.rs[r].Qj = 0;
@@ -97,7 +99,7 @@ public class DecodeUnit_MII extends SimulationElement {
 								idExRS.rs[r].Qj = h;
 							}
 						} else {
-							idExRS.rs[r].Vj = rf.rf[(int) o1.getValue()].value;
+							idExRS.rs[r].Vj = RF.getRegister(irf, frf, o1).value;
 							idExRS.rs[r].Qj = 0;
 						}
 
@@ -112,8 +114,8 @@ public class DecodeUnit_MII extends SimulationElement {
 								|| ins.getOperationType() == OperationType.integerALU
 								|| ins.getOperationType() == OperationType.store) {
 							Operand o2 = ins.getSourceOperand2();
-							if (rf.rf[(int) o2.getValue()].busy) {
-								int h = rf.rf[(int) o2.getValue()].Qi;
+							if (RF.getRegister(irf, frf, o2).busy) {
+								int h = RF.getRegister(irf, frf, o2).Qi;
 								if (rob.rob.absPeek(h).ready) {
 									idExRS.rs[r].Vk = rob.rob.absPeek(h).r2;
 									idExRS.rs[r].Qk = 0;
@@ -121,7 +123,7 @@ public class DecodeUnit_MII extends SimulationElement {
 									idExRS.rs[r].Qk = h;
 								}
 							} else {
-								idExRS.rs[r].Vk = rf.rf[(int) o2.getValue()].value;
+								idExRS.rs[r].Vk = RF.getRegister(irf, frf, o2).value;
 								idExRS.rs[r].Qk = 0;
 							}
 						}
@@ -129,8 +131,8 @@ public class DecodeUnit_MII extends SimulationElement {
 						if (ins.getOperationType() == OperationType.floatALU
 								|| ins.getOperationType() == OperationType.integerALU) {
 							Operand od = ins.getDestinationOperand();
-							rf.rf[(int) od.getValue()].Qi = b;
-							rf.rf[(int) od.getValue()].busy = true;
+							RF.getRegister(irf, frf, od).Qi = b;
+							RF.getRegister(irf, frf, od).busy = true;
 							rob.rob.absPeek(b).dest = od;
 						}
 
