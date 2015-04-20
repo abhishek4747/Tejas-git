@@ -31,6 +31,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	private ROB rob;
 	private RF rf;
 	private CommonDataBus cdb;
+	private LoadStoreQueue lsq;
 	
 	private boolean executionComplete;
 	private boolean fetchComplete;
@@ -77,7 +78,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		rob = new ROB(_core, this, ROB.getROBSize());
 		rf = new RF(RF.getRFSize());
 		cdb = new CommonDataBus(core, this,CommonDataBus.getCDBSize());
-		
+		lsq = new LoadStoreQueue();		
 		
 		this.setFetchUnitIn(new FetchUnitIn_MII(core, core.getEventQueue(),
 				this));
@@ -442,5 +443,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 	public StageLatch_MII getExMemLatch() {
 		return this.exMemLatch;
+	}
+
+	public LoadStoreQueue getLSQ() {
+		return this.lsq;
 	}
 }

@@ -86,7 +86,9 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 			if (ins != null) {
 
 				// increment register file accesses for power statistics
-
+				if (!(ins.getOperationType() == OperationType.store && rs.rs[r].Qk == 0)) {
+					continue;
+				}
 				// operand fetch
 				incrementNumRegFileAccesses(ins.getSourceOperand1(), 1);
 				incrementNumRegFileAccesses(ins.getSourceOperand2(), 1);

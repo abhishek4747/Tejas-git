@@ -11,6 +11,7 @@ class RS {
 	int Qi;
 	int Qj, Qk;
 	Operand Vj, Vk;
+	long A;
 	boolean executionComplete;
 
 	RS() {
@@ -21,12 +22,12 @@ class RS {
 		Vj = new Operand();
 		Vk = new Operand();
 		executionComplete = false;
+		A = 0;
 	}
 
-	public void print() {
-		System.out.println("RS: busy:" + busy + " Qi:" + Qi + " Qj:" + Qj
-				+ " Qk:" + Qk + " Vj:" + Vj.getValue() + " Vk:" + Vk.getValue()
-				+ " OpType:" + opType);
+	public String toString() {
+		return "RS: busy:" + busy + " Qi:" + Qi + " Qj:" + Qj + " Qk:" + Qk
+				+ " Vj:" + Vj + " Vk:" + Vk + " OpType:" + opType + " A:" + A;
 	}
 }
 
@@ -53,10 +54,10 @@ public class ReservationStation {
 	public boolean isFull() {
 		return this.getFree() == -1;
 	}
-	
-	public int getBusy(){
-		int busy= 0;
-		for (int i=0; i<size; i++){
+
+	public int getBusy() {
+		int busy = 0;
+		for (int i = 0; i < size; i++) {
 			if (rs[i].busy)
 				busy++;
 		}
@@ -99,8 +100,8 @@ public class ReservationStation {
 	}
 
 	public int getExecuted() {
-		int busy= 0;
-		for (int i=0; i<size; i++){
+		int busy = 0;
+		for (int i = 0; i < size; i++) {
 			if (rs[i].busy && rs[i].executionComplete)
 				busy++;
 		}

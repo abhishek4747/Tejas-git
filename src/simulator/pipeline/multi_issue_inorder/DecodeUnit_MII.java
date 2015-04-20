@@ -24,6 +24,7 @@ public class DecodeUnit_MII extends SimulationElement {
 	ReservationStation idExRS;
 	ROB rob;
 	RF rf;
+	LoadStoreQueue lsq;
 
 	long numBranches;
 	long numMispredictedBranches;
@@ -44,6 +45,7 @@ public class DecodeUnit_MII extends SimulationElement {
 		idExRS = execEngine.getIdExRS();
 		rob = execEngine.getROB();
 		rf = execEngine.getRF();
+		lsq = execEngine.getLSQ();
 
 		numBranches = 0;
 		numMispredictedBranches = 0;
@@ -69,8 +71,8 @@ public class DecodeUnit_MII extends SimulationElement {
 			ins = ifIdLatch.peek(0);
 			OperationType opType;
 			System.out.println("\tIns: " + ins);
-			opType = ins.getOperationType();	
-			if (opType==OperationType.inValid){
+			opType = ins.getOperationType();
+			if (opType == OperationType.inValid) {
 				System.out.print("End here");
 			}
 			if (ins != null) {
@@ -84,9 +86,10 @@ public class DecodeUnit_MII extends SimulationElement {
 						idExRS.rs[r].Qi = b;
 						idExRS.rs[r].opType = ins.getOperationType();
 						rob.add(ins, GlobalClock.getCurrentTime() + 1);
-						System.out.println("\tAdded to rob"+r+" Optype"+ins.getOperationType());
-						
-					}else{
+						System.out.println("\tAdded to rob" + r + " Optype"
+								+ ins.getOperationType());
+
+					} else {
 						Operand o1 = ins.getSourceOperand1();
 						if (rf.rf[(int) o1.getValue()].busy) {
 							int h = rf.rf[(int) o1.getValue()].Qi;
@@ -105,11 +108,17 @@ public class DecodeUnit_MII extends SimulationElement {
 						idExRS.rs[r].Qi = b;
 						idExRS.rs[r].opType = ins.getOperationType();
 						idExRS.rs[r].executionComplete = false;
-						rob.add(ins, GlobalClock.getCurrentTime() + 1);
-						System.out.println("\tAdded to rob"+r+" Optype"+ins.getOperationType());
-	
+						int slot = rob.add(ins,
+								GlobalClock.getCurrentTime() + 1);
+						System.out.println("\tAdded to rob" + r + " Optype"
+								+ ins.getOperationType());
+
 						if (ins.getOperationType() == OperationType.floatALU
+								|| ins.getOperationType() == OperationType.floatMul
+								|| ins.getOperationType() == OperationType.floatDiv
 								|| ins.getOperationType() == OperationType.integerALU
+								|| ins.getOperationType() == OperationType.integerMul
+								|| ins.getOperationType() == OperationType.integerDiv
 								|| ins.getOperationType() == OperationType.store) {
 							Operand o2 = ins.getSourceOperand2();
 							if (rf.rf[(int) o2.getValue()].busy) {
@@ -126,21 +135,31 @@ public class DecodeUnit_MII extends SimulationElement {
 							}
 						}
 
+						if (ins.getOperationType() == OperationType.load
+								|| ins.getOperationType() == OperationType.store)
+							lsq.enqueue(
+									ins.getOperationType() == OperationType.load,
+									slot, ins.getSourceOperand1MemValue(), ins);
+
+						if (ins.getOperationType() == OperationType.load)
+							idExRS.rs[r].A = ins.getDestinationOperand()
+									.getValue();
+
 						if (ins.getOperationType() == OperationType.floatALU
-								|| ins.getOperationType() == OperationType.integerALU) {
+								|| ins.getOperationType() == OperationType.floatDiv
+								|| ins.getOperationType() == OperationType.floatMul
+								|| ins.getOperationType() == OperationType.integerALU
+								|| ins.getOperationType() == OperationType.integerDiv
+								|| ins.getOperationType() == OperationType.integerMul
+								|| ins.getOperationType() == OperationType.load) {
 							Operand od = ins.getDestinationOperand();
 							rf.rf[(int) od.getValue()].Qi = b;
 							rf.rf[(int) od.getValue()].busy = true;
 							rob.rob.absPeek(b).dest = od;
 						}
 
-						if (ins.getOperationType() == OperationType.load) {
-							// rs.rs[r]
-						}
-
-						if (ins.getOperationType() == OperationType.store) {
-							//
-						}
+						if (ins.getOperationType() == OperationType.store)
+							idExRS.rs[r].A = ins.getSourceOperand2().getValue();
 					}
 				}
 
@@ -166,6 +185,11 @@ public class DecodeUnit_MII extends SimulationElement {
 				// }
 
 				incrementNumDecodes(1);
+
+				// if (ins.getOperationType() == OperationType.load ||
+				// ins.getOperationType() == OperationType.store) {
+				// containingExecutionEngine.getCoreMemorySystem().
+				// }
 
 				// add destination register of ins to list of outstanding
 				// registers

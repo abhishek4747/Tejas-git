@@ -20,6 +20,8 @@ public class MemUnitIn_MII extends SimulationElement {
 	EventQueue eventQueue;
 	StageLatch_MII exMemLatch;
 	StageLatch_MII memWbLatch;
+	LoadStoreQueue lsq;
+	ROB rob;
 
 	long instCtr; // for debug
 
@@ -30,6 +32,8 @@ public class MemUnitIn_MII extends SimulationElement {
 		containingExecutionEngine = execEngine;
 		exMemLatch = execEngine.getExMemLatch();
 		memWbLatch = execEngine.getMemWbLatch();
+		lsq = execEngine.getLSQ();
+		rob = execEngine.getROB();
 
 		instCtr = 0;
 	}
@@ -46,13 +50,13 @@ public class MemUnitIn_MII extends SimulationElement {
 			System.out.print("Writing to mem");
 
 			if (ins != null) {
-				if (ins.getOperationType()==OperationType.inValid){
+				if (ins.getOperationType() == OperationType.inValid) {
 					System.out.println("End here");
 				}
 				long lat = 1;
 				if (ins.getOperationType() == OperationType.load) {
-					// issue load request
-					if (!SimulationConfig.detachMemSysData) {
+					if (!SimulationConfig.detachMemSysData
+							&& rob.storesAtThisAddressBefore(ins)) {
 						boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem
 								.issueRequestToL1Cache(RequestType.Cache_Read,
 										ins.getSourceOperand1MemValue());
@@ -66,22 +70,23 @@ public class MemUnitIn_MII extends SimulationElement {
 					// Long.MAX_VALUE
 					lat = Long.MAX_VALUE - GlobalClock.getCurrentTime();
 				}
-				if (ins.getOperationType() == OperationType.store) {
-					if (!SimulationConfig.detachMemSysData) {
-						boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem
-								.issueRequestToL1Cache(RequestType.Cache_Write,
-										ins.getSourceOperand1MemValue());
+				// if (ins.getOperationType() == OperationType.store) {
+				// if (!SimulationConfig.detachMemSysData) {
+				// boolean memReqIssued =
+				// containingExecutionEngine.multiIssueInorderCoreMemorySystem
+				// .issueRequestToL1Cache(RequestType.Cache_Write,
+				// ins.getSourceOperand1MemValue());
+				//
+				// if (memReqIssued == false) {
+				// break;
+				// }
+				// }
+				// }
 
-						if (memReqIssued == false) {
-							break;
-						}
-					}
-				}
-
-//				if (ins.getSerialNo() != instCtr
-//						&& ins.getOperationType() != OperationType.inValid) {
-//					misc.Error.showErrorAndExit("mem out of order!!");
-//				}
+				// if (ins.getSerialNo() != instCtr
+				// && ins.getOperationType() != OperationType.inValid) {
+				// misc.Error.showErrorAndExit("mem out of order!!");
+				// }
 				instCtr++;
 
 				// move ins to next stage

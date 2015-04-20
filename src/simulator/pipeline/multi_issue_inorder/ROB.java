@@ -6,6 +6,7 @@ import generic.Instruction;
 import generic.Operand;
 import generic.OperationType;
 import generic.PinPointsProcessing;
+import generic.RequestType;
 import config.SimulationConfig;
 
 class ROBSlot {
@@ -41,7 +42,7 @@ public class ROB {
 		numBranches = 0;
 	}
 
-	public boolean add(Instruction i, long insCompletesAt) {
+	public int add(Instruction i, long insCompletesAt) {
 		if (!rob.isFull()) {
 			ROBSlot r = new ROBSlot();
 			r.busy = true;
@@ -54,9 +55,16 @@ public class ROB {
 			r.dest = i.getDestinationOperand();
 			r.instructionCompletesAt = insCompletesAt;
 			rob.enqueue(r);
-			return true;
+			return indexOf(r);
 		}
-		return false;
+		return -1;
+	}
+
+	private int indexOf(ROBSlot r) {
+		for (int i = 0; i < ROBSize; i++)
+			if (r == rob.absPeek(i))
+				return i;
+		return -1;
 	}
 
 	public int getTail() {
@@ -82,7 +90,7 @@ public class ROB {
 
 	public void performCommit(RF rf) {
 		System.out.println("6--> In commit Unit");
-		if (rob.isEmpty()){
+		if (rob.isEmpty()) {
 			System.out.println("\tROB empty. Nothing to be done.");
 			return;
 		}
@@ -107,30 +115,34 @@ public class ROB {
 						PinPointsProcessing.processEndOfSlice();
 					}
 				}
-			} 
-//				else {
-//				if (core.getNoOfInstructionsExecuted() % 1000000 == 0) {
-//					System.out.println(core.getNoOfInstructionsExecuted()
-//							/ 1000000 + " million done" + " by core "
-//							+ core.getCore_number()
-//							+ " global clock cycle "
-//							+ GlobalClock.getCurrentTime());
-//				}
-//				core.incrementNoOfInstructionsExecuted();
-//			}
+			}
+			// else {
+			// if (core.getNoOfInstructionsExecuted() % 1000000 == 0) {
+			// System.out.println(core.getNoOfInstructionsExecuted()
+			// / 1000000 + " million done" + " by core "
+			// + core.getCore_number()
+			// + " global clock cycle "
+			// + GlobalClock.getCurrentTime());
+			// }
+			// core.incrementNoOfInstructionsExecuted();
+			// }
 
-			
-			
-			while (rob.peek(0)!=null && rob.peek(0).ready) {
+			while (rob.peek(0) != null && rob.peek(0).ready) {
 				if (rob.peek(0).instr.getCISCProgramCounter() != -1) {
 					lastValidIpSeen = rob.peek(0).instr.getCISCProgramCounter();
 				}
 				ins = rob.peek(0).instr;
-				if (ins==null){
+				if (ins == null) {
 					break;
 				}
 				System.out.print("\tRob head is ready to be committed.");
-				if (rob.peek(0).instr.getOperationType() == OperationType.branch) {
+				if (ins.getOperationType() == OperationType.store) {
+					boolean memReqIssued = containingExecutionEngine.multiIssueInorderCoreMemorySystem
+							.issueRequestToL1Cache(RequestType.Cache_Write,
+									ins.getSourceOperand1MemValue());
+					if (!memReqIssued)
+						System.out.println("Error in issuing store request");
+				} else if (ins.getOperationType() == OperationType.branch) {
 					System.out.print("\tBranch Instruction");
 					boolean prediction = containingExecutionEngine
 							.getBranchPredictor().predict(lastValidIpSeen,
@@ -155,11 +167,12 @@ public class ROB {
 						rf.flush();
 					}
 				}
-				
-				if (rf.rf[(int) rob.peek(0).dest.getValue()].Qi == rob.getHead()) {
+
+				if (rf.rf[(int) rob.peek(0).dest.getValue()].Qi == rob
+						.getHead()) {
 					rf.rf[(int) rob.peek(0).dest.getValue()].busy = false;
 				}
-				
+
 				removeFromHead();
 
 				core.incrementNoOfInstructionsExecuted();
@@ -173,5 +186,24 @@ public class ROB {
 
 	public static int getROBSize() {
 		return 10;
+	}
+
+	public int getIndex(Instruction ins) {
+		for (int i = rob.getHead(); i < rob.getHead() + rob.size(); i++) {
+			int j = i % ROBSize;
+			if (rob.absPeek(j).instr == ins)
+				return j;
+		}
+		return -1;
+	}
+
+	public boolean storesAtThisAddressBefore(Instruction ins) {
+		int r = getIndex(ins);
+		for (int i = 0; i < rob.getHead() + r; i++)
+			if (rob.peek(i).instr.getOperationType() == OperationType.store
+					&& rob.peek(i).instr.getSourceOperand1MemValue() == ins
+							.getSourceOperand1MemValue())
+				return false;
+		return true;
 	}
 }
