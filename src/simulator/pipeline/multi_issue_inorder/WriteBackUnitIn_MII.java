@@ -53,8 +53,8 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 		Instruction ins = null;
 
 		while (memWbLatch.isEmpty() == false) {
-			System.out.println("Tring to write to CDB");
 			ins = memWbLatch.peek(0);
+			System.out.println("Tring to write to CDB:"+ins);
 			int r = -1;
 			for (int i = 0; i < rs.size; i++) {
 				if (rs.rs[i].busy && rs.rs[i].executionComplete
@@ -86,7 +86,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 			if (ins != null) {
 
 				// increment register file accesses for power statistics
-				if (!(ins.getOperationType() == OperationType.store && rs.rs[r].Qk == 0)) {
+				if (ins.getOperationType() == OperationType.store && !(rs.rs[r].Qk == 0)) {
 					continue;
 				}
 				// operand fetch
