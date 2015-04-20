@@ -1,26 +1,22 @@
 package pipeline.multi_issue_inorder;
 
-import java.io.FileWriter;
-import java.io.IOException;
-
-import pipeline.outoforder.OutOrderExecutionEngine;
-import generic.Instruction;
-
-import config.EnergyConfig;
-import config.SimulationConfig;
-import main.CustomObjectPool;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;
 import generic.GlobalClock;
+import generic.Instruction;
 import generic.Operand;
-import generic.OperandType;
 import generic.OperationType;
 import generic.PinPointsProcessing;
 import generic.PortType;
-import generic.RequestType;
 import generic.SimulationElement;
-import generic.Statistics;
+
+import java.io.FileWriter;
+import java.io.IOException;
+
+import main.CustomObjectPool;
+import config.EnergyConfig;
+import config.SimulationConfig;
 
 public class WriteBackUnitIn_MII extends SimulationElement {
 
@@ -29,7 +25,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 	StageLatch_MII memWbLatch;
 	ReservationStation rs;
 	CommonDataBus cdb;
-	
+
 	long instCtr; // for debug
 
 	long numIntRegFileAccesses;
@@ -45,79 +41,50 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 		rs = execEngine.getIdExRS();
 		rob = execEngine.getROB();
 		cdb = execEngine.getCDB();
-		
+
 		instCtr = 0;
 	}
 
 	public void performWriteBack(MultiIssueInorderPipeline inorderPipeline) {
+		System.out.println("In WB");
 		if (containingExecutionEngine.getMispredStall() > 0) {
 			return;
 		}
 
 		Instruction ins = null;
-		System.out.print("In WB");
+
 		while (memWbLatch.isEmpty() == false) {
-			System.out.print(" CDB write");
+			System.out.println("CDB write");
 			ins = memWbLatch.peek(0);
-			int r=-1;
+			int r = -1;
 			for (int i = 0; i < rs.size; i++) {
-				if(rob.rob.absPeek(rs.rs[i].Qi).instr==ins){
+				if (rs.rs[i].busy && rs.rs[i].executionComplete
+						&& rob.rob.absPeek(rs.rs[i].Qi).instr == ins) {
 					r = i;
 					break;
 				}
 			}
-			
-			if (r==-1){
+
+			if (r == -1) {
 				System.out.println("ins not in RS");
 			}
 			rs.rs[r].busy = false;
 			int b = rs.rs[r].Qi;
-			
-			for (int i=0; i<rs.size; i++){
-				if (rs.rs[i].Qj==b){
+
+			for (int i = 0; i < rs.size; i++) {
+				if (rs.rs[i].Qj == b) {
 					rs.rs[i].Qj = 0;
 				}
-				if (rs.rs[i].Qk==b){
+				if (rs.rs[i].Qk == b) {
 					rs.rs[i].Qk = 0;
 				}
 			}
-			
-//			rob.rob[b].ready = true;
-			
-			cdb.insert(b, 0);
-			
-			
-			
-			if (ins != null) {
-				// check if simulation complete
-				if (ins.getOperationType() == OperationType.inValid) {
-					this.core.currentThreads--;
 
-					if (this.core.currentThreads == 0) { // set exec complete
-															// only if there are
-															// n other thread
-															// already
-															// assigned to this
-															// pipeline
-						containingExecutionEngine.setExecutionComplete(true);
-						if (SimulationConfig.pinpointsSimulation == false) {
-							containingExecutionEngine.setTimingStatistics();
-							containingExecutionEngine
-									.setPerCoreMemorySystemStatistics();
-						} else {
-							PinPointsProcessing.processEndOfSlice();
-						}
-					}
-				} else {
-					if (core.getNoOfInstructionsExecuted() % 1000000 == 0) {
-						System.out.println(core.getNoOfInstructionsExecuted()
-								/ 1000000 + " million done" + " by core "
-								+ core.getCore_number()
-								+ " global clock cycle "
-								+ GlobalClock.getCurrentTime());
-					}
-					core.incrementNoOfInstructionsExecuted();
-				}
+			//rob.rob[b].ready = true;
+
+			cdb.insert(b, 0);
+
+			if (ins != null) {
 
 				// increment register file accesses for power statistics
 
@@ -137,10 +104,10 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 					}
 				}
 
-				if (ins.getSerialNo() != instCtr
-						&& ins.getOperationType() != OperationType.inValid) {
-					misc.Error.showErrorAndExit("wb out of order!!");
-				}
+				// if (ins.getSerialNo() != instCtr
+				// && ins.getOperationType() != OperationType.inValid) {
+				// misc.Error.showErrorAndExit("wb out of order!!");
+				// }
 				instCtr++;
 
 				if (SimulationConfig.debugMode) {
@@ -160,7 +127,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 				break;
 			}
 		}
-		System.out.println();
+		//cdb.flushCDB();
 	}
 
 	@Override

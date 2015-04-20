@@ -1,6 +1,5 @@
 package pipeline.multi_issue_inorder;
 
-import config.SimulationConfig;
 import generic.Core;
 import generic.Event;
 import generic.EventQueue;

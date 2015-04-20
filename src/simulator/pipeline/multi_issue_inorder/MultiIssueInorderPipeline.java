@@ -38,6 +38,8 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 
 	public void oneCycleOperation() {
 		long currentTime = GlobalClock.getCurrentTime();
+		System.out.println(containingExecutionEngine.getIfIdLatch().curSize+"-"+containingExecutionEngine.getIdExRS().getBusy()+"-"+containingExecutionEngine.getExMemLatch().curSize+"-"+containingExecutionEngine.getMemWbLatch().curSize+" ROB:"+containingExecutionEngine.getROB().rob.size());
+		
 		if (currentTime % getCoreStepSize() == 0
 				&& containingExecutionEngine.isExecutionBegun() == true
 				&& !containingExecutionEngine.getExecutionComplete()) {

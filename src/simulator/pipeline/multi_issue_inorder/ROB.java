@@ -1,10 +1,13 @@
 package pipeline.multi_issue_inorder;
 
+import config.SimulationConfig;
 import generic.Core;
+import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
 import generic.OperationType;
 import generic.GenericCircularQueue;
+import generic.PinPointsProcessing;
 
 class ROBSlot {
 	Instruction instr;
@@ -64,8 +67,13 @@ public class ROB {
 			return -1;
 		return rob.getTail();
 	}
+	
+	public int getFreeTail(){
+		return (getTail()+1)%rob.getBufferSize();
+	}
 
 	public void removeFromHead() {
+		System.out.println("inside removefromhead");
 		rob.dequeue();
 	}
 
@@ -74,48 +82,87 @@ public class ROB {
 	}
 
 	public void performCommit(RF rf) {
-		if (rob.isEmpty())
+		System.out.println("In commit Unit");
+		if (rob.isEmpty()){
+			System.out.println("ROB empty");
 			return;
-		System.out.print("in commit unit, performCommit(RF)");
-		if (rob.peek(0).instr.getCISCProgramCounter() != -1) {
-			lastValidIpSeen = rob.peek(0).instr.getCISCProgramCounter();
 		}
-		if (rob.peek(0).ready) {
-			System.out.print(" in rob.peek(0).ready");
-			if (rob.peek(0).instr.getOperationType() == OperationType.branch) {
-				System.out.print(" Branch");
-				boolean prediction = containingExecutionEngine
-						.getBranchPredictor().predict(lastValidIpSeen,
-								rob.peek(0).instr.isBranchTaken());
-				this.containingExecutionEngine.getBranchPredictor()
-						.incrementNumAccesses(1);
-
-				containingExecutionEngine.getBranchPredictor().Train(
-						rob.peek(0).instr.getCISCProgramCounter(),
-						rob.peek(0).instr.isBranchTaken(), prediction);
-				this.containingExecutionEngine.getBranchPredictor()
-						.incrementNumAccesses(1);
-
-				numBranches++;
-
-				if (prediction != rob.peek(0).instr.isBranchTaken()) {
-					System.out.print(" taken");
-					containingExecutionEngine.setMispredStall(core
-							.getBranchMispredictionPenalty());
-					numMispredictedBranches++;
-					flush();
-					rf.flush();
+		Instruction ins= rob.peek(0).instr;
+		System.out.println(1);
+		if (ins!=null){
+			// check if simulation complete
+			if (ins.getOperationType() == OperationType.inValid) {
+				this.core.currentThreads--;
+	
+				if (this.core.currentThreads == 0) { // set exec complete
+														// only if there are
+														// n other thread
+														// already
+														// assigned to this
+														// pipeline
+					containingExecutionEngine.setExecutionComplete(true);
+					if (SimulationConfig.pinpointsSimulation == false) {
+						containingExecutionEngine.setTimingStatistics();
+						containingExecutionEngine
+								.setPerCoreMemorySystemStatistics();
+					} else {
+						PinPointsProcessing.processEndOfSlice();
+					}
 				}
+			} else {
+				if (core.getNoOfInstructionsExecuted() % 1000000 == 0) {
+					System.out.println(core.getNoOfInstructionsExecuted()
+							/ 1000000 + " million done" + " by core "
+							+ core.getCore_number()
+							+ " global clock cycle "
+							+ GlobalClock.getCurrentTime());
+				}
+				core.incrementNoOfInstructionsExecuted();
 			}
-			if (rf.rf[(int) rob.peek(0).dest.getValue()].Qi == rob.getHead()) {
-				rf.rf[(int) rob.peek(0).dest.getValue()].busy = false;
+			System.out.println(2);	
+			if (rob.peek(0).instr.getCISCProgramCounter() != -1) {
+				lastValidIpSeen = rob.peek(0).instr.getCISCProgramCounter();
 			}
-			removeFromHead();
-
-			core.incrementNoOfInstructionsExecuted();
-			if (core.getNoOfInstructionsExecuted() % 1000000 == 0)
-				System.out.println(core.getNoOfInstructionsExecuted() / 1000000
-						+ " million done on " + core.getCore_number());
+			System.out.println(3);
+			if (rob.peek(0).ready) {
+				System.out.print(" in rob head ready");
+				if (rob.peek(0).instr.getOperationType() == OperationType.branch) {
+					System.out.print(" Branch");
+					boolean prediction = containingExecutionEngine
+							.getBranchPredictor().predict(lastValidIpSeen,
+									rob.peek(0).instr.isBranchTaken());
+					this.containingExecutionEngine.getBranchPredictor()
+							.incrementNumAccesses(1);
+	
+					containingExecutionEngine.getBranchPredictor().Train(
+							rob.peek(0).instr.getCISCProgramCounter(),
+							rob.peek(0).instr.isBranchTaken(), prediction);
+					this.containingExecutionEngine.getBranchPredictor()
+							.incrementNumAccesses(1);
+	
+					numBranches++;
+	
+					if (prediction != rob.peek(0).instr.isBranchTaken()) {
+						System.out.println(" Flushing ROB coz mispredicted");
+						containingExecutionEngine.setMispredStall(core
+								.getBranchMispredictionPenalty());
+						numMispredictedBranches++;
+						flush();
+						rf.flush();
+					}
+				}
+				System.out.println(4);
+				if (rf.rf[(int) rob.peek(0).dest.getValue()].Qi == rob.getHead()) {
+					rf.rf[(int) rob.peek(0).dest.getValue()].busy = false;
+				}
+				System.out.println("ROB head removed");
+				removeFromHead();
+	
+				core.incrementNoOfInstructionsExecuted();
+				if (core.getNoOfInstructionsExecuted() % 1000000 == 0)
+					System.out.println(core.getNoOfInstructionsExecuted() / 1000000
+							+ " million done on " + core.getCore_number());
+			}
 		}
 		System.out.println();
 	}

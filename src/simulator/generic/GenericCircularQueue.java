@@ -17,6 +17,10 @@ public class GenericCircularQueue<E> {
 		head = tail = -1;
 		buffer = (E[]) Array.newInstance(this.type, bufferSize);
 	}
+	
+	public int getBufferSize(){
+		return bufferSize;
+	}
 
 	// returns true if enqueue succeeds
 	public boolean enqueue(E newObject) {

@@ -46,6 +46,9 @@ public class MemUnitIn_MII extends SimulationElement {
 			System.out.print("Writing to mem");
 
 			if (ins != null) {
+				if (ins.getOperationType()==OperationType.inValid){
+					System.out.println("End here");
+				}
 				long lat = 1;
 				if (ins.getOperationType() == OperationType.load) {
 					// issue load request
@@ -75,10 +78,10 @@ public class MemUnitIn_MII extends SimulationElement {
 					}
 				}
 
-				if (ins.getSerialNo() != instCtr
-						&& ins.getOperationType() != OperationType.inValid) {
-					misc.Error.showErrorAndExit("mem out of order!!");
-				}
+//				if (ins.getSerialNo() != instCtr
+//						&& ins.getOperationType() != OperationType.inValid) {
+//					misc.Error.showErrorAndExit("mem out of order!!");
+//				}
 				instCtr++;
 
 				// move ins to next stage

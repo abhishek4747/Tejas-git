@@ -1,19 +1,19 @@
 package pipeline.multi_issue_inorder;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Array;
-
-import config.EnergyConfig;
-import config.SimulationConfig;
-import memorysystem.CoreMemorySystem;
-import pipeline.ExecutionEngine;
-import pipeline.FunctionalUnitType;
 import generic.Core;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Statistics;
+
+import java.io.FileWriter;
+import java.io.IOException;
+
+import memorysystem.CoreMemorySystem;
+import pipeline.ExecutionEngine;
+import pipeline.FunctionalUnitType;
+import config.EnergyConfig;
+import config.SimulationConfig;
 
 public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 

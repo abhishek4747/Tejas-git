@@ -37,6 +37,6 @@ public class RF extends SimulationElement {
 	}
 
 	public static int getRFSize() {
-		return 5;
+		return 50;
 	}
 }

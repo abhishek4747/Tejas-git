@@ -1,11 +1,5 @@
 package pipeline.multi_issue_inorder;
 
-import main.ArchitecturalComponent;
-import memorysystem.AddressCarryingEvent;
-import memorysystem.MemorySystem;
-import config.CoreConfig;
-import config.SimulationConfig;
-import config.SystemConfig;
 import generic.Barrier;
 import generic.BarrierTable;
 import generic.Core;
@@ -18,6 +12,10 @@ import generic.OperationType;
 import generic.PortType;
 import generic.RequestType;
 import generic.SimulationElement;
+import main.ArchitecturalComponent;
+import memorysystem.AddressCarryingEvent;
+import config.SimulationConfig;
+import config.SystemConfig;
 
 public class FetchUnitIn_MII extends SimulationElement {
 	Core core;
@@ -124,7 +122,7 @@ public class FetchUnitIn_MII extends SimulationElement {
 		}
 
 		Instruction ins;
-		System.out.print("Fetch unit ");
+		System.out.println("Fetch unit ");
 
 		if (!this.fetchBufferStatus[this.fetchBufferIndex])
 			containingExecutionEngine.incrementInstructionMemStall(1);
@@ -135,7 +133,7 @@ public class FetchUnitIn_MII extends SimulationElement {
 				&& this.fetchBufferStatus[this.fetchBufferIndex]
 				&& this.ifId_latch.isFull() == false) {
 			ins = this.fetchBuffer[this.fetchBufferIndex];
-			System.out.print(ins);
+			System.out.println("Ins:"+ins+" opType:"+ins.getOperationType());
 			if (ins.getOperationType() == OperationType.sync) {
 				this.fetchFillCount--;
 				this.fetchBufferIndex = (this.fetchBufferIndex + 1)

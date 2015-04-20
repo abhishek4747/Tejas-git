@@ -11,18 +11,22 @@ class RS {
 	int Qi;
 	int Qj, Qk;
 	Operand Vj, Vk;
-	
-	RS(){
+	boolean executionComplete;
+
+	RS() {
 		busy = false;
 		Qi = -1;
 		Qj = -1;
 		Qk = -1;
 		Vj = new Operand();
 		Vk = new Operand();
+		executionComplete = false;
 	}
-	
-	public void print(){
-		System.out.println("RS: busy:"+busy+" Qi:"+Qi+" Qj:"+Qj+" Qk:"+Qk+" Vj:"+Vj.getValue()+" Vk:"+Vk.getValue()+" OpType:"+opType);
+
+	public void print() {
+		System.out.println("RS: busy:" + busy + " Qi:" + Qi + " Qj:" + Qj
+				+ " Qk:" + Qk + " Vj:" + Vj.getValue() + " Vk:" + Vk.getValue()
+				+ " OpType:" + opType);
 	}
 }
 
@@ -36,52 +40,61 @@ public class ReservationStation {
 		for (int i = 0; i < size; i++)
 			rs[i] = new RS();
 	}
-	
-	public int getFree(){
-		for (int i=0; i<size; i++){
-			if (!rs[i].busy){
+
+	public int getFree() {
+		for (int i = 0; i < size; i++) {
+			if (!rs[i].busy) {
 				return i;
 			}
 		}
 		return -1;
 	}
-	
-	public boolean isFull(){
-		return this.getFree()==-1;
+
+	public boolean isFull() {
+		return this.getFree() == -1;
 	}
 	
-	public boolean isEmpty(){
-		return this.getFree()>-1;
-	}
-	
-	public int getIWithOp(OperationType op){
+	public int getBusy(){
+		int busy= 0;
 		for (int i=0; i<size; i++){
-			if (!rs[i].busy && rs[i].opType==op){
+			if (rs[i].busy)
+				busy++;
+		}
+		return busy;
+	}
+
+	public boolean isEmpty() {
+		return this.getFree() > -1;
+	}
+
+	public int getIWithOp(OperationType op) {
+		for (int i = 0; i < size; i++) {
+			if (!rs[i].busy && !rs[i].executionComplete && rs[i].opType == op) {
 				return i;
 			}
 		}
 		return -1;
 	}
-	
-	public int getIWithFu(FunctionalUnitType fu){
-		for (int i=0; i<size; i++){
-			if (rs[i].opType!=null && !rs[i].busy && OpTypeToFUTypeMapping.getFUType(rs[i].opType)==fu){
+
+	public int getIWithFu(FunctionalUnitType fu) {
+		for (int i = 0; i < size; i++) {
+			if (rs[i].opType != null && rs[i].busy && !rs[i].executionComplete
+					&& OpTypeToFUTypeMapping.getFUType(rs[i].opType) == fu) {
 				return i;
 			}
 		}
 		return -1;
 	}
-	
-	
-	public boolean isEmpty(OperationType op){
-		return this.getIWithOp(op)>-1;
+
+	public boolean isEmpty(OperationType op) {
+		return this.getIWithOp(op) < 0;
 	}
-	
-	public boolean isEmpty(FunctionalUnitType fu){
-		return this.getIWithFu(fu)>-1;
+
+	public boolean isEmpty(FunctionalUnitType fu) {
+		return this.getIWithFu(fu) < 0;
 	}
-	
-	public static int getRSSize(){
+
+	public static int getRSSize() {
 		return 10;
 	}
 }

@@ -1,11 +1,10 @@
 package pipeline.multi_issue_inorder;
 
-import pipeline.outoforder.ReorderBuffer;
+import generic.Core;
 import generic.Event;
 import generic.EventQueue;
-import generic.SimulationElement;
-import generic.Core;
 import generic.PortType;
+import generic.SimulationElement;
 
 public class CommonDataBus extends SimulationElement {
 	int size;
@@ -46,6 +45,7 @@ public class CommonDataBus extends SimulationElement {
 					this.register[i] = register;
 					this.value[i] = value;
 					this.busy[i] = true;
+					this.flushCDB();
 					return true;
 				}
 			}
@@ -59,6 +59,7 @@ public class CommonDataBus extends SimulationElement {
 				occupied++;
 			}
 			this.busy[r] = true;
+			this.flushCDB();
 			return true;
 		}
 		return false;

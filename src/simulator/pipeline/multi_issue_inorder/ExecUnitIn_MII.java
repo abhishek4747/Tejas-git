@@ -74,6 +74,9 @@ public class ExecUnitIn_MII extends SimulationElement {
 //			}
 //			
 //			if (ins != null) {
+				if (ins.getOperationType()==OperationType.inValid){
+					System.out.println("End here");
+				}
 				FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(ins
 						.getOperationType());
 				long lat = 1;
@@ -88,14 +91,15 @@ public class ExecUnitIn_MII extends SimulationElement {
 				 * cycle assumed as one cycle operation
 				 */
 
-				if (ins.getSerialNo() != instCtr
-						&& ins.getOperationType() != OperationType.inValid) {
-					misc.Error.showErrorAndExit("exec out of order!!");
-				}
+//				if (ins.getSerialNo() != instCtr
+//						&& ins.getOperationType() != OperationType.inValid) {
+//					misc.Error.showErrorAndExit("exec out of order!!");
+//				}
 				instCtr++;
 
 				// move ins to next stage
 				exMemLatch.add(ins, insCompletesAt+ lat);
+				System.out.println(id+"added to exMemLatch :"+ins);
 //				idExLatch.poll();
 
 				if (ins.getDestinationOperand() != null
@@ -108,6 +112,7 @@ public class ExecUnitIn_MII extends SimulationElement {
 							+ GlobalClock.getCurrentTime() / core.getStepSize()
 							+ "\n" + ins + "\n");
 				}
+				idExRS.rs[rsid].executionComplete = true;
 			} else {
 				break;
 			}
