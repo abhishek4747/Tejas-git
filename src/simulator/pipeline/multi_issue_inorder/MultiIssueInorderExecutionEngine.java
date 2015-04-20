@@ -86,9 +86,9 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		memWbLatch = new StageLatch_MII(issueWidth);
 		wbDoneLatch = new StageLatch_MII(issueWidth);
 		
-		rob = new ROB(_core, this, _core.getReorderBufferSize());
 		irf = new RF(_core.getIntegerRegisterFileSize());
 		frf = new RF(_core.getFloatingPointRegisterFileSize());
+		rob = new ROB(_core, this, _core.getReorderBufferSize());
 		cdb = new CommonDataBus(core, this, _core.getCDBSize());
 		
 		

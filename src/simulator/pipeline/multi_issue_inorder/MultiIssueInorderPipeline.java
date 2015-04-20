@@ -46,10 +46,10 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 				+"-"+containingExecutionEngine.getMemWbLatch().curSize
 				+" ROB:"+containingExecutionEngine.getROB().rob.size());
 		containingExecutionEngine.getIdExRS();
-		for (int i=0; i<ReservationStation.getRSSize(); i++){
-			if (containingExecutionEngine.getIdExRS().rs[i].busy && containingExecutionEngine.getIdExRS().rs[i].executionComplete)
-				System.out.println("ins::::"+containingExecutionEngine.getIdExRS().rs[i].opType);
-		}
+//		for (int i=0; i<ReservationStation.getRSSize(); i++){
+//			if (containingExecutionEngine.getIdExRS().rs[i].busy && containingExecutionEngine.getIdExRS().rs[i].executionComplete)
+//				System.out.println("ins::::"+containingExecutionEngine.getIdExRS().rs[i].opType);
+//		}
 		if (containingExecutionEngine.getIfIdLatch().curSize>0){
 			System.out.println();
 		}

@@ -110,8 +110,12 @@ public class DecodeUnit_MII extends SimulationElement {
 						rob.add(ins, GlobalClock.getCurrentTime() + 1);
 						System.out.println("\tAdded to rob"+r+" Optype"+ins.getOperationType());
 	
-						if (ins.getOperationType() == OperationType.floatALU
+						if (ins.getOperationType() == OperationType.floatALU 
+								|| ins.getOperationType() == OperationType.floatMul
+								|| ins.getOperationType() == OperationType.floatDiv
 								|| ins.getOperationType() == OperationType.integerALU
+								|| ins.getOperationType() == OperationType.integerMul
+								|| ins.getOperationType() == OperationType.integerDiv
 								|| ins.getOperationType() == OperationType.store) {
 							Operand o2 = ins.getSourceOperand2();
 							if (RF.getRegister(irf, frf, o2).busy) {
@@ -129,7 +133,11 @@ public class DecodeUnit_MII extends SimulationElement {
 						}
 
 						if (ins.getOperationType() == OperationType.floatALU
-								|| ins.getOperationType() == OperationType.integerALU) {
+								|| ins.getOperationType() == OperationType.floatMul
+								|| ins.getOperationType() == OperationType.floatDiv
+								|| ins.getOperationType() == OperationType.integerALU
+								|| ins.getOperationType() == OperationType.integerMul
+								|| ins.getOperationType() == OperationType.integerDiv) {
 							Operand od = ins.getDestinationOperand();
 							RF.getRegister(irf, frf, od).Qi = b;
 							RF.getRegister(irf, frf, od).busy = true;

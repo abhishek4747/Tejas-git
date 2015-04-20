@@ -415,7 +415,7 @@ public class XMLParser
 			core.frequency = Long.parseLong(getImmediateString("CoreFrequency", coreElmnt));
 			
 			core.pipelineType = PipelineType.valueOf(getImmediateString("PipelineType", coreElmnt));
-			core.numReservationStation = Integer.parseInt(getImmediateString("NumReservaionStation", coreElmnt));
+			core.numReservationStation = Integer.parseInt(getImmediateString("NumReservationStations", coreElmnt));
 			core.cdbSize = Integer.parseInt(getImmediateString("CDBNumPorts", coreElmnt));
 			
 			Element lsqElmnt = (Element)(coreElmnt.getElementsByTagName("LSQ")).item(0);
