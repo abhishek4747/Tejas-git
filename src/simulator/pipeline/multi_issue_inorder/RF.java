@@ -3,9 +3,9 @@ package pipeline.multi_issue_inorder;
 import generic.Event;
 import generic.EventQueue;
 import generic.Operand;
-import generic.SimulationElement;
-
 import generic.PortType;
+import generic.SimulationElement;
+import generic.OperandType;
 
 class Register {
 	boolean busy;
@@ -36,7 +36,17 @@ public class RF extends SimulationElement {
 		
 	}
 
-	public static int getRFSize() {
-		return 50;
+	public static Register getRegister(RF irf, RF frf, Operand op, int index){
+		if (op.getOperandType() == OperandType.integerRegister){
+			return irf.rf[index];			
+		}else if (op.getOperandType() == OperandType.floatRegister){
+			return frf.rf[index];
+		}else{
+			return null;
+		}
+	}
+	
+	public static Register getRegister(RF irf, RF frf, Operand op){
+		return RF.getRegister(irf, frf, op, (int)op.getValue());
 	}
 }

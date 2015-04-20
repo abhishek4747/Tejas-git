@@ -154,8 +154,4 @@ public class ExecUnitIn_MII extends SimulationElement {
 		power.printEnergyStats(outputFileWriter, componentName);
 		return power;
 	}
-
-	public static int getSize() {
-		return ReservationStation.getRSSize() / 2;
-	}
 }

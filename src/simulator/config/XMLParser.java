@@ -23,6 +23,7 @@ package config;
 import generic.PortType;
 
 import java.io.File;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -30,7 +31,6 @@ import main.Emulator;
 import main.Main;
 import memorysystem.nuca.NucaCache.Mapping;
 import memorysystem.nuca.NucaCache.NucaType;
-import net.NOC;
 import net.NOC.CONNECTIONTYPE;
 import net.NOC.TOPOLOGY;
 import net.RoutingAlgo;
@@ -415,6 +415,8 @@ public class XMLParser
 			core.frequency = Long.parseLong(getImmediateString("CoreFrequency", coreElmnt));
 			
 			core.pipelineType = PipelineType.valueOf(getImmediateString("PipelineType", coreElmnt));
+			core.numReservationStation = Integer.parseInt(getImmediateString("NumReservationStations", coreElmnt));
+			core.cdbSize = Integer.parseInt(getImmediateString("CDBNumPorts", coreElmnt));
 			
 			Element lsqElmnt = (Element)(coreElmnt.getElementsByTagName("LSQ")).item(0);
 			core.LSQSize = Integer.parseInt(getImmediateString("LSQSize", lsqElmnt));

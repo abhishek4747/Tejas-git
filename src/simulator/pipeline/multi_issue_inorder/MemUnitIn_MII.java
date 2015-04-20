@@ -42,12 +42,12 @@ public class MemUnitIn_MII extends SimulationElement {
 		if (containingExecutionEngine.getMispredStall() > 0) {
 			return;
 		}
-		System.out.print("In mem");
+		System.out.println("4--> In mem unit");
 		Instruction ins = null;
 
 		while (exMemLatch.isEmpty() == false && memWbLatch.isFull() == false) {
 			ins = exMemLatch.peek(0);
-			System.out.print("Writing to mem");
+			System.out.println("\tWriting to memWbLatch");
 
 			if (ins != null) {
 				if (ins.getOperationType() == OperationType.inValid) {

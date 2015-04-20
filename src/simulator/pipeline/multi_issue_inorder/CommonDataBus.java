@@ -16,8 +16,7 @@ public class CommonDataBus extends SimulationElement {
 
 	public CommonDataBus(Core core,
 			MultiIssueInorderExecutionEngine execEngine, int size) {
-		super(PortType.FirstComeFirstServe, CommonDataBus.getCDBSize(), 1, 0,
-				-1);
+		super(PortType.FirstComeFirstServe, size, 1, 0,	-1);
 		this.size = size;
 		rob = execEngine.getROB();
 		this.busy = new boolean[size];
@@ -98,14 +97,11 @@ public class CommonDataBus extends SimulationElement {
 		return occupied == size;
 	}
 
-	public static int getCDBSize() {
-		return 4;
-	}
-
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
 
 	}
+	// TODO handle retire width
 
 }
