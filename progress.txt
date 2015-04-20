@@ -1,4 +1,11 @@
-Until now we have done the following:
+Progress until deadline 3:
+1. All given test cases running
+2. implemented handling of Float, Integer and Load store operations
+3. Configuration support for Number of ports in the CDB, number of reservation stations, number and type of functional units and number of registers added in config.xml
+4. Tomasulo's algorithm implemented using the ROB, RF, RS and CDB.
+
+
+Progress until deadline 2:
 1. created classes for the Reservation Stations, Reorder Buffers, CDB and Register Files.
 2. In the class for Reorder Buffer, there is a class for each slot in the reorder buffer. There are also functions for addition of an instruction to the ROB, one for the deletion of the entry at the head of the ROB, one for performing a commit of an instruction and one for flushing the ROB in case of a branch misprediction.
 3. In the class for RegisterFile, we have a function for flushing the contents of the RF[].Qi for all the registers in case of a misprediction.
