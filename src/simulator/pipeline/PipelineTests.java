@@ -1,14 +1,16 @@
 package pipeline;
 
-import java.lang.reflect.Array;
-import main.ArchitecturalComponent;
-import main.Main;
-import config.XMLParser;
 import generic.GenericCircularQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
 import generic.Statistics;
+
+import java.lang.reflect.Array;
+
+import main.ArchitecturalComponent;
+import main.Main;
+import config.XMLParser;
 
 public class PipelineTests {
 	
@@ -59,6 +61,7 @@ public class PipelineTests {
 										Operand.getIntegerRegister(0),
 										Operand.getIntegerRegister(0),
 										Operand.getIntegerRegister(temp%16));
+			newInst.setCISCProgramCounter(i);
 			
 			inputToPipeline.enqueue(newInst);
 		}		

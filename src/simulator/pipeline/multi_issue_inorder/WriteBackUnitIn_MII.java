@@ -7,7 +7,6 @@ import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
 import generic.OperationType;
-import generic.PinPointsProcessing;
 import generic.PortType;
 import generic.SimulationElement;
 
@@ -54,7 +53,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 		Instruction ins = null;
 
 		while (memWbLatch.isEmpty() == false) {
-			System.out.println("CDB write");
+			System.out.println("Tring to write to CDB");
 			ins = memWbLatch.peek(0);
 			int r = -1;
 			for (int i = 0; i < rs.size; i++) {
@@ -81,7 +80,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 			}
 
 			//rob.rob[b].ready = true;
-
+			System.out.println("Ready "+b+" slot in cdb.");
 			cdb.insert(b, 0);
 
 			if (ins != null) {

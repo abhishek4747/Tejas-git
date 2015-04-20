@@ -13,8 +13,6 @@ import generic.SimulationElement;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import pipeline.FunctionalUnitType;
-import pipeline.OpTypeToFUTypeMapping;
 import config.EnergyConfig;
 import config.SimulationConfig;
 
@@ -64,15 +62,15 @@ public class DecodeUnit_MII extends SimulationElement {
 
 		Instruction ins = null;
 
-		System.out.println("Decode ");
+		System.out.println("2--> Decode ");
 
 		while (ifIdLatch.isEmpty() == false && idExRS.isFull() == false && !rob.rob.isFull()) {
 			ins = ifIdLatch.peek(0);
 			OperationType opType;
-			System.out.println("Instruction: " + ins);
+			System.out.println("\tIns: " + ins);
 			opType = ins.getOperationType();	
 			if (opType==OperationType.inValid){
-				System.out.print("ENd here");
+				System.out.print("End here");
 			}
 			if (ins != null) {
 				
@@ -85,7 +83,7 @@ public class DecodeUnit_MII extends SimulationElement {
 						idExRS.rs[r].Qi = b;
 						idExRS.rs[r].opType = ins.getOperationType();
 						rob.add(ins, GlobalClock.getCurrentTime() + 1);
-						System.out.println("Added to rob"+r+" Optype"+ins.getOperationType());
+						System.out.println("\tAdded to rob"+r+" Optype"+ins.getOperationType());
 						
 					}else{
 						Operand o1 = ins.getSourceOperand1();
@@ -106,7 +104,7 @@ public class DecodeUnit_MII extends SimulationElement {
 						idExRS.rs[r].Qi = b;
 						idExRS.rs[r].opType = ins.getOperationType();
 						rob.add(ins, GlobalClock.getCurrentTime() + 1);
-						System.out.println("Added to rob"+r+" Optype"+ins.getOperationType());
+						System.out.println("\tAdded to rob"+r+" Optype"+ins.getOperationType());
 	
 						if (ins.getOperationType() == OperationType.floatALU
 								|| ins.getOperationType() == OperationType.integerALU
