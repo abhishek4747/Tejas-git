@@ -104,6 +104,7 @@ public class DecodeUnit_MII extends SimulationElement {
 						idExRS.rs[r].busy = true;
 						idExRS.rs[r].Qi = b;
 						idExRS.rs[r].opType = ins.getOperationType();
+						idExRS.rs[r].executionComplete = false;
 						rob.add(ins, GlobalClock.getCurrentTime() + 1);
 						System.out.println("\tAdded to rob"+r+" Optype"+ins.getOperationType());
 	

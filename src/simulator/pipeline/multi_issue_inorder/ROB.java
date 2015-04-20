@@ -73,8 +73,7 @@ public class ROB {
 
 	public void removeFromHead() {
 		System.out.println("inside removefromhead");
-		while (rob.peek(0).ready)
-			rob.dequeue();
+		rob.dequeue();
 	}
 
 	void flush() {
@@ -88,7 +87,6 @@ public class ROB {
 			return;
 		}
 		Instruction ins = rob.peek(0).instr;
-		System.out.println(1);
 		if (ins != null) {
 			// check if simulation complete
 			if (ins.getOperationType() == OperationType.inValid) {
@@ -121,11 +119,16 @@ public class ROB {
 //				core.incrementNoOfInstructionsExecuted();
 //			}
 
-			if (rob.peek(0).instr.getCISCProgramCounter() != -1) {
-				lastValidIpSeen = rob.peek(0).instr.getCISCProgramCounter();
-			}
 			
-			if (rob.peek(0).ready) {
+			
+			while (rob.peek(0)!=null && rob.peek(0).ready) {
+				if (rob.peek(0).instr.getCISCProgramCounter() != -1) {
+					lastValidIpSeen = rob.peek(0).instr.getCISCProgramCounter();
+				}
+				ins = rob.peek(0).instr;
+				if (ins==null){
+					break;
+				}
 				System.out.print("\tRob head is ready to be committed.");
 				if (rob.peek(0).instr.getOperationType() == OperationType.branch) {
 					System.out.print("\tBranch Instruction");
