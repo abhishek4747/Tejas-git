@@ -66,14 +66,15 @@ public class ROB {
 			return -1;
 		return rob.getTail();
 	}
-	
-	public int getFreeTail(){
-		return (getTail()+1)%rob.getBufferSize();
+
+	public int getFreeTail() {
+		return (getTail() + 1) % rob.getBufferSize();
 	}
 
 	public void removeFromHead() {
 		System.out.println("inside removefromhead");
-		rob.dequeue();
+		while (rob.peek(0).ready)
+			rob.dequeue();
 	}
 
 	void flush() {
@@ -86,13 +87,13 @@ public class ROB {
 			System.out.println("\tROB empty. Nothing to be done.");
 			return;
 		}
-		Instruction ins= rob.peek(0).instr;
+		Instruction ins = rob.peek(0).instr;
 		System.out.println(1);
-		if (ins!=null){
+		if (ins != null) {
 			// check if simulation complete
 			if (ins.getOperationType() == OperationType.inValid) {
 				this.core.currentThreads--;
-	
+
 				if (this.core.currentThreads == 0) { // set exec complete
 														// only if there are
 														// n other thread
@@ -133,15 +134,15 @@ public class ROB {
 									rob.peek(0).instr.isBranchTaken());
 					this.containingExecutionEngine.getBranchPredictor()
 							.incrementNumAccesses(1);
-	
+
 					containingExecutionEngine.getBranchPredictor().Train(
 							rob.peek(0).instr.getCISCProgramCounter(),
 							rob.peek(0).instr.isBranchTaken(), prediction);
 					this.containingExecutionEngine.getBranchPredictor()
 							.incrementNumAccesses(1);
-	
+
 					numBranches++;
-	
+
 					if (prediction != rob.peek(0).instr.isBranchTaken()) {
 						System.out.println("\tFlushing ROB coz mispredicted");
 						containingExecutionEngine.setMispredStall(core
@@ -157,11 +158,12 @@ public class ROB {
 				}
 				
 				removeFromHead();
-	
+
 				core.incrementNoOfInstructionsExecuted();
 				if (core.getNoOfInstructionsExecuted() % 1000000 == 0)
-					System.out.println(core.getNoOfInstructionsExecuted() / 1000000
-							+ " million done on " + core.getCore_number());
+					System.out.println(core.getNoOfInstructionsExecuted()
+							/ 1000000 + " million done on "
+							+ core.getCore_number());
 			}
 		}
 	}
