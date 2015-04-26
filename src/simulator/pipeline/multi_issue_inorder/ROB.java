@@ -6,6 +6,7 @@ import generic.EventQueue;
 import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.Operand;
+import generic.OperandType;
 import generic.OperationType;
 import generic.PinPointsProcessing;
 import generic.PortType;
@@ -151,7 +152,7 @@ public class ROB extends SimulationElement {
 					if (!memReqIssued)
 						System.out.println("Error in issuing store request");
 				} else if (ins.getOperationType() == OperationType.branch) {
-					System.out.print("\tBranch Instruction");
+					System.out.print("\n\tBranch Instruction");
 					boolean prediction = containingExecutionEngine
 							.getBranchPredictor().predict(lastValidIpSeen,
 									rob.peek(0).instr.isBranchTaken());
@@ -181,7 +182,7 @@ public class ROB extends SimulationElement {
 				if (ins.getOperationType() == OperationType.store) {
 					toBeFreed = rob.peek(0).r2;
 				}
-				if (RF.getRegister(irf, frf, toBeFreed).Qi == rob.getHead()) {
+				if (toBeFreed != null && toBeFreed.getOperandType() != OperandType.immediate && RF.getRegister(irf, frf, toBeFreed).Qi == rob.getHead()) {
 					RF.getRegister(irf, frf, toBeFreed).busy = false;
 				}
 
