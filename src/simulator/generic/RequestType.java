@@ -104,4 +104,6 @@ public enum RequestType {
 	Cache_Hit, Cache_Miss,
 
 	Tlb_Miss_Response, Send_Migrate_Block,    
+	
+	WriteToCDB,
 }

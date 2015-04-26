@@ -1,12 +1,16 @@
 package pipeline.multi_issue_inorder;
 
 import generic.Core;
+import generic.Event;
+import generic.EventQueue;
 import generic.GenericCircularQueue;
 import generic.Instruction;
 import generic.Operand;
 import generic.OperationType;
 import generic.PinPointsProcessing;
+import generic.PortType;
 import generic.RequestType;
+import generic.SimulationElement;
 import config.SimulationConfig;
 
 class ROBSlot {
@@ -21,7 +25,7 @@ class ROBSlot {
 	long instructionCompletesAt;
 }
 
-public class ROB {
+public class ROB extends SimulationElement {
 	GenericCircularQueue<ROBSlot> rob;
 	public int ROBSize;
 
@@ -34,6 +38,7 @@ public class ROB {
 	RF irf, frf;
 
 	ROB(Core core, MultiIssueInorderExecutionEngine execEngine, int ROBSize) {
+		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		this.containingExecutionEngine = execEngine;
 		this.ROBSize = ROBSize;
@@ -215,5 +220,11 @@ public class ROB {
 				return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void handleEvent(EventQueue eventQ, Event event) {
+		// TODO Auto-generated method stub
+		
 	}
 }

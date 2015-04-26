@@ -28,10 +28,11 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 
 	long numIntRegFileAccesses;
 	long numFloatRegFileAccesses;
+	EventQueue  eventQueue;
 	private ROB rob;
 
 	public WriteBackUnitIn_MII(Core core,
-			MultiIssueInorderExecutionEngine execEngine) {
+			EventQueue eventQueue, MultiIssueInorderExecutionEngine execEngine) {
 		super(PortType.Unlimited, -1, -1, -1, -1);
 		this.core = core;
 		containingExecutionEngine = execEngine;
@@ -39,7 +40,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 		rs = execEngine.getIdExRS();
 		rob = execEngine.getROB();
 		cdb = execEngine.getCDB();
-
+		this.eventQueue = eventQueue;
 		instCtr = 0;
 	}
 
@@ -81,7 +82,7 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 
 			//rob.rob[b].ready = true;
 			System.out.println("Ready "+b+" slot in cdb.");
-			cdb.insert(b, 0);
+			cdb.insert(b, eventQueue);
 
 			if (ins != null) {
 

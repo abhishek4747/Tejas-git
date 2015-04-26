@@ -12,6 +12,7 @@ import java.io.IOException;
 import memorysystem.CoreMemorySystem;
 import pipeline.ExecutionEngine;
 import pipeline.FunctionalUnitType;
+import pipeline.multi_issue_inorder.FetchUnitIn_MII;
 import config.EnergyConfig;
 import config.SimulationConfig;
 
@@ -113,7 +114,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		}
 
 		this.setMemUnitIn(new MemUnitIn_MII(core, this));
-		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core, this));
+		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core, core.getEventQueue(), this));
 		this.setCommitUnitIn(new CommitUnit_MII(core, this));
 		this.executionComplete = false;
 		memStall = 0;

@@ -5,6 +5,7 @@ import generic.Event;
 import generic.EventQueue;
 import generic.PortType;
 import generic.SimulationElement;
+import generic.RequestType;
 
 public class CommonDataBus extends SimulationElement {
 	int size;
@@ -37,7 +38,7 @@ public class CommonDataBus extends SimulationElement {
 		return -1;
 	}
 
-	public boolean insert(int register, Object value) {
+	public boolean insert(int register, EventQueue eventQueue) {
 		// Not sure if this register is already there
 		// int r = find(register);
 		// if (r == -1) {
@@ -64,6 +65,9 @@ public class CommonDataBus extends SimulationElement {
 		// return true;
 		// }
 		// return false;
+//		CDBEvents event = new CDBEvents(eventQueue,this, rob, RequestType.WriteToCDB, rob, register, 1);
+		
+//		this.getPort().put(event);
 		rob.rob.absPeek(register).ready = true;
 		return true;
 	}
@@ -99,9 +103,7 @@ public class CommonDataBus extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		// TODO Auto-generated method stub
-
+		CDBEvents ev = (CDBEvents)event;
+		ev.rob.rob.absPeek(ev.robslot).ready = true;
 	}
-	// TODO handle retire width
-
 }
