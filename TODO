@@ -2,19 +2,17 @@ TODO
 	3. Sensible Log message s
 	5. Load Store Test Cases
 	6. Jump/branch statements
-	7. Immediate Handle
 	8. xchange op
 	9. Code Cleaning
 	10. Analysis on optimal values of config file : Report
-	11. better handling of memory operands
 TESTS:
-	1. min Dependency
-	2. max Dependency
-	3. structural Haz
-	4. rename 
-	5. load test
-	6. store test
-	7. load store
-	8. immediate alu test
+	0. min Dependency
+	1. max Dependency
+	2. structural Haz
+	3. rename 
+	4. load test
+	5. store test
+	6. load store
+	7. immediateALUTest
+	8.
 	9.
-	10.
