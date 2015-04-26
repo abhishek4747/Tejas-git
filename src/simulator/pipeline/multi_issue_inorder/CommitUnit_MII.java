@@ -21,17 +21,6 @@ public class CommitUnit_MII extends SimulationElement {
 		if (containingExecutionEngine.getMispredStall() > 0)
 			return;
 		this.containingExecutionEngine.getROB().performCommit();
-		// if Non branch instruction
-		// Wait untill instruction reaches head of ROB
-		// Update RF
-		// Remove Instruction from ROB
-		// else
-		// Wait untill instuction reaches head of ROB
-		// if branch is mispredicted
-		// Flush ROB
-		// Restart Execution at correct successor of the branch instruction
-		// else
-		// Remove instruction from ROB
 	}
 
 	@Override
