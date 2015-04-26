@@ -78,9 +78,7 @@ public class ExecUnitIn_MII extends SimulationElement {
 					insCompletesAt = rob.rob.absPeek(idExRS.rs[rsid].Qi).instructionCompletesAt;
 					idExRS.rs[rsid].Qk = 0;
 					idExRS.rs[rsid].Qj = 0;
-					// }
-					//
-					// if (ins != null) {
+
 					if (ins.getOperationType() == OperationType.inValid) {
 						System.out.println("End here");
 					}
@@ -99,16 +97,11 @@ public class ExecUnitIn_MII extends SimulationElement {
 					 * this cycle assumed as one cycle operation
 					 */
 
-					// if (ins.getSerialNo() != instCtr
-					// && ins.getOperationType() != OperationType.inValid) {
-					// misc.Error.showErrorAndExit("exec out of order!!");
-					// }
 					instCtr++;
 
 					// move ins to next stage
 					exMemLatch.add(ins, insCompletesAt + lat);
 					System.out.println("\tadding it to exMemLatch");
-					// idExLatch.poll();
 
 					if (ins.getDestinationOperand() != null
 							|| ins.getOperationType() == OperationType.xchg) {

@@ -173,10 +173,6 @@ public class DecodeUnit_MII extends SimulationElement {
 								ins.getOperationType() == OperationType.load,
 								slot, ins.getSourceOperand1MemValue(), ins);
 
-					// if (ins.getOperationType() == OperationType.load)
-					// idExRS.rs[r].A = ins.getDestinationOperand()
-					// .getValue();
-
 					if (ins.getOperationType() == OperationType.floatALU
 							|| ins.getOperationType() == OperationType.floatDiv
 							|| ins.getOperationType() == OperationType.floatMul
@@ -203,76 +199,15 @@ public class DecodeUnit_MII extends SimulationElement {
 
 					if (ins.getOperationType() == OperationType.store)
 						idExRS.rs[r].A = ins.getSourceOperand2().getValue();
+
+					if (ins.getOperationType() == OperationType.xchg) {
+						RF.getRegister(irf, frf, ins.getSourceOperand1()).Qi = b;
+						RF.getRegister(irf, frf, ins.getSourceOperand2()).busy = true;
+					}
 				}
 			}
 
-			// if (checkDataHazard(ins)) // Data Hazard Detected,Stall
-			// Pipeline
-			// {
-			// containingExecutionEngine.incrementDataHazardStall(1);
-			// break;
-			// }
-
-			// check for structural hazards
-			// long FURequest = 0;
-			// if (OpTypeToFUTypeMapping.getFUType(ins.getOperationType())
-			// != FunctionalUnitType.inValid) {
-			// FURequest = containingExecutionEngine.getExecutionCore()
-			// .requestFU(
-			// OpTypeToFUTypeMapping.getFUType(ins
-			// .getOperationType()));
-			//
-			// if (FURequest > 0) {
-			// break;
-			// }
-			// }
-
 			incrementNumDecodes(1);
-
-			// if (ins.getOperationType() == OperationType.load ||
-			// ins.getOperationType() == OperationType.store) {
-			// containingExecutionEngine.getCoreMemorySystem().
-			// }
-
-			// add destination register of ins to list of outstanding
-			// registers
-			// if (ins.getOperationType() == OperationType.load) {
-			// addToValueReadyArray(ins.getDestinationOperand(),
-			// Long.MAX_VALUE);
-			// } else if (ins.getOperationType() == OperationType.xchg) {
-			// addToValueReadyArray(
-			// ins.getSourceOperand1(),
-			// GlobalClock.getCurrentTime()
-			// + containingExecutionEngine
-			// .getExecutionCore()
-			// .getFULatency(
-			// OpTypeToFUTypeMapping.getFUType(ins
-			// .getOperationType())));
-			// if (ins.getSourceOperand1().getValue() != ins
-			// .getSourceOperand2().getValue()
-			// || ins.getSourceOperand1().getOperandType() != ins
-			// .getSourceOperand2().getOperandType()) {
-			// addToValueReadyArray(
-			// ins.getSourceOperand2(),
-			// GlobalClock.getCurrentTime()
-			// + containingExecutionEngine
-			// .getExecutionCore()
-			// .getFULatency(
-			// OpTypeToFUTypeMapping.getFUType(ins
-			// .getOperationType())));
-			// }
-			// } else {
-			// if (ins.getDestinationOperand() != null) {
-			// addToValueReadyArray(
-			// ins.getDestinationOperand(),
-			// GlobalClock.getCurrentTime()
-			// + containingExecutionEngine
-			// .getExecutionCore()
-			// .getFULatency(
-			// OpTypeToFUTypeMapping.getFUType(ins
-			// .getOperationType())));
-			// }
-			// }
 
 			// update last valid IP seen
 			if (ins.getCISCProgramCounter() != -1) {
@@ -311,9 +246,7 @@ public class DecodeUnit_MII extends SimulationElement {
 			instCtr++;
 
 			// move ins to next stage
-			// idExLatch.add(ins, GlobalClock.getCurrentTime() + 1);
 			ifIdLatch.poll();
-			// System.out.println("Removing ins from ifidlatch: "+ins);
 
 			if (SimulationConfig.debugMode) {
 				System.out.println("decoded : " + GlobalClock.getCurrentTime()
@@ -327,61 +260,6 @@ public class DecodeUnit_MII extends SimulationElement {
 			}
 		}
 	}
-
-	// private boolean checkDataHazard(Instruction ins) {
-	// Operand srcOpnd;
-	//
-	// // operand 1
-	// srcOpnd = ins.getSourceOperand1();
-	// if (srcOpnd != null) {
-	// if (srcOpnd.isIntegerRegisterOperand()) {
-	// if (containingExecutionEngine.getValueReadyInteger()[(int) (srcOpnd
-	// .getValue())] > GlobalClock.getCurrentTime()) {
-	// return true;
-	// }
-	// }
-	//
-	// else if (srcOpnd.isFloatRegisterOperand()) {
-	// if (containingExecutionEngine.getValueReadyFloat()[(int) (srcOpnd
-	// .getValue())] > GlobalClock.getCurrentTime()) {
-	// return true;
-	// }
-	// }
-	// }
-	//
-	// // operand 2
-	// srcOpnd = ins.getSourceOperand2();
-	// if (srcOpnd != null) {
-	// if (srcOpnd.isIntegerRegisterOperand()) {
-	// if (containingExecutionEngine.getValueReadyInteger()[(int) (srcOpnd
-	// .getValue())] > GlobalClock.getCurrentTime()) {
-	// return true;
-	// }
-	// }
-	//
-	// else if (srcOpnd.isFloatRegisterOperand()) {
-	// if (containingExecutionEngine.getValueReadyFloat()[(int) (srcOpnd
-	// .getValue())] > GlobalClock.getCurrentTime()) {
-	// return true;
-	// }
-	// }
-	// }
-	//
-	// return false;
-	// }
-
-	// private void addToValueReadyArray(Operand destOpnd, long
-	// timeWhenValueReady) {
-	// if (destOpnd.isIntegerRegisterOperand()) {
-	// containingExecutionEngine.getValueReadyInteger()[(int) (destOpnd
-	// .getValue())] = timeWhenValueReady;
-	// }
-	//
-	// else if (destOpnd.isFloatRegisterOperand()) {
-	// containingExecutionEngine.getValueReadyFloat()[(int) (destOpnd
-	// .getValue())] = timeWhenValueReady;
-	// }
-	// }
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
