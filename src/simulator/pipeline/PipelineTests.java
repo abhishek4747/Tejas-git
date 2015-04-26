@@ -173,7 +173,7 @@ public class PipelineTests {
 					Operand.getIntegerRegister(1));
 			newInst.setCISCProgramCounter(2 * i);
 			inputToPipeline.enqueue(newInst);
-			
+
 			newInst = Instruction.getIntALUInstruction(
 					Operand.getIntegerRegister(0),
 					Operand.getImmediateOperand(),
@@ -233,7 +233,48 @@ public class PipelineTests {
 							Operand.getFloatRegister(0));
 			inst.setCISCProgramCounter(i);
 			inputToPipeline.enqueue(inst);
+		}
+
+		inputToPipeline.enqueue(Instruction.getInvalidInstruction());
+
+		// simulate pipeline
+		while (ArchitecturalComponent.getCores()[0].getPipelineInterface()
+				.isExecutionComplete() == false) {
+			ArchitecturalComponent.getCores()[0].getPipelineInterface()
+					.oneCycleOperation();
+			GlobalClock.incrementClock();
+		}
+	}
+
+	public static void branchTest() {
+		Instruction inst;
+		int j = 0;
+		for (int i = 0; i < 5; i++) {
+			inst = Instruction
+					.getStoreInstruction(
+							Operand.getMemoryOperand(
+									Operand.getIntegerRegister(0),
+									Operand.getIntegerRegister(1)),
+							Operand.getFloatRegister(0));
+			inst.setCISCProgramCounter(j++);
+			inputToPipeline.enqueue(inst);
+		}
+
+		inst = Instruction.getBranchInstruction(Operand.getImmediateOperand());
+		inst.setCISCProgramCounter(j++);
+		inst.setBranchTaken(true);
+		inst.setBranchTargetAddress(2 * j);
+		inputToPipeline.enqueue(inst);
+
+		for (int i = j; i < j + 5; i++) {
+			inst = Instruction
+					.getLoadInstruction(
+							Operand.getMemoryOperand(
+									Operand.getIntegerRegister(0),
+									Operand.getIntegerRegister(1)),
+							Operand.getFloatRegister(0));
 			inst.setCISCProgramCounter(i);
+			inputToPipeline.enqueue(inst);
 		}
 
 		inputToPipeline.enqueue(Instruction.getInvalidInstruction());
@@ -305,9 +346,13 @@ public class PipelineTests {
 		case 6:
 			loadStoreTest();
 			break;
-			
+
 		case 7:
 			immediateALUTest();
+			break;
+
+		case 8:
+			branchTest();
 			break;
 
 		default:
