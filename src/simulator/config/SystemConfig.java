@@ -20,10 +20,9 @@
 *****************************************************************************/
 package config;
 
-import java.util.Hashtable;
-import java.util.Vector;
-
 import generic.PortType;
+
+import java.util.Vector;
 
 public class SystemConfig 
 {
