@@ -172,9 +172,12 @@ public class ROB extends SimulationElement {
 						containingExecutionEngine.setMispredStall(core
 								.getBranchMispredictionPenalty());
 						numMispredictedBranches++;
-						flush();
-						irf.flush();
-						frf.flush();
+						// Ideally this code should run because rob is flushed and rf is flushed on 
+						// mispredicted instruction. But in our case, inputToPipeline contains instruction
+						// in sequence of execution and therefore flushing is not required.
+//						flush();
+//						irf.flush();
+//						frf.flush();
 					}
 				}
 

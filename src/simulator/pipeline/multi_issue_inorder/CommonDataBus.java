@@ -39,38 +39,12 @@ public class CommonDataBus extends SimulationElement {
 	}
 
 	public boolean insert(int register, EventQueue eventQueue) {
-		// Not sure if this register is already there
-		// int r = find(register);
-		// if (r == -1) {
-		// for (int i = 0; i < size; i++) {
-		// if (!this.busy[i]) {
-		// this.register[i] = register;
-		// this.value[i] = value;
-		// this.busy[i] = true;
-		// this.flushCDB();
-		// return true;
-		// }
-		// }
-		// } else {
-		// this.value[r] = value;
-		// if (this.busy[r]) {
-		// System.out
-		// .println("Something might be wrong. Overwriting register "
-		// + r + " in CDB.");
-		// } else {
-		// occupied++;
-		// }
-		// this.busy[r] = true;
-		// this.flushCDB();
-		// return true;
-		// }
-		// return false;
 		CDBEvents event = new CDBEvents(eventQueue, this, rob,
 				RequestType.WriteToCDB, rob, register, 1);
 
 		this.getPort().put(event);
-		// rob.rob.absPeek(register).ready = true;
-		return true;
+		// rob.rob.absPeek(register).ready = true; // without port
+		return true; 
 	}
 
 	public Object get(int register) {
@@ -79,8 +53,7 @@ public class CommonDataBus extends SimulationElement {
 			return null;
 		} else {
 			if (!busy[r]) {
-				System.out
-						.println("Something might be wrong. Reading register "
+				System.out.println("Something might be wrong. Reading register "
 								+ r + " again.");
 			} else {
 				occupied--;

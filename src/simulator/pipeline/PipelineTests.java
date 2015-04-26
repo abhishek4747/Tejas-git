@@ -263,7 +263,7 @@ public class PipelineTests {
 
 		inst = Instruction.getBranchInstruction(Operand.getImmediateOperand());
 		inst.setCISCProgramCounter(j++);
-		inst.setBranchTaken(true);
+		inst.setBranchTaken(false);
 		inst.setBranchTargetAddress(2 * j);
 		inputToPipeline.enqueue(inst);
 
