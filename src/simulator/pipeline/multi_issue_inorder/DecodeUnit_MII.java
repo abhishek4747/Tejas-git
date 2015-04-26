@@ -238,7 +238,7 @@ public class DecodeUnit_MII extends SimulationElement {
 
 				numBranches++;
 			}
-
+			
 			if (ins.getSerialNo() != instCtr
 					&& ins.getOperationType() != OperationType.inValid) {
 				misc.Error.showErrorAndExit("decode out of order!!");
