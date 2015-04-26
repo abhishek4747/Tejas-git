@@ -81,7 +81,7 @@
 		<Core>
 			<CoreFrequency>3400</CoreFrequency>		
 			<PipelineType>inOrder</PipelineType>
-<NumReservationStations>25</NumReservationStations>
+<NumReservationStations>5</NumReservationStations>
 <CDBNumPorts>5</CDBNumPorts>
 			
 			<BranchPredictor>
@@ -164,7 +164,7 @@
 			
 			<ROB>
 				<RetireWidth>4</RetireWidth>			
-<ROBSize>20</ROBSize>
+<ROBSize>30</ROBSize>
 				<LeakageEnergy>0.0058</LeakageEnergy>
 				<DynamicEnergy>0.0304</DynamicEnergy>
 			</ROB>

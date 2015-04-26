@@ -4,7 +4,6 @@ TODO
 	6. Jump/branch statements
 	8. xchange op
 	9. Code Cleaning
-	10. Analysis on optimal values of config file : Report
 TESTS:
 	0. min Dependency
 	1. max Dependency

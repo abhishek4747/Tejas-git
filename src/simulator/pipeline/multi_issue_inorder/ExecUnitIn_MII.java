@@ -63,7 +63,7 @@ public class ExecUnitIn_MII extends SimulationElement {
 		if (containingExecutionEngine.getMispredStall() > 0) {
 			return;
 		}
-		System.out.print("3--> In exec " + id);
+		System.out.println("3--> In exec " + id);
 		Instruction ins = null;
 		long insCompletesAt;
 
