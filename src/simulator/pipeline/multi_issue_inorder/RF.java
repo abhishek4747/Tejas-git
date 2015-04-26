@@ -3,6 +3,7 @@ package pipeline.multi_issue_inorder;
 import generic.Event;
 import generic.EventQueue;
 import generic.Operand;
+import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
 import generic.OperandType;
@@ -33,20 +34,24 @@ public class RF extends SimulationElement {
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	public static Register getRegister(RF irf, RF frf, Operand op, int index){
-		if (op.getOperandType() == OperandType.integerRegister){
-			return irf.rf[index];			
-		}else if (op.getOperandType() == OperandType.floatRegister){
+	public static Register getRegister(RF irf, RF frf, Operand op, int index) {
+		if (op.getOperandType() == OperandType.integerRegister) {
+			return irf.rf[index];
+		} else if (op.getOperandType() == OperandType.floatRegister) {
 			return frf.rf[index];
-		}else{
+		} else {
 			return null;
 		}
 	}
-	
-	public static Register getRegister(RF irf, RF frf, Operand op){
-		return RF.getRegister(irf, frf, op, (int)op.getValue());
+
+	public static Register getRegister(RF irf, RF frf, Operand op,
+			OperationType ty) {
+		if (ty == OperationType.load || ty == OperationType.store)
+			return RF.getRegister(irf, frf, op, (int) op
+					.getMemoryLocationSecondOperand().getValue());
+		return RF.getRegister(irf, frf, op, (int) op.getValue());
 	}
 }
