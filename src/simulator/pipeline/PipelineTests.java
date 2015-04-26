@@ -226,6 +226,7 @@ public class PipelineTests {
 									Operand.getIntegerRegister(0),
 									Operand.getIntegerRegister(1)),
 							Operand.getFloatRegister(0));
+			inst.setCISCProgramCounter(i);
 			inputToPipeline.enqueue(inst);
 		}
 

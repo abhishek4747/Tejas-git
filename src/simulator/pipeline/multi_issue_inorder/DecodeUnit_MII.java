@@ -80,59 +80,63 @@ public class DecodeUnit_MII extends SimulationElement {
 
 				int b = rob.getFreeTail();
 				if (b != -1) {
-					int r = idExRS.getFree();
-					if (opType == OperationType.inValid) {
-						System.out.println("End Here.");
-						idExRS.rs[r].busy = true;
-						idExRS.rs[r].Qi = b;
-						idExRS.rs[r].opType = ins.getOperationType();
-						rob.add(ins, GlobalClock.getCurrentTime() + 1);
-						System.out.println("\tAdded to rob" + r + " Optype"
-								+ ins.getOperationType());
-
-					} else {
-						Operand o1 = ins.getSourceOperand1();
-						if (RF.getRegister(irf, frf, o1).busy) {
-							int h = RF.getRegister(irf, frf, o1).Qi;
-							if (rob.rob.absPeek(h).ready) {
-								idExRS.rs[r].Vj = rob.rob.absPeek(h).r1;
-								idExRS.rs[r].Qj = 0;
-							} else {
-								idExRS.rs[r].Qj = h;
-							}
+					if (!(ins.getOperationType()==OperationType.load || ins.getOperationType()==OperationType.store)){
+						int r = idExRS.getFree();
+						if (opType == OperationType.inValid) {
+							System.out.println("End Here.");
+							idExRS.rs[r].busy = true;
+							idExRS.rs[r].Qi = b;
+							idExRS.rs[r].opType = ins.getOperationType();
+							rob.add(ins, GlobalClock.getCurrentTime() + 1);
+							System.out.println("\tAdded to rob" + r + " Optype"
+									+ ins.getOperationType());
+							
 						} else {
-							idExRS.rs[r].Vj = RF.getRegister(irf, frf, o1).value;
-							idExRS.rs[r].Qj = 0;
-						}
-
-						idExRS.rs[r].busy = true;
-						idExRS.rs[r].Qi = b;
-						idExRS.rs[r].opType = ins.getOperationType();
-						idExRS.rs[r].executionComplete = false;
-						int slot = rob.add(ins,
-								GlobalClock.getCurrentTime() + 1);
-						System.out.println("\tAdded to rob" + r + " Optype"
-								+ ins.getOperationType());
-
-						if (ins.getOperationType() == OperationType.floatALU
-								|| ins.getOperationType() == OperationType.floatMul
-								|| ins.getOperationType() == OperationType.floatDiv
-								|| ins.getOperationType() == OperationType.integerALU
-								|| ins.getOperationType() == OperationType.integerMul
-								|| ins.getOperationType() == OperationType.integerDiv
-								|| ins.getOperationType() == OperationType.store) {
-							Operand o2 = ins.getSourceOperand2();
-							if (RF.getRegister(irf, frf, o2).busy) {
-								int h = RF.getRegister(irf, frf, o2).Qi;
+							Operand o1 = ins.getSourceOperand1();
+							if (RF.getRegister(irf, frf, o1).busy) {
+								int h = RF.getRegister(irf, frf, o1).Qi;
 								if (rob.rob.absPeek(h).ready) {
-									idExRS.rs[r].Vk = rob.rob.absPeek(h).r2;
-									idExRS.rs[r].Qk = 0;
+									idExRS.rs[r].Vj = rob.rob.absPeek(h).r1;
+									idExRS.rs[r].Qj = 0;
 								} else {
-									idExRS.rs[r].Qk = h;
+									idExRS.rs[r].Qj = h;
 								}
 							} else {
-								idExRS.rs[r].Vk = RF.getRegister(irf, frf, o2).value;
-								idExRS.rs[r].Qk = 0;
+								idExRS.rs[r].Vj = RF.getRegister(irf, frf, o1).value;
+								idExRS.rs[r].Qj = 0;
+							}
+							
+							idExRS.rs[r].busy = true;
+							idExRS.rs[r].Qi = b;
+							idExRS.rs[r].opType = ins.getOperationType();
+							idExRS.rs[r].executionComplete = false;
+						}
+						
+							int slot = rob.add(ins,
+									GlobalClock.getCurrentTime() + 1);
+							System.out.println("\tAdded to rob" + r + " Optype"
+									+ ins.getOperationType());
+						if (!(ins.getOperationType()==OperationType.load || ins.getOperationType()==OperationType.store)){	
+							if (ins.getOperationType() == OperationType.floatALU
+									|| ins.getOperationType() == OperationType.floatMul
+									|| ins.getOperationType() == OperationType.floatDiv
+									|| ins.getOperationType() == OperationType.integerALU
+									|| ins.getOperationType() == OperationType.integerMul
+									|| ins.getOperationType() == OperationType.integerDiv
+									|| ins.getOperationType() == OperationType.store) {
+								Operand o2 = ins.getSourceOperand2();
+								if (RF.getRegister(irf, frf, o2).busy) {
+									int h = RF.getRegister(irf, frf, o2).Qi;
+									if (rob.rob.absPeek(h).ready) {
+										idExRS.rs[r].Vk = rob.rob.absPeek(h).r2;
+										idExRS.rs[r].Qk = 0;
+									} else {
+										idExRS.rs[r].Qk = h;
+									}
+								} else {
+									idExRS.rs[r].Vk = RF.getRegister(irf, frf, o2).value;
+									idExRS.rs[r].Qk = 0;
+								}
 							}
 						}
 
@@ -142,9 +146,9 @@ public class DecodeUnit_MII extends SimulationElement {
 									ins.getOperationType() == OperationType.load,
 									slot, ins.getSourceOperand1MemValue(), ins);
 
-						if (ins.getOperationType() == OperationType.load)
-							idExRS.rs[r].A = ins.getDestinationOperand()
-									.getValue();
+//						if (ins.getOperationType() == OperationType.load)
+//							idExRS.rs[r].A = ins.getDestinationOperand()
+//									.getValue();
 
 						if (ins.getOperationType() == OperationType.floatALU
 								|| ins.getOperationType() == OperationType.floatDiv

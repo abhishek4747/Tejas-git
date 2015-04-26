@@ -39,7 +39,7 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	public void oneCycleOperation() {
 		long currentTime = GlobalClock.getCurrentTime();
 		int ifid_, idex_, idexfree_, exmem_, memwb_, robsize_;
-		ifid_ = idex_ = idexfree_ = exmem_ = memwb_ = robsize_ = 0;
+		ifid_ = idex_ = idexfree_ = exmem_ = memwb_ = robsize_ = -1;
 		int ifid, idex, idexfree, exmem, memwb, robsize;
 		ifid = containingExecutionEngine.getIfIdLatch().curSize;
 		idex = containingExecutionEngine.getIdExRS().getBusy();
@@ -59,8 +59,9 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 			System.out.println("Same variables");
 		}
 		if (ifid>0){
-			System.out.println("Start Instructions");
+			System.out.println("Same ");
 		}
+		
 		
 		ifid_ = ifid;
 		idex_ = idex;

@@ -3,10 +3,9 @@ package pipeline.multi_issue_inorder;
 import generic.Event;
 import generic.EventQueue;
 import generic.Operand;
-import generic.OperationType;
+import generic.OperandType;
 import generic.PortType;
 import generic.SimulationElement;
-import generic.OperandType;
 
 class Register {
 	boolean busy;

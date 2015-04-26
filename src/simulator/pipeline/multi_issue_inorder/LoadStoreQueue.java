@@ -32,7 +32,7 @@ public class LoadStoreQueue {
 	}
 
 	public LSQEntry dequeue() {
-		return LSQ.poll();
+		return LSQ.pop();
 	}
 	
 	public LSQEntry dequeue(int index) {

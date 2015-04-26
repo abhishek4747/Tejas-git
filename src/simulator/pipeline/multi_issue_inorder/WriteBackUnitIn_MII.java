@@ -119,15 +119,16 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 				}
 
 				memWbLatch.poll();
-				try {
-					CustomObjectPool.getInstructionPool().returnObject(ins);
-					core.numReturns++;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+//				try {
+//					CustomObjectPool.getInstructionPool().returnObject(ins);
+//					core.numReturns++;
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
 			} else {
 				break;
 			}
+			System.out.println();
 		}
 		// cdb.flushCDB();
 	}

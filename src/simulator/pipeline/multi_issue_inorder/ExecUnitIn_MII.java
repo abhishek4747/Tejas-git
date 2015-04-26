@@ -65,76 +65,95 @@ public class ExecUnitIn_MII extends SimulationElement {
 		}
 		System.out.print("3--> In exec " + id);
 		Instruction ins = null;
+		long insCompletesAt;
 
-		if (idExRS.isEmpty(futype) == false && exMemLatch.isFull() == false) {
-			int rsid = idExRS.getIWithFu(futype);
-
-			if (rsid != -1) {
-				ins = rob.rob.absPeek(idExRS.rs[rsid].Qi).instr;
-				System.out.println("\tExecuting (" + rsid + ") ins= " + ins);
-				long insCompletesAt = rob.rob.absPeek(idExRS.rs[rsid].Qi).instructionCompletesAt;
-				idExRS.rs[rsid].Qk = 0;
-				idExRS.rs[rsid].Qj = 0;
-				// }
-				//
-				// if (ins != null) {
-				if (ins.getOperationType() == OperationType.inValid) {
-					System.out.println("End here");
+		if (exMemLatch.isFull() == false) {
+			if (idExRS.isEmpty(futype) == false){
+				int rsid = idExRS.getIWithFu(futype);
+	
+				if (rsid != -1) {
+					ins = rob.rob.absPeek(idExRS.rs[rsid].Qi).instr;
+					System.out.println("\tExecuting (" + rsid + ") ins= " + ins);
+					insCompletesAt = rob.rob.absPeek(idExRS.rs[rsid].Qi).instructionCompletesAt;
+					idExRS.rs[rsid].Qk = 0;
+					idExRS.rs[rsid].Qj = 0;
+					// }
+					//
+					// if (ins != null) {
+					if (ins.getOperationType() == OperationType.inValid) {
+						System.out.println("End here");
+					}
+	
+					long lat = 1;
+					
+	
+					FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(ins
+							.getOperationType());
+	
+					if (FUType != FunctionalUnitType.inValid) {
+						lat = containingExecutionEngine.getExecutionCore()
+								.getFULatency(FUType);
+					}
+					/*
+					 * memory address computation for loads/stores happens in this
+					 * cycle assumed as one cycle operation
+					 */
+	
+					// if (ins.getSerialNo() != instCtr
+					// && ins.getOperationType() != OperationType.inValid) {
+					// misc.Error.showErrorAndExit("exec out of order!!");
+					// }
+					instCtr++;
+	
+					// move ins to next stage
+					exMemLatch.add(ins, insCompletesAt + lat);
+					System.out.println("\tadding it to exMemLatch");
+					// idExLatch.poll();
+	
+					if (ins.getDestinationOperand() != null
+							|| ins.getOperationType() == OperationType.xchg) {
+						incrementResultsBroadcastBusAccesses(1);
+					}
+	
+					if (SimulationConfig.debugMode) {
+						System.out.println("executed : "
+								+ GlobalClock.getCurrentTime() / core.getStepSize()
+								+ "\n" + ins + "\n");
+					}
+					idExRS.rs[rsid].executionComplete = true;
 				}
-
-				long lat = 1;
-				if (ins.getOperationType() == OperationType.load) {
-					int ind = lsq.getIndex(ins);
-					if (idExRS.rs[rsid].Qj == 0 && lsq.noStoresBefore(ind))
-						lsq.dequeue(ind);
-				}
-				if (ins.getOperationType() == OperationType.store) {
-					if (!SimulationConfig.detachMemSysData
-							&& idExRS.rs[rsid].Qj == 0
-							&& lsq.getIndex(ins) == 0)
-						lsq.dequeue();
-					else
-						return;
-				}
-
-				FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(ins
-						.getOperationType());
-
-				if (FUType != FunctionalUnitType.memory
-						&& FUType != FunctionalUnitType.inValid) {
-					lat = containingExecutionEngine.getExecutionCore()
-							.getFULatency(FUType);
-				}
-				/*
-				 * memory address computation for loads/stores happens in this
-				 * cycle assumed as one cycle operation
-				 */
-
-				// if (ins.getSerialNo() != instCtr
-				// && ins.getOperationType() != OperationType.inValid) {
-				// misc.Error.showErrorAndExit("exec out of order!!");
-				// }
-				instCtr++;
-
-				// move ins to next stage
-				exMemLatch.add(ins, insCompletesAt + lat);
-				System.out.println("\tadding it to exMemLatch");
-				// idExLatch.poll();
-
-				if (ins.getDestinationOperand() != null
-						|| ins.getOperationType() == OperationType.xchg) {
-					incrementResultsBroadcastBusAccesses(1);
-				}
-
-				if (SimulationConfig.debugMode) {
-					System.out.println("executed : "
-							+ GlobalClock.getCurrentTime() / core.getStepSize()
-							+ "\n" + ins + "\n");
-				}
-				idExRS.rs[rsid].executionComplete = true;
 			}
+		}else if (futype==FunctionalUnitType.memory){
+			LSQEntry lsqd = lsq.dequeue();
+			ins = lsqd.instruction;
+			instCtr++;
+			if (ins.getOperationType() == OperationType.load) {
+				int ind = lsq.getIndex(ins);
+				if (lsq.noStoresBefore(ind))
+					lsq.dequeue(ind);
+			}
+			insCompletesAt = rob.rob.absPeek(lsqd.ROBEntry).instructionCompletesAt;
+			long lat = 1;
+			FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(ins
+					.getOperationType());
+
+			if (FUType != FunctionalUnitType.inValid) {
+				lat = containingExecutionEngine.getExecutionCore()
+						.getFULatency(FUType);
+			}
+
+			if (ins.getOperationType() == OperationType.store) {
+				if (!SimulationConfig.detachMemSysData
+						&& lsq.getIndex(ins) == 0)
+					lsq.dequeue();
+				else
+					return;
+			}
+			// move ins to next stage
+			exMemLatch.add(ins, insCompletesAt + lat);
+			System.out.println("\tadding it to exMemLatch");
+
 		}
-		System.out.println();
 	}
 
 	@Override

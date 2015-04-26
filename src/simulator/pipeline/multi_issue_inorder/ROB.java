@@ -171,10 +171,14 @@ public class ROB {
 						frf.flush();
 					}
 				}
-
-				if (RF.getRegister(irf, frf, rob.peek(0).dest).Qi == rob
+				
+				Operand toBeFreed = rob.peek(0).dest;
+				if (ins.getOperationType()==OperationType.store){
+					toBeFreed = rob.peek(0).r2;
+				}
+				if (RF.getRegister(irf, frf, toBeFreed).Qi == rob
 						.getHead()) {
-					RF.getRegister(irf, frf, rob.peek(0).dest).busy = false;
+					RF.getRegister(irf, frf, toBeFreed).busy = false;
 				}
 
 				removeFromHead();
