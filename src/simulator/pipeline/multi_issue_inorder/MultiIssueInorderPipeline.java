@@ -38,14 +38,37 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 
 	public void oneCycleOperation() {
 		long currentTime = GlobalClock.getCurrentTime();
+		int ifid_, idex_, idexfree_, exmem_, memwb_, robsize_;
+		ifid_ = idex_ = idexfree_ = exmem_ = memwb_ = robsize_ = 0;
+		int ifid, idex, idexfree, exmem, memwb, robsize;
+		ifid = containingExecutionEngine.getIfIdLatch().curSize;
+		idex = containingExecutionEngine.getIdExRS().getBusy();
+		idexfree = containingExecutionEngine.getIdExRS().getBusy()-containingExecutionEngine.getIdExRS().getExecuted();
+		exmem = containingExecutionEngine.getExMemLatch().curSize;
+		memwb = containingExecutionEngine.getMemWbLatch().curSize;
+		robsize = containingExecutionEngine.getROB().rob.size();
 		System.out.println("Distribution: "
-				+ containingExecutionEngine.getIfIdLatch().curSize
-				+"-"+containingExecutionEngine.getIdExRS().getBusy()
-				+"("+(containingExecutionEngine.getIdExRS().getBusy()-containingExecutionEngine.getIdExRS().getExecuted())+")"
-				+"-"+containingExecutionEngine.getExMemLatch().curSize
-				+"-"+containingExecutionEngine.getMemWbLatch().curSize
-				+" ROB:"+containingExecutionEngine.getROB().rob.size());
-		containingExecutionEngine.getIdExRS();
+				+ ifid
+				+"-"+ idex
+				+"("+(idexfree)+")"
+				+"-"+ exmem
+				+"-"+ memwb
+				+" ROB:"+robsize);
+		if (ifid==ifid_ && idex==idex_ && idexfree==idexfree_ && exmem==exmem_ 
+				&& memwb==memwb_ && robsize==robsize_){
+			System.out.println("Same variables");
+		}
+		if (ifid>0){
+			System.out.println("Start Instructions");
+		}
+		
+		ifid_ = ifid;
+		idex_ = idex;
+		idexfree_ = idexfree;
+		exmem_ = exmem;
+		memwb_ = memwb;
+		robsize_ = robsize;
+		
 //		for (int i=0; i<ReservationStation.getRSSize(); i++){
 //			if (containingExecutionEngine.getIdExRS().rs[i].busy && containingExecutionEngine.getIdExRS().rs[i].executionComplete)
 //				System.out.println("ins::::"+containingExecutionEngine.getIdExRS().rs[i].opType);

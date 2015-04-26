@@ -71,10 +71,10 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		this.issueWidth = issueWidth;
 
 		int FuDist[] = {_core.getIntALUNum(), _core.getIntMulNum(), _core.getIntDivNum() 
-				, _core.getFloatALUNum() , _core.getFloatMulNum() , _core.getFloatDivNum()};
+				, _core.getFloatALUNum() , _core.getFloatMulNum() , _core.getFloatDivNum(), _core.getJumpNum(), _core.getMemNum()};
 		
 		FunctionalUnitType FuType[] = {FunctionalUnitType.integerALU, FunctionalUnitType.integerMul, FunctionalUnitType.integerDiv,
-				FunctionalUnitType.floatALU, FunctionalUnitType.floatMul, FunctionalUnitType.floatDiv};
+				FunctionalUnitType.floatALU, FunctionalUnitType.floatMul, FunctionalUnitType.floatDiv, FunctionalUnitType.jump, FunctionalUnitType.memory};
 		
 		int NumFUs = 0;
 		for (int i=0; i<FuDist.length; i++){

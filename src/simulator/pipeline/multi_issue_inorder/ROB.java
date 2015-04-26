@@ -196,14 +196,20 @@ public class ROB {
 		}
 		return -1;
 	}
+	
+	public int getRelIndex(Instruction ins){
+		return (getIndex(ins)-rob.getHead()+rob.getBufferSize())%rob.getBufferSize();
+	}
 
 	public boolean storesAtThisAddressBefore(Instruction ins) {
-		int r = getIndex(ins);
-		for (int i = 0; i < rob.getHead() + r; i++)
-			if (rob.peek(i).instr.getOperationType() == OperationType.store
-					&& rob.peek(i).instr.getSourceOperand1MemValue() == ins
+		int r = getRelIndex(ins);
+		for (int i = 0; i <  r; i++){
+			int j = i;
+			if (rob.peek(j).instr.getOperationType() == OperationType.store
+					&& rob.peek(j).instr.getSourceOperand1MemValue() == ins
 							.getSourceOperand1MemValue())
 				return false;
+		}
 		return true;
 	}
 }

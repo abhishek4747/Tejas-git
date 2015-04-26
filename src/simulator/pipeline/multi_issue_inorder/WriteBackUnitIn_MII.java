@@ -52,8 +52,9 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 
 		Instruction ins = null;
 
-		while (memWbLatch.isEmpty() == false) {
+		while (memWbLatch.isEmpty() == false && memWbLatch.peek(0)!=null) {
 			ins = memWbLatch.peek(0);
+			
 			System.out.println("Tring to write to CDB:"+ins);
 			int r = -1;
 			for (int i = 0; i < rs.size; i++) {

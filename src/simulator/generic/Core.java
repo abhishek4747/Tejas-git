@@ -432,4 +432,10 @@ public class Core extends SimulationElement{
 	public int getFloatDivNum(){
 		return coreConfig.FloatDivNum;
 	}
+	public int getMemNum(){
+		return coreConfig.MemoryNum;
+	}
+	public int getJumpNum(){
+		return coreConfig.JumpNum;
+	}
 }
