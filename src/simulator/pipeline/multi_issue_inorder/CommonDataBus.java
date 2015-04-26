@@ -65,10 +65,10 @@ public class CommonDataBus extends SimulationElement {
 		// return true;
 		// }
 		// return false;
-//		CDBEvents event = new CDBEvents(eventQueue,this, rob, RequestType.WriteToCDB, rob, register, 1);
+		CDBEvents event = new CDBEvents(eventQueue,this, rob, RequestType.WriteToCDB, rob, register, 1);
 		
-//		this.getPort().put(event);
-		rob.rob.absPeek(register).ready = true;
+		this.getPort().put(event);
+//		rob.rob.absPeek(register).ready = true;
 		return true;
 	}
 
@@ -103,7 +103,6 @@ public class CommonDataBus extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		CDBEvents ev = (CDBEvents)event;
-		ev.rob.rob.absPeek(ev.robslot).ready = true;
+		// TODO 
 	}
 }
