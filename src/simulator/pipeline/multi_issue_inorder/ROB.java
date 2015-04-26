@@ -224,8 +224,8 @@ public class ROB extends SimulationElement {
 
 	@Override
 	public void handleEvent(EventQueue eventQ, Event event) {
-		CDBEvents ev = (CDBEvents)event;
+		CDBEvents ev = (CDBEvents) event;
 		ev.rob.rob.absPeek(ev.robslot).ready = true;
-		
+
 	}
 }

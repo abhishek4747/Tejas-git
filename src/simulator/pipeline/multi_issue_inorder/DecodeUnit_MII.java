@@ -6,6 +6,7 @@ import generic.EventQueue;
 import generic.GlobalClock;
 import generic.Instruction;
 import generic.Operand;
+import generic.OperandType;
 import generic.OperationType;
 import generic.PortType;
 import generic.SimulationElement;
@@ -92,7 +93,8 @@ public class DecodeUnit_MII extends SimulationElement {
 
 					} else {
 						Operand o1 = ins.getSourceOperand1();
-						if (RF.getRegister(irf, frf, o1).busy) {
+						if (o1.getOperandType() != OperandType.immediate
+								&& RF.getRegister(irf, frf, o1).busy) {
 							int h = RF.getRegister(irf, frf, o1).Qi;
 							if (rob.rob.absPeek(h).ready) {
 								idExRS.rs[r].Vj = rob.rob.absPeek(h).r1;
@@ -100,8 +102,12 @@ public class DecodeUnit_MII extends SimulationElement {
 							} else {
 								idExRS.rs[r].Qj = h;
 							}
-						} else {
+						} else if (o1.getOperandType() != OperandType.immediate
+								&& !RF.getRegister(irf, frf, o1).busy) {
 							idExRS.rs[r].Vj = RF.getRegister(irf, frf, o1).value;
+							idExRS.rs[r].Qj = 0;
+						} else {
+							idExRS.rs[r].Vj = o1;
 							idExRS.rs[r].Qj = 0;
 						}
 
@@ -124,7 +130,8 @@ public class DecodeUnit_MII extends SimulationElement {
 								|| ins.getOperationType() == OperationType.integerDiv
 								|| ins.getOperationType() == OperationType.store) {
 							Operand o2 = ins.getSourceOperand2();
-							if (RF.getRegister(irf, frf, o2).busy) {
+							if (o2.getOperandType() != OperandType.immediate
+									&& RF.getRegister(irf, frf, o2).busy) {
 								int h = RF.getRegister(irf, frf, o2).Qi;
 								if (rob.rob.absPeek(h).ready) {
 									idExRS.rs[r].Vk = rob.rob.absPeek(h).r2;
@@ -132,8 +139,11 @@ public class DecodeUnit_MII extends SimulationElement {
 								} else {
 									idExRS.rs[r].Qk = h;
 								}
-							} else {
+							} else if (o2.getOperandType() != OperandType.immediate) {
 								idExRS.rs[r].Vk = RF.getRegister(irf, frf, o2).value;
+								idExRS.rs[r].Qk = 0;
+							} else {
+								idExRS.rs[r].Vk = o2;
 								idExRS.rs[r].Qk = 0;
 							}
 						}

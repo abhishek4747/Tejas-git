@@ -9,16 +9,12 @@ public class CDBEvents extends Event {
 	ROB rob;
 	int robslot;
 
-	public CDBEvents(EventQueue eventQ,
-			SimulationElement requestingElement,
-			SimulationElement processingElement,
-			RequestType requestType,
-			ROB rob,
-			int robslot,
-			long eventTime)
-	{
-		super(eventQ, eventTime, requestingElement, processingElement, requestType, -1);
-		
+	public CDBEvents(EventQueue eventQ, SimulationElement requestingElement,
+			SimulationElement processingElement, RequestType requestType,
+			ROB rob, int robslot, long eventTime) {
+		super(eventQ, eventTime, requestingElement, processingElement,
+				requestType, -1);
+
 		this.rob = rob;
 		this.robslot = robslot;
 	}
@@ -27,4 +23,3 @@ public class CDBEvents extends Event {
 		return rob;
 	}
 }
-

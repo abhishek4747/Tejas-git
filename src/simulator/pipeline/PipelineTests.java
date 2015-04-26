@@ -162,6 +162,36 @@ public class PipelineTests {
 		}
 	}
 
+	public static void immediateALUTest() {
+
+		// generate instruction sequence
+		Instruction newInst;
+		for (int i = 0; i < 100; i++) {
+			newInst = Instruction.getIntegerMultiplicationInstruction(
+					Operand.getImmediateOperand(),
+					Operand.getIntegerRegister(0),
+					Operand.getIntegerRegister(1));
+			newInst.setCISCProgramCounter(2 * i);
+			inputToPipeline.enqueue(newInst);
+			
+			newInst = Instruction.getIntALUInstruction(
+					Operand.getIntegerRegister(0),
+					Operand.getImmediateOperand(),
+					Operand.getIntegerRegister(1));
+			newInst.setCISCProgramCounter(2 * i + 1);
+			inputToPipeline.enqueue(newInst);
+		}
+		inputToPipeline.enqueue(Instruction.getInvalidInstruction());
+
+		// simulate pipeline
+		while (ArchitecturalComponent.getCores()[0].getPipelineInterface()
+				.isExecutionComplete() == false) {
+			ArchitecturalComponent.getCores()[0].getPipelineInterface()
+					.oneCycleOperation();
+			GlobalClock.incrementClock();
+		}
+	}
+
 	public static void loadStoreTest() {
 		Instruction inst;
 		for (int i = 0; i < 100; i++) {
@@ -274,6 +304,10 @@ public class PipelineTests {
 
 		case 6:
 			loadStoreTest();
+			break;
+			
+		case 7:
+			immediateALUTest();
 			break;
 
 		default:
