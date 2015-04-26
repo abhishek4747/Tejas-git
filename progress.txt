@@ -1,18 +1,48 @@
-Progress until deadline 3:
+-------------------------------------------------------------------------------------------------------
+                                          Deadline 4
+-------------------------------------------------------------------------------------------------------
+Features:
+1. CDB takes 2 cycles to write the result back into the ROB and RF.
+2. We have handled all integer ALU, float ALU, branch, load, store and jump instructions in the pipeline designed by us. We have not built in support for the exchange instructions.
+3. We have a single unified Reservation Station in the pipeline which can store all types of instructions. A functional unit only looks for and executes instructions of its own type.
+4. A load store queue has been instantiated which is used to keep note of the hazards corresponding to such instructions.
+5. 
+
+Tests:
+        0. min Dependency
+        1. max Dependency
+        2. structural Haz
+        3. rename 
+        4. load test
+        5. store test
+        6. load store
+        7. immediateALUTest
+	8. branch Test
+
+Results of analysis:
+0. minDependency:
+	
+
+-------------------------------------------------------------------------------------------------------
+                                          Deadline 3
+-------------------------------------------------------------------------------------------------------
+Progress:
 1. All given test cases running
 2. implemented handling of Float, Integer and Load store operations
 3. Configuration support for Number of ports in the CDB, number of reservation stations, number and type of functional units and number of registers added in config.xml
 4. Tomasulo's algorithm implemented using the ROB, RF, RS and CDB.
 
-TODOs for deadline 4:
+TODOs:
 	1. CDB Ported structure
 	2. Event Queue
 	3. Sensible Log messages
 	4. CDB handle retire width
 	5. Load Store Test Cases
 
-
-Progress until deadline 2:
+-------------------------------------------------------------------------------------------------------
+                                          Deadline 2
+-------------------------------------------------------------------------------------------------------
+Progress:
 1. created classes for the Reservation Stations, Reorder Buffers, CDB and Register Files.
 2. In the class for Reorder Buffer, there is a class for each slot in the reorder buffer. There are also functions for addition of an instruction to the ROB, one for the deletion of the entry at the head of the ROB, one for performing a commit of an instruction and one for flushing the ROB in case of a branch misprediction.
 3. In the class for RegisterFile, we have a function for flushing the contents of the RF[].Qi for all the registers in case of a misprediction.
