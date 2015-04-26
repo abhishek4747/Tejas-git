@@ -13,7 +13,6 @@ import generic.SimulationElement;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import main.CustomObjectPool;
 import config.EnergyConfig;
 import config.SimulationConfig;
 

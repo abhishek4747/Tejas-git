@@ -27,13 +27,13 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	private MemUnitIn_MII memUnitIn;
 	private WriteBackUnitIn_MII writeBackUnitIn;
 	private CommitUnit_MII commitUnitIn;
-	
+
 	private ROB rob;
 	private RF irf;
 	private RF frf;
 	private CommonDataBus cdb;
 	private LoadStoreQueue lsq;
-	
+
 	private boolean executionComplete;
 	private boolean fetchComplete;
 	public InorderCoreMemorySystem_MII multiIssueInorderCoreMemorySystem;
@@ -57,7 +57,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	private int mispredStall; // to simulate pipeline flush during branch
 								// misprediction
 	StageLatch_MII ifIdLatch, exMemLatch, memWbLatch, wbDoneLatch;
-	
+
 	private ReservationStation idExRS;
 
 	public int noOfOutstandingLoads = 0;
@@ -70,43 +70,48 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 
 		this.issueWidth = issueWidth;
 
-		int FuDist[] = {_core.getIntALUNum(), _core.getIntMulNum(), _core.getIntDivNum() 
-				, _core.getFloatALUNum() , _core.getFloatMulNum() , _core.getFloatDivNum(), _core.getJumpNum(), _core.getMemNum()};
-		
-		FunctionalUnitType FuType[] = {FunctionalUnitType.integerALU, FunctionalUnitType.integerMul, FunctionalUnitType.integerDiv,
-				FunctionalUnitType.floatALU, FunctionalUnitType.floatMul, FunctionalUnitType.floatDiv, FunctionalUnitType.jump, FunctionalUnitType.memory};
-		
+		int FuDist[] = { _core.getIntALUNum(), _core.getIntMulNum(),
+				_core.getIntDivNum(), _core.getFloatALUNum(),
+				_core.getFloatMulNum(), _core.getFloatDivNum(),
+				_core.getJumpNum(), _core.getMemNum() };
+
+		FunctionalUnitType FuType[] = { FunctionalUnitType.integerALU,
+				FunctionalUnitType.integerMul, FunctionalUnitType.integerDiv,
+				FunctionalUnitType.floatALU, FunctionalUnitType.floatMul,
+				FunctionalUnitType.floatDiv, FunctionalUnitType.jump,
+				FunctionalUnitType.memory };
+
 		int NumFUs = 0;
-		for (int i=0; i<FuDist.length; i++){
+		for (int i = 0; i < FuDist.length; i++) {
 			NumFUs += FuDist[i];
 		}
-		
+
 		ifIdLatch = new StageLatch_MII(issueWidth);
 		idExRS = new ReservationStation(ReservationStation.getRSSize());
 		exMemLatch = new StageLatch_MII(NumFUs);
 		memWbLatch = new StageLatch_MII(issueWidth);
 		wbDoneLatch = new StageLatch_MII(issueWidth);
-		
-		lsq = new LoadStoreQueue();		
+
+		lsq = new LoadStoreQueue();
 		irf = new RF(_core.getIntegerRegisterFileSize());
 		frf = new RF(_core.getFloatingPointRegisterFileSize());
 		rob = new ROB(_core, this, _core.getReorderBufferSize());
 		cdb = new CommonDataBus(core, this, _core.getCDBSize());
-		
+
 		this.setFetchUnitIn(new FetchUnitIn_MII(core, core.getEventQueue(),
 				this));
 		this.setDecodeUnitIn(new DecodeUnit_MII(core, this));
 		this.setExecUnitInSize(NumFUs);
 		int id = 0;
-		for (int i=0;i<FuType.length;i++)
-		{
-			for (int j=0; j<FuDist[i];j++){
-				this.execUnitIns[id] = new ExecUnitIn_MII(_core, this, FuType[i]);
+		for (int i = 0; i < FuType.length; i++) {
+			for (int j = 0; j < FuDist[i]; j++) {
+				this.execUnitIns[id] = new ExecUnitIn_MII(_core, this,
+						FuType[i]);
 				this.execUnitIns[id].id = id;
 				id++;
 			}
 		}
-		
+
 		this.setMemUnitIn(new MemUnitIn_MII(core, this));
 		this.setWriteBackUnitIn(new WriteBackUnitIn_MII(core, this));
 		this.setCommitUnitIn(new CommitUnit_MII(core, this));
@@ -150,7 +155,7 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	public ExecUnitIn_MII getExecUnitIn(int index) {
 		return this.execUnitIns[index];
 	}
-	
+
 	public ExecUnitIn_MII[] getExecUnitIns() {
 		return this.execUnitIns;
 	}
@@ -171,10 +176,10 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 		this.decodeUnitIn = _decodeUnitIn;
 	}
 
-	public void setExecUnitInSize(int size){
+	public void setExecUnitInSize(int size) {
 		this.execUnitIns = new ExecUnitIn_MII[size];
 	}
-	
+
 	public void setExecUnitIn(ExecUnitIn_MII _execUnitIn, int index) {
 		this.execUnitIns[index] = _execUnitIn;
 	}
@@ -364,16 +369,16 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	public StageLatch_MII getWbDoneLatch() {
 		return this.wbDoneLatch;
 	}
-	
-	public ROB getROB(){
+
+	public ROB getROB() {
 		return this.rob;
 	}
-	
-	public RF getIntRF(){
+
+	public RF getIntRF() {
 		return this.irf;
 	}
-	
-	public RF getFloatRF(){
+
+	public RF getFloatRF() {
 		return this.frf;
 	}
 
@@ -426,13 +431,12 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 				outputFileWriter, componentName + ".FuncUnit");
 		totalPower.add(totalPower, fuPower);
 
-		for (int i=0; i<execUnitIns.length; i++){
+		for (int i = 0; i < execUnitIns.length; i++) {
 			EnergyConfig resultsBroadcastBusPower = getExecUnitIn(i)
 					.calculateAndPrintEnergy(outputFileWriter,
 							componentName + ".resultsBroadcastBus");
 			totalPower.add(totalPower, resultsBroadcastBusPower);
 		}
-		
 
 		totalPower.printEnergyStats(outputFileWriter, componentName + ".total");
 

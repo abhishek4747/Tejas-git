@@ -68,12 +68,13 @@ public class ExecUnitIn_MII extends SimulationElement {
 		long insCompletesAt;
 
 		if (exMemLatch.isFull() == false) {
-			if (idExRS.isEmpty(futype) == false){
+			if (idExRS.isEmpty(futype) == false) {
 				int rsid = idExRS.getIWithFu(futype);
-	
+
 				if (rsid != -1) {
 					ins = rob.rob.absPeek(idExRS.rs[rsid].Qi).instr;
-					System.out.println("\tExecuting (" + rsid + ") ins= " + ins);
+					System.out
+							.println("\tExecuting (" + rsid + ") ins= " + ins);
 					insCompletesAt = rob.rob.absPeek(idExRS.rs[rsid].Qi).instructionCompletesAt;
 					idExRS.rs[rsid].Qk = 0;
 					idExRS.rs[rsid].Qj = 0;
@@ -83,47 +84,46 @@ public class ExecUnitIn_MII extends SimulationElement {
 					if (ins.getOperationType() == OperationType.inValid) {
 						System.out.println("End here");
 					}
-	
+
 					long lat = 1;
-					
-	
-					FunctionalUnitType FUType = OpTypeToFUTypeMapping.getFUType(ins
-							.getOperationType());
-	
+
+					FunctionalUnitType FUType = OpTypeToFUTypeMapping
+							.getFUType(ins.getOperationType());
+
 					if (FUType != FunctionalUnitType.inValid) {
 						lat = containingExecutionEngine.getExecutionCore()
 								.getFULatency(FUType);
 					}
 					/*
-					 * memory address computation for loads/stores happens in this
-					 * cycle assumed as one cycle operation
+					 * memory address computation for loads/stores happens in
+					 * this cycle assumed as one cycle operation
 					 */
-	
+
 					// if (ins.getSerialNo() != instCtr
 					// && ins.getOperationType() != OperationType.inValid) {
 					// misc.Error.showErrorAndExit("exec out of order!!");
 					// }
 					instCtr++;
-	
+
 					// move ins to next stage
 					exMemLatch.add(ins, insCompletesAt + lat);
 					System.out.println("\tadding it to exMemLatch");
 					// idExLatch.poll();
-	
+
 					if (ins.getDestinationOperand() != null
 							|| ins.getOperationType() == OperationType.xchg) {
 						incrementResultsBroadcastBusAccesses(1);
 					}
-	
+
 					if (SimulationConfig.debugMode) {
 						System.out.println("executed : "
-								+ GlobalClock.getCurrentTime() / core.getStepSize()
-								+ "\n" + ins + "\n");
+								+ GlobalClock.getCurrentTime()
+								/ core.getStepSize() + "\n" + ins + "\n");
 					}
 					idExRS.rs[rsid].executionComplete = true;
 				}
 			}
-		}else if (futype==FunctionalUnitType.memory){
+		} else if (futype == FunctionalUnitType.memory) {
 			LSQEntry lsqd = lsq.dequeue();
 			ins = lsqd.instruction;
 			instCtr++;

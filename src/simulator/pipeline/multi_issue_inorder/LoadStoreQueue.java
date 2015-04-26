@@ -34,7 +34,7 @@ public class LoadStoreQueue {
 	public LSQEntry dequeue() {
 		return LSQ.pop();
 	}
-	
+
 	public LSQEntry dequeue(int index) {
 		return LSQ.remove(index);
 	}

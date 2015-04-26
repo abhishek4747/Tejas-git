@@ -43,38 +43,35 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 		int ifid, idex, idexfree, exmem, memwb, robsize;
 		ifid = containingExecutionEngine.getIfIdLatch().curSize;
 		idex = containingExecutionEngine.getIdExRS().getBusy();
-		idexfree = containingExecutionEngine.getIdExRS().getBusy()-containingExecutionEngine.getIdExRS().getExecuted();
+		idexfree = containingExecutionEngine.getIdExRS().getBusy()
+				- containingExecutionEngine.getIdExRS().getExecuted();
 		exmem = containingExecutionEngine.getExMemLatch().curSize;
 		memwb = containingExecutionEngine.getMemWbLatch().curSize;
 		robsize = containingExecutionEngine.getROB().rob.size();
-		System.out.println("Distribution: "
-				+ ifid
-				+"-"+ idex
-				+"("+(idexfree)+")"
-				+"-"+ exmem
-				+"-"+ memwb
-				+" ROB:"+robsize);
-		if (ifid==ifid_ && idex==idex_ && idexfree==idexfree_ && exmem==exmem_ 
-				&& memwb==memwb_ && robsize==robsize_){
+		System.out.println("Distribution: " + ifid + "-" + idex + "("
+				+ (idexfree) + ")" + "-" + exmem + "-" + memwb + " ROB:"
+				+ robsize);
+		if (ifid == ifid_ && idex == idex_ && idexfree == idexfree_
+				&& exmem == exmem_ && memwb == memwb_ && robsize == robsize_) {
 			System.out.println("Same variables");
 		}
-		if (ifid>0){
+		if (ifid > 0) {
 			System.out.println("Same ");
 		}
-		
-		
+
 		ifid_ = ifid;
 		idex_ = idex;
 		idexfree_ = idexfree;
 		exmem_ = exmem;
 		memwb_ = memwb;
 		robsize_ = robsize;
-		
-//		for (int i=0; i<ReservationStation.getRSSize(); i++){
-//			if (containingExecutionEngine.getIdExRS().rs[i].busy && containingExecutionEngine.getIdExRS().rs[i].executionComplete)
-//				System.out.println("ins::::"+containingExecutionEngine.getIdExRS().rs[i].opType);
-//		}
-		if (containingExecutionEngine.getIfIdLatch().curSize>0){
+
+		// for (int i=0; i<ReservationStation.getRSSize(); i++){
+		// if (containingExecutionEngine.getIdExRS().rs[i].busy &&
+		// containingExecutionEngine.getIdExRS().rs[i].executionComplete)
+		// System.out.println("ins::::"+containingExecutionEngine.getIdExRS().rs[i].opType);
+		// }
+		if (containingExecutionEngine.getIfIdLatch().curSize > 0) {
 			System.out.println();
 		}
 		if (currentTime % getCoreStepSize() == 0
@@ -101,8 +98,8 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	private void drainEventQueue() {
 		eventQ.processEvents();
 	}
-	
-	public void commit(){
+
+	public void commit() {
 		containingExecutionEngine.getCommitUnitIn().performCommit(this);
 	}
 
@@ -165,7 +162,7 @@ public class MultiIssueInorderPipeline implements PipelineInterface {
 	public ReservationStation getIdExRS() {
 		return this.idEx;
 	}
-	
+
 	public StageLatch_MII getExMemLatch() {
 		return this.exMem;
 	}

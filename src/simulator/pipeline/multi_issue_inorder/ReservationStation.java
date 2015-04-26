@@ -4,7 +4,8 @@ import generic.Operand;
 import generic.OperationType;
 import pipeline.FunctionalUnitType;
 import pipeline.OpTypeToFUTypeMapping;
-import config.CoreConfig;;
+
+;
 
 class RS {
 	OperationType opType;

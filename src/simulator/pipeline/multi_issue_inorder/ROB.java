@@ -171,13 +171,12 @@ public class ROB {
 						frf.flush();
 					}
 				}
-				
+
 				Operand toBeFreed = rob.peek(0).dest;
-				if (ins.getOperationType()==OperationType.store){
+				if (ins.getOperationType() == OperationType.store) {
 					toBeFreed = rob.peek(0).r2;
 				}
-				if (RF.getRegister(irf, frf, toBeFreed).Qi == rob
-						.getHead()) {
+				if (RF.getRegister(irf, frf, toBeFreed).Qi == rob.getHead()) {
 					RF.getRegister(irf, frf, toBeFreed).busy = false;
 				}
 
@@ -200,14 +199,15 @@ public class ROB {
 		}
 		return -1;
 	}
-	
-	public int getRelIndex(Instruction ins){
-		return (getIndex(ins)-rob.getHead()+rob.getBufferSize())%rob.getBufferSize();
+
+	public int getRelIndex(Instruction ins) {
+		return (getIndex(ins) - rob.getHead() + rob.getBufferSize())
+				% rob.getBufferSize();
 	}
 
 	public boolean storesAtThisAddressBefore(Instruction ins) {
 		int r = getRelIndex(ins);
-		for (int i = 0; i <  r; i++){
+		for (int i = 0; i < r; i++) {
 			int j = i;
 			if (rob.peek(j).instr.getOperationType() == OperationType.store
 					&& rob.peek(j).instr.getSourceOperand1MemValue() == ins

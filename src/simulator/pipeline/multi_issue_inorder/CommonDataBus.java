@@ -16,7 +16,7 @@ public class CommonDataBus extends SimulationElement {
 
 	public CommonDataBus(Core core,
 			MultiIssueInorderExecutionEngine execEngine, int size) {
-		super(PortType.FirstComeFirstServe, size, 1, 0,	-1);
+		super(PortType.FirstComeFirstServe, size, 1, 0, -1);
 		this.size = size;
 		rob = execEngine.getROB();
 		this.busy = new boolean[size];
@@ -39,31 +39,31 @@ public class CommonDataBus extends SimulationElement {
 
 	public boolean insert(int register, Object value) {
 		// Not sure if this register is already there
-//		int r = find(register);
-//		if (r == -1) {
-//			for (int i = 0; i < size; i++) {
-//				if (!this.busy[i]) {
-//					this.register[i] = register;
-//					this.value[i] = value;
-//					this.busy[i] = true;
-//					this.flushCDB();
-//					return true;
-//				}
-//			}
-//		} else {
-//			this.value[r] = value;
-//			if (this.busy[r]) {
-//				System.out
-//						.println("Something might be wrong. Overwriting register "
-//								+ r + " in CDB.");
-//			} else {
-//				occupied++;
-//			}
-//			this.busy[r] = true;
-//			this.flushCDB();
-//			return true;
-//		}
-//		return false;
+		// int r = find(register);
+		// if (r == -1) {
+		// for (int i = 0; i < size; i++) {
+		// if (!this.busy[i]) {
+		// this.register[i] = register;
+		// this.value[i] = value;
+		// this.busy[i] = true;
+		// this.flushCDB();
+		// return true;
+		// }
+		// }
+		// } else {
+		// this.value[r] = value;
+		// if (this.busy[r]) {
+		// System.out
+		// .println("Something might be wrong. Overwriting register "
+		// + r + " in CDB.");
+		// } else {
+		// occupied++;
+		// }
+		// this.busy[r] = true;
+		// this.flushCDB();
+		// return true;
+		// }
+		// return false;
 		rob.rob.absPeek(register).ready = true;
 		return true;
 	}

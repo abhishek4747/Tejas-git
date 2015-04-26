@@ -133,7 +133,8 @@ public class FetchUnitIn_MII extends SimulationElement {
 				&& this.fetchBufferStatus[this.fetchBufferIndex]
 				&& this.ifId_latch.isFull() == false) {
 			ins = this.fetchBuffer[this.fetchBufferIndex];
-			System.out.println("\tIns: "+ins+" opType:"+ins.getOperationType());
+			System.out.println("\tIns: " + ins + " opType:"
+					+ ins.getOperationType());
 			if (ins.getOperationType() == OperationType.sync) {
 				this.fetchFillCount--;
 				this.fetchBufferIndex = (this.fetchBufferIndex + 1)
