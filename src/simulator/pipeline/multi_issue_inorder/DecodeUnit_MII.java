@@ -92,10 +92,8 @@ public class DecodeUnit_MII extends SimulationElement {
 
 					} else {
 						Operand o1 = ins.getSourceOperand1();
-						o1.getOperandType();
-						if (RF.getRegister(irf, frf, o1, ins.getOperationType()).busy) {
-							int h = RF.getRegister(irf, frf, o1,
-									ins.getOperationType()).Qi;
+						if (RF.getRegister(irf, frf, o1).busy) {
+							int h = RF.getRegister(irf, frf, o1).Qi;
 							if (rob.rob.absPeek(h).ready) {
 								idExRS.rs[r].Vj = rob.rob.absPeek(h).r1;
 								idExRS.rs[r].Qj = 0;
@@ -103,8 +101,7 @@ public class DecodeUnit_MII extends SimulationElement {
 								idExRS.rs[r].Qj = h;
 							}
 						} else {
-							idExRS.rs[r].Vj = RF.getRegister(irf, frf, o1,
-									ins.getOperationType()).value;
+							idExRS.rs[r].Vj = RF.getRegister(irf, frf, o1).value;
 							idExRS.rs[r].Qj = 0;
 						}
 
@@ -125,10 +122,8 @@ public class DecodeUnit_MII extends SimulationElement {
 								|| ins.getOperationType() == OperationType.integerDiv
 								|| ins.getOperationType() == OperationType.store) {
 							Operand o2 = ins.getSourceOperand2();
-							if (RF.getRegister(irf, frf, o2,
-									ins.getOperationType()).busy) {
-								int h = RF.getRegister(irf, frf, o2,
-										ins.getOperationType()).Qi;
+							if (RF.getRegister(irf, frf, o2).busy) {
+								int h = RF.getRegister(irf, frf, o2).Qi;
 								if (rob.rob.absPeek(h).ready) {
 									idExRS.rs[r].Vk = rob.rob.absPeek(h).r2;
 									idExRS.rs[r].Qk = 0;
@@ -136,8 +131,7 @@ public class DecodeUnit_MII extends SimulationElement {
 									idExRS.rs[r].Qk = h;
 								}
 							} else {
-								idExRS.rs[r].Vk = RF.getRegister(irf, frf, o2,
-										ins.getOperationType()).value;
+								idExRS.rs[r].Vk = RF.getRegister(irf, frf, o2).value;
 								idExRS.rs[r].Qk = 0;
 							}
 						}
@@ -160,8 +154,8 @@ public class DecodeUnit_MII extends SimulationElement {
 								|| ins.getOperationType() == OperationType.integerMul
 								|| ins.getOperationType() == OperationType.load) {
 							Operand od = ins.getDestinationOperand();
-							RF.getRegister(irf, frf, od, ins.getOperationType()).Qi = b;
-							RF.getRegister(irf, frf, od, ins.getOperationType()).busy = true;
+							RF.getRegister(irf, frf, od).Qi = b;
+							RF.getRegister(irf, frf, od).busy = true;
 							rob.rob.absPeek(b).dest = od;
 						}
 

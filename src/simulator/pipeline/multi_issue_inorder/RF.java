@@ -47,11 +47,11 @@ public class RF extends SimulationElement {
 		}
 	}
 
-	public static Register getRegister(RF irf, RF frf, Operand op,
-			OperationType ty) {
-		if (ty == OperationType.load || ty == OperationType.store)
-			return RF.getRegister(irf, frf, op, (int) op
-					.getMemoryLocationSecondOperand().getValue());
+	public static Register getRegister(RF irf, RF frf, Operand op) {
+		if (op.getOperandType() == OperandType.memory)
+			return RF.getRegister(irf, frf,
+					op.getMemoryLocationSecondOperand(), (int) op
+							.getMemoryLocationSecondOperand().getValue());
 		return RF.getRegister(irf, frf, op, (int) op.getValue());
 	}
 }

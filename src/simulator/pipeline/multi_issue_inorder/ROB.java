@@ -172,11 +172,9 @@ public class ROB {
 					}
 				}
 
-				if (RF.getRegister(irf, frf, rob.peek(0).dest,
-						rob.peek(0).instr.getOperationType()).Qi == rob
+				if (RF.getRegister(irf, frf, rob.peek(0).dest).Qi == rob
 						.getHead()) {
-					RF.getRegister(irf, frf, rob.peek(0).dest,
-							rob.peek(0).instr.getOperationType()).busy = false;
+					RF.getRegister(irf, frf, rob.peek(0).dest).busy = false;
 				}
 
 				removeFromHead();
