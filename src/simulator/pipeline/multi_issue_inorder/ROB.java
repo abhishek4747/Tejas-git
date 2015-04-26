@@ -125,16 +125,6 @@ public class ROB extends SimulationElement {
 					}
 				}
 			}
-			// else {
-			// if (core.getNoOfInstructionsExecuted() % 1000000 == 0) {
-			// System.out.println(core.getNoOfInstructionsExecuted()
-			// / 1000000 + " million done" + " by core "
-			// + core.getCore_number()
-			// + " global clock cycle "
-			// + GlobalClock.getCurrentTime());
-			// }
-			// core.incrementNoOfInstructionsExecuted();
-			// }
 
 			while (rob.peek(0) != null && rob.peek(0).ready) {
 				if (rob.peek(0).instr.getCISCProgramCounter() != -1) {
@@ -175,9 +165,9 @@ public class ROB extends SimulationElement {
 						// Ideally this code should run because rob is flushed and rf is flushed on 
 						// mispredicted instruction. But in our case, inputToPipeline contains instruction
 						// in sequence of execution and therefore flushing is not required.
-//						flush();
-//						irf.flush();
-//						frf.flush();
+						// flush();
+						// irf.flush();
+						// frf.flush();
 					}
 				}
 

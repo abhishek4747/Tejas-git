@@ -70,23 +70,7 @@ public class MemUnitIn_MII extends SimulationElement {
 					// Long.MAX_VALUE
 					lat = Long.MAX_VALUE - GlobalClock.getCurrentTime();
 				}
-				// if (ins.getOperationType() == OperationType.store) {
-				// if (!SimulationConfig.detachMemSysData) {
-				// boolean memReqIssued =
-				// containingExecutionEngine.multiIssueInorderCoreMemorySystem
-				// .issueRequestToL1Cache(RequestType.Cache_Write,
-				// ins.getSourceOperand1MemValue());
-				//
-				// if (memReqIssued == false) {
-				// break;
-				// }
-				// }
-				// }
-
-				// if (ins.getSerialNo() != instCtr
-				// && ins.getOperationType() != OperationType.inValid) {
-				// misc.Error.showErrorAndExit("mem out of order!!");
-				// }
+				
 				instCtr++;
 
 				// move ins to next stage

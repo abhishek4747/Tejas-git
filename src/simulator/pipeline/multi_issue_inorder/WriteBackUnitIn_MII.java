@@ -106,10 +106,6 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 					}
 				}
 
-				// if (ins.getSerialNo() != instCtr
-				// && ins.getOperationType() != OperationType.inValid) {
-				// misc.Error.showErrorAndExit("wb out of order!!");
-				// }
 				instCtr++;
 
 				if (SimulationConfig.debugMode) {
@@ -119,12 +115,6 @@ public class WriteBackUnitIn_MII extends SimulationElement {
 				}
 
 				memWbLatch.poll();
-//				try {
-//					CustomObjectPool.getInstructionPool().returnObject(ins);
-//					core.numReturns++;
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
 			} else {
 				break;
 			}

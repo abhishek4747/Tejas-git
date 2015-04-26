@@ -81,8 +81,8 @@
 		<Core>
 			<CoreFrequency>3400</CoreFrequency>		
 			<PipelineType>inOrder</PipelineType>
-<NumReservationStations>15</NumReservationStations>
-<CDBNumPorts>7</CDBNumPorts>
+<NumReservationStations>25</NumReservationStations>
+<CDBNumPorts>9</CDBNumPorts>
 			
 			<BranchPredictor>
 				<Predictor_Mode>GShare</Predictor_Mode>	

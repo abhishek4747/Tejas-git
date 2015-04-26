@@ -221,19 +221,6 @@ public class MultiIssueInorderExecutionEngine extends ExecutionEngine {
 	}
 
 	public void setPerCoreMemorySystemStatistics() {
-		// Statistics.setNoOfTLBRequests(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbRequests(),
-		// core.getCore_number());
-		// Statistics.setNoOfTLBHits(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbHits(),
-		// core.getCore_number());
-		// Statistics.setNoOfTLBMisses(multiIssueInorderCoreMemorySystem.getTLBuffer().getTlbMisses(),
-		// core.getCore_number());
-
-		// Statistics.setNoOfIRequests(multiIssueInorderCoreMemorySystem.getiCache().noOfRequests,
-		// core.getCore_number());
-		// Statistics.setNoOfIHits(multiIssueInorderCoreMemorySystem.getiCache().hits,
-		// core.getCore_number());
-		// Statistics.setNoOfIMisses(multiIssueInorderCoreMemorySystem.getiCache().misses,
-		// core.getCore_number());
 
 		if (SimulationConfig.collectInsnWorkingSetInfo == true) {
 			setInsWorkingSetStats();
