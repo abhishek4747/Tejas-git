@@ -400,7 +400,7 @@ public class XMLParser
 		
 		NodeList powerLst = doc.getElementsByTagName("Power");
 		Node powerNode = powerLst.item(0);
-		Element powerElmnt = (Element) powerNode;
+//		Element powerElmnt = (Element) powerNode;
 
 		//Set core parameters
 		NodeList coreLst = systemElmnt.getElementsByTagName("Core");

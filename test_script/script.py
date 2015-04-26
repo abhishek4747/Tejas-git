@@ -19,7 +19,7 @@ if __name__=="__main__":
 	robsize = 100
 	rssize = 10
 	print "Test Num\tCDB Size\t ROB Size\t RS Size\tTotal cycles"
-	for testno in range(8):
+	for testno in range(2,8):
 		for cdbsize in range(1,11,2):
 			config_file[84] = "<CDBNumPorts>%d</CDBNumPorts>\n"%cdbsize
 			for robsize in range(10,100,10):
