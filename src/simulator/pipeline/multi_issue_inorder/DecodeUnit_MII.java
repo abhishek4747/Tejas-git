@@ -93,7 +93,16 @@ public class DecodeUnit_MII extends SimulationElement {
 
 					} else {
 						Operand o1 = ins.getSourceOperand1();
-						if (o1.getOperandType() != OperandType.immediate
+						if (o1.getOperandType() == OperandType.memory) {
+							RF.getRegister(irf, frf,
+									o1.getMemoryLocationFirstOperand()).Qi = b;
+							RF.getRegister(irf, frf,
+									o1.getMemoryLocationFirstOperand()).busy = true;
+							RF.getRegister(irf, frf,
+									o1.getMemoryLocationSecondOperand()).Qi = b;
+							RF.getRegister(irf, frf,
+									o1.getMemoryLocationSecondOperand()).busy = true;
+						} else if (o1.getOperandType() != OperandType.immediate
 								&& RF.getRegister(irf, frf, o1).busy) {
 							int h = RF.getRegister(irf, frf, o1).Qi;
 							if (rob.rob.absPeek(h).ready) {
@@ -130,7 +139,16 @@ public class DecodeUnit_MII extends SimulationElement {
 								|| ins.getOperationType() == OperationType.integerDiv
 								|| ins.getOperationType() == OperationType.store) {
 							Operand o2 = ins.getSourceOperand2();
-							if (o2.getOperandType() != OperandType.immediate
+							if (o2.getOperandType() == OperandType.memory) {
+								RF.getRegister(irf, frf,
+										o2.getMemoryLocationFirstOperand()).Qi = b;
+								RF.getRegister(irf, frf,
+										o2.getMemoryLocationFirstOperand()).busy = true;
+								RF.getRegister(irf, frf,
+										o2.getMemoryLocationSecondOperand()).Qi = b;
+								RF.getRegister(irf, frf,
+										o2.getMemoryLocationSecondOperand()).busy = true;
+							} else if (o2.getOperandType() != OperandType.immediate
 									&& RF.getRegister(irf, frf, o2).busy) {
 								int h = RF.getRegister(irf, frf, o2).Qi;
 								if (rob.rob.absPeek(h).ready) {
@@ -167,8 +185,19 @@ public class DecodeUnit_MII extends SimulationElement {
 							|| ins.getOperationType() == OperationType.integerMul
 							|| ins.getOperationType() == OperationType.load) {
 						Operand od = ins.getDestinationOperand();
-						RF.getRegister(irf, frf, od).Qi = b;
-						RF.getRegister(irf, frf, od).busy = true;
+						if (od.getOperandType() == OperandType.memory) {
+							RF.getRegister(irf, frf,
+									od.getMemoryLocationFirstOperand()).Qi = b;
+							RF.getRegister(irf, frf,
+									od.getMemoryLocationFirstOperand()).busy = true;
+							RF.getRegister(irf, frf,
+									od.getMemoryLocationSecondOperand()).Qi = b;
+							RF.getRegister(irf, frf,
+									od.getMemoryLocationSecondOperand()).busy = true;
+						} else {
+							RF.getRegister(irf, frf, od).Qi = b;
+							RF.getRegister(irf, frf, od).busy = true;
+						}
 						rob.rob.absPeek(b).dest = od;
 					}
 
