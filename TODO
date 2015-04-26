@@ -1,15 +1,12 @@
 TODO
-	1. CDB Ported structure
-	2. Event Queue
 	3. Sensible Log messages
-	4. CDB handle retire width
 	5. Load Store Test Cases
 	6. Jump/branch statements
 	7. Immediate Handle
 	8. xchange op
 	9. Code Cleaning
 	10. Analysis on optimal values of config file : Report
-
+	11. better handling of memory operands
 TESTS:
 	1. min Dependency
 	2. max Dependency
