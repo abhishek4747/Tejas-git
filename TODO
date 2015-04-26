@@ -1,5 +1,5 @@
 TODO
-	3. Sensible Log messages
+	3. Sensible Log message s
 	5. Load Store Test Cases
 	6. Jump/branch statements
 	7. Immediate Handle
@@ -15,6 +15,6 @@ TESTS:
 	5. load test
 	6. store test
 	7. load store
-	8. 
+	8. immediate alu test
 	9.
 	10.

@@ -1,2 +1,3 @@
 bin/
 src/simulator/config/config.xml
+test_tejas/results/*

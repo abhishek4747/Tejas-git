@@ -10,6 +10,7 @@ import java.lang.reflect.Array;
 
 import main.ArchitecturalComponent;
 import main.Main;
+import config.SimulationConfig;
 import config.XMLParser;
 
 public class PipelineTests {
@@ -274,9 +275,10 @@ public class PipelineTests {
 	public static void main(String[] arguments) {
 		String configFile = arguments[0];
 		int testType = Integer.parseInt(arguments[1]);
-
+		String logfile = arguments[2];
+		SimulationConfig.outputFileName = logfile;
 		setUpBeforeClass(configFile);
-
+		long startTime = System.currentTimeMillis();
 		switch (testType) {
 		case 0:
 			minimumDataDependencies();
@@ -313,7 +315,10 @@ public class PipelineTests {
 		default:
 			misc.Error.showErrorAndExit("unknown test type");
 		}
-		System.out.println("Tests completed!!");
-	}
+		long endTime = System.currentTimeMillis();
+		Statistics.printAllStatistics("Test "+(testType), startTime, endTime);
 
+		System.out.println("\n\nTest completed !!");
+		System.exit(0);
+	}
 }
