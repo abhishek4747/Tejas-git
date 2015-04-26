@@ -1,3 +1,4 @@
 bin/
 src/simulator/config/config.xml
-test_tejas/results/*
+test_script/results/*
+test_script/config.xml

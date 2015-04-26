@@ -6,7 +6,7 @@ if __name__=="__main__":
 	# Read config file
 	tejasdir = "/home/abhishek/Tejas-git/"
 	jarfile = "/home/abhishek/Desktop/test_tejas.jar"
-	scriptdir = tejasdir+"/script/"
+	scriptdir = tejasdir+"test_script/"
 	configfile = scriptdir+'config.xml'
 	resultdir  = scriptdir +'results/'
 	resultfile = resultdir+'result_%d_%d_%d_%d.txt'
