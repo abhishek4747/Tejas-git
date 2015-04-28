@@ -174,7 +174,8 @@ public class DecodeUnit_MII extends SimulationElement {
 							|| ins.getOperationType() == OperationType.integerMul
 							|| ins.getOperationType() == OperationType.load) {
 						Operand od = ins.getDestinationOperand();
-						if (od.getOperandType() == OperandType.memory) {
+						if (od != null
+								&& od.getOperandType() == OperandType.memory) {
 							RF.getRegister(irf, frf,
 									od.getMemoryLocationFirstOperand()).Qi = b;
 							RF.getRegister(irf, frf,
@@ -183,7 +184,7 @@ public class DecodeUnit_MII extends SimulationElement {
 									od.getMemoryLocationSecondOperand()).Qi = b;
 							RF.getRegister(irf, frf,
 									od.getMemoryLocationSecondOperand()).busy = true;
-						} else {
+						} else if (od != null) {
 							RF.getRegister(irf, frf, od).Qi = b;
 							RF.getRegister(irf, frf, od).busy = true;
 						}
@@ -233,7 +234,7 @@ public class DecodeUnit_MII extends SimulationElement {
 
 				numBranches++;
 			}
-			
+
 			if (ins.getSerialNo() != instCtr
 					&& ins.getOperationType() != OperationType.inValid) {
 				misc.Error.showErrorAndExit("decode out of order!!");

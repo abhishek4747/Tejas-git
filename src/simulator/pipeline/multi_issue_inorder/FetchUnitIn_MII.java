@@ -84,6 +84,8 @@ public class FetchUnitIn_MII extends SimulationElement {
 
 			if (newInstruction == null)
 				return;
+			if (newInstruction.getOperationType() == OperationType.nop)
+				continue;
 			numRequestsSent++;
 			if (newInstruction.getOperationType() == OperationType.inValid) {
 				this.fetchBuffer[i] = newInstruction;
