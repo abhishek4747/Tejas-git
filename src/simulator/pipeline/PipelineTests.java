@@ -356,6 +356,10 @@ public class PipelineTests {
 		case 8:
 			branchTest();
 			break;
+			
+		case 9:
+			xchgTest();
+			break;
 
 		default:
 			misc.Error.showErrorAndExit("unknown test type");
@@ -365,5 +369,26 @@ public class PipelineTests {
 
 		System.out.println("\n\nTest completed !!");
 		System.exit(0);
+	}
+
+	private static void xchgTest() {
+		Instruction inst;
+		for (int i = 0; i < 100; i++) {
+			inst = Instruction.getExchangeInstruction(Operand.getIntegerRegister(0), Operand.getIntegerRegister(1));
+			inst.setCISCProgramCounter(i);
+			inputToPipeline.enqueue(inst);
+		}
+
+		inputToPipeline.enqueue(Instruction.getInvalidInstruction());
+
+		// simulate pipeline
+		while (ArchitecturalComponent.getCores()[0].getPipelineInterface()
+				.isExecutionComplete() == false) {
+			ArchitecturalComponent.getCores()[0].getPipelineInterface()
+					.oneCycleOperation();
+			GlobalClock.incrementClock();
+		}
+
+		
 	}
 }

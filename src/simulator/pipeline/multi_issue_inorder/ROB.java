@@ -175,6 +175,12 @@ public class ROB extends SimulationElement {
 				if (ins.getOperationType() == OperationType.store) {
 					toBeFreed = rob.peek(0).r2;
 				}
+				if (ins.getOperationType() == OperationType.xchg){
+					toBeFreed = rob.peek(0).r1;
+					if (toBeFreed != null && toBeFreed.getOperandType() != OperandType.immediate && RF.getRegister(irf, frf, toBeFreed).Qi == rob.getHead())
+						RF.getRegister(irf, frf, toBeFreed).busy = false;
+					toBeFreed = rob.peek(0).r2;
+				}
 				if (toBeFreed != null && toBeFreed.getOperandType() != OperandType.immediate && RF.getRegister(irf, frf, toBeFreed).Qi == rob.getHead()) {
 					RF.getRegister(irf, frf, toBeFreed).busy = false;
 				}

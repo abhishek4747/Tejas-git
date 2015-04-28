@@ -84,12 +84,6 @@ public class DecodeUnit_MII extends SimulationElement {
 					int r = idExRS.getFree();
 					if (opType == OperationType.inValid) {
 						System.out.println("End Here.");
-						idExRS.rs[r].busy = true;
-						idExRS.rs[r].Qi = b;
-						idExRS.rs[r].opType = ins.getOperationType();
-						rob.add(ins, GlobalClock.getCurrentTime() + 1);
-						System.out.println("\tAdded to rob" + r + " Optype"
-								+ ins.getOperationType());
 
 					} else {
 						Operand o1 = ins.getSourceOperand1();
@@ -119,12 +113,11 @@ public class DecodeUnit_MII extends SimulationElement {
 							idExRS.rs[r].Vj = o1;
 							idExRS.rs[r].Qj = 0;
 						}
-
-						idExRS.rs[r].busy = true;
-						idExRS.rs[r].Qi = b;
-						idExRS.rs[r].opType = ins.getOperationType();
-						idExRS.rs[r].executionComplete = false;
 					}
+					idExRS.rs[r].busy = true;
+					idExRS.rs[r].Qi = b;
+					idExRS.rs[r].opType = ins.getOperationType();
+					idExRS.rs[r].executionComplete = false;
 
 					int slot = rob.add(ins, GlobalClock.getCurrentTime() + 1);
 					System.out.println("\tAdded to rob" + r + " Optype"
@@ -202,6 +195,8 @@ public class DecodeUnit_MII extends SimulationElement {
 
 					if (ins.getOperationType() == OperationType.xchg) {
 						RF.getRegister(irf, frf, ins.getSourceOperand1()).Qi = b;
+						RF.getRegister(irf, frf, ins.getSourceOperand1()).busy = true;
+						RF.getRegister(irf, frf, ins.getSourceOperand2()).Qi = b;
 						RF.getRegister(irf, frf, ins.getSourceOperand2()).busy = true;
 					}
 				}
